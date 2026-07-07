@@ -215,6 +215,8 @@ async function createFirmOwner({ firmId, email, fullName, passwordHash, ssoProvi
     full_name: fullName,
     role: 'FIRM_OWNER',
     is_active: true,
+    invite_status: 'ACCEPTED',
+    email_confirmed_at: new Date().toISOString(),
   };
   if (passwordHash !== undefined && passwordHash !== null) {
     row.password_hash = passwordHash;
