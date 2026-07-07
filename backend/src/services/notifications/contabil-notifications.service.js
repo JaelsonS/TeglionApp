@@ -131,17 +131,39 @@ async function notifyFirmConsultationBooked({ staffEmail, firmName, clientName, 
 async function notifyFirmStaffWelcome({ staffEmail, staffName, firmName }) {
   if (!staffEmail) return { skipped: true };
   const appName = firmName || 'TegLion';
+  const loginLink = `${APP_URL}/auth/firm/login`;
   return sendEmail({
     to: staffEmail,
     subject: `${appName} — acesso criado à sua conta`,
     html: `
-      <p>Olá${staffName ? ` ${staffName}` : ''},</p>
-      <p>Foi criada uma conta de colaborador para si no <strong>${appName}</strong>.</p>
-      <p><a href="${APP_URL}/auth/firm/login">Entrar no TegLion</a></p>
-      <p style="font-size:13px;color:#64748b">Se ainda não recebeu a sua palavra-passe inicial, contacte o dono/administrador do escritório.</p>
-      <p>TegLion</p>
+      <div style="font-family:Arial,sans-serif;line-height:1.5;color:#0f172a;max-width:620px">
+        <p>Olá${staffName ? ` ${staffName}` : ''},</p>
+        <p>Foi criada uma conta de colaborador para si no <strong>${appName}</strong>.</p>
+        <p style="margin:24px 0 16px">
+          <a href="${loginLink}" style="display:inline-block;padding:12px 24px;background:#0f2942;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600">
+            Entrar no TegLion
+          </a>
+        </p>
+        <p style="font-size:13px;color:#475569;margin:0 0 6px">Se o botão não abrir, copie e cole este link no navegador:</p>
+        <p style="margin:0 0 16px">
+          <a href="${loginLink}" style="color:#0f2942;word-break:break-all">${loginLink}</a>
+        </p>
+        <p style="font-size:13px;color:#64748b">Se ainda não recebeu a sua palavra-passe inicial, contacte o dono/administrador do escritório.</p>
+        <p style="margin-top:20px">TegLion</p>
+      </div>
     `,
-    text: `A sua conta foi criada no ${appName}. Entre em ${APP_URL}/auth/firm/login`,
+    text: [
+      `Olá${staffName ? ` ${staffName}` : ''},`,
+      '',
+      `Foi criada uma conta de colaborador para si no ${appName}.`,
+      '',
+      'Entrar no TegLion:',
+      loginLink,
+      '',
+      'Se ainda não recebeu a sua palavra-passe inicial, contacte o dono/administrador do escritório.',
+      '',
+      'TegLion',
+    ].join('\n'),
   });
 }
 
@@ -153,13 +175,30 @@ async function notifyFirmMemberInvite({ staffEmail, staffName, firmName, inviteT
     to: staffEmail,
     subject: `${firmName || 'TegLion'} — convite para equipa`,
     html: `
-      <p>Olá${staffName ? ` ${staffName}` : ''},</p>
-      <p>Recebeu um convite para entrar na equipa do escritório <strong>${firmName || 'TegLion'}</strong>.</p>
-      <p><a href="${link}" style="display:inline-block;padding:12px 24px;background:#0f2942;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">Aceitar convite</a></p>
-      <p style="font-size:13px;color:#64748b">Convite válido até ${expiry}. Se não esperava este e-mail, ignore.</p>
-      <p>TegLion</p>
+      <div style="font-family:Arial,sans-serif;line-height:1.5;color:#0f172a;max-width:620px">
+        <p>Olá${staffName ? ` ${staffName}` : ''},</p>
+        <p>Recebeu um convite para entrar na equipa do escritório <strong>${firmName || 'TegLion'}</strong>.</p>
+        <p style="margin:24px 0 16px">
+          <a href="${link}" style="display:inline-block;padding:12px 24px;background:#0f2942;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">Aceitar convite</a>
+        </p>
+        <p style="font-size:13px;color:#475569;margin:0 0 6px">Se o botão não abrir, copie e cole este link no navegador:</p>
+        <p style="margin:0 0 16px"><a href="${link}" style="color:#0f2942;word-break:break-all">${link}</a></p>
+        <p style="font-size:13px;color:#64748b">Convite válido até ${expiry}. Se não esperava este e-mail, ignore.</p>
+        <p style="margin-top:20px">TegLion</p>
+      </div>
     `,
-    text: `Convite equipa TegLion: ${link} (válido até ${expiry})`,
+    text: [
+      `Olá${staffName ? ` ${staffName}` : ''},`,
+      '',
+      `Recebeu um convite para entrar na equipa do escritório ${firmName || 'TegLion'}.`,
+      '',
+      'Aceitar convite:',
+      link,
+      '',
+      `Convite válido até ${expiry}. Se não esperava este e-mail, ignore.`,
+      '',
+      'TegLion',
+    ].join('\n'),
   });
 }
 

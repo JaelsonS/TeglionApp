@@ -29,10 +29,26 @@ export const teamManagementApi = {
         role?: TeamMember['role']
         jobTitle?: string | null
         departmentId?: string | null
-    }) => api.post('/contabil/team/invites', payload).then((r) => r.data as { member: TeamMember; invite: { id: string; expiresAt: string } }),
+    }) =>
+        api.post('/contabil/team/invites', payload).then(
+            (r) =>
+                r.data as {
+                    member: TeamMember
+                    invite: { id: string; expiresAt: string }
+                    emailSent?: boolean
+                    emailError?: string | null
+                },
+        ),
 
     resendInvite: (memberId: string) =>
-        api.post(`/contabil/team/${encodeURIComponent(memberId)}/resend-invite`).then((r) => r.data as { invite: { id: string; expiresAt: string } }),
+        api.post(`/contabil/team/${encodeURIComponent(memberId)}/resend-invite`).then(
+            (r) =>
+                r.data as {
+                    invite: { id: string; expiresAt: string }
+                    emailSent?: boolean
+                    emailError?: string | null
+                },
+        ),
 
     revokeInvite: (memberId: string) =>
         api.post(`/contabil/team/${encodeURIComponent(memberId)}/revoke-invite`).then((r) => r.data as { revoked: boolean }),
