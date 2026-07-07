@@ -9,6 +9,7 @@ interface ImportMetaEnv {
   readonly VITE_API_NO_RENDER_FALLBACK?: string
   readonly VITE_ALLOW_API_BASE_QUERY?: string
   readonly VITE_PRODUCT_MODE?: string
+  readonly VITE_ENABLE_PWA?: string
 }
 
 interface ImportMeta {
