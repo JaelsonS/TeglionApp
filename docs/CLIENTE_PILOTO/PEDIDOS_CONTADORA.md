@@ -1,0 +1,28 @@
+# PEDIDOS DA CONTADORA
+
+## P0 - Urgente
+- [x] Corrigir botão Validar NIF
+- [x] Adicionar campo Tipo de Cliente no cadastro
+- [x] Alterar Data de Constituição para Início de Atividade
+- [x] Tornar Capital Social opcional
+- [x] Substituir Forma Jurídica por Tipo de Contabilidade
+- [x] Adicionar Regime IVA obrigatório com motivo de isenção condicional
+- [x] Adicionar campos de Segurança Social
+- [x] Adicionar campos de Identificação
+- [x] Separação entre Obrigações Fiscais e Tarefas Internas
+
+## P1 - Importante
+- [ ] Rever campos exibidos dinamicamente conforme o Tipo de Cliente
+- [ ] Garantir persistência dos novos campos no perfil do cliente
+- [ ] Validar responsividade dos formulários de cadastro
+
+## P2 - Futuro
+- [ ] Melhorar enriquecimento fiscal automático
+- [ ] Rever experiência de onboarding do cliente piloto
+- [ ] Expandir validações assistidas por contexto fiscal
+
+## Concluído
+- [x] Agenda Fiscal do Cliente
+- [x] Sistema de notificações do portal
+- [x] Chat com edição de mensagens
+- [x] Ajustes de scroll e navegação móvel do portal

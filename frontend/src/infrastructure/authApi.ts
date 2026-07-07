@@ -1,0 +1,79 @@
+import { broadcastAuthLogout } from '@/shared/utils/authRefreshCoordinator'
+import { logger } from '@/shared/utils/logger'
+
+import { api, getApiBaseUrlResolved, refreshAccessToken, refreshApi } from '@/infrastructure/http/apiClient'
+import { CSRF_HEADER_NAME, ensureCsrfToken } from '@/infrastructure/http/csrf'
+
+export const authApi = {
+  recover: async (payload: { email: string; country?: string; locale?: string; role?: string }) => {
+    logger.info('Iniciando recuperacao de senha...')
+    const csrfToken = await ensureCsrfToken(refreshApi)
+
+    return fetch(`${getApiBaseUrlResolved()}/auth/recover`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : {}),
+      },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          const text = await response.text()
+          throw new Error(`Erro ${response.status}: ${text}`)
+        }
+        return response.json()
+      })
+      .then((data) => {
+        logger.info('Recuperacao processada', data)
+        return data
+      })
+      .catch((error) => {
+        logger.error('Erro na recuperacao', error)
+        throw { message: error.message, response: { data: { error: error.message } } }
+      })
+  },
+
+  loginFirm: (payload: {
+    email: string
+    password: string
+    country?: string
+    locale?: string
+    rememberMe?: boolean
+  }) => api.post('/auth/login-firm', payload).then((r) => r.data),
+
+  loginClient: (payload: {
+    email: string
+    password: string
+    phone?: string
+    country?: string
+    locale?: string
+    rememberMe?: boolean
+    firmSlug?: string
+  }) => api.post('/auth/login-client', payload).then((r) => r.data),
+
+  registerFirm: (payload: { firmName: string; fullName: string; email: string; password: string }) =>
+    api
+      .post('/auth/register-firm', {
+        firmName: payload.firmName,
+        ownerName: payload.fullName,
+        email: payload.email,
+        password: payload.password,
+      })
+      .then((r) => r.data),
+
+  refresh: () => refreshAccessToken().then((ok) => ({ ok })),
+
+  logout: () => {
+    broadcastAuthLogout()
+    return refreshApi.post('/auth/logout').then((r) => r.data)
+  },
+
+  me: () => api.get('/auth/me').then((r) => r.data),
+
+  completeOnboarding: () => api.post('/auth/complete-onboarding').then((r) => r.data),
+
+  reset: (payload: { token: string; newPassword: string; country?: string; locale?: string }) =>
+    api.post('/auth/reset', payload, { timeout: 15000 }).then((r) => r.data),
+}

@@ -1,0 +1,23 @@
+module.exports = {
+  errors: {
+    internal_error: 'Erro interno do servidor.',
+    not_found: 'Recurso não encontrado.',
+    route_not_found: 'Rota não encontrada.',
+    bad_request: 'Pedido inválido.',
+    validation_error: 'Dados inválidos.',
+    unauthorized: 'Não autenticado.',
+    forbidden: 'Sem permissão para executar esta ação.',
+    token_missing: 'Token de acesso ausente.',
+    token_invalid: 'Token inválido ou expirado.',
+    invalid_password: 'E-mail ou palavra-passe incorretos. Verifique os dados e tente novamente.',
+    email_not_found: 'E-mail ou palavra-passe incorretos. Verifique os dados e tente novamente.',
+    account_locked: 'Muitas tentativas falhadas. Aguarde alguns minutos e tente novamente.',
+    weak_password: 'A palavra-passe não cumpre os requisitos de segurança.',
+    account_inactive: 'Conta desactivada. Contacte o escritório.',
+    firm_not_found: 'Escritório não encontrado.',
+    consent_required: 'É necessário aceitar a cobrança e a política de privacidade.',
+    invalid_quantity_sms_extra: 'Quantidade inválida para SMS extra.',
+    invalid_quantity_whatsapp_extra: 'Quantidade inválida para WhatsApp extra.',
+    whatsapp_extra_disabled: 'Compra de WhatsApp extra indisponível no momento.',
+  },
+};

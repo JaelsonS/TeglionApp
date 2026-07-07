@@ -1,0 +1,23 @@
+{
+  "name": "teglion",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "build": "npm run build -w frontend",
+    "build:spa": "npm run build:spa -w frontend",
+    "test": "npm run test -w frontend",
+    "test:backend": "node --test backend/src/utils/file-magic-bytes.test.js",
+    "tsc": "npm exec -w frontend -- tsc --noEmit",
+    "smoke:pilot": "npm run smoke:pilot -w backend",
+    "release:readiness": "node tools/ci/release-readiness.mjs",
+    "dev:frontend": "npm run dev -w frontend",
+    "dev:backend": "npm run dev -w backend",
+    "check:file-sizes": "node tools/ci/check-file-sizes.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

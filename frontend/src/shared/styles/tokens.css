@@ -1,0 +1,104 @@
+/**
+ * TegLion — tokens CSS (source of truth para Tailwind + .cb-*)
+ */
+@layer base {
+  :root {
+    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-display: 'Inter', system-ui, sans-serif;
+
+    /* Portal cliente — referência oklch (mapeado em HSL para Tailwind) */
+    --pc-bg-oklch: oklch(0.99 0.002 95);
+    --pc-fg-oklch: oklch(0.22 0.04 250);
+    --pc-primary-oklch: oklch(0.28 0.06 250);
+    --pc-accent-oklch: oklch(0.55 0.18 260);
+
+    /* Brand TegLion */
+    --cb-brand: 210 52% 16%;
+    --cb-brand-hover: 210 48% 22%;
+    --cb-accent: 243 75% 59%;
+    --cb-gold: 38 62% 48%;
+    --cb-canvas: 40 20% 97%;
+
+    --brand-navy: var(--cb-brand);
+    --brand-blue: 213 94% 46%;
+
+    /* Semantic */
+    --cb-success: 160 84% 30%;
+    --cb-warning: 32 95% 44%;
+    --cb-danger: 0 72% 51%;
+    --cb-info: 199 89% 40%;
+
+    /* Shadcn / Tailwind base — alinhado Linear/Stripe portal */
+    --background: 40 10% 99%;
+    --foreground: 215 45% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: var(--cb-brand);
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 16% 93%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 14% 94%;
+    --muted-foreground: 215 16% 42%;
+    --accent: 210 16% 93%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: var(--cb-danger);
+    --destructive-foreground: 0 0% 98%;
+    --border: 214 18% 88%;
+    --input: 214 18% 88%;
+    --ring: 221 83% 53%;
+    --radius: 0.75rem;
+
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+
+    /* Motion */
+    --cb-motion-fast: 150ms;
+    --cb-motion-normal: 250ms;
+    --cb-motion-slow: 400ms;
+
+    /* Shadows */
+    --cb-shadow-card: 0 1px 3px hsl(var(--cb-brand) / 0.06), 0 8px 24px hsl(var(--cb-brand) / 0.04);
+    --cb-shadow-elevated: 0 4px 12px hsl(var(--cb-brand) / 0.08), 0 16px 40px hsl(var(--cb-brand) / 0.06);
+
+    /* Tipografia — escala unificada (4 níveis, min 12px) */
+    --text-display: 1.75rem;
+    --text-title: 1.25rem;
+    --text-body: 0.875rem;
+    --text-caption: 0.75rem;
+    --text-min-mobile: 12px;
+
+    /* Escritório — sidebar expandida com labels */
+    --cb-firm-sidebar-width: 16.5rem;
+    --cb-firm-rail-width: var(--cb-firm-sidebar-width);
+  }
+
+  .dark {
+    --background: 215 35% 9%;
+    --foreground: 210 20% 96%;
+    --card: 215 28% 12%;
+    --card-foreground: 210 20% 96%;
+    --popover: 215 28% 12%;
+    --popover-foreground: 210 20% 96%;
+    --primary: 210 25% 92%;
+    --primary-foreground: 215 45% 10%;
+    --secondary: 215 22% 16%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 215 22% 16%;
+    --muted-foreground: 215 15% 62%;
+    --accent: 215 22% 16%;
+    --accent-foreground: 210 20% 96%;
+    --destructive: 0 55% 42%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 215 20% 20%;
+    --input: 215 20% 20%;
+    --ring: 221 70% 58%;
+    --cb-success: 160 50% 42%;
+    --cb-warning: 38 80% 50%;
+    --cb-danger: 0 55% 48%;
+  }
+}

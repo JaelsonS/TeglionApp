@@ -1,0 +1,151 @@
+.idea/
+.vscode/
+
+# Dependencies
+node_modules/
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Testing
+/coverage
+test-results/
+playwright-report/
+blob-report/
+
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Production builds
+/build
+dist/
+dist
+
+# Environment files (comprehensive coverage)
+
+*token.json*
+*credentials.json*
+
+# Logs and debug files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dump.rdb
+
+# System files
+.DS_Store
+*.pem
+
+# Python
+__pycache__/
+*pyc*
+venv/
+.venv/
+
+# Development tools
+chainlit.md
+.chainlit
+.ipynb_checkpoints/
+.ac
+
+# Deployment
+.vercel
+
+# Data and databases
+agenthub/agents/youtube/db
+
+# Archive files and large assets
+**/*.zip
+**/*.tar.gz
+**/*.tar
+**/*.tgz
+*.pack
+*.deb
+*.dylib
+
+# Build caches
+.cache/
+
+# Mobile development
+android-sdk/ 
+
+# ============================================
+# HD EXTERNO / DUPLICAÇÕES / BACKUPS
+# ============================================
+
+# Arquivos temporários de sistemas de arquivos externos
+._*                    # Arquivos de recursos do macOS em volumes externos
+.DS_Store              # Já tem, mas reforça
+.Spotlight-V100        # Índice do Spotlight
+.Trashes               # Lixeira
+ehthumbs.db            # Thumbnails do Windows
+Thumbs.db              # Thumbnails do Windows
+desktop.ini           # Configurações de pasta do Windows
+
+# Backups e versões antigas
+*~                     # Arquivos de backup do Emacs
+*.swp                  # Swap files do Vim
+*.swo                  # Outros swap files
+*.bak                  # Backups gerais
+*.backup               # Backups
+*.old                  # Versões antigas
+*.orig                 # Arquivos de merge
+
+# Cache do projeto
+.eslintcache
+.stylelintcache
+
+# Lock files de outros gerenciadores de pacotes
+package-lock.json      # npm
+pnpm-lock.yaml         
+shrinkwrap.yaml        
+
+# Builds específicos do Vercel
+.vercel                
+.vercel_build_output  
+
+# Logs de desenvolvimento
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Editor específico
+.vscode/             
+.idea/                 
+*.suo                  
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Testes e coverage
+.nyc_output/
+coverage/
+*.lcov
+
+# Ambiente e configurações locais
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.development
+.env.production
+
+# Arquivos do sistema operacional
+*.pid
+*.seed
+*.pid.lock

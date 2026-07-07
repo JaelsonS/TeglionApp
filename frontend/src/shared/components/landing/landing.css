@@ -1,0 +1,95 @@
+.landing-page {
+  --landing-bg: #fafaf7;
+  --landing-navy: #0f2942;
+  --landing-navy-hover: #1a3a5c;
+  --landing-body: #4a5568;
+  --landing-mint: #c8e6d0;
+  --landing-ice: #e3f0ff;
+  background: var(--landing-bg);
+  color: var(--landing-body);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.landing-page h1,
+.landing-page h2,
+.landing-page h3 {
+  color: var(--landing-navy);
+  letter-spacing: -0.02em;
+}
+
+.landing-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--landing-navy);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.landing-btn-primary:hover {
+  background: var(--landing-navy-hover);
+  transform: scale(1.02);
+}
+
+.landing-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--landing-navy);
+  transition: background 0.2s ease;
+}
+
+.landing-btn-ghost:hover {
+  background: rgba(15, 41, 66, 0.06);
+}
+
+.landing-section {
+  padding: 4rem 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .landing-section {
+    padding: 6rem 2rem;
+  }
+}
+
+.landing-container {
+  width: 100%;
+  max-width: 72rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.landing-card {
+  border-radius: 14px;
+  border: 1px solid rgba(15, 41, 66, 0.08);
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.landing-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(15, 41, 66, 0.06);
+}
+
+.landing-header-scrolled {
+  background: rgba(250, 250, 247, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(15, 41, 66, 0.08);
+}
+
+/* CTA final — fundo escuro; título fora da cor navy global dos h2 */
+.landing-cta-panel h2 {
+  color: #fff;
+}

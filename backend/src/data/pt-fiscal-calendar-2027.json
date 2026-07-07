@@ -1,0 +1,115 @@
+[
+  {
+    "id": "iva-mensal-jan",
+    "title": "IVA — entrega mensal (Janeiro)",
+    "category": "IVA",
+    "dueDate": "2027-02-20",
+    "period": "2027-01",
+    "authority": "AT",
+    "regimes": ["mensal"],
+    "notes": "Declaração periódica de IVA — regime mensal. Confirmar calendário oficial AT."
+  },
+  {
+    "id": "iva-mensal-fev",
+    "title": "IVA — entrega mensal (Fevereiro)",
+    "category": "IVA",
+    "dueDate": "2027-03-20",
+    "period": "2027-02",
+    "authority": "AT",
+    "regimes": ["mensal"]
+  },
+  {
+    "id": "iva-trimestral-q1",
+    "title": "IVA — entrega trimestral (T1)",
+    "category": "IVA",
+    "dueDate": "2027-05-20",
+    "period": "2027-Q1",
+    "authority": "AT",
+    "regimes": ["trimestral"],
+    "notes": "1.º trimestre (Jan–Mar)."
+  },
+  {
+    "id": "ss-contribuicoes-mar",
+    "title": "Segurança Social — contribuições independentes",
+    "category": "Segurança Social",
+    "dueDate": "2027-03-20",
+    "period": "2027-02",
+    "authority": "Segurança Social",
+    "regimes": ["trabalhador_independente"]
+  },
+  {
+    "id": "ss-contribuicoes-abr",
+    "title": "Segurança Social — contribuições independentes",
+    "category": "Segurança Social",
+    "dueDate": "2027-04-20",
+    "period": "2027-03",
+    "authority": "Segurança Social",
+    "regimes": ["trabalhador_independente"]
+  },
+  {
+    "id": "saft-mar",
+    "title": "SAF-T (PT) — comunicação mensal",
+    "category": "SAF-T",
+    "dueDate": "2027-04-05",
+    "period": "2027-03",
+    "authority": "AT",
+    "regimes": ["empresa", "trabalhador_independente"]
+  },
+  {
+    "id": "irs-modelo3-abertura",
+    "title": "IRS — início entrega Modelo 3 (rendimentos 2026)",
+    "category": "IRS",
+    "dueDate": "2027-04-01",
+    "period": "2026",
+    "authority": "AT",
+    "regimes": ["todos"],
+    "notes": "Janela típica Abril–Junho. Confirmar datas AT."
+  },
+  {
+    "id": "irs-modelo3-fecho",
+    "title": "IRS — fim entrega Modelo 3 (rendimentos 2026)",
+    "category": "IRS",
+    "dueDate": "2027-06-30",
+    "period": "2026",
+    "authority": "AT",
+    "regimes": ["todos"]
+  },
+  {
+    "id": "ies-2026",
+    "title": "IES — Informação Empresarial Simplificada",
+    "category": "IES",
+    "dueDate": "2027-07-15",
+    "period": "2026",
+    "authority": "AT",
+    "regimes": ["empresa"],
+    "notes": "Prazo habitual para sociedades. Confirmar AT."
+  },
+  {
+    "id": "irc-pagamento-conta",
+    "title": "IRC — pagamento por conta (1.ª prestação)",
+    "category": "IRC",
+    "dueDate": "2027-07-31",
+    "period": "2027",
+    "authority": "AT",
+    "regimes": ["empresa"]
+  },
+  {
+    "id": "retencao-fonte-mar",
+    "title": "Retenções na fonte — declaração mensal",
+    "category": "Retenções",
+    "dueDate": "2027-04-20",
+    "period": "2027-03",
+    "authority": "AT",
+    "regimes": ["empresa"]
+  },
+  {
+    "id": "declaracao-iva-dez",
+    "title": "IVA — entrega mensal (Dezembro)",
+    "category": "IVA",
+    "dueDate": "2027-01-20",
+    "period": "2026-12",
+    "authority": "AT",
+    "regimes": ["mensal"]
+  }
+]
+

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://teglion.com/sitemap.xml
+
+# Feed RSS (blog)
+# https://teglion.com/rss.xml

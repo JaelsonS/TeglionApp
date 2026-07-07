@@ -1,0 +1,205 @@
+import type { BlogPost } from '@/content/blog/types'
+import {
+  affiliateSection,
+  articleSection,
+  internalLinksSection,
+  keyTakeaways,
+  legalCallout,
+  proseParagraphs,
+  quoteBlock,
+  teglionCtaBlock,
+} from '@/content/blog/shared'
+
+export const postGuiaCompletoIndependente: BlogPost = {
+  slug: 'guia-completo-trabalhador-independente-portugal-2026',
+  title: 'Guia completo do trabalhador independente em Portugal (2026)',
+  excerpt:
+    'Do zero ao primeiro recibo, SS, IRS e arquivo: mapa completo com ligações a todos os guias do blog — para freelancers e prestadores de serviços em Portugal.',
+  publishedAt: '2026-06-17',
+  updatedAt: '2026-06-17',
+  author: 'Equipa TegLion',
+  category: 'Guias completos',
+  tags: ['trabalhador independente', 'freelancer', 'recibos verdes', 'IRS', 'guia 2026', 'Portugal'],
+  readMinutes: 28,
+  featured: true,
+  series: {
+    id: 'independente-2026',
+    title: 'Trabalhador independente em Portugal',
+    description: 'Série completa para quem abre actividade ou já factura em recibos verdes.',
+    part: 1,
+    totalParts: 5,
+  },
+  coverImage: {
+    src: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1200&h=630&fit=crop&q=80',
+    alt: 'Profissional a trabalhar com portátil num café',
+    width: 1200,
+    height: 630,
+  },
+  seo: {
+    title: 'Guia completo trabalhador independente Portugal 2026 | Blog TegLion',
+    description:
+      'Tudo o que precisa para ser trabalhador independente em Portugal: abrir actividade, recibos verdes, Segurança Social, IRS, IVA e organização. Mapa com links para cada tema.',
+    keywords: [
+      'trabalhador independente Portugal',
+      'guia freelancer Portugal 2026',
+      'recibos verdes guia completo',
+      'abrir actividade Portugal',
+    ],
+  },
+  relatedSlugs: [
+    'calendario-fiscal-portugal-2026-completo',
+    'deducoes-irs-portugal-guia-completo',
+    'abrir-empresa-individual-eni',
+    'como-emitir-recibo-verde-passo-a-passo',
+    'declaracao-irs-guia-pratico',
+    'obrigacoes-fiscais-mes-a-mes',
+  ],
+  blocks: [
+    legalCallout(),
+    keyTakeaways([
+      'Trabalhador independente em Portugal = actividade nas Finanças + Segurança Social + facturação regular + IRS anual.',
+      'Recibos verdes servem muitos freelancers no início; IVA e software certificado entram quando o negócio cresce.',
+      'Arquivo digital desde o mês 1 evita caça a PDFs em Abril.',
+      'Contador certificado (OCC) compensa quando há vários rendimentos, imóveis ou actividade B2B.',
+      'Este artigo é o índice mestre — cada fase tem guias profundos ligados abaixo.',
+    ]),
+    ...proseParagraphs(
+      'Ser trabalhador independente em Portugal é mais do que «emitir recibos verdes». Há um percurso claro — abrir actividade, estar em dia na Segurança Social, facturar correctamente, guardar comprovativos e entregar o IRS no prazo. Este guia é o mapa: em cada fase, aprofunda com os artigos ligados abaixo.',
+      'Ao longo de 2026, o TegLion publicou dezenas de artigos sobre cada tema. Este guia não repete tudo — organiza-o. Leia primeiro a visão geral aqui; depois escolha a fase que precisa de resolver hoje (abrir actividade, emitir o primeiro recibo, perceber SS, preparar IRS, etc.).',
+      'Se ainda está a decidir se vale a pena abrir actividade ou trabalhar «a negro», fale com um contador antes de facturar. O custo de regularizar atrasos supera quase sempre o custo de começar bem.',
+    ),
+    quoteBlock(
+      'A maioria dos problemas fiscais de freelancers não vem de fraude — vem de desorganização e de não saber o que vem a seguir no calendário.',
+      'Prática comum em escritórios de contabilidade',
+    ),
+    ...articleSection({
+      h2: 'Quem é trabalhador independente em Portugal?',
+      id: 'quem-e',
+      paragraphs: [
+        'Em termos práticos, é quem presta serviços ou vende bens por conta própria, com actividade aberta nas Finanças (código de actividade CAE adequado). Pode ser designer, programador, consultor, fotógrafo, professor particular, ou qualquer profissão liberal enquadrada na lei.',
+        'Não confunda «ter NIF» com «ter actividade aberta». Muitas pessoas têm NIF há anos mas só abrem início de actividade quando começam a facturar — esse é o momento em que o calendário fiscal começa a contar.',
+      ],
+      blocks: [
+        {
+          type: 'callout',
+          variant: 'info',
+          title: 'ENI vs sociedade',
+          text: 'Empresário em Nome Individual (ENI) é a forma mais simples para começar. Sociedade (Lda.) faz sentido quando há sócios, investimento estruturado ou necessidade de separar património pessoal e empresarial — decisão para contador e advogado.',
+        },
+      ],
+    }),
+    ...articleSection({
+      h2: 'Quanto custa estar regularizado?',
+      id: 'custos',
+      paragraphs: [
+        'Além de impostos sobre rendimento (IRS) e eventual IVA, há contribuições mensais à Segurança Social. O valor depende da base contributiva declarada. Nos primeiros meses existem regras de transição — não assuma que «ainda não facturei muito» dispensa pagamento.',
+        'Software de facturação pode ser gratuito no início (recibos verdes no portal) ou pago quando precisa de certificação AT. Contabilista: muitos cobram mensalidade ou pacote anual — comparar preço com o tempo que poupa.',
+      ],
+      blocks: [{ type: 'link', label: 'Quanto custa abrir actividade?', slug: 'quanto-custa-abrir-actividade-portugal' }],
+    }),
+    { type: 'h2', id: 'fases', text: 'As 6 fases do independente' },
+    {
+      type: 'ol',
+      items: [
+        'Decidir estrutura (ENI, unipessoal, etc.) e abrir actividade nas Finanças',
+        'Inscrever-se na Segurança Social e perceber contribuições',
+        'Emitir recibos ou facturas conforme o regime',
+        'Cumprir obrigações mensais e trimestrais (IVA, retenções, SS)',
+        'Organizar arquivo digital e físico de comprovativos',
+        'Entregar IRS anual e planear o ano seguinte',
+      ],
+    },
+    ...internalLinksSection({
+      title: 'Fase 1 — Abrir actividade',
+      intro: 'Comece por aqui se ainda não tem NIF de actividade aberta.',
+      slugs: [
+        'abrir-empresa-individual-eni',
+        'quanto-custa-abrir-actividade-portugal',
+        'portal-financas-guia-completo-iniciantes',
+      ],
+    }),
+    ...internalLinksSection({
+      title: 'Fase 2 — Facturar e receber',
+      intro: 'Depois da actividade aberta, o dia-a-dia passa por emitir documentos de venda.',
+      slugs: [
+        'como-emitir-recibo-verde-passo-a-passo',
+        'recibos-verdes-vs-faturacao',
+        'escolher-software-faturacao-portugal',
+      ],
+    }),
+    ...internalLinksSection({
+      title: 'Fase 3 — Segurança Social e obrigações',
+      intro: 'Mensalmente há prazos que não perdoam — marque no calendário.',
+      slugs: [
+        'seguranca-social-trabalhador-independente',
+        'obrigacoes-fiscais-mes-a-mes',
+        'retencao-fonte-recibos-verdes',
+      ],
+    }),
+    ...internalLinksSection({
+      title: 'Fase 4 — IRS e regimes',
+      intro: 'No início do ano, o IRS junta tudo o que fez nos 12 meses anteriores.',
+      slugs: [
+        'deducoes-irs-portugal-guia-completo',
+        'declaracao-irs-guia-pratico',
+        'prazos-irs-2026-independentes',
+        'irs-recibos-verdes-erros-comuns',
+        'regime-simplificado-vs-contabilidade-organizada',
+      ],
+    }),
+    ...internalLinksSection({
+      title: 'Calendário completo 2026',
+      intro: 'Todos os prazos num só artigo — use como referência ao longo do ano.',
+      slugs: ['calendario-fiscal-portugal-2026-completo', 'obrigacoes-fiscais-mes-a-mes'],
+    }),
+    ...internalLinksSection({
+      title: 'Fase 5 — IVA (quando aplicável)',
+      intro: 'Muitos começam isentos; saiba quando isso muda.',
+      slugs: ['iva-quando-preciso-de-me-registar', 'quando-passar-de-isento-a-iva'],
+    }),
+    ...internalLinksSection({
+      title: 'Fase 6 — Organização e contador',
+      intro: 'Quem organiza documentos poupa horas — e dinheiro em coimas.',
+      slugs: [
+        'organizar-documentos-fiscais-arquivo-digital',
+        'proteger-dados-fiscais-freelancer-portugal',
+        'como-escolher-contabilista-portugal',
+      ],
+    }),
+    teglionCtaBlock({
+      variant: 'client',
+      title: 'O seu contador pede documentos por WhatsApp?',
+      text: 'Peça ao escritório para activar o portal TegLion — upload seguro, prazos visíveis e mensagens num só sítio.',
+    }),
+    ...affiliateSection({
+      heading: 'Recursos recomendados para quem está a começar',
+      headingId: 'recursos',
+      intro:
+        'Além dos nossos guias gratuitos, estes recursos em português ajudam a consolidar o básico. Links de afiliado — sem custo extra para si.',
+      items: [
+        {
+          key: 'hotmartReciboVerde7Dias',
+          leadIn:
+            'Se prefere um ebook passo-a-passo com checklists impressos, este é o mais pedido por quem abre actividade pela primeira vez.',
+          title: 'Recibo Verde em 7 Dias (Hotmart)',
+          description: 'Actividade, SS, emissão de recibos e declarações iniciais.',
+        },
+        {
+          key: 'hotmartIrsReciboVerde',
+          leadIn:
+            'Quando chegar a altura do IRS, este guia prático complementa o nosso artigo sobre declaração anual.',
+          title: 'IRS & Recibo Verde — Guia Prático (Hotmart)',
+          description: 'Foco em rendimentos de prestação de serviços e erros comuns.',
+        },
+        {
+          key: 'amazonAgendaBezend',
+          leadIn:
+            'Um calendário físico com prazos SS e AT anotados à mão reduz surpresas — especialmente no primeiro ano.',
+          title: 'Agenda semanal A5 (Amazon)',
+          description: 'Marque contribuições, IVA e entrega de IRS.',
+        },
+      ],
+    }),
+    legalCallout(),
+  ],
+}

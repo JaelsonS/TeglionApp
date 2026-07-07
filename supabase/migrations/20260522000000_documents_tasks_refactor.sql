@@ -1,0 +1,2 @@
+-- Substituído por 20260522100000_architecture_debt_fix.sql (separação messages/document_requests).
+-- Mantido vazio para ambientes que já aplicaram esta revisão.

@@ -1,0 +1,38 @@
+{
+  "name": "Teglion",
+  "short_name": "Teglion",
+  "description": "Portal contabilístico para escritórios e clientes",
+  "id": "/",
+  "scope": "/",
+  "start_url": "/auth",
+  "display": "standalone",
+  "background_color": "#fafaf7",
+  "theme_color": "#0f2942",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Entrar — Escritório",
+      "url": "/auth/firm/login",
+      "description": "Acesso ao painel do escritório"
+    },
+    {
+      "name": "Entrar — Cliente",
+      "url": "/auth/client/login",
+      "description": "Portal do cliente"
+    }
+  ]
+}

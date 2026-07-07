@@ -1,0 +1,359 @@
+/**
+ * Layouts autenticados (escritório + cliente)
+ * Breakpoint de layout desktop: 1280px (xl) — tablets 768–1279 usam scroll único.
+ */
+@tailwind components;
+
+@layer components {
+
+  /* Scroll suave em superfícies principais (Safari/iPad) */
+  .app-scroll,
+  .cb-firm-mobile-main,
+  .firm-app-content-wrap,
+  .staff-app-content-wrap,
+  .pc-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
+  .cb-scroll-surface {
+    @apply min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  /*
+   * Escritório — telemóvel + tablet (< 1280px): viewport fixo, scroll só no main.
+   * Desktop (≥ 1280px): sidebar fixa + scroll no content-wrap ou colunas split.
+   */
+  .firm-app-shell,
+  .staff-app-shell {
+    @apply flex min-h-dvh flex-col overflow-x-hidden text-foreground antialiased;
+    background-color: hsl(var(--background));
+    touch-action: manipulation;
+  }
+
+  @media (max-width: 1279px) {
+
+    .firm-app-shell,
+    .staff-app-shell {
+      height: 100dvh;
+      max-height: 100dvh;
+      min-height: 0;
+      overflow: hidden;
+    }
+  }
+
+  @media (min-width: 1280px) {
+
+    .firm-app-shell,
+    .staff-app-shell {
+      @apply h-dvh max-h-dvh min-h-0 overflow-hidden;
+    }
+  }
+
+  .cb-firm-mobile-shell {
+    @apply flex min-h-0 flex-1 flex-col overflow-hidden;
+  }
+
+  @media (min-width: 1280px) {
+    .cb-firm-mobile-shell {
+      @apply hidden;
+    }
+  }
+
+  .cb-firm-mobile-main {
+    @apply cb-scroll-surface;
+    padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .staff-app-mobile-scroll {
+    @apply cb-firm-mobile-shell;
+  }
+
+  .staff-app-mobile-pad {
+    @apply cb-firm-mobile-main;
+  }
+
+  .dark .firm-app-shell,
+  .dark .staff-app-shell {
+    background: linear-gradient(165deg,
+        hsl(var(--background)) 0%,
+        hsl(222 32% 9%) 48%,
+        hsl(var(--background)) 100%);
+  }
+
+  .firm-app-sidebar-aside,
+  .staff-app-sidebar-aside {
+    @apply flex h-full min-h-0 flex-col overflow-visible border-r-0 backdrop-blur-md;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .cb-firm-sidebar-aside {
+    @apply w-[var(--cb-firm-sidebar-width)] shrink-0 overflow-visible;
+  }
+
+  /* Desktop ≥1280px: rail + main em linha, largura total */
+  .cb-firm-desktop-frame {
+    @apply hidden h-full min-h-0 w-full min-w-0 flex-1 flex-row overflow-hidden;
+  }
+
+  @media (min-width: 1280px) {
+    .cb-firm-desktop-frame {
+      @apply flex;
+    }
+  }
+
+  .cb-firm-main {
+    @apply flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden;
+  }
+
+  .cb-firm-page-host {
+    @apply flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden;
+  }
+
+  .firm-app-content-wrap,
+  .staff-app-content-wrap {
+    @apply cb-scroll-surface mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6 xl:px-8 xl:pb-12 xl:pt-6;
+  }
+
+  /* Escritório: sem max-width centrado — usa toda a área útil */
+  .cb-firm-content-wrap,
+  .staff-app-content-wrap.cb-firm-content-wrap,
+  .cb-firm-shell .staff-app-content-wrap.cb-firm-content-wrap {
+    @apply cb-scroll-surface mx-0 flex min-h-0 w-full max-w-none min-w-0 flex-1 flex-col px-4 pt-2 sm:px-5 xl:px-6 xl:pb-6 xl:pt-3;
+  }
+
+  .cb-firm-workspace-page {
+    @apply flex w-full min-w-0 max-w-full flex-col gap-2 pb-3 xl:min-h-0 xl:flex-1 xl:gap-3 xl:pb-2;
+  }
+
+  .cb-firm-workspace-page> :not(.cb-firm-split-host):not(.cb-operational-split):not(.cb-firm-operational-panel):not(.cb-firm-split-view) {
+    @apply shrink-0;
+  }
+
+  .cb-firm-scroll-page {
+    @apply flex min-h-0 w-full min-w-0 max-w-full flex-col xl:flex-1;
+  }
+
+  .cb-firm-split-host {
+    @apply relative flex w-full max-w-full flex-col overflow-visible rounded-2xl border border-border/70 bg-card shadow-[var(--cb-shadow-card)];
+    min-height: 0;
+  }
+
+  @media (min-width: 1280px) {
+    .cb-firm-split-host {
+      flex: 1 1 0%;
+      flex-direction: row;
+      min-height: min(28rem, 52dvh);
+      overflow: hidden;
+    }
+  }
+
+  .cb-firm-split-column {
+    @apply flex min-w-0 max-w-full flex-col overflow-visible xl:min-h-0 xl:overflow-hidden;
+  }
+
+  .cb-firm-split-header {
+    @apply flex shrink-0 items-center gap-2 border-b border-border/60 px-4 py-3;
+  }
+
+  .cb-firm-split-body {
+    @apply flex-1 overscroll-y-contain;
+    @apply overflow-visible xl:min-h-0 xl:overflow-y-auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  /* Tablet/mobile: splits em fluxo vertical — scroll na página, não preso em painel */
+  @media (max-width: 1279px) {
+
+    .cb-firm-workspace-page .cb-firm-split-host,
+    .cb-firm-workspace-page .cb-operational-split {
+      flex: none;
+      height: auto;
+      min-height: 0;
+      overflow: visible;
+      flex-direction: column;
+    }
+
+    .cb-firm-workspace-page .cb-operational-split {
+      display: flex;
+    }
+
+    .cb-firm-workspace-page .cb-firm-split-column {
+      flex: none !important;
+      overflow: visible;
+      min-height: auto;
+      max-height: none;
+      height: auto;
+    }
+
+    /* Chat/mensagens: scroll na página, não prender coluna com flex-1 */
+    .cb-firm-workspace-page .cb-firm-messages-detail {
+      display: flex;
+      flex: none !important;
+      flex-direction: column;
+      min-height: auto;
+      height: auto;
+    }
+
+    .cb-firm-workspace-page .cb-firm-split-body,
+    .cb-firm-workspace-page .cb-pane-scroll {
+      overflow: visible;
+      flex: none;
+      min-height: auto;
+      max-height: none;
+    }
+
+    .cb-firm-workspace-page .cb-firm-list-panel {
+      flex: none;
+      min-height: auto;
+    }
+
+    .cb-firm-workspace-page .cb-firm-list-panel-scroll {
+      overflow: visible;
+      flex: none;
+      min-height: auto;
+      max-height: none;
+    }
+
+    .cb-firm-workspace-page .cb-firm-detail-embed {
+      height: auto;
+      min-height: min(40vh, 22rem);
+    }
+
+    /* Tabelas largas: scroll horizontal local, não bloquear página */
+    .cb-firm-workspace-page .cb-table-scroll,
+    .cb-firm-scroll-page .cb-table-scroll,
+    .cb-firm-mobile-main .cb-table-scroll {
+      @apply max-w-full overflow-x-auto overscroll-x-contain;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .cb-kanban-scroll {
+      touch-action: pan-x pan-y;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+
+  .cb-kanban-scroll {
+    @apply max-w-full overflow-x-auto overscroll-x-contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+  }
+
+  .cb-client-hub-page {
+    @apply flex w-full min-w-0 max-w-full flex-col gap-0;
+  }
+
+  @media (min-width: 1280px) {
+    .cb-client-hub-page {
+      @apply min-h-0 flex-1;
+    }
+
+    .cb-client-hub-page .cb-client-hub-panel {
+      @apply shrink-0;
+    }
+
+    .cb-client-hub-page .cb-client-hub-body {
+      @apply min-h-0 flex-1;
+    }
+  }
+
+  .cb-client-hub-tabs {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .cb-hub-metric-row {
+    @apply block w-full max-w-full shrink-0;
+    opacity: 1;
+    visibility: visible;
+    min-height: auto;
+  }
+
+  .cb-client-hub-metrics-mobile>* {
+    @apply relative w-full max-w-full shrink-0;
+    transform: none;
+  }
+
+  @media (max-width: 1279px) {
+
+    /* Fundo plano + sem blur — reduz artefactos GPU no scroll (iPad/Android) */
+    .staff-app-shell.cb-firm-shell,
+    .firm-app-shell.cb-firm-shell {
+      background: hsl(var(--background)) !important;
+      background-image: none !important;
+    }
+
+    .firm-topbar,
+    .staff-topbar {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      @apply bg-card;
+    }
+
+    .cb-client-hub-page .cb-risk-meter,
+    .cb-client-hub-page .cb-client-hub-metrics-mobile a,
+    .cb-client-hub-page .cb-client-hub-metrics-mobile button {
+      -webkit-transform: none;
+      transform: none;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .cb-operational-split {
+      min-height: min(28rem, 52dvh);
+    }
+  }
+
+  .cb-firm-panel-form {
+    @apply shrink-0 border-b border-border/60 bg-muted/20;
+  }
+
+  .cb-firm-panel-form-scroll {
+    @apply space-y-3 px-4 pb-4 pt-1;
+  }
+
+  .cb-sheet-body {
+    @apply flex min-h-0 flex-1 flex-col overflow-hidden;
+  }
+
+  .cb-sheet-scroll {
+    @apply min-h-0 flex-1 overflow-y-auto overscroll-y-contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .firm-topbar,
+  .staff-topbar {
+    @apply shrink-0 border-b border-border/80 backdrop-blur-xl;
+    background: hsl(var(--card) / 0.55);
+  }
+
+  @media (min-width: 1280px) {
+    .cb-firm-shell .cb-firm-topbar.cb-firm-topbar-compact {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      @apply bg-card;
+    }
+  }
+
+  .PhoneInput {
+    @apply flex items-center gap-2;
+  }
+
+  .PhoneInputCountry {
+    @apply flex h-10 items-center gap-1 rounded-md border border-input bg-background px-2;
+  }
+
+  .PhoneInputInput {
+    @apply flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring sm:h-9 md:text-sm;
+  }
+}

@@ -1,0 +1,20 @@
+CREATE INDEX IF NOT EXISTS idx_firm_users_firm ON public.firm_users(firm_id);
+CREATE INDEX IF NOT EXISTS idx_firm_users_email ON public.firm_users(email);
+CREATE INDEX IF NOT EXISTS idx_clients_firm ON public.clients(firm_id);
+CREATE INDEX IF NOT EXISTS idx_clients_email ON public.clients(email);
+CREATE INDEX IF NOT EXISTS idx_clients_firm_status ON public.clients(firm_id, status);
+CREATE INDEX IF NOT EXISTS idx_obligations_firm_period ON public.obligations(firm_id, period);
+CREATE INDEX IF NOT EXISTS idx_obligations_firm_status ON public.obligations(firm_id, status);
+CREATE INDEX IF NOT EXISTS idx_obligations_firm_client ON public.obligations(firm_id, client_id);
+CREATE INDEX IF NOT EXISTS idx_obligations_due ON public.obligations(firm_id, due_date);
+CREATE INDEX IF NOT EXISTS idx_client_tasks_firm_status ON public.client_tasks(firm_id, status);
+CREATE INDEX IF NOT EXISTS idx_client_tasks_firm_client ON public.client_tasks(firm_id, client_id);
+CREATE INDEX IF NOT EXISTS idx_documents_firm_client ON public.documents(firm_id, client_id);
+CREATE INDEX IF NOT EXISTS idx_documents_firm_period ON public.documents(firm_id, period);
+CREATE INDEX IF NOT EXISTS idx_messages_firm_client ON public.messages(firm_id, client_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_consultations_firm_scheduled ON public.consultations(firm_id, scheduled_at);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_firm_created ON public.audit_logs(firm_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_task_month_exclusions_firm_month ON public.task_month_exclusions(firm_id, month) WHERE excluded = true;
+
+CREATE INDEX IF NOT EXISTS idx_firms_legacy_clinic ON public.firms(legacy_clinic_id) WHERE legacy_clinic_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_clients_legacy_patient ON public.clients(legacy_patient_id) WHERE legacy_patient_id IS NOT NULL;
