@@ -2,7 +2,8 @@
 
 **Documento oficial · Última actualização: Julho 2026**
 
-Política de segurança do TegLion. Define controlos, riscos, responsabilidades e requisitos para um SaaS que processa dados fiscais e pessoais de milhares de escritórios.
+Esta é a política de segurança que eu uso para operar o TegLion com previsibilidade e sem fragilizar produção.
+Define controlos, riscos, responsabilidades e requisitos para um SaaS que processa dados fiscais e pessoais.
 
 ---
 
@@ -187,6 +188,14 @@ JWT.clinicId (= firmId) → contabil-scope → repository.eq('firm_id', firmId)
 
 **Regra:** `REDIS_URL` obrigatório em produção multi-instância.
 
+Execução operacional que eu sigo:
+
+1. Eu mantenho Redis activo no Render para evitar fallback in-memory.
+2. Eu não aprovo release com warning de fail-open em produção.
+3. Eu valido lockout e rate limit no gate de release.
+
+Referência prática: [REDIS_RENDER_SETUP.md](../operations/REDIS_RENDER_SETUP.md)
+
 ---
 
 ## Upload de ficheiros
@@ -327,6 +336,7 @@ Ver [AI.md](../ai/AI.md). Resumo:
 - [ ] Tenant isolation test passa
 - [ ] Login testado (cookies only, sem sessionStorage)
 - [ ] Upload testado (magic bytes)
+- [ ] `npm run security:secrets` aprovado antes do push
 
 ---
 

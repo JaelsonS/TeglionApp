@@ -3,11 +3,15 @@
 
 
 interface ImportMetaEnv {
- 
+
   readonly VITE_API_BASE_URL?: string
   readonly VITE_API_BASE_URL_FALLBACK?: string
   readonly VITE_API_NO_RENDER_FALLBACK?: string
   readonly VITE_ALLOW_API_BASE_QUERY?: string
+  readonly VITE_SENTRY_DSN?: string
+  readonly VITE_SENTRY_RELEASE?: string
+  readonly VITE_BUILD_VERSION?: string
+  readonly VITE_APP_VERSION?: string
   readonly VITE_PRODUCT_MODE?: string
 }
 

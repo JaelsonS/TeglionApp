@@ -28,7 +28,7 @@ Opcional: **Settings → Payment methods** → activar Multibanco, MB WAY, cart�
 1. **Developers → Webhooks** → **+ Add endpoint**
 2. **Endpoint URL (produção):**
    ```
-   https://teglion.onrender.com/api/public/stripe/webhook
+   https://teglionapp.onrender.com/api/public/stripe/webhook
    ```
 3. Eventos a subscrever:
    - `checkout.session.completed`
@@ -110,7 +110,7 @@ Ou executar SQL em `supabase/migrations/20260828000000_firm_stripe_billing.sql`.
 ## 5. Checklist produção
 
 - [ ] Produto + preço EUR no Stripe Live
-- [ ] Webhook aponta para `https://teglion.onrender.com/api/public/stripe/webhook`
+- [ ] Webhook aponta para `https://teglionapp.onrender.com/api/public/stripe/webhook`
 - [ ] `STRIPE_*` no Render
 - [ ] `FRONTEND_URL=https://teglion.com`
 - [ ] Migration Supabase aplicada

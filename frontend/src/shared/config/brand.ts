@@ -4,7 +4,7 @@ export const BRAND = {
   tagline: 'Gestão completa para escritórios de contabilidade em Portugal',
   domain: 'teglion.com',
   url: 'https://teglion.com',
-  apiUrl: 'https://teglion.onrender.com',
+  apiUrl: 'https://teglionapp.onrender.com',
   initials: 'TL',
   colors: {
     navy: '#0F2942',

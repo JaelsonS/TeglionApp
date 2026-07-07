@@ -218,7 +218,7 @@ app.use(
           "'self'",
           'data:',
           'https://images.unsplash.com',
-          'https://teglion.onrender.com',
+          'https://teglionapp.onrender.com',
         ],
         'script-src': ["'self'", "'unsafe-inline'"],
       },

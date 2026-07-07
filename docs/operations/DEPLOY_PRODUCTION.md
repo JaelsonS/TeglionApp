@@ -19,6 +19,13 @@ Storage e base de dados continuam no Supabase; só os emails de produto vão pel
 
 ## Checklist pré-deploy
 
+## O meu fluxo antes de qualquer release
+
+1. Eu valido o gate automatizado com `npm run release:readiness`.
+2. Eu corro `npm run security:secrets` para garantir que não há exposição acidental no repositório.
+3. Eu faço deploy coordenado de backend e frontend.
+4. Eu só abro tráfego com rollback pronto.
+
 ## Regra P0 antes de qualquer deploy em produção
 
 - produção só recebe promoção vinda de `staging` ou `hotfix/*`
@@ -64,6 +71,17 @@ Variáveis **obrigatórias** em produção — ver [`backend/.env.local`](../../
 
 **Autenticação (2026):** sessão **cookie-only** (sem token no JSON). Frontend e backend desta release devem ser deployados **em conjunto**. Ver [SECURITY.md](../security/SECURITY.md).
 
+### 2.2 Redis activo no Render (obrigatório em produção)
+
+Para produção robusta, eu mantenho Redis activo e sem fallback in-memory.
+
+1. Criar serviço Redis no Render (mesma região da API)
+2. Definir `REDIS_URL` no backend com a Internal URL do Redis
+3. Fazer redeploy do backend
+4. Confirmar em logs que não há aviso de fallback
+
+Guia completo: [REDIS_RENDER_SETUP.md](./REDIS_RENDER_SETUP.md)
+
 ### 2.1 Secrets GitHub para produção
 
 Criar environment `production` no GitHub e definir os mesmos nomes de secret usados em staging, mas com valores exclusivos de produção.
@@ -98,20 +116,20 @@ BREVO_SMS_SENDER=TegLion   # nome validado na Brevo SMS
 Variáveis de ambiente no painel Vercel → **Settings → Environment Variables**:
 
 ```env
-VITE_API_BASE_URL=https://teglion.onrender.com/api
+VITE_API_BASE_URL=https://teglionapp.onrender.com/api
 VITE_PRODUCT_MODE=contabil
 ```
 
 Substitui pela URL do Render enquanto `api.teglion.com` não estiver activo. Depois migra para `https://api.teglion.com/api`.
 
-**Exemplo (piloto):** frontend `https://teglion.com`, API `https://teglion.onrender.com/api`.
+**Exemplo (piloto):** frontend `https://teglion.com`, API `https://teglionapp.onrender.com/api`.
 
 | Onde | Variável | Valor |
 |------|----------|--------|
-| Vercel | `VITE_API_BASE_URL` | `https://teglion.onrender.com/api` |
+| Vercel | `VITE_API_BASE_URL` | `https://teglionapp.onrender.com/api` |
 | Vercel | `VITE_PRODUCT_MODE` | `contabil` |
 | Render | `FRONTEND_URL` | `https://teglion.com` |
-| Render | `PUBLIC_API_URL` | `https://teglion.onrender.com` |
+| Render | `PUBLIC_API_URL` | `https://teglionapp.onrender.com` |
 | Render | `CORS_ORIGINS` | `https://teglion.com,https://www.teglion.com` |
 | Render | `COOKIE_SECURE` | `true` |
 | Render | `COOKIE_SAMESITE` | `none` |
@@ -170,6 +188,8 @@ O rate limit Redis no backend continua necessário — o WAF é camada adicional
 5. Cliente envia documento → email ao dono do escritório
 6. Escritório valida documento
 7. Mensagens + obrigação entregue
+
+Checklist final de execução: [GO_PRODUCTION.md](./GO_PRODUCTION.md)
 
 ---
 
