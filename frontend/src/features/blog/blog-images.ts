@@ -4,6 +4,7 @@ export function blogImageUrl(src: string, width = 960, height = 540): string {
 
   try {
     const url = new URL(src)
+    if (url.protocol !== 'https:') url.protocol = 'https:'
     url.searchParams.set('w', String(width))
     url.searchParams.set('h', String(height))
     url.searchParams.set('fit', 'crop')

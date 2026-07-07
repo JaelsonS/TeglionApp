@@ -55,6 +55,7 @@ function injectJsonLd(id: string, data: Record<string, unknown>) {
 export function useBlogSeo({ post, index }: BlogSeoInput) {
   useLayoutEffect(() => {
     upsertMeta('google-adsense-account', 'ca-pub-8576885038152568')
+    upsertMeta('robots', 'index,follow,max-image-preview:large')
 
     if (index) {
       const title = `Blog ${BRAND.name} — Contabilidade e fiscalidade em Portugal`
@@ -67,6 +68,11 @@ export function useBlogSeo({ post, index }: BlogSeoInput) {
       upsertMeta('og:url', `${BRAND.url}/blog`, 'property')
       upsertMeta('og:type', 'website', 'property')
       upsertMeta('og:image', DEFAULT_OG_IMAGE, 'property')
+      upsertMeta('og:image:alt', `Blog ${BRAND.name} — contabilidade em Portugal`, 'property')
+      upsertMeta('twitter:card', 'summary_large_image')
+      upsertMeta('twitter:title', title)
+      upsertMeta('twitter:description', description)
+      upsertMeta('twitter:image', DEFAULT_OG_IMAGE)
       upsertLink('canonical', `${BRAND.url}/blog`)
       upsertLink('alternate', `${BRAND.url}/rss.xml`, {
         type: 'application/rss+xml',
@@ -102,8 +108,14 @@ export function useBlogSeo({ post, index }: BlogSeoInput) {
     upsertMeta('og:url', url, 'property')
     upsertMeta('og:type', 'article', 'property')
     upsertMeta('og:image', post.coverImage.src, 'property')
+    upsertMeta('og:image:alt', post.coverImage.alt || post.title, 'property')
     upsertMeta('article:published_time', post.publishedAt, 'property')
     upsertMeta('article:modified_time', post.updatedAt, 'property')
+    upsertMeta('article:section', post.category, 'property')
+    upsertMeta('twitter:card', 'summary_large_image')
+    upsertMeta('twitter:title', post.seo.title)
+    upsertMeta('twitter:description', post.seo.description)
+    upsertMeta('twitter:image', post.coverImage.src)
     upsertLink('canonical', url)
 
     injectJsonLd('blog-jsonld', {
@@ -124,7 +136,33 @@ export function useBlogSeo({ post, index }: BlogSeoInput) {
         url: BRAND.url,
       },
       mainEntityOfPage: url,
+      inLanguage: 'pt-PT',
       keywords: post.tags.join(', '),
+    })
+
+    injectJsonLd('blog-breadcrumb-jsonld', {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Início',
+          item: BRAND.url,
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Blog',
+          item: `${BRAND.url}/blog`,
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: post.title,
+          item: url,
+        },
+      ],
     })
 
     const faqItems = 'blocks' in post && Array.isArray(post.blocks) ? extractFaqItems(post.blocks) : []
@@ -152,6 +190,7 @@ export function useBlogSeo({ post, index }: BlogSeoInput) {
 
     return () => {
       removeJsonLd('blog-jsonld')
+      removeJsonLd('blog-breadcrumb-jsonld')
       removeJsonLd('blog-faq-jsonld')
       if (faqIdleId !== undefined && typeof cancelIdleCallback !== 'undefined') {
         cancelIdleCallback(faqIdleId)

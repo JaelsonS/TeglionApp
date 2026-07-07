@@ -41,18 +41,21 @@ export function BlogResponsiveImage({
       ? blogCardImageUrl(src)
       : blogImageUrl(src, width, height)
   const [current, setCurrent] = useState(initial)
+  const safeAlt = alt.trim() || 'Imagem do artigo'
+  const canUseSrcSet = cover && current.includes('images.unsplash.com')
 
   return (
     <img
       src={current}
-      srcSet={cover ? blogCoverSrcSet(src) : undefined}
-      alt={alt}
+      srcSet={canUseSrcSet ? blogCoverSrcSet(current) : undefined}
+      alt={safeAlt}
       width={width}
       height={height}
       className={cn(className)}
       loading={loading}
       decoding="async"
       fetchPriority={fetchPriority}
+      referrerPolicy="no-referrer-when-downgrade"
       sizes={
         sizes ??
         (cover ? '(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 896px' : undefined)

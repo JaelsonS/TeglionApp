@@ -21,8 +21,35 @@ function installChunkLoadRecovery(): void {
     return (
       text.includes('Failed to fetch dynamically imported module') ||
       text.includes('Importing a module script failed') ||
-      text.includes('Loading chunk')
+      text.includes('Loading chunk') ||
+      text.includes('/assets/')
     )
+  }
+
+  const clearRuntimeCaches = async () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations()
+        await Promise.all(registrations.map((registration) => registration.unregister()))
+      }
+    } catch {
+      // noop
+    }
+
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys()
+        await Promise.all(keys.map((key) => caches.delete(key)))
+      }
+    } catch {
+      // noop
+    }
+  }
+
+  const hardReloadWithBust = () => {
+    const next = new URL(window.location.href)
+    next.searchParams.set('__chunk_recover', String(Date.now()))
+    window.location.replace(next.toString())
   }
 
   const recoverOnce = () => {
@@ -32,7 +59,9 @@ function installChunkLoadRecovery(): void {
     } catch {
       // noop
     }
-    window.location.reload()
+    void clearRuntimeCaches().finally(() => {
+      hardReloadWithBust()
+    })
   }
 
   window.addEventListener('unhandledrejection', (event) => {
@@ -42,9 +71,19 @@ function installChunkLoadRecovery(): void {
   })
 
   window.addEventListener('error', (event) => {
-    const message = (event as ErrorEvent).message || ''
-    if (shouldRecover(message)) recoverOnce()
+    const err = event as ErrorEvent
+    const message = err.message || ''
+    const source = err.filename || ''
+    if (shouldRecover(message) || shouldRecover(source)) recoverOnce()
   })
+
+  try {
+    if (new URL(window.location.href).searchParams.has('__chunk_recover')) {
+      window.sessionStorage.removeItem(CHUNK_RECOVERY_KEY)
+    }
+  } catch {
+    // noop
+  }
 }
 
 function isPwaEnabled(): boolean {

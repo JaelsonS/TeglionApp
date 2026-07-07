@@ -17,6 +17,15 @@
   ],
   "headers": [
     {
+      "source": "/((?!api/|assets/|icons/|og/|landing/|sw\\.js|workbox-|manifest\\.webmanifest|rss\\.xml|llms\\.txt|robots\\.txt|sitemap\\.xml|.*\\.[a-zA-Z0-9]+$).*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate"
+        }
+      ]
+    },
+    {
       "source": "/assets/(.*)",
       "headers": [
         {
