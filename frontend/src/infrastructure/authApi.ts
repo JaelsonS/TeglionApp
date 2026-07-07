@@ -65,9 +65,14 @@ export const authApi = {
 
   refresh: () => refreshAccessToken().then((ok) => ({ ok })),
 
-  logout: () => {
+  logout: async () => {
     broadcastAuthLogout()
-    return refreshApi.post('/auth/logout').then((r) => r.data)
+    const csrfToken = await ensureCsrfToken(refreshApi)
+    return refreshApi
+      .post('/auth/logout', null, {
+        headers: csrfToken ? { [CSRF_HEADER_NAME]: csrfToken } : undefined,
+      })
+      .then((r) => r.data)
   },
 
   me: () => api.get('/auth/me').then((r) => r.data),

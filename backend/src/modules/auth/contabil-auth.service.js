@@ -291,6 +291,14 @@ async function loginFirm({ email, password, req }) {
     throw new AppError('Conta inactiva. Contacte o administrador do escritório.', 403, { code: 'ACCOUNT_INACTIVE' });
   }
   if (!row.email_confirmed_at) {
+    const inviteStatus = String(row.invite_status || 'ACCEPTED').toUpperCase();
+    const isAcceptedOwner = row.role === 'FIRM_OWNER' && inviteStatus === 'ACCEPTED';
+    if (isAcceptedOwner) {
+      const healed = await firmUsersRepository.markFirmUserEmailConfirmed(row.id, row.firm_id);
+      row.email_confirmed_at = healed?.emailConfirmedAt || new Date().toISOString();
+    }
+  }
+  if (!row.email_confirmed_at) {
     throw new AppError('Confirmação de e-mail pendente. Verifique a sua caixa de entrada.', 403, {
       code: 'EMAIL_NOT_CONFIRMED',
     });
