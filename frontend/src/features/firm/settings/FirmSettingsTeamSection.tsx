@@ -9,6 +9,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
+import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import type { FirmSettingsBundle } from '@/shared/types/firmSettings'
 import type { TeamMember } from '@/shared/types/teamManagement'
 
@@ -85,6 +86,8 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
     const [overrideMode, setOverrideMode] = useState<'INHERIT' | 'OVERRIDE'>('INHERIT')
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>([])
     const [editingMemberId, setEditingMemberId] = useState<string | null>(null)
+    const [excludeMember, setExcludeMember] = useState<TeamSettingsMember | null>(null)
+    const [showInactiveMembers, setShowInactiveMembers] = useState(false)
     const [editForm, setEditForm] = useState({
         fullName: '',
         email: '',
@@ -238,7 +241,29 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
     })
 
     const ownerCount = useMemo(() => members.filter((m) => m.role === 'FIRM_OWNER' && m.isActive).length, [members])
+    const visibleMembers = useMemo(
+        () => (showInactiveMembers ? members : members.filter((m) => m.isActive || m.inviteStatus === 'PENDING')),
+        [members, showInactiveMembers],
+    )
     const canManageTeam = bundle.capabilities.canManageTeam
+
+    const excludeMemberMutation = useMutation({
+        mutationFn: async (member: TeamSettingsMember) => {
+            if (member.inviteStatus === 'PENDING') {
+                await teamManagementApi.revokeInvite(member.id)
+                return
+            }
+            if (member.isActive) {
+                await teamManagementApi.deactivateMember(member.id)
+            }
+        },
+        onSuccess: async () => {
+            toast.success('Colaborador excluído da equipa.')
+            setExcludeMember(null)
+            await invalidate()
+        },
+        onError: (err) => toast.error(getErrorMessage(err)),
+    })
 
     const openEditMember = (member: TeamSettingsMember) => {
         setEditingMemberId(member.id)
@@ -427,6 +452,18 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
             ) : null}
 
             <div className="overflow-hidden rounded-lg border border-border/60">
+                {canManageTeam ? (
+                    <div className="flex items-center justify-between border-b border-border/40 bg-muted/15 px-4 py-2">
+                        <p className="text-xs text-muted-foreground">{visibleMembers.length} colaboradores visíveis</p>
+                        <Label className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
+                            <Checkbox
+                                checked={showInactiveMembers}
+                                onCheckedChange={(checked: boolean | 'indeterminate') => setShowInactiveMembers(checked === true)}
+                            />
+                            Mostrar inativos
+                        </Label>
+                    </div>
+                ) : null}
                 <table className="w-full text-left text-sm">
                     <thead className="border-b border-border/60 bg-muted/30 text-xs uppercase tracking-wide text-muted-foreground">
                         <tr>
@@ -439,7 +476,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                         </tr>
                     </thead>
                     <tbody>
-                        {members.map((m) => (
+                        {visibleMembers.map((m) => (
                             <tr key={m.id} className="border-b border-border/40 last:border-0">
                                 <td className="px-4 py-3 font-medium text-foreground">
                                     {m.fullName || '—'}
@@ -496,15 +533,28 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                                         </Button>
                                                     </>
                                                 ) : (
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="sm"
-                                                        disabled={m.role === 'FIRM_OWNER' && ownerCount <= 1 && m.isActive}
-                                                        onClick={() => toggleMemberMutation.mutate({ memberId: m.id, active: m.isActive })}
-                                                    >
-                                                        {m.isActive ? 'Desativar' : 'Reativar'}
-                                                    </Button>
+                                                    <>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            disabled={m.role === 'FIRM_OWNER' && ownerCount <= 1 && m.isActive}
+                                                            onClick={() => toggleMemberMutation.mutate({ memberId: m.id, active: m.isActive })}
+                                                        >
+                                                            {m.isActive ? 'Desativar' : 'Reativar'}
+                                                        </Button>
+                                                        {!m.isCurrentUser ? (
+                                                            <Button
+                                                                type="button"
+                                                                variant="destructive"
+                                                                size="sm"
+                                                                disabled={m.role === 'FIRM_OWNER' && ownerCount <= 1 && m.isActive}
+                                                                onClick={() => setExcludeMember(m)}
+                                                            >
+                                                                Excluir
+                                                            </Button>
+                                                        ) : null}
+                                                    </>
                                                 )}
                                             </>
                                         ) : (
@@ -659,6 +709,29 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                     )}
                 </div>
             ) : null}
+
+            <ConfirmDialog
+                open={Boolean(excludeMember)}
+                onOpenChange={(open) => {
+                    if (!open) setExcludeMember(null)
+                }}
+                title="Excluir colaborador"
+                description={
+                    excludeMember
+                        ? `Confirma excluir ${excludeMember.fullName || excludeMember.email} da equipa? O acesso será removido e a conta ficará inativa.`
+                        : 'Confirma excluir colaborador?'
+                }
+                confirmLabel={excludeMemberMutation.isPending ? 'A excluir...' : 'Excluir colaborador'}
+                onConfirm={() => {
+                    if (!excludeMember) return
+                    excludeMemberMutation.mutate(excludeMember)
+                }}
+                testId="team-exclude-member"
+            >
+                <p className="text-sm text-muted-foreground">
+                    Esta ação não elimina histórico operacional, apenas remove o acesso do colaborador ao sistema.
+                </p>
+            </ConfirmDialog>
         </section>
     )
 }

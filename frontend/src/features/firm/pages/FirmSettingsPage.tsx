@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import {
   Building2,
   ImageIcon,
@@ -38,6 +38,21 @@ export function FirmSettingsPage() {
 
   const canEditLogo = bundle?.capabilities.canEditFirm ?? false
 
+  const scrollToSection = useCallback((id: string, smooth = true) => {
+    if (typeof window === 'undefined') return
+    const target = document.getElementById(id)
+    if (!target) return
+    target.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' })
+    window.history.replaceState(null, '', `#${id}`)
+  }, [])
+
+  useEffect(() => {
+    if (!bundle || typeof window === 'undefined') return
+    const hash = window.location.hash.replace('#', '').trim()
+    if (!hash) return
+    window.requestAnimationFrame(() => scrollToSection(hash, false))
+  }, [bundle, scrollToSection])
+
   return (
     <FirmScrollPage className="cb-settings-layout-page">
       <div className="cb-settings-page">
@@ -53,14 +68,29 @@ export function FirmSettingsPage() {
             {NAV.map((item) => {
               const Icon = item.icon
               return (
-                <a key={item.id} href={`#${item.id}`} className="cb-settings-nav-link">
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  className="cb-settings-nav-link"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    scrollToSection(item.id)
+                  }}
+                >
                   <Icon className="h-4 w-4 shrink-0" aria-hidden />
                   {item.label}
                 </a>
               )
             })}
             {bundle.capabilities.canCloseAccount ? (
-              <a href="#zona-perigo" className="cb-settings-nav-link cb-settings-nav-link--danger">
+              <a
+                href="#zona-perigo"
+                className="cb-settings-nav-link cb-settings-nav-link--danger"
+                onClick={(e) => {
+                  e.preventDefault()
+                  scrollToSection('zona-perigo')
+                }}
+              >
                 <Shield className="h-4 w-4 shrink-0" aria-hidden />
                 Encerrar conta
               </a>
