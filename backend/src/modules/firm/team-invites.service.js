@@ -84,23 +84,40 @@ async function createStaffInvite({ firmId, actor, payload, req }) {
     const jobTitle = normalizeJobTitle(payload.jobTitle);
 
     const existing = await firmUsersRepository.findFirmUserByEmail(email);
-    if (existing && String(existing.firm_id) === String(firmId)) {
-        throw new AppError('Já existe utilizador com este e-mail neste escritório.', 409);
+    const sameFirmExisting = existing && String(existing.firm_id) === String(firmId);
+
+    let member;
+    if (sameFirmExisting) {
+        if (existing.is_active === true) {
+            throw new AppError('Já existe utilizador com este e-mail neste escritório.', 409);
+        }
+        member = await firmUsersRepository.updateFirmMember(firmId, existing.id, {
+            fullName,
+            email,
+            role,
+            jobTitle,
+            departmentId: payload.departmentId || null,
+            inviteStatus: 'PENDING',
+            isActive: false,
+            emailConfirmedAt: null,
+        });
+    } else {
+        member = await firmUsersRepository.createFirmMember({
+            firmId,
+            email,
+            fullName,
+            role,
+            jobTitle,
+            departmentId: payload.departmentId || null,
+            invitedBy: actor.id,
+            invitedAt: new Date().toISOString(),
+            inviteStatus: 'PENDING',
+            isActive: false,
+            emailConfirmedAt: null,
+        });
     }
 
-    const member = await firmUsersRepository.createFirmMember({
-        firmId,
-        email,
-        fullName,
-        role,
-        jobTitle,
-        departmentId: payload.departmentId || null,
-        invitedBy: actor.id,
-        invitedAt: new Date().toISOString(),
-        inviteStatus: 'PENDING',
-        isActive: false,
-        emailConfirmedAt: null,
-    });
+    await firmMemberInvitesRepository.revokePendingInvitesForMember(member.id);
 
     const token = generateToken();
     const expiresAt = new Date(Date.now() + INVITE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
