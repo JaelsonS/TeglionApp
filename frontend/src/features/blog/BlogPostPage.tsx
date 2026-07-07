@@ -23,9 +23,6 @@ const BlogSeriesNav = lazy(() =>
 const BlogTableOfContents = lazy(() =>
   import('@/features/blog/components/BlogTableOfContents').then((m) => ({ default: m.BlogTableOfContents })),
 )
-const BlogMonetizationSlot = lazy(() =>
-  import('@/features/blog/components/BlogMonetizationSlot').then((m) => ({ default: m.BlogMonetizationSlot })),
-)
 const BlogRelatedPosts = lazy(() =>
   import('@/features/blog/components/BlogRelatedPosts').then((m) => ({ default: m.BlogRelatedPosts })),
 )
@@ -169,12 +166,6 @@ export function BlogPostPage() {
       </header>
 
       <BlogCoverImage coverImage={post.coverImage} />
-
-      <LazyWhenVisible className="mx-auto mt-10 max-w-3xl" minHeight="4rem">
-        <Suspense fallback={null}>
-          <BlogMonetizationSlot seed={`${post.slug}-top`} kind="affiliate" format="horizontal" />
-        </Suspense>
-      </LazyWhenVisible>
 
       <div className="mx-auto mt-10 max-w-3xl px-0">
         <Suspense fallback={null}>

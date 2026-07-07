@@ -1,8 +1,6 @@
 import { Link } from 'react-router-dom'
 
-import { BlogMonetizationSlot } from '@/features/blog/components/BlogMonetizationSlot'
 import { BlogResponsiveImage } from '@/features/blog/components/BlogResponsiveImage'
-import { LazyWhenVisible } from '@/features/blog/components/LazyWhenVisible'
 import { BlogInternalLinks } from '@/features/blog/components/BlogInternalLinks'
 import { BlogTeglionCta } from '@/features/blog/components/BlogTeglionCta'
 import { blogPostUrl } from '@/content/blog/blog-paths'
@@ -13,33 +11,12 @@ type Props = {
   post: BlogPost
 }
 
-function shouldInsertMidMonetization(blocks: BlogBlock[], index: number, inserted: number) {
-  if (inserted >= 1) return false
-  const h2Count = blocks.slice(0, index + 1).filter((b) => b.type === 'h2').length
-  return h2Count === 4 && blocks[index]?.type === 'h2'
-}
-
 export function BlogPostRenderer({ blocks, post }: Props) {
-  let midSlots = 0
-
   return (
     <div className="blog-article">
-      {blocks.flatMap((block, i) => {
-        const nodes = [<div key={`b-${i}`}>{renderBlock(block, i)}</div>]
-        if (shouldInsertMidMonetization(blocks, i, midSlots)) {
-          midSlots += 1
-          nodes.push(
-            <LazyWhenVisible key={`promo-mid-${i}`} minHeight="3rem">
-              <BlogMonetizationSlot
-                seed={`${post.slug}-mid`}
-                kind="affiliate"
-                format="horizontal"
-              />
-            </LazyWhenVisible>,
-          )
-        }
-        return nodes
-      })}
+      {blocks.map((block, i) => (
+        <div key={`b-${i}`}>{renderBlock(block, i)}</div>
+      ))}
       <p className="mt-8 text-sm blog-text-body">
         Publicado em {formatDate(post.publishedAt)} · Actualizado em {formatDate(post.updatedAt)} ·{' '}
         {post.readMinutes} min de leitura
@@ -61,7 +38,7 @@ function renderBlock(block: BlogBlock, key: number) {
     case 'p':
       return (
         <p key={key}>
-          {block.text}
+          {renderInlineLinks(block.text)}
         </p>
       )
     case 'h2':
@@ -232,4 +209,47 @@ function renderBlock(block: BlogBlock, key: number) {
     default:
       return null
   }
+}
+
+function renderInlineLinks(text: string) {
+  const linkPattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g
+  const output: Array<string | JSX.Element> = []
+  let lastIndex = 0
+  let match = linkPattern.exec(text)
+
+  while (match) {
+    const full = match[0]
+    const label = match[1]
+    const href = match[2]
+    const start = match.index
+
+    if (start > lastIndex) {
+      output.push(text.slice(lastIndex, start))
+    }
+
+    output.push(
+      <a
+        key={`${keyForAnchor(href, start)}`}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer sponsored"
+        className="font-medium blog-text-navy underline underline-offset-4 hover:blog-text-gold"
+      >
+        {label || full}
+      </a>,
+    )
+
+    lastIndex = start + full.length
+    match = linkPattern.exec(text)
+  }
+
+  if (lastIndex < text.length) {
+    output.push(text.slice(lastIndex))
+  }
+
+  return output.length ? output : text
+}
+
+function keyForAnchor(href: string, index: number) {
+  return `${href}-${index}`
 }

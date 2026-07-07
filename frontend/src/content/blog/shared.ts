@@ -20,14 +20,8 @@ export function affiliateBlock(input: {
 }) {
   const link = AFFILIATE_LINKS[input.key]
   return {
-    type: 'affiliate' as const,
-    leadIn: input.leadIn,
-    title: input.title,
-    description: input.description,
-    href: link.url,
-    affiliateComment: `AFFILIATE: ${link.label} → ${link.url}`,
-    image: input.image,
-    ctaLabel: input.ctaLabel ?? link.ctaLabel,
+    type: 'p' as const,
+    text: `${input.leadIn} Pode consultar ${input.ctaLabel ?? input.title} em [${input.title}](${link.url}) para aprofundar este ponto. ${input.description}`,
   }
 }
 
@@ -41,6 +35,7 @@ export function affiliateSection(input: {
     { type: 'h2', id: input.headingId, text: input.heading },
     { type: 'p', text: input.intro },
     ...input.items.map((item) => affiliateBlock(item)),
+    { type: 'p', text: AFFILIATE_DISCLOSURE },
   ]
   return blocks
 }
