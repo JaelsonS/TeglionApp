@@ -23,6 +23,9 @@ export function FirmSettingsDangerZone({ bundle }: Props) {
   const { logout } = useAuth()
   const [open, setOpen] = useState(false)
   const [confirmName, setConfirmName] = useState('')
+  const [npsScore, setNpsScore] = useState<number | null>(null)
+  const [npsReason, setNpsReason] = useState('')
+  const [npsComment, setNpsComment] = useState('')
   const [closing, setClosing] = useState(false)
 
   if (!bundle.capabilities.canCloseAccount) return null
@@ -30,9 +33,18 @@ export function FirmSettingsDangerZone({ bundle }: Props) {
   const firmName = bundle.firm.name
 
   const onConfirmClose = async () => {
+    if (npsScore == null) {
+      toast.error('Indique o NPS antes de encerrar a conta.')
+      return
+    }
     setClosing(true)
     try {
-      await firmSettingsApi.closeAccount(confirmName.trim())
+      await firmSettingsApi.closeAccount({
+        confirmName: confirmName.trim(),
+        npsScore,
+        npsReason: npsReason.trim() || null,
+        npsComment: npsComment.trim() || null,
+      })
       setOpen(false)
       toast.success('Conta encerrada. A redireccionar…')
       await logout()
@@ -67,7 +79,12 @@ export function FirmSettingsDangerZone({ bundle }: Props) {
         open={open}
         onOpenChange={(v) => {
           setOpen(v)
-          if (!v) setConfirmName('')
+          if (!v) {
+            setConfirmName('')
+            setNpsScore(null)
+            setNpsReason('')
+            setNpsComment('')
+          }
         }}
         title="Confirmar encerramento"
         description={`Esta acção é irreversível para o acesso diário. Para confirmar, escreva o nome exacto do escritório: ${firmName}`}
@@ -84,6 +101,50 @@ export function FirmSettingsDangerZone({ bundle }: Props) {
             placeholder={firmName}
             disabled={closing}
             autoComplete="off"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>NPS: de 0 a 10, qual a probabilidade de recomendar o Teglion?</Label>
+          <div className="grid grid-cols-6 gap-2 sm:grid-cols-11">
+            {Array.from({ length: 11 }, (_, idx) => idx).map((score) => (
+              <Button
+                key={score}
+                type="button"
+                size="sm"
+                variant={npsScore === score ? 'default' : 'outline'}
+                onClick={() => setNpsScore(score)}
+                disabled={closing}
+                className="h-9 px-0"
+              >
+                {score}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="nps-reason">Principal motivo (opcional)</Label>
+          <Input
+            id="nps-reason"
+            value={npsReason}
+            onChange={(e: FormChangeEvent) => setNpsReason(e.target.value)}
+            placeholder="Ex.: preço, funcionalidades, experiência da equipa"
+            disabled={closing}
+            autoComplete="off"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="nps-comment">Como podemos melhorar? (opcional)</Label>
+          <textarea
+            id="nps-comment"
+            value={npsComment}
+            onChange={(e) => setNpsComment(e.target.value)}
+            placeholder="Partilhe o que faltou para a sua operação no dia a dia."
+            disabled={closing}
+            rows={4}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
         </div>
       </ConfirmDialog>

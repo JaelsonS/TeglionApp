@@ -14,6 +14,6 @@ export const firmSettingsApi = {
   patchProfile: (payload: PatchFirmProfilePayload) =>
     api.patch('/contabil/firm/profile', payload).then((r) => r.data as { profile: { id: string; email: string; fullName: string; firmRole: string } }),
 
-  closeAccount: (confirmName: string) =>
-    api.post('/contabil/firm/close', { confirmName }).then((r) => r.data as { closed: boolean; message: string }),
+  closeAccount: (payload: { confirmName: string; npsScore: number; npsReason?: string | null; npsComment?: string | null }) =>
+    api.post('/contabil/firm/close', payload).then((r) => r.data as { closed: boolean; message: string }),
 }

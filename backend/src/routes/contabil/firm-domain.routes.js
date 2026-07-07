@@ -68,7 +68,12 @@ router.patch(
 router.post(
   '/firm/close',
   requireFirmOwner,
-  [body('confirmName').trim().notEmpty()],
+  [
+    body('confirmName').trim().notEmpty(),
+    body('npsScore').isInt({ min: 0, max: 10 }),
+    body('npsReason').optional({ values: 'falsy' }).trim().isLength({ max: 120 }),
+    body('npsComment').optional({ values: 'falsy' }).trim().isLength({ max: 1000 }),
+  ],
   firmSettingsController.closeAccount,
 );
 router.post(

@@ -3,7 +3,7 @@
 
 
 interface ImportMetaEnv {
- 
+
   readonly VITE_API_BASE_URL?: string
   readonly VITE_API_BASE_URL_FALLBACK?: string
   readonly VITE_API_NO_RENDER_FALLBACK?: string

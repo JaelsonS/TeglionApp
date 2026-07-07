@@ -1,14 +1,11 @@
 import { useCallback } from 'react'
 import {
   Building2,
-  CalendarCheck,
   ImageIcon,
-  ReceiptText,
   Shield,
   User,
   Users,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 
 import { FirmLogoSettingsCard } from '@/shared/components/contabil/FirmLogoSettingsCard'
@@ -19,14 +16,13 @@ import { FirmSettingsFirmSection } from '@/features/firm/settings/FirmSettingsFi
 import { FirmSettingsProfileSection } from '@/features/firm/settings/FirmSettingsProfileSection'
 import { FirmSettingsTeamSection } from '@/features/firm/settings/FirmSettingsTeamSection'
 import { PushNotificationSettings } from '@/shared/components/settings/PushNotificationSettings'
-import { cn } from '@/shared/lib/utils'
 
 const NAV = [
   { id: 'identidade', label: 'Identidade', icon: ImageIcon },
   { id: 'escritorio', label: 'Escritório', icon: Building2 },
   { id: 'perfil', label: 'O seu perfil', icon: User },
   { id: 'equipa', label: 'Equipa', icon: Users },
-  { id: 'atalhos', label: 'Plano e agenda', icon: ReceiptText },
+  { id: 'notificacoes', label: 'Notificações', icon: Shield },
 ] as const
 
 export function FirmSettingsPage() {
@@ -48,8 +44,7 @@ export function FirmSettingsPage() {
         <header className="cb-settings-page-hd">
           <h1 className="cb-settings-page-title">Definições</h1>
           <p className="cb-settings-page-sub">
-            Identidade, dados do escritório, equipa e conta — estrutura preparada para novos módulos (faturação,
-            integrações, permissões por departamento).
+            Identidade, dados do escritório, equipa e segurança da conta num único painel.
           </p>
         </header>
 
@@ -101,32 +96,6 @@ export function FirmSettingsPage() {
               <PushNotificationSettings scope="firm" />
             </section>
 
-            <section id="atalhos" className="cb-settings-panel scroll-mt-24">
-              <div className="cb-settings-panel-hd">
-                <span className="cb-settings-panel-icon">
-                  <ReceiptText className="h-4 w-4" aria-hidden />
-                </span>
-                <div>
-                  <h2 className="cb-settings-panel-title">Plano e módulos</h2>
-                  <p className="cb-settings-panel-sub">Subscrição e funcionalidades activas</p>
-                </div>
-              </div>
-              <div className="cb-settings-links">
-                <SettingsLinkCard
-                  icon={ReceiptText}
-                  title="Plano e subscrição"
-                  description="Trial, preços e activação do plano TegLion"
-                  to="/app/firm/billing"
-                />
-                <SettingsLinkCard
-                  icon={CalendarCheck}
-                  title="Agenda e consultorias"
-                  description="Horários, dias de atendimento e catálogo de serviços"
-                  to="/app/firm/agenda?panel=settings"
-                />
-              </div>
-            </section>
-
             <FirmSettingsDangerZone bundle={bundle} />
           </div>
         ) : (
@@ -134,32 +103,5 @@ export function FirmSettingsPage() {
         )}
       </div>
     </FirmScrollPage>
-  )
-}
-
-function SettingsLinkCard({
-  icon: Icon,
-  title,
-  description,
-  to,
-}: {
-  icon: typeof Building2
-  title: string
-  description: string
-  to: string
-}) {
-  return (
-    <Link to={to} className="cb-settings-link-card group">
-      <span className="cb-settings-link-icon">
-        <Icon className="h-5 w-5" aria-hidden />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="cb-settings-link-title">{title}</span>
-        <span className="cb-settings-link-desc">{description}</span>
-      </span>
-      <span className={cn('text-muted-foreground transition group-hover:translate-x-0.5')} aria-hidden>
-        →
-      </span>
-    </Link>
   )
 }

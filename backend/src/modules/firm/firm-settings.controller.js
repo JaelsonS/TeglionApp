@@ -33,7 +33,7 @@ exports.patchProfile = async (req, res, next) => {
 exports.closeAccount = async (req, res, next) => {
   try {
     const firmId = String(req.user.firmId);
-    const data = await firmSettingsService.closeFirmAccount(firmId, String(req.user.id), req.body);
+    const data = await firmSettingsService.closeFirmAccount(firmId, String(req.user.id), req.body, req);
     return res.status(200).json(data);
   } catch (err) {
     return next(err);

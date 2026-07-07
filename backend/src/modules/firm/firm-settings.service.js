@@ -4,6 +4,7 @@ const firmUsersRepository = require('../../db/supabase/repositories/firm-users.r
 const departmentsRepository = require('../../db/supabase/repositories/departments.repository');
 const authRefreshSessionsRepository = require('../../db/supabase/repositories/auth-refresh-sessions.repository');
 const firmBrandingService = require('./firm-branding.service');
+const securityAudit = require('../../services/audit/security-audit.service');
 
 const FIRM_ROLE_LABELS = {
   FIRM_OWNER: 'Dono do escritório',
@@ -146,7 +147,7 @@ async function updateMyProfile(firmId, userId, { fullName, email }) {
   };
 }
 
-async function closeFirmAccount(firmId, actorUserId, { confirmName }) {
+async function closeFirmAccount(firmId, actorUserId, { confirmName, npsScore, npsReason, npsComment }, req = null) {
   const actor = await firmUsersRepository.findFirmUserById(actorUserId);
   if (!actor || String(actor.firm_id) !== String(firmId) || actor.role !== 'FIRM_OWNER') {
     throw new AppError('Apenas o dono do escritório pode encerrar a conta.', 403);
@@ -163,6 +164,26 @@ async function closeFirmAccount(firmId, actorUserId, { confirmName }) {
   if (!got || got !== expected) {
     throw new AppError(`Escreva exactamente "${expected}" para confirmar o encerramento.`, 400);
   }
+
+  const npsScoreRaw = Number(npsScore);
+  if (!Number.isInteger(npsScoreRaw) || npsScoreRaw < 0 || npsScoreRaw > 10) {
+    throw new AppError('Indique uma classificação NPS válida (0 a 10).', 400);
+  }
+  const normalizedNpsReason = String(npsReason || '').trim() || null;
+  const normalizedNpsComment = String(npsComment || '').trim() || null;
+
+  await securityAudit.recordSettingsMutation({
+    action: 'firm.account.close.feedback.captured',
+    actor: { id: actorUserId, role: actor.role },
+    firmId,
+    metadata: {
+      npsScore: npsScoreRaw,
+      npsReason: normalizedNpsReason,
+      npsComment: normalizedNpsComment,
+      source: 'firm_close_dialog',
+    },
+    req,
+  });
 
   await firmsRepository.setFirmStatus(firmId, 'CANCELLED');
   await firmUsersRepository.deactivateAllFirmUsers(firmId);

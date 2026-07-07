@@ -16,6 +16,48 @@ type Props = {
     bundle: FirmSettingsBundle
 }
 
+type PermissionMeta = {
+    label: string
+    description: string
+    group: string
+}
+
+const PERMISSION_META: Record<string, PermissionMeta> = {
+    FIRM_READ: { label: 'Ver dados do escritório', description: 'Permite visualizar informações gerais e contexto do escritório.', group: 'Escritório' },
+    FIRM_CONSULTATIONS_MANAGE: { label: 'Gerir agenda e consultorias', description: 'Criar, editar e acompanhar marcações na agenda.', group: 'Operação' },
+    USERS_READ: { label: 'Ver utilizadores', description: 'Visualizar colaboradores e dados básicos da equipa.', group: 'Equipa' },
+    USERS_CREATE: { label: 'Criar utilizadores', description: 'Criar novos acessos de colaboradores.', group: 'Equipa' },
+    USERS_CREATE_ADMIN: { label: 'Criar utilizadores administradores', description: 'Permite criar utilizadores com acesso administrativo.', group: 'Equipa' },
+    USERS_UPDATE: { label: 'Editar utilizadores', description: 'Atualizar dados de colaboradores.', group: 'Equipa' },
+    USERS_DELETE: { label: 'Desativar utilizadores', description: 'Desativar/restringir acesso de utilizadores.', group: 'Equipa' },
+    FIRM_CLIENTS_VIEW: { label: 'Ver carteira de clientes', description: 'Consultar empresas/clientes do escritório.', group: 'Clientes' },
+    FIRM_CLIENTS_MANAGE: { label: 'Gerir carteira de clientes', description: 'Criar/editar clientes e respetivos dados.', group: 'Clientes' },
+    FIRM_ACCOUNTING_SERVICES_VIEW: { label: 'Ver serviços contabilísticos', description: 'Consultar catálogo e pedidos de serviços.', group: 'Operação' },
+    FIRM_ACCOUNTING_SERVICES_MANAGE: { label: 'Gerir serviços contabilísticos', description: 'Criar, editar e acompanhar serviços.', group: 'Operação' },
+    FIRM_OBLIGATIONS_MANAGE: { label: 'Gerir obrigações fiscais', description: 'Gerir obrigações, prazos e estados de cumprimento.', group: 'Fiscal' },
+    FIRM_DOCUMENTS_MANAGE: { label: 'Gerir documentos', description: 'Validar, organizar e solicitar documentos.', group: 'Documentos' },
+    FIRM_TASKS_MANAGE: { label: 'Gerir tarefas', description: 'Criar e acompanhar tarefas operacionais.', group: 'Operação' },
+    FIRM_MESSAGES_MANAGE: { label: 'Gerir mensagens', description: 'Aceder e responder a mensagens com clientes.', group: 'Comunicação' },
+    FIRM_BILLING_MANAGE: { label: 'Gerir faturação e plano', description: 'Aceder à subscrição, faturação e pagamentos.', group: 'Administração' },
+    FIRM_SETTINGS_MANAGE: { label: 'Gerir definições do escritório', description: 'Alterar configurações globais do escritório.', group: 'Administração' },
+    FIRM_TEAM_MANAGE: { label: 'Gerir equipa', description: 'Gerir estrutura da equipa e respetivos acessos.', group: 'Equipa' },
+    FIRM_DEPARTMENTS_MANAGE: { label: 'Gerir departamentos', description: 'Criar e manter departamentos internos.', group: 'Equipa' },
+    FIRM_INVITES_MANAGE: { label: 'Gerir convites', description: 'Enviar, reenviar e revogar convites de equipa.', group: 'Equipa' },
+    FIRM_MEMBER_ROLE_MANAGE: { label: 'Alterar perfil de acesso', description: 'Alterar nível de acesso/função dos membros.', group: 'Equipa' },
+    FIRM_MEMBER_DEPARTMENT_MANAGE: { label: 'Alterar departamento do membro', description: 'Mover membros entre departamentos.', group: 'Equipa' },
+    FIRM_MEMBER_PERMISSION_MANAGE: { label: 'Personalizar permissões do membro', description: 'Ajustar permissões individuais por colaborador.', group: 'Equipa' },
+    FIRM_TEAM_AUDIT_VIEW: { label: 'Ver auditoria da equipa', description: 'Consultar histórico de alterações e acessos da equipa.', group: 'Auditoria' },
+    FIRM_REPORTS_VIEW: { label: 'Ver relatórios', description: 'Aceder a relatórios de gestão do escritório.', group: 'Relatórios' },
+}
+
+function permissionMeta(permission: string): PermissionMeta {
+    return PERMISSION_META[permission] || {
+        label: permission,
+        description: 'Permissão técnica sem descrição detalhada.',
+        group: 'Outros',
+    }
+}
+
 type TeamSettingsMember = TeamMember & {
     isCurrentUser?: boolean
     isOwner?: boolean
@@ -561,24 +603,45 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                 </Button>
                             </div>
                             {overrideMode === 'OVERRIDE' ? (
-                                <div className="grid gap-2 md:grid-cols-2">
-                                    {permissionsQuery.data.availablePermissions.map((permission) => {
-                                        const checked = selectedPermissions.includes(permission)
-                                        return (
-                                            <Label key={permission} className="flex items-center gap-2 rounded border border-border/60 p-2 text-xs font-normal">
-                                                <Checkbox
-                                                    checked={checked}
-                                                    onCheckedChange={(next: boolean | 'indeterminate') => {
-                                                        setSelectedPermissions((prev) => {
-                                                            if (next === true) return [...prev, permission]
-                                                            return prev.filter((item) => item !== permission)
-                                                        })
-                                                    }}
-                                                />
-                                                {permission}
-                                            </Label>
-                                        )
-                                    })}
+                                <div className="space-y-4">
+                                    <p className="text-xs text-muted-foreground">
+                                        Selecione apenas o necessário para este colaborador. As permissões estão explicadas por área.
+                                    </p>
+                                    {Object.entries(
+                                        permissionsQuery.data.availablePermissions.reduce<Record<string, string[]>>((acc, permission) => {
+                                            const group = permissionMeta(permission).group
+                                            acc[group] = acc[group] || []
+                                            acc[group].push(permission)
+                                            return acc
+                                        }, {}),
+                                    ).map(([group, items]) => (
+                                        <div key={group} className="rounded-md border border-border/60 p-3">
+                                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{group}</p>
+                                            <div className="grid gap-2 md:grid-cols-2">
+                                                {items.map((permission) => {
+                                                    const checked = selectedPermissions.includes(permission)
+                                                    const meta = permissionMeta(permission)
+                                                    return (
+                                                        <Label key={permission} className="flex items-start gap-2 rounded border border-border/60 p-2 text-xs font-normal">
+                                                            <Checkbox
+                                                                checked={checked}
+                                                                onCheckedChange={(next: boolean | 'indeterminate') => {
+                                                                    setSelectedPermissions((prev) => {
+                                                                        if (next === true) return [...prev, permission]
+                                                                        return prev.filter((item) => item !== permission)
+                                                                    })
+                                                                }}
+                                                            />
+                                                            <span>
+                                                                <span className="block text-sm font-medium text-foreground">{meta.label}</span>
+                                                                <span className="block text-[11px] text-muted-foreground">{meta.description}</span>
+                                                            </span>
+                                                        </Label>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             ) : (
                                 <p className="text-xs text-muted-foreground">
