@@ -84,23 +84,40 @@ async function createStaffInvite({ firmId, actor, payload, req }) {
     const jobTitle = normalizeJobTitle(payload.jobTitle);
 
     const existing = await firmUsersRepository.findFirmUserByEmail(email);
-    if (existing && String(existing.firm_id) === String(firmId)) {
-        throw new AppError('Já existe utilizador com este e-mail neste escritório.', 409);
+    const sameFirmExisting = existing && String(existing.firm_id) === String(firmId);
+
+    let member;
+    if (sameFirmExisting) {
+        if (existing.is_active === true) {
+            throw new AppError('Já existe utilizador com este e-mail neste escritório.', 409);
+        }
+        member = await firmUsersRepository.updateFirmMember(firmId, existing.id, {
+            fullName,
+            email,
+            role,
+            jobTitle,
+            departmentId: payload.departmentId || null,
+            inviteStatus: 'PENDING',
+            isActive: false,
+            emailConfirmedAt: null,
+        });
+    } else {
+        member = await firmUsersRepository.createFirmMember({
+            firmId,
+            email,
+            fullName,
+            role,
+            jobTitle,
+            departmentId: payload.departmentId || null,
+            invitedBy: actor.id,
+            invitedAt: new Date().toISOString(),
+            inviteStatus: 'PENDING',
+            isActive: false,
+            emailConfirmedAt: null,
+        });
     }
 
-    const member = await firmUsersRepository.createFirmMember({
-        firmId,
-        email,
-        fullName,
-        role,
-        jobTitle,
-        departmentId: payload.departmentId || null,
-        invitedBy: actor.id,
-        invitedAt: new Date().toISOString(),
-        inviteStatus: 'PENDING',
-        isActive: false,
-        emailConfirmedAt: null,
-    });
+    await firmMemberInvitesRepository.revokePendingInvitesForMember(member.id);
 
     const token = generateToken();
     const expiresAt = new Date(Date.now() + INVITE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString();
@@ -206,10 +223,22 @@ async function revokeStaffInvite({ firmId, memberId, actor, req }) {
 async function previewInvite(token) {
     const invite = await firmMemberInvitesRepository.findInviteByToken(String(token || '').trim());
     if (!invite) throw new AppError('Convite inválido.', 404);
-    if (invite.status !== 'PENDING') throw new AppError('Convite já utilizado.', 410);
+    if (invite.status !== 'PENDING') {
+        if (invite.status === 'REVOKED') {
+            throw new AppError('Este convite foi substituído por um novo link. Use o e-mail mais recente ou peça novo envio.', 410, {
+                code: 'INVITE_REVOKED',
+            });
+        }
+        if (invite.status === 'ACCEPTED') {
+            throw new AppError('Este convite já foi utilizado para criar acesso.', 410, {
+                code: 'INVITE_ALREADY_USED',
+            });
+        }
+        throw new AppError('Convite já não está disponível.', 410, { code: 'INVITE_UNAVAILABLE' });
+    }
     if (new Date(invite.expires_at) < new Date()) {
         await firmMemberInvitesRepository.markInviteExpired(invite.id);
-        throw new AppError('Convite expirado.', 410);
+        throw new AppError('Convite expirado. Peça novo envio ao administrador.', 410, { code: 'INVITE_EXPIRED' });
     }
 
     const member = await firmUsersRepository.findFirmUserById(invite.member_id);
@@ -227,10 +256,22 @@ async function previewInvite(token) {
 async function acceptInvite({ token, email, password, fullName, req }) {
     const invite = await firmMemberInvitesRepository.findInviteByToken(String(token || '').trim());
     if (!invite) throw new AppError('Convite inválido.', 404);
-    if (invite.status !== 'PENDING') throw new AppError('Convite já utilizado.', 410);
+    if (invite.status !== 'PENDING') {
+        if (invite.status === 'REVOKED') {
+            throw new AppError('Este convite foi substituído por um novo link. Use o e-mail mais recente ou peça novo envio.', 410, {
+                code: 'INVITE_REVOKED',
+            });
+        }
+        if (invite.status === 'ACCEPTED') {
+            throw new AppError('Este convite já foi utilizado para criar acesso.', 410, {
+                code: 'INVITE_ALREADY_USED',
+            });
+        }
+        throw new AppError('Convite já não está disponível.', 410, { code: 'INVITE_UNAVAILABLE' });
+    }
     if (new Date(invite.expires_at) < new Date()) {
         await firmMemberInvitesRepository.markInviteExpired(invite.id);
-        throw new AppError('Convite expirado.', 410);
+        throw new AppError('Convite expirado. Peça novo envio ao administrador.', 410, { code: 'INVITE_EXPIRED' });
     }
 
     const normalizedEmail = String(email || '').trim().toLowerCase();

@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Site** | [teglion.com](https://teglion.com) |
-| **Estado** | Piloto vendável — hardening para produção e escala |
+| **Estado** | Produção controlada para escritório piloto |
 | **Contexto** | Produto SaaS + projeto de estudo (full-stack, UX, fiscalidade PT) |
 
 ---
@@ -46,15 +46,17 @@ O piloto arranca com **um escritório de contabilidade real** que valida o fluxo
 | Tarefas, obrigações, calendário fiscal | ✅ |
 | Blog (27 artigos, prerender SEO) | ✅ |
 | Redesign UI escritório + portal cliente | ✅ |
-| TypeScript frontend | ✅ 0 erros |
+| TypeScript frontend | ✅ validado no gate de release |
 | Frontend build `build:spa` | ✅ |
 | Backend smoke piloto | ✅ 6/6 |
-| Backend security audit | ✅ com 1 aviso |
+| Backend security audit | ✅ |
 | Frontend Playwright E2E smoke | ✅ 5/5 |
 | QA visual tablet/mobile em produção | 🟡 Pendente |
-| Stripe live | 🟡 Configuração manual |
+| Stripe live | 🟡 Validar preços e webhook antes do GO final |
 
 Detalhe completo: [`docs/operations/STATUS.md`](docs/operations/STATUS.md)
+
+Checklist operativo de lançamento: [`docs/operations/GO_PRODUCTION.md`](docs/operations/GO_PRODUCTION.md)
 
 ## Pricing oficial (documentação)
 
@@ -152,6 +154,9 @@ TegLion/
 | [`docs/product/ROADMAP.md`](docs/product/ROADMAP.md) | Plano de evolução (8 fases) |
 | [`docs/operations/DEV_LOCAL.md`](docs/operations/DEV_LOCAL.md) | Ambiente de desenvolvimento |
 | [`docs/operations/DEPLOY_PRODUCTION.md`](docs/operations/DEPLOY_PRODUCTION.md) | Deploy produção |
+| [`docs/operations/GO_PRODUCTION.md`](docs/operations/GO_PRODUCTION.md) | Execução final de GO e rollback |
+| [`docs/operations/REDIS_RENDER_SETUP.md`](docs/operations/REDIS_RENDER_SETUP.md) | Activação e validação de Redis no Render |
+| [`docs/operations/EXECUCAO_ROLES_TELAS.md`](docs/operations/EXECUCAO_ROLES_TELAS.md) | Plano de evolução de funcionalidades e telas por role |
 | [`docs/security/SECURITY.md`](docs/security/SECURITY.md) | Segurança e multi-tenant |
 
 ---
@@ -162,6 +167,13 @@ TegLion/
 2. **QA produção** — tablet/mobile, capturas baseline (`docs/qa/visual-baseline/`)
 3. **SEO** — Search Console, indexação blog, PageSpeed mobile
 4. **Hardening** — WAF, cache assets, validação Stripe live
+
+## Segurança do repositório público
+
+1. Não versionar `.env` nem segredos operacionais.
+2. Executar `npm run security:secrets` antes de cada push.
+3. Manter CI obrigatório em PR para `main` e `staging`.
+4. Rodar rotação de credenciais imediatamente se houver suspeita de exposição.
 
 ## Prontidão para 100.000 clientes activos
 
@@ -179,4 +191,4 @@ Ver [`docs/product/ROADMAP.md`](docs/product/ROADMAP.md) para o plano por fases.
 
 ## Licença
 
-Projeto privado — uso interno e piloto acordado com o escritório parceiro.
+Licença proprietária com todos os direitos reservados: [`LICENSE`](LICENSE).

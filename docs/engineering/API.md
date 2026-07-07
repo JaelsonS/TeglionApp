@@ -11,7 +11,7 @@ Contrato HTTP da API TegLion. Descreve áreas, convenções e endpoints. Para de
 | Ambiente | URL |
 |----------|-----|
 | Produção | `https://api.teglion.com` |
-| Staging | `https://teglion-staging.onrender.com` |
+| Staging | `https://teglion-api-staging.onrender.com` |
 | Local | `http://localhost:8001` |
 
 **Prefixo actual:** `/api`  

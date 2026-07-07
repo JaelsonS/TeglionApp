@@ -1,6 +1,12 @@
 const DEFAULT_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 export const API_BASE_STORAGE_KEY = 'contabil.apiBaseUrl'
 
+function shouldForceSameOriginApi(): boolean {
+  if (typeof window === 'undefined') return false
+  const host = String(window.location.hostname || '').toLowerCase()
+  return host === 'teglion.com' || host === 'www.teglion.com'
+}
+
 export function allowApiBaseFromQuery(): boolean {
   if (import.meta.env.DEV) return true
   return String(import.meta.env.VITE_ALLOW_API_BASE_QUERY || '').toLowerCase() === 'true'
@@ -51,6 +57,10 @@ function dedupeBases(list: string[]): string[] {
 
 export function getApiBaseUrlCandidates(): string[] {
   if (import.meta.env.DEV) {
+    return ['/api']
+  }
+
+  if (shouldForceSameOriginApi()) {
     return ['/api']
   }
 

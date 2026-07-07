@@ -31,13 +31,17 @@ function resolvePublicApiUrl() {
     process.env.BACKEND_URL ||
     process.env.RENDER_EXTERNAL_URL;
   if (raw) return String(raw).trim().replace(/\/+$/, '');
-  if (process.env.NODE_ENV === 'production') return 'https://teglion.onrender.com';
+  if (process.env.NODE_ENV === 'production') return 'https://teglionapp.onrender.com';
   return 'http://localhost:8001';
 }
 
 function resolveGoogleOAuthRedirectUri() {
   if (process.env.GOOGLE_OAUTH_REDIRECT_URI) {
     return String(process.env.GOOGLE_OAUTH_REDIRECT_URI).trim().replace(/\/+$/, '');
+  }
+  const publicApi = String(process.env.PUBLIC_API_URL || '').trim().replace(/\/+$/, '');
+  if (publicApi) {
+    return `${publicApi}/api/auth/google/callback`;
   }
   const frontend = String(process.env.FRONTEND_URL || '').trim().replace(/\/+$/, '');
   if (frontend) {

@@ -36,7 +36,7 @@ Colocar o Client ID/Secret no Supabase **não activa** o botão «Entrar com Goo
 |----------|----------------|
 | Produção (recomendado) | `https://teglion.com/api/auth/google/callback` |
 | Produção (www) | `https://www.teglion.com/api/auth/google/callback` |
-| Produção (API directa) | `https://teglion.onrender.com/api/auth/google/callback` |
+| Produção (API directa) | `https://teglionapp.onrender.com/api/auth/google/callback` |
 | Local | `http://localhost:8001/api/auth/google/callback` |
 | Staging | `https://teglion-api-staging.onrender.com/api/auth/google/callback` |
 

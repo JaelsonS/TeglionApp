@@ -28,8 +28,16 @@ type InvitePreview = {
     expiresAt: string
 }
 
+function normalizeInviteToken(raw?: string): string {
+    const value = decodeURIComponent(String(raw || '')).trim().replace(/^\/+|\/+$/g, '')
+    if (!value) return ''
+    const hexMatch = value.match(/[a-f0-9]{64}/i)
+    return hexMatch ? hexMatch[0].toLowerCase() : value
+}
+
 export function FirmInviteRegisterPage() {
     const { token } = useParams<{ token: string }>()
+    const normalizedToken = normalizeInviteToken(token)
     const navigate = useNavigate()
     const [preview, setPreview] = useState<InvitePreview | null>(null)
     const [loadingPreview, setLoadingPreview] = useState(true)
@@ -41,11 +49,11 @@ export function FirmInviteRegisterPage() {
     })
 
     useEffect(() => {
-        if (!token) return
+        if (!normalizedToken) return
         void (async () => {
             setLoadingPreview(true)
             try {
-                const data = await teamInvitePublicApi.preview(token)
+                const data = await teamInvitePublicApi.preview(normalizedToken)
                 setPreview(data)
                 form.setValue('email', data.emailHint || '')
                 if (data.fullNameHint) form.setValue('fullName', data.fullNameHint)
@@ -55,13 +63,13 @@ export function FirmInviteRegisterPage() {
                 setLoadingPreview(false)
             }
         })()
-    }, [token, form])
+    }, [normalizedToken, form])
 
     const onSubmit = form.handleSubmit(async (values) => {
-        if (!token) return
+        if (!normalizedToken) return
         setSubmitting(true)
         try {
-            await teamInvitePublicApi.accept(token, {
+            await teamInvitePublicApi.accept(normalizedToken, {
                 fullName: values.fullName,
                 email: values.email,
                 password: values.password,

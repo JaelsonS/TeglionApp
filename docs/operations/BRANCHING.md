@@ -1,6 +1,6 @@
 # Branches — produção (`main`) vs staging
 
-Estratégia para testar com segurança antes de afectar `teglion.com`.
+Estratégia para testar com segurança antes de afetar `teglion.com`.
 
 ---
 
@@ -81,7 +81,7 @@ Cada projeto com as suas env vars (`VITE_API_BASE_URL` aponta para a API correct
 
 | Serviço | Branch | URL exemplo |
 |---------|--------|-------------|
-| `teglion-api` (prod) | `main` | `teglion.onrender.com` |
+| `teglion-api` (prod) | `main` | `teglionapp.onrender.com` |
 | `teglion-api-staging` | `staging` | `teglion-api-staging.onrender.com` |
 
 **Importante:** Supabase **separado** para staging (projeto novo). Nunca reutilizar `JWT_*_SECRET` nem `SERVICE_ROLE_KEY` entre ambientes.

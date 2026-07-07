@@ -11,6 +11,42 @@ import { registerSW } from 'virtual:pwa-register'
 import { shouldRegisterPwa } from '@/shared/utils/pwaPolicy'
 import { isLightweightPublicRoute } from '@/shared/utils/publicRoutes'
 
+const CHUNK_RECOVERY_KEY = 'teglion.chunk-recovery'
+
+function installChunkLoadRecovery(): void {
+  if (typeof window === 'undefined') return
+
+  const shouldRecover = (value: unknown): boolean => {
+    const text = String(value || '')
+    return (
+      text.includes('Failed to fetch dynamically imported module') ||
+      text.includes('Importing a module script failed') ||
+      text.includes('Loading chunk')
+    )
+  }
+
+  const recoverOnce = () => {
+    try {
+      if (window.sessionStorage.getItem(CHUNK_RECOVERY_KEY) === '1') return
+      window.sessionStorage.setItem(CHUNK_RECOVERY_KEY, '1')
+    } catch {
+      // noop
+    }
+    window.location.reload()
+  }
+
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = (event as PromiseRejectionEvent).reason
+    const message = reason?.message || reason
+    if (shouldRecover(message)) recoverOnce()
+  })
+
+  window.addEventListener('error', (event) => {
+    const message = (event as ErrorEvent).message || ''
+    if (shouldRecover(message)) recoverOnce()
+  })
+}
+
 function isPwaEnabled(): boolean {
   return String(import.meta.env.VITE_ENABLE_PWA || '').toLowerCase() === 'true'
 }
@@ -44,6 +80,7 @@ function loadGoogleFonts() {
 }
 
 if (typeof window !== 'undefined') {
+  installChunkLoadRecovery()
   const w = window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }
   if (w.requestIdleCallback) {
     w.requestIdleCallback(() => loadGoogleFonts(), { timeout: 2500 })

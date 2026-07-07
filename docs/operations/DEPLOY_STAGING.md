@@ -9,7 +9,7 @@ Ambiente isolado para desenvolver e testar **sem afectar o escritório em produ�
 | Camada | Produção | Staging |
 |--------|----------|---------|
 | Frontend | `teglion.com` (Vercel) | `staging.teglion.com` (Vercel) |
-| API | `teglion.onrender.com` (Render) | `teglion-api-staging.onrender.com` (Render) |
+| API | `teglionapp.onrender.com` (Render) | `teglion-api-staging.onrender.com` (Render) |
 | Base de dados | Supabase projeto **prod** | Supabase projeto **staging** (separado) |
 | Storage | Bucket `contabil-documents` prod | Bucket staging (mesmo nome, projeto diferente) |
 | Email (Brevo) | Remetente prod | Remetente `staging@…` ou sandbox Brevo |

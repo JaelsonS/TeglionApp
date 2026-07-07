@@ -2,7 +2,7 @@
 
 **Última actualização:** Julho 2026 (revisado 06 Jul 2026)
 
-Este documento é a **fonte de verdade** sobre onde o projecto está, para onde vai, e como encaixa o piloto no escritório de contabilidade.
+Este documento é a minha fonte de verdade para saber exatamente onde o projeto está, o que já validei e o que eu executo a seguir.
 
 **Cronograma executável:** [CRONOGRAMA.md](./CRONOGRAMA.md)
 
@@ -24,8 +24,8 @@ SaaS B2B multi-tenant para **escritórios de contabilidade em Portugal**: o escr
 
 ### Veredicto geral
 
-**Piloto vendável** — Fase 1 ✅ · Fase 2 ✅ · **Fase 3 em curso**.
-Infraestrutura e fluxo operacional validados com testes automatizados, build de produção e smoke E2E.
+Eu estou com **piloto vendável** — Fase 1 ✅ · Fase 2 ✅ · **Fase 3 em curso**.
+Infraestrutura e fluxo operacional já validados com testes automatizados, build de produção e smoke E2E.
 
 ### Status de testes recentes
 
@@ -110,6 +110,19 @@ Histórico completo: [CHANGELOG.md](../product/CHANGELOG.md)
 | Testes E2E fluxo piloto (registo → upload) | Alta |
 | Tenant isolation obrigatório em PR | Média |
 
+### O meu foco imediato para robustez
+
+1. Fechar regras de role por tela e por endpoint
+2. Manter Redis activo em produção sem fallback
+3. Travar promoção para `main` sem checklist de GO
+4. Consolidar documentação operacional para execução sem dúvida
+
+Plano operacional ligado a este foco:
+
+- [EXECUCAO_ROLES_TELAS.md](./EXECUCAO_ROLES_TELAS.md)
+- [REDIS_RENDER_SETUP.md](./REDIS_RENDER_SETUP.md)
+- [GO_PRODUCTION.md](./GO_PRODUCTION.md)
+
 ### Métricas de qualidade (Jul 2026)
 
 | Verificação | Estado |
@@ -176,8 +189,8 @@ cd backend && npm run smoke:pilot
 
 ## 4. Próximos passos (ordem recomendada)
 
-1. **Fase 3** — Padronização: god files, ESLint limits, E2E piloto completo
-2. **Capturas baseline** — `docs/visual-baseline/screenshots/`
+1. **Fase 3** — Padronização: god files, regras de role por tela, E2E piloto completo
+2. **Redis em produção** — validar operação estável no Render
 3. **Cloudflare WAF** — quando escalar tráfego
 4. **Checklist 100k → 1M** — executar por fases o plano em [SCALE_100K_1M_CHECKLIST.md](../product/SCALE_100K_1M_CHECKLIST.md)
 
