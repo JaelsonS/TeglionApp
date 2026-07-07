@@ -208,14 +208,14 @@ function buildEducationalExpansion(post: BlogPost): BlogPost['blocks'] {
     },
     ...(related.length
       ? [
-          {
-            type: 'internalLinks' as const,
-            title: 'Aprofunde este tema com leitura complementar',
-            intro:
-              'Para ganhar domínio real, combine este artigo com os guias abaixo e aplique o plano de implementação em paralelo.',
-            slugs: related,
-          },
-        ]
+        {
+          type: 'internalLinks' as const,
+          title: 'Aprofunde este tema com leitura complementar',
+          intro:
+            'Para ganhar domínio real, combine este artigo com os guias abaixo e aplique o plano de implementação em paralelo.',
+          slugs: related,
+        },
+      ]
       : []),
   ]
 }
