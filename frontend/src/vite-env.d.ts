@@ -13,6 +13,7 @@ interface ImportMetaEnv {
   readonly VITE_BUILD_VERSION?: string
   readonly VITE_APP_VERSION?: string
   readonly VITE_PRODUCT_MODE?: string
+  readonly VITE_ENABLE_PWA?: string
 }
 
 interface ImportMeta {
