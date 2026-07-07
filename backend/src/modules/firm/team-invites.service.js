@@ -51,6 +51,23 @@ async function sendEmailConfirmationForMember({ member, firmName }) {
     }).catch(() => { });
 }
 
+async function deliverTeamInviteEmail({ staffEmail, staffName, firmName, inviteToken, expiresAt }) {
+    try {
+        await notifyFirmMemberInvite({
+            staffEmail,
+            staffName,
+            firmName,
+            inviteToken,
+            expiresAt,
+        });
+        return { emailSent: true, emailError: null };
+    } catch (err) {
+        const message = err?.response?.data?.message || err?.message || 'email_delivery_failed';
+        console.warn('[TegLion][team-invite] falha no envio de email:', message);
+        return { emailSent: false, emailError: String(message) };
+    }
+}
+
 async function createStaffInvite({ firmId, actor, payload, req }) {
     const email = String(payload.email || '').trim().toLowerCase();
     const fullName = String(payload.fullName || '').trim();
@@ -97,13 +114,13 @@ async function createStaffInvite({ firmId, actor, payload, req }) {
     });
 
     const firm = await firmsRepository.findFirmById(firmId).catch(() => null);
-    void notifyFirmMemberInvite({
+    const delivery = await deliverTeamInviteEmail({
         staffEmail: email,
         staffName: fullName,
         firmName: firm?.name,
         inviteToken: token,
         expiresAt,
-    }).catch(() => { });
+    });
 
     await securityAudit.recordTeamMutation({
         action: 'team.invite.sent',
@@ -115,11 +132,12 @@ async function createStaffInvite({ firmId, actor, payload, req }) {
             role: member.role,
             jobTitle: member.jobTitle,
             departmentId: member.departmentId,
+            emailSent: delivery.emailSent,
         },
         req,
     });
 
-    return { member, invite, inviteUrlToken: token };
+    return { member, invite, inviteUrlToken: token, emailSent: delivery.emailSent, emailError: delivery.emailError };
 }
 
 async function resendStaffInvite({ firmId, memberId, actor, req }) {
@@ -143,24 +161,24 @@ async function resendStaffInvite({ firmId, memberId, actor, req }) {
     });
 
     const firm = await firmsRepository.findFirmById(firmId).catch(() => null);
-    void notifyFirmMemberInvite({
+    const delivery = await deliverTeamInviteEmail({
         staffEmail: member.email,
         staffName: member.fullName,
         firmName: firm?.name,
         inviteToken: token,
         expiresAt,
-    }).catch(() => { });
+    });
 
     await securityAudit.recordTeamMutation({
         action: 'team.invite.resent',
         actor,
         firmId,
         targetUserId: memberId,
-        metadata: { inviteId: invite.id },
+        metadata: { inviteId: invite.id, emailSent: delivery.emailSent },
         req,
     });
 
-    return { invite, inviteUrlToken: token };
+    return { invite, inviteUrlToken: token, emailSent: delivery.emailSent, emailError: delivery.emailError };
 }
 
 async function revokeStaffInvite({ firmId, memberId, actor, req }) {

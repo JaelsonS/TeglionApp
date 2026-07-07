@@ -109,8 +109,12 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                 jobTitle: inviteForm.jobTitle || null,
                 departmentId: inviteForm.departmentId || null,
             }),
-        onSuccess: async () => {
-            toast.success('Convite enviado com sucesso.')
+        onSuccess: async (result) => {
+            if (result?.emailSent === false) {
+                toast.warning('Convite criado, mas o e-mail falhou. Use Reenviar convite.')
+            } else {
+                toast.success('Convite enviado com sucesso.')
+            }
             setInviteForm({ fullName: '', email: '', jobTitle: '', departmentId: '' })
             await invalidate()
         },
@@ -158,14 +162,18 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
     const inviteActionMutation = useMutation({
         mutationFn: async ({ memberId, mode }: { memberId: string; mode: 'RESEND' | 'REVOKE' }) => {
             if (mode === 'RESEND') {
-                await teamManagementApi.resendInvite(memberId)
+                return teamManagementApi.resendInvite(memberId)
             } else {
                 await teamManagementApi.revokeInvite(memberId)
             }
-            return { ok: true }
+            return { ok: true, emailSent: true }
         },
-        onSuccess: async (_, vars) => {
-            toast.success(vars.mode === 'RESEND' ? 'Convite reenviado.' : 'Convite revogado.')
+        onSuccess: async (result, vars) => {
+            if (vars.mode === 'RESEND' && result?.emailSent === false) {
+                toast.warning('Convite recriado, mas o e-mail falhou. Tente novamente.')
+            } else {
+                toast.success(vars.mode === 'RESEND' ? 'Convite reenviado.' : 'Convite revogado.')
+            }
             await invalidate()
         },
         onError: (err) => toast.error(getErrorMessage(err)),
