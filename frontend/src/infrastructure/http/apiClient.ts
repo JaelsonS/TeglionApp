@@ -40,7 +40,10 @@ export function getApiUploadsRoot(): string {
 }
 
 export function getGoogleAuthStartUrl(options?: { intent?: 'login' | 'register'; countryCode?: string }): string {
-  const base = getApiBaseUrlResolved().replace(/\/$/, '')
+  const isBrowser = typeof window !== 'undefined'
+  const host = isBrowser ? String(window.location.hostname || '').toLowerCase() : ''
+  const useSameOrigin = host === 'teglion.com' || host === 'www.teglion.com'
+  const base = (useSameOrigin ? `${window.location.origin}/api` : getApiBaseUrlResolved()).replace(/\/$/, '')
   const params = new URLSearchParams()
   if (options?.intent === 'register') params.set('intent', 'register')
   if (options?.countryCode) params.set('countryCode', options.countryCode)

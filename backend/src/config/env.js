@@ -319,7 +319,7 @@ if (!env.EMAIL_ENABLED) {
 if (env.isDevelopment && env.REDIS_URL && isRenderInternalRedisUrl(env.REDIS_URL)) {
   console.log(
     `${BRAND.logPrefix}[WARN] REDIS_URL parece ser URL interna Render — não funciona no Mac. ` +
-      'Use External URL (rediss://) ou remova REDIS_URL em dev local.',
+    'Use External URL (rediss://) ou remova REDIS_URL em dev local.',
   );
 }
 
