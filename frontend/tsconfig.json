@@ -16,7 +16,7 @@
     "resolveJsonModule": true,
     "allowJs": true,
     "checkJs": false,
-    "ignoreDeprecations": "5.0",
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@/app/*": [
