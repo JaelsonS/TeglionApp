@@ -2,8 +2,6 @@ const { AppError } = require('../../middlewares/error.middleware');
 const { getRepository } = require('../../db/supabase/repositories');
 const activityService = require('../../services/activity/activity.service');
 const messagesService = require('../messages/messages.service');
-const documentRequestsRepo = require('../../db/supabase/repositories/document-requests.repository');
-const documentRequestsService = require('../document-requests/document-requests.service');
 const taskEventService = require('../tasks/task-event.service');
 const viewTracking = require('../../services/tracking/view-tracking.service');
 
@@ -44,7 +42,7 @@ async function validateDocument({ firmId, documentId, validationStatus, validate
   }).catch(() => {});
 
   if (validationStatus === 'APPROVED') {
-    await documentRequestsRepo.completeByDocumentId(firmId, doc.id);
+    // completeByDocumentId + tarefa ligada vivem em task-event (DOCUMENT_APPROVED)
     await taskEventService.emit(taskEventService.EVENT_TYPES.DOCUMENT_APPROVED, { firmId, document: doc });
   } else if (validationStatus === 'REJECTED') {
     await taskEventService.emit(taskEventService.EVENT_TYPES.DOCUMENT_REJECTED, { firmId, document: doc });

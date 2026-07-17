@@ -1,16 +1,21 @@
-import { ArrowLeft, Bell, Check, FileCheck, FileUp, MessageSquarePlus, X } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowLeft, Bell, Check, CheckCircle2, FileCheck, FileUp, MessageSquarePlus, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { DocumentRequestBadge } from '@/features/firm/documents/DocumentRequestBadge'
 import { displayDocumentRequestTitle } from '@/features/firm/documents/documentRequestDisplay'
 import {
+  documentRequestProgressHint,
   documentRequestStepIndex,
   normalizeRequestStatus,
 } from '@/features/firm/documents/documentRequestStatus'
 import { formatPeriodLabel } from '@/features/firm/tasks/tasksOperationsUtils'
 import { Button } from '@/shared/components/ui/button'
+import { contabilMessagesApi } from '@/infrastructure/api'
 import type { DocumentRequest } from '@/shared/types/contabil'
 import { formatDateTime } from '@/shared/utils/date'
+import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 
 const STEPS = [
@@ -26,15 +31,33 @@ export function DocumentRequestDetailPanel({
   clientName,
   onClose,
   onNewFollowUp,
+  onUpdated,
 }: {
   request: DocumentRequest
   clientName: string
   onClose: () => void
   onNewFollowUp?: () => void
+  onUpdated?: () => void
 }) {
   const status = normalizeRequestStatus(request.status)
   const title = displayDocumentRequestTitle(request, clientName)
   const current = documentRequestStepIndex(status)
+  const hasDocument = Boolean(request.documentId)
+  const canComplete = status !== 'completed' && (status === 'answered' || hasDocument)
+  const [completing, setCompleting] = useState(false)
+
+  const handleComplete = async () => {
+    setCompleting(true)
+    try {
+      await contabilMessagesApi.completeDocumentRequest(request.id)
+      toast.success('Pedido marcado como concluído.')
+      onUpdated?.()
+    } catch (err) {
+      toast.error('Não foi possível concluir', { description: getErrorMessage(err) })
+    } finally {
+      setCompleting(false)
+    }
+  }
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-muted/15">
@@ -75,18 +98,19 @@ export function DocumentRequestDetailPanel({
             <h3 className="cb-section-title text-xs">Progresso do pedido</h3>
           </div>
           <div className="cb-surface-body">
-            <div className="cb-request-stepper">
+            <div className="cb-request-stepper" role="list" aria-label="Progresso do pedido">
               {STEPS.map((step, i) => {
                 const done = i < current
-                const active = i === current
+                const active = i === current && status !== 'completed'
                 return (
-                  <div key={step.id} className="cb-request-step">
+                  <div key={step.id} className="cb-request-step" role="listitem">
                     <div
                       className={cn(
                         'cb-request-step-circle',
                         done && 'cb-request-step-done',
                         active && 'cb-request-step-current',
                       )}
+                      aria-current={active ? 'step' : undefined}
                     >
                       {done ? <Check className="h-3 w-3" /> : i + 1}
                     </div>
@@ -98,6 +122,9 @@ export function DocumentRequestDetailPanel({
                 )
               })}
             </div>
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+              {documentRequestProgressHint(status, hasDocument)}
+            </p>
           </div>
         </section>
 
@@ -117,29 +144,64 @@ export function DocumentRequestDetailPanel({
           </div>
         </section>
 
-        {request.documentId ? (
+        {hasDocument ? (
           <section className="cb-surface">
             <div className="cb-surface-header">
               <h3 className="cb-section-title text-xs">Documento recebido</h3>
             </div>
-            <div className="cb-surface-body">
+            <div className="cb-surface-body flex flex-wrap gap-2">
               <Button variant="outline" size="sm" className="h-8 rounded-md text-xs" asChild>
                 <Link to={`/app/firm/documents/files?doc=${request.documentId}`}>
                   <FileCheck className="mr-1.5 h-3.5 w-3.5" />
                   Validar ficheiro
                 </Link>
               </Button>
+              {canComplete ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-8 rounded-md text-xs"
+                  disabled={completing}
+                  onClick={() => void handleComplete()}
+                >
+                  <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+                  {completing ? 'A concluir...' : 'Marcar concluído'}
+                </Button>
+              ) : null}
             </div>
           </section>
         ) : (
           <p className="text-center text-xs text-muted-foreground">
-            Aguarda envio de ficheiro pelo cliente no portal.
+            {documentRequestProgressHint(status, false)}
           </p>
         )}
       </div>
 
       <div className="shrink-0 flex flex-wrap gap-2 border-t border-border/60 bg-card p-3">
-        <Button type="button" size="sm" className="h-8 rounded-md text-xs">
+        {canComplete ? (
+          <Button
+            type="button"
+            size="sm"
+            className="h-8 rounded-md text-xs"
+            disabled={completing}
+            onClick={() => void handleComplete()}
+          >
+            <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+            {completing ? 'A concluir...' : 'Marcar concluído'}
+          </Button>
+        ) : null}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-8 rounded-md text-xs"
+          disabled={status === 'completed'}
+          onClick={() =>
+            toast.message('Lembrete', {
+              description: 'O cliente vê o pedido no portal. Em breve poderá reenviar aviso por e-mail daqui.',
+            })
+          }
+        >
           <Bell className="mr-1.5 h-3.5 w-3.5" />
           Notificar cliente
         </Button>

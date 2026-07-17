@@ -194,6 +194,11 @@ router.post(
   documentRequestsController.create,
 );
 router.post(
+  '/document-requests/:id/complete',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  documentRequestsController.complete,
+);
+router.post(
   '/messages/:messageId/convert-to-request',
   requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
   messagesController.convertToDocumentRequest,

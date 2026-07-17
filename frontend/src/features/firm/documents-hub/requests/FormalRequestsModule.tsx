@@ -236,6 +236,9 @@ export function FormalRequestsModule() {
         setComposeOpen(true)
         updateParams({ compose: '1', request: null })
       }}
+      onUpdated={() => {
+        void refresh()
+      }}
     />
   ) : (
     <div className="flex flex-1 flex-col items-center justify-center gap-1.5 p-6 text-center text-muted-foreground">

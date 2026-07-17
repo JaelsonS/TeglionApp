@@ -28,17 +28,26 @@ export const REQUEST_STATUS_CLASS: Record<DocumentRequestStatus, string> = {
   completed: 'bg-emerald-100 text-emerald-900 border-emerald-200',
 }
 
-/** Índice do passo activo no stepper (0–4): Criado → Enviado → Aguarda resp. → Em revisão → Concluído */
+/** Índice do passo activo no stepper (0–4): Criado → Enviado → Aguarda resp. → Em revisão → Concluído.
+ *  Devolve 5 quando concluído para todos os círculos ficarem ✓. */
 export function documentRequestStepIndex(status: DocumentRequestStatus | null): number {
   switch (status) {
     case 'completed':
-      return 4
+      return 5
     case 'answered':
       return 3
     case 'seen':
     case 'pending':
       return 2
     default:
-      return 0
+      return 1
   }
+}
+
+export function documentRequestProgressHint(status: DocumentRequestStatus | null, hasDocument: boolean): string {
+  if (status === 'completed') return 'Pedido concluído — ficheiro validado.'
+  if (status === 'answered' || hasDocument) return 'Cliente enviou ficheiro. Valide o documento ou marque como concluído.'
+  if (status === 'seen') return 'Cliente já viu o pedido. Aguarda envio de ficheiro no portal.'
+  if (status === 'pending') return 'Pedido criado. Aguarda o cliente abrir o portal e enviar o ficheiro.'
+  return 'Aguarda envio de ficheiro pelo cliente no portal.'
 }

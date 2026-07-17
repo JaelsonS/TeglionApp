@@ -60,7 +60,9 @@ export function ClientDocumentRequestsPanel() {
     const q = search.trim().toLowerCase()
     return requests.filter((r) => {
       const st = normalizeRequestStatus(r.status)
-      if (statusFilter && st !== statusFilter) return false
+      if (statusFilter === 'pending' && st !== 'pending') return false
+      if (statusFilter === 'seen' && st !== 'seen' && st !== 'answered') return false
+      if (statusFilter === 'completed' && st !== 'completed') return false
       if (!q) return true
       const title = displayDocumentRequestTitle(r).toLowerCase()
       const body = (r.instructions || '').toLowerCase()
@@ -264,7 +266,7 @@ function ClientRequestDetail({
   const status = normalizeRequestStatus(request.status)
   const title = displayDocumentRequestTitle(request)
   const timeline = requestTimelineEvents(request)
-  const canUpload = status !== 'completed'
+  const canUpload = status === 'pending' || status === 'seen'
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -318,6 +320,10 @@ function ClientRequestDetail({
             </p>
             <PremiumDocumentUpload uploading={uploading} uploadProgress={uploadProgress} onUpload={onUpload} />
           </section>
+        ) : status === 'answered' ? (
+          <p className="rounded-[10px] border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-900">
+            Ficheiro enviado. O escritório está a rever — quando validar, o pedido passa a concluído.
+          </p>
         ) : (
           <p className="rounded-[10px] border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
             Este pedido está concluído. Obrigado pelo envio.

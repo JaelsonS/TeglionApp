@@ -31,3 +31,14 @@ exports.create = async (req, res, next) => {
     return next(err);
   }
 };
+
+exports.complete = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const requestId = parseEntityId(req.params.id, 'requestId');
+    const result = await documentRequestsService.completeRequest({ firmId, requestId });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+};

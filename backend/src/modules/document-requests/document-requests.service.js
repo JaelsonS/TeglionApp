@@ -122,6 +122,9 @@ async function answerWithDocument({ firmId, clientId, requestId, documentId }) {
 async function completeRequest({ firmId, requestId }) {
   const existing = await documentRequestsRepo.findById(requestId, firmId);
   if (!existing) throw new AppError('Pedido não encontrado', 404);
+  if (existing.status === 'completed') {
+    return { request: existing };
+  }
   const now = new Date().toISOString();
   const request = await documentRequestsRepo.updateStatus(requestId, firmId, {
     status: 'completed',

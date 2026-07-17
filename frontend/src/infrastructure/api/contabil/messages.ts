@@ -55,6 +55,9 @@ export function createContabilMessagesApi(api: AxiosInstance) {
       instructions?: string
     }) => api.post('/contabil/document-requests', payload).then((r) => r.data),
 
+    completeDocumentRequest: (requestId: string) =>
+      api.post(`/contabil/document-requests/${encodeURIComponent(requestId)}/complete`).then((r) => r.data),
+
     convertMessageToDocumentRequest: (
       messageId: string,
       payload?: { obligationId?: string; periodMonth?: string },
