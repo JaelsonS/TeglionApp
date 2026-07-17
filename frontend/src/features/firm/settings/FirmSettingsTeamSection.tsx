@@ -498,7 +498,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                     <div className="mt-0.5 text-[11px]">Nível: {renderAccessLabel(m)}</div>
                                 </td>
                                 <td className="hidden px-4 py-3 text-xs text-muted-foreground lg:table-cell">
-                                    {m.departmentName || 'Sem departamento'}
+                                    {m.departmentName || m.department?.name || 'Sem departamento'}
                                 </td>
                                 <td className="px-4 py-3 text-xs text-muted-foreground">
                                     {m.isActive ? 'Ativo' : 'Inativo'}

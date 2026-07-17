@@ -43,10 +43,14 @@ async function listMembers(firmId) {
         departmentsRepository.listDepartments(firmId, { activeOnly: false }),
     ]);
     const depMap = new Map(departments.map((d) => [String(d.id), d]));
-    return members.map((m) => ({
-        ...m,
-        department: m.departmentId ? depMap.get(String(m.departmentId)) || null : null,
-    }));
+    return members.map((m) => {
+        const department = m.departmentId ? depMap.get(String(m.departmentId)) || null : null;
+        return {
+            ...m,
+            department,
+            departmentName: department?.name || null,
+        };
+    });
 }
 
 async function getMember(firmId, memberId) {
@@ -56,7 +60,11 @@ async function getMember(firmId, memberId) {
     if (member.departmentId) {
         department = await departmentsRepository.findDepartmentById(firmId, member.departmentId);
     }
-    return { ...member, department };
+    return {
+        ...member,
+        department,
+        departmentName: department?.name || null,
+    };
 }
 
 async function createMember({ firmId, actor, payload, req }) {

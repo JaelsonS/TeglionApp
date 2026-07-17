@@ -186,6 +186,8 @@ function baseExtra(locale: 'pt-PT' | 'pt-BR' | 'en' | 'es-ES') {
       more: isPt ? 'Mais' : locale === 'es-ES' ? 'Más' : 'More',
       moreMenu: isPt ? 'Mais módulos' : locale === 'es-ES' ? 'Más módulos' : 'More modules',
       settings: isPt ? (isBr ? 'Configurações' : 'Definições') : locale === 'es-ES' ? 'Ajustes' : 'Settings',
+      dashboard: isPt ? 'Painel' : locale === 'es-ES' ? 'Panel' : 'Dashboard',
+      billing: isPt ? 'Plano' : locale === 'es-ES' ? 'Plan' : 'Billing',
     },
     staffSidebar: {
       guideTitle: isPt ? 'Guia do menu' : locale === 'es-ES' ? 'Guía del menú' : 'Menu guide',
@@ -194,6 +196,21 @@ function baseExtra(locale: 'pt-PT' | 'pt-BR' | 'en' | 'es-ES') {
       firm: {
         subtitle: isPt ? 'Escritório' : locale === 'es-ES' ? 'Despacho' : 'Firm',
         fallback: 'TegLion',
+        nav: {
+          overview: isPt ? 'Visão geral' : 'Overview',
+          clients: isPt ? 'Clientes' : 'Clients',
+          clientsList: isPt ? 'Empresas' : 'Companies',
+          comms: isPt ? 'Comunicação' : 'Comms',
+          documents: isPt ? 'Documentos' : 'Documents',
+          chat: isPt ? 'Mensagens' : 'Messages',
+          operations: isPt ? 'Operação' : 'Operations',
+          tasks: isPt ? 'Tarefas' : 'Tasks',
+          consultations: isPt ? 'Consultorias' : 'Consultations',
+          fiscalCalendar: isPt ? 'Calendário fiscal' : 'Fiscal calendar',
+          admin: isPt ? 'Gestão' : 'Admin',
+          alerts: isPt ? 'Central de Alertas' : 'Alerts',
+          services: isPt ? 'Serviços' : 'Services',
+        },
       },
     },
     motivationalQuotes:

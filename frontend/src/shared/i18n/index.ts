@@ -8,10 +8,6 @@ import { humanizeI18nKey, isRawI18nKey } from '@/shared/i18n/keyFallback'
 
 const initialLanguage = getInitialAppLocale()
 
-function toReadableMissingKeyLabel(key: string) {
-  return humanizeI18nKey(key)
-}
-
 const safeTranslatePostProcessor = {
   type: 'postProcessor' as const,
   name: 'safeTranslate',
@@ -48,7 +44,7 @@ if (!i18n.isInitialized) {
       postProcess: ['safeTranslate'],
       returnNull: false,
       returnEmptyString: false,
-      parseMissingKeyHandler: (key: string) => toReadableMissingKeyLabel(key),
+      // Não humanizar aqui: senão sobrescreve `defaultValue` (ex.: menu em inglês).
       react: { useSuspense: false },
     })
 }

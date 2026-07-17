@@ -4,6 +4,7 @@ const firmUsersRepository = require('../../db/supabase/repositories/firm-users.r
 const firmMemberInvitesRepository = require('../../db/supabase/repositories/firm-member-invites.repository');
 const emailConfirmationRepository = require('../../db/supabase/repositories/email-confirmation.repository');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
+const departmentsRepository = require('../../db/supabase/repositories/departments.repository');
 const { hashPassword } = require('../../utils/password-crypto');
 const { assertStrongPassword } = require('../../utils/password-policy');
 const securityAudit = require('../../services/audit/security-audit.service');
@@ -14,6 +15,13 @@ const {
 
 const INVITE_TTL_DAYS = 14;
 const EMAIL_CONFIRM_TTL_HOURS = 48;
+
+async function assertDepartmentBelongsToFirm(firmId, departmentId) {
+    if (!departmentId) return null;
+    const dep = await departmentsRepository.findDepartmentById(firmId, departmentId);
+    if (!dep) throw new AppError('Departamento não encontrado.', 404);
+    return dep;
+}
 
 function normalizeJobTitle(value) {
     if (value === undefined) return undefined;
@@ -93,6 +101,8 @@ async function createStaffInvite({ firmId, actor, payload, req }) {
     const allowedRoles = new Set(['FIRM_OWNER', 'FIRM_STAFF', 'FIRM_CONSULTANT']);
     if (!allowedRoles.has(role)) throw new AppError('Role inválida.', 400);
     const jobTitle = normalizeJobTitle(payload.jobTitle);
+    const departmentId = payload.departmentId || null;
+    await assertDepartmentBelongsToFirm(firmId, departmentId);
 
     const existing = await firmUsersRepository.findFirmUserByEmail(email);
     const sameFirmExisting = existing && String(existing.firm_id) === String(firmId);
@@ -107,7 +117,7 @@ async function createStaffInvite({ firmId, actor, payload, req }) {
             email,
             role,
             jobTitle,
-            departmentId: payload.departmentId || null,
+            departmentId,
             inviteStatus: 'PENDING',
             isActive: false,
             emailConfirmedAt: null,
@@ -119,7 +129,7 @@ async function createStaffInvite({ firmId, actor, payload, req }) {
             fullName,
             role,
             jobTitle,
-            departmentId: payload.departmentId || null,
+            departmentId,
             invitedBy: actor.id,
             invitedAt: new Date().toISOString(),
             inviteStatus: 'PENDING',
