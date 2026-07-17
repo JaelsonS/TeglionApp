@@ -49,7 +49,7 @@ export function LandingHeader() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex" aria-label="Principal">
+        <nav className="hidden items-center gap-1 lg:flex" aria-label="Principal">
           {NAV.map((item) =>
             'route' in item && item.route ? (
               <Link key={item.href} to={item.href} className="landing-btn-ghost px-3 py-2 text-sm">
@@ -63,18 +63,18 @@ export function LandingHeader() {
           )}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2 lg:flex">
           <Link to={authProfileChoiceUrl('login')} className="landing-btn-ghost text-sm">
             Entrar
           </Link>
-          <Link to={authFirmRegisterUrl()} className="landing-btn-primary text-sm">
+          <Link to={authFirmRegisterUrl()} className="landing-btn-primary text-sm whitespace-nowrap">
             Testar 14 dias grátis
           </Link>
         </div>
 
         <button
           type="button"
-          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] text-[#0F2942] transition hover:bg-[#0F2942]/6 md:hidden"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] text-[#0F2942] transition hover:bg-[#0F2942]/6 lg:hidden"
           aria-expanded={menuOpen}
           aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'}
           onClick={() => setMenuOpen((v) => !v)}
@@ -89,7 +89,7 @@ export function LandingHeader() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-t border-[#0F2942]/10 bg-[#FAFAF7] md:hidden"
+            className="border-t border-[#0F2942]/10 bg-[#FAFAF7] lg:hidden"
           >
             <nav className="flex flex-col gap-1 px-5 py-4">
               {NAV.map((item) =>

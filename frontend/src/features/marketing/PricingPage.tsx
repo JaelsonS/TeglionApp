@@ -30,8 +30,8 @@ export function PricingPage() {
         <div className="landing-container">
           <FadeInView className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#C9932E]">Preços</p>
-            <h1 className="mt-2 text-4xl font-semibold text-[#0F2942] sm:text-5xl">Sem surpresas</h1>
-            <p className="mt-4 text-lg text-[#4A5568]">
+            <h1 className="mt-2 text-3xl font-semibold text-[#0F2942] sm:text-4xl md:text-5xl">Sem surpresas</h1>
+            <p className="mt-3 text-base text-[#4A5568] sm:mt-4 sm:text-lg">
               14 dias para usar o escritório a sério, sem cartão. Se ficar, escolhe mensal ou anual.
             </p>
           </FadeInView>

@@ -11,6 +11,14 @@ const FAQ = [
     a: '35 €/mês ou 359,88 €/ano (equiv. 29,99 €/mês), por escritório. Os 14 dias são grátis e sem cartão — só paga se decidir ficar.',
   },
   {
+    q: 'Funciona no telemóvel?',
+    a: 'Sim. O portal e o escritório abrem no browser — e pode instalar como app (PWA) no telemóvel ou tablet, sem loja de apps. Disponível em iOS e Android em breve.',
+  },
+  {
+    q: 'Os clientes recebem aviso quando eu envio uma obrigação?',
+    a: 'Sim. Quando cria ou envia uma obrigação, o cliente recebe um e-mail para entrar no Teglion e ver o prazo e os documentos. SMS fica para uma fase seguinte.',
+  },
+  {
     q: 'Funciona com a Autoridade Tributária?',
     a: 'O Teglion organiza prazos, documentos e comunicação com clientes. A submissão oficial à AT continua pelos canais habituais — mas deixas de perder guias e anexos pelo caminho.',
   },

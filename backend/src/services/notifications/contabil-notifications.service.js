@@ -81,6 +81,63 @@ async function notifyClientNewTask({ clientEmail, clientName, taskTitle, firmNam
   });
 }
 
+/**
+ * Quando o escritório cria/envia uma obrigação — e-mail para o cliente entrar no Teglion.
+ * (SMS fica para depois; o canal principal agora é e-mail.)
+ */
+async function notifyClientObligationAssigned({
+  clientEmail,
+  clientName,
+  obligationTitle,
+  firmName,
+  dueDate,
+  hasGuide = false,
+}) {
+  if (!clientEmail) return { skipped: true, reason: 'no_email' };
+  const name = clientName || 'Cliente';
+  const firm = firmName || 'o seu escritório';
+  const title = obligationTitle || 'Nova obrigação fiscal';
+  const dueLine = dueDate
+    ? `<p style="margin:0 0 12px"><strong>Prazo:</strong> ${escapeHtml(dueDate)}</p>`
+    : '';
+  const guideLine = hasGuide
+    ? `<p style="margin:0 0 12px">Há uma guia ou instruções prontas para consultar no portal.</p>`
+    : '';
+  return sendEmail({
+    to: clientEmail,
+    subject: `${firm} — tem uma obrigação no Teglion`,
+    tags: ['transactional', 'obligation-assigned'],
+    html: renderTransactionalEmail({
+      preheader: `${title} — entre no portal do cliente`,
+      title: 'O seu escritório deixou-lhe uma obrigação',
+      greeting: `Olá ${escapeHtml(name)},`,
+      bodyHtml: [
+        `<p style="margin:0 0 12px">O escritório <strong>${escapeHtml(firm)}</strong> publicou uma obrigação fiscal para si no Teglion:</p>`,
+        `<p style="margin:0 0 12px"><strong>${escapeHtml(title)}</strong></p>`,
+        dueLine,
+        guideLine,
+        `<p style="margin:0 0 12px">Entre no portal para ver o detalhe, enviar documentos e acompanhar o prazo — no telemóvel ou no computador.</p>`,
+      ].join(''),
+      ctaLabel: 'Abrir o portal Teglion',
+      ctaUrl: portalUrl(),
+      footerNote: 'Se já tem acesso, use o mesmo e-mail com que o escritório o convidou. Se ainda não activou a conta, peça o convite ao seu contabilista.',
+    }),
+    text: [
+      `Olá ${name},`,
+      '',
+      `O escritório ${firm} publicou uma obrigação no Teglion: ${title}.`,
+      dueDate ? `Prazo: ${dueDate}` : '',
+      hasGuide ? 'Há guia/instruções no portal.' : '',
+      '',
+      `Abrir o portal: ${portalUrl()}`,
+      '',
+      'Teglion',
+    ]
+      .filter(Boolean)
+      .join('\n'),
+  });
+}
+
 async function notifyClientObligationReminder({ clientEmail, clientName, obligationTitle, firmName, dueDate, body }) {
   if (!clientEmail) return { skipped: true };
   return sendEmail({
@@ -349,6 +406,7 @@ async function notifyClientWelcome({ clientEmail, clientName, firmName }) {
 module.exports = {
   notifyClientInvite,
   notifyClientNewTask,
+  notifyClientObligationAssigned,
   notifyClientObligationReminder,
   notifyFirmDocumentReceived,
   notifyFirmConsultationBooked,

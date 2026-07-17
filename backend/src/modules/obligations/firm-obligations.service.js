@@ -122,20 +122,24 @@ async function createObligationWithTask({
   });
 
   if (task && !skipClientNotify) {
+    const firmsRepository = require('../../db/supabase/repositories/firms.repository');
+    const firm = await firmsRepository.findFirmById(firmId).catch(() => null);
+    const dueLabel = dueDate ? new Date(dueDate).toLocaleDateString('pt-PT') : undefined;
+
     if (client.email) {
       void contabilNotifications
-        .notifyClientNewTask({
+        .notifyClientObligationAssigned({
           clientEmail: client.email,
           clientName: client.displayName || client.name,
-          taskTitle: task.title,
-          dueDate: dueDate ? new Date(dueDate).toLocaleDateString('pt-PT') : undefined,
+          obligationTitle: obligation.title,
+          firmName: firm?.name,
+          dueDate: dueLabel,
+          hasGuide: false,
         })
         .catch(() => {});
     }
     if (client.phone) {
       const smsLogs = require('../../services/sms/sms-logs.service');
-      const firmsRepository = require('../../db/supabase/repositories/firms.repository');
-      const firm = await firmsRepository.findFirmById(firmId).catch(() => null);
       void smsLogs
         .sendTemplatedSms({
           firmId,
@@ -145,7 +149,7 @@ async function createObligationWithTask({
           templateVars: {
             firmName: firm?.name,
             obligationTitle: obligation.title,
-            dueDate: dueDate ? new Date(dueDate).toLocaleDateString('pt-PT') : undefined,
+            dueDate: dueLabel,
           },
           entityType: 'OBLIGATION',
           entityId: obligation._id,

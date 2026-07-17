@@ -7,8 +7,15 @@
   --landing-ice: #e3f0ff;
   background: var(--landing-bg);
   color: var(--landing-body);
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.6;
+  overflow-x: hidden;
+}
+
+@media (min-width: 640px) {
+  .landing-page {
+    font-size: 17px;
+  }
 }
 
 .landing-page h1,
@@ -27,9 +34,16 @@
   color: #fff;
   font-size: 0.9375rem;
   font-weight: 600;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1.25rem;
+  min-height: 44px;
   transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+@media (min-width: 640px) {
+  .landing-btn-primary {
+    padding: 0.75rem 1.5rem;
+  }
 }
 
 .landing-btn-primary:hover {
@@ -43,6 +57,7 @@
   justify-content: center;
   border-radius: 10px;
   padding: 0.5rem 1rem;
+  min-height: 40px;
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--landing-navy);
@@ -54,7 +69,13 @@
 }
 
 .landing-section {
-  padding: 4rem 1.25rem;
+  padding: 3rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .landing-section {
+    padding: 4rem 1.5rem;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -68,6 +89,7 @@
   max-width: 72rem;
   margin-left: auto;
   margin-right: auto;
+  min-width: 0;
 }
 
 .landing-card {
@@ -76,15 +98,18 @@
   background: #fff;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  min-width: 0;
 }
 
-.landing-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(15, 41, 66, 0.06);
+@media (hover: hover) and (pointer: fine) {
+  .landing-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(15, 41, 66, 0.06);
+  }
 }
 
 .landing-header-scrolled {
-  background: rgba(250, 250, 247, 0.85);
+  background: rgba(250, 250, 247, 0.92);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(15, 41, 66, 0.08);
 }
@@ -92,4 +117,16 @@
 /* CTA final — fundo escuro; título fora da cor navy global dos h2 */
 .landing-cta-panel h2 {
   color: #fff;
+}
+
+.landing-cta-panel {
+  margin-left: 0.25rem;
+  margin-right: 0.25rem;
+}
+
+@media (min-width: 640px) {
+  .landing-cta-panel {
+    margin-left: 0;
+    margin-right: 0;
+  }
 }

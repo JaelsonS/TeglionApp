@@ -35,8 +35,9 @@ Fecha o mês sem caçar documentos no WhatsApp — sistema para o escritório e 
 ### Fase B — Vender e cobrar (estou aqui)
 1. **Preciso** criar no Stripe os preços mensal 35 € + anual 359,88 € ([STRIPE_SETUP.md](../operations/STRIPE_SETUP.md))  
 2. Landing e billing já alinhei com esses valores ✅  
-3. **Preciso** fazer smoke: signup → trial 14 dias → checkout  
-4. Go-live do piloto estável  
+3. E-mail ao cliente quando envio obrigação ✅ (SMS depois)  
+4. **Preciso** fazer smoke: signup → trial 14 dias → checkout  
+5. Go-live do piloto estável  
 
 ### Fase C — Performance (a seguir)
 1. Inventário de requests no cold start  

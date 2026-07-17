@@ -10,6 +10,7 @@ const contabilStorage = require('../../services/storage/contabil-storage.service
 const activityService = require('../../services/activity/activity.service');
 const smsLogsService = require('../../services/sms/sms-logs.service');
 const viewTracking = require('../../services/tracking/view-tracking.service');
+const contabilNotifications = require('../../services/notifications/contabil-notifications.service');
 
 function currentPeriod() {
   const now = new Date();
@@ -142,6 +143,25 @@ async function uploadGuideToObligation({
         entityId: ob.id,
       })
       .catch(() => { });
+  }
+
+  if (notifyClient && client.email) {
+    const firm = await firmsRepository.findFirmById(firmId).catch(() => null);
+    const dueLabel = ob.dueDate
+      ? new Date(ob.dueDate).toLocaleDateString('pt-PT')
+      : ob.due_date
+        ? new Date(ob.due_date).toLocaleDateString('pt-PT')
+        : undefined;
+    void contabilNotifications
+      .notifyClientObligationAssigned({
+        clientEmail: client.email,
+        clientName: client.displayName || client.name,
+        obligationTitle: ob.title || ob.type,
+        firmName: firm?.name,
+        dueDate: dueLabel,
+        hasGuide: true,
+      })
+      .catch(() => {});
   }
 
   if (notifyClient) {
