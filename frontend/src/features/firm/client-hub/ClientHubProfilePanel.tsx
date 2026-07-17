@@ -376,6 +376,7 @@ export function ClientHubProfilePanel({ hub, onPatch, isSaving }: Props) {
           <InlineEditField
             label="Telefone"
             value={client.phone || ''}
+            phone
             saving={isSaving}
             onSave={(v) => debouncedScalar({ phone: v })}
           />
@@ -403,6 +404,7 @@ export function ClientHubProfilePanel({ hub, onPatch, isSaving }: Props) {
           <InlineEditField
             label="Telefone"
             value={contact.phone || ''}
+            phone
             saving={isSaving}
             onSave={(v) => saveContact({ phone: v })}
           />

@@ -115,7 +115,7 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
   }, [page, pageCount])
 
   return (
-    <>
+    <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
       {hub.filters.showCreate ? (
         <ObligationCreatePanel
           open
@@ -137,7 +137,7 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
         />
       ) : null}
 
-      <div className="cb-tasks-toolbar">
+      <div className="cb-tasks-toolbar shrink-0">
         <select
           className="cb-tasks-filter"
           value={typeFilter}
@@ -334,7 +334,7 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
                   ×
                 </button>
               </FirmSplitHeader>
-              <FirmSplitBody className="min-h-0 flex-1 overflow-hidden">
+              <FirmSplitBody className="flex min-h-0 flex-1 flex-col overflow-hidden p-0">
                 <FirmObligationDetailPanel
                   embedded
                   obligation={selected}
@@ -351,7 +351,7 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
       {hub.selectedId && !isDesktopSplit ? (
         <Sheet open onOpenChange={(open: boolean) => !open && hub.selectObligation(null)}>
           <SheetContent side="right" className="flex h-full max-h-dvh w-full flex-col overflow-hidden p-0 sm:max-w-lg">
-            <div className="min-h-0 flex-1 overflow-hidden">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               {selected ? (
                 <FirmObligationDetailPanel
                   embedded
@@ -365,6 +365,6 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
           </SheetContent>
         </Sheet>
       ) : null}
-    </>
+    </div>
   )
 }

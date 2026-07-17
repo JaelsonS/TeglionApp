@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
+import { PhoneNumberInputLazyWrapper as PhoneNumberInput } from '@/shared/components/ui/phone-input-lazy'
 import { firmSettingsApi } from '@/infrastructure/api/contabil/firmSettings'
 import type { FirmSettingsBundle } from '@/shared/types/firmSettings'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -95,10 +96,11 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="firm-phone">Telefone</Label>
-            <Input
+            <PhoneNumberInput
               id="firm-phone"
-              value={contactPhone}
-              onChange={(e: FormChangeEvent) => setContactPhone(e.target.value)}
+              defaultCountry="PT"
+              value={contactPhone || undefined}
+              onChange={(v) => setContactPhone(v || '')}
               disabled={!canEdit || saving}
               placeholder="+351 …"
             />

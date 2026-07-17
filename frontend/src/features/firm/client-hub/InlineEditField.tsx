@@ -6,6 +6,8 @@ import { Check, Loader2 } from 'lucide-react'
 import { cn } from '@/shared/lib/utils'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
+import { PhoneNumberInputLazyWrapper as PhoneNumberInput } from '@/shared/components/ui/phone-input-lazy'
+import type { Country } from 'react-phone-number-input'
 
 type Props = {
   label: string
@@ -13,6 +15,9 @@ type Props = {
   onSave: (value: string) => void
   saving?: boolean
   multiline?: boolean
+  /** Campo de telemóvel com bandeira + código do país */
+  phone?: boolean
+  defaultCountry?: Country
   placeholder?: string
   className?: string
 }
@@ -23,6 +28,8 @@ export function InlineEditField({
   onSave,
   saving = false,
   multiline = false,
+  phone = false,
+  defaultCountry = 'PT',
   placeholder,
   className,
 }: Props) {
@@ -62,7 +69,21 @@ export function InlineEditField({
           </button>
         ) : null}
       </div>
-      {multiline ? (
+      {phone ? (
+        <PhoneNumberInput
+          defaultCountry={defaultCountry}
+          value={draft || undefined}
+          onChange={(v) => {
+            setDraft(v || '')
+            setDirty(true)
+          }}
+          inputProps={{
+            onBlur: commit,
+            className: fieldClass,
+          }}
+          className="w-full"
+        />
+      ) : multiline ? (
         <textarea
           className={cn(fieldClass, 'min-h-[88px] w-full resize-y px-3 py-2 text-sm')}
           value={draft}

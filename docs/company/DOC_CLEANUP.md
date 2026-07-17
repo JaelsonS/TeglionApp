@@ -32,3 +32,7 @@
 1. `knip` no frontend (exports órfãos)
 2. `depcheck` em frontend/backend
 3. CSS `cb-*` não referenciado
+
+## Nota
+
+`docs/operations/REDIS_RENDER_SETUP.md` mantém-se — é referência de produção (Render Redis). Não apagar sem actualizar `STATUS.md`, `GO_PRODUCTION.md` e `DEPLOY_PRODUCTION.md`.

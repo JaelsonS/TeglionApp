@@ -201,8 +201,8 @@ export function FirmObligationDetailPanel({
       animate={embedded ? undefined : { x: 0, opacity: 1 }}
       className={
         embedded
-          ? 'cb-ob-det-pane overflow-hidden'
-          : 'fixed inset-y-0 right-0 z-40 flex w-full max-w-lg flex-col border-l border-border bg-card shadow-2xl sm:max-w-xl'
+          ? 'cb-ob-det-pane flex h-full min-h-0 flex-col overflow-hidden'
+          : 'fixed inset-y-0 right-0 z-40 flex h-full max-h-dvh w-full max-w-lg flex-col overflow-hidden border-l border-border bg-card shadow-2xl sm:max-w-xl'
       }
     >
       <div className="cb-ob-det-header relative">

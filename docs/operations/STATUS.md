@@ -69,11 +69,14 @@ Já validei build, testes, tenant isolation, smoke piloto e E2E smoke.
 
 ### Atualizações recentes validadas (Jul 2026)
 
-- Obrigações: detalhe aberto em popup (modal) com scroll interno funcional
-- Obrigações: hidratação de detalhe com payload completo do endpoint de timeline
+- Pedidos de documento: progresso chega a **Concluído** (stepper + botão «Marcar concluído» + validação de ficheiro)
+- Obrigações: scroll interno do painel de detalhe (direita) corrigido de novo
+- Telefone: seletor de país com bandeiras em Definições, hub do cliente e wizard de empresa
 - Agenda: bloqueio de submissão concorrente no frontend
 - Agenda: deduplicação de criação no backend para evitar eventos repetidos
 - Agenda: botões laterais ("Ver todas", "Ver toda a equipa") agora executam ações reais
+- Equipa (Definições): chips passam a abrir painéis reais
+- Landing/preços e e-mail ao cliente em obrigação nova
 
 ### Limpeza Fase 1 — concluído (Jul 2026)
 
@@ -194,10 +197,20 @@ cd backend && npm run smoke:pilot
 
 ## 4. O que faço a seguir
 
-1. **Stripe** — eu crio o produto + preços 35 €/mês e 359,88 €/ano e meto os Price IDs no Render ([STRIPE_SETUP.md](./STRIPE_SETUP.md))
-2. **Brevo** — eu autentico o domínio ([BREVO_DOMAIN_SETUP.md](./BREVO_DOMAIN_SETUP.md))
-3. **Piloto** — eu valido o fluxo com a contadora
-4. Redis / WAF — só quando o tráfego justificar
+### Amanhã (prioridade operacional)
+
+Seguir o plano em [../company/EVOLUTION_PLAN.md](../company/EVOLUTION_PLAN.md) — **Fase B**.
+
+1. **Stripe** — criar produto + preços **35 €/mês** e **359,88 €/ano**; meter Price IDs no Render ([STRIPE_SETUP.md](./STRIPE_SETUP.md))
+2. **Brevo** — autenticar domínio DNS ([BREVO_DOMAIN_SETUP.md](./BREVO_DOMAIN_SETUP.md))
+3. **Smoke** — signup → trial 14 dias → checkout (e-mail chega; login funciona)
+4. **Piloto** — validar com a contadora: pedido de documento até Concluído + obrigação com e-mail ao cliente
+
+### Depois (quando o acima estiver verde)
+
+5. Redis / WAF — só quando o tráfego justificar ([REDIS_RENDER_SETUP.md](./REDIS_RENDER_SETUP.md))
+6. Performance `/bootstrap` — [../company/PERFORMANCE_CHARTER.md](../company/PERFORMANCE_CHARTER.md)
+7. Escala — [../product/SCALE_100K_1M_CHECKLIST.md](../product/SCALE_100K_1M_CHECKLIST.md)
 
 Norte diário: [../company/EVOLUTION_PLAN.md](../company/EVOLUTION_PLAN.md)
 
@@ -258,3 +271,4 @@ Lista completa: [DEPLOY_PRODUCTION.md](./DEPLOY_PRODUCTION.md)
 | Jul 2026 | Documentação CTO + auditoria (nota 7.0/10) |
 | Jul 2026 | Fase 1 limpeza: etapas 1.1–1.6 concluídas |
 | Jul 2026 | Domínio clínica/paciente removido do código activo |
+| 17 Jul 2026 | Pedidos → Concluído; scroll obrigações; telefone com bandeiras; limpeza docs |

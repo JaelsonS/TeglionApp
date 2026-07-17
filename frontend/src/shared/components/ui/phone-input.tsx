@@ -13,7 +13,7 @@ type UnknownProps = { [key: string]: unknown }
 export function PhoneNumberInput({
   value,
   onChange,
-  defaultCountry,
+  defaultCountry = 'PT',
   onCountryChange,
   disabled,
   placeholder,

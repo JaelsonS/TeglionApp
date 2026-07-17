@@ -132,7 +132,8 @@
     @apply flex w-full min-w-0 max-w-full flex-col gap-2 pb-3 xl:min-h-0 xl:flex-1 xl:gap-3 xl:pb-2;
   }
 
-  .cb-firm-workspace-page> :not(.cb-firm-split-host):not(.cb-operational-split):not(.cb-firm-operational-panel):not(.cb-firm-split-view) {
+  /* Toolbars/headers não encolhem; painéis de workspace (tarefas, split) precisam de min-h-0 para scroll interno. */
+  .cb-firm-workspace-page> :not(.cb-firm-split-host):not(.cb-operational-split):not(.cb-firm-operational-panel):not(.cb-firm-split-view):not(.cb-tasks-panel) {
     @apply shrink-0;
   }
 
@@ -346,14 +347,22 @@
   }
 
   .PhoneInput {
-    @apply flex items-center gap-2;
+    @apply flex w-full items-center gap-2;
   }
 
   .PhoneInputCountry {
-    @apply flex h-10 items-center gap-1 rounded-md border border-input bg-background px-2;
+    @apply flex h-10 shrink-0 items-center gap-1.5 rounded-md border border-input bg-background px-2;
+  }
+
+  .PhoneInputCountryIcon {
+    @apply h-4 w-6 overflow-hidden rounded-[2px];
+  }
+
+  .PhoneInputCountrySelectArrow {
+    @apply ml-0.5 opacity-60;
   }
 
   .PhoneInputInput {
-    @apply flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring sm:h-9 md:text-sm;
+    @apply flex h-10 w-full min-w-0 flex-1 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring sm:h-9 md:text-sm;
   }
 }

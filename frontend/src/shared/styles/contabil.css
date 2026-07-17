@@ -963,10 +963,10 @@
   }
 
   .cb-ob-det-scroll {
-    @apply flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-y-contain p-3.5;
-    max-height: 100%;
+    @apply flex min-h-0 flex-1 basis-0 flex-col gap-3 overflow-y-auto overscroll-y-contain p-3.5;
     -webkit-overflow-scrolling: touch;
     scrollbar-gutter: stable;
+    touch-action: pan-y;
   }
 
   .cb-ob-det-card {
@@ -1450,7 +1450,11 @@
   }
 
   .cb-tasks-body {
-    @apply min-h-0 flex-1 overflow-y-auto;
+    @apply flex min-h-0 flex-1 flex-col overflow-y-auto;
+  }
+
+  .cb-tasks-body.overflow-hidden {
+    @apply overflow-hidden;
   }
 
   .cb-tasks-kpi-row {
