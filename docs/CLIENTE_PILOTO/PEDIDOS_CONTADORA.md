@@ -20,9 +20,12 @@
 - [ ] Melhorar enriquecimento fiscal automático
 - [ ] Rever experiência de onboarding do cliente piloto
 - [ ] Expandir validações assistidas por contexto fiscal
+- [ ] Preferências de e-mail por tipo de aviso (escritório)
 
 ## Concluído
 - [x] Agenda Fiscal do Cliente
 - [x] Sistema de notificações do portal
 - [x] Chat com edição de mensagens
 - [x] Ajustes de scroll e navegação móvel do portal
+- [x] Hub de Definições com abas (Identidade / Escritório / Perfil / Equipa)
+- [x] Convite e criação de colaborador com e-mail transaccional

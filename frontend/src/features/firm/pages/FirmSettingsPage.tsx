@@ -115,6 +115,7 @@ export function FirmSettingsPage() {
                   <button
                     key={item.id}
                     type="button"
+                    data-tab={item.id}
                     className={cn(
                       'cb-settings-side-nav-item',
                       active && 'cb-settings-side-nav-item--active',
@@ -123,7 +124,9 @@ export function FirmSettingsPage() {
                     aria-current={active ? 'page' : undefined}
                     onClick={() => setTab(item.id)}
                   >
-                    <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                    <span className="cb-settings-side-nav-icon">
+                      <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                    </span>
                     <span>{item.label}</span>
                     {item.id === 'equipa' && bundle.team?.length ? (
                       <span className="cb-settings-side-nav-badge">{bundle.team.length}</span>

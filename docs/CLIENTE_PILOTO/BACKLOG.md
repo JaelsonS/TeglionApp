@@ -1,9 +1,15 @@
 # Backlog do Produto
 
+## Definições / Equipa (próximo)
+- Preferências granulares de e-mail (avisos por módulo)
+- Domínio autenticado no Brevo (Primary inbox em produção)
+- Edição inline de departamento / cargo na lista de colaboradores
+- Auditoria visível de alterações de permissões
+
 ## Cadastro
-- Tipo de Cliente
-- Campos fiscais dinâmicos por tipo de cliente
-- Validação de NIF no cadastro
+- [x] Tipo de Cliente
+- [x] Validação de NIF no cadastro
+- Campos fiscais dinâmicos por tipo de cliente (refinar)
 
 ## Clientes
 - Expansão do perfil fiscal
@@ -18,16 +24,19 @@
 - Validação e triagem automática
 - Melhorias de anexos e categorização
 
-## Funcionários
+## Funcionários / Equipa
+- [x] Criar colaborador com acesso directo
+- [x] Convite por e-mail
+- [x] Departamentos e cargos
 - Gestão de responsáveis por cliente
-- Distribuição de tarefas e permissões
+- Distribuição de tarefas e permissões (refinar UX)
 
 ## Permissões
 - Perfis por papel operacional
 - Restrições granulares por módulo
 
 ## Financeiro
-- Integração de cobrança e faturação
+- Integração Stripe mínima (cobrança / plano)
 - Consolidação de estados financeiros
 
 ## Portal do Cliente
@@ -38,6 +47,8 @@
 - Automação fiscal
 - Ligações com serviços externos
 
-## Segurança
-- Auditoria de ações críticas
-- Revisão de validações e permissões
+## Segurança / Operação
+- [x] Sentry em FE/BE (alertas)
+- Redis/Upstash para rate limit e sessões
+- Auditoria de acções críticas
+- Smoke de caminho de venda (signup → trial → plano)

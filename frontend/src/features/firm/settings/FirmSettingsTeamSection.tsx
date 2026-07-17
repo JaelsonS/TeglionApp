@@ -316,37 +316,37 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
             <div className="grid gap-3 sm:grid-cols-3">
                 <button
                     type="button"
-                    className="rounded-xl border border-border/60 bg-muted/10 px-4 py-3 text-left transition hover:border-brand/30 hover:bg-brand/[0.03]"
+                    className="cb-settings-stat cb-settings-stat--team"
                     onClick={() => setShowInactiveMembers(false)}
                 >
-                    <p className="text-xs text-muted-foreground">Colaboradores activos</p>
-                    <p className="mt-1 text-2xl font-semibold text-foreground">{teamStats.activeCount}</p>
+                    <p className="cb-settings-stat-label">Colaboradores activos</p>
+                    <p className="cb-settings-stat-value">{teamStats.activeCount}</p>
+                    <p className="cb-settings-stat-hint">Ver lista abaixo</p>
+                </button>
+                <button type="button" className="cb-settings-stat cb-settings-stat--depts" onClick={scrollToDepartments}>
+                    <p className="cb-settings-stat-label">Departamentos</p>
+                    <p className="cb-settings-stat-value">{teamStats.deptCount}</p>
+                    <p className="cb-settings-stat-hint">Gerir estrutura</p>
                 </button>
                 <button
                     type="button"
-                    className="rounded-xl border border-border/60 bg-muted/10 px-4 py-3 text-left transition hover:border-brand/30 hover:bg-brand/[0.03]"
-                    onClick={scrollToDepartments}
-                >
-                    <p className="text-xs text-muted-foreground">Departamentos</p>
-                    <p className="mt-1 text-2xl font-semibold text-foreground">{teamStats.deptCount}</p>
-                </button>
-                <button
-                    type="button"
-                    className="rounded-xl border border-border/60 bg-muted/10 px-4 py-3 text-left transition hover:border-brand/30 hover:bg-brand/[0.03]"
+                    className="cb-settings-stat cb-settings-stat--invites"
                     onClick={() => {
                         setShowInactiveMembers(true)
                         scrollToInvite()
                     }}
                 >
-                    <p className="text-xs text-muted-foreground">Convites pendentes</p>
-                    <p className="mt-1 text-2xl font-semibold text-foreground">{teamStats.pendingCount}</p>
+                    <p className="cb-settings-stat-label">Convites pendentes</p>
+                    <p className="cb-settings-stat-value">{teamStats.pendingCount}</p>
+                    <p className="cb-settings-stat-hint">Ir para convites</p>
                 </button>
             </div>
 
-            <div className="rounded-lg border border-border/60 bg-muted/15 p-3 text-sm text-muted-foreground">
+            <div className="cb-settings-tip">
                 <p>
-                    Dica: use termos simples de negócio como <strong>Receção</strong>, <strong>Fiscal</strong>, <strong>Contabilidade</strong> e
-                    <strong> Apoio ao cliente</strong> para facilitar o uso por toda a equipa.
+                    Dica: use termos simples de negócio como <strong>Receção</strong>, <strong>Fiscal</strong>,{' '}
+                    <strong>Contabilidade</strong> e <strong>Apoio ao cliente</strong> para facilitar o uso por toda a
+                    equipa.
                 </p>
             </div>
 
@@ -359,12 +359,17 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
 
             {canManageTeam ? (
                 <div className="grid gap-4 lg:grid-cols-2">
-                    <div id="equipa-convidar" className="rounded-lg border border-border/60 p-4 scroll-mt-24">
-                        <p className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                            <UserPlus className="h-4 w-4" />
-                            Criar colaborador com acesso direto
-                        </p>
-                        <div className="grid gap-2">
+                    <div id="equipa-convidar" className="cb-settings-action-card scroll-mt-24">
+                        <div className="cb-settings-action-card-hd cb-settings-action-card-hd--direct">
+                            <span className="cb-settings-action-icon">
+                                <UserPlus className="h-4 w-4" aria-hidden />
+                            </span>
+                            <div>
+                                <p className="cb-settings-action-title">Criar colaborador</p>
+                                <p className="cb-settings-action-sub">Acesso direto com palavra-passe</p>
+                            </div>
+                        </div>
+                        <div className="cb-settings-action-body">
                             <Input
                                 placeholder="Nome completo"
                                 value={directForm.fullName}
@@ -392,7 +397,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                 recebe apenas o link de login — partilhe a palavra-passe por um canal seguro.
                             </p>
                             <select
-                                className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                                 value={directForm.departmentId}
                                 onChange={(e) => setDirectForm((s) => ({ ...s, departmentId: e.target.value }))}
                             >
@@ -416,7 +421,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                             </Label>
                             <Button
                                 type="button"
-                                className="justify-center"
+                                className="cb-btn-primary w-full justify-center"
                                 disabled={createDirectMutation.isPending}
                                 onClick={() => createDirectMutation.mutate()}
                             >
@@ -425,12 +430,17 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                         </div>
                     </div>
 
-                    <div className="rounded-lg border border-border/60 p-4">
-                        <p className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                            <MailPlus className="h-4 w-4" />
-                            Convidar colaborador por e-mail
-                        </p>
-                        <div className="grid gap-2">
+                    <div className="cb-settings-action-card">
+                        <div className="cb-settings-action-card-hd cb-settings-action-card-hd--invite">
+                            <span className="cb-settings-action-icon">
+                                <MailPlus className="h-4 w-4" aria-hidden />
+                            </span>
+                            <div>
+                                <p className="cb-settings-action-title">Convidar por e-mail</p>
+                                <p className="cb-settings-action-sub">O colaborador define a palavra-passe</p>
+                            </div>
+                        </div>
+                        <div className="cb-settings-action-body">
                             <Input
                                 placeholder="Nome completo"
                                 value={inviteForm.fullName}
@@ -448,7 +458,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                 onChange={(e: ChangeEvent<HTMLInputElement>) => setInviteForm((s) => ({ ...s, jobTitle: e.target.value }))}
                             />
                             <select
-                                className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                                 value={inviteForm.departmentId}
                                 onChange={(e) => setInviteForm((s) => ({ ...s, departmentId: e.target.value }))}
                             >
@@ -463,8 +473,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                             </select>
                             <Button
                                 type="button"
-                                variant="secondary"
-                                className="justify-center"
+                                className="cb-btn-primary w-full justify-center"
                                 disabled={createInviteMutation.isPending}
                                 onClick={() => createInviteMutation.mutate()}
                             >
@@ -476,38 +485,47 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
             ) : null}
 
             {canManageTeam ? (
-                <div id="equipa-departamentos" className="rounded-lg border border-border/60 p-4 scroll-mt-24">
-                    <p className="mb-3 text-sm font-semibold">Departamentos</p>
-                    <div className="mb-3 flex gap-2">
-                        <Input
-                            placeholder="Novo departamento"
-                            value={departmentName}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => setDepartmentName(e.target.value)}
-                        />
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => createDepartmentMutation.mutate()}
-                            disabled={createDepartmentMutation.isPending}
-                        >
-                            Adicionar
-                        </Button>
+                <div id="equipa-departamentos" className="cb-settings-action-card scroll-mt-24">
+                    <div className="cb-settings-action-card-hd cb-settings-action-card-hd--depts">
+                        <span className="cb-settings-action-icon">
+                            <Users className="h-4 w-4" aria-hidden />
+                        </span>
+                        <div>
+                            <p className="cb-settings-action-title">Departamentos</p>
+                            <p className="cb-settings-action-sub">Organização interna do escritório</p>
+                        </div>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                        {departments.map((d) => (
-                            <span key={d.id} className="rounded-full border border-border/60 px-3 py-1 text-xs">
-                                {d.name}
-                                {d.isActive ? '' : ' (inativo)'}
-                            </span>
-                        ))}
+                    <div className="cb-settings-action-body">
+                        <div className="flex gap-2">
+                            <Input
+                                placeholder="Novo departamento"
+                                value={departmentName}
+                                onChange={(e: ChangeEvent<HTMLInputElement>) => setDepartmentName(e.target.value)}
+                            />
+                            <Button
+                                type="button"
+                                onClick={() => createDepartmentMutation.mutate()}
+                                disabled={createDepartmentMutation.isPending}
+                            >
+                                Adicionar
+                            </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {departments.map((d) => (
+                                <span key={d.id} className="cb-settings-dept-chip">
+                                    {d.name}
+                                    {d.isActive ? '' : ' (inativo)'}
+                                </span>
+                            ))}
+                        </div>
                     </div>
                 </div>
             ) : null}
 
-            <div className="overflow-hidden rounded-lg border border-border/60">
+            <div className="overflow-hidden rounded-2xl border border-border/40 bg-card shadow-sm">
                 {canManageTeam ? (
-                    <div className="flex items-center justify-between border-b border-border/40 bg-muted/15 px-4 py-2">
-                        <p className="text-xs text-muted-foreground">{visibleMembers.length} colaboradores visíveis</p>
+                    <div className="flex items-center justify-between border-b border-border/40 bg-muted/15 px-4 py-2.5">
+                        <p className="text-xs font-medium text-muted-foreground">{visibleMembers.length} colaboradores visíveis</p>
                         <Label className="flex items-center gap-2 text-xs font-normal text-muted-foreground">
                             <Checkbox
                                 checked={showInactiveMembers}
