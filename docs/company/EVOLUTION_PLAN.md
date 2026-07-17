@@ -35,9 +35,10 @@ Fecha o mês sem caçar documentos no WhatsApp — sistema para o escritório e 
 4. Checklist domínio Brevo (DNS) — [BREVO_DOMAIN_SETUP.md](../operations/BREVO_DOMAIN_SETUP.md) ✅ docs; DNS = acção tua no painel  
 
 ### Fase B — Vender e cobrar (agora)
-1. Stripe mínimo (plano / checkout / webhook)  
-2. Smoke do caminho: signup → trial → plano  
-3. Checklist go-live piloto estável  
+1. Stripe: preços mensal 35 € + anual 359,88 € ([STRIPE_SETUP.md](../operations/STRIPE_SETUP.md))  
+2. Landing e billing alinhados com esses valores ✅ código  
+3. Smoke: signup → trial 14 dias → checkout  
+4. Go-live piloto estável  
 
 ### Fase C — Performance First (contínuo)
 1. Inventário de requests no cold start  

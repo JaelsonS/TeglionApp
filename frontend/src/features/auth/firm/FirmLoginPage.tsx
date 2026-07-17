@@ -104,16 +104,13 @@ export function FirmLoginPage() {
       if (isAxiosError(err)) {
         const code = String((err.response?.data as { code?: string })?.code || '').toUpperCase()
         if (code === 'EMAIL_NOT_CONFIRMED') {
-          toast.error('Confirme o e-mail primeiro', {
-            description:
-              'Abra a mensagem que lhe enviámos, clique em «Confirmar e-mail» e volte aqui para entrar.',
-          })
+          toast.error(
+            'Confirme o e-mail primeiro. Abra a mensagem que lhe enviámos, clique em «Confirmar e-mail» e volte aqui.',
+          )
           return
         }
         if (code === 'SSO_REQUIRED') {
-          toast.error('Esta conta entra com Google', {
-            description: 'Use o botão «Continuar com Google» em baixo.',
-          })
+          toast.error('Esta conta entra com Google. Use o botão «Continuar com Google» em baixo.')
           return
         }
       }

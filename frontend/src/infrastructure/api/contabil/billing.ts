@@ -10,6 +10,10 @@ export type BillingStatus = {
   stripeCustomerId?: string | null
   hasSubscription: boolean
   priceEurCents?: number
+  plans?: {
+    monthly?: { interval: string; amountCents: number; configured: boolean }
+    yearly?: { interval: string; amountCents: number; equivalentMonthlyCents?: number; configured: boolean }
+  }
 }
 
 export const BILLING_STATUS_QUERY_KEY = ['contabil', 'billing', 'status'] as const
@@ -18,8 +22,10 @@ export const BILLING_STATUS_QUERY_KEY = ['contabil', 'billing', 'status'] as con
 export function createContabilBillingApi(api: AxiosInstance) {
   return {
     getStatus: () => api.get('/contabil/billing/status').then((r) => r.data as BillingStatus),
-    createCheckout: () =>
-      api.post('/contabil/billing/checkout').then((r) => r.data as { url: string; sessionId?: string }),
+    createCheckout: (interval: 'month' | 'year' = 'month') =>
+      api
+        .post('/contabil/billing/checkout', { interval })
+        .then((r) => r.data as { url: string; sessionId?: string; interval?: string }),
     createPortal: () => api.post('/contabil/billing/portal').then((r) => r.data as { url: string }),
   }
 }

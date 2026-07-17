@@ -141,14 +141,18 @@ Plano operacional ligado a este foco:
 | Itens 🔴 em MODULES.md | ✅ Zero |
 | Stripe live | ⬜ Test mode |
 
-## 2.1 Pricing oficial (documentação comercial)
+## 2.1 Preços (o que vendemos)
 
-| Plano | Valor | Cobrança |
-|------|-------|----------|
-| **Anual** | €29,99/mês (equivalente) | €359,88 por ano |
-| **Mensal** | €35,00/mês | €35,00 por mês |
+| Plano | O que mostramos | Cobrança |
+|------|-----------------|----------|
+| **Anual** | 29,99 €/mês (equiv.) | **359,88 €** por ano |
+| **Mensal** | 35,00 €/mês | **35,00 €** por mês |
+| **Teste** | 14 dias grátis | Sem cartão |
 
-Regra: os dois planos devem estar publicados e consistentes em site, comercial e Stripe.
+Estes números têm de ser iguais no site, na app (Plano) e nos dois Price IDs da Stripe.  
+Guia passo a passo: [STRIPE_SETUP.md](./STRIPE_SETUP.md).
+
+Stripe live ainda em **test mode** até colocares as chaves e os dois preços no Render.
 
 ## 2.2 Preparação para 100.000 clientes activos
 
@@ -190,14 +194,14 @@ cd backend && npm run smoke:pilot
 
 ---
 
-## 4. Próximos passos (ordem recomendada)
+## 4. O que faço a seguir
 
-1. **Fase 3** — Padronização: god files, regras de role por tela, E2E piloto completo
-2. **Redis em produção** — validar operação estável no Render
-3. **Cloudflare WAF** — quando escalar tráfego
-4. **Checklist 100k → 1M** — executar por fases o plano em [SCALE_100K_1M_CHECKLIST.md](../product/SCALE_100K_1M_CHECKLIST.md)
+1. **Stripe** — criar produto + preços 35 €/mês e 359,88 €/ano; meter Price IDs no Render ([STRIPE_SETUP.md](./STRIPE_SETUP.md))
+2. **Brevo** — domínio autenticado ([BREVO_DOMAIN_SETUP.md](./BREVO_DOMAIN_SETUP.md))
+3. **Piloto** — validar fluxo com a contadora
+4. Redis / WAF — quando o tráfego o justificar
 
-Calendário semanal: [CRONOGRAMA.md](./CRONOGRAMA.md)
+Calendário: [CRONOGRAMA.md](./CRONOGRAMA.md) · Norte: [../company/EVOLUTION_PLAN.md](../company/EVOLUTION_PLAN.md)
 
 ---
 

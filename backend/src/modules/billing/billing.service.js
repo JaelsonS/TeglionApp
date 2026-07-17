@@ -5,7 +5,8 @@ const stripeWebhookEventsRepository = require('../../db/supabase/repositories/st
 const { getStripe, isStripeConfigured, resolveSubscriptionPriceId } = require('../../services/stripe/stripe-client');
 const { logger } = require('../../utils/logger');
 
-const BILLING_PLAN_OFFICE = 'office_monthly';
+const BILLING_PLAN_OFFICE_MONTHLY = 'office_monthly';
+const BILLING_PLAN_OFFICE_YEARLY = 'office_yearly';
 
 const { computeFirmAccess, mapSubscriptionStatusToFirm } = require('./billing-access');
 
@@ -13,6 +14,8 @@ async function getBillingStatus(firmId) {
   const firm = await firmsRepository.findFirmById(firmId);
   if (!firm) throw new AppError('Escritório não encontrado', 404);
   const access = computeFirmAccess(firm);
+  const monthlyPriceId = resolveSubscriptionPriceId(firm.countryCode, 'month');
+  const yearlyPriceId = resolveSubscriptionPriceId(firm.countryCode, 'year');
   return {
     status: firm.status,
     trialEndsAt: firm.trialEndsAt,
@@ -22,7 +25,20 @@ async function getBillingStatus(firmId) {
     stripeConfigured: isStripeConfigured(),
     stripeCustomerId: firm.stripeCustomerId || null,
     hasSubscription: Boolean(firm.stripeSubscriptionId),
-    priceEurCents: env.FIRM_PLAN_EUR_CENTS,
+    priceEurCents: env.FIRM_PLAN_EUR_MONTHLY_CENTS,
+    plans: {
+      monthly: {
+        interval: 'month',
+        amountCents: env.FIRM_PLAN_EUR_MONTHLY_CENTS,
+        configured: Boolean(monthlyPriceId),
+      },
+      yearly: {
+        interval: 'year',
+        amountCents: env.FIRM_PLAN_EUR_YEARLY_CENTS,
+        equivalentMonthlyCents: 2999,
+        configured: Boolean(yearlyPriceId),
+      },
+    },
   };
 }
 
@@ -49,18 +65,27 @@ async function getOrCreateStripeCustomer(firm) {
   return customer;
 }
 
-async function createCheckoutSession(firmId, actorEmail) {
+async function createCheckoutSession(firmId, actorEmail, { interval = 'month' } = {}) {
   const firm = await firmsRepository.findFirmById(firmId);
   if (!firm) throw new AppError('Escritório não encontrado', 404);
 
+  const billingInterval = interval === 'year' ? 'year' : 'month';
   const stripe = getStripe();
-  const priceId = resolveSubscriptionPriceId(firm.countryCode);
+  const priceId = resolveSubscriptionPriceId(firm.countryCode, billingInterval);
   if (!stripe || !priceId) {
-    throw new AppError('Stripe não configurado. Defina STRIPE_SECRET_KEY e STRIPE_PRICE_ID_EUR.', 503, undefined, 'STRIPE_NOT_CONFIGURED');
+    throw new AppError(
+      billingInterval === 'year'
+        ? 'Plano anual ainda não está configurado. Defina STRIPE_PRICE_ID_EUR_YEARLY no servidor.'
+        : 'Stripe não configurado. Defina STRIPE_SECRET_KEY e STRIPE_PRICE_ID_EUR_MONTHLY.',
+      503,
+      undefined,
+      'STRIPE_NOT_CONFIGURED',
+    );
   }
 
   const customer = await getOrCreateStripeCustomer(firm);
   const base = env.FRONTEND_URL.replace(/\/+$/, '');
+  const planKey = billingInterval === 'year' ? BILLING_PLAN_OFFICE_YEARLY : BILLING_PLAN_OFFICE_MONTHLY;
 
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
@@ -70,15 +95,15 @@ async function createCheckoutSession(firmId, actorEmail) {
     success_url: `${base}/app/firm/billing?checkout=success`,
     cancel_url: `${base}/app/firm/billing?checkout=cancelled`,
     subscription_data: {
-      metadata: { firmId: firm.id, product: 'teglion' },
+      metadata: { firmId: firm.id, product: 'teglion', plan: planKey, interval: billingInterval },
     },
-    metadata: { firmId: firm.id, product: 'teglion' },
+    metadata: { firmId: firm.id, product: 'teglion', plan: planKey, interval: billingInterval },
     allow_promotion_codes: true,
     billing_address_collection: 'required',
     customer_update: { name: 'auto', address: 'auto' },
   });
 
-  return { url: session.url, sessionId: session.id };
+  return { url: session.url, sessionId: session.id, interval: billingInterval };
 }
 
 async function createPortalSession(firmId) {
@@ -101,11 +126,18 @@ async function createPortalSession(firmId) {
 
 async function applySubscriptionToFirm(firmId, subscription) {
   const status = mapSubscriptionStatusToFirm(subscription.status);
+  const planFromMeta = subscription.metadata?.plan;
+  const intervalFromMeta = subscription.metadata?.interval;
+  const billingPlan =
+    status === 'ACTIVE'
+      ? planFromMeta ||
+        (intervalFromMeta === 'year' ? BILLING_PLAN_OFFICE_YEARLY : BILLING_PLAN_OFFICE_MONTHLY)
+      : undefined;
   await firmsRepository.updateStripeIds(firmId, {
     stripeCustomerId: typeof subscription.customer === 'string' ? subscription.customer : subscription.customer?.id,
     stripeSubscriptionId: subscription.id,
     status,
-    billingPlan: status === 'ACTIVE' ? BILLING_PLAN_OFFICE : undefined,
+    billingPlan,
   });
   logger.info('[billing] subscription synced', { firmId, subStatus: subscription.status, firmStatus: status });
 }

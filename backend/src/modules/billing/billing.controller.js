@@ -16,7 +16,9 @@ exports.getStatus = async (req, res, next) => {
 exports.createCheckout = async (req, res, next) => {
   try {
     const firmId = String(req.user.firmId);
-    const data = await billingService.createCheckoutSession(firmId, req.user.email);
+    const intervalRaw = String(req.body?.interval || req.query?.interval || 'month').toLowerCase();
+    const interval = intervalRaw === 'year' || intervalRaw === 'yearly' || intervalRaw === 'anual' ? 'year' : 'month';
+    const data = await billingService.createCheckoutSession(firmId, req.user.email, { interval });
     return res.status(200).json(data);
   } catch (err) {
     return next(err);

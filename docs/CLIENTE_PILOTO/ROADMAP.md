@@ -11,8 +11,9 @@ Bússola founder: [../company/EVOLUTION_PLAN.md](../company/EVOLUTION_PLAN.md).
 - [x] Checklist Brevo domínio (DNS = acção no painel)
 
 ## Agora — Fase B
-1. Stripe mínimo + smoke signup → trial → plano  
-2. Go-live piloto estável  
+1. Stripe: criar preços 35 €/mês + 359,88 €/ano e meter IDs no Render  
+2. Smoke signup → 14 dias → checkout  
+3. Go-live piloto estável 
 
 ## A seguir — Fase C
 3. `GET /bootstrap` + menos requests no cold start  

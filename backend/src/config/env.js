@@ -230,11 +230,18 @@ const env = {
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
   STRIPE_PRICE_ID: process.env.STRIPE_PRICE_ID,
+  /** Mensal EUR — preferir STRIPE_PRICE_ID_EUR_MONTHLY; STRIPE_PRICE_ID_EUR fica como alias. */
   STRIPE_PRICE_ID_EUR: process.env.STRIPE_PRICE_ID_EUR,
+  STRIPE_PRICE_ID_EUR_MONTHLY: process.env.STRIPE_PRICE_ID_EUR_MONTHLY || process.env.STRIPE_PRICE_ID_EUR,
+  STRIPE_PRICE_ID_EUR_YEARLY: process.env.STRIPE_PRICE_ID_EUR_YEARLY,
   STRIPE_PRICE_ID_BRL: process.env.STRIPE_PRICE_ID_BRL,
   STRIPE_PRICE_ID_USD: process.env.STRIPE_PRICE_ID_USD,
+  /** Exibição: mensal 35,00 € · anual 359,88 € (equiv. 29,99 €/mês) */
+  FIRM_PLAN_EUR_MONTHLY_CENTS: Number(process.env.FIRM_PLAN_EUR_MONTHLY_CENTS || 3500),
+  FIRM_PLAN_EUR_YEARLY_CENTS: Number(process.env.FIRM_PLAN_EUR_YEARLY_CENTS || 35988),
+  /** @deprecated usar FIRM_PLAN_EUR_MONTHLY_CENTS */
   FIRM_PLAN_EUR_CENTS: Number(
-    process.env.FIRM_PLAN_EUR_CENTS || 2999,
+    process.env.FIRM_PLAN_EUR_MONTHLY_CENTS || process.env.FIRM_PLAN_EUR_CENTS || 3500,
   ),
 
   SENTRY_DSN: process.env.SENTRY_DSN || null,

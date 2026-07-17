@@ -23,17 +23,16 @@ export function PricingPage() {
   return (
     <LandingMarketingShell
       title={`Preços | ${BRAND.name}`}
-      description="29,99 €/mês por utilizador após 14 dias grátis. Software de gestão para escritórios de contabilidade em Portugal — sem fidelização."
+      description="14 dias grátis. Depois 35 €/mês ou 359,88 €/ano (equiv. 29,99 €/mês). Por escritório, sem fidelização."
       path="/pricing"
     >
       <section className="landing-section pb-0">
         <div className="landing-container">
           <FadeInView className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#C9932E]">Preços</p>
-            <h1 className="mt-2 text-4xl font-semibold text-[#0F2942] sm:text-5xl">Transparente como deve ser</h1>
+            <h1 className="mt-2 text-4xl font-semibold text-[#0F2942] sm:text-5xl">Sem surpresas</h1>
             <p className="mt-4 text-lg text-[#4A5568]">
-              Experimente o escritório completo durante 14 dias. Sem cartão. Pague só quando fizer sentido para a
-              equipa.
+              14 dias para usar o escritório a sério, sem cartão. Se ficar, escolhe mensal ou anual.
             </p>
           </FadeInView>
         </div>
@@ -44,7 +43,7 @@ export function PricingPage() {
       <section className="landing-section pt-0">
         <div className="landing-container">
           <div className="mx-auto max-w-2xl rounded-2xl border border-[#0F2942]/10 bg-white p-6 sm:p-8">
-            <h2 className="text-xl font-semibold text-[#0F2942]">Tudo incluído no plano</h2>
+            <h2 className="text-xl font-semibold text-[#0F2942]">O que está incluído</h2>
             <ul className="mt-4 grid gap-2 sm:grid-cols-2">
               {INCLUDED.map((item) => (
                 <li key={item} className="flex items-start gap-2 text-sm text-[#4A5568]">
@@ -56,14 +55,14 @@ export function PricingPage() {
               ))}
             </ul>
             <p className="mt-6 text-sm text-[#4A5568]">
-              Precisa de condições para vários utilizadores ou rollout piloto?{' '}
+              Precisas de condições para o piloto?{' '}
               <a href={`mailto:${BRAND.emails.hello}`} className="font-medium text-[#0F2942] hover:underline">
-                Fale connosco
+                Escreve-nos
               </a>
               .
             </p>
             <Link to={authFirmRegisterUrl()} className="landing-btn-primary mt-6 inline-block px-8 py-3">
-              Começar teste grátis
+              Começar os 14 dias
             </Link>
           </div>
         </div>

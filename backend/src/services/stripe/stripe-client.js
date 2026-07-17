@@ -11,15 +11,31 @@ function getStripe() {
   return stripeSingleton;
 }
 
-function isStripeConfigured() {
-  return Boolean(env.STRIPE_SECRET_KEY && resolveSubscriptionPriceId());
-}
-
-function resolveSubscriptionPriceId(countryCode = 'PT') {
+/**
+ * @param {string} [countryCode]
+ * @param {'month'|'year'} [interval]
+ */
+function resolveSubscriptionPriceId(countryCode = 'PT', interval = 'month') {
   const cc = String(countryCode || 'PT').toUpperCase();
+  const billingInterval = interval === 'year' ? 'year' : 'month';
+
   if (cc === 'BR' && env.STRIPE_PRICE_ID_BRL) return env.STRIPE_PRICE_ID_BRL;
   if (cc === 'US' && env.STRIPE_PRICE_ID_USD) return env.STRIPE_PRICE_ID_USD;
-  return env.STRIPE_PRICE_ID_EUR || env.STRIPE_PRICE_ID || null;
+
+  if (billingInterval === 'year') {
+    return env.STRIPE_PRICE_ID_EUR_YEARLY || null;
+  }
+
+  return (
+    env.STRIPE_PRICE_ID_EUR_MONTHLY ||
+    env.STRIPE_PRICE_ID_EUR ||
+    env.STRIPE_PRICE_ID ||
+    null
+  );
+}
+
+function isStripeConfigured() {
+  return Boolean(env.STRIPE_SECRET_KEY && resolveSubscriptionPriceId('PT', 'month'));
 }
 
 module.exports = { getStripe, isStripeConfigured, resolveSubscriptionPriceId };

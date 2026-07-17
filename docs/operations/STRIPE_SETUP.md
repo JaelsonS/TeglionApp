@@ -1,118 +1,125 @@
-# Stripe + Sentry — configuração TegLion
+# Stripe — como configurar o TegLion (mensal + anual)
 
-## 1. Stripe Dashboard
+Guia prático para ti, com a Stripe aberta ao lado.  
+**Última actualização:** 17 Julho 2026
 
-### A. Conta e modo
+## O que vamos vender
 
-1. [dashboard.stripe.com](https://dashboard.stripe.com) → activar conta (dados fiscais PT).
-2. Em desenvolvimento use **Test mode** (interruptor no canto superior).
-3. Em produção: **Live mode** + chaves `sk_live_...` e `pk_live_...`.
+| Plano | O que o cliente vê | O que cobras na Stripe |
+|-------|--------------------|------------------------|
+| **Teste** | 14 dias grátis, sem cartão | Nada (é interno no TegLion) |
+| **Mensal** | 35 € / mês | Recurring **35,00 EUR** / month |
+| **Anual** | 29,99 €/mês (equiv.) | Recurring **359,88 EUR** / year |
 
-### B. Produto e preço (29,99 €/mês)
+Regra: site, app e Stripe têm de bater certo. O teste de **14 dias** continua como está (criado no registo, sem cartão).
 
-1. **Product catalog** → **+ Add product**
-2. Nome: `TegLion — Plano Escritório`
-3. Preço: **Recurring** → **29,99 EUR** → **Monthly**
-4. Copie o **Price ID** (`price_...`) → variável `STRIPE_PRICE_ID_EUR` no Render.
+---
 
-Opcional: **Settings → Payment methods** → activar Multibanco, MB WAY, cartão (Portugal).
+## Passo a passo na Stripe (Test mode primeiro)
 
-### C. API Keys
+### 1. Produto
 
-1. **Developers → API keys**
-2. **Secret key** → `STRIPE_SECRET_KEY` no Render (nunca no frontend).
-3. A chave com nome **teglion-production** no painel é só um rótulo — o valor começa por `sk_live_` ou `sk_test_`.
+1. Abre [dashboard.stripe.com](https://dashboard.stripe.com) → **Test mode** ligado.
+2. **Product catalog** → **Add product**.
+3. Nome: `TegLion — Plano Escritório`.
+4. Descrição (opcional): `Software para o escritório de contabilidade · portal do cliente incluído`.
 
-### D. Webhook
+### 2. Dois preços no mesmo produto
 
-1. **Developers → Webhooks** → **+ Add endpoint**
-2. **Endpoint URL (produção):**
-   ```
-   https://teglionapp.onrender.com/api/public/stripe/webhook
-   ```
-3. Eventos a subscrever:
-   - `checkout.session.completed`
-   - `customer.subscription.updated`
-   - `customer.subscription.deleted`
-   - `invoice.payment_failed`
-4. Depois de criar, abra o endpoint → **Signing secret** (`whsec_...`) → `STRIPE_WEBHOOK_SECRET` no Render.
+**Preço A — Mensal**
+- Recurring → **Monthly**
+- Amount: **35,00 EUR**
+- Copia o Price ID (`price_…`) → vai para `STRIPE_PRICE_ID_EUR_MONTHLY`
 
-### E. Customer portal (opcional mas recomendado)
+**Preço B — Anual**
+- No mesmo produto → **Add another price**
+- Recurring → **Yearly**
+- Amount: **359,88 EUR**
+- Copia o Price ID → `STRIPE_PRICE_ID_EUR_YEARLY`
 
-1. **Settings → Billing → Customer portal**
-2. Activar: cancelar subscrição, actualizar método de pagamento, ver facturas.
+Dica: podes deixar o mensal como “default” no catálogo; o app escolhe pelo botão (mensal vs anual).
 
-### F. Variáveis no Render (backend)
+### 3. Chaves API
+
+**Developers → API keys**
+- Secret key (`sk_test_…` agora, `sk_live_…` em produção) → `STRIPE_SECRET_KEY` no Render
+- Nunca coloques a secret no frontend
+
+### 4. Webhook
+
+**Developers → Webhooks → Add endpoint**
+
+URL produção:
+```
+https://teglionapp.onrender.com/api/public/stripe/webhook
+```
+
+Eventos:
+- `checkout.session.completed`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+- `invoice.payment_failed`
+
+Signing secret (`whsec_…`) → `STRIPE_WEBHOOK_SECRET`
+
+Para testar em local: Stripe CLI  
+`stripe listen --forward-to localhost:PORT/api/public/stripe/webhook`
+
+### 5. Customer portal (recomendado)
+
+**Settings → Billing → Customer portal**  
+Activa: cancelar, mudar método de pagamento, ver facturas.
+
+### 6. Métodos de pagamento (PT)
+
+**Settings → Payment methods** — cartão; Multibanco / MB WAY se quiseres (quando a conta estiver pronta para PT).
+
+---
+
+## Variáveis no Render (backend)
 
 ```env
-STRIPE_SECRET_KEY=sk_live_...
+STRIPE_SECRET_KEY=sk_test_...          # depois sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PRICE_ID_EUR=price_...
+STRIPE_PRICE_ID_EUR_MONTHLY=price_...  # 35,00 € / mês
+STRIPE_PRICE_ID_EUR_YEARLY=price_...   # 359,88 € / ano
 FRONTEND_URL=https://teglion.com
 ```
 
-### G. Fluxo no produto
+Compatibilidade: se ainda tiveres só `STRIPE_PRICE_ID_EUR`, o backend trata como **mensal**.
 
-| Fase | Comportamento |
-|------|----------------|
-| Registo | `TRIAL` + 14 dias (`trial_ends_at`) |
-| Durante trial | Acesso total |
-| Trial expirado | API bloqueia → redirect `/app/firm/billing` |
-| Checkout Stripe | Webhook → `ACTIVE` + `stripe_subscription_id` |
-| Pagamento falhou | `SUSPENDED` |
-
----
-
-## 2. Sentry
-
-### A. Criar projecto
-
-1. [sentry.io](https://sentry.io) → **Create project**
-2. Platform: **Node** (backend) e **React** (frontend) — ou um projecto cada.
-3. Copie o **DSN** (`https://...@....ingest.sentry.io/...`).
-
-### B. Variáveis
-
-| Onde | Variável |
-|------|----------|
-| Render | `SENTRY_DSN` |
-| Vercel | `VITE_SENTRY_DSN` |
-
-### C. Instalar dependências (local / CI)
-
-```bash
-cd backend && npm install @sentry/node
-cd frontend && npm install @sentry/react
+Opcional (só exibição):
+```env
+FIRM_PLAN_EUR_MONTHLY_CENTS=3500
+FIRM_PLAN_EUR_YEARLY_CENTS=35988
 ```
 
 ---
 
-## 3. Supabase — migration Stripe
+## Como funciona no produto
 
-```bash
-cd supabase && supabase db push
-```
-
-Ou executar SQL em `supabase/migrations/20260828000000_firm_stripe_billing.sql`.
-
----
-
-## 4. Testar em modo test
-
-1. Render/Vercel com chaves `sk_test_` e `whsec_` de teste.
-2. Cartão teste Stripe: `4242 4242 4242 4242`.
-3. Registar escritório → esperar trial (ou alterar `trial_ends_at` no Supabase para ontem).
-4. Abrir **Plano e subscrição** → **Activar plano (Stripe)**.
-5. Verificar no Supabase: `firms.status = ACTIVE`.
+1. Registo → escritório em **TRIAL** com `trial_ends_at` daqui a **14 dias** (sem Stripe).
+2. Durante o teste: acesso total.
+3. Em **Plano e subscrição** o dono escolhe **Activar mensal** ou **Activar anual** → Checkout Stripe.
+4. Webhook marca o escritório **ACTIVE**.
+5. Se o teste acabar sem plano → acesso limitado até pagar.
+6. **Gerir no Stripe** abre o Customer Portal.
 
 ---
 
-## 5. Checklist produção
+## Checklist quando fores a Live
 
-- [ ] Produto + preço EUR no Stripe Live
-- [ ] Webhook aponta para `https://teglionapp.onrender.com/api/public/stripe/webhook`
-- [ ] `STRIPE_*` no Render
-- [ ] `FRONTEND_URL=https://teglion.com`
-- [ ] Migration Supabase aplicada
-- [ ] Sentry DSN em Render + Vercel
-- [ ] Teste checkout com cartão real (valor mínimo) antes de vender
+- [ ] Mesmo produto com 2 preços (35 €/mês e 359,88 €/ano) em **Live mode**
+- [ ] Webhook Live a apontar para a URL do Render
+- [ ] Variáveis `sk_live_` + `whsec_` + dois `price_` no Render
+- [ ] Teste real com valor baixo / cartão teu antes de vender
+- [ ] Landing e billing mostram os mesmos números
+
+---
+
+## Teste rápido (Test mode)
+
+Cartão: `4242 4242 4242 4242`  
+Regista escritório → vai a Plano → Activar mensal ou anual → confirma no Supabase `firms.status = ACTIVE`.
+
+Se o botão anual estiver desactivado, falta `STRIPE_PRICE_ID_EUR_YEARLY` no Render.
