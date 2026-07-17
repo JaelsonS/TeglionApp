@@ -18,27 +18,30 @@ export function LandingHero() {
       <div className="landing-container">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <FadeInView>
-            <h1 className="max-w-xl text-[2.5rem] font-semibold leading-[1.08] text-[#0F2942] sm:text-5xl lg:text-[4rem]">
-              Gestão completa de um escritório de contabilidade num só sistema.
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#C9932E]">
+              Para escritórios de contabilidade
+            </p>
+            <h1 className="mt-3 max-w-xl text-[2.35rem] font-semibold leading-[1.1] text-[#0F2942] sm:text-5xl lg:text-[3.4rem]">
+              Fecha o mês sem caçar documentos no WhatsApp.
             </h1>
             <p className="mt-5 max-w-lg text-[17px] leading-relaxed text-[#4A5568]">
-              Documentos, prazos, faturação e comunicação com clientes — sem saltar entre 5 ferramentas.
+              Pedidos de documentos, prazos fiscais e conversas com o cliente — num só sistema. A
+              equipa sabe o que falta; o cliente sabe o que entregar.
             </p>
-            <div className="mt-8 flex flex-col items-start gap-4">
+            <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
               <Link to={authFirmRegisterUrl()} className="landing-btn-primary px-8 py-3.5">
-                Começar 14 dias grátis
+                Experimentar 14 dias grátis
               </Link>
-              <p className="text-sm text-[#4A5568]">Sem cartão no registo.</p>
               <button
                 type="button"
                 onClick={scrollToProduct}
-                className="text-sm font-medium text-[#0F2942]/70 underline-offset-4 hover:text-[#0F2942] hover:underline"
+                className="text-sm font-medium text-[#0F2942]/75 underline-offset-4 hover:text-[#0F2942] hover:underline"
               >
-                Ver o produto ↓
+                Ver como funciona
               </button>
             </div>
-            <p className="mt-8 text-xs font-medium tracking-wide text-[#4A5568]/80">
-              Feito em Portugal · Para escritórios em Portugal
+            <p className="mt-4 text-sm text-[#4A5568]">
+              Sem cartão · Acesso completo · Pode cancelar quando quiser
             </p>
           </FadeInView>
 
@@ -55,7 +58,7 @@ export function LandingHero() {
             >
               <LandingScreenshot
                 src={LANDING_SCREENS.dashboard}
-                alt="Painel operacional do TegLion"
+                alt="Painel do escritório no TegLion"
                 priority
                 className="shadow-[0_20px_50px_rgba(15,41,66,0.12)]"
               />

@@ -18,9 +18,9 @@ import { applyPageSeo } from '@/shared/utils/seo'
 export function LandingPage() {
   useLayoutEffect(() => {
     applyPageSeo({
-      title: 'TegLion — Gestão completa para escritórios de contabilidade',
+      title: 'TegLion — Fecha o mês sem caçar documentos no WhatsApp',
       description:
-        'Fecha o mês sem caçar documentos no WhatsApp. TegLion junta documentos, prazos fiscais, faturação e portal do cliente num só sistema — feito para escritórios em Portugal.',
+        'Sistema para escritórios de contabilidade em Portugal: pedidos de documentos, prazos fiscais e portal do cliente num só sítio. 14 dias grátis, sem cartão.',
       path: '/',
     })
   }, [])

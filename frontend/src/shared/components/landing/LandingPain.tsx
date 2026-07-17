@@ -2,16 +2,16 @@ import { FadeInStagger, FadeInStaggerItem, FadeInView } from '@/shared/component
 
 const CARDS = [
   {
-    pain: 'Documentos perdidos em emails e WhatsApp',
-    relief: 'Com o TegLion, cada pedido fica registado e o cliente sabe exactamente o que falta entregar.',
+    pain: 'Documentos perdidos em e-mail e WhatsApp',
+    relief: 'Cada pedido fica registado. O cliente vê o que falta — e a equipa deixa de caçar ficheiros.',
   },
   {
-    pain: 'Prazos da AT que aparecem em cima da hora',
-    relief: 'Com o TegLion, vês o que vence esta semana antes de virar multa.',
+    pain: 'Prazos da AT que só se vêem em cima da hora',
+    relief: 'Sabe o que vence esta semana, por cliente, antes de virar multa ou noite em claro.',
   },
   {
-    pain: 'Clientes que perguntam o mesmo dez vezes',
-    relief: 'Com o TegLion, o cliente consulta o estado no portal e tu respondes no mesmo sítio.',
+    pain: 'O mesmo “já enviei?” todos os dias',
+    relief: 'O cliente consulta o estado no portal. Vocês respondem quando há mesmo uma dúvida.',
   },
 ] as const
 

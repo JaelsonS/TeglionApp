@@ -2,28 +2,41 @@ import { FileCheck, LayoutDashboard, MessagesSquare } from 'lucide-react'
 
 import { FadeInStagger, FadeInStaggerItem, FadeInView } from '@/shared/components/landing/FadeInView'
 
+/** Sinais de confiança — benefício primeiro, sem jargão técnico. */
 const TRUST_STATS = [
-  { value: '14 dias', label: 'Teste grátis sem cartão' },
-  { value: 'UE', label: 'Dados alojados na Europa' },
-  { value: 'RGPD', label: 'Conformidade desde o dia um' },
-  { value: '24/7', label: 'Portal cliente sempre disponível' },
+  {
+    title: 'Sem risco',
+    text: '14 dias para usar o escritório completo. Não pedimos cartão.',
+  },
+  {
+    title: 'Dados na Europa',
+    text: 'Informação fiscal e documentos dos seus clientes alojados na UE.',
+  },
+  {
+    title: 'Privacidade real',
+    text: 'Cada escritório isolado. Os seus clientes não se misturam com os de ninguém.',
+  },
+  {
+    title: 'Cliente autónomo',
+    text: 'Portal aberto a qualquer hora — menos chamadas e WhatsApps perdidos.',
+  },
 ] as const
 
 const VALUE_PILLARS = [
   {
     icon: FileCheck,
-    title: 'Documentos e prazos',
-    text: 'Pedidos de documentos, validação e obrigações fiscais num fluxo único — sem pastas dispersas.',
+    title: 'Documentos que não se perdem',
+    text: 'Pede o que falta, o cliente envia no portal, e a equipa valida no mesmo sítio. Fim às pastas no e-mail e no telemóvel.',
   },
   {
     icon: LayoutDashboard,
-    title: 'Painel do escritório',
-    text: 'Vista operacional da carteira: tarefas, alertas e calendário fiscal para fechar o mês com método.',
+    title: 'O mês sob controlo',
+    text: 'Vê quem está atrasado, o que vence esta semana e o que já foi entregue — antes da pressão do fecho.',
   },
   {
     icon: MessagesSquare,
-    title: 'Portal do cliente',
-    text: 'Área dedicada para o cliente enviar ficheiros, ver obrigações e falar com a equipa — com registo de auditoria.',
+    title: 'O cliente sabe o que fazer',
+    text: 'Área clara para enviar ficheiros, acompanhar pedidos e falar consigo. Menos “já enviei” sem rasto.',
   },
 ] as const
 
@@ -32,33 +45,34 @@ type LandingSocialProofProps = {
   showStats?: boolean
 }
 
-/** Sinais de confiança factuais — sem depoimentos inventados. */
 export function LandingSocialProof({ className, showStats = true }: LandingSocialProofProps) {
   return (
     <section className={className ?? 'landing-section bg-white'}>
       <div className="landing-container">
         {showStats ? (
-          <FadeInView className="mb-12 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <FadeInView className="mb-14 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {TRUST_STATS.map((stat) => (
               <div
-                key={stat.label}
-                className="rounded-xl border border-[#0F2942]/10 bg-[#FAFAF7] px-4 py-5 text-center"
+                key={stat.title}
+                className="rounded-xl border border-[#0F2942]/10 bg-[#FAFAF7] px-5 py-5 text-left"
               >
-                <p className="text-2xl font-semibold text-[#0F2942]">{stat.value}</p>
-                <p className="mt-1 text-xs text-[#4A5568]">{stat.label}</p>
+                <p className="text-sm font-semibold text-[#0F2942]">{stat.title}</p>
+                <p className="mt-2 text-[13px] leading-relaxed text-[#4A5568]">{stat.text}</p>
               </div>
             ))}
           </FadeInView>
         ) : null}
 
         <FadeInView className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#C9932E]">Para escritórios em Portugal</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#C9932E]">
+            Feito para escritórios em Portugal
+          </p>
           <h2 className="mt-2 text-3xl font-semibold text-[#0F2942] sm:text-4xl">
-            Feito para quem fecha contas todos os meses
+            Menos caos. Mais fechos a tempo.
           </h2>
-          <p className="mt-4 text-[#4A5568]">
-            O TegLion está em fase inicial — desenhado com contabilistas para organizar clientes, prazos e comunicação,
-            sem substituir o software certificado.
+          <p className="mt-4 text-[17px] leading-relaxed text-[#4A5568]">
+            O TegLion organiza clientes, documentos e prazos num só sítio — para a equipa trabalhar com
+            método e o cliente deixar de perguntar “já enviei?”.
           </p>
         </FadeInView>
 
