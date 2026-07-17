@@ -10,7 +10,13 @@ import { getErrorMessage } from '@/shared/utils/errors'
 
 const MAX_LOGO_MB = 3
 
-export function FirmLogoSettingsCard({ readOnly = false }: { readOnly?: boolean }) {
+export function FirmLogoSettingsCard({
+  readOnly = false,
+  showContextPreview = false,
+}: {
+  readOnly?: boolean
+  showContextPreview?: boolean
+}) {
   const { firm, firmLogoUrl, refresh } = useFirmBranding()
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
@@ -138,6 +144,45 @@ export function FirmLogoSettingsCard({ readOnly = false }: { readOnly?: boolean 
           ) : null}
         </div>
       </div>
+
+      {showContextPreview ? (
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-border/60 bg-muted/10 p-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Menu do escritório</p>
+            <div className="mt-3 flex items-center gap-3 rounded-lg border border-border/50 bg-card px-3 py-2">
+              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-muted">
+                {displayUrl ? (
+                  <img src={displayUrl} alt="" className="h-full w-full object-contain" />
+                ) : (
+                  <span className="text-[10px] font-bold text-muted-foreground">
+                    {(firm?.name || 'TL').slice(0, 2).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">{firm?.name || 'Escritório'}</p>
+                <p className="text-xs text-muted-foreground">Escritório</p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-xl border border-border/60 bg-muted/10 p-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Portal do cliente</p>
+            <div className="mt-3 flex items-center gap-3 rounded-lg border border-border/50 bg-card px-3 py-2">
+              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-muted">
+                {displayUrl ? (
+                  <img src={displayUrl} alt="" className="h-full w-full object-contain" />
+                ) : (
+                  <span className="text-[10px] font-bold text-muted-foreground">TL</span>
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">Portal · {firm?.name || 'TegLion'}</p>
+                <p className="text-xs text-muted-foreground">Cabeçalho do cliente</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   )
 }

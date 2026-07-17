@@ -66,6 +66,15 @@ router.patch(
   firmSettingsController.patchProfile,
 );
 router.post(
+  '/firm/profile/password',
+  requirePermission(PERMISSIONS.FIRM_READ),
+  [
+    body('currentPassword').isString().isLength({ min: 1, max: 200 }),
+    body('newPassword').isString().isLength({ min: 10, max: 200 }),
+  ],
+  firmSettingsController.changePassword,
+);
+router.post(
   '/firm/close',
   requireFirmOwner,
   [

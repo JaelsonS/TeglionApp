@@ -249,6 +249,21 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
         () => (showInactiveMembers ? members : members.filter((m) => m.isActive || m.inviteStatus === 'PENDING')),
         [members, showInactiveMembers],
     )
+
+    const teamStats = useMemo(() => {
+        const activeCount = members.filter((m) => m.isActive).length
+        const pendingCount = members.filter((m) => m.inviteStatus === 'PENDING').length
+        const deptCount = departments.filter((d) => d.isActive !== false).length
+        return { activeCount, pendingCount, deptCount }
+    }, [members, departments])
+
+    const scrollToInvite = () => {
+        document.getElementById('equipa-convidar')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+
+    const scrollToDepartments = () => {
+        document.getElementById('equipa-departamentos')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
     const canManageTeam = bundle.capabilities.canManageTeam
 
     const excludeMemberMutation = useMutation({
@@ -298,6 +313,36 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                 </div>
             </div>
 
+            <div className="grid gap-3 sm:grid-cols-3">
+                <button
+                    type="button"
+                    className="rounded-xl border border-border/60 bg-muted/10 px-4 py-3 text-left transition hover:border-brand/30 hover:bg-brand/[0.03]"
+                    onClick={() => setShowInactiveMembers(false)}
+                >
+                    <p className="text-xs text-muted-foreground">Colaboradores activos</p>
+                    <p className="mt-1 text-2xl font-semibold text-foreground">{teamStats.activeCount}</p>
+                </button>
+                <button
+                    type="button"
+                    className="rounded-xl border border-border/60 bg-muted/10 px-4 py-3 text-left transition hover:border-brand/30 hover:bg-brand/[0.03]"
+                    onClick={scrollToDepartments}
+                >
+                    <p className="text-xs text-muted-foreground">Departamentos</p>
+                    <p className="mt-1 text-2xl font-semibold text-foreground">{teamStats.deptCount}</p>
+                </button>
+                <button
+                    type="button"
+                    className="rounded-xl border border-border/60 bg-muted/10 px-4 py-3 text-left transition hover:border-brand/30 hover:bg-brand/[0.03]"
+                    onClick={() => {
+                        setShowInactiveMembers(true)
+                        scrollToInvite()
+                    }}
+                >
+                    <p className="text-xs text-muted-foreground">Convites pendentes</p>
+                    <p className="mt-1 text-2xl font-semibold text-foreground">{teamStats.pendingCount}</p>
+                </button>
+            </div>
+
             <div className="rounded-lg border border-border/60 bg-muted/15 p-3 text-sm text-muted-foreground">
                 <p>
                     Dica: use termos simples de negócio como <strong>Receção</strong>, <strong>Fiscal</strong>, <strong>Contabilidade</strong> e
@@ -314,7 +359,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
 
             {canManageTeam ? (
                 <div className="grid gap-4 lg:grid-cols-2">
-                    <div className="rounded-lg border border-border/60 p-4">
+                    <div id="equipa-convidar" className="rounded-lg border border-border/60 p-4 scroll-mt-24">
                         <p className="mb-3 flex items-center gap-2 text-sm font-semibold">
                             <UserPlus className="h-4 w-4" />
                             Criar colaborador com acesso direto
@@ -431,7 +476,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
             ) : null}
 
             {canManageTeam ? (
-                <div className="rounded-lg border border-border/60 p-4">
+                <div id="equipa-departamentos" className="rounded-lg border border-border/60 p-4 scroll-mt-24">
                     <p className="mb-3 text-sm font-semibold">Departamentos</p>
                     <div className="mb-3 flex gap-2">
                         <Input

@@ -127,8 +127,13 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
           </div>
         </div>
         {bundle.firm.status ? (
-          <p className="text-xs text-muted-foreground">
-            Estado da conta: <strong className="text-foreground">{bundle.firm.status}</strong>
+          <p className="inline-flex items-center rounded-full border border-border/60 bg-muted/20 px-2.5 py-1 text-xs text-muted-foreground">
+            Estado:{' '}
+            <strong className="ml-1 text-foreground">
+              {bundle.firm.status === 'ACTIVE' || bundle.firm.status === 'TRIAL'
+                ? 'Escritório activo'
+                : bundle.firm.status}
+            </strong>
             {bundle.firm.trialEndsAt
               ? ` · teste até ${new Date(bundle.firm.trialEndsAt).toLocaleDateString('pt-PT')}`
               : null}

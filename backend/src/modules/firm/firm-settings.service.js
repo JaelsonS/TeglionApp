@@ -7,6 +7,8 @@ const firmBrandingService = require('./firm-branding.service');
 const securityAudit = require('../../services/audit/security-audit.service');
 const { hasPermissionForUser, PERMISSIONS } = require('../../utils/permissions');
 const { normalizeSessionRole } = require('../../utils/session-user');
+const { hashPassword, verifyPassword } = require('../../utils/password-crypto');
+const { assertStrongPassword } = require('../../utils/password-policy');
 
 function actorPermissionUser(actor) {
   const role = firmUsersRepository.jwtRoleFromFirmRole(actor.role);
@@ -163,6 +165,39 @@ async function updateMyProfile(firmId, userId, { fullName, email }) {
   };
 }
 
+async function changeMyPassword(firmId, userId, { currentPassword, newPassword }, req = null) {
+  const actor = await firmUsersRepository.findFirmUserById(userId);
+  if (!actor || String(actor.firm_id) !== String(firmId)) {
+    throw new AppError('Utilizador não encontrado', 404);
+  }
+  if (!actor.password_hash) {
+    throw new AppError('Esta conta não tem palavra-passe local para alterar.', 400);
+  }
+
+  const ok = await verifyPassword(String(currentPassword || ''), actor.password_hash);
+  if (!ok) {
+    throw new AppError('Palavra-passe actual incorrecta.', 400, { code: 'INVALID_CURRENT_PASSWORD' });
+  }
+
+  assertStrongPassword(newPassword);
+  if (String(currentPassword) === String(newPassword)) {
+    throw new AppError('A nova palavra-passe deve ser diferente da actual.', 400);
+  }
+
+  const passwordHash = await hashPassword(String(newPassword));
+  await firmUsersRepository.updateFirmMember(firmId, userId, { passwordHash });
+
+  await securityAudit.recordSettingsMutation({
+    action: 'firm.profile.password.changed',
+    actor: { id: userId, role: actor.role },
+    firmId,
+    metadata: {},
+    req,
+  });
+
+  return { updated: true };
+}
+
 async function closeFirmAccount(firmId, actorUserId, { confirmName, npsScore, npsReason, npsComment }, req = null) {
   const actor = await firmUsersRepository.findFirmUserById(actorUserId);
   if (!actor || String(actor.firm_id) !== String(firmId) || actor.role !== 'FIRM_OWNER') {
@@ -216,6 +251,7 @@ module.exports = {
   getSettingsBundle,
   updateFirmDetails,
   updateMyProfile,
+  changeMyPassword,
   closeFirmAccount,
   FIRM_ROLE_LABELS,
 };

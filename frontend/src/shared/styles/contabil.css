@@ -2663,13 +2663,57 @@
     @apply flex flex-col items-center justify-center p-12 text-center text-muted-foreground;
   }
 
-  /* Configurações — largura total no desktop (sem coluna estreita à esquerda) */
+  /* Configurações — hub com nav lateral + um painel de cada vez */
   .cb-settings-layout-page {
     @apply w-full min-w-0 max-w-full;
   }
 
   .cb-settings-page {
     @apply space-y-6 pb-12;
+  }
+
+  .cb-settings-hub {
+    @apply grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start;
+  }
+
+  .cb-settings-side-nav {
+    @apply flex gap-1 overflow-x-auto rounded-xl border border-border/60 bg-muted/15 p-2 lg:flex-col lg:overflow-visible;
+  }
+
+  .cb-settings-side-nav-item {
+    @apply inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-muted-foreground transition hover:bg-card hover:text-foreground;
+  }
+
+  .cb-settings-side-nav-item--active {
+    @apply bg-card text-foreground shadow-sm ring-1 ring-border/70 lg:border-l-2 lg:border-l-brand lg:pl-[10px];
+  }
+
+  .cb-settings-side-nav-item--danger {
+    @apply text-destructive hover:bg-destructive/10 hover:text-destructive;
+  }
+
+  .cb-settings-side-nav-item--danger.cb-settings-side-nav-item--active {
+    @apply bg-destructive/10 text-destructive ring-destructive/20;
+  }
+
+  .cb-settings-side-nav-badge {
+    @apply ml-auto rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-foreground;
+  }
+
+  .cb-settings-hub-main {
+    @apply min-w-0 space-y-4;
+  }
+
+  .cb-settings-hub-panel-hd {
+    @apply border-b border-border/50 pb-3;
+  }
+
+  .cb-settings-hub-panel-title {
+    @apply text-base font-semibold text-foreground;
+  }
+
+  .cb-settings-hub-panel-sub {
+    @apply mt-0.5 text-sm text-muted-foreground;
   }
 
   .cb-settings-nav {

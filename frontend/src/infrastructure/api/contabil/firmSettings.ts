@@ -14,6 +14,9 @@ export const firmSettingsApi = {
   patchProfile: (payload: PatchFirmProfilePayload) =>
     api.patch('/contabil/firm/profile', payload).then((r) => r.data as { profile: { id: string; email: string; fullName: string; firmRole: string } }),
 
+  changePassword: (payload: { currentPassword: string; newPassword: string }) =>
+    api.post('/contabil/firm/profile/password', payload).then((r) => r.data as { updated: boolean }),
+
   closeAccount: (payload: { confirmName: string; npsScore: number; npsReason?: string | null; npsComment?: string | null }) =>
     api.post('/contabil/firm/close', payload).then((r) => r.data as { closed: boolean; message: string }),
 }
