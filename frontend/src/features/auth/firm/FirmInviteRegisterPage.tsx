@@ -69,12 +69,16 @@ export function FirmInviteRegisterPage() {
         if (!normalizedToken) return
         setSubmitting(true)
         try {
-            await teamInvitePublicApi.accept(normalizedToken, {
+            const result = await teamInvitePublicApi.accept(normalizedToken, {
                 fullName: values.fullName,
                 email: values.email,
                 password: values.password,
             })
-            toast.success('Conta criada. Confirme o e-mail para ativar o acesso.')
+            if (result?.emailSent === false) {
+                toast.warning('Conta criada, mas o e-mail de confirmação não foi enviado. Peça um novo link ao administrador.')
+            } else {
+                toast.success('Conta criada. Confirme o e-mail para ativar o acesso.')
+            }
             navigate(authFirmLoginUrl(), { replace: true })
         } catch (err) {
             toast.error('Não foi possível concluir o convite', { description: getErrorMessage(err) })

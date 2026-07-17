@@ -519,6 +519,14 @@ function buildPasswordResetUrl(rawToken, userType) {
   return `${base}/reset-password?token=${encodeURIComponent(rawToken)}&role=${role}`;
 }
 
+/** Conta firm elegível a recovery: activa, ou já com password (ex.: aceitou convite, e-mail por confirmar). */
+function isFirmUserEligibleForRecovery(firmUser) {
+  if (!firmUser?.password_hash) return false;
+  if (firmUser.is_active) return true;
+  const status = String(firmUser.invite_status || '').toUpperCase();
+  return status === 'ACCEPTED';
+}
+
 async function resolveAccountForRecovery(email, roleHint) {
   const normalized = String(email || '').trim().toLowerCase();
   const legacyClientHint = ['p', 'a', 't', 'i', 'e', 'n', 't'].join('');
@@ -538,14 +546,14 @@ async function resolveAccountForRecovery(email, roleHint) {
 
   if (hint === 'firm') {
     const firmUser = await firmUsersRepository.findFirmUserByEmail(normalized);
-    if (firmUser?.is_active && firmUser.password_hash) {
+    if (isFirmUserEligibleForRecovery(firmUser)) {
       return { userType: 'firm_user', userId: firmUser.id, email: normalized };
     }
     return null;
   }
 
   const firmUser = await firmUsersRepository.findFirmUserByEmail(normalized);
-  if (firmUser?.is_active && firmUser.password_hash) {
+  if (isFirmUserEligibleForRecovery(firmUser)) {
     return { userType: 'firm_user', userId: firmUser.id, email: normalized };
   }
 
@@ -577,7 +585,31 @@ async function requestPasswordRecovery({ email, role }) {
   });
 
   const resetUrl = buildPasswordResetUrl(rawToken, account.userType);
-  await notifyPasswordReset({ email: account.email, resetUrl, userType: account.userType });
+  try {
+    const delivery = await notifyPasswordReset({
+      email: account.email,
+      resetUrl,
+      userType: account.userType,
+    });
+    if (delivery?.skipped) {
+      await passwordResetRepository.invalidateUserTokens(account.userType, account.userId);
+      throw new AppError(
+        'Não foi possível enviar o e-mail de recuperação. O serviço de e-mail está indisponível.',
+        503,
+        { code: 'EMAIL_UNAVAILABLE' },
+      );
+    }
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    await passwordResetRepository.invalidateUserTokens(account.userType, account.userId).catch(() => {});
+    const message = err?.response?.data?.message || err?.message || 'email_delivery_failed';
+    console.warn('[TegLion][auth] falha no e-mail de reset:', message);
+    throw new AppError(
+      'Não foi possível enviar o e-mail de recuperação. Tente novamente mais tarde.',
+      503,
+      { code: 'EMAIL_DELIVERY_FAILED' },
+    );
+  }
 
   return { success: true, message: 'Se o e-mail existir, enviaremos um link de recuperação.' };
 }

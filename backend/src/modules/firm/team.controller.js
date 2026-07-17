@@ -14,13 +14,18 @@ exports.list = async (req, res, next) => {
 exports.create = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);
-    const member = await teamService.createMember({
+    const created = await teamService.createMember({
       firmId,
       actor: req.user,
       payload: req.body || {},
       req,
     });
-    return res.status(201).json({ member });
+    const { welcomeEmailSent, welcomeEmailError, ...member } = created;
+    return res.status(201).json({
+      member,
+      welcomeEmailSent: welcomeEmailSent === true,
+      welcomeEmailError: welcomeEmailError || null,
+    });
   } catch (err) {
     return next(err);
   }

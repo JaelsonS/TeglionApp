@@ -19,11 +19,27 @@ export const authApi = {
       body: JSON.stringify(payload),
     })
       .then(async (response) => {
-        if (!response.ok) {
-          const text = await response.text()
-          throw new Error(`Erro ${response.status}: ${text}`)
+        const text = await response.text()
+        let data: Record<string, unknown> = {}
+        try {
+          data = text ? (JSON.parse(text) as Record<string, unknown>) : {}
+        } catch {
+          data = { message: text }
         }
-        return response.json()
+        if (!response.ok) {
+          throw {
+            message: String(data.message || data.error || `Erro ${response.status}`),
+            response: {
+              status: response.status,
+              data: {
+                ...data,
+                code: data.code,
+                message: data.message || data.error,
+              },
+            },
+          }
+        }
+        return data
       })
       .then((data) => {
         logger.info('Recuperacao processada', data)
@@ -31,7 +47,8 @@ export const authApi = {
       })
       .catch((error) => {
         logger.error('Erro na recuperacao', error)
-        throw { message: error.message, response: { data: { error: error.message } } }
+        if (error?.response?.status) throw error
+        throw { message: error?.message || String(error), response: { data: { error: error?.message } } }
       })
   },
 

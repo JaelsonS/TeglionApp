@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import type { ReactElement } from 'react'
 
 import { BlogResponsiveImage } from '@/features/blog/components/BlogResponsiveImage'
 import { BlogInternalLinks } from '@/features/blog/components/BlogInternalLinks'
@@ -213,7 +214,7 @@ function renderBlock(block: BlogBlock, key: number) {
 
 function renderInlineLinks(text: string) {
   const linkPattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g
-  const output: Array<string | JSX.Element> = []
+  const output: Array<string | ReactElement> = []
   let lastIndex = 0
   let match = linkPattern.exec(text)
 

@@ -164,7 +164,36 @@ if (import.meta.env.PROD && isPwaEnabled() && 'serviceWorker' in navigator && sh
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <Sentry.ErrorBoundary fallback={<div>Ocorreu um erro inesperado. Recarregue a página.</div>}>
+    <Sentry.ErrorBoundary
+      fallback={({ error, resetError }) => {
+        const message = error instanceof Error ? error.message : String(error || '')
+        const isChunk =
+          message.includes('Failed to fetch dynamically imported module') ||
+          message.includes('Importing a module script failed') ||
+          message.includes('Loading chunk')
+        if (isChunk && typeof window !== 'undefined') {
+          try {
+            if (window.sessionStorage.getItem(CHUNK_RECOVERY_KEY) !== '1') {
+              window.sessionStorage.setItem(CHUNK_RECOVERY_KEY, '1')
+              const next = new URL(window.location.href)
+              next.searchParams.set('__chunk_recover', String(Date.now()))
+              window.location.replace(next.toString())
+              return <div>A actualizar a aplicação…</div>
+            }
+          } catch {
+            // fall through
+          }
+        }
+        return (
+          <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
+            <p>Ocorreu um erro inesperado. Recarregue a página.</p>
+            <button type="button" onClick={resetError}>
+              Tentar novamente
+            </button>
+          </div>
+        )
+      }}
+    >
       <I18nextProvider i18n={i18n}>
         <App />
       </I18nextProvider>

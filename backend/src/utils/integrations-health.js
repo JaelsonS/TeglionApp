@@ -159,14 +159,36 @@ function probeStripe() {
   };
 }
 
+function probeBrevoEmail() {
+  const configured = maskConfigured(env.BREVO_API_KEY);
+  const fromSet = maskConfigured(env.FROM_EMAIL);
+  let status = 'disabled';
+  if (configured && fromSet) status = 'ready';
+  else if (configured) status = 'partial';
+
+  return {
+    configured,
+    status,
+    fromEmailSet: fromSet,
+    emailEnabled: env.EMAIL_ENABLED === true,
+    message:
+      status === 'ready'
+        ? 'Brevo API activo (e-mails transaccionais)'
+        : status === 'partial'
+          ? 'BREVO_API_KEY OK — falta FROM_EMAIL'
+          : 'Defina BREVO_API_KEY e FROM_EMAIL no Render',
+  };
+}
+
 async function buildIntegrationsHealthPayload() {
   const [redis] = await Promise.all([probeRedis()]);
   const googleSso = probeGoogleSso();
   const webPush = probeWebPush();
   const supabaseStorage = probeSupabaseStorage();
   const stripe = probeStripe();
+  const email = probeBrevoEmail();
 
-  const optionalChecks = [redis, googleSso, webPush, supabaseStorage, stripe].filter((item) => item.configured);
+  const optionalChecks = [redis, googleSso, webPush, supabaseStorage, stripe, email].filter((item) => item.configured);
   const allOptionalReady =
     optionalChecks.length === 0 ||
     optionalChecks.every((item) => ['connected', 'ready'].includes(item.status));
@@ -182,6 +204,7 @@ async function buildIntegrationsHealthPayload() {
       webPush,
       supabaseStorage,
       stripe,
+      email,
     },
   };
 }
@@ -193,4 +216,5 @@ module.exports = {
   probeWebPush,
   probeSupabaseStorage,
   probeStripe,
+  probeBrevoEmail,
 };

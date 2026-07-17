@@ -12,7 +12,15 @@ export const teamManagementApi = {
         password: string
         departmentId?: string | null
         sendWelcomeEmail?: boolean
-    }) => api.post('/contabil/team', { ...payload, creationMode: 'DIRECT' }).then((r) => r.data as { member: TeamMember }),
+    }) =>
+        api.post('/contabil/team', { ...payload, creationMode: 'DIRECT' }).then(
+            (r) =>
+                r.data as {
+                    member: TeamMember
+                    welcomeEmailSent?: boolean
+                    welcomeEmailError?: string | null
+                },
+        ),
 
     patchMember: (memberId: string, payload: Partial<Pick<TeamMember, 'fullName' | 'email' | 'role' | 'jobTitle'>> & { departmentId?: string | null }) =>
         api.patch(`/contabil/team/${encodeURIComponent(memberId)}`, payload).then((r) => r.data as { member: TeamMember }),
@@ -84,7 +92,12 @@ export const teamInvitePublicApi = {
 
     accept: (token: string, payload: { fullName: string; email: string; password: string }) =>
         api.post(`/public/team-invite/${encodeURIComponent(token)}/accept`, payload).then((r) =>
-            r.data as { success: boolean; emailConfirmationRequired: boolean },
+            r.data as {
+                success: boolean
+                emailConfirmationRequired: boolean
+                emailSent?: boolean
+                emailError?: string | null
+            },
         ),
 
     confirmEmail: (token: string) =>

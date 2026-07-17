@@ -4,19 +4,8 @@ let Sentry = null;
 
 if (env.SENTRY_DSN) {
   try {
-    // support both CommonJS and ESM default export shapes
     const s = require('@sentry/node');
     Sentry = s && s.default ? s.default : s;
-
-    // fallback: if user required @sentry/node but getCurrentHub missing, try core
-    if (!Sentry.getCurrentHub) {
-      try {
-        const core = require('@sentry/core');
-        Sentry.getCurrentHub = core.getCurrentHub || Sentry.getCurrentHub;
-      } catch {
-        // ignore
-      }
-    }
 
     Sentry.init({
       dsn: env.SENTRY_DSN,

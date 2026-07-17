@@ -119,8 +119,12 @@ export function RecoverPasswordPage() {
       toast.success(copy.messages.requestSentTitle, { description: copy.messages.requestSentBody })
     } catch (err: any) {
       const status = err?.response?.status
+      const code = err?.response?.data?.code || err?.code
+      const message = err?.response?.data?.message || err?.message
       if (status === 429) {
         toast.error(messages.tooManyAttempts)
+      } else if (status === 503 || code === 'EMAIL_UNAVAILABLE' || code === 'EMAIL_DELIVERY_FAILED') {
+        toast.error(typeof message === 'string' && message.length > 8 ? message : 'Serviço de e-mail indisponível. Tente mais tarde ou contacte o suporte.')
       } else {
         toast.error(messages.generic)
       }

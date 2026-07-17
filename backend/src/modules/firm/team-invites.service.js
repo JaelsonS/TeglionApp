@@ -43,12 +43,23 @@ async function sendEmailConfirmationForMember({ member, firmName }) {
         tokenHash,
         expiresAt,
     });
-    void notifyFirmStaffEmailConfirmation({
-        staffEmail: member.email,
-        staffName: member.fullName,
-        firmName,
-        token: rawToken,
-    }).catch(() => { });
+    try {
+        const delivery = await notifyFirmStaffEmailConfirmation({
+            staffEmail: member.email,
+            staffName: member.fullName,
+            firmName,
+            token: rawToken,
+        });
+        if (delivery?.skipped) {
+            console.warn('[TegLion][team-invite] confirmation email skipped (BREVO desactivado):', member.email);
+            return { emailSent: false, emailError: 'email_disabled' };
+        }
+        return { emailSent: true, emailError: null };
+    } catch (err) {
+        const message = err?.response?.data?.message || err?.message || 'email_delivery_failed';
+        console.warn('[TegLion][team-invite] falha no e-mail de confirmação:', message);
+        return { emailSent: false, emailError: String(message) };
+    }
 }
 
 async function deliverTeamInviteEmail({ staffEmail, staffName, firmName, inviteToken, expiresAt }) {
@@ -297,18 +308,30 @@ async function acceptInvite({ token, email, password, fullName, req }) {
     await firmMemberInvitesRepository.markInviteAccepted(invite.id);
 
     const firm = await firmsRepository.findFirmById(invite.firm_id).catch(() => null);
-    await sendEmailConfirmationForMember({ member: updated, firmName: firm?.name || null });
+    const confirmationDelivery = await sendEmailConfirmationForMember({
+        member: updated,
+        firmName: firm?.name || null,
+    });
 
     await securityAudit.recordTeamMutation({
         action: 'team.invite.accepted',
         actor: { id: updated.id, role: updated.role },
         firmId: invite.firm_id,
         targetUserId: updated.id,
-        metadata: { inviteId: invite.id },
+        metadata: {
+            inviteId: invite.id,
+            confirmationEmailSent: confirmationDelivery.emailSent,
+            confirmationEmailError: confirmationDelivery.emailError,
+        },
         req,
     });
 
-    return { success: true, emailConfirmationRequired: true };
+    return {
+        success: true,
+        emailConfirmationRequired: true,
+        emailSent: confirmationDelivery.emailSent,
+        emailError: confirmationDelivery.emailError,
+    };
 }
 
 async function confirmMemberEmail({ token, req }) {

@@ -320,6 +320,15 @@ if (!env.EMAIL_ENABLED) {
   console.log(envMessage('emailDisabledInfo'));
 }
 
+if (env.SENTRY_DSN) {
+  console.log(`${BRAND.logPrefix} Sentry: DSN configurado (erros 5xx serão reportados)`);
+} else if (env.isProduction) {
+  console.warn(
+    `${BRAND.logPrefix}[WARN] SENTRY_DSN ausente — erros do backend NÃO serão enviados ao Sentry. ` +
+      'Defina SENTRY_DSN no Render e configure Alert Rules (email/Slack) no painel Sentry.',
+  );
+}
+
 if (env.isDevelopment && env.REDIS_URL && isRenderInternalRedisUrl(env.REDIS_URL)) {
   console.log(
     `${BRAND.logPrefix}[WARN] REDIS_URL parece ser URL interna Render — não funciona no Mac. ` +

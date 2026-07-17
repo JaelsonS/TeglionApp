@@ -131,8 +131,12 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                 departmentId: directForm.departmentId || null,
                 sendWelcomeEmail: directForm.sendWelcomeEmail,
             }),
-        onSuccess: async () => {
-            toast.success('Colaborador criado com sucesso.')
+        onSuccess: async (result) => {
+            if (directForm.sendWelcomeEmail && result?.welcomeEmailSent === false) {
+                toast.warning('Colaborador criado, mas o e-mail de boas-vindas não foi enviado. Partilhe a palavra-passe manualmente.')
+            } else {
+                toast.success('Colaborador criado com sucesso.')
+            }
             setDirectForm({
                 fullName: '',
                 email: '',
@@ -303,8 +307,8 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
 
             {!canManageTeam ? (
                 <p className="rounded-lg border border-border/60 bg-muted/20 p-3 text-sm text-muted-foreground">
-                    Esta é a mesma tela do dono do escritório, mas com regras de acesso. Você consegue consultar membros,
-                    cargo e departamento; alterações ficam disponíveis apenas para o dono.
+                    Pode consultar membros, cargo e departamento. Para criar ou convidar colaboradores precisa da
+                    permissão de gestão de equipa — peça ao dono do escritório se necessário.
                 </p>
             ) : null}
 
@@ -333,11 +337,15 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                 onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, jobTitle: e.target.value }))}
                             />
                             <Input
-                                placeholder="Palavra-passe forte"
+                                placeholder="Palavra-passe (mín. 10, maiúscula, minúscula e número)"
                                 type="password"
                                 value={directForm.password}
                                 onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, password: e.target.value }))}
                             />
+                            <p className="text-xs text-muted-foreground">
+                                A palavra-passe não é enviada por e-mail. Se activar o aviso de boas-vindas, o colaborador
+                                recebe apenas o link de login — partilhe a palavra-passe por um canal seguro.
+                            </p>
                             <select
                                 className="h-10 rounded-md border border-input bg-background px-3 text-sm"
                                 value={directForm.departmentId}
@@ -722,9 +730,9 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                         : 'Confirma excluir colaborador?'
                 }
                 confirmLabel={excludeMemberMutation.isPending ? 'A excluir...' : 'Excluir colaborador'}
-                onConfirm={() => {
+                onConfirm={async () => {
                     if (!excludeMember) return
-                    excludeMemberMutation.mutate(excludeMember)
+                    await excludeMemberMutation.mutateAsync(excludeMember)
                 }}
                 testId="team-exclude-member"
             >

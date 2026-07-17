@@ -5,6 +5,18 @@ const departmentsRepository = require('../../db/supabase/repositories/department
 const authRefreshSessionsRepository = require('../../db/supabase/repositories/auth-refresh-sessions.repository');
 const firmBrandingService = require('./firm-branding.service');
 const securityAudit = require('../../services/audit/security-audit.service');
+const { hasPermissionForUser, PERMISSIONS } = require('../../utils/permissions');
+const { normalizeSessionRole } = require('../../utils/session-user');
+
+function actorPermissionUser(actor) {
+  const role = firmUsersRepository.jwtRoleFromFirmRole(actor.role);
+  const override = Array.isArray(actor.permissions_override) ? actor.permissions_override : null;
+  return {
+    role: normalizeSessionRole(role),
+    permissions: override && override.length > 0 ? override : undefined,
+    masterAccess: actor.role === 'FIRM_OWNER',
+  };
+}
 
 const FIRM_ROLE_LABELS = {
   FIRM_OWNER: 'Dono do escritório',
@@ -75,7 +87,11 @@ async function getSettingsBundle(firmId, actorUserId) {
     team: team.map((m) => mapTeamMember(m, actorUserId, m.departmentId ? departmentMap.get(String(m.departmentId)) || null : null)),
     capabilities: {
       canEditFirm: actor.role === 'FIRM_OWNER',
-      canManageTeam: actor.role === 'FIRM_OWNER',
+      // Alinha com RBAC real (USERS_CREATE / FIRM_INVITES_MANAGE), não só FIRM_OWNER.
+      canManageTeam:
+        hasPermissionForUser(actorPermissionUser(actor), PERMISSIONS.USERS_CREATE) ||
+        hasPermissionForUser(actorPermissionUser(actor), PERMISSIONS.FIRM_INVITES_MANAGE) ||
+        hasPermissionForUser(actorPermissionUser(actor), PERMISSIONS.FIRM_TEAM_MANAGE),
       canCloseAccount: actor.role === 'FIRM_OWNER',
       canEditOwnProfile: true,
     },

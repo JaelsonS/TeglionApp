@@ -103,13 +103,26 @@ async function createMember({ firmId, actor, payload, req }) {
         emailConfirmedAt: new Date().toISOString(),
     });
 
+    let welcomeEmailSent = false;
+    let welcomeEmailError = null;
     if (payload.sendWelcomeEmail === true) {
-        const firm = await firmsRepository.findFirmById(firmId).catch(() => null);
-        void notifyFirmStaffWelcome({
-            staffEmail: created.email,
-            staffName: created.fullName,
-            firmName: firm?.name || null,
-        }).catch(() => { });
+        try {
+            const firm = await firmsRepository.findFirmById(firmId).catch(() => null);
+            const delivery = await notifyFirmStaffWelcome({
+                staffEmail: created.email,
+                staffName: created.fullName,
+                firmName: firm?.name || null,
+            });
+            if (delivery?.skipped) {
+                welcomeEmailError = 'email_disabled';
+                console.warn('[TegLion][team] welcome email skipped (BREVO desactivado):', created.email);
+            } else {
+                welcomeEmailSent = true;
+            }
+        } catch (err) {
+            welcomeEmailError = err?.response?.data?.message || err?.message || 'email_delivery_failed';
+            console.warn('[TegLion][team] falha no e-mail de boas-vindas:', welcomeEmailError);
+        }
     }
 
     await securityAudit.recordTeamMutation({
@@ -122,12 +135,15 @@ async function createMember({ firmId, actor, payload, req }) {
             jobTitle: created.jobTitle,
             departmentId: created.departmentId,
             creationMode: 'DIRECT',
-            welcomeEmailSent: payload.sendWelcomeEmail === true,
+            welcomeEmailRequested: payload.sendWelcomeEmail === true,
+            welcomeEmailSent,
+            welcomeEmailError,
         },
         req,
     });
 
-    return getMember(firmId, created.id);
+    const member = await getMember(firmId, created.id);
+    return { ...member, welcomeEmailSent, welcomeEmailError };
 }
 
 async function updateMember({ firmId, memberId, actor, payload, req }) {
