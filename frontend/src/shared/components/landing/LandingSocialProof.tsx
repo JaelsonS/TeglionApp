@@ -9,12 +9,12 @@ const TRUST_STATS = [
     text: '14 dias para usar o escritório completo. Não pedimos cartão.',
   },
   {
-    title: 'Dados na Europa',
-    text: 'Informação fiscal e documentos dos seus clientes alojados na UE.',
+    title: 'Escritório no controlo total',
+    text: 'Total organização e controlo do seu escritório.',
   },
   {
-    title: 'Privacidade real',
-    text: 'Cada escritório isolado. Os seus clientes não se misturam com os de ninguém.',
+    title: 'Rasto claro',
+    text: 'Cada pedido e cada ficheiro ficam datados — sabe o que pediu e o que o cliente enviou.',
   },
   {
     title: 'Cliente autónomo',
@@ -65,7 +65,7 @@ export function LandingSocialProof({ className, showStats = true }: LandingSocia
 
         <FadeInView className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wide text-[#C9932E]">
-            Feito para escritórios em Portugal
+            Feito para escritórios de contabilidade
           </p>
           <h2 className="mt-2 text-3xl font-semibold text-[#0F2942] sm:text-4xl">
             Menos caos. Mais fechos a tempo.

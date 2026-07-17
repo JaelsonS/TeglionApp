@@ -562,7 +562,7 @@ Backlog completo com **350+ melhorias** organizado por categoria. Cada item incl
 
 | Categoria | Itens | Doc detalhado |
 |-----------|-------|---------------|
-| A. Plataforma & Fundação | 1–40 | [ROADMAP_BACKLOG.md](./ROADMAP_BACKLOG.md) |
+| A. Plataforma & Fundação | 1–40 | [ROADMAP_BACKLOG.md](../_archive/product/ROADMAP_BACKLOG.md) |
 | B. Clientes & CRM | 41–70 | idem |
 | C. Documentos | 71–110 | idem |
 | D. Obrigações & Fiscal | 111–145 | idem |
@@ -641,7 +641,7 @@ Se **não** a nenhuma → não entra no roadmap.
 |-----------|----------|----------|
 | [VISION.md](./VISION.md) | Missão e visão 2031 | ✅ Alinhado |
 | [PRODUCT.md](./PRODUCT.md) | Modelo negócio | Revisar pricing Fase 3 |
-| [ROADMAP_BACKLOG.md](./ROADMAP_BACKLOG.md) | 350+ itens detalhados | Novo |
+| [ROADMAP_BACKLOG.md](../_archive/product/ROADMAP_BACKLOG.md) | 350+ itens detalhados (arquivo) | Novo |
 | [MODULES.md](./MODULES.md) | Inventário módulos | Por fase |
 | [ARCHITECTURE.md](../engineering/ARCHITECTURE.md) | Como construir | Fase 5 |
 | [AI.md](../ai/AI.md) | Estratégia IA | Fase 4 |

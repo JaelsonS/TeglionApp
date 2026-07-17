@@ -1,5 +1,6 @@
 import type { BlogPost } from '@/content/blog/types'
 import {
+  affiliateSection,
   articleSection,
   comparisonTable,
   internalLinksSection,
@@ -17,11 +18,11 @@ export const postCalendarioFiscal2026: BlogPost = {
   excerpt:
     'Mapa mês a mês de Segurança Social, IVA, IRS, retenções e arquivo — com tabelas, checklists e ligações aos guias detalhados do blog.',
   publishedAt: '2026-06-18',
-  updatedAt: '2026-06-18',
+  updatedAt: '2026-07-17',
   author: 'Equipa Teglion',
   category: 'Guias completos',
   tags: ['calendário fiscal', 'prazos 2026', 'obrigações', 'IVA', 'IRS', 'Segurança Social', 'PME'],
-  readMinutes: 22,
+  readMinutes: 24,
   featured: true,
   coverImage: {
     src: 'https://images.unsplash.com/photo-1506784365847-bbad939e9335?w=1200&h=630&fit=crop&q=80',
@@ -177,10 +178,42 @@ export const postCalendarioFiscal2026: BlogPost = {
         },
       ],
     }),
+    ...affiliateSection({
+      heading: 'Ferramentas para não falhar prazos',
+      headingId: 'afiliados-calendario',
+      intro:
+        'Um calendário só funciona se estiver à vista e se os documentos do mês estiverem prontos. Estes recursos ajudam na rotina — links de afiliado, sem custo extra para si.',
+      items: [
+        {
+          key: 'amazonAgendaBezend',
+          leadIn: 'Marque SS, IVA e fechos mensais na agenda — o telemóvel sozinho não chega se a notificação se perde no ruído.',
+          title: 'Agenda semanal BEZEND A5 (Amazon)',
+          description: 'Vista semanal clara para independentes e equipas pequenas.',
+        },
+        {
+          key: 'amazonEtiquetasPastas',
+          leadIn: 'Pastas do ano com etiquetas legíveis evitam a pasta «vários» em Dezembro.',
+          title: 'Etiquetas para pastas (Amazon)',
+          description: 'Arquivo físico ou caixas de arquivo anual.',
+        },
+        {
+          key: 'hotmartIrsReciboVerde',
+          leadIn: 'Na temporada IRS, um guia estruturado ajuda a reunir rendimentos e obrigações sem improvisar na última semana.',
+          title: 'IRS & Recibo Verde — Guia Prático (Hotmart)',
+          description: 'Complemento ao calendário oficial da AT.',
+        },
+        {
+          key: 'amazonCasio991',
+          leadIn: 'Útil para simulações rápidas de retenção, IVA e estimativas antes de abrir o Excel.',
+          title: 'Casio fx-991ES Plus (Amazon)',
+          description: 'Calculadora científica estável para quem faz contas no dia a dia.',
+        },
+      ],
+    }),
     teglionCtaBlock({
       variant: 'firm',
       title: 'Gerir dezenas de calendários fiscais?',
-      text: 'No TegLion, cada cliente tem prazos, documentos e alertas num só painel — ideal para escritórios que não querem falhar entregas.',
+      text: 'No Teglion, cada cliente tem prazos, documentos e alertas num só painel — ideal para escritórios que não querem falhar entregas.',
     }),
     ...internalLinksSection({
       title: 'Aprofundar cada tema do calendário',

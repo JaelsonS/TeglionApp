@@ -30,7 +30,7 @@ function parseSlugs() {
 
 function routesToPrerender() {
   const slugs = parseSlugs()
-  return ['/', '/pricing', '/security', '/blog', '/case-studies', ...slugs.map((s) => `/blog/${s}`)]
+  return ['/', '/pricing', '/blog', '/case-studies', ...slugs.map((s) => `/blog/${s}`)]
 }
 
 function waitForServer(url, timeoutMs = 60_000) {

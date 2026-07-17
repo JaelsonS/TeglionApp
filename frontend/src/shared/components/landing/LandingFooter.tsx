@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-import { authProfileChoiceUrl } from '@/shared/constants/authPaths'
+import { authFirmRegisterUrl, authProfileChoiceUrl } from '@/shared/constants/authPaths'
 import { LANDING_ANCHORS } from '@/shared/constants/landingAnchors'
 import { BRAND } from '@/shared/config/brand'
 
@@ -65,11 +65,6 @@ export function LandingFooter() {
                 </Link>
               </li>
               <li>
-                <Link to="/security" className="text-[#4A5568] hover:text-[#0F2942]">
-                  Segurança
-                </Link>
-              </li>
-              <li>
                 <a href={LANDING_ANCHORS.faq} className="text-[#4A5568] hover:text-[#0F2942]">
                   FAQ
                 </a>
@@ -77,6 +72,11 @@ export function LandingFooter() {
               <li>
                 <Link to={authProfileChoiceUrl('login')} className="text-[#4A5568] hover:text-[#0F2942]">
                   Entrar
+                </Link>
+              </li>
+              <li>
+                <Link to={authFirmRegisterUrl()} className="font-medium text-[#0F2942] hover:underline">
+                  Testar 14 dias grátis
                 </Link>
               </li>
             </ul>
@@ -92,7 +92,7 @@ export function LandingFooter() {
         </div>
 
         <p className="mt-10 border-t border-[#0F2942]/10 pt-6 text-center text-xs text-[#4A5568]">
-          © {BRAND.name} {new Date().getFullYear()} · Feito em Portugal · Dados alojados na UE
+          © {BRAND.name} {new Date().getFullYear()} · Feito em Portugal
         </p>
 
         <nav

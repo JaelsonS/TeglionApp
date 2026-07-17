@@ -17,11 +17,11 @@ export const postOrganizarDocumentos: BlogPost = {
   excerpt:
     'Pastas por ano, nomenclatura de ficheiros, backup e o que guardar 4+ anos — sistema prático para freelancers e microempresas em Portugal.',
   publishedAt: '2026-06-12',
-  updatedAt: '2026-06-17',
+  updatedAt: '2026-07-17',
   author: 'Equipa TegLion',
   category: 'Organização',
   tags: ['arquivo', 'documentos fiscais', 'organização', 'freelancer', 'IRS'],
-  readMinutes: 16,
+  readMinutes: 20,
   featured: true,
   series: {
     id: 'independente-2026',
@@ -116,6 +116,57 @@ export const postOrganizarDocumentos: BlogPost = {
         'Se usa contador, envie pacote mensal ou dê acesso ao portal — não acumule 12 meses num email gigante em Dezembro.',
       ],
     }),
+    ...articleSection({
+      h2: 'Digital vs papel: quando vale a pena imprimir',
+      id: 'digital-papel',
+      paragraphs: [
+        'Para a maioria dos independentes, PDF com nome correcto + backup na nuvem chega. Imprima só o que precisa de assinatura física, contratos com cláusulas sensíveis ou documentos que um banco/cliente ainda peça em papel.',
+        'Se guarda papel, use pastas etiquetadas por ano e destrua cópias com NIF/IBAN quando o prazo de arquivo passar — não deixe caixas abertas no escritório de casa.',
+      ],
+      blocks: [
+        {
+          type: 'callout',
+          variant: 'info',
+          title: 'Regra prática',
+          text: 'Se o ficheiro não tem data no nome e não está na pasta do ano certo, trate-o como «ainda não arquivado». Cinco minutos no fim do mês evitam um fim de semana em Abril.',
+        },
+      ],
+    }),
+    ...articleSection({
+      h2: 'Partilhar com o contador sem caos',
+      id: 'partilhar',
+      paragraphs: [
+        'O melhor envio não é o email com 40 anexos. É uma pasta do ano (ou um link de nuvem) com a mesma estrutura todos os meses, mais um resumo curto: «faltam facturas de Maio do cliente X».',
+        'Se o escritório usa portal de cliente, envie pelo canal oficial — fica data, pedido e ficheiro no mesmo sítio. Assim o follow-up deixa de ser «já enviei no WhatsApp».',
+      ],
+      blocks: [
+        {
+          type: 'ol',
+          items: [
+            'No dia 1–5 de cada mês: fechar o mês anterior (recibos + despesas).',
+            'Exportar ou copiar a pasta do mês para a pasta do ano.',
+            'Enviar ao contador (ou carregar no portal) com nota do que falta.',
+            'Arquivar o comprovativo de envio na subpasta «Comunicações».',
+          ],
+        },
+      ],
+    }),
+    ...articleSection({
+      h2: 'Erros típicos (e como evitar)',
+      id: 'erros-arquivo',
+      blocks: [
+        {
+          type: 'ul',
+          items: [
+            'Pastas «misc» / «vários» — tudo o que não tem casa acaba perdido.',
+            'Fotografias de facturas ilegíveis — digitalize em PDF nítido ou peça segunda via.',
+            'Guardar só no telemóvel — se perde o telemóvel, perde o ano fiscal.',
+            'Misturar despesas pessoais e de actividade na mesma pasta sem etiqueta.',
+            'Apagar emails «grandes» com anexos fiscais sem guardar o PDF primeiro.',
+          ],
+        },
+      ],
+    }),
     ...internalLinksSection({
       title: 'Ler também',
       slugs: [
@@ -160,11 +211,17 @@ export const postOrganizarDocumentos: BlogPost = {
           title: 'Triturador de papel (Amazon)',
           description: 'Para cópias físicas antigas.',
         },
+        {
+          key: 'amazonPastaProvaFogo',
+          leadIn: 'Para contratos e documentos que não quer perder num acidente doméstico.',
+          title: 'Pasta reforçada para documentos importantes (Amazon)',
+          description: '13 compartimentos — útil para cópias críticas.',
+        },
       ],
     }),
     teglionCtaBlock({
       variant: 'client',
-      text: 'O seu escritório usa TegLion? Envie documentos pelo portal em vez de email — fica tudo datado e associado ao pedido do contador.',
+      text: 'O seu escritório usa Teglion? Envie documentos pelo portal em vez de email — fica tudo datado e associado ao pedido do contador.',
     }),
     legalCallout(),
   ],

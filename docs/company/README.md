@@ -1,11 +1,11 @@
 # Company / Founder docs
 
-Documentação operacional da empresa (não é marketing).
+Documentação minha — não é marketing. Escrevo em primeira pessoa.
 
 | Doc | Para quê |
 |------|----------|
-| [EVOLUTION_PLAN.md](./EVOLUTION_PLAN.md) | Bússola: onde estamos e o que vem a seguir |
-| [PERFORMANCE_CHARTER.md](./PERFORMANCE_CHARTER.md) | Regras de performance / DoD |
-| [DOC_CLEANUP.md](./DOC_CLEANUP.md) | O que arquivar ou apagar |
+| [EVOLUTION_PLAN.md](./EVOLUTION_PLAN.md) | Onde estou e o que preciso fazer a seguir |
+| [PERFORMANCE_CHARTER.md](./PERFORMANCE_CHARTER.md) | Regras para não deixar o produto mais lento |
+| [DOC_CLEANUP.md](./DOC_CLEANUP.md) | O que já arquivei e o que ainda preciso limpar |
 
-Actualizar estes ficheiros sempre que fechar uma fase do piloto ou mudar prioridade.
+Actualizo estes ficheiros quando fecho uma fase do piloto ou mudo prioridade.

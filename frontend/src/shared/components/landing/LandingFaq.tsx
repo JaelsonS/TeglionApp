@@ -7,8 +7,12 @@ import { cn } from '@/shared/lib/utils'
 
 const FAQ = [
   {
+    q: 'Quanto custa depois do teste?',
+    a: '35 €/mês ou 359,88 €/ano (equiv. 29,99 €/mês), por escritório. Os 14 dias são grátis e sem cartão — só paga se decidir ficar.',
+  },
+  {
     q: 'Funciona com a Autoridade Tributária?',
-    a: 'O TegLion organiza prazos, documentos e comunicação com clientes. A submissão oficial à AT continua pelos canais habituais — mas deixas de perder guias e anexos pelo caminho.',
+    a: 'O Teglion organiza prazos, documentos e comunicação com clientes. A submissão oficial à AT continua pelos canais habituais — mas deixas de perder guias e anexos pelo caminho.',
   },
   {
     q: 'Os meus clientes precisam de instalar alguma coisa?',
@@ -18,14 +22,13 @@ const FAQ = [
     q: 'Posso migrar dados de outro software?',
     a: 'Podes começar com clientes novos no teste e importar a carteira com apoio da nossa equipa quando fizeres a transição.',
   },
-  
   {
     q: 'Como cancelo?',
-    a: 'No painel, quando a faturação estiver activa, ou por email para suporte. Sem período mínimo de fidelização.',
+    a: 'No painel, quando a faturação estiver activa, ou por email. Sem período mínimo de fidelização.',
   },
   {
     q: 'Têm suporte em português?',
-    a: 'Sim — suporte por email em dias úteis, em português de Portugal, por quem conhece o dia a dia de um escritório.',
+    a: 'Sim — suporte por email em dias úteis, em português, por quem conhece o dia a dia de um escritório.',
   },
 ] as const
 

@@ -11,14 +11,14 @@
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://teglion.com/security</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
     <loc>https://teglion.com/blog</loc>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://teglion.com/case-studies</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://teglion.com/termos</loc>
@@ -47,18 +47,30 @@
   </url>
   <url>
     <loc>https://teglion.com/blog/calendario-fiscal-portugal-2026-completo</loc>
-    <lastmod>2026-06-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://teglion.com/blog/contabilidade-explicada-leigos-portugal</loc>
-    <lastmod>2026-06-18</lastmod>
+    <lastmod>2026-07-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://teglion.com/blog/deducoes-irs-portugal-guia-completo</loc>
+    <lastmod>2026-07-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://teglion.com/blog/organizar-documentos-fiscais-arquivo-digital</loc>
+    <lastmod>2026-07-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://teglion.com/blog/portal-financas-guia-completo-iniciantes</loc>
+    <lastmod>2026-07-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://teglion.com/blog/contabilidade-explicada-leigos-portugal</loc>
     <lastmod>2026-06-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
@@ -137,18 +149,6 @@
   </url>
   <url>
     <loc>https://teglion.com/blog/obrigacoes-fiscais-mes-a-mes</loc>
-    <lastmod>2026-06-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://teglion.com/blog/organizar-documentos-fiscais-arquivo-digital</loc>
-    <lastmod>2026-06-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://teglion.com/blog/portal-financas-guia-completo-iniciantes</loc>
     <lastmod>2026-06-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>

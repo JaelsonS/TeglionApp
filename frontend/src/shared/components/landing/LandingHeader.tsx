@@ -9,10 +9,9 @@ import { BRAND } from '@/shared/config/brand'
 import { cn } from '@/shared/lib/utils'
 
 const NAV = [
-  { href: '/blog', label: 'Blog', route: true },
   { href: LANDING_ANCHORS.produto, label: 'Produto' },
   { href: '/pricing', label: 'Preços', route: true },
-  { href: '/security', label: 'Segurança', route: true },
+  { href: '/blog', label: 'Blog', route: true },
   { href: LANDING_ANCHORS.faq, label: 'FAQ' },
 ] as const
 
@@ -69,7 +68,7 @@ export function LandingHeader() {
             Entrar
           </Link>
           <Link to={authFirmRegisterUrl()} className="landing-btn-primary text-sm">
-            Começar grátis
+            Testar 14 dias grátis
           </Link>
         </div>
 
@@ -126,7 +125,7 @@ export function LandingHeader() {
                 className="landing-btn-primary mt-2 text-center"
                 onClick={() => setMenuOpen(false)}
               >
-                Começar grátis
+                Começar o teste grátis
               </Link>
             </nav>
           </motion.div>

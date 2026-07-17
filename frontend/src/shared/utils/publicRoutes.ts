@@ -1,7 +1,7 @@
 /** Rotas públicas leves — sem AuthContext, React Query nem branding de escritório. */
 export function isLightweightPublicRoute(pathname: string): boolean {
   if (pathname === '/' || pathname.startsWith('/blog')) return true
-  if (['/pricing', '/security', '/case-studies'].includes(pathname)) return true
+  if (['/pricing', '/case-studies'].includes(pathname)) return true
   if (['/termos', '/privacidade', '/cookies', '/dpa', '/aviso-legal'].includes(pathname)) return true
   return false
 }

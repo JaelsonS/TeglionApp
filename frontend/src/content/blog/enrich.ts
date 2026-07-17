@@ -16,15 +16,15 @@ export function enrichPost(post: BlogPost): BlogPost {
 function buildEducationalExpansion(post: BlogPost): BlogPost['blocks'] {
   const profile = resolveCategoryProfile(post.category)
   const visuals = resolveCategoryVisuals(post.category)
-
+  const topic = post.title.replace(/\s*\|\s*.*$/, '').trim()
+  const tagHint = post.tags.slice(0, 2).join(' e ') || post.category
   const related = post.relatedSlugs.slice(0, 3)
 
   return [
-    { type: 'h2', id: 'plano-implementacao', text: 'Plano de implementação em 30 dias' },
+    { type: 'h2', id: 'plano-implementacao', text: `Plano de 30 dias: aplicar «${topic}»` },
     {
       type: 'p',
-      text:
-        'Para transformar este tema em resultado real, trabalhe em ciclos curtos: preparar, executar, rever e documentar. Em fiscalidade, quase sempre ganha quem mantém consistência semanal, não quem tenta resolver tudo na semana do prazo.',
+      text: `Depois de ler este guia sobre ${topic.toLowerCase()}, o passo seguinte não é decorar mais teoria — é meter o tema em rotina. Em fiscalidade e contabilidade, ganha quem faz ciclos curtos (preparar, executar, rever) em vez de acumular tudo para a semana do prazo.`,
     },
     {
       type: 'p',
@@ -41,18 +41,17 @@ function buildEducationalExpansion(post: BlogPost): BlogPost['blocks'] {
     {
       type: 'ol',
       items: [
-        'Semana 1: mapear tarefas, prazos e documentos que hoje ainda dependem de memória, email solto ou WhatsApp.',
+        `Semana 1: mapear o que neste tema (${tagHint}) ainda depende de memória, email solto ou WhatsApp.`,
         'Semana 2: normalizar checklists, nomes de ficheiros e responsáveis por cada obrigação recorrente.',
         'Semana 3: validar com contabilista/gestor, fechar lacunas e testar o processo num caso real.',
         'Semana 4: medir erros evitados, horas poupadas e actualizar o método para o ciclo seguinte.',
       ],
     },
     { type: 'callout', variant: 'tip', title: 'Dica prática', text: profile.tip },
-    { type: 'h2', id: 'exemplo-pratico', text: 'Exemplo prático de aplicação no terreno' },
+    { type: 'h2', id: 'exemplo-pratico', text: `Exemplo prático ligado a «${topic}»` },
     {
       type: 'p',
-      text:
-        'Um padrão que funciona em contextos reais: escolher uma única frente para melhorar por ciclo mensal. Em vez de tentar corrigir tudo ao mesmo tempo, foque num problema concreto (ex.: atrasos no envio de documentos), defina um processo mínimo e acompanhe resultados durante quatro semanas.',
+      text: `Escolha uma única frente ligada a este artigo e melhore só isso durante quatro semanas. Corrigir tudo de uma vez costuma falhar; fechar um ciclo bem feito em ${tagHint} cria hábito.`,
     },
     {
       type: 'p',
@@ -95,12 +94,11 @@ function buildEducationalExpansion(post: BlogPost): BlogPost['blocks'] {
     },
     {
       type: 'p',
-      text:
-        'Mesmo sem equipa grande, pode operar com padrão profissional. Defina blocos fixos no calendário: revisão documental semanal, fecho mensal e preparação antecipada do próximo prazo fiscal. Esta cadência evita corridas de última hora e melhora a qualidade técnica da entrega.',
+      text: `Mesmo sozinho, pode tratar «${topic}» com cadência profissional: revisão semanal curta, fecho mensal e preparação do próximo prazo. Esta rotina evita a corrida de última hora.`,
     },
     {
       type: 'table',
-      caption: 'Ritmo operacional recomendado (micro-equipa ou profissional independente)',
+      caption: `Ritmo operacional recomendado (ligado a ${post.category})`,
       headers: ['Periodicidade', 'Acção', 'Resultado esperado'],
       rows: [
         ['Semanal', 'Revisão de pendências e comprovativos', 'Menos acumulação e menos falhas de contexto'],

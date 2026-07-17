@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
   AlertTriangle,
   Building2,
@@ -21,12 +21,12 @@ import { FirmSettingsNotificationsSection } from '@/features/firm/settings/FirmS
 import { cn } from '@/shared/lib/utils'
 
 const TABS = [
-  { id: 'identidade', label: 'Identidade', icon: ImageIcon, danger: false },
-  { id: 'escritorio', label: 'Escritório', icon: Building2, danger: false },
-  { id: 'perfil', label: 'O seu perfil', icon: User, danger: false },
-  { id: 'equipa', label: 'Equipa', icon: Users, danger: false },
-  { id: 'notificacoes', label: 'Notificações', icon: Shield, danger: false },
-  { id: 'encerrar', label: 'Encerrar conta', icon: AlertTriangle, danger: true },
+  { id: 'identidade', label: 'Identidade', shortLabel: 'Logo', icon: ImageIcon, danger: false },
+  { id: 'escritorio', label: 'Escritório', shortLabel: 'Escritório', icon: Building2, danger: false },
+  { id: 'perfil', label: 'O seu perfil', shortLabel: 'Perfil', icon: User, danger: false },
+  { id: 'equipa', label: 'Equipa', shortLabel: 'Equipa', icon: Users, danger: false },
+  { id: 'notificacoes', label: 'Notificações', shortLabel: 'Avisos', icon: Shield, danger: false },
+  { id: 'encerrar', label: 'Encerrar conta', shortLabel: 'Encerrar', icon: AlertTriangle, danger: true },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -89,6 +89,15 @@ export function FirmSettingsPage() {
     [searchParams, setSearchParams],
   )
 
+  const navRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const nav = navRef.current
+    if (!nav) return
+    const active = nav.querySelector<HTMLElement>('[aria-current="page"]')
+    active?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
+  }, [activeTab])
+
   const activeMeta = visibleTabs.find((tab) => tab.id === activeTab) || visibleTabs[0]
 
   return (
@@ -97,7 +106,7 @@ export function FirmSettingsPage() {
         <header className="cb-settings-page-hd">
           <h1 className="cb-settings-page-title">Definições</h1>
           <p className="cb-settings-page-sub">
-            Identidade, dados do escritório, equipa e segurança da conta num único painel.
+            Identidade, escritório, equipa e segurança — escolha a secção em cima.
           </p>
         </header>
 
@@ -107,7 +116,7 @@ export function FirmSettingsPage() {
           </div>
         ) : bundle ? (
           <div className="cb-settings-hub">
-            <nav className="cb-settings-side-nav" aria-label="Secções de configuração">
+            <nav ref={navRef} className="cb-settings-side-nav" aria-label="Secções de configuração">
               {visibleTabs.map((item) => {
                 const Icon = item.icon
                 const active = item.id === activeTab
@@ -122,12 +131,16 @@ export function FirmSettingsPage() {
                       item.danger && 'cb-settings-side-nav-item--danger',
                     )}
                     aria-current={active ? 'page' : undefined}
+                    aria-label={item.label}
                     onClick={() => setTab(item.id)}
                   >
                     <span className="cb-settings-side-nav-icon">
                       <Icon className="h-4 w-4 shrink-0" aria-hidden />
                     </span>
-                    <span>{item.label}</span>
+                    <span className="cb-settings-side-nav-label">
+                      <span className="cb-settings-side-nav-label-full">{item.label}</span>
+                      <span className="cb-settings-side-nav-label-short">{item.shortLabel}</span>
+                    </span>
                     {item.id === 'equipa' && bundle.team?.length ? (
                       <span className="cb-settings-side-nav-badge">{bundle.team.length}</span>
                     ) : null}

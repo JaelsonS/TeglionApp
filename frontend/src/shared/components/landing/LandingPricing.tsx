@@ -9,10 +9,9 @@ export function LandingPricing() {
     <section id="precos" className="landing-section scroll-mt-24">
       <div className="landing-container">
         <FadeInView className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-semibold sm:text-4xl">Preços claros</h2>
+          <h2 className="text-3xl font-semibold sm:text-4xl">Comece grátis. Pague só se ficar.</h2>
           <p className="mt-4 text-[#4A5568]">
-            14 dias para experimentar o escritório a sério. Depois escolhe mensal ou anual — sem
-            fidelização.
+            14 dias com o escritório completo — sem cartão. Depois mensal ou anual, sem fidelização.
           </p>
         </FadeInView>
 

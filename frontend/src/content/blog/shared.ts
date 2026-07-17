@@ -8,7 +8,7 @@ export const LEGAL_DISCLAIMER =
   'Este artigo é apenas informativo e educativo. Não substitui aconselhamento fiscal, contabilístico ou jurídico personalizado. Para a sua situação concreta, consulte sempre um contador certificado (OCC) ou outro profissional habilitado.'
 
 export const AFFILIATE_DISCLOSURE =
-  'Alguns links neste artigo são de afiliado (Hotmart, etc.). Podemos receber comissão se comprar — sem custo extra para si. Só recomendamos recursos alinhados com o tema e em português para Portugal.'
+  'Alguns links neste artigo são de afiliado (Hotmart, Amazon, etc.). Podemos receber comissão se comprar — sem custo extra para si. Só recomendamos recursos alinhados com o tema do artigo.'
 
 export function affiliateBlock(input: {
   key: AffiliateKey

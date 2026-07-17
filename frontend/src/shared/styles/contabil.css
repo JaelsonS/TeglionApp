@@ -2665,19 +2665,22 @@
 
   /* Configurações — hub com nav lateral + um painel de cada vez */
   .cb-settings-layout-page {
-    @apply w-full min-w-0 max-w-full;
+    @apply w-full min-w-0 max-w-full overflow-x-hidden;
   }
 
   .cb-settings-page {
-    @apply space-y-6 pb-12;
+    @apply w-full min-w-0 space-y-5 pb-12 sm:space-y-6;
   }
 
   .cb-settings-hub {
-    @apply grid gap-5 lg:grid-cols-[minmax(13rem,15.5rem)_minmax(0,1fr)] lg:items-start;
+    @apply grid w-full min-w-0 gap-4 lg:grid-cols-[minmax(13rem,15.5rem)_minmax(0,1fr)] lg:items-start lg:gap-5;
   }
 
   .cb-settings-side-nav {
-    @apply sticky top-20 z-10 flex gap-1.5 overflow-x-auto rounded-2xl border border-border/40 bg-card p-2 shadow-sm lg:flex-col lg:overflow-visible;
+    @apply sticky top-16 z-10 -mx-1 flex max-w-[100vw] snap-x snap-mandatory gap-1 overflow-x-auto overscroll-x-contain rounded-2xl border border-border/40 bg-card p-1.5 shadow-sm sm:top-20 sm:mx-0 sm:gap-1.5 sm:p-2 lg:max-w-none lg:snap-none lg:flex-col lg:overflow-visible;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
     background-image: linear-gradient(
       180deg,
       color-mix(in oklab, var(--card) 100%, transparent),
@@ -2685,8 +2688,12 @@
     );
   }
 
+  .cb-settings-side-nav::-webkit-scrollbar {
+    display: none;
+  }
+
   .cb-settings-side-nav-item {
-    @apply relative inline-flex shrink-0 cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-muted-foreground transition-all duration-150 hover:bg-muted/55 hover:text-foreground;
+    @apply relative inline-flex shrink-0 cursor-pointer snap-start items-center gap-2 rounded-xl px-2.5 py-2 text-left text-[11px] font-medium leading-tight text-muted-foreground transition-all duration-150 hover:bg-muted/55 hover:text-foreground sm:gap-2.5 sm:px-3 sm:py-2.5 sm:text-sm;
   }
 
   .cb-settings-side-nav-item:focus-visible {
@@ -2711,8 +2718,20 @@
   }
 
   .cb-settings-side-nav-icon {
-    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors;
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors sm:h-9 sm:w-9 sm:rounded-xl;
     background: color-mix(in oklab, var(--muted) 70%, transparent);
+  }
+
+  .cb-settings-side-nav-label {
+    @apply min-w-0 whitespace-nowrap;
+  }
+
+  .cb-settings-side-nav-label-full {
+    @apply hidden lg:inline;
+  }
+
+  .cb-settings-side-nav-label-short {
+    @apply inline lg:hidden;
   }
 
   .cb-settings-side-nav-item[data-tab='identidade'] .cb-settings-side-nav-icon {
@@ -2749,7 +2768,7 @@
   }
 
   .cb-settings-side-nav-badge {
-    @apply ml-auto rounded-full px-2 py-0.5 text-[10px] font-semibold tabular-nums;
+    @apply ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums sm:ml-auto sm:px-2;
     background: color-mix(in oklab, var(--brand) 14%, transparent);
     color: var(--brand);
   }
@@ -2899,18 +2918,6 @@
     color: #9a3412;
   }
 
-  .cb-settings-nav {
-    @apply flex flex-wrap gap-2 rounded-xl border border-border/60 bg-muted/20 p-2;
-  }
-
-  .cb-settings-nav-link {
-    @apply inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-muted-foreground transition hover:bg-card hover:text-foreground;
-  }
-
-  .cb-settings-nav-link--danger {
-    @apply text-destructive hover:bg-destructive/10 hover:text-destructive;
-  }
-
   .cb-settings-sections {
     @apply space-y-5;
   }
@@ -2936,7 +2943,7 @@
   }
 
   .cb-settings-page-hd {
-    @apply relative overflow-hidden rounded-2xl border border-border/40 bg-card px-5 py-6 shadow-sm sm:px-7;
+    @apply relative overflow-hidden rounded-2xl border border-border/40 bg-card px-4 py-4 shadow-sm sm:px-7 sm:py-6;
     background-image:
       radial-gradient(ellipse 70% 100% at 100% 0%, color-mix(in oklab, var(--brand) 14%, transparent), transparent 55%),
       radial-gradient(ellipse 50% 80% at 0% 100%, color-mix(in oklab, var(--brand) 7%, transparent), transparent 50%),
@@ -2948,11 +2955,11 @@
   }
 
   .cb-settings-page-sub {
-    @apply mt-1.5 max-w-2xl text-sm leading-relaxed text-muted-foreground;
+    @apply mt-1.5 max-w-2xl text-[13px] leading-relaxed text-muted-foreground sm:text-sm;
   }
 
   .cb-settings-panel {
-    @apply space-y-5 rounded-2xl border border-border/40 bg-card p-5 shadow-sm sm:p-6;
+    @apply space-y-5 rounded-2xl border border-border/40 bg-card p-4 shadow-sm sm:p-6;
     background-image: linear-gradient(
       180deg,
       color-mix(in oklab, var(--card) 100%, transparent),

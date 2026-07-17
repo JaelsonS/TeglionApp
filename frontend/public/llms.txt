@@ -1,17 +1,16 @@
 # TegLion
 
-> Software de gestão para escritórios de contabilidade em Portugal — documentos, prazos fiscais, portal do cliente e comunicação num só sistema.
+> Software de gestão para escritórios de contabilidade — documentos, prazos fiscais, portal do cliente e comunicação num só sistema.
 
 ## Product
 
-- [Homepage](https://www.teglion.com/): Apresentação do Teglion e registo de teste grátis 14 dias
-- [Preços](https://www.teglion.com/pricing): Planos para escritórios de contabilidade
-- [Segurança](https://www.teglion.com/security): RGPD, encriptação e hosting na UE
-- [Registo escritório](https://www.teglion.com/auth/firm/register): Criar conta de escritório
+- [Homepage](https://www.teglion.com/): Fecha o mês sem caçar documentos no WhatsApp — teste grátis 14 dias
+- [Preços](https://www.teglion.com/pricing): 14 dias grátis, depois 35 €/mês ou 359,88 €/ano
+- [Registo escritório](https://www.teglion.com/auth/firm/register): Criar conta e começar o teste
 
 ## Blog
 
-- [Índice do blog](https://www.teglion.com/blog): Artigos sobre IRS, IVA, recibos verdes e obrigações fiscais em Portugal
+- [Índice do blog](https://www.teglion.com/blog): Artigos sobre IRS, IVA, recibos verdes e obrigações fiscais
 - [RSS](https://www.teglion.com/rss.xml): Feed dos artigos mais recentes
 - [Sitemap](https://www.teglion.com/sitemap.xml): Mapa do site
 
@@ -25,4 +24,4 @@
 ## Contact
 
 - Website: https://www.teglion.com
-- Idioma principal: português (Portugal)
+- Idioma principal: português

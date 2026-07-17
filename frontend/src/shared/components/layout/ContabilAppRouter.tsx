@@ -53,7 +53,6 @@ const PricingPage = lazy(() =>
 const CaseStudiesPage = lazy(() =>
   import('@/features/marketing/CaseStudiesPage').then((m) => ({ default: m.CaseStudiesPage })),
 )
-const SecurityPage = lazy(() => import('@/features/marketing/SecurityPage'))
 const FirmFiscalCalendarPage = lazy(() =>
   import('@/features/firm/FirmFiscalCalendarPage').then((m) => ({ default: m.FirmFiscalCalendarPage })),
 )
@@ -139,7 +138,7 @@ export function ContabilAppRouter() {
       <Routes>
         <Route path="/" element={<PublicLandingRoute />} />
         <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/security" element={<SecurityPage />} />
+        <Route path="/security" element={<Navigate to="/termos" replace />} />
         <Route path="/case-studies" element={<CaseStudiesPage />} />
 
         <Route path="/blog" element={<BlogLayout />}>

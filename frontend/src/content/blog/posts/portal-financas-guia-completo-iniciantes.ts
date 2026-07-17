@@ -16,11 +16,11 @@ export const postPortalFinancas: BlogPost = {
   excerpt:
     'Senha, Chave Móvel Digital, e-Fatura, recibos verdes e consulta de dívidas — tudo o que um independente usa no portal, explicado por secção.',
   publishedAt: '2026-06-15',
-  updatedAt: '2026-06-17',
+  updatedAt: '2026-07-17',
   author: 'Equipa TegLion',
   category: 'Organização',
   tags: ['Portal das Finanças', 'e-Fatura', 'AT', 'recibos verdes', 'Chave Móvel Digital'],
-  readMinutes: 18,
+  readMinutes: 22,
   featured: true,
   series: {
     id: 'independente-2026',
@@ -115,6 +115,32 @@ export const postPortalFinancas: BlogPost = {
       ],
     }),
     ...articleSection({
+      h2: 'Primeira semana no portal: checklist',
+      id: 'primeira-semana',
+      paragraphs: [
+        'Se acabou de abrir actividade (ou ainda nunca abriu o portal com calma), faça isto uma vez e anote onde está cada área. Na segunda visita já sabe onde clicar.',
+      ],
+      blocks: [
+        {
+          type: 'ol',
+          items: [
+            'Confirmar que consegue entrar com CMD ou NIF+senha sem partilhar credenciais.',
+            'Actualizar IBAN e email de contacto (reembolsos e avisos dependem disto).',
+            'Abrir a caixa de notificações e marcar o que já leu.',
+            'Localizar e-Fatura / emissão de recibos e guardar um PDF de teste (se já tem actividade).',
+            'Anotar o caminho para «início de actividade» / alteração de dados — vai precisar quando mudar CAE ou morada.',
+            'Criar pasta no computador «Finanças — acessos» só com links úteis e sem passwords em texto claro.',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'warning',
+          title: 'Phishing «da AT»',
+          text: 'Emails a pedir senha, SMS com links estranhos ou páginas que não terminam em gov.pt são fraudelentos. Entre sempre pelo endereço oficial ou pelos favoritos — nunca pelo link do email.',
+        },
+      ],
+    }),
+    ...articleSection({
       h2: 'Cidadão e dados pessoais',
       id: 'dados',
       paragraphs: [
@@ -131,8 +157,29 @@ export const postPortalFinancas: BlogPost = {
         'Ignorar notificações electrónicas no portal',
         'Entregar IRS sem conferir rendimentos importados automaticamente',
         'Usar descrições vagas («serviços») que dificultam auditoria',
+        'Partilhar senha das Finanças com terceiros «só desta vez»',
       ],
     },
+    ...articleSection({
+      h2: 'Como o portal se liga ao resto da sua vida fiscal',
+      id: 'ecossistema',
+      paragraphs: [
+        'O portal não substitui a Segurança Social, o banco nem o software de facturação — mas é o sítio onde a AT junta a maior parte da história. Quem organiza o arquivo digital e os prazos mensais usa o portal como «fonte da verdade» e o resto como apoio.',
+        'Se trabalha com contador, alinhem quem emite recibos, quem entrega IVA/IRS e quem responde a notificações. Dois donos para a mesma caixa de mensagens é receita para prazo perdido.',
+      ],
+      blocks: [
+        {
+          type: 'link',
+          label: 'Obrigações fiscais mês a mês',
+          slug: 'obrigacoes-fiscais-mes-a-mes',
+        },
+        {
+          type: 'link',
+          label: 'Organizar documentos fiscais (arquivo digital)',
+          slug: 'organizar-documentos-fiscais-arquivo-digital',
+        },
+      ],
+    }),
     ...internalLinksSection({
       title: 'Aprofundar no blog',
       intro: 'Artigos que complementam este guia do portal.',
@@ -160,12 +207,24 @@ export const postPortalFinancas: BlogPost = {
           title: 'Bitdefender Total Security (Amazon)',
           description: 'Antivírus para PC e telemóvel.',
         },
+        {
+          key: 'amazonAgendaBezend',
+          leadIn: 'Marque no papel (ou digital) os dias de SS, IVA e fecho mensal — o portal não lembra por si.',
+          title: 'Agenda semanal A5 (Amazon)',
+          description: 'Útil para independentes sem secretária a tempo inteiro.',
+        },
+        {
+          key: 'hotmartReciboVerde7Dias',
+          leadIn: 'Se ainda está a montar o hábito de emitir e arquivar, um guia prático em vídeo ajuda a não saltar passos.',
+          title: 'Recibo Verde em 7 Dias (Hotmart)',
+          description: 'Roteiro curto para quem está a começar.',
+        },
       ],
     }),
     teglionCtaBlock({
       variant: 'firm',
       title: 'Contador com dezenas de clientes no portal?',
-      text: 'O TegLion centraliza pedidos de documentos e validação — menos email perdido, mais tempo para consultoria.',
+      text: 'O Teglion centraliza pedidos de documentos e validação — menos email perdido, mais tempo para consultoria.',
     }),
     legalCallout(),
   ],

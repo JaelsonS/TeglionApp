@@ -33,11 +33,6 @@ const PUBLIC_ROUTES: Record<
     description:
       'Planos transparentes para escritórios de contabilidade em Portugal. Teste grátis 14 dias, sem cartão.',
   },
-  '/security': {
-    title: 'Segurança e RGPD — Teglion',
-    description:
-      'Como o Teglion protege dados de escritórios e clientes: encriptação, RGPD, auditoria e hosting na UE.',
-  },
   '/case-studies': {
     title: 'Casos de estudo — Teglion',
     description:
@@ -82,7 +77,6 @@ function renderLandingBody() {
     <a href="/auth/firm/register">Começar 14 dias grátis</a>
     · <a href="/blog">Blog</a>
     · <a href="/pricing">Preços</a>
-    · <a href="/security">Segurança</a>
   </p>
 </main>`
 }

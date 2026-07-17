@@ -53,8 +53,8 @@ function buildSitemap(posts) {
   const staticPages = [
     { loc: '/', changefreq: 'weekly', priority: '1.0' },
     { loc: '/pricing', changefreq: 'monthly', priority: '0.9' },
-    { loc: '/security', changefreq: 'monthly', priority: '0.85' },
     { loc: '/blog', changefreq: 'weekly', priority: '0.95' },
+    { loc: '/case-studies', changefreq: 'monthly', priority: '0.7' },
     { loc: '/termos', changefreq: 'yearly', priority: '0.4' },
     { loc: '/privacidade', changefreq: 'yearly', priority: '0.4' },
     { loc: '/cookies', changefreq: 'yearly', priority: '0.3' },

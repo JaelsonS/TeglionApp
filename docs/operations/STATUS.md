@@ -1,23 +1,18 @@
-# TegLion — Estado do projeto e evolução
+# TegLion — Estado do projecto
 
-**Última actualização:** Julho 2026 (revisado 17 Jul 2026)
+**Última actualização:** 17 Julho 2026
 
-Este documento é a minha fonte de verdade para saber exatamente onde o projeto está, o que já validei e o que eu executo a seguir.
+Este documento é a minha fonte de verdade: onde estou, o que já validei e o que preciso fazer a seguir.
 
-**Plano de evolução (Founder OS):** [../company/EVOLUTION_PLAN.md](../company/EVOLUTION_PLAN.md)  
-**Performance Charter:** [../company/PERFORMANCE_CHARTER.md](../company/PERFORMANCE_CHARTER.md)  
-**Limpeza de docs:** [../company/DOC_CLEANUP.md](../company/DOC_CLEANUP.md)  
-**Cronograma legado:** [CRONOGRAMA.md](./CRONOGRAMA.md) (preferir EVOLUTION_PLAN)
+**Plano de evolução:** [../company/EVOLUTION_PLAN.md](../company/EVOLUTION_PLAN.md)  
+**Performance:** [../company/PERFORMANCE_CHARTER.md](../company/PERFORMANCE_CHARTER.md)  
+**Limpeza de docs:** [../company/DOC_CLEANUP.md](../company/DOC_CLEANUP.md)
 
 ---
 
-## 1. Visão e contexto
+## 1. O que é isto
 
-### O que é
-
-SaaS B2B multi-tenant para **escritórios de contabilidade em Portugal**: o escritório gere clientes, documentos, prazos e comunicação; o cliente tem portal próprio para enviar ficheiros e acompanhar pedidos.
-
-### Pitch em uma frase
+SaaS B2B multi-tenant para **escritórios de contabilidade**: o escritório gere clientes, documentos, prazos e comunicação; o cliente tem portal próprio.
 
 > Fecha o mês sem caçar documentos no WhatsApp — um sistema para o escritório e um portal para o cliente.
 
@@ -25,10 +20,13 @@ SaaS B2B multi-tenant para **escritórios de contabilidade em Portugal**: o escr
 
 ## 2. Estado actual (Jul 2026)
 
-### Veredicto geral
+### Veredicto
 
-Eu estou com **piloto vendável** — Fase 1 ✅ · Fase 2 ✅ · **Fase 3 em curso**.
-Infraestrutura e fluxo operacional já validados com testes automatizados, build de produção e smoke E2E.
+Eu tenho **piloto vendável**. Fase 1 e 2 fechadas no essencial; Fase 3 (robustez) em curso.
+Já validei build, testes, tenant isolation, smoke piloto e E2E smoke.
+
+**Posso vender?** Sim, a early customers — com trial de 14 dias.  
+**Ainda preciso** antes de cobrar a sério: Price IDs Stripe no Render, DNS Brevo, smoke signup → checkout.
 
 ### Status de testes recentes
 
@@ -53,7 +51,7 @@ Infraestrutura e fluxo operacional já validados com testes automatizados, build
 | Cache/rate limit | Redis | Protecção API |
 | Deploy | Vercel (FE) + Render (BE) | Produção |
 
-> **Não migrar para «só Supabase».** O backend já usa Supabase como BD/Storage; eliminá-lo obrigaria a reescrever auth, schedulers, email, billing e validações — mais lento e mais arriscado que o estado actual. Ver [CRONOGRAMA.md](./CRONOGRAMA.md#decisão-arquitectural-manter-backend-express).
+> **Não migrar para «só Supabase».** O backend já usa Supabase como BD/Storage; eliminá-lo obrigaria a reescrever auth, schedulers, email, billing e validações — mais lento e mais arriscado que o estado actual. Ver [CRONOGRAMA.md](../_archive/operations/CRONOGRAMA.md#decisão-arquitectural-manter-backend-express).
 
 ### O que está pronto
 
@@ -196,12 +194,13 @@ cd backend && npm run smoke:pilot
 
 ## 4. O que faço a seguir
 
-1. **Stripe** — criar produto + preços 35 €/mês e 359,88 €/ano; meter Price IDs no Render ([STRIPE_SETUP.md](./STRIPE_SETUP.md))
-2. **Brevo** — domínio autenticado ([BREVO_DOMAIN_SETUP.md](./BREVO_DOMAIN_SETUP.md))
-3. **Piloto** — validar fluxo com a contadora
-4. Redis / WAF — quando o tráfego o justificar
+1. **Stripe** — eu crio o produto + preços 35 €/mês e 359,88 €/ano e meto os Price IDs no Render ([STRIPE_SETUP.md](./STRIPE_SETUP.md))
+2. **Brevo** — eu autentico o domínio ([BREVO_DOMAIN_SETUP.md](./BREVO_DOMAIN_SETUP.md))
+3. **Piloto** — eu valido o fluxo com a contadora
+4. Redis / WAF — só quando o tráfego justificar
 
-Calendário: [CRONOGRAMA.md](./CRONOGRAMA.md) · Norte: [../company/EVOLUTION_PLAN.md](../company/EVOLUTION_PLAN.md)
+Norte diário: [../company/EVOLUTION_PLAN.md](../company/EVOLUTION_PLAN.md)  
+(Histórico longo do cronograma: [../_archive/operations/CRONOGRAMA.md](../_archive/operations/CRONOGRAMA.md))
 
 ---
 

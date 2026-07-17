@@ -118,7 +118,7 @@ Helpers em `shared.ts`: `affiliateBlock`, `affiliateSection`, `articleSection`, 
 
 ## Afiliados
 
-Links centralizados em `frontend/src/content/blog/affiliates.ts`.
+Links centralizados em `frontend/src/content/blog/affiliates.ts` (Amazon + Hotmart activos).
 
 ```ts
 affiliateBlock({
@@ -130,6 +130,20 @@ affiliateBlock({
 ```
 
 AdSense só com `VITE_ADSENSE_LIVE=true` no deploy. Caso contrário, slots mostram afiliados (`BlogMonetizationSlot`).
+
+### Próximos programas a afiliar (prioridade)
+
+| Prioridade | Programa | Porquê |
+|------------|----------|--------|
+| Alta | Amazon Associates **BR** (quando houver tráfego BR) | Mesmo catálogo + moeda local |
+| Alta | Hotmart — mais produtos PT/BR (facturação, MEI, IRPF BR) | Já funciona; falta variedade |
+| Média | Wise / Revolut Business | Freelancers e estrangeiros |
+| Média | NordVPN / 1Password / Bitwarden | Artigos de segurança e portal Finanças |
+| Média | Hostinger / Cloudflare | Quem abre site + actividade |
+| Baixa | Softwares PT (Moloni, InvoiceXpress, etc.) | Só se tiverem programa claro |
+| Evitar | «Get rich» / cripto / empréstimos | Risco AdSense e E-E-A-T |
+
+Para Google AdSense: conteúdo original > densidade de afiliados. Disclosure obrigatório; não transformar o artigo numa loja.
 
 ---
 

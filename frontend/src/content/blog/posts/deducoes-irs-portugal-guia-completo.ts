@@ -1,5 +1,6 @@
 import type { BlogPost } from '@/content/blog/types'
 import {
+  affiliateSection,
   articleSection,
   comparisonTable,
   faqSection,
@@ -17,11 +18,11 @@ export const postDeducoesIrs: BlogPost = {
   excerpt:
     'Saúde, educação, habitação, pensões e despesas gerais — como funcionam as deduções no Modelo 3, limites e documentos a guardar.',
   publishedAt: '2026-06-18',
-  updatedAt: '2026-06-18',
+  updatedAt: '2026-07-17',
   author: 'Equipa TegLion',
   category: 'IRS',
   tags: ['IRS', 'deduções fiscais', 'Modelo 3', 'saúde', 'educação', 'habitação', 'Portugal'],
-  readMinutes: 20,
+  readMinutes: 22,
   featured: true,
   series: {
     id: 'independente-2026',
@@ -176,10 +177,42 @@ export const postDeducoesIrs: BlogPost = {
         },
       ],
     }),
+    ...affiliateSection({
+      heading: 'Apoios práticos para a temporada IRS',
+      headingId: 'afiliados-deducoes',
+      intro:
+        'Deduções pedem método: facturas com NIF, pasta por categoria e tempo para rever o e-Fatura. Estes recursos ajudam — links de afiliado, sem custo extra.',
+      items: [
+        {
+          key: 'hotmartIrsReciboVerde',
+          leadIn: 'Se tem actividade e ainda sente o IRS como um bloco único em Abril, um guia faseado ajuda a separar rendimentos, retenções e obrigações.',
+          title: 'IRS & Recibo Verde — Guia Prático (Hotmart)',
+          description: 'Útil em paralelo com o Modelo 3 e o seu contador.',
+        },
+        {
+          key: 'amazonPastaThinkTex26',
+          leadIn: 'Uma pasta por ano com bolsos para saúde, educação e actividade reduz a caça aos PDFs.',
+          title: 'Pasta expansível ThinkTex 26 bolsos (Amazon)',
+          description: 'Arquivo físico complementar ao digital.',
+        },
+        {
+          key: 'amazonCasio991',
+          leadIn: 'Para simular totais de despesas e comparar cenários antes de submeter.',
+          title: 'Casio fx-991ES Plus (Amazon)',
+          description: 'Calculadora fiável para revisões rápidas.',
+        },
+        {
+          key: 'amazonM365Pessoal',
+          leadIn: 'OneDrive + Excel facilitam o mapa de despesas do agregado e o backup dos PDFs do e-Fatura.',
+          title: 'Microsoft 365 Pessoal (Amazon)',
+          description: '1 TB na nuvem para o arquivo fiscal anual.',
+        },
+      ],
+    }),
     teglionCtaBlock({
       variant: 'client',
       title: 'O contador pede facturas em falta em Abril?',
-      text: 'Com o portal TegLion, envia documentos ao longo do ano — o escritório recebe tudo organizado antes do IRS.',
+      text: 'Com o portal Teglion, envia documentos ao longo do ano — o escritório recebe tudo organizado antes do IRS.',
     }),
     ...internalLinksSection({
       title: 'Continuar a ler sobre IRS',

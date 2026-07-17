@@ -6,7 +6,8 @@ Eu mantenho aqui o que preciso para preparar, lançar, monitorizar e recuperar p
 | Documento | Quando ler |
 |-----------|------------|
 | [STATUS.md](./STATUS.md) | Estado actual do piloto e o que eu faço a seguir |
-| [PILOT_ROADMAP.md](./PILOT_ROADMAP.md) | Roadmap de piloto e checklist |
+| [../CLIENTE_PILOTO/ROADMAP.md](../CLIENTE_PILOTO/ROADMAP.md) | Roadmap do piloto (vivo) |
+| [../company/EVOLUTION_PLAN.md](../company/EVOLUTION_PLAN.md) | Bússola diária |
 | [DEV_LOCAL.md](./DEV_LOCAL.md) | Primeiro setup em máquina local |
 | [../product/SCALE_100K_1M_CHECKLIST.md](../product/SCALE_100K_1M_CHECKLIST.md) | Plano executivo de evolução para 100k → 1M utilizadores |
 | [BRANCHING.md](./BRANCHING.md) | `main` (prod) vs `staging` (QA) |
@@ -21,7 +22,7 @@ Eu mantenho aqui o que preciso para preparar, lançar, monitorizar e recuperar p
 | [BREVO_DOMAIN_SETUP.md](./BREVO_DOMAIN_SETUP.md) | Domínio autenticado para e-mails (Primary inbox) |
 | [STORAGE.md](./STORAGE.md) | Ficheiros no Supabase Storage |
 | [STRIPE_SETUP.md](./STRIPE_SETUP.md) | Configurar pagamentos |
-| [AUDIT_PRODU.md](./AUDIT_PRODU.md) | Backlog técnico aberto |
+| [AUDIT_PRODU.md](../_archive/operations/AUDIT_PRODU.md) | Auditoria antiga (arquivo) |
 
 ## Regra de operação que eu sigo
 

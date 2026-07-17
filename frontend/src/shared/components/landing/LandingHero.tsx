@@ -30,18 +30,18 @@ export function LandingHero() {
             </p>
             <div className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
               <Link to={authFirmRegisterUrl()} className="landing-btn-primary px-8 py-3.5">
-                Experimentar 14 dias grátis
+                Quero testar 14 dias grátis
               </Link>
               <button
                 type="button"
                 onClick={scrollToProduct}
                 className="text-sm font-medium text-[#0F2942]/75 underline-offset-4 hover:text-[#0F2942] hover:underline"
               >
-                Ver como funciona
+                Ver o produto
               </button>
             </div>
             <p className="mt-4 text-sm text-[#4A5568]">
-              Sem cartão · Acesso completo · Pode cancelar quando quiser
+              Sem cartão. Escritório completo desde o primeiro dia. Cancele quando quiser.
             </p>
           </FadeInView>
 
