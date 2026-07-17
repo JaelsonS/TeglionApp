@@ -51,7 +51,7 @@ Já validei build, testes, tenant isolation, smoke piloto e E2E smoke.
 | Cache/rate limit | Redis | Protecção API |
 | Deploy | Vercel (FE) + Render (BE) | Produção |
 
-> **Não migrar para «só Supabase».** O backend já usa Supabase como BD/Storage; eliminá-lo obrigaria a reescrever auth, schedulers, email, billing e validações — mais lento e mais arriscado que o estado actual. Ver [CRONOGRAMA.md](../_archive/operations/CRONOGRAMA.md#decisão-arquitectural-manter-backend-express).
+> **Não migrar para «só Supabase».** O backend já usa Supabase como BD/Storage; eliminá-lo obrigaria a reescrever auth, schedulers, email, billing e validações — mais lento e mais arriscado que o estado actual. Norte: [../company/EVOLUTION_PLAN.md](../company/EVOLUTION_PLAN.md).
 
 ### O que está pronto
 
@@ -62,10 +62,10 @@ Já validei build, testes, tenant isolation, smoke piloto e E2E smoke.
 | **Comunicação** | Mensagens escritório ↔ cliente |
 | **Operacional** | Tarefas, obrigações, agenda, calendário fiscal PT |
 | **Portal cliente** | Dashboard, alertas, notícias, booking — navegação completa (sidebar + mobile) |
-| **Marketing** | Landing, pricing, security, blog SEO (27 artigos) |
+| **Marketing** | Landing, pricing, blog SEO (27 artigos) |
 | **Segurança** | Multi-tenant, RLS, rate limit, CSRF, tenant isolation test |
 | **CI** | Build + `tsc --noEmit` + testes unitários |
-| **Documentação** | 13 docs CTO + pastas temáticas + cronograma |
+| **Documentação** | Founder OS + pastas temáticas |
 
 ### Atualizações recentes validadas (Jul 2026)
 
@@ -199,8 +199,7 @@ cd backend && npm run smoke:pilot
 3. **Piloto** — eu valido o fluxo com a contadora
 4. Redis / WAF — só quando o tráfego justificar
 
-Norte diário: [../company/EVOLUTION_PLAN.md](../company/EVOLUTION_PLAN.md)  
-(Histórico longo do cronograma: [../_archive/operations/CRONOGRAMA.md](../_archive/operations/CRONOGRAMA.md))
+Norte diário: [../company/EVOLUTION_PLAN.md](../company/EVOLUTION_PLAN.md)
 
 ---
 
@@ -208,7 +207,7 @@ Norte diário: [../company/EVOLUTION_PLAN.md](../company/EVOLUTION_PLAN.md)
 
 | Fase | Nome | Estado |
 |------|------|--------|
-| **1** | Limpeza | 🟡 ~60% |
+| **1** | Limpeza | 🟢 limpeza Jul 2026 |
 | 2 | Arquitectura | ⬜ |
 | 3 | Padronização | ⬜ |
 | 4 | Internacionalização PT+BR | ⬜ |

@@ -164,7 +164,7 @@ TegLion/
 ## Roadmap imediato
 
 1. **Piloto no escritório** — onboarding real, feedback semanal, ajustes de fluxo
-2. **QA produção** — tablet/mobile, capturas baseline (`docs/qa/visual-baseline/`)
+2. **QA produção** — tablet/mobile no piloto real
 3. **SEO** — Search Console, indexação blog, PageSpeed mobile
 4. **Hardening** — WAF, cache assets, validação Stripe live
 

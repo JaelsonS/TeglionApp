@@ -120,7 +120,7 @@ PostCSS: `postcss.config.cjs` — se `@tailwind` aparecer literal no browser, re
 
 ## Baseline visual (capturas)
 
-Guardar PNG em `docs/visual-baseline/screenshots/`:
+Guardar PNG de referência no teu drive local ou no projeto de design — não versionamos baseline de ecrãs no Git.
 
 | Ficheiro | Rota |
 |----------|------|

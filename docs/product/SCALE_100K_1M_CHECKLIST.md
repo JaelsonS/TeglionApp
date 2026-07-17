@@ -2,7 +2,7 @@
 
 **Documento executivo oficial**
 **Última actualização:** Julho 2026
-**Baseado em:** [ROADMAP.md](./ROADMAP.md), [ROADMAP_BACKLOG.md](../_archive/product/ROADMAP_BACKLOG.md), [ARCHITECTURE.md](../engineering/ARCHITECTURE.md), [STATUS.md](../operations/STATUS.md)
+**Baseado em:** [ROADMAP.md](./ROADMAP.md), [ARCHITECTURE.md](../engineering/ARCHITECTURE.md), [STATUS.md](../operations/STATUS.md)
 
 Este documento traduz a visão do TegLion para um plano executável, com **400 checkpoints** ordenados por prioridade e por fase.
 

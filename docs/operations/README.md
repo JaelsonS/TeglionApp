@@ -22,7 +22,6 @@ Eu mantenho aqui o que preciso para preparar, lançar, monitorizar e recuperar p
 | [BREVO_DOMAIN_SETUP.md](./BREVO_DOMAIN_SETUP.md) | Domínio autenticado para e-mails (Primary inbox) |
 | [STORAGE.md](./STORAGE.md) | Ficheiros no Supabase Storage |
 | [STRIPE_SETUP.md](./STRIPE_SETUP.md) | Configurar pagamentos |
-| [AUDIT_PRODU.md](../_archive/operations/AUDIT_PRODU.md) | Auditoria antiga (arquivo) |
 
 ## Regra de operação que eu sigo
 

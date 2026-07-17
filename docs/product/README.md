@@ -9,7 +9,6 @@
 | [VISION.md](./VISION.md) | Entender missão e valores |
 | [PRODUCT.md](./PRODUCT.md) | Modelo de negócio e posicionamento |
 | [ROADMAP.md](./ROADMAP.md) | Roadmap estratégico — plataforma de crescimento Europa |
-| [ROADMAP_BACKLOG.md](../_archive/product/ROADMAP_BACKLOG.md) | Backlog master (arquivo histórico) |
 | [SCALE_100K_1M_CHECKLIST.md](./SCALE_100K_1M_CHECKLIST.md) | Checklist executivo por fases para 100k → 1M utilizadores |
 | [MODULES.md](./MODULES.md) | O que existe no sistema e prioridades |
 | [CHANGELOG.md](./CHANGELOG.md) | O que mudou e quando |

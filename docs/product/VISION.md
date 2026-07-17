@@ -156,7 +156,6 @@ Se a resposta for **não** a todas, a funcionalidade não entra no produto.
 |-----------|----------|
 | [PRODUCT.md](./PRODUCT.md) | O que vendemos e a quem |
 | [ROADMAP.md](./ROADMAP.md) | Roadmap estratégico (10 fases) |
-| [ROADMAP_BACKLOG.md](../_archive/product/ROADMAP_BACKLOG.md) | 350+ melhorias (arquivo histórico) |
 | [ARCHITECTURE.md](../engineering/ARCHITECTURE.md) | Como construímos para escalar |
 | [AI.md](../ai/AI.md) | Como a IA reforça a proposta de valor |
 | [MULTI_COUNTRY.md](../international/MULTI_COUNTRY.md) | Como servimos PT e BR (e mais) |

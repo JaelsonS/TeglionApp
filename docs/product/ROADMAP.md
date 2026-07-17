@@ -556,23 +556,23 @@ Se não medimos e mostramos, somos «mais um software». Se mostramos 8h/mês, s
 
 ---
 
-## 9. Backlog master (índice)
+## 9. Backlog (índice)
 
-Backlog completo com **350+ melhorias** organizado por categoria. Cada item inclui: título, prioridade (P0–P3), impacto, complexidade, valor cliente, valor negócio.
+Prioridades de evolução por área. O inventário gigante antigo foi removido na limpeza de Jul 2026 — o norte vivo é [MODULES.md](./MODULES.md) + [../company/EVOLUTION_PLAN.md](../company/EVOLUTION_PLAN.md).
 
-| Categoria | Itens | Doc detalhado |
-|-----------|-------|---------------|
-| A. Plataforma & Fundação | 1–40 | [ROADMAP_BACKLOG.md](../_archive/product/ROADMAP_BACKLOG.md) |
-| B. Clientes & CRM | 41–70 | idem |
-| C. Documentos | 71–110 | idem |
-| D. Obrigações & Fiscal | 111–145 | idem |
-| E. Portal Cliente | 146–175 | idem |
-| F. Comunicação | 176–205 | idem |
-| G. Automação | 206–235 | idem |
-| H. IA & Dados | 236–275 | idem |
-| I. UX/UI & Design | 276–305 | idem |
-| J. Growth & Landing | 306–330 | idem |
-| K. API & Integrações | 331–350 | idem |
+| Categoria | Foco |
+|-----------|------|
+| A. Plataforma & Fundação | Auth, multi-tenant, performance |
+| B. Clientes & CRM | Carteira, hub, onboarding |
+| C. Documentos | Pedidos, validação, arquivo |
+| D. Obrigações & Fiscal | Prazos, guias, lembretes |
+| E. Portal Cliente | Mobile, PWA, clareza |
+| F. Comunicação | Mensagens, alertas |
+| G. Automação | Schedulers, regras |
+| H. IA & Dados | Só depois de PT estável |
+| I. UX/UI & Design | Mobile, clareza, consistência |
+| J. Growth & Landing | Aquisição, blog, pricing |
+| K. API & Integrações | Só com procura real |
 
 ---
 
@@ -641,7 +641,6 @@ Se **não** a nenhuma → não entra no roadmap.
 |-----------|----------|----------|
 | [VISION.md](./VISION.md) | Missão e visão 2031 | ✅ Alinhado |
 | [PRODUCT.md](./PRODUCT.md) | Modelo negócio | Revisar pricing Fase 3 |
-| [ROADMAP_BACKLOG.md](../_archive/product/ROADMAP_BACKLOG.md) | 350+ itens detalhados (arquivo) | Novo |
 | [MODULES.md](./MODULES.md) | Inventário módulos | Por fase |
 | [ARCHITECTURE.md](../engineering/ARCHITECTURE.md) | Como construir | Fase 5 |
 | [AI.md](../ai/AI.md) | Estratégia IA | Fase 4 |
