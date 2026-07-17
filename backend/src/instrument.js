@@ -2,7 +2,17 @@ const { env } = require('./config/env');
 
 let Sentry = null;
 
-if (env.SENTRY_DSN) {
+function isNodeTestRun() {
+  if (process.env.NODE_ENV === 'test') return true;
+  return process.argv.some((arg) => arg === '--test' || arg.includes('--test'));
+}
+
+function eventFromUnitTest(event) {
+  const frames = event?.exception?.values?.flatMap((ex) => ex.stacktrace?.frames || []) || [];
+  return frames.some((frame) => String(frame.filename || frame.abs_path || '').includes('.test.'));
+}
+
+if (env.SENTRY_DSN && !isNodeTestRun()) {
   try {
     const s = require('@sentry/node');
     Sentry = s && s.default ? s.default : s;
@@ -14,6 +24,7 @@ if (env.SENTRY_DSN) {
       tracesSampleRate: env.isProduction ? 0.1 : 0,
       sendDefaultPii: false,
       beforeSend(event) {
+        if (eventFromUnitTest(event)) return null;
         if (event.request?.url) {
           event.request.url = String(event.request.url).split('?')[0];
         }

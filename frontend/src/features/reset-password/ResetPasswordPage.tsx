@@ -85,11 +85,12 @@ export function ResetPasswordPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting, isValid },
+    formState: { errors, isSubmitting },
     watch,
   } = useForm<ResetPasswordValues>({
     resolver: zodResolver(resetPasswordSchema),
-    mode: 'onChange',
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
     defaultValues: {
       newPassword: '',
       confirmPassword: '',
@@ -432,19 +433,19 @@ export function ResetPasswordPage() {
 
             {/* Dicas de segurança */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-xs font-semibold text-blue-900 mb-2">{t('resetPassword.securityTipTitle', { defaultValue: '🔐 Dica de segurança' })}</p>
+              <p className="text-xs font-semibold text-blue-900 mb-2">{t('resetPassword.securityTipTitle', { defaultValue: 'Dica de segurança' })}</p>
               <ul className="text-xs text-blue-800 space-y-1">
-                <li>{t('resetPassword.securityTipUnique', { defaultValue: '✓ Use uma senha única (não reutilize)' })}</li>
-                <li>{t('resetPassword.securityTipMinLength', { defaultValue: '✓ Mínimo 8 caracteres' })}</li>
-                <li>{t('resetPassword.securityTipMixChars', { defaultValue: '✓ Misture maiúsculas, minúsculas e números' })}</li>
+                <li>{t('resetPassword.securityTipUnique', { defaultValue: 'Use uma senha única (não reutilize)' })}</li>
+                <li>{t('resetPassword.securityTipMinLength', { defaultValue: `Mínimo ${PASSWORD_MIN_LENGTH} caracteres` })}</li>
+                <li>{t('resetPassword.securityTipMixChars', { defaultValue: 'Misture maiúsculas, minúsculas e números' })}</li>
               </ul>
             </div>
 
-            {/* Botão Submit */}
+            {/* Botão Submit — nunca desactivar por isValid (em mobile parece “não funcionar”) */}
             <Button
               type="submit"
-              className="w-full"
-              disabled={!isValid || isSubmitting}
+              className="h-12 w-full touch-manipulation text-base"
+              disabled={isSubmitting}
               size="lg"
             >
               {isSubmitting ? (

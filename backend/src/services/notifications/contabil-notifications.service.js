@@ -4,8 +4,13 @@
 const { sendEmail } = require('../email/brevo-email.service');
 const { sendSms } = require('../email/brevo-sms.service');
 const { env } = require('../../config/env');
+const {
+  escapeHtml,
+  renderTransactionalEmail,
+  APP_URL: LAYOUT_APP_URL,
+} = require('../email/transactional-email-layout');
 
-const APP_URL = (env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+const APP_URL = LAYOUT_APP_URL || (env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
 
 function portalUrl() {
   return `${APP_URL}/auth/client/login`;
@@ -27,17 +32,31 @@ async function notifyClientInvite({ clientEmail, clientName, firmName, inviteUrl
   if (!clientEmail) return { skipped: true, reason: 'no_email' };
   const link = url || portalUrl();
   const expiry = expiresAt ? new Date(expiresAt).toLocaleDateString('pt-PT') : '14 dias';
+  const firm = firmName || 'o seu escritório';
   return sendEmail({
     to: clientEmail,
-    subject: `${firmName || 'O seu escritório'} convidou-o para o portal TegLion`,
-    html: `
-      <p>Olá${clientName ? ` ${clientName}` : ''},</p>
-      <p>O escritório <strong>${firmName || 'de contabilidade'}</strong> convidou-o a aceder ao portal TegLion — onde pode enviar documentos, ver obrigações e falar com a equipa.</p>
-      <p><a href="${link}" style="display:inline-block;padding:12px 24px;background:#0f2942;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">Aceitar convite</a></p>
-      <p style="font-size:13px;color:#64748b">Link válido até ${expiry}. Se não esperava este e-mail, ignore-o.</p>
-      <p>TegLion</p>
-    `,
-    text: `Convite TegLion: ${link} (válido até ${expiry})`,
+    subject: `Acesso ao portal — ${firm}`,
+    tags: ['transactional', 'client-invite'],
+    html: renderTransactionalEmail({
+      preheader: `Convite para aceder ao portal do escritório ${firm}`,
+      title: 'Convite para o portal do cliente',
+      greeting: `Olá${clientName ? ` ${clientName}` : ''},`,
+      bodyHtml: `<p style="margin:0 0 12px">O escritório <strong>${escapeHtml(firm)}</strong> convidou-o a aceder ao portal TegLion para enviar documentos, ver obrigações e comunicar com a equipa.</p>`,
+      ctaLabel: 'Aceitar convite',
+      ctaUrl: link,
+      footerNote: `Link válido até ${expiry}. Se não esperava este e-mail, ignore-o.`,
+    }),
+    text: [
+      `Olá${clientName ? ` ${clientName}` : ''},`,
+      '',
+      `O escritório ${firm} convidou-o a aceder ao portal TegLion.`,
+      '',
+      `Aceitar convite: ${link}`,
+      '',
+      `Válido até ${expiry}. Se não esperava este e-mail, ignore-o.`,
+      '',
+      'TegLion',
+    ].join('\n'),
   });
 }
 
@@ -45,18 +64,19 @@ async function notifyClientNewTask({ clientEmail, clientName, taskTitle, firmNam
   if (!clientEmail) return { skipped: true };
   const name = clientName || 'Cliente';
   const firm = firmName || 'o seu escritório';
-  const due = dueDate ? `<p><strong>Prazo:</strong> ${dueDate}</p>` : '';
+  const due = dueDate ? `<p style="margin:0 0 12px"><strong>Prazo:</strong> ${escapeHtml(dueDate)}</p>` : '';
   return sendEmail({
     to: clientEmail,
     subject: `${firm} — nova tarefa no portal`,
-    html: `
-      <p>Olá ${name},</p>
-      <p>O escritório <strong>${firm}</strong> pediu-lhe documentos ou uma ação no portal TegLion:</p>
-      <p><strong>${taskTitle}</strong></p>
-      ${due}
-      <p><a href="${portalUrl()}">Entrar no portal</a> — demora menos de 2 minutos.</p>
-      <p>TegLion</p>
-    `,
+    tags: ['transactional', 'client-task'],
+    html: renderTransactionalEmail({
+      preheader: `Nova tarefa: ${taskTitle || 'pedido do escritório'}`,
+      title: 'Nova tarefa no portal',
+      greeting: `Olá ${escapeHtml(name)},`,
+      bodyHtml: `<p style="margin:0 0 12px">O escritório <strong>${escapeHtml(firm)}</strong> pediu-lhe documentos ou uma ação:</p><p style="margin:0 0 12px"><strong>${escapeHtml(taskTitle || '')}</strong></p>${due}`,
+      ctaLabel: 'Entrar no portal',
+      ctaUrl: portalUrl(),
+    }),
     text: `Nova tarefa: ${taskTitle}. Entre em ${portalUrl()}`,
   });
 }
@@ -66,11 +86,18 @@ async function notifyClientObligationReminder({ clientEmail, clientName, obligat
   return sendEmail({
     to: clientEmail,
     subject: `${firmName || 'Escritório'} — ${obligationTitle || 'lembrete fiscal'}`,
-    html: `
-      <p>Olá ${clientName || 'Cliente'},</p>
-      <p>${body || `A obrigação <strong>${obligationTitle}</strong> tem prazo ${dueDate || 'em breve'}.`}</p>
-      <p><a href="${portalUrl()}">Abrir portal TegLion</a></p>
-    `,
+    tags: ['transactional', 'obligation-reminder'],
+    html: renderTransactionalEmail({
+      preheader: obligationTitle || 'Lembrete fiscal',
+      title: obligationTitle || 'Lembrete fiscal',
+      greeting: `Olá ${escapeHtml(clientName || 'Cliente')},`,
+      bodyHtml: `<p style="margin:0">${
+        body ||
+        `A obrigação <strong>${escapeHtml(obligationTitle || '')}</strong> tem prazo ${escapeHtml(dueDate || 'em breve')}.`
+      }</p>`,
+      ctaLabel: 'Abrir portal TegLion',
+      ctaUrl: portalUrl(),
+    }),
     text: body || `Lembrete: ${obligationTitle}. Portal: ${portalUrl()}`,
   });
 }
@@ -80,11 +107,14 @@ async function notifyFirmDocumentReceived({ staffEmail, clientName, documentTitl
   return sendEmail({
     to: staffEmail,
     subject: `Documento recebido — ${clientName || 'Cliente'}`,
-    html: `
-      <p>Novo documento no TegLion:</p>
-      <p><strong>${documentTitle}</strong> de ${clientName || 'cliente'} (${firmName || 'escritório'}).</p>
-      <p><a href="${APP_URL}/app/firm/documents">Validar no painel</a></p>
-    `,
+    tags: ['transactional', 'document-received'],
+    html: renderTransactionalEmail({
+      preheader: `Documento: ${documentTitle || ''}`,
+      title: 'Novo documento recebido',
+      bodyHtml: `<p style="margin:0"><strong>${escapeHtml(documentTitle || '')}</strong> de ${escapeHtml(clientName || 'cliente')} (${escapeHtml(firmName || 'escritório')}).</p>`,
+      ctaLabel: 'Validar no painel',
+      ctaUrl: `${APP_URL}/app/firm/documents`,
+    }),
     text: `Documento recebido: ${documentTitle}`,
   });
 }
@@ -98,17 +128,20 @@ async function notifyPasswordReset({ email, resetUrl, userType }) {
   if (!email || !resetUrl) return { skipped: true };
   const isClient = userType === 'client';
   const subject = isClient
-    ? 'TegLion — redefinir palavra-passe do portal'
-    : 'TegLion — redefinir palavra-passe do escritório';
+    ? 'Redefinição de palavra-passe — portal TegLion'
+    : 'Redefinição de palavra-passe — escritório TegLion';
   return sendEmail({
     to: email,
     subject,
-    html: `
-      <p>Recebemos um pedido para redefinir a sua palavra-passe no TegLion.</p>
-      <p><a href="${resetUrl}" style="display:inline-block;padding:12px 24px;background:#0f2942;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">Redefinir palavra-passe</a></p>
-      <p style="font-size:13px;color:#64748b">O link expira em 15 minutos. Se não fez este pedido, ignore este e-mail.</p>
-      <p>TegLion</p>
-    `,
+    tags: ['transactional', 'password-reset'],
+    html: renderTransactionalEmail({
+      preheader: 'Pedido de redefinição de palavra-passe (válido 15 minutos)',
+      title: 'Redefinir palavra-passe',
+      bodyHtml: `<p style="margin:0">Recebemos um pedido para redefinir a sua palavra-passe no TegLion. Se não foi você, ignore este e-mail.</p>`,
+      ctaLabel: 'Criar nova palavra-passe',
+      ctaUrl: resetUrl,
+      footerNote: 'O link expira em 15 minutos por segurança.',
+    }),
     text: `Redefinir palavra-passe TegLion: ${resetUrl} (válido 15 minutos)`,
   });
 }
@@ -118,12 +151,15 @@ async function notifyFirmConsultationBooked({ staffEmail, firmName, clientName, 
   return sendEmail({
     to: staffEmail,
     subject: `Nova marcação — ${clientName || 'Cliente'}`,
-    html: `
-      <p>O cliente <strong>${clientName || '—'}</strong> marcou <strong>${serviceName || 'consultoria'}</strong> no portal TegLion.</p>
-      <p><strong>Data/hora:</strong> ${when || '—'}</p>
-      <p><a href="${APP_URL}/app/firm/agenda">Ver agenda</a></p>
-      <p style="font-size:13px;color:#64748b">${firmName || ''}</p>
-    `,
+    tags: ['transactional', 'consultation'],
+    html: renderTransactionalEmail({
+      preheader: `Marcação: ${serviceName || 'consultoria'}`,
+      title: 'Nova marcação no portal',
+      bodyHtml: `<p style="margin:0 0 12px">O cliente <strong>${escapeHtml(clientName || '—')}</strong> marcou <strong>${escapeHtml(serviceName || 'consultoria')}</strong>.</p><p style="margin:0"><strong>Data/hora:</strong> ${escapeHtml(when || '—')}</p>`,
+      ctaLabel: 'Ver agenda',
+      ctaUrl: `${APP_URL}/app/firm/agenda`,
+      footerNote: firmName || undefined,
+    }),
     text: `Marcação: ${serviceName} com ${clientName} em ${when}. Agenda: ${APP_URL}/app/firm/agenda`,
   });
 }
@@ -134,24 +170,17 @@ async function notifyFirmStaffWelcome({ staffEmail, staffName, firmName }) {
   const loginLink = `${APP_URL}/auth/firm/login`;
   return sendEmail({
     to: staffEmail,
-    subject: `${appName} — acesso criado à sua conta`,
-    html: `
-      <div style="font-family:Arial,sans-serif;line-height:1.5;color:#0f172a;max-width:620px">
-        <p>Olá${staffName ? ` ${staffName}` : ''},</p>
-        <p>Foi criada uma conta de colaborador para si no <strong>${appName}</strong>.</p>
-        <p style="margin:24px 0 16px">
-          <a href="${loginLink}" style="display:inline-block;padding:12px 24px;background:#0f2942;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600">
-            Entrar no TegLion
-          </a>
-        </p>
-        <p style="font-size:13px;color:#475569;margin:0 0 6px">Se o botão não abrir, copie e cole este link no navegador:</p>
-        <p style="margin:0 0 16px">
-          <a href="${loginLink}" style="color:#0f2942;word-break:break-all">${loginLink}</a>
-        </p>
-        <p style="font-size:13px;color:#64748b">Se ainda não recebeu a sua palavra-passe inicial, contacte o dono/administrador do escritório.</p>
-        <p style="margin-top:20px">TegLion</p>
-      </div>
-    `,
+    subject: `Conta criada — ${appName}`,
+    tags: ['transactional', 'staff-welcome'],
+    html: renderTransactionalEmail({
+      preheader: `Acesso criado à conta no escritório ${appName}`,
+      title: 'A sua conta está pronta',
+      greeting: `Olá${staffName ? ` ${staffName}` : ''},`,
+      bodyHtml: `<p style="margin:0">Foi criada uma conta de colaborador para si no escritório <strong>${escapeHtml(appName)}</strong>.</p>`,
+      ctaLabel: 'Entrar no TegLion',
+      ctaUrl: loginLink,
+      footerNote: 'Se ainda não recebeu a palavra-passe inicial, contacte o administrador do escritório.',
+    }),
     text: [
       `Olá${staffName ? ` ${staffName}` : ''},`,
       '',
@@ -171,31 +200,29 @@ async function notifyFirmMemberInvite({ staffEmail, staffName, firmName, inviteT
   if (!staffEmail) return { skipped: true, reason: 'no_email' };
   const link = teamInviteUrl(inviteToken);
   const expiry = expiresAt ? new Date(expiresAt).toLocaleDateString('pt-PT') : '14 dias';
+  const firm = firmName || 'TegLion';
   return sendEmail({
     to: staffEmail,
-    subject: `${firmName || 'TegLion'} — convite para equipa`,
-    html: `
-      <div style="font-family:Arial,sans-serif;line-height:1.5;color:#0f172a;max-width:620px">
-        <p>Olá${staffName ? ` ${staffName}` : ''},</p>
-        <p>Recebeu um convite para entrar na equipa do escritório <strong>${firmName || 'TegLion'}</strong>.</p>
-        <p style="margin:24px 0 16px">
-          <a href="${link}" style="display:inline-block;padding:12px 24px;background:#0f2942;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">Aceitar convite</a>
-        </p>
-        <p style="font-size:13px;color:#475569;margin:0 0 6px">Se o botão não abrir, copie e cole este link no navegador:</p>
-        <p style="margin:0 0 16px"><a href="${link}" style="color:#0f2942;word-break:break-all">${link}</a></p>
-        <p style="font-size:13px;color:#64748b">Convite válido até ${expiry}. Se não esperava este e-mail, ignore.</p>
-        <p style="margin-top:20px">TegLion</p>
-      </div>
-    `,
+    subject: `Convite para a equipa — ${firm}`,
+    tags: ['transactional', 'team-invite'],
+    html: renderTransactionalEmail({
+      preheader: `Defina a sua palavra-passe para entrar na equipa de ${firm}`,
+      title: 'Convite para a equipa',
+      greeting: `Olá${staffName ? ` ${staffName}` : ''},`,
+      bodyHtml: `<p style="margin:0 0 12px">Foi convidado(a) a juntar-se à equipa do escritório <strong>${escapeHtml(firm)}</strong> no TegLion.</p><p style="margin:0">Clique no botão abaixo para criar a sua palavra-passe e concluir o acesso. Depois confirme o e-mail para activar a conta.</p>`,
+      ctaLabel: 'Criar palavra-passe e aceitar',
+      ctaUrl: link,
+      footerNote: `Convite válido até ${expiry}. Se não esperava este e-mail, ignore-o.`,
+    }),
     text: [
       `Olá${staffName ? ` ${staffName}` : ''},`,
       '',
-      `Recebeu um convite para entrar na equipa do escritório ${firmName || 'TegLion'}.`,
+      `Foi convidado(a) a juntar-se à equipa do escritório ${firm} no TegLion.`,
       '',
-      'Aceitar convite:',
+      'Criar palavra-passe e aceitar:',
       link,
       '',
-      `Convite válido até ${expiry}. Se não esperava este e-mail, ignore.`,
+      `Convite válido até ${expiry}. Se não esperava este e-mail, ignore-o.`,
       '',
       'TegLion',
     ].join('\n'),
@@ -205,16 +232,20 @@ async function notifyFirmMemberInvite({ staffEmail, staffName, firmName, inviteT
 async function notifyFirmStaffEmailConfirmation({ staffEmail, staffName, firmName, token }) {
   if (!staffEmail || !token) return { skipped: true };
   const link = staffEmailConfirmUrl(token);
+  const firm = firmName || 'TegLion';
   return sendEmail({
     to: staffEmail,
-    subject: `${firmName || 'TegLion'} — confirme o seu e-mail`,
-    html: `
-      <p>Olá${staffName ? ` ${staffName}` : ''},</p>
-      <p>Para concluir o seu acesso à equipa, confirme o seu e-mail.</p>
-      <p><a href="${link}" style="display:inline-block;padding:12px 24px;background:#0f2942;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">Confirmar e-mail</a></p>
-      <p style="font-size:13px;color:#64748b">Se não reconhece este pedido, ignore esta mensagem.</p>
-      <p>TegLion</p>
-    `,
+    subject: `Confirme o e-mail — ${firm}`,
+    tags: ['transactional', 'email-confirm'],
+    html: renderTransactionalEmail({
+      preheader: 'Confirme o e-mail para activar o acesso à equipa',
+      title: 'Confirme o seu e-mail',
+      greeting: `Olá${staffName ? ` ${staffName}` : ''},`,
+      bodyHtml: `<p style="margin:0">Para activar o acesso à equipa de <strong>${escapeHtml(firm)}</strong>, confirme o seu endereço de e-mail.</p>`,
+      ctaLabel: 'Confirmar e-mail',
+      ctaUrl: link,
+      footerNote: 'Se não reconhece este pedido, ignore esta mensagem.',
+    }),
     text: `Confirme o seu e-mail para ativar o acesso: ${link}`,
   });
 }
