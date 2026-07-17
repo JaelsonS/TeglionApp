@@ -151,6 +151,15 @@ async function registerFirm(req, res, next) {
         userAgent: clientUserAgent(req),
       },
     });
+    if (result.needsEmailConfirmation) {
+      return res.status(201).json({
+        needsEmailConfirmation: true,
+        emailSent: result.emailSent,
+        email: result.email,
+        firmName: result.firmName,
+        message: result.message,
+      });
+    }
     setRefreshTokenCookie(res, result.tokens.refreshToken, { req });
     setAccessTokenCookie(res, result.tokens.accessToken, { req });
     return res.status(201).json(buildAuthResponseBody(result));

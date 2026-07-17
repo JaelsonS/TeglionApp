@@ -18,6 +18,7 @@ Eu mantenho aqui o que preciso para preparar, lançar, monitorizar e recuperar p
 | [REDIS_RENDER_SETUP.md](./REDIS_RENDER_SETUP.md) | Como eu deixo Redis activo no Render com segurança |
 | [EXECUCAO_ROLES_TELAS.md](./EXECUCAO_ROLES_TELAS.md) | Plano de execução para evoluir funcionalidades e telas por role |
 | [GOOGLE_SSO_SETUP.md](./GOOGLE_SSO_SETUP.md) | Login Google (não é Supabase Auth) |
+| [BREVO_DOMAIN_SETUP.md](./BREVO_DOMAIN_SETUP.md) | Domínio autenticado para e-mails (Primary inbox) |
 | [STORAGE.md](./STORAGE.md) | Ficheiros no Supabase Storage |
 | [STRIPE_SETUP.md](./STRIPE_SETUP.md) | Configurar pagamentos |
 | [AUDIT_PRODU.md](./AUDIT_PRODU.md) | Backlog técnico aberto |

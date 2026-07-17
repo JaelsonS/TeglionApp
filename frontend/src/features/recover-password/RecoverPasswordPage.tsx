@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { Eye, EyeOff } from 'lucide-react'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -18,6 +17,7 @@ import { useAuth } from '@/shared/hooks/useAuth'
 
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import { PasswordInput } from '@/shared/components/ui/password-input'
 import { Label } from '@/shared/components/ui/label'
 import { COPY as recoverCopyByLocale } from './i18n'
 
@@ -62,8 +62,6 @@ export function RecoverPasswordPage() {
   )
 
   const [recoverSent, setRecoverSent] = useState(false)
-  const [showNewPassword, setShowNewPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const isReset = Boolean(tokenFromUrl)
   const backToLoginHref =
@@ -214,23 +212,13 @@ export function RecoverPasswordPage() {
               <form onSubmit={resetForm.handleSubmit(handleReset)} className="space-y-5">
                 <div>
                   <Label htmlFor="newPassword">{copy.fields.newPassword}</Label>
-                  <div className="relative mt-3">
-                    <Input
+                  <div className="mt-3">
+                    <PasswordInput
                       id="newPassword"
-                      type={showNewPassword ? 'text' : 'password'}
                       autoComplete="new-password"
-                      className="pr-11"
                       placeholder={copy.placeholders.newPassword}
                       {...resetForm.register('newPassword')}
                     />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700"
-                      onClick={() => setShowNewPassword((v) => !v)}
-                      aria-label={showNewPassword ? 'Ocultar palavra-passe' : 'Mostrar palavra-passe'}
-                    >
-                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
                   </div>
                   {resetErrors.newPassword && (
                     <p className="mt-2 text-sm text-red-600">
@@ -246,23 +234,13 @@ export function RecoverPasswordPage() {
 
                 <div>
                   <Label htmlFor="confirmPassword">{copy.fields.confirmPassword}</Label>
-                  <div className="relative mt-3">
-                    <Input
+                  <div className="mt-3">
+                    <PasswordInput
                       id="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
                       autoComplete="new-password"
-                      className="pr-11"
                       placeholder={copy.placeholders.confirmPassword}
                       {...resetForm.register('confirmPassword')}
                     />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700"
-                      onClick={() => setShowConfirmPassword((v) => !v)}
-                      aria-label={showConfirmPassword ? 'Ocultar palavra-passe' : 'Mostrar palavra-passe'}
-                    >
-                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
                   </div>
                   {resetErrors.confirmPassword && (
                     <p className="mt-2 text-sm text-red-600">

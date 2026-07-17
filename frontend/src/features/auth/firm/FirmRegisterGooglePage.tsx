@@ -106,7 +106,9 @@ export function FirmRegisterGooglePage() {
         navigate(authFirmLoginUrl(), { replace: true })
         return
       }
-      toast.success('Escritório criado com Google')
+      toast.success('Escritório criado — bem-vindo!', {
+        description: 'Enviámos um e-mail de boas-vindas. Pode entrar sempre com Google.',
+      })
       navigate('/app/firm/dashboard', { replace: true })
     } catch (err) {
       let title = 'Não foi possível concluir o registo'

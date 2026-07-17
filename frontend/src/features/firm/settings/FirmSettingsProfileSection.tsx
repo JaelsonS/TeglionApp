@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import { PasswordInput } from '@/shared/components/ui/password-input'
 import { Label } from '@/shared/components/ui/label'
 import { firmSettingsApi } from '@/infrastructure/api/contabil/firmSettings'
 import type { FirmSettingsBundle } from '@/shared/types/firmSettings'
@@ -29,6 +30,9 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [savingPassword, setSavingPassword] = useState(false)
+
+  const hasPassword = bundle.actor.hasPassword !== false
+  const isGoogleAccount = String(bundle.actor.ssoProvider || '').toLowerCase() === 'google' && !bundle.actor.hasPassword
 
   useEffect(() => {
     setFullName(bundle.actor.fullName)
@@ -169,61 +173,80 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
           <div>
             <h3 className="cb-settings-panel-title">Segurança</h3>
             <p className="cb-settings-panel-sub">
-              Altere a palavra-passe desta conta. Mínimo {PASSWORD_MIN_LENGTH} caracteres, com
-              maiúscula, minúscula e número.
+              {isGoogleAccount || !hasPassword
+                ? 'Entra com a conta Google — não precisa de palavra-passe no Teglion.'
+                : `Para mudar a palavra-passe: confirme a actual e escolha uma nova (mín. ${PASSWORD_MIN_LENGTH} caracteres, com maiúscula, minúscula e número).`}
             </p>
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="current-password">Palavra-passe actual</Label>
-            <Input
-              id="current-password"
-              type="password"
-              autoComplete="current-password"
-              value={currentPassword}
-              onChange={(e: FormChangeEvent) => setCurrentPassword(e.target.value)}
-              disabled={savingPassword}
-            />
+        {isGoogleAccount || !hasPassword ? (
+          <div className="rounded-xl border border-border/50 bg-muted/20 px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+            <p className="font-medium text-foreground">Como funciona o seu acesso</p>
+            <p className="mt-1.5">
+              A sua conta está ligada ao Google. No ecrã de entrada, use{' '}
+              <strong className="text-foreground">Continuar com Google</strong> — não há palavra-passe
+              local para mostrar ou alterar aqui. Se um dia quiser também entrar com e-mail e palavra-passe,
+              isso pode ser adicionado mais tarde.
+            </p>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="new-password">Nova palavra-passe</Label>
-            <Input
-              id="new-password"
-              type="password"
-              autoComplete="new-password"
-              value={newPassword}
-              onChange={(e: FormChangeEvent) => setNewPassword(e.target.value)}
+        ) : (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="current-password">Palavra-passe actual</Label>
+                <PasswordInput
+                  id="current-password"
+                  autoComplete="current-password"
+                  placeholder="Escreva a palavra-passe que usa hoje para entrar"
+                  value={currentPassword}
+                  onChange={(e: FormChangeEvent) => setCurrentPassword(e.target.value)}
+                  disabled={savingPassword}
+                />
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Por segurança, a palavra-passe não fica guardada em texto legível — por isso este campo
+                  começa sempre vazio. Escreva a actual para confirmarmos que é mesmo você; o olho só mostra
+                  o que está a digitar agora.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-password">Nova palavra-passe</Label>
+                <PasswordInput
+                  id="new-password"
+                  autoComplete="new-password"
+                  placeholder="Escolha a nova palavra-passe"
+                  value={newPassword}
+                  onChange={(e: FormChangeEvent) => setNewPassword(e.target.value)}
+                  disabled={savingPassword}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirmar nova palavra-passe</Label>
+                <PasswordInput
+                  id="confirm-password"
+                  autoComplete="new-password"
+                  placeholder="Repita a nova palavra-passe"
+                  value={confirmPassword}
+                  onChange={(e: FormChangeEvent) => setConfirmPassword(e.target.value)}
+                  disabled={savingPassword}
+                />
+              </div>
+            </div>
+            <Button
+              type="button"
+              className="cb-btn-primary mt-4"
               disabled={savingPassword}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="confirm-password">Confirmar nova palavra-passe</Label>
-            <Input
-              id="confirm-password"
-              type="password"
-              autoComplete="new-password"
-              value={confirmPassword}
-              onChange={(e: FormChangeEvent) => setConfirmPassword(e.target.value)}
-              disabled={savingPassword}
-            />
-          </div>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          className="mt-4 rounded-lg"
-          disabled={savingPassword}
-          onClick={() => void onChangePassword()}
-        >
-          {savingPassword ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <KeyRound className="mr-2 h-4 w-4" />
-          )}
-          Actualizar palavra-passe
-        </Button>
+              onClick={() => void onChangePassword()}
+            >
+              {savingPassword ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <KeyRound className="mr-2 h-4 w-4" />
+              )}
+              Actualizar palavra-passe
+            </Button>
+          </>
+        )}
       </section>
     </div>
   )

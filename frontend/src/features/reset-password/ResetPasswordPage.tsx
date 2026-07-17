@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
-import { Eye, EyeOff, CheckCircle, AlertCircle, Loader } from 'lucide-react'
+import { CheckCircle, AlertCircle, Loader } from 'lucide-react'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -14,7 +14,7 @@ import { usePasswordStrength } from '@/shared/hooks/usePasswordStrength'
 import { PasswordStrengthIndicator } from '@/shared/components/PasswordStrengthIndicator'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
-import { Input } from '@/shared/components/ui/input'
+import { PasswordInput } from '@/shared/components/ui/password-input'
 import { Label } from '@/shared/components/ui/label'
 import { PASSWORD_MIN_LENGTH, passwordPolicyMessages } from '@/shared/utils/passwordPolicy'
 
@@ -68,8 +68,6 @@ export function ResetPasswordPage() {
         : '/recover-password?role=client'
       : '/recover-password?role=firm'
   const [step, setStep] = useState<ResetPasswordStep>({ type: 'initial' })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isValidatingToken, setIsValidatingToken] = useState(true)
 
   const resetPasswordSchema = useMemo(() => buildResetPasswordSchema(t), [t])
@@ -357,24 +355,13 @@ export function ResetPasswordPage() {
               </Label>
 
               <div className="relative">
-                <Input
+                <PasswordInput
                   id="newPassword"
-                  type={showPassword ? 'text' : 'password'}
                   placeholder={t('resetPassword.newPasswordPlaceholder', { defaultValue: 'Digite sua nova senha' })}
                   {...register('newPassword')}
-                  className={`pr-10 ${
-                    errors.newPassword ? 'border-red-500 focus-visible:ring-red-500' : ''
-                  }`}
+                  className={errors.newPassword ? 'border-red-500 focus-visible:ring-red-500' : ''}
                   autoComplete="new-password"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
               </div>
 
               {errors.newPassword && (
@@ -403,24 +390,13 @@ export function ResetPasswordPage() {
               </Label>
 
               <div className="relative">
-                <Input
+                <PasswordInput
                   id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
                   placeholder={t('resetPassword.confirmPasswordPlaceholder', { defaultValue: 'Confirme sua nova senha' })}
                   {...register('confirmPassword')}
-                  className={`pr-10 ${
-                    errors.confirmPassword ? 'border-red-500 focus-visible:ring-red-500' : ''
-                  }`}
+                  className={errors.confirmPassword ? 'border-red-500 focus-visible:ring-red-500' : ''}
                   autoComplete="new-password"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors"
-                  tabIndex={-1}
-                >
-                  {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
               </div>
 
               {errors.confirmPassword && (

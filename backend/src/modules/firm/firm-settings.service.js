@@ -85,6 +85,8 @@ async function getSettingsBundle(firmId, actorUserId) {
       departmentId: actor.department_id || null,
       departmentName: actorDepartmentName,
       isOwner: actor.role === 'FIRM_OWNER',
+      hasPassword: Boolean(actor.password_hash),
+      ssoProvider: actor.sso_provider || null,
     },
     team: team.map((m) => mapTeamMember(m, actorUserId, m.departmentId ? departmentMap.get(String(m.departmentId)) || null : null)),
     capabilities: {

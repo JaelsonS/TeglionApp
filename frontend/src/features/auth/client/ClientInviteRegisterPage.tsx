@@ -12,6 +12,7 @@ import { useAuth } from '@/shared/hooks/useAuth'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import { PasswordInput } from '@/shared/components/ui/password-input'
 import { Label } from '@/shared/components/ui/label'
 import { PASSWORD_MIN_LENGTH, passwordPolicySchema } from '@/shared/utils/passwordPolicy'
 
@@ -162,9 +163,8 @@ export function ClientInviteRegisterPage() {
               </div>
               <div>
                 <Label htmlFor="password">{t.invite.password}</Label>
-                <Input
+                <PasswordInput
                   id="password"
-                  type="password"
                   autoComplete="new-password"
                   className="mt-1.5 h-11 rounded-xl"
                   {...register('password')}
@@ -176,9 +176,8 @@ export function ClientInviteRegisterPage() {
               </div>
               <div>
                 <Label htmlFor="confirmPassword">Confirmar palavra-passe</Label>
-                <Input
+                <PasswordInput
                   id="confirmPassword"
-                  type="password"
                   autoComplete="new-password"
                   className="mt-1.5 h-11 rounded-xl"
                   {...register('confirmPassword')}

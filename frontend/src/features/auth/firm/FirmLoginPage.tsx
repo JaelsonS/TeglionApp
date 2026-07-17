@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { Eye, EyeOff } from 'lucide-react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { CheckedState } from '@radix-ui/react-checkbox'
+import { isAxiosError } from 'axios'
 
 import { AuthCard } from '@/shared/components/auth/AuthCard'
 import { AuthDivider } from '@/shared/components/auth/AuthDivider'
@@ -23,6 +23,7 @@ import { getErrorMessage } from '@/shared/utils/errors'
 import { warmupAuthLoginPage, withAuthLoginRetry } from '@/shared/utils/authLoginRetry'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
+import { PasswordInput } from '@/shared/components/ui/password-input'
 import { Label } from '@/shared/components/ui/label'
 
 const schema = z.object({
@@ -50,7 +51,6 @@ export function FirmLoginPage() {
   const [params, setParams] = useSearchParams()
   const { loginFirm } = useAuth()
   const toast = useApiToast()
-  const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [serverWaking, setServerWaking] = useState(false)
   const [ssoError, setSsoError] = useState<string | null>(null)
@@ -100,6 +100,22 @@ export function FirmLoginPage() {
         setServerWaking(true)
         toast.error('Servidor a iniciar. Tente novamente em instantes.')
         return
+      }
+      if (isAxiosError(err)) {
+        const code = String((err.response?.data as { code?: string })?.code || '').toUpperCase()
+        if (code === 'EMAIL_NOT_CONFIRMED') {
+          toast.error('Confirme o e-mail primeiro', {
+            description:
+              'Abra a mensagem que lhe enviámos, clique em «Confirmar e-mail» e volte aqui para entrar.',
+          })
+          return
+        }
+        if (code === 'SSO_REQUIRED') {
+          toast.error('Esta conta entra com Google', {
+            description: 'Use o botão «Continuar com Google» em baixo.',
+          })
+          return
+        }
       }
       toast.error(getErrorMessage(err))
     } finally {
@@ -157,23 +173,13 @@ export function FirmLoginPage() {
 
             <div>
               <Label htmlFor="password">{t.auth.password}</Label>
-              <div className="relative mt-3">
-                <Input
+              <div className="mt-3">
+                <PasswordInput
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
-                  className="pr-11"
                   placeholder="••••••••••"
                   {...form.register('password')}
                 />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700"
-                  onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? 'Ocultar palavra-passe' : 'Mostrar palavra-passe'}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
               </div>
               {errors.password ? <p className="mt-2 text-sm text-red-600">{errors.password.message}</p> : null}
             </div>

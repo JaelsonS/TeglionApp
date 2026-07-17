@@ -150,6 +150,17 @@ async function registerClientWithInvite({ token, email, password, fullName }) {
 
   await invitesRepository.markInviteAccepted(invite.id, clientId);
 
+  const firm = await firmsRepository.findFirmById(invite.firm_id).catch(() => null);
+  void contabilNotifications
+    .notifyClientWelcome({
+      clientEmail: normalizedEmail,
+      clientName: name,
+      firmName: firm?.name || null,
+    })
+    .catch(() => {
+      /* soft-fail */
+    });
+
   return {
     userId: String(clientId),
     firmId: String(invite.firm_id),

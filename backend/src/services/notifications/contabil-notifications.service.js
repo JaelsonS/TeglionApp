@@ -250,6 +250,102 @@ async function notifyFirmStaffEmailConfirmation({ staffEmail, staffName, firmNam
   });
 }
 
+/** Boas-vindas + confirmação para o dono do escritório (registo e-mail/senha). */
+async function notifyFirmOwnerSignupConfirm({ ownerEmail, ownerName, firmName, token }) {
+  if (!ownerEmail || !token) return { skipped: true };
+  const link = staffEmailConfirmUrl(token);
+  const firm = firmName || 'o seu escritório';
+  return sendEmail({
+    to: ownerEmail,
+    subject: `Bem-vindo ao TegLion — confirme o e-mail`,
+    tags: ['transactional', 'owner-signup', 'email-confirm'],
+    html: renderTransactionalEmail({
+      preheader: 'Confirme o e-mail para activar a conta do escritório',
+      title: 'Bem-vindo ao TegLion',
+      greeting: `Olá${ownerName ? ` ${ownerName}` : ''},`,
+      bodyHtml: `<p style="margin:0 0 12px">A conta do seu escritório <strong>${escapeHtml(firm)}</strong> foi criada.</p><p style="margin:0">Para a activar e entrar no painel, confirme o seu e-mail. O link é válido durante 48 horas.</p>`,
+      ctaLabel: 'Confirmar e-mail e activar conta',
+      ctaUrl: link,
+      footerNote: 'Depois da confirmação, entre com o e-mail e a palavra-passe que definiu. Se não criou esta conta, ignore este e-mail.',
+    }),
+    text: [
+      `Olá${ownerName ? ` ${ownerName}` : ''},`,
+      '',
+      `A conta do escritório ${firm} foi criada no TegLion.`,
+      '',
+      'Confirme o e-mail para activar a conta:',
+      link,
+      '',
+      'Depois entre com o e-mail e a palavra-passe que definiu.',
+      '',
+      'TegLion',
+    ].join('\n'),
+  });
+}
+
+/** Boas-vindas para dono que se registou com Google (e-mail já verificado). */
+async function notifyFirmOwnerWelcome({ ownerEmail, ownerName, firmName }) {
+  if (!ownerEmail) return { skipped: true };
+  const loginLink = `${APP_URL}/auth/firm/login`;
+  const firm = firmName || 'o seu escritório';
+  return sendEmail({
+    to: ownerEmail,
+    subject: `Bem-vindo ao TegLion — ${firm}`,
+    tags: ['transactional', 'owner-welcome', 'google-signup'],
+    html: renderTransactionalEmail({
+      preheader: 'A sua conta está pronta — entre com Google',
+      title: 'Bem-vindo ao TegLion',
+      greeting: `Olá${ownerName ? ` ${ownerName}` : ''},`,
+      bodyHtml: `<p style="margin:0 0 12px">A conta do escritório <strong>${escapeHtml(firm)}</strong> está activa.</p><p style="margin:0">Como se registou com Google, o e-mail já está confirmado. Use <strong>Continuar com Google</strong> sempre que quiser entrar.</p>`,
+      ctaLabel: 'Ir para o login',
+      ctaUrl: loginLink,
+      footerNote: 'Guarde este e-mail para referência. Estamos contentes por tê-lo connosco.',
+    }),
+    text: [
+      `Olá${ownerName ? ` ${ownerName}` : ''},`,
+      '',
+      `A conta do escritório ${firm} está activa no TegLion.`,
+      'Como se registou com Google, o e-mail já está confirmado.',
+      '',
+      'Login:',
+      loginLink,
+      '',
+      'TegLion',
+    ].join('\n'),
+  });
+}
+
+/** Boas-vindas ao cliente após aceitar o convite do portal. */
+async function notifyClientWelcome({ clientEmail, clientName, firmName }) {
+  if (!clientEmail) return { skipped: true };
+  const loginLink = `${APP_URL}/auth/client/login`;
+  const firm = firmName || 'o seu escritório';
+  return sendEmail({
+    to: clientEmail,
+    subject: `Bem-vindo ao portal — ${firm}`,
+    tags: ['transactional', 'client-welcome'],
+    html: renderTransactionalEmail({
+      preheader: `O seu acesso ao portal de ${firm} está pronto`,
+      title: 'Bem-vindo ao portal',
+      greeting: `Olá${clientName ? ` ${clientName}` : ''},`,
+      bodyHtml: `<p style="margin:0 0 12px">A sua conta no portal de <strong>${escapeHtml(firm)}</strong> está pronta.</p><p style="margin:0">Pode entrar com o e-mail e a palavra-passe que acabou de definir para enviar documentos e acompanhar pedidos.</p>`,
+      ctaLabel: 'Entrar no portal',
+      ctaUrl: loginLink,
+      footerNote: 'Se não esperava este e-mail, contacte o seu escritório de contabilidade.',
+    }),
+    text: [
+      `Olá${clientName ? ` ${clientName}` : ''},`,
+      '',
+      `A sua conta no portal de ${firm} está pronta.`,
+      '',
+      'Entrar:',
+      loginLink,
+      '',
+      'TegLion',
+    ].join('\n'),
+  });
+}
+
 module.exports = {
   notifyClientInvite,
   notifyClientNewTask,
@@ -261,6 +357,9 @@ module.exports = {
   notifyFirmStaffWelcome,
   notifyFirmMemberInvite,
   notifyFirmStaffEmailConfirmation,
+  notifyFirmOwnerSignupConfirm,
+  notifyFirmOwnerWelcome,
+  notifyClientWelcome,
   inviteUrl,
   teamInviteUrl,
   staffEmailConfirmUrl,

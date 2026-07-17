@@ -1,10 +1,13 @@
 # TegLion — Estado do projeto e evolução
 
-**Última actualização:** Julho 2026 (revisado 06 Jul 2026)
+**Última actualização:** Julho 2026 (revisado 17 Jul 2026)
 
 Este documento é a minha fonte de verdade para saber exatamente onde o projeto está, o que já validei e o que eu executo a seguir.
 
-**Cronograma executável:** [CRONOGRAMA.md](./CRONOGRAMA.md)
+**Plano de evolução (Founder OS):** [../company/EVOLUTION_PLAN.md](../company/EVOLUTION_PLAN.md)  
+**Performance Charter:** [../company/PERFORMANCE_CHARTER.md](../company/PERFORMANCE_CHARTER.md)  
+**Limpeza de docs:** [../company/DOC_CLEANUP.md](../company/DOC_CLEANUP.md)  
+**Cronograma legado:** [CRONOGRAMA.md](./CRONOGRAMA.md) (preferir EVOLUTION_PLAN)
 
 ---
 

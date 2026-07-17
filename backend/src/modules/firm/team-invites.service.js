@@ -1,4 +1,3 @@
-const crypto = require('crypto');
 const { AppError } = require('../../middlewares/error.middleware');
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
 const firmMemberInvitesRepository = require('../../db/supabase/repositories/firm-member-invites.repository');
@@ -8,13 +7,12 @@ const departmentsRepository = require('../../db/supabase/repositories/department
 const { hashPassword } = require('../../utils/password-crypto');
 const { assertStrongPassword } = require('../../utils/password-policy');
 const securityAudit = require('../../services/audit/security-audit.service');
+const emailConfirmationService = require('../../services/email/email-confirmation.service');
 const {
     notifyFirmMemberInvite,
-    notifyFirmStaffEmailConfirmation,
 } = require('../../services/notifications/contabil-notifications.service');
 
 const INVITE_TTL_DAYS = 14;
-const EMAIL_CONFIRM_TTL_HOURS = 48;
 
 async function assertDepartmentBelongsToFirm(firmId, departmentId) {
     if (!departmentId) return null;
@@ -33,41 +31,21 @@ function normalizeJobTitle(value) {
 }
 
 function generateToken() {
-    return crypto.randomBytes(32).toString('hex');
+    return emailConfirmationService.generateToken();
 }
 
 function hashToken(token) {
-    return crypto.createHash('sha256').update(String(token)).digest('hex');
+    return emailConfirmationService.hashToken(token);
 }
 
 async function sendEmailConfirmationForMember({ member, firmName }) {
-    const rawToken = generateToken();
-    const tokenHash = hashToken(rawToken);
-    const expiresAt = new Date(Date.now() + EMAIL_CONFIRM_TTL_HOURS * 60 * 60 * 1000).toISOString();
-    await emailConfirmationRepository.invalidateUserTokens('firm_user', member.id);
-    await emailConfirmationRepository.createToken({
-        userType: 'firm_user',
+    return emailConfirmationService.issueAndSendFirmUserEmailConfirmation({
         userId: member.id,
-        tokenHash,
-        expiresAt,
+        email: member.email,
+        fullName: member.fullName,
+        firmName,
+        variant: 'staff',
     });
-    try {
-        const delivery = await notifyFirmStaffEmailConfirmation({
-            staffEmail: member.email,
-            staffName: member.fullName,
-            firmName,
-            token: rawToken,
-        });
-        if (delivery?.skipped) {
-            console.warn('[TegLion][team-invite] confirmation email skipped (BREVO desactivado):', member.email);
-            return { emailSent: false, emailError: 'email_disabled' };
-        }
-        return { emailSent: true, emailError: null };
-    } catch (err) {
-        const message = err?.response?.data?.message || err?.message || 'email_delivery_failed';
-        console.warn('[TegLion][team-invite] falha no e-mail de confirmação:', message);
-        return { emailSent: false, emailError: String(message) };
-    }
 }
 
 async function deliverTeamInviteEmail({ staffEmail, staffName, firmName, inviteToken, expiresAt }) {

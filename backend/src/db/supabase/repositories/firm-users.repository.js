@@ -207,16 +207,25 @@ async function findFirmOwnerEmail(firmId) {
   return data?.email || null;
 }
 
-async function createFirmOwner({ firmId, email, fullName, passwordHash, ssoProvider, ssoSubject }) {
+async function createFirmOwner({
+  firmId,
+  email,
+  fullName,
+  passwordHash,
+  ssoProvider,
+  ssoSubject,
+  emailConfirmed = true,
+  isActive = true,
+}) {
   const sb = getSupabaseAdmin();
   const row = {
     firm_id: firmId,
     email: String(email).trim().toLowerCase(),
     full_name: fullName,
     role: 'FIRM_OWNER',
-    is_active: true,
+    is_active: isActive !== false,
     invite_status: 'ACCEPTED',
-    email_confirmed_at: new Date().toISOString(),
+    email_confirmed_at: emailConfirmed ? new Date().toISOString() : null,
   };
   if (passwordHash !== undefined && passwordHash !== null) {
     row.password_hash = passwordHash;

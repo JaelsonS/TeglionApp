@@ -8,6 +8,7 @@ import { getErrorMessage } from '@/shared/utils/errors'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
+import { PasswordInput } from '@/shared/components/ui/password-input'
 import { Label } from '@/shared/components/ui/label'
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import type { FirmSettingsBundle } from '@/shared/types/firmSettings'
@@ -261,8 +262,16 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
         document.getElementById('equipa-convidar')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
 
+    const scrollToInviteEmail = () => {
+        document.getElementById('equipa-convite-email')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+
     const scrollToDepartments = () => {
         document.getElementById('equipa-departamentos')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+
+    const scrollToMembers = () => {
+        document.getElementById('equipa-membros')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
     const canManageTeam = bundle.capabilities.canManageTeam
 
@@ -292,6 +301,9 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
             jobTitle: member.jobTitle || '',
             departmentId: member.departmentId || '',
         })
+        window.setTimeout(() => {
+            document.getElementById('equipa-editar-membro')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 50)
     }
 
     const renderAccessLabel = (member: TeamSettingsMember) => {
@@ -317,30 +329,54 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                 <button
                     type="button"
                     className="cb-settings-stat cb-settings-stat--team"
-                    onClick={() => setShowInactiveMembers(false)}
+                    onClick={() => {
+                        setShowInactiveMembers(false)
+                        scrollToMembers()
+                    }}
                 >
                     <p className="cb-settings-stat-label">Colaboradores activos</p>
                     <p className="cb-settings-stat-value">{teamStats.activeCount}</p>
-                    <p className="cb-settings-stat-hint">Ver lista abaixo</p>
+                    <p className="cb-settings-stat-hint">Clique para ver a lista</p>
                 </button>
                 <button type="button" className="cb-settings-stat cb-settings-stat--depts" onClick={scrollToDepartments}>
                     <p className="cb-settings-stat-label">Departamentos</p>
                     <p className="cb-settings-stat-value">{teamStats.deptCount}</p>
-                    <p className="cb-settings-stat-hint">Gerir estrutura</p>
+                    <p className="cb-settings-stat-hint">Clique para gerir</p>
                 </button>
                 <button
                     type="button"
                     className="cb-settings-stat cb-settings-stat--invites"
                     onClick={() => {
                         setShowInactiveMembers(true)
-                        scrollToInvite()
+                        if (canManageTeam) scrollToInviteEmail()
+                        else scrollToMembers()
                     }}
                 >
                     <p className="cb-settings-stat-label">Convites pendentes</p>
                     <p className="cb-settings-stat-value">{teamStats.pendingCount}</p>
-                    <p className="cb-settings-stat-hint">Ir para convites</p>
+                    <p className="cb-settings-stat-hint">Clique para convidar</p>
                 </button>
             </div>
+
+            {canManageTeam ? (
+                <div className="flex flex-wrap gap-2">
+                    <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={scrollToInvite}>
+                        <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                        Criar colaborador
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={scrollToInviteEmail}>
+                        <MailPlus className="mr-1.5 h-3.5 w-3.5" />
+                        Convidar por e-mail
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={scrollToDepartments}>
+                        <Users className="mr-1.5 h-3.5 w-3.5" />
+                        Departamentos
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={scrollToMembers}>
+                        Ver lista
+                    </Button>
+                </div>
+            ) : null}
 
             <div className="cb-settings-tip">
                 <p>
@@ -386,11 +422,11 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                 value={directForm.jobTitle}
                                 onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, jobTitle: e.target.value }))}
                             />
-                            <Input
+                            <PasswordInput
                                 placeholder="Palavra-passe (mín. 10, maiúscula, minúscula e número)"
-                                type="password"
                                 value={directForm.password}
                                 onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, password: e.target.value }))}
+                                autoComplete="new-password"
                             />
                             <p className="text-xs text-muted-foreground">
                                 A palavra-passe não é enviada por e-mail. Se activar o aviso de boas-vindas, o colaborador
@@ -430,8 +466,12 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                         </div>
                     </div>
 
-                    <div className="cb-settings-action-card">
-                        <div className="cb-settings-action-card-hd cb-settings-action-card-hd--invite">
+                    <div id="equipa-convite-email" className="cb-settings-action-card scroll-mt-24">
+                        <button
+                            type="button"
+                            className="cb-settings-action-card-hd cb-settings-action-card-hd--invite w-full cursor-pointer text-left"
+                            onClick={() => document.getElementById('equipa-invite-fullName')?.focus()}
+                        >
                             <span className="cb-settings-action-icon">
                                 <MailPlus className="h-4 w-4" aria-hidden />
                             </span>
@@ -439,9 +479,10 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                 <p className="cb-settings-action-title">Convidar por e-mail</p>
                                 <p className="cb-settings-action-sub">O colaborador define a palavra-passe</p>
                             </div>
-                        </div>
+                        </button>
                         <div className="cb-settings-action-body">
                             <Input
+                                id="equipa-invite-fullName"
                                 placeholder="Nome completo"
                                 value={inviteForm.fullName}
                                 onChange={(e: ChangeEvent<HTMLInputElement>) => setInviteForm((s) => ({ ...s, fullName: e.target.value }))}
@@ -522,7 +563,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                 </div>
             ) : null}
 
-            <div className="overflow-hidden rounded-2xl border border-border/40 bg-card shadow-sm">
+            <div id="equipa-membros" className="overflow-hidden rounded-2xl border border-border/40 bg-card shadow-sm scroll-mt-24">
                 {canManageTeam ? (
                     <div className="flex items-center justify-between border-b border-border/40 bg-muted/15 px-4 py-2.5">
                         <p className="text-xs font-medium text-muted-foreground">{visibleMembers.length} colaboradores visíveis</p>
@@ -548,7 +589,13 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                     </thead>
                     <tbody>
                         {visibleMembers.map((m) => (
-                            <tr key={m.id} className="border-b border-border/40 last:border-0">
+                            <tr
+                                key={m.id}
+                                className={`border-b border-border/40 last:border-0 ${canManageTeam ? 'cursor-pointer transition-colors hover:bg-brand/[0.04]' : ''}`}
+                                onClick={() => {
+                                    if (canManageTeam) openEditMember(m)
+                                }}
+                            >
                                 <td className="px-4 py-3 font-medium text-foreground">
                                     {m.fullName || '—'}
                                     {m.isCurrentUser ? (
@@ -567,7 +614,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                     {m.isActive ? 'Ativo' : 'Inativo'}
                                     {m.inviteStatus === 'PENDING' ? ' · convite pendente' : ''}
                                 </td>
-                                <td className="px-4 py-3">
+                                <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                                     <div className="flex flex-wrap gap-2">
                                         {canManageTeam ? (
                                             <>
@@ -640,8 +687,17 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
             </div>
 
             {canManageTeam && editingMemberId ? (
-                <div className="rounded-lg border border-border/60 p-4">
-                    <p className="mb-3 text-sm font-semibold">Editar colaborador</p>
+                <div id="equipa-editar-membro" className="cb-settings-action-card scroll-mt-24">
+                    <div className="cb-settings-action-card-hd cb-settings-action-card-hd--direct">
+                        <span className="cb-settings-action-icon">
+                            <Pencil className="h-4 w-4" aria-hidden />
+                        </span>
+                        <div>
+                            <p className="cb-settings-action-title">Editar colaborador</p>
+                            <p className="cb-settings-action-sub">Clique numa linha da lista para abrir</p>
+                        </div>
+                    </div>
+                    <div className="cb-settings-action-body">
                     <div className="grid gap-2 md:grid-cols-2">
                         <Input
                             placeholder="Nome completo"
@@ -681,6 +737,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                         <Button type="button" size="sm" variant="ghost" onClick={() => setEditingMemberId(null)}>
                             Cancelar
                         </Button>
+                    </div>
                     </div>
                 </div>
             ) : null}

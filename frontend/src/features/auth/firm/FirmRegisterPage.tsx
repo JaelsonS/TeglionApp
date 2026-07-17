@@ -5,6 +5,7 @@ import { isAxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
+import { MailCheck } from 'lucide-react'
 
 import { AuthCard } from '@/shared/components/auth/AuthCard'
 import { AuthDivider } from '@/shared/components/auth/AuthDivider'
@@ -19,6 +20,7 @@ import { contabilFirmApi, getGoogleAuthStartUrl } from '@/infrastructure/api'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { Input } from '@/shared/components/ui/input'
+import { PasswordInput } from '@/shared/components/ui/password-input'
 import { Label } from '@/shared/components/ui/label'
 import {
   LegalConsentBlock,
@@ -38,12 +40,19 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>
 
+type PendingConfirm = {
+  email: string
+  firmName: string
+  emailSent: boolean
+}
+
 export function FirmRegisterPage() {
   const navigate = useNavigate()
   const { setSession } = useAuth()
   const [submitting, setSubmitting] = useState(false)
   const [legal, setLegal] = useState<FirmLegalConsentState>(emptyFirmLegalConsent)
   const [legalError, setLegalError] = useState<string | null>(null)
+  const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null)
   const countryCode = 'PT'
 
   const form = useForm<FormValues>({
@@ -59,15 +68,33 @@ export function FirmRegisterPage() {
     setLegalError(null)
     setSubmitting(true)
     try {
-      const res = await contabilFirmApi.register({
+      const res = (await contabilFirmApi.register({
         firmName: values.firmName.trim(),
         ownerName: values.ownerName.trim(),
         email: values.email.trim().toLowerCase(),
         password: values.password,
         countryCode,
         legalConsents: buildFirmLegalConsentPayload(legal),
-      })
-      if (!setSession(res.user)) {
+      })) as {
+        needsEmailConfirmation?: boolean
+        emailSent?: boolean
+        email?: string
+        firmName?: string
+        message?: string
+        user?: unknown
+      }
+
+      if (res.needsEmailConfirmation) {
+        setPendingConfirm({
+          email: res.email || values.email.trim().toLowerCase(),
+          firmName: res.firmName || values.firmName.trim(),
+          emailSent: res.emailSent !== false,
+        })
+        toast.success('Conta criada — confirme o e-mail para activar')
+        return
+      }
+
+      if (!setSession(res.user as never)) {
         toast.warning(
           'Conta criada. Como não foi possível iniciar sessão automaticamente, inicie sessão com o mesmo e‑mail.',
         )
@@ -105,72 +132,106 @@ export function FirmRegisterPage() {
     >
       <div className="mx-auto max-w-md">
         <AuthCard>
-          <AuthHeader
-            title="Criar conta de escritório"
-            subtitle="Insira os dados básicos e aceite os termos legais para começar."
-          />
-
-          <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            Setup guiado em poucos minutos. Depois do registo, já pode convidar clientes e operar no mesmo dia.
-          </div>
-
-          <form id="email-register" className="mt-8 space-y-5" onSubmit={(e) => void onSubmit(e)}>
-            <div>
-              <Label htmlFor="firmName">{t.auth.firmName}</Label>
-              <Input id="firmName" className="mt-3" {...form.register('firmName')} />
-              {form.formState.errors.firmName ? (
-                <p className="mt-2 text-sm text-red-600">{form.formState.errors.firmName.message}</p>
-              ) : null}
-            </div>
-
-            <div>
-              <Label htmlFor="ownerName">{t.auth.ownerName}</Label>
-              <Input id="ownerName" className="mt-3" {...form.register('ownerName')} />
-            </div>
-
-            <div>
-              <Label htmlFor="email">{t.auth.email}</Label>
-              <Input id="email" type="email" autoComplete="email" className="mt-3" {...form.register('email')} />
-            </div>
-
-            <div>
-              <Label htmlFor="password">{t.auth.password}</Label>
-              <Input id="password" type="password" autoComplete="new-password" className="mt-3" {...form.register('password')} />
-            </div>
-
-            <LegalConsentBlock
-              value={legal}
-              onChange={(next) => {
-                setLegal(next)
-                if (isFirmLegalConsentComplete(next)) setLegalError(null)
-              }}
-              disabled={submitting}
-              error={legalError}
-            />
-
-            <button
-              type="submit"
-              className="h-12 w-full rounded-2xl bg-gradient-to-r from-[#0f2942] to-[#195285] text-white shadow-[0_14px_28px_rgba(15,41,66,0.28)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={submitting || !isFirmLegalConsentComplete(legal)}
-            >
-              {submitting ? 'A criar…' : t.auth.registerSubmit}
-            </button>
-
-            <AuthDivider label="ou" />
-
-            <GoogleAuthButton
-              href={getGoogleAuthStartUrl({ intent: 'register', countryCode })}
-              label="Continuar com Google"
-              disabled={submitting}
-            />
-
-            <div className="flex flex-col gap-3 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-slate-600">Já possui conta?</span>
-              <Link to={authFirmLoginUrl()} className="font-medium text-slate-900 hover:underline">
-                Entrar
+          {pendingConfirm ? (
+            <div className="text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
+                <MailCheck className="h-7 w-7" aria-hidden />
+              </div>
+              <AuthHeader
+                title="Confirme o seu e-mail"
+                subtitle={`Enviámos um link para ${pendingConfirm.email}`}
+              />
+              <div className="mt-6 space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-left text-sm text-emerald-900">
+                <p>
+                  A conta do escritório <strong>{pendingConfirm.firmName}</strong> foi criada.
+                </p>
+                <p>
+                  {pendingConfirm.emailSent
+                    ? 'Abra a caixa de entrada (e o spam), clique em «Confirmar e-mail» e depois entre no login com a palavra-passe que definiu.'
+                    : 'Não foi possível enviar o e-mail agora. Tente mais tarde ou contacte o suporte TegLion.'}
+                </p>
+                <p className="text-emerald-800/90">O link é válido durante 48 horas.</p>
+              </div>
+              <Link
+                to={authFirmLoginUrl()}
+                className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#0f2942] to-[#195285] text-sm font-semibold text-white shadow-[0_14px_28px_rgba(15,41,66,0.28)] transition hover:brightness-105"
+              >
+                Ir para o login
               </Link>
             </div>
-          </form>
+          ) : (
+            <>
+              <AuthHeader
+                title="Criar conta de escritório"
+                subtitle="Insira os dados básicos e aceite os termos legais para começar."
+              />
+
+              <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                Depois de criar a conta, confirma o e-mail — só assim o acesso fica activo. Com Google, o e-mail
+                já vem confirmado.
+              </div>
+
+              <form id="email-register" className="mt-8 space-y-5" onSubmit={(e) => void onSubmit(e)}>
+                <div>
+                  <Label htmlFor="firmName">{t.auth.firmName}</Label>
+                  <Input id="firmName" className="mt-3" {...form.register('firmName')} />
+                  {form.formState.errors.firmName ? (
+                    <p className="mt-2 text-sm text-red-600">{form.formState.errors.firmName.message}</p>
+                  ) : null}
+                </div>
+
+                <div>
+                  <Label htmlFor="ownerName">{t.auth.ownerName}</Label>
+                  <Input id="ownerName" className="mt-3" {...form.register('ownerName')} />
+                </div>
+
+                <div>
+                  <Label htmlFor="email">{t.auth.email}</Label>
+                  <Input id="email" type="email" autoComplete="email" className="mt-3" {...form.register('email')} />
+                </div>
+
+                <div>
+                  <Label htmlFor="password">{t.auth.password}</Label>
+                  <div className="mt-3">
+                    <PasswordInput id="password" autoComplete="new-password" {...form.register('password')} />
+                  </div>
+                </div>
+
+                <LegalConsentBlock
+                  value={legal}
+                  onChange={(next) => {
+                    setLegal(next)
+                    if (isFirmLegalConsentComplete(next)) setLegalError(null)
+                  }}
+                  disabled={submitting}
+                  error={legalError}
+                />
+
+                <button
+                  type="submit"
+                  className="h-12 w-full rounded-2xl bg-gradient-to-r from-[#0f2942] to-[#195285] text-white shadow-[0_14px_28px_rgba(15,41,66,0.28)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={submitting || !isFirmLegalConsentComplete(legal)}
+                >
+                  {submitting ? 'A criar…' : t.auth.registerSubmit}
+                </button>
+
+                <AuthDivider label="ou" />
+
+                <GoogleAuthButton
+                  href={getGoogleAuthStartUrl({ intent: 'register', countryCode })}
+                  label="Continuar com Google"
+                  disabled={submitting}
+                />
+
+                <div className="flex flex-col gap-3 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="text-slate-600">Já possui conta?</span>
+                  <Link to={authFirmLoginUrl()} className="font-medium text-slate-900 hover:underline">
+                    Entrar
+                  </Link>
+                </div>
+              </form>
+            </>
+          )}
         </AuthCard>
 
         <AuthFooter className="mt-6">

@@ -16,7 +16,8 @@ const authRefreshSessionsRepository = require('../../db/supabase/repositories/au
 const { defaultBookingSeed } = require('../booking/booking.service');
 const accountingServicesService = require('../firm/accounting-services.service');
 const legalConsentsService = require('../legal/legal-consents.service');
-const { notifyPasswordReset } = require('../../services/notifications/contabil-notifications.service');
+const { notifyPasswordReset, notifyFirmOwnerWelcome } = require('../../services/notifications/contabil-notifications.service');
+const emailConfirmationService = require('../../services/email/email-confirmation.service');
 const { toPublicAuthUser } = require('./auth-public-user');
 const { assertFirmLoginAllowed } = require('../../utils/firm-access');
 const { assertStrongPassword } = require('../../utils/password-policy');
@@ -177,6 +178,8 @@ async function registerFirm({ firmName, ownerName, email, password, countryCode 
       email: normalizedEmail,
       fullName: owner,
       passwordHash,
+      emailConfirmed: false,
+      isActive: true,
     });
 
     await legalConsentsService.recordFirmOwnerConsent({
@@ -187,7 +190,29 @@ async function registerFirm({ firmName, ownerName, email, password, countryCode 
       userAgent: legalConsents?.userAgent,
     });
 
-    return issueTokensForFirmUser(firmUser);
+    const delivery = await emailConfirmationService.issueAndSendFirmUserEmailConfirmation({
+      userId: firmUser.id,
+      email: normalizedEmail,
+      fullName: owner,
+      firmName: name,
+      variant: 'owner',
+    });
+
+    // Sem Brevo em local: auto-confirma para não bloquear desenvolvimento.
+    if (!delivery.emailSent && delivery.emailError === 'email_disabled') {
+      await firmUsersRepository.markFirmUserEmailConfirmed(firmUser.id, firm.id);
+      const confirmed = await firmUsersRepository.findFirmUserById(firmUser.id);
+      return issueTokensForFirmUser(confirmed || firmUser);
+    }
+
+    return {
+      needsEmailConfirmation: true,
+      emailSent: Boolean(delivery.emailSent),
+      email: normalizedEmail,
+      firmName: name,
+      message:
+        'Conta criada. Confirme o e-mail que lhe enviámos para activar o acesso e depois entre no login.',
+    };
   } catch (err) {
     throw mapDbError(err, 'Não foi possível criar a conta do escritório');
   }
@@ -234,6 +259,8 @@ async function registerFirmWithGoogle({
       passwordHash: null,
       ssoProvider: 'google',
       ssoSubject: googleSub,
+      emailConfirmed: true,
+      isActive: true,
     });
 
     await legalConsentsService.recordFirmOwnerConsent({
@@ -242,6 +269,14 @@ async function registerFirmWithGoogle({
       payload: legalConsents,
       ipAddress: legalConsents?.ipAddress,
       userAgent: legalConsents?.userAgent,
+    });
+
+    void notifyFirmOwnerWelcome({
+      ownerEmail: normalizedEmail,
+      ownerName: owner,
+      firmName: name,
+    }).catch(() => {
+      /* e-mail soft-fail — não bloquear registo Google */
     });
 
     const issued = await issueTokensForFirmUser(firmUser);
@@ -291,17 +326,11 @@ async function loginFirm({ email, password, req }) {
     throw new AppError('Conta inactiva. Contacte o administrador do escritório.', 403, { code: 'ACCOUNT_INACTIVE' });
   }
   if (!row.email_confirmed_at) {
-    const inviteStatus = String(row.invite_status || 'ACCEPTED').toUpperCase();
-    const isAcceptedOwner = row.role === 'FIRM_OWNER' && inviteStatus === 'ACCEPTED';
-    if (isAcceptedOwner) {
-      const healed = await firmUsersRepository.markFirmUserEmailConfirmed(row.id, row.firm_id);
-      row.email_confirmed_at = healed?.emailConfirmedAt || new Date().toISOString();
-    }
-  }
-  if (!row.email_confirmed_at) {
-    throw new AppError('Confirmação de e-mail pendente. Verifique a sua caixa de entrada.', 403, {
-      code: 'EMAIL_NOT_CONFIRMED',
-    });
+    throw new AppError(
+      'Confirmação de e-mail pendente. Abra o e-mail que lhe enviámos e clique em «Confirmar e-mail». Depois pode entrar aqui.',
+      403,
+      { code: 'EMAIL_NOT_CONFIRMED' },
+    );
   }
   const ok = await verifyPassword(String(password || '').trim(), row.password_hash);
   if (!ok) {

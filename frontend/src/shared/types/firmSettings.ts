@@ -50,6 +50,9 @@ export type FirmSettingsBundle = {
     departmentId?: string | null
     departmentName?: string | null
     isOwner: boolean
+    /** false = conta Google (ou SSO) sem palavra-passe local */
+    hasPassword?: boolean
+    ssoProvider?: string | null
   }
   team: FirmSettingsTeamMember[]
   capabilities: FirmSettingsCapabilities

@@ -1,6 +1,6 @@
 const { logger } = require('../utils/logger');
 
-const SLOW_MS = Number(process.env.SLOW_REQUEST_MS || 500);
+const SLOW_MS = Number(process.env.SLOW_REQUEST_MS || 1500);
 
 function requestTimingMiddleware(req, res, next) {
   const start = process.hrtime.bigint();

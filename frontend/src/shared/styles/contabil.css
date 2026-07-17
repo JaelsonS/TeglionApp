@@ -2779,7 +2779,7 @@
 
   /* Métricas clicáveis (Equipa) */
   .cb-settings-stat {
-    @apply flex w-full cursor-pointer flex-col rounded-2xl border border-border/40 bg-card px-4 py-3.5 text-left shadow-sm transition-all duration-150;
+    @apply group flex w-full cursor-pointer flex-col rounded-2xl border border-border/40 bg-card px-4 py-3.5 text-left shadow-sm transition-all duration-150;
   }
 
   .cb-settings-stat:hover {
@@ -2799,7 +2799,7 @@
   }
 
   .cb-settings-stat-hint {
-    @apply mt-1 text-[11px] text-muted-foreground;
+    @apply mt-1 text-[11px] font-medium text-muted-foreground underline-offset-2 group-hover:underline;
   }
 
   .cb-settings-stat--team {
