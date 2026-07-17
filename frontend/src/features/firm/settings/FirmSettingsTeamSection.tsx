@@ -1,4 +1,4 @@
-import { type ChangeEvent, useMemo, useState } from 'react'
+import { type ChangeEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { KeyRound, MailPlus, Pencil, ShieldCheck, UserPlus, Users } from 'lucide-react'
 import { toast } from 'sonner'
@@ -13,6 +13,7 @@ import { Label } from '@/shared/components/ui/label'
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import type { FirmSettingsBundle } from '@/shared/types/firmSettings'
 import type { TeamMember } from '@/shared/types/teamManagement'
+import { cn } from '@/shared/lib/utils'
 
 type Props = {
     bundle: FirmSettingsBundle
@@ -60,14 +61,27 @@ function permissionMeta(permission: string): PermissionMeta {
     }
 }
 
+type TeamView = 'create' | 'invite' | 'departments' | 'list'
+
 type TeamSettingsMember = TeamMember & {
     isCurrentUser?: boolean
     isOwner?: boolean
     roleLabel?: string
 }
 
+function focusAndReveal(el: HTMLElement | null) {
+    if (!el) return
+    el.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' })
+    const focusable = el.querySelector<HTMLElement>(
+        'input:not([type="checkbox"]):not([type="hidden"]):not([type="radio"]), select, textarea',
+    )
+    window.setTimeout(() => focusable?.focus(), 280)
+}
+
 export function FirmSettingsTeamSection({ bundle }: Props) {
     const queryClient = useQueryClient()
+    const [teamView, setTeamView] = useState<TeamView>('create')
+    const panelRef = useRef<HTMLDivElement>(null)
     const [directForm, setDirectForm] = useState({
         fullName: '',
         email: '',
@@ -95,6 +109,16 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
         jobTitle: '',
         departmentId: '',
     })
+
+    useEffect(() => {
+        focusAndReveal(panelRef.current)
+    }, [teamView])
+
+    const openTeamView = (view: TeamView) => {
+        setTeamView(view)
+        if (view === 'list') setShowInactiveMembers(false)
+        if (view === 'invite') setShowInactiveMembers(true)
+    }
 
     const teamQuery = useQuery({
         queryKey: ['team-management-members'],
@@ -146,6 +170,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                 departmentId: '',
                 sendWelcomeEmail: true,
             })
+            setTeamView('list')
             await invalidate()
         },
         onError: (err) => toast.error(getErrorMessage(err)),
@@ -166,6 +191,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                 toast.success('Convite enviado com sucesso.')
             }
             setInviteForm({ fullName: '', email: '', jobTitle: '', departmentId: '' })
+            setTeamView('list')
             await invalidate()
         },
         onError: (err) => toast.error(getErrorMessage(err)),
@@ -258,21 +284,6 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
         return { activeCount, pendingCount, deptCount }
     }, [members, departments])
 
-    const scrollToInvite = () => {
-        document.getElementById('equipa-convidar')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-
-    const scrollToInviteEmail = () => {
-        document.getElementById('equipa-convite-email')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-
-    const scrollToDepartments = () => {
-        document.getElementById('equipa-departamentos')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-
-    const scrollToMembers = () => {
-        document.getElementById('equipa-membros')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
     const canManageTeam = bundle.capabilities.canManageTeam
 
     const excludeMemberMutation = useMutation({
@@ -328,53 +339,70 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
             <div className="grid gap-3 sm:grid-cols-3">
                 <button
                     type="button"
-                    className="cb-settings-stat cb-settings-stat--team"
-                    onClick={() => {
-                        setShowInactiveMembers(false)
-                        scrollToMembers()
-                    }}
+                    className={cn(
+                        'cb-settings-stat cb-settings-stat--team',
+                        teamView === 'list' && 'ring-2 ring-brand/40',
+                    )}
+                    onClick={() => openTeamView('list')}
                 >
                     <p className="cb-settings-stat-label">Colaboradores activos</p>
                     <p className="cb-settings-stat-value">{teamStats.activeCount}</p>
-                    <p className="cb-settings-stat-hint">Clique para ver a lista</p>
-                </button>
-                <button type="button" className="cb-settings-stat cb-settings-stat--depts" onClick={scrollToDepartments}>
-                    <p className="cb-settings-stat-label">Departamentos</p>
-                    <p className="cb-settings-stat-value">{teamStats.deptCount}</p>
-                    <p className="cb-settings-stat-hint">Clique para gerir</p>
+                    <p className="cb-settings-stat-hint">Ver lista</p>
                 </button>
                 <button
                     type="button"
-                    className="cb-settings-stat cb-settings-stat--invites"
-                    onClick={() => {
-                        setShowInactiveMembers(true)
-                        if (canManageTeam) scrollToInviteEmail()
-                        else scrollToMembers()
-                    }}
+                    className={cn(
+                        'cb-settings-stat cb-settings-stat--depts',
+                        teamView === 'departments' && 'ring-2 ring-brand/40',
+                    )}
+                    onClick={() => openTeamView('departments')}
+                >
+                    <p className="cb-settings-stat-label">Departamentos</p>
+                    <p className="cb-settings-stat-value">{teamStats.deptCount}</p>
+                    <p className="cb-settings-stat-hint">Gerir departamentos</p>
+                </button>
+                <button
+                    type="button"
+                    className={cn(
+                        'cb-settings-stat cb-settings-stat--invites',
+                        teamView === 'invite' && 'ring-2 ring-brand/40',
+                    )}
+                    onClick={() => openTeamView(canManageTeam ? 'invite' : 'list')}
                 >
                     <p className="cb-settings-stat-label">Convites pendentes</p>
                     <p className="cb-settings-stat-value">{teamStats.pendingCount}</p>
-                    <p className="cb-settings-stat-hint">Clique para convidar</p>
+                    <p className="cb-settings-stat-hint">{canManageTeam ? 'Convidar por e-mail' : 'Ver lista'}</p>
                 </button>
             </div>
 
             {canManageTeam ? (
-                <div className="flex flex-wrap gap-2">
-                    <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={scrollToInvite}>
-                        <UserPlus className="mr-1.5 h-3.5 w-3.5" />
-                        Criar colaborador
-                    </Button>
-                    <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={scrollToInviteEmail}>
-                        <MailPlus className="mr-1.5 h-3.5 w-3.5" />
-                        Convidar por e-mail
-                    </Button>
-                    <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={scrollToDepartments}>
-                        <Users className="mr-1.5 h-3.5 w-3.5" />
-                        Departamentos
-                    </Button>
-                    <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={scrollToMembers}>
-                        Ver lista
-                    </Button>
+                <div className="flex flex-wrap gap-2" role="tablist" aria-label="Acções da equipa">
+                    {(
+                        [
+                            { id: 'create' as const, label: 'Criar colaborador', icon: UserPlus },
+                            { id: 'invite' as const, label: 'Convidar por e-mail', icon: MailPlus },
+                            { id: 'departments' as const, label: 'Departamentos', icon: Users },
+                            { id: 'list' as const, label: 'Ver lista', icon: Users },
+                        ] as const
+                    ).map((item) => {
+                        const Icon = item.icon
+                        const active = teamView === item.id
+                        return (
+                            <Button
+                                key={item.id}
+                                type="button"
+                                role="tab"
+                                aria-selected={active}
+                                variant={active ? 'default' : 'outline'}
+                                size="sm"
+                                className={cn('rounded-full', active && 'shadow-sm')}
+                                onClick={() => openTeamView(item.id)}
+                            >
+                                <Icon className="mr-1.5 h-3.5 w-3.5" />
+                                {item.label}
+                            </Button>
+                        )
+                    })}
                 </div>
             ) : null}
 
@@ -393,140 +421,136 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                 </p>
             ) : null}
 
-            {canManageTeam ? (
-                <div className="grid gap-4 lg:grid-cols-2">
-                    <div id="equipa-convidar" className="cb-settings-action-card scroll-mt-24">
-                        <div className="cb-settings-action-card-hd cb-settings-action-card-hd--direct">
-                            <span className="cb-settings-action-icon">
-                                <UserPlus className="h-4 w-4" aria-hidden />
-                            </span>
-                            <div>
-                                <p className="cb-settings-action-title">Criar colaborador</p>
-                                <p className="cb-settings-action-sub">Acesso direto com palavra-passe</p>
-                            </div>
-                        </div>
-                        <div className="cb-settings-action-body">
-                            <Input
-                                placeholder="Nome completo"
-                                value={directForm.fullName}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, fullName: e.target.value }))}
-                            />
-                            <Input
-                                placeholder="email@empresa.com"
-                                type="email"
-                                value={directForm.email}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, email: e.target.value }))}
-                            />
-                            <Input
-                                placeholder="Cargo / Função (ex.: Assistente Fiscal)"
-                                value={directForm.jobTitle}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, jobTitle: e.target.value }))}
-                            />
-                            <PasswordInput
-                                placeholder="Palavra-passe (mín. 10, maiúscula, minúscula e número)"
-                                value={directForm.password}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, password: e.target.value }))}
-                                autoComplete="new-password"
-                            />
-                            <p className="text-xs text-muted-foreground">
-                                A palavra-passe não é enviada por e-mail. Se activar o aviso de boas-vindas, o colaborador
-                                recebe apenas o link de login — partilhe a palavra-passe por um canal seguro.
-                            </p>
-                            <select
-                                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                                value={directForm.departmentId}
-                                onChange={(e) => setDirectForm((s) => ({ ...s, departmentId: e.target.value }))}
-                            >
-                                <option value="">Sem departamento</option>
-                                {departments
-                                    .filter((d) => d.isActive)
-                                    .map((d) => (
-                                        <option key={d.id} value={d.id}>
-                                            {d.name}
-                                        </option>
-                                    ))}
-                            </select>
-                            <Label className="flex items-center gap-2 text-sm font-normal">
-                                <Checkbox
-                                    checked={directForm.sendWelcomeEmail}
-                                    onCheckedChange={(checked: boolean | 'indeterminate') =>
-                                        setDirectForm((s) => ({ ...s, sendWelcomeEmail: checked === true }))
-                                    }
-                                />
-                                Enviar e-mail de boas-vindas com instruções
-                            </Label>
-                            <Button
-                                type="button"
-                                className="cb-btn-primary w-full justify-center"
-                                disabled={createDirectMutation.isPending}
-                                onClick={() => createDirectMutation.mutate()}
-                            >
-                                {createDirectMutation.isPending ? 'A criar...' : 'Criar colaborador'}
-                            </Button>
+            {canManageTeam && teamView === 'create' ? (
+                <div ref={panelRef} id="equipa-convidar" className="cb-settings-action-card scroll-mt-24">
+                    <div className="cb-settings-action-card-hd cb-settings-action-card-hd--direct">
+                        <span className="cb-settings-action-icon">
+                            <UserPlus className="h-4 w-4" aria-hidden />
+                        </span>
+                        <div>
+                            <p className="cb-settings-action-title">Criar colaborador</p>
+                            <p className="cb-settings-action-sub">Acesso direto com palavra-passe</p>
                         </div>
                     </div>
-
-                    <div id="equipa-convite-email" className="cb-settings-action-card scroll-mt-24">
-                        <button
-                            type="button"
-                            className="cb-settings-action-card-hd cb-settings-action-card-hd--invite w-full cursor-pointer text-left"
-                            onClick={() => document.getElementById('equipa-invite-fullName')?.focus()}
+                    <div className="cb-settings-action-body">
+                        <Input
+                            placeholder="Nome completo"
+                            value={directForm.fullName}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, fullName: e.target.value }))}
+                        />
+                        <Input
+                            placeholder="email@empresa.com"
+                            type="email"
+                            value={directForm.email}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, email: e.target.value }))}
+                        />
+                        <Input
+                            placeholder="Cargo / Função (ex.: Assistente Fiscal)"
+                            value={directForm.jobTitle}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, jobTitle: e.target.value }))}
+                        />
+                        <PasswordInput
+                            placeholder="Palavra-passe (mín. 10, maiúscula, minúscula e número)"
+                            value={directForm.password}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, password: e.target.value }))}
+                            autoComplete="new-password"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                            A palavra-passe não é enviada por e-mail. Se activar o aviso de boas-vindas, o colaborador
+                            recebe apenas o link de login — partilhe a palavra-passe por um canal seguro.
+                        </p>
+                        <select
+                            className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                            value={directForm.departmentId}
+                            onChange={(e) => setDirectForm((s) => ({ ...s, departmentId: e.target.value }))}
                         >
-                            <span className="cb-settings-action-icon">
-                                <MailPlus className="h-4 w-4" aria-hidden />
-                            </span>
-                            <div>
-                                <p className="cb-settings-action-title">Convidar por e-mail</p>
-                                <p className="cb-settings-action-sub">O colaborador define a palavra-passe</p>
-                            </div>
-                        </button>
-                        <div className="cb-settings-action-body">
-                            <Input
-                                id="equipa-invite-fullName"
-                                placeholder="Nome completo"
-                                value={inviteForm.fullName}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) => setInviteForm((s) => ({ ...s, fullName: e.target.value }))}
+                            <option value="">Sem departamento</option>
+                            {departments
+                                .filter((d) => d.isActive)
+                                .map((d) => (
+                                    <option key={d.id} value={d.id}>
+                                        {d.name}
+                                    </option>
+                                ))}
+                        </select>
+                        <Label className="flex items-center gap-2 text-sm font-normal">
+                            <Checkbox
+                                checked={directForm.sendWelcomeEmail}
+                                onCheckedChange={(checked: boolean | 'indeterminate') =>
+                                    setDirectForm((s) => ({ ...s, sendWelcomeEmail: checked === true }))
+                                }
                             />
-                            <Input
-                                placeholder="email@empresa.com"
-                                type="email"
-                                value={inviteForm.email}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) => setInviteForm((s) => ({ ...s, email: e.target.value }))}
-                            />
-                            <Input
-                                placeholder="Cargo / Função (ex.: Gestor de clientes)"
-                                value={inviteForm.jobTitle}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) => setInviteForm((s) => ({ ...s, jobTitle: e.target.value }))}
-                            />
-                            <select
-                                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                                value={inviteForm.departmentId}
-                                onChange={(e) => setInviteForm((s) => ({ ...s, departmentId: e.target.value }))}
-                            >
-                                <option value="">Sem departamento</option>
-                                {departments
-                                    .filter((d) => d.isActive)
-                                    .map((d) => (
-                                        <option key={d.id} value={d.id}>
-                                            {d.name}
-                                        </option>
-                                    ))}
-                            </select>
-                            <Button
-                                type="button"
-                                className="cb-btn-primary w-full justify-center"
-                                disabled={createInviteMutation.isPending}
-                                onClick={() => createInviteMutation.mutate()}
-                            >
-                                {createInviteMutation.isPending ? 'A enviar...' : 'Enviar convite'}
-                            </Button>
-                        </div>
+                            Enviar e-mail de boas-vindas com instruções
+                        </Label>
+                        <Button
+                            type="button"
+                            className="cb-btn-primary w-full justify-center"
+                            disabled={createDirectMutation.isPending}
+                            onClick={() => createDirectMutation.mutate()}
+                        >
+                            {createDirectMutation.isPending ? 'A criar...' : 'Criar colaborador'}
+                        </Button>
                     </div>
                 </div>
             ) : null}
 
-            {canManageTeam ? (
-                <div id="equipa-departamentos" className="cb-settings-action-card scroll-mt-24">
+            {canManageTeam && teamView === 'invite' ? (
+                <div ref={panelRef} id="equipa-convite-email" className="cb-settings-action-card scroll-mt-24">
+                    <div className="cb-settings-action-card-hd cb-settings-action-card-hd--invite">
+                        <span className="cb-settings-action-icon">
+                            <MailPlus className="h-4 w-4" aria-hidden />
+                        </span>
+                        <div>
+                            <p className="cb-settings-action-title">Convidar por e-mail</p>
+                            <p className="cb-settings-action-sub">O colaborador define a palavra-passe</p>
+                        </div>
+                    </div>
+                    <div className="cb-settings-action-body">
+                        <Input
+                            id="equipa-invite-fullName"
+                            placeholder="Nome completo"
+                            value={inviteForm.fullName}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setInviteForm((s) => ({ ...s, fullName: e.target.value }))}
+                        />
+                        <Input
+                            placeholder="email@empresa.com"
+                            type="email"
+                            value={inviteForm.email}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setInviteForm((s) => ({ ...s, email: e.target.value }))}
+                        />
+                        <Input
+                            placeholder="Cargo / Função (ex.: Gestor de clientes)"
+                            value={inviteForm.jobTitle}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setInviteForm((s) => ({ ...s, jobTitle: e.target.value }))}
+                        />
+                        <select
+                            className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                            value={inviteForm.departmentId}
+                            onChange={(e) => setInviteForm((s) => ({ ...s, departmentId: e.target.value }))}
+                        >
+                            <option value="">Sem departamento</option>
+                            {departments
+                                .filter((d) => d.isActive)
+                                .map((d) => (
+                                    <option key={d.id} value={d.id}>
+                                        {d.name}
+                                    </option>
+                                ))}
+                        </select>
+                        <Button
+                            type="button"
+                            className="cb-btn-primary w-full justify-center"
+                            disabled={createInviteMutation.isPending}
+                            onClick={() => createInviteMutation.mutate()}
+                        >
+                            {createInviteMutation.isPending ? 'A enviar...' : 'Enviar convite'}
+                        </Button>
+                    </div>
+                </div>
+            ) : null}
+
+            {canManageTeam && teamView === 'departments' ? (
+                <div ref={panelRef} id="equipa-departamentos" className="cb-settings-action-card scroll-mt-24">
                     <div className="cb-settings-action-card-hd cb-settings-action-card-hd--depts">
                         <span className="cb-settings-action-icon">
                             <Users className="h-4 w-4" aria-hidden />
@@ -537,33 +561,48 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                         </div>
                     </div>
                     <div className="cb-settings-action-body">
-                        <div className="flex gap-2">
+                        <div className="flex flex-col gap-2 sm:flex-row">
                             <Input
-                                placeholder="Novo departamento"
+                                placeholder="Novo departamento (ex.: Fiscal, Receção)"
                                 value={departmentName}
                                 onChange={(e: ChangeEvent<HTMLInputElement>) => setDepartmentName(e.target.value)}
+                                onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+                                    if (e.key === 'Enter') {
+                                        e.preventDefault()
+                                        if (departmentName.trim()) createDepartmentMutation.mutate()
+                                    }
+                                }}
                             />
                             <Button
                                 type="button"
+                                className="shrink-0"
                                 onClick={() => createDepartmentMutation.mutate()}
-                                disabled={createDepartmentMutation.isPending}
+                                disabled={createDepartmentMutation.isPending || !departmentName.trim()}
                             >
-                                Adicionar
+                                {createDepartmentMutation.isPending ? 'A adicionar...' : 'Adicionar'}
                             </Button>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                            {departments.map((d) => (
-                                <span key={d.id} className="cb-settings-dept-chip">
-                                    {d.name}
-                                    {d.isActive ? '' : ' (inativo)'}
-                                </span>
-                            ))}
+                            {departments.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">Ainda não tem departamentos. Crie o primeiro acima.</p>
+                            ) : (
+                                departments.map((d) => (
+                                    <span key={d.id} className="cb-settings-dept-chip">
+                                        {d.name}
+                                        {d.isActive ? '' : ' (inativo)'}
+                                    </span>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>
             ) : null}
 
-            <div id="equipa-membros" className="overflow-hidden rounded-2xl border border-border/40 bg-card shadow-sm scroll-mt-24">
+            <div
+                ref={teamView === 'list' ? panelRef : undefined}
+                id="equipa-membros"
+                className="overflow-hidden rounded-2xl border border-border/40 bg-card shadow-sm scroll-mt-24"
+            >
                 {canManageTeam ? (
                     <div className="flex items-center justify-between border-b border-border/40 bg-muted/15 px-4 py-2.5">
                         <p className="text-xs font-medium text-muted-foreground">{visibleMembers.length} colaboradores visíveis</p>
