@@ -174,7 +174,9 @@ const env = {
 
   MAX_FILE_SIZE: resolveMaxFileSizeMb(),
 
-  REDIS_URL: process.env.REDIS_URL,
+  REDIS_URL: String(process.env.REDIS_URL || '')
+    .trim()
+    .replace(/^['"]+|['"]+$/g, '') || undefined,
   BULLMQ_SKIP_VERSION_CHECK: String(process.env.BULLMQ_SKIP_VERSION_CHECK || '').toLowerCase() === 'true',
 
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',

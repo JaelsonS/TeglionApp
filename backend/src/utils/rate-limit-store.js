@@ -1,13 +1,15 @@
 /**
  * Store partilhado para express-rate-limit (Redis em produção, memória em dev).
  * Só activa Redis após probe com sucesso; se falhar, usa in-memory sem erros no arranque.
+ *
+ * Upstash (rediss://) requer TLS + preferência IPv4 em alguns hosts (ex. Render).
  */
 const { RedisStore } = require('rate-limit-redis');
 const Redis = require('ioredis');
 const { env } = require('../config/env');
 const { logger } = require('./logger');
 
-const REDIS_PROBE_MS = 5_000;
+const REDIS_PROBE_MS = 8_000;
 
 let redisClient = null;
 let redisVerified = false;
@@ -39,6 +41,23 @@ function failOpenRedisResponse(args) {
   }
 }
 
+function redisClientOptions() {
+  return {
+    lazyConnect: true,
+    enableOfflineQueue: false,
+    maxRetriesPerRequest: 2,
+    connectTimeout: REDIS_PROBE_MS,
+    // Upstash + Render: TLS explícito e IPv4 evitam falhas intermitentes
+    tls: {},
+    family: 4,
+    keepAlive: 10_000,
+    retryStrategy(times) {
+      if (times > 8) return null;
+      return Math.min(times * 400, 3_000);
+    },
+  };
+}
+
 function markRedisUnavailable(reason) {
   redisVerified = false;
   logger.warn('[rate-limit] Redis indisponível — limites em fail-open (pedidos não bloqueados)', {
@@ -48,29 +67,34 @@ function markRedisUnavailable(reason) {
 
 function attachRedisListeners(client) {
   client.on('error', (err) => {
-    markRedisUnavailable(err);
-    logger.error('[redis] rate-limit client error', { message: err?.message });
+    // Não desactivar em erros transitórios se o cliente ainda vai reconectar
+    if (client.status === 'end' || client.status === 'close') {
+      markRedisUnavailable(err);
+    }
+    logger.error('[redis] rate-limit client error', { message: err?.message, status: client.status });
   });
   client.on('close', () => {
-    markRedisUnavailable(new Error('Connection is closed'));
+    // close dispara também em quit/shutdown — só marcar se for o cliente partilhado activo
+    if (client === redisClient) {
+      redisVerified = false;
+      logger.warn('[redis] conexão fechada — a tentar reconectar automaticamente');
+    }
+  });
+  client.on('ready', () => {
+    if (client === redisClient) {
+      redisVerified = true;
+      logger.info('[redis] rate-limit store pronto.');
+    }
   });
   client.on('connect', () => {
-    logger.info('[redis] rate-limit store ligado.');
+    if (client === redisClient) {
+      logger.info('[redis] rate-limit store ligado.');
+    }
   });
 }
 
 function createRedisClient(url) {
-  const client = new Redis(url, {
-    lazyConnect: true,
-    enableOfflineQueue: false,
-    maxRetriesPerRequest: null,
-    connectTimeout: REDIS_PROBE_MS,
-    commandTimeout: REDIS_PROBE_MS,
-    retryStrategy(times) {
-      if (times > 3) return null;
-      return Math.min(times * 500, 2_000);
-    },
-  });
+  const client = new Redis(url, redisClientOptions());
   attachRedisListeners(client);
   return client;
 }
@@ -89,8 +113,12 @@ function safeSendCommand(...args) {
 async function probeRedisUrl(url) {
   let probeClient;
   try {
-    probeClient = createRedisClient(url);
-    probeClient.removeAllListeners('error');
+    // Cliente de probe sem listeners globais (quit() não deve “matar” o estado partilhado)
+    probeClient = new Redis(url, {
+      ...redisClientOptions(),
+      maxRetriesPerRequest: 1,
+      retryStrategy: () => null,
+    });
     probeClient.on('error', () => {});
     await probeClient.connect();
     const pong = await probeClient.ping();
@@ -126,6 +154,11 @@ async function initRateLimitRedis() {
     return false;
   }
 
+  if (!/^rediss?:\/\//i.test(url)) {
+    logger.warn('[rate-limit] REDIS_URL inválida — esperado redis:// ou rediss://');
+    return false;
+  }
+
   const ok = await probeRedisUrl(url);
   if (!ok) {
     redisVerified = false;
@@ -135,11 +168,20 @@ async function initRateLimitRedis() {
   redisClient = createRedisClient(url);
   try {
     await redisClient.connect();
+    const pong = await redisClient.ping();
+    if (pong !== 'PONG') {
+      throw new Error(`PING inesperado: ${pong}`);
+    }
     redisVerified = true;
     logger.info('[rate-limit] Redis verificado — store partilhado activo.');
     return true;
   } catch (err) {
     markRedisUnavailable(err);
+    try {
+      await redisClient.quit();
+    } catch {
+      // ignore
+    }
     redisClient = null;
     return false;
   }
@@ -159,8 +201,9 @@ function createRateLimitStore(prefix = 'rl:') {
 async function closeRateLimitRedis() {
   redisVerified = false;
   if (redisClient) {
-    await redisClient.quit().catch(() => {});
+    const closing = redisClient;
     redisClient = null;
+    await closing.quit().catch(() => {});
   }
 }
 

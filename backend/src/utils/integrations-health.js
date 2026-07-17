@@ -40,6 +40,8 @@ async function probeRedis() {
       lazyConnect: true,
       enableOfflineQueue: false,
       retryStrategy: () => null,
+      tls: {},
+      family: 4,
     });
     client.on('error', () => {});
     await client.connect();
