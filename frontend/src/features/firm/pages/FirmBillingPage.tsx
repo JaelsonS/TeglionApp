@@ -11,6 +11,7 @@ import { contabilBillingApi, type BillingStatus } from '@/infrastructure/api'
 import { Button } from '@/shared/components/ui/button'
 import { useApiToast } from '@/shared/hooks/useApiToast'
 import { cn } from '@/shared/lib/utils'
+import { PRICING_FALLBACK, formatEurCents } from '@/shared/config/pricingConstants'
 
 type CheckoutInterval = 'month' | 'year'
 
@@ -70,6 +71,14 @@ export function FirmBillingPage() {
 
   const monthlyReady = billing?.plans?.monthly?.configured !== false
   const yearlyReady = billing?.plans?.yearly?.configured === true
+  const trialDays = billing?.trialDays ?? PRICING_FALLBACK.trialDays
+  const monthlyCents = billing?.plans?.monthly?.amountCents ?? PRICING_FALLBACK.monthly.amountCents
+  const yearlyCents = billing?.plans?.yearly?.amountCents ?? PRICING_FALLBACK.yearly.amountCents
+  const yearlyMonthlyCents =
+    billing?.plans?.yearly?.equivalentMonthlyCents ?? PRICING_FALLBACK.yearly.equivalentMonthlyCents
+  const monthlyLabel = formatEurCents(monthlyCents)
+  const yearlyLabel = formatEurCents(yearlyCents)
+  const yearlyMonthlyLabel = formatEurCents(yearlyMonthlyCents)
 
   return (
     <FirmScrollPage className="cb-billing-layout-page">
@@ -77,7 +86,7 @@ export function FirmBillingPage() {
         <header className="cb-billing-page-hd">
           <h1 className="cb-billing-page-title">Plano e subscrição</h1>
           <p className="cb-billing-page-sub">
-            14 dias de teste · depois mensal (35 €) ou anual (359,88 € — ~29,99 €/mês)
+            {trialDays} dias de teste · depois mensal ({monthlyLabel}) ou anual ({yearlyLabel} — ~{yearlyMonthlyLabel}/mês)
           </p>
         </header>
 
@@ -118,8 +127,8 @@ export function FirmBillingPage() {
           <div className="cb-billing-card">
             <p className="cb-billing-card-label">{p.trial.name}</p>
             <p className="cb-billing-card-price">
-              {p.trial.price}
-              <span className="cb-billing-card-period"> / {p.trial.period}</span>
+              0 €
+              <span className="cb-billing-card-period"> / {trialDays} dias</span>
             </p>
             <p className="cb-billing-card-desc">{p.trial.description}</p>
           </div>
@@ -127,8 +136,8 @@ export function FirmBillingPage() {
           <div className="cb-billing-card">
             <p className="cb-billing-card-label">{p.plan.monthly.name}</p>
             <p className="cb-billing-card-price">
-              {p.plan.monthly.price}
-              <span className="cb-billing-card-period"> {p.plan.monthly.period}</span>
+              {monthlyLabel}
+              <span className="cb-billing-card-period"> / mês</span>
             </p>
             <p className="cb-billing-card-desc">{p.plan.monthly.note} · por escritório</p>
           </div>
@@ -136,10 +145,10 @@ export function FirmBillingPage() {
           <div className="cb-billing-card cb-billing-card-featured">
             <p className="cb-billing-card-label">{p.plan.yearly.name}</p>
             <p className="cb-billing-card-price">
-              {p.plan.yearly.price}
-              <span className="cb-billing-card-period"> {p.plan.yearly.period}</span>
+              {yearlyMonthlyLabel}
+              <span className="cb-billing-card-period"> / mês</span>
             </p>
-            <p className="cb-billing-card-desc">{p.plan.yearly.note}</p>
+            <p className="cb-billing-card-desc">{yearlyLabel} cobrados uma vez por ano</p>
             <p className="mt-2 text-xs font-medium text-brand">{p.plan.yearly.badge}</p>
           </div>
         </div>
@@ -165,7 +174,7 @@ export function FirmBillingPage() {
                 ) : (
                   <CreditCard className="mr-2 h-4 w-4" />
                 )}
-                Activar mensal (35 €)
+                Activar mensal ({monthlyLabel})
               </Button>
               <Button
                 type="button"
@@ -179,7 +188,7 @@ export function FirmBillingPage() {
                 ) : (
                   <CreditCard className="mr-2 h-4 w-4" />
                 )}
-                Activar anual (359,88 €)
+                Activar anual ({yearlyLabel})
               </Button>
               {billing?.hasSubscription ? (
                 <Button

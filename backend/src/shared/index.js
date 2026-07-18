@@ -1,7 +1,3 @@
-/**
- * Barrel shared — cross-cutting sem regra de negócio.
- * Import: const { logger, AppError } = require('../shared');
- */
 const { AppError } = require('../middlewares/error.middleware');
 const { logger } = require('../utils/logger');
 const ttlCache = require('../utils/cache/ttl-cache');

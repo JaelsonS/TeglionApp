@@ -4,11 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 import { FadeInView } from '@/shared/components/landing/FadeInView'
 import { cn } from '@/shared/lib/utils'
+import { PRICING_TEXT } from '@/shared/config/pricingConstants'
 
 const FAQ = [
   {
     q: 'Quanto custa depois do teste?',
-    a: '35 €/mês ou 359,88 €/ano (equiv. 29,99 €/mês), por escritório. Os 14 dias são grátis e sem cartão — só paga se decidir ficar.',
+    a: `${PRICING_TEXT.monthlyLabel}/mês ou ${PRICING_TEXT.yearlyTotalLabel}/ano (equiv. ${PRICING_TEXT.yearlyMonthlyLabel}/mês), por escritório. Os ${PRICING_TEXT.trialDays} dias são grátis e sem cartão — só paga se decidir ficar.`,
   },
   {
     q: 'Funciona no telemóvel?',

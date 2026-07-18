@@ -19,6 +19,6 @@
     "check:file-sizes": "node tools/ci/check-file-sizes.mjs"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   }
 }

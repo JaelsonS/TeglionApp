@@ -26,7 +26,7 @@ export type WorkspaceTask = {
   dependsOnTaskId?: string | null
   obligationId?: string | null
   obligationTitle?: string | null
-  taskType?: 'recurring_obligation' | 'manual_task'
+  taskType?: 'recurring_obligation' | 'manual_task' | 'internal_task'
   periodMonth?: string | null
   recurringRuleId?: string | null
   createdAt?: string

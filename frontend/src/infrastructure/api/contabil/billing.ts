@@ -10,6 +10,7 @@ export type BillingStatus = {
   stripeCustomerId?: string | null
   hasSubscription: boolean
   priceEurCents?: number
+  trialDays?: number
   plans?: {
     monthly?: { interval: string; amountCents: number; configured: boolean }
     yearly?: { interval: string; amountCents: number; equivalentMonthlyCents?: number; configured: boolean }

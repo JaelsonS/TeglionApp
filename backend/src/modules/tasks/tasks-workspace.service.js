@@ -253,6 +253,7 @@ async function createTask({ firmId, actor, payload, file }) {
       };
     } catch (error) {
       // Compatibilidade para ambientes onde a migration de recorrência ainda não foi aplicada.
+      console.warn('[tasks-workspace] createInternalRecurringRule falhou, a criar tarefa sem regra persistida:', error?.message);
       recurrenceRulePayload = {
         ...recurrenceRule,
         frequency: String(recurrenceRule.frequency || 'MONTHLY').toUpperCase(),
@@ -286,18 +287,24 @@ async function createTask({ firmId, actor, payload, file }) {
     });
   } catch (error) {
     const message = String(error?.message || '').toLowerCase();
-    const shouldFallback =
-      message.includes('task_type') ||
-      message.includes('recurring_rule_id') ||
-      message.includes('period_month') ||
-      message.includes('check constraint');
+    // Apenas colunas legadas (period_month/recurring_rule_id) podem estar ausentes em
+    // ambientes muito antigos. `task_type` NUNCA pode ser rebaixado no fallback: fazer
+    // isso faz a tarefa desaparecer da listagem, porque o workspace filtra estritamente
+    // por task_type === 'internal_task' (ver FirmTasksWorkspacePage.tsx -> manualItems).
+    const missingLegacyColumn =
+      message.includes('period_month') || message.includes('recurring_rule_id');
 
-    if (!shouldFallback) throw error;
+    if (!missingLegacyColumn) throw error;
 
-    // Fallback para schema antigo: mantém criação funcional com task_type legado.
+    console.warn(
+      '[tasks-workspace] insertTask fallback: colunas period_month/recurring_rule_id ausentes no schema. Aplicar migration 20260522100000_architecture_debt_fix.sql. Detalhe:',
+      error?.message,
+    );
+
+    // Fallback para schema antigo: mantém task_type correcto, apenas remove colunas novas.
     task = await tasksRepo.insertTask({
       ...baseRow,
-      task_type: 'manual_task',
+      task_type: taskType,
     });
   }
 
@@ -401,6 +408,11 @@ async function duplicateTask({ firmId, taskId, actor }) {
     tags: src.tags,
     duplicated_from_id: src.id,
     created_by: actor?.id || null,
+    // CRÍTICO: preservar task_type (e period_month) da tarefa de origem. Sem isto, a
+    // coluna cai no DEFAULT 'manual_task' da tabela e a cópia some da listagem de
+    // Tarefas Manuais, que filtra estritamente por task_type === 'internal_task'.
+    task_type: src.taskType || 'internal_task',
+    period_month: src.dueDate ? String(src.dueDate).slice(0, 7) : null,
   });
   return { task };
 }

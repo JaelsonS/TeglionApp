@@ -1,7 +1,19 @@
 import type { AxiosInstance } from 'axios'
 
+export type PublicPricingPlans = {
+  currency: string
+  trialDays: number
+  monthly: { interval: 'month'; amountCents: number; configured: boolean }
+  yearly: { interval: 'year'; amountCents: number; equivalentMonthlyCents: number; configured: boolean }
+}
+
 export function createContabilPublicApi(api: AxiosInstance) {
   return {
+    getPricing: (countryCode?: string) =>
+      api
+        .get('/public/pricing', { params: countryCode ? { country: countryCode } : undefined })
+        .then((r) => r.data as PublicPricingPlans),
+
     getLegalVersions: () =>
       api.get('/public/legal/versions').then(
         (r) =>

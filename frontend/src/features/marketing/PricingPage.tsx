@@ -7,6 +7,7 @@ import { LandingSocialProof } from '@/shared/components/landing/LandingSocialPro
 import { FadeInView } from '@/shared/components/landing/FadeInView'
 import { authFirmRegisterUrl } from '@/shared/constants/authPaths'
 import { BRAND } from '@/shared/config/brand'
+import { usePublicPricing } from '@/shared/config/pricingPlans'
 
 const INCLUDED = [
   'Painel operacional e carteira de clientes',
@@ -17,13 +18,15 @@ const INCLUDED = [
   'Alertas e comunicados',
   'Central de serviços e orçamentos',
   'Utilizadores ilimitados no trial',
+  
 ] as const
 
 export function PricingPage() {
+  const { trialDays, monthlyLabel, yearlyMonthlyLabel, yearlyTotalLabel } = usePublicPricing()
   return (
     <LandingMarketingShell
       title={`Preços | ${BRAND.name}`}
-      description="14 dias grátis. Depois 35 €/mês ou 359,88 €/ano (equiv. 29,99 €/mês). Por escritório, sem fidelização."
+      description={`${trialDays} dias grátis. Depois ${monthlyLabel}/mês ou ${yearlyTotalLabel}/ano (equiv. ${yearlyMonthlyLabel}/mês). Por escritório, sem fidelização.`}
       path="/pricing"
     >
       <section className="landing-section pb-0">

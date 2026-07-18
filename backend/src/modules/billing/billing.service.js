@@ -3,6 +3,7 @@ const { env } = require('../../config/env');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const stripeWebhookEventsRepository = require('../../db/supabase/repositories/stripe-webhook-events.repository');
 const { getStripe, isStripeConfigured, resolveSubscriptionPriceId } = require('../../services/stripe/stripe-client');
+const { getPricingPlans } = require('../../config/pricing-plans');
 const { logger } = require('../../utils/logger');
 
 const BILLING_PLAN_OFFICE_MONTHLY = 'office_monthly';
@@ -14,8 +15,8 @@ async function getBillingStatus(firmId) {
   const firm = await firmsRepository.findFirmById(firmId);
   if (!firm) throw new AppError('Escritório não encontrado', 404);
   const access = computeFirmAccess(firm);
-  const monthlyPriceId = resolveSubscriptionPriceId(firm.countryCode, 'month');
-  const yearlyPriceId = resolveSubscriptionPriceId(firm.countryCode, 'year');
+  // Fonte única de verdade dos preços — ver backend/src/config/pricing-plans.js.
+  const plans = getPricingPlans(firm.countryCode);
   return {
     status: firm.status,
     trialEndsAt: firm.trialEndsAt,
@@ -25,19 +26,11 @@ async function getBillingStatus(firmId) {
     stripeConfigured: isStripeConfigured(),
     stripeCustomerId: firm.stripeCustomerId || null,
     hasSubscription: Boolean(firm.stripeSubscriptionId),
-    priceEurCents: env.FIRM_PLAN_EUR_MONTHLY_CENTS,
+    priceEurCents: plans.monthly.amountCents,
+    trialDays: plans.trialDays,
     plans: {
-      monthly: {
-        interval: 'month',
-        amountCents: env.FIRM_PLAN_EUR_MONTHLY_CENTS,
-        configured: Boolean(monthlyPriceId),
-      },
-      yearly: {
-        interval: 'year',
-        amountCents: env.FIRM_PLAN_EUR_YEARLY_CENTS,
-        equivalentMonthlyCents: 2999,
-        configured: Boolean(yearlyPriceId),
-      },
+      monthly: plans.monthly,
+      yearly: plans.yearly,
     },
   };
 }
@@ -75,8 +68,8 @@ async function createCheckoutSession(firmId, actorEmail, { interval = 'month' } 
   if (!stripe || !priceId) {
     throw new AppError(
       billingInterval === 'year'
-        ? 'Plano anual ainda não está configurado. Defina STRIPE_PRICE_ID_EUR_YEARLY no servidor.'
-        : 'Stripe não configurado. Defina STRIPE_SECRET_KEY e STRIPE_PRICE_ID_EUR_MONTHLY.',
+        ? 'Plano anual ainda não está configurado.'
+        : 'Stripe não configurado.',
       503,
       undefined,
       'STRIPE_NOT_CONFIGURED',

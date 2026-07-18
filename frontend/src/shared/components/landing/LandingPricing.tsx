@@ -4,51 +4,67 @@ import { Check } from 'lucide-react'
 import { authFirmRegisterUrl } from '@/shared/constants/authPaths'
 import { FadeInStagger, FadeInStaggerItem, FadeInView } from '@/shared/components/landing/FadeInView'
 import { cn } from '@/shared/lib/utils'
+import { usePublicPricing } from '@/shared/config/pricingPlans'
 
-const PLANS = [
-  {
-    id: 'trial',
-    name: 'Teste grátis',
-    price: '0 €',
-    period: '/ 14 dias',
-    note: 'Sem cartão no registo',
-    features: ['Escritório + portal do cliente', 'Utilizadores ilimitados no trial', 'PWA no telemóvel e computador'],
-    cta: 'Começar os 14 dias',
-    primary: true,
-    featured: false,
-    order: 'order-1 md:order-1',
-  },
-  {
-    id: 'monthly',
-    name: 'Mensal',
-    price: '35 €',
-    period: '/ mês',
-    note: 'Por escritório · IVA à parte se aplicável',
-    features: ['Flexível — cancela quando quiser', 'Mesmo produto do teste', 'Ideal para experimentar a sério'],
-    cta: 'Começar com teste grátis',
-    primary: false,
-    featured: false,
-    order: 'order-3 md:order-2',
-  },
-  {
-    id: 'yearly',
-    name: 'Anual',
-    price: '29,99 €',
-    period: '/ mês',
-    note: (
-      <>
-        Cobrado <strong className="text-[#0F2942]">359,88 € / ano</strong> · por escritório
-      </>
-    ),
-    features: ['~2 meses grátis vs mensal', 'Melhor preço se já vai ficar', 'Mesmo produto, menos custo'],
-    cta: 'Quero o melhor valor',
-    primary: true,
-    featured: true,
-    order: 'order-2 md:order-3',
-  },
-] as const
+function buildPlans({
+  trialDays,
+  monthlyLabel,
+  yearlyMonthlyLabel,
+  yearlyTotalLabel,
+}: {
+  trialDays: number
+  monthlyLabel: string
+  yearlyMonthlyLabel: string
+  yearlyTotalLabel: string
+}) {
+  return [
+    {
+      id: 'trial',
+      name: 'Teste grátis',
+      price: '0 €',
+      period: `/ ${trialDays} dias`,
+      note: 'Sem cartão no registo',
+      features: ['Escritório + portal do cliente', 'Utilizadores ilimitados no trial', 'PWA no telemóvel e computador'],
+      cta: `Começar os ${trialDays} dias`,
+      primary: true,
+      featured: false,
+      order: 'order-1 md:order-1',
+    },
+    {
+      id: 'monthly',
+      name: 'Mensal',
+      price: monthlyLabel,
+      period: '/ mês',
+      note: 'Por escritório · IVA à parte se aplicável',
+      features: ['Flexível — cancela quando quiser', 'Mesmo produto do teste', 'Ideal para experimentar a sério'],
+      cta: 'Começar com teste grátis',
+      primary: false,
+      featured: false,
+      order: 'order-3 md:order-2',
+    },
+    {
+      id: 'yearly',
+      name: 'Anual',
+      price: yearlyMonthlyLabel,
+      period: '/ mês',
+      note: (
+        <>
+          Cobrado <strong className="text-[#0F2942]">{yearlyTotalLabel} / ano</strong> · por escritório
+        </>
+      ),
+      features: ['~2 meses grátis vs mensal', 'Melhor preço se já vai ficar', 'Mesmo produto, menos custo'],
+      cta: 'Quero o melhor valor',
+      primary: true,
+      featured: true,
+      order: 'order-2 md:order-3',
+    },
+  ] as const
+}
 
 export function LandingPricing() {
+  const { trialDays, monthlyLabel, yearlyMonthlyLabel, yearlyTotalLabel } = usePublicPricing()
+  const PLANS = buildPlans({ trialDays, monthlyLabel, yearlyMonthlyLabel, yearlyTotalLabel })
+
   return (
     <section id="precos" className="landing-section scroll-mt-24">
       <div className="landing-container">

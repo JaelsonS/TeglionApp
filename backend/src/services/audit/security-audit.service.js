@@ -1,6 +1,5 @@
 /**
- * Auditoria de eventos sensíveis (auth, documentos, dados fiscais).
- * Nunca regista palavras-passe, tokens ou corpo completo de payloads.
+ * Auditoria de eventos sensíveis de segurança.
  */
 const { getSupabaseAdmin } = require('../../db/supabase/client');
 const { clientIp, clientUserAgent } = require('../../utils/client-ip');

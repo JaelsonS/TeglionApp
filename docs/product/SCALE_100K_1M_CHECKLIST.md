@@ -27,31 +27,62 @@ Quando os 400 itens abaixo estiverem concluídos, o TegLion deverá estar:
 
 ## Fase 0 — Urgente: Produção estável e segura
 
+> **Auditoria de status (18/Jul/2026):** revisão linha-a-linha do código, CI e `docs/`
+> para separar o que está de facto implementado/enforced do que é só aspiração
+> neste documento. `[x]` = feito e com enforcement real (código/CI). Itens sem
+> `[x]` ficam com uma nota "Status real" a dizer exactamente o que falta —
+> evitar o falso positivo de "documentado" == "implementado".
+
 - [ ] `F0-01 [P0]` Tornar staging obrigatório antes de qualquer deploy para produção.
+  - Status real: **PARCIAL**. Processo documentado (`docs/operations/DEPLOY_STAGING.md`, `BRANCHING.md`), mas nada no CI/branch rules bloqueia deploy para `main` sem passar por `staging` primeiro.
 - [ ] `F0-02 [P0]` Proteger `main` com branch rules, CI obrigatório e review obrigatório.
+  - Status real: **PARCIAL**. CI corre em PR/push (`.github/workflows/ci.yml`), mas não há `CODEOWNERS` no repo e as branch rules do GitHub não são versionadas/verificáveis aqui — falta confirmar manualmente nas settings do repositório.
 - [ ] `F0-03 [P0]` Garantir ambientes totalmente isolados para `local`, `staging` e `produção`.
+  - Status real: **PARCIAL**. Isolamento documentado, mas sem `.env.staging.example` no repo nem confirmação versionada de projecto Supabase de staging separado do de produção.
 - [ ] `F0-04 [P0]` Automatizar backup diário e validar restauração real de base de dados.
+  - Status real: **NÃO FEITO**. Só recomendação em `docs/operations/STORAGE.md` ("activar backups no Supabase"); sem script/cron de backup e sem teste de restore documentado.
 - [ ] `F0-05 [P0]` Formalizar runbook de rollback de frontend, backend e migrations.
+  - Status real: **PARCIAL**. Existe secção de rollback em `DEPLOY_PRODUCTION.md`/`SECURITY.md`, mas migrations são só "forward-only" (sem plano de rollback de schema) e não há registo de um drill de rollback executado.
 - [ ] `F0-06 [P0]` Tornar `release:readiness` gate obrigatório antes de merge para `main`.
+  - Status real: **PARCIAL**. Script existe (`tools/ci/release-readiness.mjs`, `npm run release:readiness`), mas **não corre no `.github/workflows/ci.yml`** — não bloqueia merge.
 - [ ] `F0-07 [P0]` Tornar `tenant isolation` obrigatório em CI e schedule diário/semanal.
+  - Status real: **PARCIAL**. `backend/scripts/tenant-isolation-test.js` existe e roda localmente (`npm run test:tenant-isolation`), mas não está no CI nem tem workflow com `schedule:` (cron).
 - [ ] `F0-08 [P0]` Activar rate limits com Redis sem modo fail-open em produção final.
+  - Status real: **PARCIAL**. Redis store implementado (`backend/src/utils/rate-limit-store.js`), mas ainda tem fallback fail-open (`failOpenRedisResponse`) quando Redis está indisponível — por design, para não derrubar o produto, mas contraria o item literal do checklist.
 - [ ] `F0-09 [P0]` Colocar WAF na borda com regras OWASP e proteção anti-bot.
+  - Status real: **NÃO FEITO**. Sem configuração de WAF/Cloudflare no repo; só menção como "planeado" em `SECURITY.md`.
 - [ ] `F0-10 [P0]` Centralizar gestão de segredos com rotação periódica documentada.
+  - Status real: **PARCIAL**. Segredos via GitHub Environments + scan de secrets no CI (`tools/ci/secret-scan.mjs`), mas sem política/calendário de rotação operacionalizado.
 - [ ] `F0-11 [P0]` Medir uptime real com monitorização externa e alertas imediatos.
+  - Status real: **NÃO FEITO**. Sem integração com UptimeRobot/Better Stack/etc.
 - [ ] `F0-12 [P0]` Validar CSP, HSTS, secure cookies, SameSite e headers de segurança.
-- [ ] `F0-13 [P0]` Implementar healthchecks por dependência crítica, não apenas health geral.
-- [ ] `F0-14 [P0]` Garantir auditoria de login, reset, convite e alterações sensíveis.
-- [ ] `F0-15 [P0]` Formalizar política de incidentes com severidade P0/P1/P2/P3.
+  - Status real: **PARCIAL**. Helmet + CSP configurados no backend e headers no `frontend/vercel.json`, cookies `secure`/`sameSite` correctos — mas CSP ainda com `'unsafe-inline'` residual (ver `SECURITY.md`).
+- [x] `F0-13 [P0]` Implementar healthchecks por dependência crítica, não apenas health geral.
+  - Evidência: `/health` com ping à DB + `/api/public/health/integrations` a verificar Redis/Stripe/Brevo/Storage individualmente.
+- [x] `F0-14 [P0]` Garantir auditoria de login, reset, convite e alterações sensíveis.
+  - Evidência: `security-audit.service.js`, `login-attempts.repository.js`, eventos `team.invite.*`, tabela `audit_logs`.
+- [x] `F0-15 [P0]` Formalizar política de incidentes com severidade P0/P1/P2/P3.
+  - Evidência: `docs/security/SECURITY.md` (tabela de severidade) + `docs/operations/INCIDENT_RUNBOOK.md`.
 - [ ] `F0-16 [P0]` Criar baseline de performance e erro para produção actual.
+  - Status real: **PARCIAL**. Sentry FE/BE + `request-timing.middleware.js` + `benchmark-dashboard.js` existem, mas falta um baseline formal com números-alvo registados.
 - [ ] `F0-17 [P0]` Definir SLO inicial de API, login, upload e listagens críticas.
+  - Status real: **NÃO FEITO**. Só metas genéricas em `ROADMAP.md`/`PERFORMANCE_CHARTER.md`, sem números e *owners* definidos.
 - [ ] `F0-18 [P0]` Adicionar alertas para crescimento anormal de storage e queries lentas.
+  - Status real: **NÃO FEITO**. Existe apenas log de slow request (`SLOW_REQUEST_MS`); sem alerta de storage nem de queries lentas na DB.
 - [ ] `F0-19 [P0]` Documentar dependências de terceiros e plano de contingência por serviço.
+  - Status real: **PARCIAL**. Stack de terceiros documentada (`STATUS.md`, `ARCHITECTURE.md`), mas sem plano de contingência/failover por fornecedor.
 - [ ] `F0-20 [P0]` Garantir que todo endpoint sensível exige scoping de `firmId` no backend.
+  - Status real: **PARCIAL**. `requireUserFirmId` usado consistentemente (~22 módulos) e `docs/security/TENANT_ISOLATION_REPORT.md` existe, mas o relatório está "aprovado com avisos" e o teste de isolamento não é obrigatório em CI (ver F0-07).
 - [ ] `F0-21 [P0]` Executar pentest externo e corrigir findings críticos antes de expansão forte.
+  - Status real: **NÃO FEITO**.
 - [ ] `F0-22 [P0]` Implementar dashboards executivos de produção para fundadores e engenharia.
+  - Status real: **NÃO FEITO**. Só dashboards de produto (para clientes), nenhum dashboard de operação/SRE.
 - [ ] `F0-23 [P0]` Criar checklist pós-deploy de produção com smoke automatizado e manual.
+  - Status real: **PARCIAL**. `smoke:pilot`, `production-smoke-manual.js` e `GO_LIVE_CHECKLIST.md` existem, mas o smoke pós-deploy não corre automaticamente no pipeline de produção.
 - [ ] `F0-24 [P0]` Criar política de freeze para deploys em janelas fiscais críticas.
-- [ ] `F0-25 [P0]` Fechar gaps de logging estruturado para correlação fim-a-fim por request.
+  - Status real: **NÃO FEITO**.
+- [x] `F0-25 [P0]` Fechar gaps de logging estruturado para correlação fim-a-fim por request.
+  - Evidência: `request-context.middleware.js` (`X-Request-Id`) + logger estruturado (Winston JSON) + morgan com request-id.
 
 ## Fase 1 — Clareza de UX do escritório
 

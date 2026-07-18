@@ -19,6 +19,7 @@
     "test:portal-hub": "node scripts/portal-hub-smoke-test.js",
     "benchmark:dashboard": "node scripts/benchmark-dashboard.js",
     "storage:validate": "node scripts/validate-storage.js",
+    "stripe:setup": "node scripts/stripe-setup.js",
     "postinstall": "echo 'Dependencies installed successfully'",
     "smoke:pilot": "node scripts/pilot-smoke-e2e.js"
   },

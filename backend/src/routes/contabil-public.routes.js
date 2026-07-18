@@ -12,6 +12,7 @@ const firmBrandingPublic = require('../modules/public/firm-branding-public.contr
 const blogNewsletterController = require('../modules/public/blog-newsletter.controller');
 const integrationsHealthController = require('../modules/public/integrations-health.controller');
 const countriesController = require('../modules/public/countries.controller');
+const pricingController = require('../modules/public/pricing.controller');
 const { createRateLimitStore } = require('../utils/rate-limit-store');
 
 const router = express.Router();
@@ -44,6 +45,7 @@ router.get('/health/integrations', (req, res, next) => {
 
 router.get('/legal/versions', legalController.getVersions);
 router.get('/countries', countriesController.getSupportedCountries);
+router.get('/pricing', pricingController.getPublicPricing);
 router.get('/postal-lookup', postalLookupController.lookup);
 router.get('/client-invite/:token', invitePreviewLimiter, invitesController.previewPublic);
 router.get('/team-invite/:token', invitePreviewLimiter, teamInvitesController.previewPublic);

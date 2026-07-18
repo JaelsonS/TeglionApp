@@ -1,3 +1,5 @@
+import { PRICING_TEXT } from '@/shared/config/pricingConstants'
+
 /** Textos TegLion — Português de Portugal (pt-PT) */
 export const contabilPt = {
   brand: 'Teglion',
@@ -10,17 +12,16 @@ export const contabilPt = {
     ctaFirm: 'Começar gratuitamente',
     ctaClient: 'Sou cliente de um escritório',
     ctaDemo: 'Ver demonstração',
-    trustLine: '14 dias grátis · depois a partir de 29,99 €/mês (anual) · sem cartão no registo',
+    trustLine: `${PRICING_TEXT.trialDays} dias grátis · depois a partir de ${PRICING_TEXT.yearlyMonthlyLabel}/mês (anual) · sem cartão no registo`,
   },
   pricing: {
     eyebrow: 'Preços',
     title: 'Quanto custa',
-    subtitle:
-      'Começas com 14 dias grátis. Se ficar, escolhes mensal (35 €) ou anual (359,88 € — equivale a 29,99 €/mês).',
+    subtitle: `Começas com ${PRICING_TEXT.trialDays} dias grátis. Se ficar, escolhes mensal (${PRICING_TEXT.monthlyLabel}) ou anual (${PRICING_TEXT.yearlyTotalLabel} — equivale a ${PRICING_TEXT.yearlyMonthlyLabel}/mês).`,
     trial: {
       name: 'Teste gratuito',
       price: '0 €',
-      period: '14 dias',
+      period: `${PRICING_TEXT.trialDays} dias`,
       description: 'Usa o escritório e o portal como se já fosses cliente. Sem cartão.',
       features: [
         'Sem cartão no registo',
@@ -32,7 +33,7 @@ export const contabilPt = {
     },
     plan: {
       name: 'Plano Escritório',
-      price: '35 €',
+      price: PRICING_TEXT.monthlyLabel,
       period: 'por mês · por escritório',
       vatNote: 'IVA à taxa legal, se aplicável.',
       description: 'Depois do teste, o mesmo sistema para toda a equipa.',
@@ -42,26 +43,26 @@ export const contabilPt = {
         'Documentos e mensagens',
         'Cancela quando quiseres — sem fidelização',
       ],
-      afterTrial: 'No fim dos 14 dias pedimos que actives um plano. Avisamos antes.',
+      afterTrial: `No fim dos ${PRICING_TEXT.trialDays} dias pedimos que actives um plano. Avisamos antes.`,
       cta: 'Começar com teste grátis',
       monthly: {
         name: 'Mensal',
-        price: '35 €',
+        price: PRICING_TEXT.monthlyLabel,
         period: '/ mês',
         note: 'Flexível',
       },
       yearly: {
         name: 'Anual',
-        price: '29,99 €',
+        price: PRICING_TEXT.yearlyMonthlyLabel,
         period: '/ mês',
-        note: '359,88 € cobrados uma vez por ano',
+        note: `${PRICING_TEXT.yearlyTotalLabel} cobrados uma vez por ano`,
         badge: 'Melhor valor',
       },
     },
     faq: [
       {
         q: 'Preciso de cartão para experimentar?',
-        a: 'Não. Os 14 dias correm sem débito.',
+        a: `Não. Os ${PRICING_TEXT.trialDays} dias correm sem débito.`,
       },
       {
         q: 'O que acontece no dia 15?',
@@ -73,7 +74,7 @@ export const contabilPt = {
       },
       {
         q: 'Mensal ou anual?',
-        a: 'Mensal: 35 €/mês. Anual: 359,88 €/ano (cerca de 29,99 €/mês). O teste de 14 dias é igual nos dois.',
+        a: `Mensal: ${PRICING_TEXT.monthlyLabel}/mês. Anual: ${PRICING_TEXT.yearlyTotalLabel}/ano (cerca de ${PRICING_TEXT.yearlyMonthlyLabel}/mês). O teste de ${PRICING_TEXT.trialDays} dias é igual nos dois.`,
       },
     ],
     launchNote:
