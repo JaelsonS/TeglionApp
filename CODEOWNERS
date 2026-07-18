@@ -1,0 +1,17 @@
+# CODEOWNERS — TegLion
+# Exige review de dono antes de merge em áreas sensíveis quando a branch
+# protection do GitHub tiver "Require review from Code Owners" activo.
+# Ver docs/product/SCALE_100K_1M_CHECKLIST.md (F0-02).
+
+* @JaelsonS
+
+# Segurança, auth e dados sensíveis
+/backend/src/middlewares/ @JaelsonS
+/backend/src/config/ @JaelsonS
+/backend/src/modules/billing/ @JaelsonS
+/backend/src/services/stripe/ @JaelsonS
+/supabase/migrations/ @JaelsonS
+
+# CI/CD e infraestrutura
+/.github/ @JaelsonS
+/tools/ci/ @JaelsonS

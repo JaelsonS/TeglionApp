@@ -48,6 +48,22 @@ Isto deve substituir a cascata típica `/auth/me` + `/firm/settings` no primeiro
 
 ---
 
+## SLOs iniciais (F0-17)
+
+Metas de arranque para a base actual de clientes (revisar sprint a sprint com dados reais do Sentry/logs — não são garantias contratuais):
+
+| Serviço | SLO | Como medir |
+|---|---|---|
+| API — disponibilidade | 99.5% mensal | Uptime do `/api/public/health` (ver F0-11, pendente monitorização externa) |
+| Login (`POST /api/auth/login`) | p95 < 800ms | `request-timing.middleware.js` + Sentry performance |
+| Upload de documento (≤10MB) | p95 < 4s | Logs de `documents.service.js` + Sentry |
+| Listagens críticas (tarefas, clientes, obrigações) | p95 < 1.5s | `SLOW_REQUEST_MS` (default 1500ms) já loga acima disto |
+| Checkout Stripe → `firms.status = ACTIVE` | < 10s após pagamento confirmado | Latência do webhook (`stripe_webhook_events`) |
+
+**Dono:** equipa de engenharia (1 pessoa, actualmente). Revisão: sempre que o Sentry mostrar p95 acima da meta em 3 dias consecutivos.
+
+---
+
 ## Slow requests (Render)
 
 O middleware regista `slow request` acima de `SLOW_REQUEST_MS` (default **1500**).  

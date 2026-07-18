@@ -53,6 +53,18 @@ Já validei build, testes, tenant isolation, smoke piloto e E2E smoke.
 
 > **Não migrar para «só Supabase».** O backend já usa Supabase como BD/Storage; eliminá-lo obrigaria a reescrever auth, schedulers, email, billing e validações — mais lento e mais arriscado que o estado actual. Norte: [../company/EVOLUTION_PLAN.md](../company/EVOLUTION_PLAN.md).
 
+### Plano de contingência por fornecedor (F0-19)
+
+| Fornecedor | Se cair, o que para | Mitigação imediata | Plano B |
+|---|---|---|---|
+| Supabase (DB) | Tudo — login, dados, RLS | Ver status.supabase.com; nenhuma escrita é possível sem DB | Restaurar do último backup/PITR disponível no plano; sem DB alternativa a quente |
+| Supabase (Storage) | Upload/download de documentos | Restantes funcionalidades continuam | Buckets isolados por serviço — impacto limitado a documentos |
+| Stripe | Checkout, portal, webhooks de billing | `stripeConfigured:false` já é tratado sem crash (`isStripeConfigured()`); acesso de quem já é `ACTIVE` não é revogado | Sem plano B de gateway; acompanhar status.stripe.com |
+| Brevo (email) | Convites, reset de password, lembretes | `EMAIL_ENABLED=false` já degrada sem crash no arranque | Nenhum fallback de envio; comunicar manualmente em incidente prolongado |
+| Redis (Render) | Rate limit distribuído | Fallback fail-open já implementado (`rate-limit-store.js`) — API continua a responder | Sem Redis, perde-se protecção anti-abuso até restaurar |
+| Vercel (frontend) | Site/app inacessível | Rollback para deploy anterior (1 clique) | — |
+| Render (backend) | API inacessível | Redeploy do último commit saudável | — |
+
 ### O que está pronto
 
 | Área | Detalhe |

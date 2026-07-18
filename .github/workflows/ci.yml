@@ -37,5 +37,11 @@ jobs:
       - name: Backend unit tests
         run: npm run test:backend
 
+      - name: Backend static security audit
+        run: npm run test:security-static -w backend
+
+      - name: File size limits
+        run: npm run check:file-sizes
+
       - name: Secret scan
         run: npm run security:secrets

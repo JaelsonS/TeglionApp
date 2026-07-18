@@ -139,6 +139,7 @@ coverage/
 # Ambiente e configurações locais
 .env
 .env.local
+.env.example
 .env.development.local
 .env.test.local
 .env.production.local

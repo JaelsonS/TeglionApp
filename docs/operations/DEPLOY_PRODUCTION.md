@@ -227,3 +227,15 @@ cd frontend && npm run build
 - Frontend: redeploy commit anterior no Vercel
 - Backend: redeploy Render + env vars intactas
 - Supabase: migrations são forward-only — testar sempre em staging primeiro
+
+### Rollback de migrations (F0-05)
+
+Não há `down.sql` automático — cada migração forward-only exige rollback manual pensado caso a caso:
+
+1. **Nunca** fazer `DROP COLUMN`/`DROP TABLE` na mesma migração que introduz a mudança — separar em 2 passos (deprecar → remover só depois de confirmar em produção por ≥1 semana sem uso).
+2. Se uma migração já aplicada causar um incidente: escrever uma nova migração de compensação (ex: `_revert_<nome>.sql`) que desfaz o efeito — nunca editar/apagar a migração já aplicada (o histórico em `supabase/migrations/` é o registo de auditoria).
+3. Antes de qualquer migração com `ALTER`/`DROP` em tabela com dados reais: correr primeiro em staging e confirmar com `SELECT count(*)` antes/depois.
+4. Para dados corrompidos por bug de aplicação (não de schema): preferir um script de backfill dedicado (ver `supabase/migrations/20260901030000_fix_client_tasks_duplicated_task_type.sql` como exemplo) em vez de alterar schema.
+5. Registar todo rollback executado em produção no `docs/operations/INCIDENT_RUNBOOK.md`.
+
+**Drill de rollback executado:** ainda não há um exercício registado (ver `runbook-incident-drill.js`, que testa o runbook de incidente mas não simula ainda um rollback de migration real). Pendente.
