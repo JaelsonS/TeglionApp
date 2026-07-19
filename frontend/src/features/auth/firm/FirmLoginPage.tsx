@@ -18,6 +18,7 @@ import { authFirmRegisterUrl, authProfileChoiceUrl } from '@/shared/constants/au
 import { useAuth } from '@/shared/hooks/useAuth'
 import { useApiToast } from '@/shared/hooks/useApiToast'
 import { getGoogleAuthStartUrl, prefetchAuthCsrf } from '@/infrastructure/api'
+import { ServerWakingBanner } from '@/shared/components/feedback/ServerWakingUp'
 import { isNoResponseError } from '@/shared/utils/requestTimeout'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { warmupAuthLoginPage, withAuthLoginRetry } from '@/shared/utils/authLoginRetry'
@@ -53,6 +54,7 @@ export function FirmLoginPage() {
   const toast = useApiToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [serverWaking, setServerWaking] = useState(false)
+  const [serverWakingSince, setServerWakingSince] = useState<number>()
   const [ssoError, setSsoError] = useState<string | null>(null)
 
   const form = useForm<FormValues>({
@@ -81,6 +83,7 @@ export function FirmLoginPage() {
   async function onSubmit(values: FormValues) {
     setIsSubmitting(true)
     setServerWaking(false)
+    setServerWakingSince(undefined)
     try {
       await withAuthLoginRetry(async () => {
         const res = await loginFirm({
@@ -98,6 +101,7 @@ export function FirmLoginPage() {
     } catch (err: unknown) {
       if (isNoResponseError(err)) {
         setServerWaking(true)
+        setServerWakingSince((prev) => prev ?? Date.now())
         toast.error('Servidor a iniciar. Tente novamente em instantes.')
         return
       }
@@ -139,11 +143,7 @@ export function FirmLoginPage() {
             Entre com os dados do escritório para retomar o trabalho de onde parou.
           </div>
 
-          {serverWaking ? (
-            <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              Servidor a iniciar…
-            </div>
-          ) : null}
+          {serverWaking ? <ServerWakingBanner startedAt={serverWakingSince} className="mt-6" /> : null}
 
           {ssoError ? (
             <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">

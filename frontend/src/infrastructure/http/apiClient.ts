@@ -39,10 +39,17 @@ export function getApiUploadsRoot(): string {
   return getApiBaseUrlResolved().replace(/\/api$/, '')
 }
 
+/**
+ * Domínios finais servidos por este projecto Vercel, que reescreve `/api/*` para o
+ * backend (Render) no servidor — o browser nunca navega directamente para o
+ * *.onrender.com, evitando a tela de "spin up" da Render (não personalizável).
+ */
+const SAME_ORIGIN_HOSTS = ['teglion.com', 'www.teglion.com', 'app.teglion.com']
+
 export function getGoogleAuthStartUrl(options?: { intent?: 'login' | 'register'; countryCode?: string }): string {
   const isBrowser = typeof window !== 'undefined'
   const host = isBrowser ? String(window.location.hostname || '').toLowerCase() : ''
-  const useSameOrigin = host === 'teglion.com' || host === 'www.teglion.com'
+  const useSameOrigin = SAME_ORIGIN_HOSTS.includes(host)
   const base = (useSameOrigin ? `${window.location.origin}/api` : getApiBaseUrlResolved()).replace(/\/$/, '')
   const params = new URLSearchParams()
   if (options?.intent === 'register') params.set('intent', 'register')

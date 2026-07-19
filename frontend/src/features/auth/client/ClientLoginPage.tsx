@@ -21,6 +21,7 @@ import { warmupAuthLoginPage, withAuthLoginRetry } from '@/shared/utils/authLogi
 import { isInternalIdentifier, redactInternalIdentifiers, sanitizePublicLabel } from '@/shared/utils/sanitizePublicDisplay'
 import { readClientLoginBranding } from '@/shared/utils/clientLoginBrandingStorage'
 import { contabilPublicApi, prefetchAuthCsrf } from '@/infrastructure/api'
+import { ServerWakingBanner } from '@/shared/components/feedback/ServerWakingUp'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
 import { PasswordInput } from '@/shared/components/ui/password-input'
@@ -41,6 +42,7 @@ export function ClientLoginPage() {
   const toast = useApiToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [serverWaking, setServerWaking] = useState(false)
+  const [serverWakingSince, setServerWakingSince] = useState<number>()
 
   const firmSlugRaw = params.get('firmSlug') || params.get('firm')
   const firmSlug =
@@ -94,6 +96,7 @@ export function ClientLoginPage() {
   async function onSubmit(values: FormValues) {
     setIsSubmitting(true)
     setServerWaking(false)
+    setServerWakingSince(undefined)
     try {
       await withAuthLoginRetry(() =>
         loginClient({
@@ -109,6 +112,7 @@ export function ClientLoginPage() {
     } catch (err: unknown) {
       if (isNoResponseError(err)) {
         setServerWaking(true)
+        setServerWakingSince((prev) => prev ?? Date.now())
         toast.error('Servidor a iniciar. Tente novamente em instantes.')
         return
       }
@@ -135,11 +139,7 @@ export function ClientLoginPage() {
             subtitle="Use as credenciais que o seu escritório lhe forneceu."
           />
 
-          {serverWaking ? (
-            <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              Servidor a iniciar…
-            </div>
-          ) : null}
+          {serverWaking ? <ServerWakingBanner startedAt={serverWakingSince} className="mt-6" /> : null}
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-5">
             <div>
