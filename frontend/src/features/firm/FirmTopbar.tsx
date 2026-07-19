@@ -35,7 +35,7 @@ export function FirmTopbar({ compact = false }: { compact?: boolean }) {
 
         <div className="flex shrink-0 items-center gap-0.5">
           <FirmNotificationCenter variant="topbar" />
-          <FirmShellUserMenu className="hidden xl:flex" />
+          <FirmShellUserMenu />
           <Button
             variant="ghost"
             size="icon"
