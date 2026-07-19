@@ -83,11 +83,23 @@ export function LandingFooter() {
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[#0F2942]">Contacto</p>
-            <p className="mt-3 text-sm text-[#4A5568]">
-              <a href={`mailto:${BRAND.emails.hello}`} className="hover:text-[#0F2942]">
-                {BRAND.emails.hello}
-              </a>
-            </p>
+            <ul className="mt-3 space-y-2 text-sm text-[#4A5568]">
+              <li>
+                <Link to="/suporte" className="hover:text-[#0F2942]">
+                  Atendimento ao cliente
+                </Link>
+              </li>
+              <li>
+                <a href={`tel:${BRAND.phone.e164}`} className="hover:text-[#0F2942]">
+                  {BRAND.phone.display}
+                </a>
+              </li>
+              <li>
+                <a href={`mailto:${BRAND.emails.hello}`} className="hover:text-[#0F2942]">
+                  {BRAND.emails.hello}
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
 

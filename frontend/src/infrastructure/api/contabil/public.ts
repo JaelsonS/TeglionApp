@@ -7,12 +7,23 @@ export type PublicPricingPlans = {
   yearly: { interval: 'year'; amountCents: number; equivalentMonthlyCents: number; configured: boolean }
 }
 
+export type SupportRequestPayload = {
+  name: string
+  email: string
+  phone?: string
+  subject?: string
+  message: string
+}
+
 export function createContabilPublicApi(api: AxiosInstance) {
   return {
     getPricing: (countryCode?: string) =>
       api
         .get('/public/pricing', { params: countryCode ? { country: countryCode } : undefined })
         .then((r) => r.data as PublicPricingPlans),
+
+    sendSupportRequest: (payload: SupportRequestPayload) =>
+      api.post('/public/support', payload).then((r) => r.data as { ok: true }),
 
     getLegalVersions: () =>
       api.get('/public/legal/versions').then(

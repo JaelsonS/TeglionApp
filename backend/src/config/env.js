@@ -202,6 +202,7 @@ const env = {
   BREVO_API_KEY: process.env.BREVO_API_KEY,
   BREVO_SMS_SENDER: process.env.BREVO_SMS_SENDER || BRAND.name,
   BLOG_NEWSLETTER_NOTIFY_EMAIL: process.env.BLOG_NEWSLETTER_NOTIFY_EMAIL || null,
+  SUPPORT_NOTIFY_EMAIL: process.env.SUPPORT_NOTIFY_EMAIL || null,
 
   CRON_SECRET: process.env.CRON_SECRET || null,
   VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY || null,

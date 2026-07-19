@@ -13,6 +13,7 @@ const blogNewsletterController = require('../modules/public/blog-newsletter.cont
 const integrationsHealthController = require('../modules/public/integrations-health.controller');
 const countriesController = require('../modules/public/countries.controller');
 const pricingController = require('../modules/public/pricing.controller');
+const supportController = require('../modules/public/support.controller');
 const { createRateLimitStore } = require('../utils/rate-limit-store');
 
 const router = express.Router();
@@ -21,6 +22,15 @@ const newsletterLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   max: 5,
   store: createRateLimitStore('rl:newsletter:'),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { code: 'RATE_LIMIT', message: 'Demasiados pedidos. Tente novamente mais tarde.' },
+});
+
+const supportLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 8,
+  store: createRateLimitStore('rl:support:'),
   standardHeaders: true,
   legacyHeaders: false,
   message: { code: 'RATE_LIMIT', message: 'Demasiados pedidos. Tente novamente mais tarde.' },
@@ -56,5 +66,6 @@ router.post('/team/invites/:token/accept', invitePreviewLimiter, teamInvitesCont
 router.get('/team/email-confirm/:token', invitePreviewLimiter, teamInvitesController.confirmEmailPublic);
 router.get('/firm-branding', firmBrandingPublic.validators, firmBrandingPublic.getBySlug);
 router.post('/blog/newsletter', newsletterLimiter, blogNewsletterController.subscribe);
+router.post('/support', supportLimiter, supportController.submit);
 
 module.exports = router;

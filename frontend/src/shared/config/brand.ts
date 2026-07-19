@@ -18,6 +18,11 @@ export const BRAND = {
     commercial: 'jaelsonsilva345@gmail.com',
     noreply: 'jaelsonsilva345@gmail.com',
   },
+  phone: {
+    display: '+351 916 447 990',
+    e164: '+351916447990',
+    whatsapp: 'https://wa.me/351916447990',
+  },
   assets: {
     icon: '/icons/icon.svg',
     wordmark: '/icons/wordmark.svg',
