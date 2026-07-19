@@ -9,8 +9,13 @@
  *
  * NUNCA volte a escrever "35 €", "359,88 €", "29,99 €" ou "14 dias" directamente
  * num componente — importe e formate a partir daqui.
+ *
+ * Propositadamente SEM React Query: este hook é usado nas páginas públicas
+ * (Landing, /pricing), que não montam o QueryProvider (é um provider "pesado",
+ * só carregado em /app e /auth — ver AuthenticatedAppShell.tsx). Usar useQuery
+ * aqui rebentava com "No QueryClient set" nessas páginas.
  */
-import { useQuery } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
 
 import { contabilPublicApi } from '@/infrastructure/api'
 import type { PublicPricingPlans } from '@/infrastructure/api/contabil/public'
@@ -18,20 +23,50 @@ import { PRICING_FALLBACK, formatEurCents } from '@/shared/config/pricingConstan
 
 export { PRICING_FALLBACK, formatEurCents } from '@/shared/config/pricingConstants'
 
-export function usePublicPricing() {
-  const query = useQuery({
-    queryKey: ['public-pricing'],
-    queryFn: () => contabilPublicApi.getPricing(),
-    staleTime: 5 * 60_000,
-    // A Landing Page não pode ficar sem preço nem "saltar" visualmente: usamos o
-    // fallback como valor inicial e deixamos o React Query substituir em segundo plano.
-    placeholderData: PRICING_FALLBACK as PublicPricingPlans,
-  })
+const STALE_TIME_MS = 5 * 60_000
 
-  const plans = query.data ?? PRICING_FALLBACK
+let cachedPlans: PublicPricingPlans | null = null
+let cachedAt = 0
+let inFlight: Promise<PublicPricingPlans> | null = null
+
+function fetchPricing(): Promise<PublicPricingPlans> {
+  if (cachedPlans && Date.now() - cachedAt < STALE_TIME_MS) {
+    return Promise.resolve(cachedPlans)
+  }
+  if (!inFlight) {
+    inFlight = contabilPublicApi
+      .getPricing()
+      .then((data) => {
+        cachedPlans = data
+        cachedAt = Date.now()
+        return data
+      })
+      .finally(() => {
+        inFlight = null
+      })
+  }
+  return inFlight
+}
+
+export function usePublicPricing() {
+  const [plans, setPlans] = useState<PublicPricingPlans>(cachedPlans ?? (PRICING_FALLBACK as PublicPricingPlans))
+
+  useEffect(() => {
+    let active = true
+    fetchPricing()
+      .then((data) => {
+        if (active) setPlans(data)
+      })
+      .catch(() => {
+        // Mantém o fallback estático em caso de falha de rede — a página
+        // nunca fica sem preço, só não recebe a actualização do servidor.
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   return {
-    ...query,
     plans,
     trialDays: plans.trialDays,
     monthlyLabel: formatEurCents(plans.monthly.amountCents),
