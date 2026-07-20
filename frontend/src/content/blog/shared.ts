@@ -10,6 +10,17 @@ export const LEGAL_DISCLAIMER =
 export const AFFILIATE_DISCLOSURE =
   'Alguns links neste artigo são de afiliado (Hotmart, Amazon, etc.). Podemos receber comissão se comprar — sem custo extra para si. Só recomendamos recursos alinhados com o tema do artigo.'
 
+function affiliateLabel(title: string) {
+  return title
+    .replace(/\s*\(Amazon\)\s*$/i, '')
+    .replace(/\s*\(Hotmart\)\s*$/i, '')
+    .replace(/\s*—\s*.*$/, '')
+    .trim()
+}
+
+/**
+ * Uma recomendação em prosa (no meio do texto), nunca um card empilhado.
+ */
 export function affiliateBlock(input: {
   key: AffiliateKey
   leadIn: string
@@ -17,26 +28,59 @@ export function affiliateBlock(input: {
   description: string
   image?: { src: string; alt: string }
   ctaLabel?: string
-}) {
+}): BlogBlock {
   const link = AFFILIATE_LINKS[input.key]
+  const label = affiliateLabel(input.title)
   return {
-    type: 'p' as const,
-    text: `${input.leadIn} Pode consultar ${input.ctaLabel ?? input.title} em [${input.title}](${link.url}) para aprofundar este ponto. ${input.description}`,
+    type: 'p',
+    text: `${input.leadIn} Na prática, [${label}](${link.url}) costuma ser a escolha mais directa: ${input.description}`,
   }
 }
 
+/**
+ * Secção de recomendação editorial: contexto → 1–2 menções inline → CTA final persuasivo.
+ * Ignora itens além do 2.º (acabam com o “catálogo feio”).
+ */
 export function affiliateSection(input: {
   heading: string
   headingId?: string
   intro: string
   items: Array<Parameters<typeof affiliateBlock>[0]>
-}) {
+}): BlogBlock[] {
+  const primary = input.items[0]
+  const secondary = input.items[1]
+  if (!primary) return []
+
+  const primaryLink = AFFILIATE_LINKS[primary.key]
+  const primaryLabel = affiliateLabel(primary.title)
   const blocks: BlogBlock[] = [
     { type: 'h2', id: input.headingId, text: input.heading },
-    { type: 'p', text: input.intro },
-    ...input.items.map((item) => affiliateBlock(item)),
-    { type: 'p', text: AFFILIATE_DISCLOSURE },
+    {
+      type: 'p',
+      text: input.intro.replace(/\s*Links? de afiliado[^.]*\./gi, '').trim() || input.intro,
+    },
+    {
+      type: 'p',
+      text: `${primary.leadIn} Se quiser uma solução concreta e pronta a usar, veja [${primaryLabel}](${primaryLink.url}) — ${primary.description}`,
+    },
   ]
+
+  if (secondary) {
+    const secondaryLink = AFFILIATE_LINKS[secondary.key]
+    const secondaryLabel = affiliateLabel(secondary.title)
+    blocks.push({
+      type: 'p',
+      text: `Para complementar o mesmo fluxo de trabalho: ${secondary.leadIn} Muitos leitores optam por [${secondaryLabel}](${secondaryLink.url}). ${secondary.description}`,
+    })
+  }
+
+  blocks.push({
+    type: 'callout',
+    variant: 'tip',
+    title: 'Próximo passo (recomendação)',
+    text: `Se for investir só numa peça depois de ler este guia, comece por [${primaryLabel}](${primaryLink.url}). Resolve o problema mais comum deste tema e evita comprar “à toa”. ${AFFILIATE_DISCLOSURE}`,
+  })
+
   return blocks
 }
 

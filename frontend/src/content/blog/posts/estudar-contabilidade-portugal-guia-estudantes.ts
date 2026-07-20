@@ -18,7 +18,7 @@ export const postEstudarContabilidade: BlogPost = {
   excerpt:
     'Calculadora certa, livros, método de estudo, estágios OCC e primeiros passos na profissão — do 1.º ano à licenciatura, com recursos práticos para quem quer perceber números sem dormir no livro.',
   publishedAt: '2026-06-18',
-  updatedAt: '2026-06-18',
+  updatedAt: '2026-07-20',
   author: 'Liliana Nunes',
   authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Estudantes',
@@ -150,52 +150,24 @@ export const postEstudarContabilidade: BlogPost = {
       text: 'Conheça o TegLion — portal do cliente, pedidos de documentos e prazos num só lugar. Sugira ao seu mentor ou experimente no próximo estágio.',
     }),
     ...affiliateSection({
-      heading: 'Kit do estudante de contabilidade',
+      heading: 'O que vale a pena ter à mão na faculdade',
       headingId: 'kit-estudante',
       intro:
-        'Investir no básico certo evita recomprar no 2.º ano. Links de afiliado Amazon/Hotmart — sem custo extra para si.',
+        'No primeiro ano, a tentação é comprar «tudo o que a loja recomenda». Na prática, bastam duas peças: uma calculadora que o acompanha até ao estágio e um livro que liga a teoria ao vocabulário do escritório. O resto — pastas, agendas, ebooks — só faz sentido depois de saber como estuda.',
       items: [
         {
           key: 'amazonCasio991',
           leadIn:
-            'A referência em exames de contabilidade e finanças: memórias, estatística e tecla de verificação de cálculos. Compre uma vez, use até ao estágio.',
+            'Em exames de contabilidade e finanças, a diferença entre um cálculo certo e um erro de arredondamento costuma ser a calculadora que já conhece de cor. Quem chega ao estágio sem uma Casio fiável perde tempo a improvisar no telemóvel — e o cliente à espera não espera.',
           title: 'Casio fx-991ES Plus 2ª Edição (Amazon)',
-          description: 'Calculadora científica — padrão em faculdades portuguesas.',
-        },
-        {
-          key: 'amazonCalculadoraCientifica',
-          leadIn:
-            'Alternativa com bloco de notas integrado — útil para anotar passos intermédios em exercícios longos sem papel extra.',
-          title: 'ROATEE Calculadora científica com bloco de notas (Amazon)',
-          description: 'Para quem prefere ver o histórico de operações no ecrã.',
+          description: 'padrão em faculdades portuguesas; memórias, estatística e verificação de cálculos numa só tecla.',
         },
         {
           key: 'amazonLivroGestaoContabil',
           leadIn:
-            'Linguagem acessível para ligar teoria académica a gestão real — excelente companhia no 1.º e 2.º anos.',
+            'Quando a matéria de Contabilidade Financeira parece abstracta, um texto em português que fala de gestão real ajuda a «ouvir» o que o professor está a dizer — e o que o supervisor no estágio vai pedir no primeiro mês.',
           title: 'Gestão Contábil — Para Contadores e Não Contadores (Amazon)',
-          description: 'Fundamentos em português, vocabulário da profissão.',
-        },
-        {
-          key: 'amazonPastaThinkTex26',
-          leadIn:
-            'Uma pasta por disciplina ou por semestre — no estágio, o mesmo sistema serve para pastas de clientes (com supervisão).',
-          title: 'ThinkTex Pasta arquivo A4 — 26 bolsos (Amazon)',
-          description: 'Organização desde o primeiro dia de aulas.',
-        },
-        {
-          key: 'amazonAgendaBezend',
-          leadIn:
-            'Prazos de entrega de trabalhos, testes e depois — estágios e obrigações fiscais. Hábito de calendário começa na faculdade.',
-          title: 'Agenda semanal BEZEND 2026–2027 A5 (Amazon)',
-          description: 'Planeamento semanal para não falhar prazos académicos.',
-        },
-        {
-          key: 'hotmartIrsReciboVerde',
-          leadIn:
-            'Quer perceber fiscalidade portuguesa «como no terreno» antes do exame de Fiscalidade? Este guia prático complementa o manual.',
-          title: 'IRS & Recibo Verde — Guia Prático (Hotmart)',
-          description: 'Ebook em português — independentes e estudantes de contabilidade.',
+          description: 'fundamentos claros e vocabulário da profissão, útil no 1.º e 2.º anos.',
         },
       ],
     }),

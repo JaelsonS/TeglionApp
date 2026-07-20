@@ -17,7 +17,7 @@ export const postOrganizarDocumentos: BlogPost = {
   excerpt:
     'Pastas por ano, nomenclatura de ficheiros, backup e o que guardar 4+ anos — sistema prático para freelancers e microempresas em Portugal.',
   publishedAt: '2026-06-12',
-  updatedAt: '2026-07-17',
+  updatedAt: '2026-07-20',
   author: 'Liliana Nunes',
   authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Organização',
@@ -181,45 +181,24 @@ export const postOrganizarDocumentos: BlogPost = {
       ],
     }),
     ...affiliateSection({
-      heading: 'Material de arquivo (afiliados Amazon)',
+      heading: 'O mínimo físico que ainda faz falta',
       headingId: 'material',
-      intro: 'Investir 30–50 € em arquivo organizado poupa horas todos os anos.',
+      intro:
+        'Arquivo digital não elimina o papel de um dia para o outro — elimina o caos. Enquanto digitaliza, precisa de um sítio onde os documentos ainda em papel não se misturem, e de uma forma segura de destruir o que já não deve existir. Trinta a cinquenta euros bem gastos poupam horas todos os anos e reduzem risco com NIF e IBAN no lixo.',
       items: [
         {
           key: 'amazonPastaThinkTex26',
-          leadIn: '26 compartimentos — um por cliente ou por trimestre.',
+          leadIn:
+            'Independente ou PME: um bolso por mês (ou por categoria — saúde, actividade, contratos) transforma a caixa de sapatos numa rotina. No fim do trimestre, digitaliza o que ainda está em papel e libera espaço — o contador agradece a pasta etiquetada, não o envelope amassado.',
           title: 'Pasta expansível A4 ThinkTex (Amazon)',
-          description: 'Ideal para cópias físicas de contratos e recibos impressos.',
-        },
-        {
-          key: 'amazonPastaSanfona12',
-          leadIn: 'Versão mais compacta: 12 bolsos por mês do ano.',
-          title: 'Pasta sanfonada 12 bolsos (Amazon)',
-          description: 'Organize recibos mês a mês.',
-        },
-        {
-          key: 'amazonEtiquetasPastas',
-          leadIn: 'Etiquetas legíveis evitam a pasta «misc» que ninguém abre.',
-          title: 'Etiquetas para pastas (Amazon)',
-          description: 'Autoadesivas, reutilizáveis.',
-        },
-        {
-          key: 'amazonPenDrive32',
-          leadIn: 'Cópia offline anual para o contador ou arquivo de segurança.',
-          title: 'Pack pen drives USB 32 GB (Amazon)',
-          description: 'Backup físico barato.',
+          description: '26 compartimentos para cópias físicas de contratos e recibos até estarem na nuvem.',
         },
         {
           key: 'amazonTriturador',
-          leadIn: 'Documentos com NIF e IBAN devem ser destruídos em segurança antes de ir para o lixo.',
+          leadIn:
+            'Quando o ano fiscal fecha e as cópias com NIF, IBAN e valores já estão digitalizadas, o papel antigo não vai para o contentor inteiro. Destruir em segurança é parte do arquivo — não um detalhe de escritório «grande».',
           title: 'Triturador de papel (Amazon)',
-          description: 'Para cópias físicas antigas.',
-        },
-        {
-          key: 'amazonPastaProvaFogo',
-          leadIn: 'Para contratos e documentos que não quer perder num acidente doméstico.',
-          title: 'Pasta reforçada para documentos importantes (Amazon)',
-          description: '13 compartimentos — útil para cópias críticas.',
+          description: 'destruição segura de cópias físicas que já não precisa de guardar.',
         },
       ],
     }),

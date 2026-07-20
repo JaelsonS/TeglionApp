@@ -203,34 +203,24 @@ export const postDeducoesIrs: BlogPost = {
       ],
     }),
     ...affiliateSection({
-      heading: 'Apoios práticos para a temporada IRS',
+      heading: 'Preparar a temporada sem caçar facturas em Abril',
       headingId: 'afiliados-deducoes',
       intro:
-        'Deduções pedem método: facturas com NIF, pasta por categoria e tempo para rever o e-Fatura. Estes recursos ajudam — links de afiliado, sem custo extra.',
+        'Quem perde deduções raramente o faz por desconhecer a lei — perde porque a factura da farmácia ficou no bolso do casaco e a propina nunca entrou no e-Fatura. O método é simples: reunir ao longo do ano e rever com calma antes da entrega. Dois apoios práticos fazem a diferença para independentes e agregados familiares.',
       items: [
         {
           key: 'hotmartIrsReciboVerde',
-          leadIn: 'Se tem actividade e ainda sente o IRS como um bloco único em Abril, um guia faseado ajuda a separar rendimentos, retenções e obrigações.',
+          leadIn:
+            'Se tem actividade aberta e ainda vê o IRS como «um bloco único em Abril», um guia faseado em português ajuda a separar rendimentos de recibos verdes, retenções e o que entra nas deduções familiares — útil em paralelo com o Modelo 3 e o seu contador, não em substituição.',
           title: 'IRS & Recibo Verde — Guia Prático (Hotmart)',
-          description: 'Útil em paralelo com o Modelo 3 e o seu contador.',
+          description: 'estrutura a preparação do ano fiscal sem improvisar na última semana.',
         },
         {
           key: 'amazonPastaThinkTex26',
-          leadIn: 'Uma pasta por ano com bolsos para saúde, educação e actividade reduz a caça aos PDFs.',
+          leadIn:
+            'Enquanto digitaliza, uma pasta física com bolsos para saúde, educação, habitação e actividade evita a caixa de sapatos em Março. Um bolso por categoria — e, no fim do mês, fotografar ou digitalizar o que ainda está em papel.',
           title: 'Pasta expansível ThinkTex 26 bolsos (Amazon)',
-          description: 'Arquivo físico complementar ao digital.',
-        },
-        {
-          key: 'amazonCasio991',
-          leadIn: 'Para simular totais de despesas e comparar cenários antes de submeter.',
-          title: 'Casio fx-991ES Plus (Amazon)',
-          description: 'Calculadora fiável para revisões rápidas.',
-        },
-        {
-          key: 'amazonM365Pessoal',
-          leadIn: 'OneDrive + Excel facilitam o mapa de despesas do agregado e o backup dos PDFs do e-Fatura.',
-          title: 'Microsoft 365 Pessoal (Amazon)',
-          description: '1 TB na nuvem para o arquivo fiscal anual.',
+          description: 'arquivo físico complementar ao e-Fatura e aos PDFs na nuvem.',
         },
       ],
     }),

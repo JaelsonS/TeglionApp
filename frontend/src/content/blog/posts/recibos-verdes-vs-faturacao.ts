@@ -130,31 +130,24 @@ export const postRecibos: BlogPost = {
       ],
     }),
     ...affiliateSection({
-      heading: 'Começar simples, crescer com método',
+      heading: 'Começar no e-Fatura com método',
       headingId: 'comecar',
       intro:
-        'Recibos verdes no e-Fatura bastam para muitos — até a facturação crescer ou o IVA bater à porta.',
+        'Recibos verdes no portal bastam para muitos prestadores — até o volume, o IVA ou os clientes B2B pedirem software certificado. O salto corre melhor quando a base legal está clara e o histórico mensal já está arquivado.',
       items: [
         {
           key: 'hotmartReciboVerde7Dias',
           leadIn:
-            'Se ainda não tem actividade aberta ou acaba de emitir o primeiro recibo, este guia amarra os passos legais em Portugal.',
+            'Se ainda não tem actividade aberta ou acaba de emitir o primeiro recibo, um guia curto em português amarra Finanças, emissão e primeiras obrigações — o alicerce antes de comparar planos certificados.',
           title: 'Recibo Verde em 7 Dias (Hotmart)',
-          description: 'Base para decidir facturação certificada depois.',
-        },
-        {
-          key: 'amazonCasio991',
-          leadIn:
-            'Simule retenções e totais mensais antes de fechar o mês.',
-          title: 'Calculadora Casio fx-991ES Plus (Amazon)',
-          description: 'Cálculos de retenções e totais anuais.',
+          description: 'roteiro prático para Portugal, útil antes de mudar de regime de facturação.',
         },
         {
           key: 'amazonPastaSanfona12',
           leadIn:
-            'Um bolso por mês para PDFs — histórico organizado na mudança de software.',
+            'Quando mudar de e-Fatura para software homologado, o contador vai pedir o histórico. Um bolso por mês (ou por trimestre) para PDFs e comprovativos evita caçar ficheiros no meio da migração.',
           title: 'Pasta sanfonada ThinkTex 12 bolsos (Amazon)',
-          description: 'Arquivo portátil A4.',
+          description: 'arquivo portátil A4 para acompanhar a transição sem perder meses.',
         },
       ],
     }),

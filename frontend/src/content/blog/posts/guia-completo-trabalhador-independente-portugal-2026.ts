@@ -206,31 +206,24 @@ export const postGuiaCompletoIndependente: BlogPost = {
       text: 'Com TegLion, o seu cliente envia recibos e despesas pelo portal — menos WhatsApp, mais prazos cumpridos e histórico auditável para a época de IRS.',
     }),
     ...affiliateSection({
-      heading: 'Recursos recomendados para quem está a começar',
+      heading: 'Se está a abrir actividade pela primeira vez',
       headingId: 'recursos',
       intro:
-        'Além dos nossos guias gratuitos, estes recursos em português ajudam a consolidar o básico. Links de afiliado — sem custo extra para si.',
+        'Os guias gratuitos deste blog cobrem o mapa. No terreno, quem abre recibos verdes pela primeira vez costuma precisar de um roteiro impresso para a primeira semana — e, mais tarde, de um guia só para o IRS. Dois ebooks em português resolvem esses momentos sem substituir o contador certificado.',
       items: [
         {
           key: 'hotmartReciboVerde7Dias',
           leadIn:
-            'Se prefere um ebook passo-a-passo com checklists impressos, este é o mais pedido por quem abre actividade pela primeira vez.',
+            'No dia em que abre actividade, a lista mental explode: Segurança Social, emissão do primeiro recibo, IVA sim ou não, o que dizer ao cliente. Um ebook passo-a-passo com checklists é o que muitos pedem quando querem fazer a primeira semana com método — e depois validar com o contador.',
           title: 'Recibo Verde em 7 Dias (Hotmart)',
-          description: 'Actividade, SS, emissão de recibos e declarações iniciais.',
+          description: 'actividade, SS, emissão de recibos e declarações iniciais, em português.',
         },
         {
           key: 'hotmartIrsReciboVerde',
           leadIn:
-            'Quando chegar a altura do IRS, este guia prático complementa o nosso artigo sobre declaração anual.',
+            'Quando o calendário chega à primavera, o problema muda: rendimentos de prestação de serviços, retenções e anexos do Modelo 3. Um guia prático focado em recibo verde complementa o nosso artigo de declaração anual e reduz os erros mais comuns no primeiro IRS com actividade.',
           title: 'IRS & Recibo Verde — Guia Prático (Hotmart)',
-          description: 'Foco em rendimentos de prestação de serviços e erros comuns.',
-        },
-        {
-          key: 'amazonAgendaBezend',
-          leadIn:
-            'Um calendário físico com prazos SS e AT anotados à mão reduz surpresas — especialmente no primeiro ano.',
-          title: 'Agenda semanal A5 (Amazon)',
-          description: 'Marque contribuições, IVA e entrega de IRS.',
+          description: 'foco em rendimentos de serviços e na preparação sem improvisar na última semana.',
         },
       ],
     }),

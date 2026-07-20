@@ -141,38 +141,24 @@ export const postEscolherSoftware: BlogPost = {
       ],
     }),
     ...affiliateSection({
-      heading: 'Antes de subscrever software pago',
+      heading: 'Antes de assinar um plano anual',
       headingId: 'antes-software',
       intro:
-        'Moloni, InvoiceXpress e similares cobram mensalidade — faz sentido quando já emite volume e precisa de IVA certificado.',
+        'Software certificado faz sentido quando o volume e o IVA o exigem. Antes disso, a maioria dos independentes precisa de solidificar a emissão no e-Fatura e de falar a mesma língua que o contador quando surge SAF-T, mapas e exportações.',
       items: [
         {
           key: 'hotmartReciboVerde7Dias',
           leadIn:
-            'Se ainda emite no e-Fatura gratuito, este guia consolida actividade e recibos verdes antes de assinar um plano anual.',
+            'Se ainda emite no portal gratuito, um roteiro curto em português evita saltar passos legais — actividade, primeiro recibo e enquadramento — antes de comprometer uma mensalidade.',
           title: 'Recibo Verde em 7 Dias (Hotmart)',
-          description: 'Base legal e prática antes de software certificado.',
+          description: 'base prática para Portugal, útil enquanto o e-Fatura ainda chega.',
         },
         {
           key: 'amazonLivroGestaoContabil',
           leadIn:
-            'Ao comparar software, o contador fala em SAF-T e mapas. Este livro dá vocabulário de gestão contabilística para não contadores.',
+            'Na demonstração do software, o fornecedor fala em homologação AT e o contador em SAF-T. Um livro de gestão contabilística para não especialistas dá o vocabulário mínimo para comparar planos sem se perder no jargão.',
           title: 'Gestão Contábil — Para Contadores e Não Contadores (Amazon)',
-          description: 'Fundamentos em português — complemento teórico.',
-        },
-        {
-          key: 'amazonM365Pessoal',
-          leadIn:
-            'OneDrive para sincronizar exports do software de facturação — backup além do SAF-T.',
-          title: 'Microsoft 365 Pessoal (Amazon)',
-          description: 'Excel, Word e 1 TB cloud.',
-        },
-        {
-          key: 'amazonPenDrive32',
-          leadIn:
-            'Exporte PDFs e backups antes de mudar de sistema — transição sem perder histórico.',
-          title: 'Pen drives USB 32GB (Amazon)',
-          description: 'Backup offline na mudança de ferramenta.',
+          description: 'fundamentos em português para decidir com critério, não por marketing.',
         },
       ],
     }),

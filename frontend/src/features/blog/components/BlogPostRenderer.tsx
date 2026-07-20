@@ -102,7 +102,7 @@ function renderBlock(block: BlogBlock, key: number) {
           aria-label={block.title || 'Nota'}
         >
           {block.title ? <p className="mb-1 font-semibold blog-text-navy">{block.title}</p> : null}
-          <p className="mb-0 text-sm leading-relaxed">{block.text}</p>
+          <p className="mb-0 text-sm leading-relaxed">{renderInlineLinks(block.text)}</p>
         </aside>
       )
     case 'link':

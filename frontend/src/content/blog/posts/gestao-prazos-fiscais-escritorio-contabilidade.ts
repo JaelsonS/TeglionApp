@@ -191,44 +191,24 @@ export const postGestaoPrazosEscritorio: BlogPost = {
       ],
     }),
     ...affiliateSection({
-      heading: 'Ferramentas que suportam o calendário',
+      heading: 'O que o calendário precisa além do software',
       headingId: 'ferramentas-prazos',
-      intro: 'Complementos físicos e digitais ao software de gestão de prazos.',
+      intro:
+        'Um CRM de prazos só funciona se a equipa o consultar — e se a semana crítica estiver visível quando o ecrã está cheio de mapas. Escritórios que falham menos prazos costumam combinar um calendário partilhado com um ritual físico à segunda-feira: olhar a semana, marcar urgências, fechar o que ficou em aberto.',
       items: [
         {
           key: 'amazonAgendaBezend',
           leadIn:
-            'Visão semanal na secretária — útil em reunião de equipa à segunda-feira para a semana de prazos.',
+            'Na reunião de segunda, quando cada colaborador traz a lista de IVA e SS da semana, uma agenda A5 aberta na mesa evita que o prazo «desapareça» entre notificações. Marque o dia 20 a lápis — e o dia 18 como buffer interno.',
           title: 'Agenda semanal BEZEND A5 (Amazon)',
-          description: 'Planeamento visual complementar.',
-        },
-        {
-          key: 'amazonEtiquetasPastas',
-          leadIn:
-            'Pastas físicas de clientes com prazo crítico na semana — «IVA T2 — ENTREGAR 19» na lombada.',
-          title: 'Etiquetas para pastas (Amazon)',
-          description: 'Identificação rápida de urgências.',
+          description: 'visão semanal clara para alinhar a equipa sem abrir mais um ecrã.',
         },
         {
           key: 'amazonM365Pessoal',
           leadIn:
-            'Calendário Outlook partilhado com lembretes — base antes de software especializado.',
+            'Antes de investir em software especializado, muitos escritórios pequenos partilham um calendário Outlook com lembretes por obrigação e por cliente. É a base: quem não tem calendário cloud raramente consegue escalar alertas.',
           title: 'Microsoft 365 Pessoal (Amazon)',
-          description: 'Outlook + calendário cloud.',
-        },
-        {
-          key: 'amazonCasio991',
-          leadIn:
-            'Validar totais de IVA antes de submeter — última verificação na calculadora de confiança.',
-          title: 'Casio fx-991ES Plus (Amazon)',
-          description: 'Verificação rápida de totais.',
-        },
-        {
-          key: 'amazonLivroGestaoContabil',
-          leadIn:
-            'Formar estagiários na lógica de obrigações — menos erros de prazo por desconhecimento.',
-          title: 'Gestão Contábil (Amazon)',
-          description: 'Formação de base em português.',
+          description: 'Outlook + calendário na nuvem para quem gere prazos no dia a dia.',
         },
       ],
     }),

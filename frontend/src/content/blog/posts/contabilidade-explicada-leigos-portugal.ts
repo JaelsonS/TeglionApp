@@ -140,37 +140,24 @@ export const postContabilidadeLeigos: BlogPost = {
       ],
     }),
     ...affiliateSection({
-      heading: 'Recursos para quem quer conhecer a área de contabilidade',
+      heading: 'Do conceito à prática, sem jargão',
       headingId: 'recursos-leigos',
-      intro: 'Livros e guias em português — links de afiliado, sem custo extra para si.',
+      intro:
+        'Perceber balanço, IRS e IVA em linguagem normal é o primeiro passo. O segundo é aplicar: ou com um livro que explica gestão para quem não é contador, ou com um roteiro concreto se a dúvida for abrir actividade e emitir o primeiro recibo em Portugal.',
       items: [
         {
           key: 'amazonLivroGestaoContabil',
           leadIn:
-            'O melhor ponto de partida em português — explica gestão e contabilidade sem assumir que já sabe o jargão.',
+            'Se quer vocabulário sólido — mapas, resultados, fluxo de caixa — sem assumir licenciatura, este livro em português é o ponto de partida mais útil para empreendedores e curiosos pela área.',
           title: 'Gestão Contábil — Para Contadores e Não Contadores (Amazon)',
-          description: 'Linguagem acessível, conceitos fundamentais.',
+          description: 'conceitos fundamentais em linguagem acessível.',
         },
         {
           key: 'hotmartReciboVerde7Dias',
           leadIn:
-            'Se a curiosidade é «como abro actividade e emito o primeiro recibo», este guia é prático e focado em Portugal.',
+            'Se a curiosidade passou a «preciso facturar legalmente este mês», um guia curto focado em Finanças e recibos verdes em Portugal liga a teoria deste artigo à primeira semana de actividade.',
           title: 'Recibo Verde em 7 Dias (Hotmart)',
-          description: 'Passo a passo para independentes.',
-        },
-        {
-          key: 'hotmartIrsReciboVerde',
-          leadIn:
-            'Depois de perceber o mapa, aprofunde IRS e retenções com um guia que fala como gente normal.',
-          title: 'IRS & Recibo Verde — Guia Prático (Hotmart)',
-          description: 'Fiscalidade para não especialistas.',
-        },
-        {
-          key: 'amazonCasio991',
-          leadIn:
-            'Curioso com números? Uma calculadora científica abre portas para exercícios de percentagens, juros e simulações.',
-          title: 'Casio fx-991ES Plus (Amazon)',
-          description: 'Útil se avançar para estudos formais.',
+          description: 'passo a passo para independentes, complementar aos artigos do blog.',
         },
       ],
     }),

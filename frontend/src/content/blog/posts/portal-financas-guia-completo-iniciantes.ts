@@ -204,33 +204,24 @@ export const postPortalFinancas: BlogPost = {
       ],
     }),
     ...affiliateSection({
-      heading: 'Ferramentas que facilitam o dia-a-dia',
+      heading: 'Para além do login: arquivo e segurança',
       headingId: 'ferramentas',
-      intro: 'O portal resolve a relação com a AT; estes extras ajudam a não perder prazos nem documentos.',
+      intro:
+        'O Portal das Finanças concentra a relação com a AT; o risco está no portátil onde guarda PDFs e onde abre a sessão. Backup automático dos recibos e protecção contra phishing de «AT» fecham o ciclo que este guia descreve.',
       items: [
         {
           key: 'amazonM365Pessoal',
-          leadIn: 'OneDrive incluído — útil para guardar PDFs de recibos com backup automático.',
+          leadIn:
+            'Exportar o PDF do recibo e deixá-lo só no Ambiente de Trabalho é o erro clássico. Office com OneDrive permite uma pasta «Fiscal» com sincronização — o mesmo sítio onde o contador depois pede o histórico.',
           title: 'Microsoft 365 Pessoal (Amazon)',
-          description: '1 TB de armazenamento na nuvem + Office.',
+          description: 'Excel, Word e 1 TB na nuvem para o arquivo anual.',
         },
         {
           key: 'amazonBitdefender',
-          leadIn: 'O portátil onde acede ao portal deve estar protegido — phishing de «AT» é frequente.',
+          leadIn:
+            'Emails falsos da «Autoridade Tributária» pedem password ou download. O dispositivo onde usa Chave Móvel Digital e consulta dívidas deve ter antivírus actualizado — phishing é o ataque nº 1 a independentes.',
           title: 'Bitdefender Total Security (Amazon)',
-          description: 'Antivírus para PC e telemóvel.',
-        },
-        {
-          key: 'amazonAgendaBezend',
-          leadIn: 'Marque no papel (ou digital) os dias de SS, IVA e fecho mensal — o portal não lembra por si.',
-          title: 'Agenda semanal A5 (Amazon)',
-          description: 'Útil para independentes sem secretária a tempo inteiro.',
-        },
-        {
-          key: 'hotmartReciboVerde7Dias',
-          leadIn: 'Se ainda está a montar o hábito de emitir e arquivar, um guia prático em vídeo ajuda a não saltar passos.',
-          title: 'Recibo Verde em 7 Dias (Hotmart)',
-          description: 'Roteiro curto para quem está a começar.',
+          description: 'protecção multi-dispositivo para o equipamento do portal.',
         },
       ],
     }),

@@ -203,44 +203,24 @@ export const postDigitalizarEscritorio: BlogPost = {
       text: 'Peça ao seu contador um portal seguro para enviar documentos — menos «viu o meu email?» e mais histórico organizado.',
     }),
     ...affiliateSection({
-      heading: 'Infraestrutura que acompanha a digitalização',
+      heading: 'A base técnica antes do portal do cliente',
       headingId: 'infra',
-      intro: 'Hardware e software de base para um escritório que deixa de depender só do email.',
+      intro:
+        'Digitalizar o escritório não começa pelo software de contabilidade — começa por email profissional, ficheiros na nuvem e portáteis protegidos. Sem essa base, o portal do cliente vira mais um sítio onde os PDFs se perdem. Dois investimentos cobrem o essencial para uma equipa pequena em Portugal.',
       items: [
         {
           key: 'amazonM365Familia',
           leadIn:
-            'Colaboradores, estagiários e sócios com email profissional, Teams e OneDrive — base antes do portal.',
+            'Sócios, colaboradores e estagiários a partilhar Outlook, Teams e OneDrive deixam de depender de «manda outra vez o email». Antes de pedir ao cliente que use o portal, a equipa precisa de um sítio comum onde os documentos já entram e ficam versionados.',
           title: 'Microsoft 365 Família — 12 meses (Amazon)',
-          description: 'Produtividade e armazenamento cloud.',
+          description: 'até 6 pessoas com apps Office e armazenamento cloud — escala natural para escritórios pequenos.',
         },
         {
           key: 'amazonBitdefender',
           leadIn:
-            'Todos os portáteis do escritório — especialmente quem acede a dados de clientes em casa.',
+            'Quem acede a dados fiscais de dezenas de clientes em casa ou no café precisa de mais do que «o antivírus que veio com o Windows». Um pacote multi-dispositivo fecha a lacuna de segurança que o RGPD e a confiança do cliente exigem.',
           title: 'Bitdefender Total Security (Amazon)',
-          description: 'Protecção multi-dispositivo.',
-        },
-        {
-          key: 'amazonPenDrive32',
-          leadIn:
-            'Transferência pontual de SAF-T ou backup offline quando o cliente não usa portal — com encriptação e política clara.',
-          title: 'Pack pen drives USB 32GB (Amazon)',
-          description: 'Backup e transferência controlada.',
-        },
-        {
-          key: 'amazonSuporteLaptop',
-          leadIn:
-            'Equipa em teletrabalho com horas de ecrã — ergonomia reduz faltas e erros por cansaço.',
-          title: 'Suporte ergonómico Amazon Basics (Amazon)',
-          description: 'Postura no portátil.',
-        },
-        {
-          key: 'amazonPastaSanfona12',
-          leadIn:
-            'Transição: papel que ainda entra até estar 100 % digitalizado na entrada.',
-          title: 'Pasta sanfonada ThinkTex 12 bolsos (Amazon)',
-          description: 'Triagem de documentos em papel.',
+          description: 'protecção em vários portáteis e telemóveis do escritório e do teletrabalho.',
         },
       ],
     }),

@@ -138,38 +138,24 @@ export const postProtegerDados: BlogPost = {
       ],
     }),
     ...affiliateSection({
-      heading: 'Montar o kit digital mínimo',
+      heading: 'O kit mínimo que realmente importa',
       headingId: 'kit-digital',
       intro:
-        'Não precisa de gastar milhares. Backup automático, Office actualizado e antivírus cobrem a maioria dos problemas que vemos em freelancers.',
+        'Não precisa de um arsenal. A maioria dos incidentes com freelancers resume-se a dois falhas: recibos só no disco local e portátil sem protecção actualizada quando chega um email falso da AT. Backup na nuvem e antivírus multi-dispositivo cobrem esse núcleo.',
       items: [
         {
           key: 'amazonM365Pessoal',
           leadIn:
-            'Word, Excel, Outlook e 1 TB OneDrive — pasta «Fiscal» com sync automático.',
+            'A regra 3-2-1 começa com uma cópia fora do portátil. Office com 1 TB OneDrive permite uma pasta «Fiscal» sincronizada — Word e Excel para mapas, Outlook para o email onde chegam notificações e facturas.',
           title: 'Microsoft 365 Pessoal — 12 meses (Amazon)',
-          description: 'Office + 1 TB OneDrive. Código por email.',
-        },
-        {
-          key: 'amazonM365Familia',
-          leadIn:
-            'Até 6 pessoas e 6 TB — útil para separar contas pessoal/actividade.',
-          title: 'Microsoft 365 Família — 12 meses (Amazon)',
-          description: '6 licenças + 6 TB partilhados.',
+          description: 'Office e nuvem para o arquivo fiscal do dia-a-dia.',
         },
         {
           key: 'amazonBitdefender',
           leadIn:
-            'Protecção em portátil, telemóvel e tablet — mesmo login de email das Finanças.',
+            'O mesmo login serve para Finanças, email e banca. Protecção no portátil, telemóvel e tablet reduz o impacto de phishing e malware — o ponto fraco mais comum em independentes que trabalham em Wi‑Fi público.',
           title: 'Bitdefender Total Security — 10 dispositivos / 2 anos (Amazon)',
-          description: 'Antivírus premium multi-dispositivo.',
-        },
-        {
-          key: 'amazonPandaDome',
-          leadIn:
-            'Orçamento apertado: antivírus + VPN + passwords num pacote.',
-          title: 'Panda Dome Complete 2026 — 3 dispositivos (Amazon)',
-          description: 'Pacote compacto para freelancer.',
+          description: 'antivírus premium para o equipamento onde guarda NIF e recibos.',
         },
       ],
     }),

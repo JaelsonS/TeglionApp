@@ -1,4 +1,4 @@
-const GTAG_ID = 'G-6Y9SBPSLLS'
+const GTAG_ID = 'G-87JMNHY650'
 const ADS_CLIENT = 'ca-pub-8576885038152568'
 
 let analyticsLoaded = false
@@ -51,6 +51,22 @@ export async function loadThirdPartyScripts() {
   } catch {
     // fallback silencioso
   }
+}
+
+/** Envia page_view (SPA) — útil no blog /blog e /blog/:slug */
+export function trackPageView(path: string, title?: string) {
+  if (typeof window === 'undefined') return
+  const w = window as any
+  if (typeof w.gtag !== 'function') return
+  w.gtag('event', 'page_view', {
+    page_path: path,
+    page_title: title || document.title,
+    send_to: GTAG_ID,
+  })
+}
+
+export function getGtagId() {
+  return GTAG_ID
 }
 
 function hasAcceptedCookieConsent() {

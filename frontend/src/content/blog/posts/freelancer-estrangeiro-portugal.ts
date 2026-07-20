@@ -115,35 +115,24 @@ export const postFreelancerEstrangeiro: BlogPost = {
     }),
     { type: 'link', label: 'Guia: proteger dados fiscais no portátil', slug: 'proteger-dados-fiscais-freelancer-portugal' },
     ...affiliateSection({
-      heading: 'Montar escritório em Portugal',
+      heading: 'Primeiros dias com actividade em Portugal',
       headingId: 'escritorio',
       intro:
-        'Estrangeiros que trabalham remotamente passam horas no portátil a tratar de NIF, e-Fatura e recibos.',
+        'Quem chega de fora costuma tratar NIF, e-Fatura e recibos no mesmo portátil com que trabalha em coworkings e cafés. Dois apoios práticos — um roteiro fiscal em português europeu e protecção mínima em redes públicas — reduzem erros e risco nos primeiros meses.',
       items: [
         {
           key: 'hotmartReciboVerde7Dias',
           leadIn:
-            'Escrito para quem inclui brasileiros e outros imigrantes — Finanças e recibos verdes em português claro, contexto Portugal.',
+            'Guias brasileiros sobre MEI não se aplicam. Um ebook focado em Finanças e recibos verdes em contexto português amarra abertura de actividade e emissão legal sem misturar legislação.',
           title: 'Recibo Verde em 7 Dias (Hotmart)',
-          description: 'Abrir actividade e emitir legalmente em 7 dias.',
-          image: {
-            src: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=640&h=360&fit=crop&q=80',
-            alt: 'Profissionais em formação',
-          },
+          description: 'passo a passo para abrir e emitir em Portugal, em linguagem clara.',
         },
         {
           key: 'amazonPandaDome',
           leadIn:
-            'VPN em redes públicas — essencial em coworkings e cafés.',
+            'Em Wi‑Fi de café ou coworking, o login das Finanças e o email com dados fiscais ficam expostos. Um pacote com antivírus, VPN e gestor de passwords cobre o mínimo que a maioria dos nómadas digitais adia.',
           title: 'Panda Dome Complete 2026 (Amazon)',
-          description: 'Antivírus + VPN + passwords.',
-        },
-        {
-          key: 'amazonSuporteLaptop',
-          leadIn:
-            'Horas no Portal das Finanças pedem setup mínimo confortável.',
-          title: 'Suporte ergonómico Amazon Basics (Amazon)',
-          description: 'Portáteis até 17,3".',
+          description: 'protecção compacta para quem trabalha fora de casa.',
         },
       ],
     }),

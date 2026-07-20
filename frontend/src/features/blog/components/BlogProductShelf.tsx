@@ -74,14 +74,14 @@ type Props = {
 }
 
 export function BlogProductShelf({ compact = false }: Props) {
-  const products = buildAffiliateProducts().slice(0, compact ? 4 : 6)
+  const products = buildAffiliateProducts().slice(0, compact ? 2 : 3)
 
   return (
     <aside className="blog-product-shelf" aria-label="Recursos e produtos recomendados">
-      <p className="blog-rail-eyebrow">Loja útil</p>
-      <p className="blog-rail-title">Ferramentas que usamos no dia-a-dia</p>
+      <p className="blog-rail-eyebrow">Recomendado</p>
+      <p className="blog-rail-title">Uma ferramenta útil para este tema</p>
       <p className="blog-rail-text mt-1.5">
-        Links de afiliado — podemos receber comissão sem custo extra para si.
+        Sugestões pontuais (não um catálogo). Links de afiliado — comissão sem custo extra para si.
       </p>
 
       <ul className="blog-product-list mt-3">

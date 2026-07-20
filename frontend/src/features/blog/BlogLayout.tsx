@@ -1,11 +1,33 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 
 import { ADSENSE_LIVE } from '@/features/blog/blogMonetization'
 import { BlogAdSense } from '@/shared/components/ads/BlogAdSense'
 import { BlogHeader } from '@/features/blog/components/BlogHeader'
 import { LandingFooter } from '@/shared/components/landing/LandingFooter'
+import { loadThirdPartyScripts, trackPageView } from '@/shared/utils/thirdPartyScripts'
 import '@/features/blog/blog.css'
+
+function hasAcceptedCookieConsent() {
+  if (typeof window === 'undefined') return false
+  for (let i = 0; i < window.localStorage.length; i += 1) {
+    const key = window.localStorage.key(i)
+    if (!key?.startsWith('cookieConsent:')) continue
+    if (window.localStorage.getItem(key) === 'accepted') return true
+  }
+  return false
+}
+
+function useBlogAnalytics() {
+  const location = useLocation()
+
+  useEffect(() => {
+    if (!hasAcceptedCookieConsent()) return
+    void loadThirdPartyScripts().then(() => {
+      trackPageView(`${location.pathname}${location.search}`, document.title)
+    })
+  }, [location.pathname, location.search])
+}
 
 function useBlogResourceHints() {
   useEffect(() => {
@@ -14,6 +36,7 @@ function useBlogResourceHints() {
       { rel: 'dns-prefetch', href: 'https://images.unsplash.com' },
       { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
       { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
+      { rel: 'preconnect', href: 'https://www.googletagmanager.com' },
     ] as const
 
     const nodes: HTMLLinkElement[] = []
@@ -42,6 +65,7 @@ function useBlogResourceHints() {
 
 export function BlogLayout() {
   useBlogResourceHints()
+  useBlogAnalytics()
   return (
     <div className="blog-page landing-page">
       {ADSENSE_LIVE ? <BlogAdSense /> : null}

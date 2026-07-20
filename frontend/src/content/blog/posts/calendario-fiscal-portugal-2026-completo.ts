@@ -219,34 +219,24 @@ export const postCalendarioFiscal2026: BlogPost = {
       text: 'Peça ao seu contabilista um portal com alertas — no TegLion, cada obrigação tem data e lista do que falta enviar, em vez de mensagens soltas no WhatsApp.',
     }),
     ...affiliateSection({
-      heading: 'Ferramentas para não falhar prazos',
+      heading: 'Como transformar este calendário numa rotina',
       headingId: 'afiliados-calendario',
       intro:
-        'Um calendário só funciona se estiver à vista e se os documentos do mês estiverem prontos. Estes recursos ajudam na rotina — links de afiliado, sem custo extra para si.',
+        'Saber os prazos não basta — o que falha é a execução. Independentes que cumprem SS e IVA sem drama costumam ter duas coisas: um sítio onde a semana fica escrita à mão e, na primavera, um guia que organiza o IRS sem improvisar na última noite. O telemóvel sozinho perde-se no ruído das notificações.',
       items: [
         {
           key: 'amazonAgendaBezend',
-          leadIn: 'Marque SS, IVA e fechos mensais na agenda — o telemóvel sozinho não chega se a notificação se perde no ruído.',
+          leadIn:
+            'Imagine o dia 18: em vez de descobrir o prazo da SS no email da AT, já tem «SS — pagar» e «IVA — fechar mapas» marcados na semana. Uma agenda A5 na secretária (ou na pasta do portátil) torna o calendário fiscal um hábito, não uma surpresa.',
           title: 'Agenda semanal BEZEND A5 (Amazon)',
-          description: 'Vista semanal clara para independentes e equipas pequenas.',
-        },
-        {
-          key: 'amazonEtiquetasPastas',
-          leadIn: 'Pastas do ano com etiquetas legíveis evitam a pasta «vários» em Dezembro.',
-          title: 'Etiquetas para pastas (Amazon)',
-          description: 'Arquivo físico ou caixas de arquivo anual.',
+          description: 'vista semanal clara para independentes e equipas pequenas que vivem de prazos.',
         },
         {
           key: 'hotmartIrsReciboVerde',
-          leadIn: 'Na temporada IRS, um guia estruturado ajuda a reunir rendimentos e obrigações sem improvisar na última semana.',
+          leadIn:
+            'Quando o calendário chega à temporada do Modelo 3, reunir recibos, retenções e anexos sem método gasta fins-de-semana. Quem já tem actividade aberta ganha tempo com um guia faseado em português — em paralelo com o contador, não em vez dele.',
           title: 'IRS & Recibo Verde — Guia Prático (Hotmart)',
-          description: 'Complemento ao calendário oficial da AT.',
-        },
-        {
-          key: 'amazonCasio991',
-          leadIn: 'Útil para simulações rápidas de retenção, IVA e estimativas antes de abrir o Excel.',
-          title: 'Casio fx-991ES Plus (Amazon)',
-          description: 'Calculadora científica estável para quem faz contas no dia a dia.',
+          description: 'estrutura o que reunir antes da entrega, alinhado com o ritmo anual da AT.',
         },
       ],
     }),

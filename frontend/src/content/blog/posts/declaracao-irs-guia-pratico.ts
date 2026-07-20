@@ -174,36 +174,21 @@ export const postDeclaracaoIrs: BlogPost = {
       heading: 'Preparar a mesa antes de abrir o portal',
       headingId: 'preparar',
       intro:
-        'O erro clássico é abrir o Portal das Finanças à meia-noite do último dia, sem ter somado os recibos. Quem prepara números e cópias em papel (ou PDF) entrega em meia hora — quem não prepara, passa a noite em dúvida.',
+        'O erro clássico é abrir o Portal das Finanças à meia-noite do último dia, sem ter somado os recibos. Quem prepara números e documentos com antecedência entrega em meia hora; quem improvisa passa a noite a duvidar dos totais pré-preenchidos.',
       items: [
         {
           key: 'hotmartIrsReciboVerde',
           leadIn:
-            'Se é a primeira declaração com actividade aberta, um guia dedicado a IRS e recibos verdes em Portugal preenche lacunas que este artigo não cobre — especialmente cálculo de impostos e anexo B.',
+            'Na primeira declaração com actividade aberta, o anexo B e as retenções geram mais dúvidas do que o próprio login. Um guia dedicado a IRS e recibos verdes em Portugal preenche lacunas deste artigo — sempre a validar com contador certificado.',
           title: 'IRS & Recibo Verde — guia prático (Hotmart)',
-          description:
-            'Ebook com linguagem simples para independentes. Complementa este guia — confirme sempre com contador certificado.',
+          description: 'estrutura a preparação para independentes sem improvisar na última semana.',
         },
         {
           key: 'amazonCasio991',
           leadIn:
-            'Antes de aceitar os valores pré-preenchidos, some manualmente os recibos emitidos e as retenções na fonte. A Casio fx-991ES Plus é o modelo usado em escolas portuguesas — memória e estatísticas ajudam a detectar diferenças.',
+            'Antes de aceitar os valores do portal, some manualmente recibos emitidos e retenções na fonte. Uma calculadora científica com memória ajuda a detectar diferenças face ao pré-preenchido — o tipo de verificação que evita rectificações depois.',
           title: 'Calculadora Casio fx-991ES Plus (Amazon)',
-          description: 'Certificada para currículo PT/ES. Ideal para cruzar totais antes de submeter.',
-        },
-        {
-          key: 'amazonM365Pessoal',
-          leadIn:
-            'Para somar recibos num Excel e guardar PDFs com sync automático, o Microsoft 365 Pessoal inclui Office e 1 TB OneDrive — útil durante todo o ano, não só na semana do IRS.',
-          title: 'Microsoft 365 Pessoal — 12 meses (Amazon)',
-          description: 'Word, Excel e 1 TB OneDrive. Código de activação por email.',
-        },
-        {
-          key: 'amazonPenDrive32',
-          leadIn:
-            'Guarde o PDF da declaração submetida, os recibos do ano e o comprovativo de entrega num pen drive à parte do portátil. Se o disco falhar ou a cloud tiver problema, ainda tem prova do que entregou.',
-          title: 'Pen drives USB 32GB — backup (Amazon)',
-          description: 'Pack económico para cópia offline de PDFs fiscais — um drive por ano fiscal.',
+          description: 'cruzar totais antes de submeter o Modelo 3.',
         },
       ],
     }),

@@ -148,31 +148,24 @@ export const postPrazosIrs2026: BlogPost = {
       ],
     }),
     ...affiliateSection({
-      heading: 'Marcar prazos e validar números',
+      heading: 'Do calendário à entrega sem correria',
       headingId: 'marcar',
       intro:
-        'Um calendário na parede ou na mochila lembra o prazo; uma calculadora confirma que os totais batem certo antes de submeter.',
+        'A campanha de IRS não se resolve no último dia útil: quem marca fases (reunir documentos, cruzar totais, submeter) e segue um roteiro claro evita coimas e noites em branco. Dois apoios complementam este calendário.',
       items: [
         {
           key: 'hotmartIrsReciboVerde',
           leadIn:
-            'Para quem vai entregar IRS pela primeira vez este ano, este guia condensa prazos, documentos e passos de submissão num fluxo único.',
+            'Na primeira entrega com recibos verdes, prazos e anexos misturam-se. Um guia prático em português condensa documentos, fluxos de submissão e erros comuns — útil em paralelo com o seu contador, não em substituição.',
           title: 'IRS & Recibo Verde (Hotmart)',
-          description: 'Guia prático para independentes em Portugal.',
+          description: 'roteiro para independentes na campanha anual.',
         },
         {
           key: 'amazonAgendaBezend',
           leadIn:
-            'Anote no início de Abril: «IRS aberto», no fim de Junho: «último dia útil». Vista semanal com espaço para IVA e SS.',
+            'Anote no início de Abril «campanha aberta» e no fim do prazo legal «último dia útil», com espaço semanal para IVA e Segurança Social. Uma agenda física na mesa (ou na mochila) lembra o que o portal não notifica a tempo.',
           title: 'Agenda semanal BEZEND 2026–2027 (Amazon)',
-          description: 'Formato A5, capa dura — calendário fiscal sempre à mão.',
-        },
-        {
-          key: 'amazonCasio991',
-          leadIn:
-            'No dia da entrega, some uma última vez recibos + retenções + despesas.',
-          title: 'Calculadora Casio fx-991ES Plus (Amazon)',
-          description: 'Verificação final antes de submeter no Portal das Finanças.',
+          description: 'formato A5 para manter o calendário fiscal visível o ano inteiro.',
         },
       ],
     }),

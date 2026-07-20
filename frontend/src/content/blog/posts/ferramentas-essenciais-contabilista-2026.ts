@@ -18,7 +18,7 @@ export const postFerramentasContabilista: BlogPost = {
   excerpt:
     'O stack profissional do contador certificado: calculadora, Excel/365, segurança, arquivo físico e digital, e software de gestão de clientes — com comparação do que ainda se faz no email vs portal moderno.',
   publishedAt: '2026-06-18',
-  updatedAt: '2026-06-18',
+  updatedAt: '2026-07-20',
   author: 'Liliana Nunes',
   authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Escritórios',
@@ -145,72 +145,24 @@ export const postFerramentasContabilista: BlogPost = {
       text: 'Teste o TegLion 14 dias grátis: portal do cliente, pedidos de documentos, prazos e mensagens. Pensado para escritórios de contabilidade em Portugal.',
     }),
     ...affiliateSection({
-      heading: 'Equipamento recomendado para o escritório',
+      heading: 'Duas peças que o escritório usa todos os dias',
       headingId: 'equipamento',
-      intro: 'Seleção prática — links de afiliado Amazon. Como Afiliado Amazon, ganhamos por compras elegíveis.',
+      intro:
+        'A lista de «ferramentas do contabilista» pode crescer sem fim. Na prática, o que separa um dia fluido de um dia a caçar ficheiros é o básico bem escolhido: uma calculadora de confiança na mesa e uma subscrição Office partilhada pela equipa. O resto — pastas, antivírus, agendas — só vale depois desta fundação.',
       items: [
         {
           key: 'amazonCasio991',
           leadIn:
-            'A calculadora que ainda vai usar em reunião quando o Excel não está à mão — ou para validar um total antes de submeter.',
+            'Em reunião com o cliente, quando o Excel ainda não está aberto e alguém pergunta «quanto fica o IVA neste total?», a Casio na mão resolve em segundos. É também a última verificação antes de submeter um mapa — o hábito que evita erros caros.',
           title: 'Casio fx-991ES Plus 2ª Edição (Amazon)',
-          description: 'Padrão profissional e académico.',
+          description: 'padrão profissional e académico; a mesma máquina do estágio ao balcão.',
         },
         {
           key: 'amazonM365Familia',
           leadIn:
-            'Excel, Word, Outlook e 1 TB por utilizador — escala para escritórios pequenos com vários colaboradores.',
+            'Escritórios com três a seis pessoas ganham mais a partilhar Excel, Outlook e OneDrive do que a comprar «mais um software» sem disciplina de ficheiros. Um terabyte por utilizador e calendário partilhado são a espinha dorsal antes do ERP e do portal do cliente.',
           title: 'Microsoft 365 Família — 12 meses (Amazon)',
-          description: 'Até 6 pessoas — partilha de subscrição no escritório.',
-        },
-        {
-          key: 'amazonM365Pessoal',
-          leadIn:
-            'Para contabilista solo ou estagiário com um portátil — OneDrive para backup de mapas.',
-          title: 'Microsoft 365 Pessoal — 12 meses (Amazon)',
-          description: '1 TB OneDrive + apps Office.',
-        },
-        {
-          key: 'amazonBitdefender',
-          leadIn:
-            'Protege portáteis do escritório e do teletrabalho — dados fiscais de centenas de clientes num disco.',
-          title: 'Bitdefender Total Security — 10 dispositivos (Amazon)',
-          description: 'Antivírus + protecções adicionais.',
-        },
-        {
-          key: 'amazonPastaThinkTex26',
-          leadIn:
-            'Entrada de documentos em papel até digitalizar — um bolso por cliente ou por mês.',
-          title: 'ThinkTex Pasta 26 bolsos A4 (Amazon)',
-          description: 'Arquivo físico organizado.',
-        },
-        {
-          key: 'amazonEtiquetasPastas',
-          leadIn:
-            '«Cliente X — IVA T2» na lombada poupa tempo quando o estagiário procura o dossiê certo.',
-          title: 'Etiquetas para pastas de arquivo (Amazon)',
-          description: 'Identificação rápida de dossiês.',
-        },
-        {
-          key: 'amazonTriturador',
-          leadIn:
-            'Destruição de cópias com NIF e valores — obrigação de cuidado com dados, não opcional.',
-          title: 'Triturador Bonsaii C237-B (Amazon)',
-          description: 'Destruição segura de papel.',
-        },
-        {
-          key: 'amazonAgendaBezend',
-          leadIn:
-            'Complemento ao software: visão semanal de prazos quando o ecrã está cheio de mapas.',
-          title: 'Agenda semanal BEZEND A5 (Amazon)',
-          description: 'Planeamento visual de prazos.',
-        },
-        {
-          key: 'amazonLivroGestaoContabil',
-          leadIn:
-            'Para rever fundamentos com clientes não contadores — ou para formar estagiários com linguagem clara.',
-          title: 'Gestão Contábil — Para Contadores e Não Contadores (Amazon)',
-          description: 'Referência em português.',
+          description: 'até 6 pessoas — a escala natural de um escritório pequeno em Portugal.',
         },
       ],
     }),

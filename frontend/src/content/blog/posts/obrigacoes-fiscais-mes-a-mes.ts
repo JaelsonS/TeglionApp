@@ -134,33 +134,24 @@ export const postObrigacoesMes: BlogPost = {
       text: 'Se gere dezenas de clientes com prazos diferentes, um software com alertas por empresa (como o TegLion) reduz o risco de falhar entregas — experimente o teste gratuito de 14 dias.',
     },
     ...affiliateSection({
-      heading: 'Do calendário à gaveta: organizar sem stress',
+      heading: 'Do calendário ao arquivo mensal',
       headingId: 'recursos',
       intro:
-        'Conhecemos freelancers que só descobrem em Abril que falta o PDF de um recibo de Outubro. O calendário fiscal só funciona se cada mês tiver sítio para os papéis — senão, vira corrida contra o prazo do IRS.',
+        'O ritmo fiscal só funciona se cada mês tiver sítio para os comprovativos. Quem deixa PDFs e papel na gaveta do «depois» descobre em Abril que falta o recibo de Outubro — e o prazo do IRS não espera.',
       items: [
         {
           key: 'hotmartReciboVerde7Dias',
           leadIn:
-            'Se ainda está a montar a rotina mensal, vale começar por um guia que amarra abertura de actividade, emissão de recibos e primeiras contribuições — antes de investir em pastas ou software.',
+            'Se ainda está a montar a rotina, comece por um roteiro que amarra abertura de actividade, emissão e primeiras contribuições. Sem essa base, o calendário mensal vira lista de tarefas sem contexto.',
           title: 'Recibo Verde em 7 Dias (Hotmart)',
-          description:
-            'Ebook passo a passo para Portugal: Finanças, recibos verdes, Segurança Social e declarações. Complementa este calendário — não substitui o contador.',
+          description: 'ebook passo a passo para Portugal — complementa este checklist, não substitui o contador.',
         },
         {
           key: 'amazonPastaThinkTex26',
           leadIn:
-            'Depois de ler a lista mensal acima, a pergunta prática é: «onde guardo isto?». Uma pasta sanfona com um bolso por trimestre (IVA, SS, despesas, IRS) evita a gaveta do «vou tratar disso depois».',
+            'Depois da lista mensal, a pergunta prática é onde guardar IVA, SS, despesas e IRS. Uma pasta expansível com um bolso por trimestre (ou por obrigação) evita a mistura que o contador depois tem de desemaranhar.',
           title: 'Pasta ThinkTex A4 — 26 bolsos (Amazon)',
-          description:
-            'Organizador expansível para separar documentos por mês ou obrigação. Cabe numa mochila — útil para quem trabalha em casa e no coworking.',
-        },
-        {
-          key: 'amazonEtiquetasPastas',
-          leadIn:
-            'Pastas sem nome viram arquivo morto. Etiquetar «T1-2026 IVA» ou «Recibos emitidos» poupa horas quando o contador pede um comprovativo ou quando abre o Portal das Finanças.',
-          title: 'Etiquetas para pastas de arquivo (Amazon)',
-          description: 'Pack de etiquetas autoadesivas para lombadas — identificação rápida sem imprimir folhas A4.',
+          description: 'arquivo físico portátil para acompanhar o ritmo mês a mês.',
         },
       ],
     }),
