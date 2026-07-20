@@ -1,12 +1,4 @@
-const dotenv = require('dotenv');
-const originalDotenvConfig = dotenv.config.bind(dotenv);
-dotenv.config = (options = {}) => originalDotenvConfig({ ...options, override: false });
-
-process.env.NODE_ENV = 'test';
-process.env.JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'test-access-secret-min-32-chars!!';
-process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'test-refresh-secret-min-32-chars!';
-process.env.SUPABASE_URL = process.env.SUPABASE_URL || 'https://example.supabase.co';
-process.env.SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'test-service-role-key';
+require('../../test/ensure-test-env');
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
