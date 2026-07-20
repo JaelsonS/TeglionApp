@@ -2,11 +2,17 @@ import {
   AlertTriangle,
   Building2,
   ClipboardList,
+  ExternalLink,
   FileStack,
   MessageSquare,
   ScrollText,
 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
+import {
+  activityItemIsNavigable,
+  resolveActivityNav,
+} from '@/features/firm/client-hub/clientHubActivityLinks'
 import type { ClientHubTimelineItem } from '@/infrastructure/api/contabil/types'
 import { documentValidationLabel } from '@/shared/utils/contabilLocale'
 import { formatDateTime } from '@/shared/utils/date'
@@ -74,7 +80,47 @@ function actorLine(item: ClientHubTimelineItem): string | null {
   return null
 }
 
-export function ClientHubHistory({ items }: { items: ClientHubTimelineItem[] }) {
+type ClientHubHistoryProps = {
+  items: ClientHubTimelineItem[]
+  clientId: string
+  onOpenProfile?: () => void
+}
+
+function HistoryCardBody({ item }: { item: ClientHubTimelineItem }) {
+  const meta = KIND_META[item.kind] || KIND_META.activity
+  const Icon = meta.icon
+  const desc = humanizeDescription(item)
+
+  return (
+    <>
+      <span
+        className={cn(
+          'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
+          meta.className,
+        )}
+      >
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <span className="text-caption font-semibold uppercase tracking-wide text-muted-foreground">
+              {meta.verb}
+            </span>
+            <p className="text-sm font-medium text-foreground">{humanizeTitle(item)}</p>
+          </div>
+          <time className="shrink-0 text-xs text-muted-foreground">{formatDateTime(item.at)}</time>
+        </div>
+        {desc ? <p className="mt-1 text-sm text-muted-foreground">{desc}</p> : null}
+        {actorLine(item) ? (
+          <p className="mt-1.5 text-xs text-muted-foreground/80">{actorLine(item)}</p>
+        ) : null}
+      </div>
+    </>
+  )
+}
+
+export function ClientHubHistory({ items, clientId, onOpenProfile }: ClientHubHistoryProps) {
   if (!items.length) {
     return (
       <div className="rounded-2xl border border-dashed border-border/60 bg-muted/15 px-6 py-14 text-center">
@@ -89,38 +135,60 @@ export function ClientHubHistory({ items }: { items: ClientHubTimelineItem[] }) 
   return (
     <ol className="space-y-3">
       {items.map((item) => {
-        const meta = KIND_META[item.kind] || KIND_META.activity
-        const Icon = meta.icon
-        const desc = humanizeDescription(item)
+        const navigable = activityItemIsNavigable(clientId, item)
+        const target = navigable ? resolveActivityNav(clientId, item) : null
+        const title = humanizeTitle(item)
+        const cardClass = cn(
+          'flex w-full gap-3 rounded-2xl border border-border/40 bg-card/80 p-4 text-left shadow-sm transition',
+          navigable
+            ? 'cursor-pointer hover:border-brand/40 hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40'
+            : 'hover:border-border/70',
+        )
+
+        const body = (
+          <>
+            <HistoryCardBody item={item} />
+            {navigable ? (
+              <ExternalLink
+                className="mt-1 h-3.5 w-3.5 shrink-0 text-muted-foreground opacity-60"
+                aria-hidden
+              />
+            ) : null}
+          </>
+        )
+
+        if (target?.type === 'href') {
+          return (
+            <li key={item.id}>
+              <Link
+                to={target.href}
+                className={cardClass}
+                aria-label={`Abrir ${title}`}
+              >
+                {body}
+              </Link>
+            </li>
+          )
+        }
+
+        if (target?.type === 'profile') {
+          return (
+            <li key={item.id}>
+              <button
+                type="button"
+                className={cardClass}
+                aria-label={`Abrir ${title}`}
+                onClick={() => onOpenProfile?.()}
+              >
+                {body}
+              </button>
+            </li>
+          )
+        }
 
         return (
-          <li
-            key={item.id}
-            className="flex gap-3 rounded-2xl border border-border/40 bg-card/80 p-4 shadow-sm transition hover:border-border/70"
-          >
-            <span
-              className={cn(
-                'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
-                meta.className,
-              )}
-            >
-              <Icon className="h-4 w-4" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div>
-                  <span className="text-caption font-semibold uppercase tracking-wide text-muted-foreground">
-                    {meta.verb}
-                  </span>
-                  <p className="text-sm font-medium text-foreground">{humanizeTitle(item)}</p>
-                </div>
-                <time className="shrink-0 text-xs text-muted-foreground">{formatDateTime(item.at)}</time>
-              </div>
-              {desc ? <p className="mt-1 text-sm text-muted-foreground">{desc}</p> : null}
-              {actorLine(item) ? (
-                <p className="mt-1.5 text-xs text-muted-foreground/80">{actorLine(item)}</p>
-              ) : null}
-            </div>
+          <li key={item.id} className={cardClass}>
+            {body}
           </li>
         )
       })}

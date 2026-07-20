@@ -227,7 +227,11 @@ export function FirmClientHubPage() {
                 </Button>
               </div>
               <div className="cb-surface-body">
-                <ClientHubHistory items={hub.timeline.slice(0, 6)} />
+                <ClientHubHistory
+                  items={hub.timeline.slice(0, 6)}
+                  clientId={cid}
+                  onOpenProfile={() => setSection('profile')}
+                />
               </div>
             </section>
           </div>
@@ -258,7 +262,11 @@ export function FirmClientHubPage() {
               Tudo o que acontece com esta empresa — num único feed.
             </p>
             <div className="mt-6">
-              <ClientHubHistory items={hub.timeline} />
+              <ClientHubHistory
+                items={hub.timeline}
+                clientId={cid}
+                onOpenProfile={() => setSection('profile')}
+              />
             </div>
           </section>
         ) : null}

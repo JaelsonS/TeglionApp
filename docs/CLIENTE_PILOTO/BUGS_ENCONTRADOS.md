@@ -80,3 +80,12 @@ Status: Resolvido
 Responsável: Frontend / Backend
 Correção aplicada: catálogo local CAE-Rev.3 (~570 classes INE + tokens de pesquisa) com pesquisa por código/descrição; endpoint `GET /firm/cae-search`; enriquecimento opcional via API live do INE; histórico do escritório mantido.
 Data da correção: 2026-07-20
+
+## Melhoria 010
+Título: Actividade do hub clicável com deep-link.
+Descrição: Os cards de Actividade / Actividade recente eram só informativos; o escritório não conseguia saltar para o documento, tarefa, obrigação ou mensagem.
+Data: 2026-07-20
+Status: Resolvido
+Responsável: Frontend
+Correção aplicada: `resolveActivityNav` + cards clicáveis em `ClientHubHistory`; obrigações aceitam `?ob=` e `?obligation=`.
+Data da correção: 2026-07-20

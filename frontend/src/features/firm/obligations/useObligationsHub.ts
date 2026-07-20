@@ -30,7 +30,7 @@ function readFilters(params: URLSearchParams) {
     lane: (lane as OperationalLane) || null,
     clientId: readClientIdFromSearch(params),
     period: params.get('period'),
-    obId: params.get('ob'),
+    obId: params.get('ob') || params.get('obligation'),
     showCreate: params.get('create') === '1',
     createType: params.get('createType'),
     createPeriod: params.get('createPeriod'),

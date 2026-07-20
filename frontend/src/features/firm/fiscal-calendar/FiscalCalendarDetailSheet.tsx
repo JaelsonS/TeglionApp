@@ -99,7 +99,7 @@ export function FiscalCalendarDetailSheet({
           ? {
               label: 'Ver obrigação',
               onClick: () => {
-                navigate(`/app/firm/tasks/obligations?obligation=${obligationId}`)
+                navigate(`/app/firm/tasks/obligations?ob=${obligationId}`)
                 onOpenChange(false)
               },
             }
