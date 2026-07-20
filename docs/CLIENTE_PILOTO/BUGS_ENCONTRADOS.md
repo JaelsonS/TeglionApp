@@ -71,3 +71,12 @@ Status: Resolvido
 Responsável: Frontend
 Correção aplicada: save imediato do CAE (sem debounce perdido no unmount); flush do debounce no unmount; combobox grava texto ao fechar.
 Data da correção: 2026-07-20
+
+## Melhoria 009
+Título: Autocomplete CAE com catálogo oficial (INE).
+Descrição: Ao criar/editar clientes, o CAE era só lista curta + texto livre; donos de escritório perdiam tempo a escrever códigos.
+Data: 2026-07-20
+Status: Resolvido
+Responsável: Frontend / Backend
+Correção aplicada: catálogo local CAE-Rev.3 (~570 classes INE + tokens de pesquisa) com pesquisa por código/descrição; endpoint `GET /firm/cae-search`; enriquecimento opcional via API live do INE; histórico do escritório mantido.
+Data da correção: 2026-07-20

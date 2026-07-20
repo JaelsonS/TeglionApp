@@ -169,6 +169,7 @@ Requer: auth + `requireActiveFirm` + permissões RBAC.
 | PATCH | `/firm/settings` | CLINIC_UPDATE | Actualizar definições |
 | GET | `/firm/cae-history` | FIRM_CLIENTS_MANAGE | Histórico CAE do escritório |
 | POST | `/firm/cae-history` | FIRM_CLIENTS_MANAGE | Guardar CAE no histórico (MRU) |
+| GET | `/firm/cae-search?q=` | FIRM_CLIENTS_MANAGE | Autocomplete CAE (catálogo INE Rev.3 + live opcional) |
 | POST | `/firm/logo` | CLINIC_UPDATE | Upload logo |
 | GET | `/firm/team` | USERS_READ | Listar equipa |
 | POST | `/firm/team` | USERS_CREATE | Adicionar membro |

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, ChevronsUpDown, History, Loader2, Plus } from 'lucide-react'
+import { Check, ChevronsUpDown, History, Loader2, Plus, Search } from 'lucide-react'
 
 import { CAE_OPTIONS } from '@/features/firm/components/companyCreateConstants'
 import { contabilFirmApi } from '@/infrastructure/api'
@@ -51,12 +51,26 @@ export function CaeCombobox({
 }: CaeComboboxProps) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
   const queryClient = useQueryClient()
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedQuery(normalize(query)), 180)
+    return () => window.clearTimeout(t)
+  }, [query])
 
   const historyQuery = useQuery({
     queryKey: CAE_HISTORY_KEY,
     queryFn: () => contabilFirmApi.listCaeHistory(),
     staleTime: 60_000,
+  })
+
+  const catalogQuery = useQuery({
+    queryKey: ['firm', 'cae-search', debouncedQuery],
+    queryFn: () => contabilFirmApi.searchCae(debouncedQuery),
+    enabled: open && debouncedQuery.length >= 1,
+    staleTime: 60_000,
+    placeholderData: (prev) => prev,
   })
 
   const rememberMutation = useMutation({
@@ -67,7 +81,6 @@ export function CaeCombobox({
   })
 
   const firmHistory = historyQuery.data?.items || []
-
   const presetOptions = useMemo(() => [...CAE_OPTIONS], [])
 
   const filteredHistory = useMemo(() => {
@@ -76,23 +89,31 @@ export function CaeCombobox({
     return firmHistory.filter((item) => item.toLowerCase().includes(q))
   }, [firmHistory, query])
 
-  const filteredPresets = useMemo(() => {
-    const q = normalize(query).toLowerCase()
+  const catalogItems = useMemo(() => {
+    const items = catalogQuery.data?.items || []
     const historySet = new Set(firmHistory.map((item) => item.toLowerCase()))
-    const base = presetOptions.filter((item) => !historySet.has(item.toLowerCase()))
-    if (!q) return base
-    return base.filter((item) => item.toLowerCase().includes(q))
-  }, [firmHistory, presetOptions, query])
+    return items.filter((item) => !historySet.has(item.value.toLowerCase()))
+  }, [catalogQuery.data?.items, firmHistory])
+
+  const filteredPresets = useMemo(() => {
+    if (debouncedQuery.length >= 1) return []
+    const historySet = new Set(firmHistory.map((item) => item.toLowerCase()))
+    return presetOptions.filter((item) => !historySet.has(item.toLowerCase()))
+  }, [debouncedQuery, firmHistory, presetOptions])
 
   const normalizedQuery = normalize(query)
   const exactMatch = useMemo(() => {
     if (!normalizedQuery) return false
-    const all = [...firmHistory, ...presetOptions]
+    const catalogValues = (catalogQuery.data?.items || []).map((i) => i.value)
+    const all = [...firmHistory, ...presetOptions, ...catalogValues]
     return all.some((item) => item.toLowerCase() === normalizedQuery.toLowerCase())
-  }, [firmHistory, normalizedQuery, presetOptions])
+  }, [catalogQuery.data?.items, firmHistory, normalizedQuery, presetOptions])
 
   useEffect(() => {
-    if (!open) setQuery('')
+    if (!open) {
+      setQuery('')
+      setDebouncedQuery('')
+    }
   }, [open])
 
   function commit(nextRaw: string) {
@@ -117,6 +138,8 @@ export function CaeCombobox({
     setOpen(nextOpen)
   }
 
+  const searching = open && debouncedQuery.length >= 1 && catalogQuery.isFetching
+
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
@@ -140,15 +163,21 @@ export function CaeCombobox({
       <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-[280px] p-0" align="start">
         <Command shouldFilter={false}>
           <CommandInput
-            placeholder="Filtrar por código ou descrição…"
+            placeholder="Ex.: 6201 ou programação…"
             value={query}
             onValueChange={setQuery}
           />
           <CommandList>
             <CommandEmpty>
-              {normalizedQuery
-                ? 'Prima «Adicionar» abaixo ou feche para guardar o texto.'
-                : 'Escreva para pesquisar ou adicionar um CAE.'}
+              {searching ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> A pesquisar CAE…
+                </span>
+              ) : normalizedQuery ? (
+                'Prima «Adicionar» abaixo ou feche para guardar o texto.'
+              ) : (
+                'Escreva o código ou a actividade (ex.: padaria).'
+              )}
             </CommandEmpty>
 
             {filteredHistory.length > 0 ? (
@@ -170,10 +199,31 @@ export function CaeCombobox({
               </CommandGroup>
             ) : null}
 
-            {filteredHistory.length > 0 && filteredPresets.length > 0 ? <CommandSeparator /> : null}
+            {filteredHistory.length > 0 && (catalogItems.length > 0 || filteredPresets.length > 0) ? (
+              <CommandSeparator />
+            ) : null}
+
+            {catalogItems.length > 0 ? (
+              <CommandGroup heading="Catálogo CAE (INE)">
+                {catalogItems.map((item) => (
+                  <CommandItem
+                    key={`cae-${item.code}-${item.value}`}
+                    value={item.value}
+                    onSelect={() => commit(item.value)}
+                    className="items-start"
+                  >
+                    <Search className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <span className="min-w-0 flex-1 whitespace-normal break-words">{item.value}</span>
+                    {normalize(value).toLowerCase() === item.value.toLowerCase() ? (
+                      <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
+                    ) : null}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ) : null}
 
             {filteredPresets.length > 0 ? (
-              <CommandGroup heading="Sugestões">
+              <CommandGroup heading="Frequentes">
                 {filteredPresets.map((item) => (
                   <CommandItem
                     key={`preset-${item}`}

@@ -45,6 +45,17 @@ export function createContabilFirmApi(api: AxiosInstance) {
     rememberCae: (cae: string) =>
       api.post('/contabil/firm/cae-history', { cae }).then((r) => r.data as { items: string[] }),
 
+    searchCae: (q: string) =>
+      api
+        .get('/contabil/firm/cae-search', { params: { q } })
+        .then(
+          (r) =>
+            r.data as {
+              items: Array<{ code: string; label: string; value: string; source?: string }>
+              source?: string
+            },
+        ),
+
     register: (payload: {
       firmName: string
       ownerName: string
