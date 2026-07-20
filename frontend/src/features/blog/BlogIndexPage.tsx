@@ -93,7 +93,7 @@ export function BlogIndexPage() {
 
           {heroPost ? (
             <div className="blog-hero-feature">
-              <BlogCard post={heroPost} featured wide />
+              <BlogCard post={heroPost} featured />
             </div>
           ) : null}
         </div>

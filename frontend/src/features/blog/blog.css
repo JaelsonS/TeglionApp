@@ -805,9 +805,31 @@
 
 @media (min-width: 1100px) {
   .blog-hero-index-inner {
-    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.15fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 2.5rem;
+    align-items: center;
   }
+}
+
+.blog-hero-feature {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.blog-hero-feature .blog-card-shell {
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--blog-navy) 12%, transparent);
+  background: #fff;
+}
+
+.blog-hero-feature .blog-card img {
+  aspect-ratio: 16 / 10;
+  width: 100%;
+  height: auto;
+  max-height: 240px;
+  object-fit: cover;
+  object-position: center;
 }
 
 .blog-index-layout {
