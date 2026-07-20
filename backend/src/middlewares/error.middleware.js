@@ -24,6 +24,7 @@ function statusToFallbackCode(statusCode) {
   if (statusCode === 403) return 'FORBIDDEN';
   if (statusCode === 404) return 'NOT_FOUND';
   if (statusCode === 422) return 'VALIDATION_ERROR';
+  if (statusCode === 503) return 'SERVICE_UNAVAILABLE';
   return 'INTERNAL_ERROR';
 }
 

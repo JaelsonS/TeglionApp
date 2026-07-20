@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
 import {
   AlertTriangle,
   Calendar,
@@ -196,16 +195,14 @@ export function FirmObligationDetailPanel({
   const expectedDocs = obligation.expectedDocuments || []
 
   return (
-    <motion.aside
-      initial={embedded ? undefined : { x: 24, opacity: 0 }}
-      animate={embedded ? undefined : { x: 0, opacity: 1 }}
+    <div
       className={
         embedded
-          ? 'cb-ob-det-pane flex h-full min-h-0 flex-col overflow-hidden'
+          ? 'cb-ob-det-pane'
           : 'fixed inset-y-0 right-0 z-40 flex h-full max-h-dvh w-full max-w-lg flex-col overflow-hidden border-l border-border bg-card shadow-2xl sm:max-w-xl'
       }
     >
-      <div className="cb-ob-det-header relative">
+      <div className="cb-ob-det-header relative shrink-0">
         <button
           type="button"
           className="absolute right-3 top-3 rounded-md p-1.5 text-muted-foreground hover:bg-muted/60"
@@ -428,6 +425,6 @@ export function FirmObligationDetailPanel({
         previewUrl={previewUrl}
         loading={previewOpen && !previewUrl}
       />
-    </motion.aside>
+    </div>
   )
 }

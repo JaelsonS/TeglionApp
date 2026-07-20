@@ -35,3 +35,21 @@ Status: Resolvido
 Responsável: Frontend
 Correção aplicada: Chaves PT adicionadas e handler ajustado.
 Data da correção: 2026-07-17
+
+## Bug 005
+Título: Independentes — CAE principal sem escrita livre.
+Descrição: Na ficha do cliente (hub), o CAE principal era um `<select>` com lista curta; independentes (e empresas) não conseguiam escrever um CAE livre como no wizard de criação.
+Data: 2026-07-20
+Status: Resolvido
+Responsável: Frontend / Backend
+Correção aplicada: Combobox profissional (pesquisa + sugestões + texto livre) com histórico do escritório (`firms.settings.caeHistory`) reutilizável na ficha e no wizard.
+Data da correção: 2026-07-20
+
+## Bug 006
+Título: Painel direito de obrigações sem scroll.
+Descrição: Ao abrir uma obrigação em Tarefas → Obrigações fiscais, o detalhe à direita não fazia scroll (mesmo tipo de defeito já visto em documentos).
+Data: 2026-07-20
+Status: Resolvido
+Responsável: Frontend
+Correção aplicada: Cadeia flex/`min-h-0` corrigida; scroll em `.cb-ob-det-scroll`; removido header duplicado; sheet mobile alinhado ao padrão dos documentos.
+Data da correção: 2026-07-20

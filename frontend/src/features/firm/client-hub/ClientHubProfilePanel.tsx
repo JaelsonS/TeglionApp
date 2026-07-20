@@ -5,8 +5,8 @@ import { ClientHubAddressSection } from '@/features/firm/client-hub/ClientHubAdd
 import { ClientHubServicesSection } from '@/features/firm/client-hub/ClientHubServicesSection'
 import { InlineEditField } from '@/features/firm/client-hub/InlineEditField'
 import { InlineEditSelect } from '@/features/firm/client-hub/InlineEditSelect'
+import { CaeComboboxField } from '@/features/firm/components/CaeCombobox'
 import {
-  CAE_OPTIONS,
   ACCOUNTING_TYPES,
   IRS_FRAMEWORKS,
   VAT_EXEMPTION_REASONS,
@@ -34,7 +34,6 @@ const accountingTypeOptions = ACCOUNTING_TYPES.map((v) => ({ value: v, label: v 
 const vatOptions = VAT_REGIMES.map((v) => ({ value: v, label: v }))
 const vatExemptionOptions = VAT_EXEMPTION_REASONS.map((v) => ({ value: v, label: v }))
 const irsOptions = IRS_FRAMEWORKS.map((v) => ({ value: v, label: v }))
-const caeOptions = CAE_OPTIONS.map((v) => ({ value: v, label: v }))
 
 export function ClientHubProfilePanel({ hub, onPatch, isSaving }: Props) {
   const { t } = useTranslation('common')
@@ -247,19 +246,20 @@ export function ClientHubProfilePanel({ hub, onPatch, isSaving }: Props) {
             saving={isSaving}
             onSave={(v) => saveMetaField('accountingType', v)}
           />
-          <InlineEditSelect
+          <CaeComboboxField
             label="CAE principal"
             value={fp.caePrimary || ''}
-            options={caeOptions}
             saving={isSaving}
+            placeholder="Pesquisar ou escrever CAE principal…"
             onSave={(v) => saveMetaField('caePrimary', v)}
           />
           {[0, 1].map((i) => (
-            <InlineEditField
+            <CaeComboboxField
               key={i}
               label={i === 0 ? 'CAE secundário' : 'CAE secundário (2)'}
               value={fp.caeSecondary[i] || ''}
               saving={isSaving}
+              placeholder="Pesquisar ou escrever CAE secundário…"
               onSave={(v) => {
                 const next = [...(fp.caeSecondary || [])]
                 while (next.length <= i) next.push('')

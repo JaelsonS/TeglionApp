@@ -949,9 +949,9 @@
     @apply bg-sky-50 text-sky-800;
   }
 
-  /* Obrigação — painel de detalhe */
+  /* Obrigação — painel de detalhe (mesmo padrão de scroll que DocumentRequestDetailPanel) */
   .cb-ob-det-pane {
-    @apply flex h-full min-h-0 w-full max-h-full flex-col overflow-hidden bg-muted/30;
+    @apply flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-muted/30;
   }
 
   .cb-ob-det-header {
@@ -963,7 +963,7 @@
   }
 
   .cb-ob-det-scroll {
-    @apply flex min-h-0 flex-1 basis-0 flex-col gap-3 overflow-y-auto overscroll-y-contain p-3.5;
+    @apply min-h-0 flex-1 basis-0 space-y-3 overflow-y-auto overscroll-y-contain p-3.5;
     -webkit-overflow-scrolling: touch;
     scrollbar-gutter: stable;
     touch-action: pan-y;
@@ -1027,15 +1027,22 @@
 
   @media (min-width: 1280px) {
     .cb-obligations-split-host {
-      min-height: clamp(34rem, 76dvh, 48rem);
+      min-height: 0;
+      flex: 1 1 0%;
+      overflow: hidden;
     }
 
     .cb-obligations-split-host .cb-firm-split-column {
       min-height: 0;
+      overflow: hidden;
     }
 
+    /* O scroll vive em .cb-ob-det-scroll — o body só contém o painel em flex. */
     .cb-obligations-split-host .cb-firm-split-body {
+      display: flex;
       min-height: 0;
+      flex: 1 1 0%;
+      flex-direction: column;
       overflow: hidden;
     }
   }

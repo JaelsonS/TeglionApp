@@ -68,3 +68,26 @@ Valida automaticamente:
 1. Causa raiz documentada
 2. Evidência de correção com gate de release verde
 3. Comunicação concluída para stakeholders
+
+## Incidentes registados
+
+### 2026-07-20 — Postal lookup PT (produção)
+
+| Campo | Valor |
+|-------|--------|
+| Severidade | P2 (fallback UX: preencher morada manualmente) |
+| Sintoma | Contadora em produção: falha ao autocompletar código postal |
+| Endpoint | `GET /api/public/postal-lookup?country=PT&postalCode=…` |
+| Sentry | `f0a37556` / request `27221227-c61c-456f-911e-05fcf68fa9b3` |
+| Erro | `ConnectTimeoutError` + `ENETUNREACH` IPv6 ao contactar `json.geoapi.pt` (`194.60.201.198` / `2a02:c206:…`) |
+
+**Causa raiz:** o backend dependia só de `https://json.geoapi.pt/cp/{CP}` sem timeout/fallback. A partir do host Render (AWS) a ligação ao geoapi (Contabo) falhou (IPv6 inacessível + timeout IPv4). O `fetch` rebentava em `TypeError: fetch failed` → 500 no Sentry.
+
+**Correcção:**
+
+1. Timeout curto (5s) + preferência IPv4 (`dns.setDefaultResultOrder('ipv4first')` + Agent undici `family: 4`)
+2. Fallback para `https://postcode-pt.onrender.com/v1/postal-codes/{CP}` se o geoapi falhar
+3. Falhas de rede mapeadas para `503 POSTAL_LOOKUP_UNAVAILABLE` (mensagem amigável; UI já pede preenchimento manual)
+4. Melhor extracção de rua a partir de `pontos`/`partes` do geoapi
+
+**Verificação após deploy:** `GET /api/public/postal-lookup?country=PT&postalCode=3090-492` deve devolver localidade (ex.: Casal Novo / Figueira da Foz).

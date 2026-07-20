@@ -24,6 +24,7 @@ const automationController = require('../../modules/automations/automation.contr
 const fiscalCalendarController = require('../../modules/fiscal/fiscal-calendar.controller');
 const fiscalCalendarNotesController = require('../../modules/fiscal/fiscal-calendar-notes.controller');
 const atController = require('../../modules/integrations/at/at.controller');
+const caeHistoryController = require('../../modules/firm/cae-history.controller');
 
 const router = express.Router();
 
@@ -42,6 +43,8 @@ router.patch(
 router.get('/integrations/at/status', requirePermission(PERMISSIONS.FIRM_CLIENTS_VIEW), atController.getIntegrationStatus);
 
 router.get('/firm', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.getFirm);
+router.get('/firm/cae-history', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), caeHistoryController.list);
+router.post('/firm/cae-history', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), caeHistoryController.remember);
 router.get('/firm/settings', requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE), firmSettingsController.getSettings);
 router.patch(
   '/firm/settings',

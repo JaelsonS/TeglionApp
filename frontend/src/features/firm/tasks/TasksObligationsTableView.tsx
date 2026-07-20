@@ -21,7 +21,6 @@ import {
 import {
   FirmSplitColumn,
   FirmSplitBody,
-  FirmSplitHeader,
   FirmSplitHost,
 } from '@/features/firm/FirmPageLayout'
 import {
@@ -322,35 +321,22 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
           )}
         >
           {selected ? (
-            <>
-              <FirmSplitHeader className="justify-between">
-                <span className="truncate text-sm font-semibold">{displayObligationTitle(selected)}</span>
-                <button
-                  type="button"
-                  className="rounded-md p-1.5 text-muted-foreground hover:bg-muted/60"
-                  onClick={() => hub.selectObligation(null)}
-                  aria-label="Fechar detalhe"
-                >
-                  ×
-                </button>
-              </FirmSplitHeader>
-              <FirmSplitBody className="flex min-h-0 flex-1 flex-col overflow-hidden p-0">
-                <FirmObligationDetailPanel
-                  embedded
-                  obligation={selected}
-                  clientName={clientName}
-                  onClose={() => hub.selectObligation(null)}
-                  onUpdated={() => void hub.refresh()}
-                />
-              </FirmSplitBody>
-            </>
+            <FirmSplitBody className="flex min-h-0 flex-1 flex-col overflow-hidden p-0">
+              <FirmObligationDetailPanel
+                embedded
+                obligation={selected}
+                clientName={clientName}
+                onClose={() => hub.selectObligation(null)}
+                onUpdated={() => void hub.refresh()}
+              />
+            </FirmSplitBody>
           ) : null}
         </FirmSplitColumn>
       </FirmSplitHost>
 
       {hub.selectedId && !isDesktopSplit ? (
         <Sheet open onOpenChange={(open: boolean) => !open && hub.selectObligation(null)}>
-          <SheetContent side="right" className="flex h-full max-h-dvh w-full flex-col overflow-hidden p-0 sm:max-w-lg">
+          <SheetContent side="right" className="cb-firm-split-sheet flex h-full max-h-dvh w-full flex-col overflow-hidden p-0 sm:max-w-lg">
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               {selected ? (
                 <FirmObligationDetailPanel

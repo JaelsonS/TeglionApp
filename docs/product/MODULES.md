@@ -67,7 +67,7 @@ Inventário de todos os módulos do TegLion, classificados por importância estr
 | **Legal** | `modules/legal` | `app/legal` | ✅ Essencial | RGPD; termos, privacidade, DPA |
 | **Case studies** | — | `app/marketing/CaseStudiesPage` | ✅ Essencial | Link no footer da landing |
 | **Newsletter blog** | `modules/public/blog-newsletter` | `app/blog` | 🟡 Precisa melhorar | Funcional; integrar com CRM futuro |
-| **Postal lookup** | `modules/public/postal-lookup` | Formulários | 🟡 Precisa melhorar | Útil PT; precisa equivalente BR (CEP) |
+| **Postal lookup** | `modules/public/postal-lookup` | Formulários | 🟡 Precisa melhorar | PT: geoapi.pt + fallback postcode-pt (timeout/IPv4); BR ViaCEP no service mas flag off |
 | **Firm branding público** | `modules/public/firm-branding` | Login cliente | ✅ Essencial | Branding white-label no login |
 
 ---

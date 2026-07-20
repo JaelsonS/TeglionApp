@@ -39,6 +39,12 @@ export function createContabilFirmApi(api: AxiosInstance) {
 
     listStaff: () => api.get('/contabil/firm/staff').then((r) => r.data),
 
+    listCaeHistory: () =>
+      api.get('/contabil/firm/cae-history').then((r) => r.data as { items: string[] }),
+
+    rememberCae: (cae: string) =>
+      api.post('/contabil/firm/cae-history', { cae }).then((r) => r.data as { items: string[] }),
+
     register: (payload: {
       firmName: string
       ownerName: string

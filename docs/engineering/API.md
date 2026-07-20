@@ -137,7 +137,7 @@ GET /api/contabil/clients?limit=20&offset=0
 | GET | `/health` | Health check |
 | GET | `/health/integrations` | Estado integrações (Brevo, Stripe, Storage) |
 | GET | `/legal/versions` | Versões dos documentos legais |
-| GET | `/postal-lookup?code=` | Código postal PT |
+| GET | `/postal-lookup?country=PT&postalCode=` | Código postal PT (fallback se geoapi indisponível) |
 | GET | `/client-invite/:token` | Validar convite |
 | GET | `/firm-branding?slug=` | Branding público do escritório |
 | POST | `/blog/newsletter` | Subscrever newsletter |
@@ -167,6 +167,8 @@ Requer: auth + `requireActiveFirm` + permissões RBAC.
 | GET | `/dashboard` | CLINIC_READ | KPIs do escritório |
 | GET | `/firm/settings` | CLINIC_READ | Definições |
 | PATCH | `/firm/settings` | CLINIC_UPDATE | Actualizar definições |
+| GET | `/firm/cae-history` | FIRM_CLIENTS_MANAGE | Histórico CAE do escritório |
+| POST | `/firm/cae-history` | FIRM_CLIENTS_MANAGE | Guardar CAE no histórico (MRU) |
 | POST | `/firm/logo` | CLINIC_UPDATE | Upload logo |
 | GET | `/firm/team` | USERS_READ | Listar equipa |
 | POST | `/firm/team` | USERS_CREATE | Adicionar membro |

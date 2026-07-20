@@ -11,12 +11,12 @@ import {
 } from '@/features/firm/components/clientCreateForm'
 import {
   ACCOUNTING_TYPES,
-  CAE_OPTIONS,
   IRS_FRAMEWORKS,
   VAT_EXEMPTION_REASONS,
   VAT_REGIMES,
   YES_NO_OPTIONS,
 } from '@/features/firm/components/companyCreateConstants'
+import { CaeCombobox } from '@/features/firm/components/CaeCombobox'
 import {
   getClientRegistrationRules,
   getClientTypeLabelKey,
@@ -543,35 +543,27 @@ export function CreateCompanyWizard({ open, onOpenChange, onCreated }: Props) {
               {registrationRules.isVisible('caePrimary') ? (
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                   <WizardField id="caePrimary" label={t('clientWizard.fields.caePrimary')} required={registrationRules.isRequired('caePrimary')} hint={t('clientWizard.hints.caePrimary')}>
-                    <WizardInput
+                    <CaeCombobox
                       id="caePrimary"
-                      list="cae-suggestions"
                       value={form.caePrimary}
-                      onChange={(e) => set('caePrimary', e.target.value)}
+                      onChange={(v) => set('caePrimary', v)}
                       placeholder={t('clientWizard.placeholders.caePrimary')}
                     />
                   </WizardField>
-                  <datalist id="cae-suggestions">
-                    {CAE_OPTIONS.map((o) => (
-                      <option key={o} value={o} />
-                    ))}
-                  </datalist>
                   {registrationRules.isVisible('caeSecondary') ? (
                     <>
                       <WizardField id="caeSecondary1" label={t('clientWizard.fields.caeSecondary')}>
-                        <WizardInput
+                        <CaeCombobox
                           id="caeSecondary1"
-                          list="cae-suggestions"
                           value={form.caeSecondary1}
-                          onChange={(e) => set('caeSecondary1', e.target.value)}
+                          onChange={(v) => set('caeSecondary1', v)}
                         />
                       </WizardField>
                       <WizardField id="caeSecondary2" label={t('clientWizard.fields.caeSecondary2')}>
-                        <WizardInput
+                        <CaeCombobox
                           id="caeSecondary2"
-                          list="cae-suggestions"
                           value={form.caeSecondary2}
-                          onChange={(e) => set('caeSecondary2', e.target.value)}
+                          onChange={(v) => set('caeSecondary2', v)}
                         />
                       </WizardField>
                     </>

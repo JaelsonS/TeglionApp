@@ -34,7 +34,7 @@ CountryConfig.resolve('PT')
         ├── fiscalCalendar: PtFiscalCalendarProvider
         ├── obligationTypes: ['IVA', 'IRC', 'IRS', 'SS', 'DRF', 'IES', ...]
         ├── legalDocuments: ['termos-pt', 'privacidade-pt', 'dpa-pt']
-        ├── integrations: { taxAuthority: 'AT', postalLookup: 'ctt' }
+        ├── integrations: { taxAuthority: 'AT', postalLookup: 'geoapi.pt (+ postcode-pt fallback)' }
         ├── aiPrompts: { systemContext: '...' }
         └── stripePriceId: 'price_pt_...'
 ```
@@ -85,7 +85,7 @@ export function useCountryConfig() {
 | `obligationTypes` | string[] | IVA, IRC, IRS, SS | DAS, SPED, FGTS, IRPJ |
 | `fiscalCalendarProvider` | class | `PtFiscalCalendar` | `BrFiscalCalendar` |
 | `legalDocumentSet` | string[] | termos-pt, ... | termos-br, lgpd-br |
-| `integrations` | object | AT, CTT postal | Receita Federal, ViaCEP |
+| `integrations` | object | AT, geoapi.pt postal | Receita Federal, ViaCEP |
 | `stripePriceId` | string | `price_xxx_pt` | `price_xxx_br` |
 | `phoneFormat` | string | `+351` | `+55` |
 | `dataProtectionLaw` | string | `'RGPD'` | `'LGPD'` |
@@ -252,7 +252,7 @@ Cada provider:
 | Integração | PT | BR |
 |------------|----|----|
 | Autoridade fiscal | AT (deep-links → API certificada) | Receita Federal |
-| Postal lookup | CTT (código postal) | ViaCEP |
+| Postal lookup | geoapi.pt (+ postcode-pt fallback) | ViaCEP |
 | Pagamentos | Stripe EUR | Stripe BRL |
 | SMS | Brevo (+351) | Brevo (+55) |
 | WhatsApp | Futuro | **Prioritário** — canal principal BR |
