@@ -1036,24 +1036,32 @@
 }
 
 .blog-card-shell--wide {
+  /* só estica quando está dentro da grelha de cards */
+}
+
+.blog-card-grid > .blog-card-shell--wide {
   grid-column: 1 / -1;
 }
 
 .blog-card--wide {
-  display: grid;
+  display: flex;
+  flex-direction: column;
 }
 
-@media (min-width: 768px) {
-  .blog-card--wide {
-    grid-template-columns: 1.15fr 1fr;
+@media (min-width: 900px) {
+  .blog-card-grid > .blog-card-shell--wide .blog-card--wide {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: stretch;
   }
 
-  .blog-card-wide-media {
+  .blog-card-grid > .blog-card-shell--wide .blog-card-wide-media {
     min-height: 100%;
   }
 
-  .blog-card--wide .blog-card-wide-media img {
+  .blog-card-grid > .blog-card-shell--wide .blog-card-wide-media img {
     height: 100%;
+    min-height: 220px;
     object-fit: cover;
   }
 }
