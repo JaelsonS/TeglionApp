@@ -160,14 +160,18 @@ export function CaeCombobox({
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-[280px] p-0" align="start">
-        <Command shouldFilter={false}>
+      <PopoverContent
+        className="w-[var(--radix-popover-trigger-width)] min-w-[280px] overflow-hidden p-0"
+        align="start"
+        onWheel={(e) => e.stopPropagation()}
+      >
+        <Command shouldFilter={false} className="flex max-h-[min(22rem,70vh)] flex-col overflow-hidden">
           <CommandInput
             placeholder="Ex.: 6201 ou programação…"
             value={query}
             onValueChange={setQuery}
           />
-          <CommandList>
+          <CommandList className="max-h-[min(18rem,55vh)] flex-1 overscroll-contain">
             <CommandEmpty>
               {searching ? (
                 <span className="inline-flex items-center gap-2">
@@ -181,7 +185,7 @@ export function CaeCombobox({
             </CommandEmpty>
 
             {filteredHistory.length > 0 ? (
-              <CommandGroup heading="Usados no escritório">
+              <CommandGroup heading="Usados no escritório" className="overflow-visible">
                 {filteredHistory.map((item) => (
                   <CommandItem
                     key={`hist-${item}`}
@@ -204,7 +208,7 @@ export function CaeCombobox({
             ) : null}
 
             {catalogItems.length > 0 ? (
-              <CommandGroup heading="Catálogo CAE (INE)">
+              <CommandGroup heading="Catálogo CAE (INE)" className="overflow-visible">
                 {catalogItems.map((item) => (
                   <CommandItem
                     key={`cae-${item.code}-${item.value}`}
@@ -223,7 +227,7 @@ export function CaeCombobox({
             ) : null}
 
             {filteredPresets.length > 0 ? (
-              <CommandGroup heading="Frequentes">
+              <CommandGroup heading="Frequentes" className="overflow-visible">
                 {filteredPresets.map((item) => (
                   <CommandItem
                     key={`preset-${item}`}
