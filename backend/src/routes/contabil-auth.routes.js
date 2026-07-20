@@ -8,17 +8,20 @@ const {
   refreshLimiter,
   registerFirmLimiter,
 } = require('../utils/auth-rate-limit');
+const { SAFE_NORMALIZE_EMAIL_OPTIONS } = require('../utils/normalize');
 
 const router = express.Router();
 
+const emailField = () => body('email').isEmail().normalizeEmail(SAFE_NORMALIZE_EMAIL_OPTIONS);
+
 const loginFirmValidators = [
-  body('email').isEmail().normalizeEmail(),
+  emailField(),
   body('password').isString().isLength({ min: 1 }),
   body('rememberMe').optional().isBoolean(),
 ];
 
 const loginClientValidators = [
-  body('email').isEmail().normalizeEmail(),
+  emailField(),
   body('password').isString().isLength({ min: 1 }),
   body('rememberMe').optional().isBoolean(),
   body('firmSlug').optional().isString().trim().isLength({ min: 2, max: 64 }),
@@ -57,7 +60,7 @@ router.post(
   firmLoginLimiter,
   [
     body('token').isString().trim().isLength({ min: 16, max: 128 }),
-    body('email').isEmail().normalizeEmail(),
+    emailField(),
     body('password').isString().isLength({ min: 10 }),
     body('fullName').isString().trim().isLength({ min: 2, max: 140 }),
   ],
@@ -72,7 +75,7 @@ router.post('/complete-onboarding', authMiddleware, contabilAuthController.compl
 router.post(
   '/recover',
   recoverLimiter,
-  [body('email').isEmail().normalizeEmail(), body('role').optional().isString().trim()],
+  [emailField(), body('role').optional().isString().trim()],
   contabilAuthController.recoverPassword
 );
 

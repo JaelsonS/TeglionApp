@@ -251,7 +251,10 @@ export function ClientHubProfilePanel({ hub, onPatch, isSaving }: Props) {
             value={fp.caePrimary || ''}
             saving={isSaving}
             placeholder="Pesquisar ou escrever CAE principal…"
-            onSave={(v) => saveMetaField('caePrimary', v)}
+            onSave={(v) => {
+              // Guardar de imediato — debounce perdia o valor ao sair da ficha
+              onPatch({ metadata: { caePrimary: v.trim() || null } })
+            }}
           />
           {[0, 1].map((i) => (
             <CaeComboboxField
@@ -264,7 +267,11 @@ export function ClientHubProfilePanel({ hub, onPatch, isSaving }: Props) {
                 const next = [...(fp.caeSecondary || [])]
                 while (next.length <= i) next.push('')
                 next[i] = v
-                debouncedMeta({ caeSecondary: next.map((s) => s.trim()).filter(Boolean) })
+                onPatch({
+                  metadata: {
+                    caeSecondary: next.map((s) => s.trim()).filter(Boolean),
+                  },
+                })
               }}
             />
           ))}

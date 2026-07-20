@@ -106,8 +106,19 @@ export function CaeCombobox({
     setQuery('')
   }
 
+  function handleOpenChange(nextOpen: boolean) {
+    if (!nextOpen) {
+      const typed = normalize(query)
+      if (typed && typed.toLowerCase() !== normalize(value).toLowerCase()) {
+        commit(typed)
+        return
+      }
+    }
+    setOpen(nextOpen)
+  }
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           id={id}
@@ -134,7 +145,11 @@ export function CaeCombobox({
             onValueChange={setQuery}
           />
           <CommandList>
-            <CommandEmpty>Sem resultados. Escreva e prima Enter para adicionar.</CommandEmpty>
+            <CommandEmpty>
+              {normalizedQuery
+                ? 'Prima «Adicionar» abaixo ou feche para guardar o texto.'
+                : 'Escreva para pesquisar ou adicionar um CAE.'}
+            </CommandEmpty>
 
             {filteredHistory.length > 0 ? (
               <CommandGroup heading="Usados no escritório">

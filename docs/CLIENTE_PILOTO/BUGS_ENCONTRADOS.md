@@ -53,3 +53,21 @@ Status: Resolvido
 Responsável: Frontend
 Correção aplicada: Cadeia flex/`min-h-0` corrigida; scroll em `.cb-ob-det-scroll`; removido header duplicado; sheet mobile alinhado ao padrão dos documentos.
 Data da correção: 2026-07-20
+
+## Bug 007
+Título: Recuperação de senha falha em emails Gmail com pontos.
+Descrição: `normalizeEmail()` removia pontos (`colaborador.llcnunes` → `colaboradorllcnunes`); a API respondia sucesso sem enviar email.
+Data: 2026-07-20
+Status: Resolvido
+Responsável: Backend
+Correção aplicada: `gmail_remove_dots: false` no recover/login; procura bate com o email real na BD.
+Data da correção: 2026-07-20
+
+## Bug 008
+Título: CAE principal não fica guardado na ficha.
+Descrição: Ao escolher CAE e sair da ficha, o valor desaparecia; histórico do escritório também não preenchia.
+Data: 2026-07-20
+Status: Resolvido
+Responsável: Frontend
+Correção aplicada: save imediato do CAE (sem debounce perdido no unmount); flush do debounce no unmount; combobox grava texto ao fechar.
+Data da correção: 2026-07-20
