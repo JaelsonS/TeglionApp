@@ -37,6 +37,7 @@ function RouteThemeSync() {
 
   useEffect(() => {
     if (typeof document === 'undefined') return
+    // Só remove tags de tracking dentro da app autenticada (/app) — marketing/blog mantêm gtag no <head>
     if (!location.pathname.startsWith('/app')) return
 
     if (Sentry) {
@@ -61,28 +62,6 @@ function RouteThemeSync() {
     } catch {
       // noop
     }
-
-    const selectors = [
-      'script[src*="googletagmanager.com/gtag/js"]',
-      'script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]',
-    ]
-
-    selectors.forEach((selector) => {
-      document.querySelectorAll(selector).forEach((node) => {
-        try {
-          if (typeof (node as Element).remove === 'function') {
-            ; (node as Element).remove()
-            return
-          }
-          const parent = node.parentNode
-          if (parent && parent.contains(node)) {
-            parent.removeChild(node)
-          }
-        } catch {
-          // noop
-        }
-      })
-    })
   }, [location.pathname, location.search])
 
   return null

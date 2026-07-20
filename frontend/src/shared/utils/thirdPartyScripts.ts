@@ -1,4 +1,5 @@
-const GTAG_ID = 'G-87JMNHY650'
+/** Measurement ID GA4 — deve coincidir com o snippet em index.html */
+export const GTAG_ID = 'G-JHXZ25T7FJ'
 const ADS_CLIENT = 'ca-pub-8576885038152568'
 
 let analyticsLoaded = false
@@ -25,29 +26,42 @@ function loadScript(src: string, attrs?: Record<string, string>): Promise<void> 
   })
 }
 
-function initGtag() {
+function ensureGtagBootstrap() {
   if (typeof window === 'undefined') return
   const w = window as any
   w.dataLayer = w.dataLayer || []
-  w.gtag = w.gtag || function () { w.dataLayer.push(arguments) }
-  w.gtag('js', new Date())
-  w.gtag('consent', 'default', {
-    ad_storage: 'denied',
-    analytics_storage: 'denied',
-    ad_user_data: 'denied',
-    ad_personalization: 'denied',
-    wait_for_update: 500,
-  })
-  w.gtag('config', GTAG_ID)
+  if (typeof w.gtag !== 'function') {
+    w.gtag = function gtag() {
+      w.dataLayer.push(arguments)
+    }
+  }
 }
 
+/**
+ * Garante gtag presente (fallback se index.html não tiver o snippet).
+ * No fluxo normal a tag já está no <head>; aqui só evitamos duplicar o script.
+ */
 export async function loadThirdPartyScripts() {
   if (analyticsLoaded) return
   analyticsLoaded = true
 
   try {
-    initGtag()
-    await loadScript(`https://www.googletagmanager.com/gtag/js?id=${GTAG_ID}`)
+    ensureGtagBootstrap()
+    const src = `https://www.googletagmanager.com/gtag/js?id=${GTAG_ID}`
+    const alreadyInDom = Boolean(document.querySelector(`script[src*="googletagmanager.com/gtag/js"]`))
+    if (!alreadyInDom) {
+      await loadScript(src)
+      const w = window as any
+      w.gtag('js', new Date())
+      w.gtag('consent', 'default', {
+        ad_storage: 'denied',
+        analytics_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        wait_for_update: 500,
+      })
+      w.gtag('config', GTAG_ID)
+    }
   } catch {
     // fallback silencioso
   }
