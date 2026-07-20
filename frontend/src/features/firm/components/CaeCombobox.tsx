@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronsUpDown, History, Loader2, Plus } from 'lucide-react'
 
@@ -132,12 +132,6 @@ export function CaeCombobox({
             placeholder="Filtrar por código ou descrição…"
             value={query}
             onValueChange={setQuery}
-            onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === 'Enter' && normalizedQuery) {
-                e.preventDefault()
-                commit(normalizedQuery)
-              }
-            }}
           />
           <CommandList>
             <CommandEmpty>Sem resultados. Escreva e prima Enter para adicionar.</CommandEmpty>
