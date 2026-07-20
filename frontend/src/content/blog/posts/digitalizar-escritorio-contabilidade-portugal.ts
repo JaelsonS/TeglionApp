@@ -18,9 +18,11 @@ export const postDigitalizarEscritorio: BlogPost = {
   excerpt:
     'Portal do cliente, pedidos de documentos, arquivo digital, RGPD e comunicação profissional — roteiro para PME contabilísticas que ainda vivem no email e no WhatsApp.',
   publishedAt: '2026-06-18',
-  updatedAt: '2026-06-18',
+  updatedAt: '2026-07-20',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Escritórios',
+  audience: ['escritorio'],
   tags: [
     'digitalizar escritório',
     'escritório contabilidade',
@@ -64,6 +66,7 @@ export const postDigitalizarEscritorio: BlogPost = {
       'Portal do cliente (TegLion) complementa o ERP — resolve a última milha com o contribuinte.',
     ]),
     ...proseParagraphs(
+      'Recebeu um email do cliente às 23h com «segue a factura» em anexo — e no dia seguinte a mesma pessoa diz que já tinha enviado no WhatsApp a semana passada. Se isto soa familiar, a digitalização do escritório não é um luxo de TI: é o único caminho para recuperar o calendário fiscal sem perder clientes.',
       'Muitos escritórios de contabilidade em Portugal já usam ERP robusto — e ainda passam o dia a pedir «aquela factura de Junho» por mensagem. A digitalização que falta não é contabilística; é relacional: como o cliente entrega, como o escritório confirma e como ambos provam que cumpriram.',
       'Este guia é para sócios, directores técnicos e contadores que querem modernizar sem perder a confiança de clientes habituados ao telefone. Também serve a empresas que procuram escritório — saber o que pedir num parceiro digitalmente maduro.',
     ),
@@ -87,6 +90,11 @@ export const postDigitalizarEscritorio: BlogPost = {
             ['4 — Integrado', 'ERP + portal + métricas', 'Automatizar lembretes e relatórios'],
           ],
         }),
+        {
+          type: 'link',
+          label: 'Caso real: escritório saiu do WhatsApp e recuperou prazos',
+          slug: 'caso-escritorio-digitalizacao-prazos',
+        },
       ],
     }),
     sectionDivider(),
@@ -105,6 +113,16 @@ export const postDigitalizarEscritorio: BlogPost = {
             'Medir: tempo médio de fecho de pedido, documentos em falta no dia 15 vs dia 19',
           ],
         },
+        {
+          type: 'link',
+          label: 'Gestão de prazos fiscais no escritório',
+          slug: 'gestao-prazos-fiscais-escritorio-contabilidade',
+        },
+        {
+          type: 'link',
+          label: 'SAF-T, e-Fatura e validação de documentos',
+          slug: 'saft-efatura-validacao-documentos-escritorio',
+        },
       ],
     }),
     ...articleSection({
@@ -113,6 +131,13 @@ export const postDigitalizarEscritorio: BlogPost = {
       paragraphs: [
         'Trata NIF, moradas, salários, contratos. Email encaminhado para estagiário errado, grupo WhatsApp com nome de cliente visível, ou portátil sem encriptação — são cenários de incidente real.',
         'Portal com autenticação, registo de quem acedeu a quê, e política de retenção clara protege o escritório e tranquiliza clientes corporativos na due diligence.',
+      ],
+      blocks: [
+        {
+          type: 'link',
+          label: 'Proteger dados fiscais (visão freelancer / cliente)',
+          slug: 'proteger-dados-fiscais-freelancer-portugal',
+        },
       ],
     }),
     ...articleSection({
@@ -127,6 +152,11 @@ export const postDigitalizarEscritorio: BlogPost = {
           variant: 'info',
           title: 'Para o cliente final',
           text: 'Se o seu contabilista oferece portal, use-o — poupa-lhe emails e prova que entregou a tempo. Se ainda não tem, envie-lhe este artigo ou o nosso guia «Como escolher contabilista».',
+        },
+        {
+          type: 'link',
+          label: 'Ferramentas essenciais do contabilista em 2026',
+          slug: 'ferramentas-essenciais-contabilista-2026',
         },
       ],
     }),

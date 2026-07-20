@@ -20,7 +20,9 @@ export const postFerramentasContabilista: BlogPost = {
   publishedAt: '2026-06-18',
   updatedAt: '2026-06-18',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Escritórios',
+  audience: ['escritorio'],
   tags: [
     'ferramentas contabilista',
     'OCC',
@@ -30,7 +32,7 @@ export const postFerramentasContabilista: BlogPost = {
     'Microsoft 365',
   ],
   readMinutes: 21,
-  featured: true,
+  featured: false,
   series: {
     id: 'carreira-contabilidade',
     title: 'Carreira em contabilidade',

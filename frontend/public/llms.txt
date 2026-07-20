@@ -10,9 +10,13 @@
 
 ## Blog
 
-- [Índice do blog](https://www.teglion.com/blog): Artigos sobre IRS, IVA, recibos verdes e obrigações fiscais
+- [Índice do blog](https://www.teglion.com/blog): Revista fiscal — IRS, IVA, Lda, recibos verdes e operação de escritórios
+- [Guia independente 2026](https://www.teglion.com/blog/guia-completo-trabalhador-independente-portugal-2026)
+- [IRC e sociedades Lda](https://www.teglion.com/blog/irc-sociedades-lda-portugal-guia)
+- [Digitalizar escritório](https://www.teglion.com/blog/digitalizar-escritorio-contabilidade-portugal)
+- [Calendário fiscal 2026](https://www.teglion.com/blog/calendario-fiscal-portugal-2026-completo)
 - [RSS](https://www.teglion.com/rss.xml): Feed dos artigos mais recentes
-- [Sitemap](https://www.teglion.com/sitemap.xml): Mapa do site
+- [Sitemap](https://www.teglion.com/sitemap.xml): Mapa do site (todos os artigos)
 
 ## Legal
 

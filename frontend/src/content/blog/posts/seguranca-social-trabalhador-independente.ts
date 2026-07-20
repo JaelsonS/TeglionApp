@@ -18,7 +18,10 @@ export const postSegurancaSocial: BlogPost = {
   publishedAt: '2026-05-27',
   updatedAt: '2026-06-17',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Segurança Social',
+  audience: ['independente'],
+  featured: false,
   tags: ['Segurança Social', 'NISS', 'trabalhador independente', 'contribuições', 'recibos verdes', 'TSU'],
   readMinutes: 18,
   coverImage: {

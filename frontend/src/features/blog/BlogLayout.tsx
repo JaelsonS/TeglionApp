@@ -12,15 +12,27 @@ function useBlogResourceHints() {
     const links = [
       { rel: 'preconnect', href: 'https://images.unsplash.com' },
       { rel: 'dns-prefetch', href: 'https://images.unsplash.com' },
+      { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+      { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
     ] as const
 
-    const nodes = links.map(({ rel, href }) => {
+    const nodes: HTMLLinkElement[] = []
+
+    for (const item of links) {
       const link = document.createElement('link')
-      link.rel = rel
-      link.href = href
+      link.rel = item.rel
+      link.href = item.href
+      if ('crossOrigin' in item && item.crossOrigin) link.crossOrigin = item.crossOrigin
       document.head.appendChild(link)
-      return link
-    })
+      nodes.push(link)
+    }
+
+    const font = document.createElement('link')
+    font.rel = 'stylesheet'
+    font.href =
+      'https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&display=swap'
+    document.head.appendChild(font)
+    nodes.push(font)
 
     return () => {
       nodes.forEach((node) => node.remove())

@@ -18,7 +18,10 @@ export const postPrazosIrs2026: BlogPost = {
   publishedAt: '2026-05-19',
   updatedAt: '2026-06-17',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'IRS',
+  audience: ['independente', 'pme'],
+  featured: false,
   tags: ['IRS 2026', 'prazos', 'calendário fiscal', 'recibos verdes', 'independentes'],
   readMinutes: 16,
   coverImage: {

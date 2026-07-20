@@ -12,6 +12,16 @@ type Props = {
   post: BlogPost
 }
 
+function slugifyHeading(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80)
+}
+
 export function BlogPostRenderer({ blocks, post }: Props) {
   return (
     <div className="blog-article">
@@ -44,13 +54,13 @@ function renderBlock(block: BlogBlock, key: number) {
       )
     case 'h2':
       return (
-        <h2 key={key} id={block.id}>
+        <h2 key={key} id={block.id || slugifyHeading(block.text)}>
           {block.text}
         </h2>
       )
     case 'h3':
       return (
-        <h3 key={key} id={block.id}>
+        <h3 key={key} id={block.id || slugifyHeading(block.text)}>
           {block.text}
         </h3>
       )

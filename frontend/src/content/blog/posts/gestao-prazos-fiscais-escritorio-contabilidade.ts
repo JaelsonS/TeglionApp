@@ -20,7 +20,9 @@ export const postGestaoPrazosEscritorio: BlogPost = {
   publishedAt: '2026-06-18',
   updatedAt: '2026-06-18',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Escritórios',
+  audience: ['escritorio'],
   tags: [
     'prazos fiscais',
     'escritório contabilidade',
@@ -30,7 +32,7 @@ export const postGestaoPrazosEscritorio: BlogPost = {
     'alertas fiscais',
   ],
   readMinutes: 20,
-  featured: true,
+  featured: false,
   series: {
     id: 'carreira-contabilidade',
     title: 'Carreira em contabilidade',

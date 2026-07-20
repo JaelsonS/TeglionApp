@@ -17,7 +17,10 @@ export const postComoEmitirReciboVerde: BlogPost = {
   publishedAt: '2026-05-28',
   updatedAt: '2026-06-17',
   author: 'Equipa Teglion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Facturação',
+  audience: ['independente', 'pme'],
+  featured: false,
   tags: ['recibos verdes', 'e-Fatura', 'Portal das Finanças', 'freelancer', 'passo a passo', 'tutorial'],
   readMinutes: 17,
   coverImage: {

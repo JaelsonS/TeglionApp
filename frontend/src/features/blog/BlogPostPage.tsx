@@ -3,16 +3,19 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 
 import { blogCoverLcpUrl } from '@/features/blog/blog-images'
 import { toBlogSharePayload } from '@/features/blog/blogSharePayload'
+import { BlogAudienceCta } from '@/features/blog/components/BlogAudienceCta'
+import { BlogAuthorCard } from '@/features/blog/components/BlogAuthorCard'
 import { BlogCoverImage } from '@/features/blog/components/BlogCoverImage'
+import { BlogLeadMagnet } from '@/features/blog/components/BlogLeadMagnet'
 import { BlogPostPaths } from '@/features/blog/components/BlogPostPaths'
 import { BlogShareButtons } from '@/features/blog/components/BlogShareButtons'
 import { LazyWhenVisible } from '@/features/blog/components/LazyWhenVisible'
 import { useBlogSeo } from '@/features/blog/useBlogSeo'
 import { fetchBlogPost } from '@/content/blog/blog-post-api'
-import { BLOG_BASE_PATH } from '@/content/blog/blog-paths'
+import { BLOG_BASE_PATH, blogPostUrl } from '@/content/blog/blog-paths'
 import { readPrerenderedBlogPost } from '@/content/blog/read-prerendered-post'
 import type { BlogPost } from '@/content/blog/types'
-import { authFirmRegisterUrl } from '@/shared/constants/authPaths'
+import { getRelatedPosts } from '@/content/blog'
 
 const BlogPostRenderer = lazy(() =>
   import('@/features/blog/components/BlogPostRenderer').then((m) => ({ default: m.BlogPostRenderer })),
@@ -100,103 +103,131 @@ export function BlogPostPage() {
 
   if (post === 'loading' || !post) {
     return (
-      <div className="blog-container pb-20 pt-28" aria-busy="true" aria-live="polite">
+      <div className="blog-container-wide pb-20 pt-28" aria-busy="true" aria-live="polite">
         <p className="text-sm blog-text-body">A carregar artigo…</p>
       </div>
     )
   }
 
   const share = toBlogSharePayload(post)
+  const relatedRail = getRelatedPosts(post.slug, 4)
 
   return (
-    <article className="blog-container pb-20 pt-24" itemScope itemType="https://schema.org/BlogPosting">
-      <nav className="text-sm blog-text-body" aria-label="Breadcrumb">
-        <ol className="flex flex-wrap items-center gap-2">
-          <li>
-            <Link to="/" className="hover:blog-text-navy">
-              Início
-            </Link>
-          </li>
-          <li aria-hidden>/</li>
-          <li>
-            <Link to={BLOG_BASE_PATH} className="hover:blog-text-navy">
-              Blog
-            </Link>
-          </li>
-          <li aria-hidden>/</li>
-          <li className="blog-text-navy font-medium truncate max-w-[12rem] sm:max-w-none">{post.title}</li>
-        </ol>
-      </nav>
+    <article className="pb-20 pt-24" itemScope itemType="https://schema.org/BlogPosting">
+      <div className="blog-container-wide">
+        <nav className="text-sm blog-text-body" aria-label="Breadcrumb">
+          <ol className="flex flex-wrap items-center gap-2">
+            <li>
+              <Link to="/" className="hover:blog-text-navy">
+                Início
+              </Link>
+            </li>
+            <li aria-hidden>/</li>
+            <li>
+              <Link to={BLOG_BASE_PATH} className="hover:blog-text-navy">
+                Blog
+              </Link>
+            </li>
+            <li aria-hidden>/</li>
+            <li className="blog-text-navy font-medium truncate max-w-[14rem] sm:max-w-md">{post.title}</li>
+          </ol>
+        </nav>
 
-      <header className="mx-auto mt-8 max-w-3xl text-center">
-        <p className="text-sm font-semibold uppercase tracking-wide blog-text-gold">{post.category}</p>
-        <h1 className="mt-3 text-3xl font-semibold leading-tight blog-text-navy sm:text-4xl" itemProp="headline">
-          {post.title}
-        </h1>
-        <p className="mt-4 text-lg blog-text-body" itemProp="description">
-          {post.excerpt}
-        </p>
-        <p className="mt-4 text-sm blog-text-body" itemProp="author" itemScope itemType="https://schema.org/Person">
-          <span itemProp="name">{post.author}</span>
-          <span className="mx-2 opacity-40" aria-hidden>
-            ·
-          </span>
-          <time dateTime={post.publishedAt} itemProp="datePublished">
-            {formatBlogDate(post.publishedAt)}
-          </time>
-          {post.updatedAt !== post.publishedAt ? (
-            <>
-              <span className="mx-2 opacity-40" aria-hidden>
-                ·
-              </span>
-              <span>
-                Actualizado{' '}
-                <time dateTime={post.updatedAt} itemProp="dateModified">
-                  {formatBlogDate(post.updatedAt)}
-                </time>
-              </span>
-            </>
-          ) : null}
-          <span className="mx-2 opacity-40" aria-hidden>
-            ·
-          </span>
-          <span>{post.readMinutes} min de leitura</span>
-        </p>
-        <BlogShareButtons className="mx-auto mt-5 justify-center" post={share} />
-      </header>
+        <header className="mt-8 max-w-4xl">
+          <p className="text-sm font-semibold uppercase tracking-wide blog-text-gold">{post.category}</p>
+          <h1 className="blog-display mt-3 text-3xl font-semibold leading-tight blog-text-navy sm:text-4xl lg:text-[2.75rem]" itemProp="headline">
+            {post.title}
+          </h1>
+          <p className="mt-4 text-lg blog-text-body sm:text-xl" itemProp="description">
+            {post.excerpt}
+          </p>
+          <p className="mt-4 text-sm blog-text-body">
+            <span>{post.author}</span>
+            <span className="mx-2 opacity-40" aria-hidden>
+              ·
+            </span>
+            <time dateTime={post.publishedAt}>{formatBlogDate(post.publishedAt)}</time>
+            {post.updatedAt !== post.publishedAt ? (
+              <>
+                <span className="mx-2 opacity-40" aria-hidden>
+                  ·
+                </span>
+                <span>
+                  Última revisão <time dateTime={post.updatedAt}>{formatBlogDate(post.updatedAt)}</time>
+                </span>
+              </>
+            ) : null}
+            <span className="mx-2 opacity-40" aria-hidden>
+              ·
+            </span>
+            <span>{post.readMinutes} min de leitura</span>
+          </p>
+          <BlogShareButtons className="mt-5" post={share} />
+        </header>
 
-      <BlogCoverImage coverImage={post.coverImage} />
+        <BlogCoverImage coverImage={post.coverImage} />
 
-      <div className="mx-auto mt-10 max-w-3xl px-0">
-        <Suspense fallback={null}>
-          <BlogSeriesNav post={post} />
-          <BlogTableOfContents blocks={post.blocks} />
-          <BlogPostRenderer blocks={post.blocks} post={post} />
-        </Suspense>
+        <div className="blog-article-layout mt-10">
+          <aside className="blog-article-rail blog-article-rail--left" aria-label="Índice">
+            <Suspense fallback={null}>
+              <BlogTableOfContents blocks={post.blocks} sticky />
+            </Suspense>
+          </aside>
+
+          <div className="blog-article-column min-w-0">
+            <Suspense fallback={null}>
+              <BlogSeriesNav post={post} />
+              <div className="lg:hidden">
+                <BlogTableOfContents blocks={post.blocks} />
+              </div>
+              <div className="blog-article">
+                <BlogPostRenderer blocks={post.blocks} post={post} />
+              </div>
+            </Suspense>
+          </div>
+
+          <aside className="blog-article-rail blog-article-rail--right" aria-label="Continuar e contactar">
+            <BlogAuthorCard post={post} />
+            <BlogAudienceCta post={post} compact />
+            <BlogLeadMagnet
+              source={`blog-post-lead-${post.slug}`}
+              title="Checklist fiscal por e-mail"
+              description="Receba a checklist mensal (AT + SS + documentos). Ideal para independentes e PME."
+            />
+            <div className="blog-rail-card">
+              <p className="blog-rail-eyebrow">Continuar a ler</p>
+              <ul className="mt-2 space-y-2">
+                {relatedRail.map((r) => (
+                  <li key={r.slug}>
+                    <Link
+                      to={blogPostUrl(r.slug)}
+                      className="text-sm font-medium leading-snug blog-text-navy underline-offset-2 hover:underline"
+                    >
+                      {r.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </aside>
+        </div>
       </div>
 
       <LazyWhenVisible>
-        <BlogPostPaths slug={post.slug} />
-
-        <aside className="blog-defer-section mx-auto mt-12 max-w-3xl rounded-xl border blog-border-subtle bg-white p-6 text-center">
-          <h2 className="text-lg font-semibold blog-text-navy">Gerir um escritório de contabilidade?</h2>
-          <p className="mt-2 text-sm blog-text-body">
-            Documentos, prazos, portal do cliente e mensagens num só lugar. Teste 14 dias grátis, sem cartão.
-          </p>
-          <Link to={authFirmRegisterUrl()} className="landing-btn-primary mt-4 inline-flex">
-            Começar teste grátis
-          </Link>
-        </aside>
-
-        <Suspense fallback={null}>
-          <BlogRelatedPosts slug={post.slug} />
-        </Suspense>
-
-        <section className="blog-container blog-defer-section mt-16 max-w-3xl">
+        <div className="blog-container-wide">
+          <BlogPostPaths slug={post.slug} />
+          <div className="mt-10 lg:hidden">
+            <BlogAudienceCta post={post} />
+          </div>
           <Suspense fallback={null}>
-            <BlogNewsletter source={`blog-post-${post.slug}`} />
+            <BlogRelatedPosts slug={post.slug} />
           </Suspense>
-        </section>
+          <section className="blog-defer-section mt-16 max-w-3xl">
+            <Suspense fallback={null}>
+              <BlogNewsletter source={`blog-post-${post.slug}`} />
+            </Suspense>
+          </section>
+        </div>
       </LazyWhenVisible>
     </article>
   )

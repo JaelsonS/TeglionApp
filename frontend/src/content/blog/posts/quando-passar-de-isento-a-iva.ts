@@ -18,7 +18,10 @@ export const postPassarIsentoIva: BlogPost = {
   publishedAt: '2026-05-20',
   updatedAt: '2026-06-17',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'IVA',
+  audience: ['independente', 'pme'],
+  featured: false,
   tags: ['IVA', 'isenção', 'sujeito passivo', 'volume negócios', 'facturação'],
   readMinutes: 14,
   coverImage: {

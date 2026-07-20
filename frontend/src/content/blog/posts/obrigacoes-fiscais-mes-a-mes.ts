@@ -18,7 +18,10 @@ export const postObrigacoesMes: BlogPost = {
   publishedAt: '2026-05-16',
   updatedAt: '2026-06-17',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Obrigações',
+  audience: ['independente', 'escritorio', 'pme'],
+  featured: false,
   tags: ['obrigações', 'IVA', 'Segurança Social', 'calendário fiscal', 'PME'],
   readMinutes: 16,
   coverImage: {

@@ -16,9 +16,11 @@ export const postGuiaCompletoIndependente: BlogPost = {
   excerpt:
     'Do zero ao primeiro recibo, SS, IRS e arquivo: mapa completo com ligações a todos os guias do blog — para freelancers e prestadores de serviços em Portugal.',
   publishedAt: '2026-06-17',
-  updatedAt: '2026-06-17',
+  updatedAt: '2026-07-20',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Guias completos',
+  audience: ['independente', 'pme'],
   tags: ['trabalhador independente', 'freelancer', 'recibos verdes', 'IRS', 'guia 2026', 'Portugal'],
   readMinutes: 28,
   featured: true,
@@ -64,6 +66,7 @@ export const postGuiaCompletoIndependente: BlogPost = {
       'Este artigo é o índice mestre — cada fase tem guias profundos ligados abaixo.',
     ]),
     ...proseParagraphs(
+      'Recebeu um email do cliente a pedir «recibo verde até amanhã» e apercebeu-se que ainda não tem actividade aberta — ou tem, mas não sabe se a Segurança Social e o IRS estão alinhados. Esse momento de pânico é exactamente o que este guia evita: um mapa claro do que fazer, por ordem.',
       'Ser trabalhador independente em Portugal é mais do que «emitir recibos verdes». Há um percurso claro — abrir actividade, estar em dia na Segurança Social, facturar correctamente, guardar comprovativos e entregar o IRS no prazo. Este guia é o mapa: em cada fase, aprofunda com os artigos ligados abaixo.',
       'Ao longo de 2026, o TegLion publicou dezenas de artigos sobre cada tema. Este guia não repete tudo — organiza-o. Leia primeiro a visão geral aqui; depois escolha a fase que precisa de resolver hoje (abrir actividade, emitir o primeiro recibo, perceber SS, preparar IRS, etc.).',
       'Se ainda está a decidir se vale a pena abrir actividade ou trabalhar «a negro», fale com um contador antes de facturar. O custo de regularizar atrasos supera quase sempre o custo de começar bem.',
@@ -86,6 +89,7 @@ export const postGuiaCompletoIndependente: BlogPost = {
           title: 'ENI vs sociedade',
           text: 'Empresário em Nome Individual (ENI) é a forma mais simples para começar. Sociedade (Lda.) faz sentido quando há sócios, investimento estruturado ou necessidade de separar património pessoal e empresarial — decisão para contador e advogado.',
         },
+        { type: 'link', label: 'Abrir empresa individual (ENI): o primeiro passo', slug: 'abrir-empresa-individual-eni' },
       ],
     }),
     ...articleSection({
@@ -108,6 +112,16 @@ export const postGuiaCompletoIndependente: BlogPost = {
         'Organizar arquivo digital e físico de comprovativos',
         'Entregar IRS anual e planear o ano seguinte',
       ],
+    },
+    {
+      type: 'link',
+      label: 'Calendário fiscal 2026: marque os prazos do ano',
+      slug: 'calendario-fiscal-portugal-2026-completo',
+    },
+    {
+      type: 'link',
+      label: 'Como emitir o primeiro recibo verde (passo a passo)',
+      slug: 'como-emitir-recibo-verde-passo-a-passo',
     },
     ...internalLinksSection({
       title: 'Fase 1 — Abrir actividade',
@@ -166,10 +180,15 @@ export const postGuiaCompletoIndependente: BlogPost = {
         'como-escolher-contabilista-portugal',
       ],
     }),
+    {
+      type: 'link',
+      label: 'Como escolher contabilista em Portugal',
+      slug: 'como-escolher-contabilista-portugal',
+    },
     teglionCtaBlock({
-      variant: 'client',
-      title: 'O seu contador pede documentos por WhatsApp?',
-      text: 'Peça ao escritório para activar o portal TegLion — upload seguro, prazos visíveis e mensagens num só sítio.',
+      variant: 'firm',
+      title: 'Independentes pedem canal claro ao escritório',
+      text: 'Com TegLion, o seu cliente envia recibos e despesas pelo portal — menos WhatsApp, mais prazos cumpridos e histórico auditável para a época de IRS.',
     }),
     ...affiliateSection({
       heading: 'Recursos recomendados para quem está a começar',

@@ -7,7 +7,7 @@ type Props = {
 
 export function BlogCoverImage({ coverImage }: Props) {
   return (
-    <figure className="mx-auto mt-10 max-w-4xl overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--blog-navy)_6%,white)]">
+    <figure className="blog-cover-figure mx-auto mt-10 overflow-hidden rounded-2xl bg-[color-mix(in_srgb,var(--blog-navy)_6%,white)]">
       <BlogResponsiveImage
         src={coverImage.src}
         alt={coverImage.alt}

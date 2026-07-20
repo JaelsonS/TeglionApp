@@ -1,5 +1,6 @@
 User-agent: *
-Allow: /
+Allow: /blog
+Allow: /blog/
 
 Sitemap: https://teglion.com/sitemap.xml
 

@@ -62,9 +62,24 @@ export const BLOG_READING_PATHS: BlogReadingPath[] = [
     slugs: [
       'digitalizar-escritorio-contabilidade-portugal',
       'gestao-prazos-fiscais-escritorio-contabilidade',
+      'saft-efatura-validacao-documentos-escritorio',
+      'caso-escritorio-digitalizacao-prazos',
       'ferramentas-essenciais-contabilista-2026',
       'organizar-documentos-fiscais-arquivo-digital',
       'calendario-fiscal-portugal-2026-completo',
+    ],
+  },
+  {
+    id: 'pme-sociedades',
+    title: 'PME e sociedades',
+    description: 'De ENI a Lda: IRC, constituição passo a passo e casos práticos de transição.',
+    slugs: [
+      'irc-sociedades-lda-portugal-guia',
+      'abrir-sociedade-lda-portugal-passo-a-passo',
+      'caso-pme-transicao-eni-lda',
+      'regime-simplificado-vs-contabilidade-organizada',
+      'abrir-empresa-individual-eni',
+      'como-escolher-contabilista-portugal',
     ],
   },
   {

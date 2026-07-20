@@ -17,9 +17,11 @@ export const postEscolherContabilista: BlogPost = {
   excerpt:
     'OCC, especialização, preço, portal do cliente e comunicação — critérios para escolher (ou mudar de) contabilista sem surpresas.',
   publishedAt: '2026-06-10',
-  updatedAt: '2026-06-17',
+  updatedAt: '2026-07-20',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Contabilidade',
+  audience: ['independente', 'pme'],
   tags: ['contabilista', 'OCC', 'contabilidade', 'freelancer', 'escritório'],
   readMinutes: 17,
   featured: true,

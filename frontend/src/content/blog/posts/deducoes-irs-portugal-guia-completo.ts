@@ -18,12 +18,14 @@ export const postDeducoesIrs: BlogPost = {
   excerpt:
     'Saúde, educação, habitação, pensões e despesas gerais — como funcionam as deduções no Modelo 3, limites e documentos a guardar.',
   publishedAt: '2026-06-18',
-  updatedAt: '2026-07-17',
+  updatedAt: '2026-07-20',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'IRS',
+  audience: ['independente', 'pme'],
   tags: ['IRS', 'deduções fiscais', 'Modelo 3', 'saúde', 'educação', 'habitação', 'Portugal'],
   readMinutes: 22,
-  featured: true,
+  featured: false,
   series: {
     id: 'independente-2026',
     title: 'Trabalhador independente em Portugal',
@@ -120,6 +122,7 @@ export const postDeducoesIrs: BlogPost = {
       blocks: [
         { type: 'link', label: 'Erros comuns em IRS com recibos verdes', slug: 'irs-recibos-verdes-erros-comuns' },
         { type: 'link', label: 'Regime simplificado vs contabilidade organizada', slug: 'regime-simplificado-vs-contabilidade-organizada' },
+        { type: 'link', label: 'Guia prático de declaração de IRS', slug: 'declaracao-irs-guia-pratico' },
       ],
     }),
     ...articleSection({
@@ -144,6 +147,11 @@ export const postDeducoesIrs: BlogPost = {
           text: 'Uma pasta por ano com subpastas «Saúde», «Educação», «Actividade» poupa horas em Abril. O nosso guia de arquivo digital explica estrutura e backup.',
         },
         { type: 'link', label: 'Organizar documentos fiscais — arquivo digital', slug: 'organizar-documentos-fiscais-arquivo-digital' },
+        {
+          type: 'link',
+          label: 'Como escolher contabilista em Portugal',
+          slug: 'como-escolher-contabilista-portugal',
+        },
       ],
     }),
     ...faqSection({
@@ -210,9 +218,9 @@ export const postDeducoesIrs: BlogPost = {
       ],
     }),
     teglionCtaBlock({
-      variant: 'client',
-      title: 'O contador pede facturas em falta em Abril?',
-      text: 'Com o portal Teglion, envia documentos ao longo do ano — o escritório recebe tudo organizado antes do IRS.',
+      variant: 'firm',
+      title: 'Clientes a enviar facturas só em Abril?',
+      text: 'Com TegLion, o escritório pede despesas de saúde, educação e actividade ao longo do ano — o IRS deixa de ser uma caça a PDFs na última semana.',
     }),
     ...internalLinksSection({
       title: 'Continuar a ler sobre IRS',

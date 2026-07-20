@@ -27,8 +27,18 @@ import { postFerramentasContabilista } from '@/content/blog/posts/ferramentas-es
 import { postDigitalizarEscritorio } from '@/content/blog/posts/digitalizar-escritorio-contabilidade-portugal'
 import { postContabilidadeLeigos } from '@/content/blog/posts/contabilidade-explicada-leigos-portugal'
 import { postGestaoPrazosEscritorio } from '@/content/blog/posts/gestao-prazos-fiscais-escritorio-contabilidade'
+import { postIrcSociedadesLda } from '@/content/blog/posts/irc-sociedades-lda-portugal-guia'
+import { postAbrirSociedadeLda } from '@/content/blog/posts/abrir-sociedade-lda-portugal-passo-a-passo'
+import { postSaftEfatura } from '@/content/blog/posts/saft-efatura-validacao-documentos-escritorio'
+import { postCasoDigitalizacao } from '@/content/blog/posts/caso-escritorio-digitalizacao-prazos'
+import { postCasoEniLda } from '@/content/blog/posts/caso-pme-transicao-eni-lda'
 
 const RAW_POSTS: BlogPost[] = [
+  postIrcSociedadesLda,
+  postAbrirSociedadeLda,
+  postSaftEfatura,
+  postCasoDigitalizacao,
+  postCasoEniLda,
   postGestaoPrazosEscritorio,
   postContabilidadeLeigos,
   postDigitalizarEscritorio,

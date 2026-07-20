@@ -18,7 +18,10 @@ export const postFreelancerEstrangeiro: BlogPost = {
   publishedAt: '2026-05-22',
   updatedAt: '2026-06-17',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Actividade',
+  audience: ['independente', 'pme'],
+  featured: false,
   tags: ['estrangeiro', 'NIF', 'freelancer', 'Portugal', 'recibos verdes', 'imigrante', 'D7', 'Nómada digital'],
   readMinutes: 18,
   coverImage: {

@@ -19,7 +19,10 @@ export const postRecibos: BlogPost = {
   publishedAt: '2026-05-12',
   updatedAt: '2026-06-17',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Facturação',
+  audience: ['independente', 'pme'],
+  featured: false,
   tags: ['recibos verdes', 'e-Fatura', 'facturação certificada', 'AT', 'freelancer'],
   readMinutes: 15,
   coverImage: {

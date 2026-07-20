@@ -17,7 +17,10 @@ export const postIrsErros: BlogPost = {
   publishedAt: '2026-05-25',
   updatedAt: '2026-06-17',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'IRS',
+  audience: ['independente', 'pme'],
+  featured: false,
   tags: ['IRS', 'recibos verdes', 'erros', 'multas', 'trabalhador independente'],
   readMinutes: 15,
   coverImage: {

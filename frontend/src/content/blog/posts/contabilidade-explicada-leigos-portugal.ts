@@ -20,7 +20,9 @@ export const postContabilidadeLeigos: BlogPost = {
   publishedAt: '2026-06-18',
   updatedAt: '2026-06-18',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Guias completos',
+  audience: ['independente', 'pme'],
   tags: [
     'contabilidade para leigos',
     'fiscalidade explicada',
@@ -30,7 +32,7 @@ export const postContabilidadeLeigos: BlogPost = {
     'empreendedor',
   ],
   readMinutes: 19,
-  featured: true,
+  featured: false,
   coverImage: {
     src: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=1200&h=630&fit=crop&q=80&auto=format',
     alt: 'Pessoa a olhar para documentos e calculadora com ar curioso',

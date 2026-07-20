@@ -18,7 +18,10 @@ export const postQuantoCustaAbrir: BlogPost = {
   publishedAt: '2026-05-26',
   updatedAt: '2026-06-17',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Actividade',
+  audience: ['independente', 'pme'],
+  featured: false,
   tags: ['custos', 'abrir actividade', 'freelancer', 'ENI', 'orçamento'],
   readMinutes: 16,
   coverImage: {

@@ -18,10 +18,12 @@ export const postPortalFinancas: BlogPost = {
   publishedAt: '2026-06-15',
   updatedAt: '2026-07-17',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Organização',
+  audience: ['independente', 'escritorio'],
   tags: ['Portal das Finanças', 'e-Fatura', 'AT', 'recibos verdes', 'Chave Móvel Digital'],
   readMinutes: 22,
-  featured: true,
+  featured: false,
   series: {
     id: 'independente-2026',
     title: 'Trabalhador independente em Portugal',

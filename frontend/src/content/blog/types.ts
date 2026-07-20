@@ -48,6 +48,9 @@ export type BlogSeriesMeta = {
   totalParts: number
 }
 
+/** Audiência principal — filtra índice e CTAs. */
+export type BlogAudience = 'independente' | 'escritorio' | 'estudante' | 'pme' | 'gestor' | 'gestor-pmes'
+
 export type BlogPostMeta = {
   slug: string
   title: string
@@ -55,6 +58,8 @@ export type BlogPostMeta = {
   publishedAt: string
   updatedAt: string
   author: string
+  /** Cargo / nota editorial curta (E-E-A-T) */
+  authorRole?: string
   category: string
   tags: string[]
   readMinutes: number
@@ -69,6 +74,8 @@ export type BlogPostMeta = {
   featured?: boolean
   /** Agrupa artigos numa série (ex.: guia do independente) */
   series?: BlogSeriesMeta
+  /** Para filtros de audiência no índice e CTAs contextuais */
+  audience?: BlogAudience[]
 }
 
 export type BlogPost = BlogPostMeta & {

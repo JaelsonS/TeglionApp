@@ -20,7 +20,9 @@ export const postEstudarContabilidade: BlogPost = {
   publishedAt: '2026-06-18',
   updatedAt: '2026-06-18',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Estudantes',
+  audience: ['estudante'],
   tags: [
     'estudar contabilidade',
     'estudante contabilidade',
@@ -30,7 +32,7 @@ export const postEstudarContabilidade: BlogPost = {
     'Portugal',
   ],
   readMinutes: 20,
-  featured: true,
+  featured: false,
   series: {
     id: 'carreira-contabilidade',
     title: 'Carreira em contabilidade',

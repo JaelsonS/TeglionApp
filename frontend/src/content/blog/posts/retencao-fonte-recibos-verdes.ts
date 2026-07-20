@@ -18,7 +18,10 @@ export const postRetencaoFonte: BlogPost = {
   publishedAt: '2026-05-23',
   updatedAt: '2026-06-17',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Facturação',
+  audience: ['independente', 'pme'],
+  featured: false,
   tags: ['retenção na fonte', 'IRS', 'recibos verdes', 'retenções', 'freelancer'],
   readMinutes: 16,
   coverImage: {

@@ -18,7 +18,10 @@ export const postProtegerDados: BlogPost = {
   publishedAt: '2026-05-29',
   updatedAt: '2026-06-17',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Organização',
+  audience: ['independente', 'escritorio'],
+  featured: false,
   tags: ['segurança digital', 'backup', 'freelancer', 'Microsoft 365', 'antivírus', 'RGPD', 'phishing'],
   readMinutes: 16,
   coverImage: {

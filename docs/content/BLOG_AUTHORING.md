@@ -24,6 +24,8 @@ frontend/src/content/blog/
 ├── catalog.json         # Metadados leves (índice, cards) — gerado
 ├── post-loaders.ts      # Import dinâmico por slug (runtime)
 ├── read-prerendered-post.ts  # Lê JSON embutido no HTML (PageSpeed)
+├── enrich.ts            # Só FAQs pillar (sem padding genérico)
+├── blog-filters.ts      # Pesquisa + audiências (independente/escritório/PME/estudante)
 ├── pillar-faqs.ts       # FAQs injectadas por slug
 ├── affiliates.ts        # Links Amazon / Hotmart
 └── shared.ts            # Helpers de blocos

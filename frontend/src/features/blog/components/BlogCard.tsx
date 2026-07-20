@@ -4,19 +4,31 @@ import { toBlogSharePayload } from '@/features/blog/blogSharePayload'
 import { blogPostUrl } from '@/content/blog/blog-paths'
 import type { BlogPostMeta } from '@/content/blog/types'
 import { Link } from 'react-router-dom'
+import { cn } from '@/shared/lib/utils'
 
-export function BlogCard({ post, featured = false }: { post: BlogPostMeta; featured?: boolean }) {
+type Props = {
+  post: BlogPostMeta
+  featured?: boolean
+  /** Destaque largo (2 colunas no índice) */
+  wide?: boolean
+}
+
+export function BlogCard({ post, featured = false, wide = false }: Props) {
   return (
-    <article className="blog-card-shell">
-      <Link to={blogPostUrl(post.slug)} className="blog-card h-full">
-        <div className="relative">
+    <article className={cn('blog-card-shell', wide && 'blog-card-shell--wide')}>
+      <Link to={blogPostUrl(post.slug)} className={cn('blog-card h-full', wide && 'blog-card--wide')}>
+        <div className={cn('relative', wide && 'blog-card-wide-media')}>
           <BlogResponsiveImage
             src={post.coverImage.src}
             alt={post.coverImage.alt}
-            className="aspect-[16/10] w-full object-cover"
-            width={640}
-            height={400}
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className={cn('w-full object-cover', wide ? 'aspect-[16/9] sm:aspect-[21/10]' : 'aspect-[16/10]')}
+            width={wide ? 1200 : 640}
+            height={wide ? 630 : 400}
+            sizes={
+              wide
+                ? '(max-width: 768px) 100vw, 70vw'
+                : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'
+            }
           />
           {featured || post.featured ? (
             <span className="blog-card-badge">Destaque</span>
@@ -26,12 +38,22 @@ export function BlogCard({ post, featured = false }: { post: BlogPostMeta; featu
             </span>
           ) : null}
         </div>
-        <div className="flex flex-1 flex-col p-4">
+        <div className={cn('flex flex-1 flex-col p-4', wide && 'sm:p-6 sm:justify-center')}>
           <p className="text-xs font-semibold uppercase tracking-wide blog-text-gold">{post.category}</p>
-          <h2 className="mt-2 text-lg font-semibold leading-snug blog-text-navy">{post.title}</h2>
-          <p className="mt-2 flex-1 text-sm blog-text-body line-clamp-3">{post.excerpt}</p>
+          <h2
+            className={cn(
+              'mt-2 font-semibold leading-snug blog-text-navy',
+              wide ? 'text-xl sm:text-2xl blog-display' : 'text-lg',
+            )}
+          >
+            {post.title}
+          </h2>
+          <p className={cn('mt-2 flex-1 text-sm blog-text-body', wide ? 'line-clamp-5 sm:text-base' : 'line-clamp-4')}>
+            {post.excerpt}
+          </p>
           <p className="mt-3 text-xs blog-text-body">
             {post.readMinutes} min · {formatDate(post.publishedAt)}
+            {post.updatedAt !== post.publishedAt ? ` · Revisto ${formatDate(post.updatedAt)}` : ''}
           </p>
         </div>
       </Link>

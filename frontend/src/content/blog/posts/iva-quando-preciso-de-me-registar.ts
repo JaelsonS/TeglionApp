@@ -18,7 +18,10 @@ export const postIva: BlogPost = {
   publishedAt: '2026-05-14',
   updatedAt: '2026-06-17',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'IVA',
+  audience: ['independente', 'pme'],
+  featured: false,
   tags: ['IVA', 'isenção', 'facturação', 'volume de negócios', 'AT', 'declaração periódica'],
   readMinutes: 18,
   coverImage: {

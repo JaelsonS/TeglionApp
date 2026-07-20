@@ -18,9 +18,11 @@ export const postCalendarioFiscal2026: BlogPost = {
   excerpt:
     'Mapa mês a mês de Segurança Social, IVA, IRS, retenções e arquivo — com tabelas, checklists e ligações aos guias detalhados do blog.',
   publishedAt: '2026-06-18',
-  updatedAt: '2026-07-17',
+  updatedAt: '2026-07-20',
   author: 'Equipa Teglion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Guias completos',
+  audience: ['independente', 'pme'],
   tags: ['calendário fiscal', 'prazos 2026', 'obrigações', 'IVA', 'IRS', 'Segurança Social', 'PME'],
   readMinutes: 24,
   featured: true,
@@ -58,6 +60,7 @@ export const postCalendarioFiscal2026: BlogPost = {
       'Um contador certificado adapta este calendário ao seu regime (isenção IVA, trimestral, sociedade, etc.).',
     ]),
     ...proseParagraphs(
+      'Recebeu um aviso da Segurança Social a lembrar a contribuição do mês e, no mesmo dia, o contador pergunta se o IVA do trimestre já está preparado — e apercebe-se que não tem um único calendário onde tudo caiba. Este artigo existe para esse momento.',
       'Se gere um pequeno negócio ou trabalha como independente em Portugal, o calendário fiscal não é um único evento anual — é um ritmo contínuo de emissão de documentos, pagamentos e declarações. Este artigo reúne os marcos que a maioria dos profissionais encontra ao longo de 2026, organizados por frequência e por mês.',
       'Os prazos exactos são publicados pela Autoridade Tributária e pela Segurança Social e podem ser ajustados quando caem em feriados ou fins-de-semana. Use este guia como mapa de estudo e confirme datas no Portal das Finanças e em seguranca-social.pt antes de agir.',
     ),
@@ -85,6 +88,11 @@ export const postCalendarioFiscal2026: BlogPost = {
             ['Arquivo de documentos', 'Contínuo', '4–10 anos conforme tipo', 'Digital + backup'],
           ],
         }),
+        {
+          type: 'link',
+          label: 'Obrigações fiscais mês a mês (rotina do independente)',
+          slug: 'obrigacoes-fiscais-mes-a-mes',
+        },
       ],
     }),
     sectionDivider(),
@@ -158,6 +166,16 @@ export const postCalendarioFiscal2026: BlogPost = {
             'Planificar formação ou actualização de preços para o ano seguinte',
           ],
         },
+        {
+          type: 'link',
+          label: 'Segurança Social do trabalhador independente',
+          slug: 'seguranca-social-trabalhador-independente',
+        },
+        {
+          type: 'link',
+          label: 'Como escolher contabilista em Portugal',
+          slug: 'como-escolher-contabilista-portugal',
+        },
       ],
     }),
     ...articleSection({
@@ -175,6 +193,11 @@ export const postCalendarioFiscal2026: BlogPost = {
             'Comunicar cessação de actividade se for o caso (Finanças + SS)',
             'Backup completo da pasta fiscal anual',
           ],
+        },
+        {
+          type: 'link',
+          label: 'IVA: quando preciso de me registar?',
+          slug: 'iva-quando-preciso-de-me-registar',
         },
       ],
     }),

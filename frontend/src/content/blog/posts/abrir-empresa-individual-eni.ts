@@ -18,7 +18,10 @@ export const postAbrirEni: BlogPost = {
   publishedAt: '2026-05-18',
   updatedAt: '2026-06-17',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Actividade',
+  audience: ['independente', 'pme'],
+  featured: false,
   tags: ['ENI', 'empresário individual', 'início de actividade', 'NISS', 'Portugal', 'CAE'],
   readMinutes: 16,
   coverImage: {

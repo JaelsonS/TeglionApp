@@ -19,10 +19,12 @@ export const postOrganizarDocumentos: BlogPost = {
   publishedAt: '2026-06-12',
   updatedAt: '2026-07-17',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Organização',
+  audience: ['independente', 'escritorio'],
   tags: ['arquivo', 'documentos fiscais', 'organização', 'freelancer', 'IRS'],
   readMinutes: 20,
-  featured: true,
+  featured: false,
   series: {
     id: 'independente-2026',
     title: 'Trabalhador independente em Portugal',

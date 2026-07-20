@@ -16,7 +16,10 @@ export const postDeclaracaoIrs: BlogPost = {
   publishedAt: '2026-05-20',
   updatedAt: '2026-05-24',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'IRS',
+  audience: ['independente', 'pme'],
+  featured: false,
   tags: ['IRS', 'declaração', 'Portal das Finanças', 'prazos', 'Portugal'],
   readMinutes: 18,
   coverImage: {

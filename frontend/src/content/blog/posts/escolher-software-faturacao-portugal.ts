@@ -18,7 +18,10 @@ export const postEscolherSoftware: BlogPost = {
   publishedAt: '2026-05-24',
   updatedAt: '2026-06-17',
   author: 'Equipa TegLion',
+  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
   category: 'Facturação',
+  audience: ['independente', 'pme'],
+  featured: false,
   tags: ['software facturação', 'certificação AT', 'Moloni', 'InvoiceXpress', 'freelancer', 'SAF-T'],
   readMinutes: 18,
   coverImage: {
