@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type WheelEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronsUpDown, History, Loader2, Plus, Search } from 'lucide-react'
 
@@ -163,7 +163,7 @@ export function CaeCombobox({
       <PopoverContent
         className="w-[var(--radix-popover-trigger-width)] min-w-[280px] overflow-hidden p-0"
         align="start"
-        onWheel={(e) => e.stopPropagation()}
+        onWheel={(e: WheelEvent) => e.stopPropagation()}
       >
         <Command shouldFilter={false} className="flex max-h-[min(22rem,70vh)] flex-col overflow-hidden">
           <CommandInput
