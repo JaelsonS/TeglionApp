@@ -59,86 +59,12 @@ function fiscalHealthFrom(obligations, now) {
 }
 
 function mapTimelineKind(eventType) {
-  const t = String(eventType || '').toUpperCase();
-  if (t.includes('MESSAGE')) return 'message';
-  if (t.includes('DOCUMENT') || t.includes('UPLOAD')) return 'document';
-  if (t.includes('TASK')) return 'task';
-  if (t.includes('OBLIGATION')) return 'obligation';
-  if (t.includes('CLIENT')) return 'profile';
-  if (t.includes('NEWS') || t.includes('ALERT')) return 'alert';
-  return 'activity';
+  return activityService.mapTimelineKind(eventType);
 }
 
-async function buildUnifiedTimeline({ firmId, clientId, obligations, tasks, documents, messages, activities }) {
-  const items = [];
-  const now = Date.now();
-
-  for (const a of activities || []) {
-    items.push({
-      id: `activity-${a.id}`,
-      kind: mapTimelineKind(a.eventType),
-      at: a.createdAt,
-      title: a.title,
-      description: a.description || null,
-      actorRole: a.actorRole,
-      actorName: a.actorName,
-      entityType: a.entityType,
-      entityId: a.entityId,
-      eventType: a.eventType,
-    });
-  }
-
-  for (const m of (messages || []).slice(-12)) {
-    items.push({
-      id: `message-${m.id}`,
-      kind: 'message',
-      at: m.createdAt,
-      title: m.senderRole === 'FIRM' ? 'Mensagem do escritório' : 'Mensagem do cliente',
-      description: String(m.body || '').slice(0, 200),
-      actorRole: m.senderRole,
-      entityType: 'MESSAGE',
-      entityId: m.id,
-    });
-  }
-
-  for (const d of (documents || []).slice(0, 8)) {
-    items.push({
-      id: `document-${d._id || d.id}`,
-      kind: 'document',
-      at: d.createdAt,
-      title: d.title || 'Documento',
-      description: d.validationStatus || d.workflowStatus || null,
-      actorRole: d.uploadedByRole || 'CLIENT',
-      entityType: 'DOCUMENT',
-      entityId: d._id || d.id,
-    });
-  }
-
-  for (const t of (tasks || []).slice(0, 8)) {
-    items.push({
-      id: `task-${t._id || t.id}`,
-      kind: 'task',
-      at: t.updatedAt || t.createdAt,
-      title: t.title || 'Tarefa',
-      description: t.status,
-      entityType: 'CLIENT_TASK',
-      entityId: t._id || t.id,
-    });
-  }
-
-  for (const o of (obligations || []).slice(0, 6)) {
-    items.push({
-      id: `obligation-${o._id || o.id}`,
-      kind: 'obligation',
-      at: o.updatedAt || o.dueDate,
-      title: o.title || o.type,
-      description: `${o.type} · ${o.status}`,
-      entityType: 'OBLIGATION',
-      entityId: o._id || o.id,
-    });
-  }
-
-  return items
+async function buildUnifiedTimeline({ activities }) {
+  return (activities || [])
+    .map((a) => activityService.toTimelineItem(a))
     .filter((i) => i.at && !Number.isNaN(new Date(i.at).getTime()))
     .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
     .slice(0, 40);
@@ -194,12 +120,6 @@ async function getClientHub({ firmId, clientId }) {
   )[0];
 
   const timeline = await buildUnifiedTimeline({
-    firmId,
-    clientId,
-    obligations: activeObligations,
-    tasks: openTasks,
-    documents,
-    messages,
     activities,
   });
 

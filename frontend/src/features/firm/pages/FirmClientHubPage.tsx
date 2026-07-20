@@ -19,13 +19,14 @@ import {
 import { FirmScrollPage } from '@/features/firm/FirmPageLayout'
 import { ClientHubHeader } from '@/features/firm/client-hub/ClientHubHeader'
 import { ClientHubProfilePanel } from '@/features/firm/client-hub/ClientHubProfilePanel'
+import { ClientHubActivityHistoryPanel } from '@/features/firm/client-hub/ClientHubActivityHistoryPanel'
 import { ClientHubHistory } from '@/features/firm/client-hub/ClientHubHistory'
 import { deriveRiskReason } from '@/features/firm/client-hub/clientHubUtils'
 import { ClientHubOverviewMetrics } from '@/features/firm/client-hub/ClientHubOverviewMetrics'
 import { CLIENT_HUB_SECTIONS, type ClientHubSection } from '@/features/firm/client-hub/sections'
 import { Button } from '@/shared/components/ui/button'
 import { SegmentedControl, Skeleton, SkeletonCard } from '@/shared/design-system'
-import { useClientHub, usePatchClient } from '@/shared/hooks/queries/useClientHub'
+import { useClientHub, useHideClientActivity, usePatchClient } from '@/shared/hooks/queries/useClientHub'
 import { formatDateTime } from '@/shared/utils/date'
 import { cn } from '@/shared/lib/utils'
 
@@ -36,6 +37,7 @@ export function FirmClientHubPage() {
 
   const { data: hub, isLoading, isError, refetch, isFetching } = useClientHub(clientId)
   const patch = usePatchClient(clientId || '')
+  const hideActivity = useHideClientActivity(clientId || '')
 
   const displayName = useMemo(() => {
     if (!hub) return ''
@@ -231,6 +233,10 @@ export function FirmClientHubPage() {
                   items={hub.timeline.slice(0, 6)}
                   clientId={cid}
                   onOpenProfile={() => setSection('profile')}
+                  onHideActivity={async (activityId) => {
+                    await hideActivity.mutateAsync(activityId)
+                  }}
+                  hidingActivityId={hideActivity.isPending ? hideActivity.variables || null : null}
                 />
               </div>
             </section>
@@ -256,19 +262,29 @@ export function FirmClientHubPage() {
         ) : null}
 
         {section === 'timeline' ? (
-          <section className="cb-client-hub-panel p-4 sm:p-5">
-            <h2 className="text-lg font-semibold tracking-tight">Histórico operacional</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Tudo o que acontece com esta empresa — num único feed.
-            </p>
-            <div className="mt-6">
-              <ClientHubHistory
-                items={hub.timeline}
-                clientId={cid}
-                onOpenProfile={() => setSection('profile')}
-              />
-            </div>
-          </section>
+          <div className="space-y-6">
+            <section className="cb-client-hub-panel p-4 sm:p-5">
+              <h2 className="text-lg font-semibold tracking-tight">Feed de Actividade</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Entradas visíveis neste ecrã. Ocultar limpa o feed sem apagar o registo.
+              </p>
+              <div className="mt-6">
+                <ClientHubHistory
+                  items={hub.timeline}
+                  clientId={cid}
+                  onOpenProfile={() => setSection('profile')}
+                  onHideActivity={async (activityId) => {
+                    await hideActivity.mutateAsync(activityId)
+                  }}
+                  hidingActivityId={hideActivity.isPending ? hideActivity.variables || null : null}
+                />
+              </div>
+            </section>
+            <ClientHubActivityHistoryPanel
+              clientId={cid}
+              onOpenProfile={() => setSection('profile')}
+            />
+          </div>
         ) : null}
 
         {section === 'obligations' ? (

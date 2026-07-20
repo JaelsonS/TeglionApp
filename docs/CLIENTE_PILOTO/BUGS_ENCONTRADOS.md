@@ -89,3 +89,12 @@ Status: Resolvido
 Responsável: Frontend
 Correção aplicada: `resolveActivityNav` + cards clicáveis em `ClientHubHistory`; obrigações aceitam `?ob=` e `?obligation=`.
 Data da correção: 2026-07-20
+
+## Melhoria 011
+Título: Ocultar do feed + histórico completo recuperável (nunca apagar).
+Descrição: O feed misturava eventos órfãos e síntese viva; não havia forma de limpar o ecrã sem perder o rasto da empresa.
+Data: 2026-07-20
+Status: Resolvido
+Responsável: Frontend / Backend
+Correção aplicada: `hidden_from_feed_at` em `activity_events`; hide/unhide/hide-all + `GET activity-history` com filtros; feed do hub só eventos visíveis; UI de ocultar + painel Histórico com restaurar.
+Data da correção: 2026-07-20

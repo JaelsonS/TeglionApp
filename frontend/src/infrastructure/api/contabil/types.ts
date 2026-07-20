@@ -103,6 +103,12 @@ export type ClientHubTimelineItem = {
   entityType?: string
   entityId?: string
   eventType?: string
+  /** @deprecated use hideable — kept for older payloads */
+  deletable?: boolean
+  hideable?: boolean
+  activityId?: string
+  hiddenFromFeed?: boolean
+  hiddenFromFeedAt?: string | null
 }
 
 /** Alias UI — a API mantém o campo `timeline` e o tipo `ClientHubTimelineItem`. */

@@ -1,6 +1,7 @@
 const clientsService = require('./clients.service');
 const firmBrandingService = require('./firm-branding.service');
 const securityAudit = require('../../services/audit/security-audit.service');
+const activityService = require('../../services/activity/activity.service');
 
 exports.getFirm = async (req, res, next) => {
   try {
@@ -115,6 +116,64 @@ exports.getHub = async (req, res, next) => {
       firmId,
       clientId,
       req,
+    });
+    return res.status(200).json(data);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.hideActivity = async (req, res, next) => {
+  try {
+    const firmId = String(req.user.firmId);
+    const clientId = req.params.id;
+    const activityId = req.params.activityId;
+    const row = await clientsService.hideClientActivity({ firmId, clientId, activityId });
+    return res.status(200).json({ item: activityService.toTimelineItem(row) });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.unhideActivity = async (req, res, next) => {
+  try {
+    const firmId = String(req.user.firmId);
+    const clientId = req.params.id;
+    const activityId = req.params.activityId;
+    const row = await clientsService.unhideClientActivity({ firmId, clientId, activityId });
+    return res.status(200).json({ item: activityService.toTimelineItem(row) });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.hideAllFeedActivity = async (req, res, next) => {
+  try {
+    const firmId = String(req.user.firmId);
+    const clientId = req.params.id;
+    const data = await clientsService.hideAllClientFeedActivity({ firmId, clientId });
+    return res.status(200).json(data);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.listActivityHistory = async (req, res, next) => {
+  try {
+    const firmId = String(req.user.firmId);
+    const clientId = req.params.id;
+    const data = await clientsService.listClientActivityHistory({
+      firmId,
+      clientId,
+      filters: {
+        from: req.query.from || null,
+        to: req.query.to || null,
+        kind: req.query.kind || null,
+        q: req.query.q || null,
+        hidden: req.query.hidden || 'all',
+        page: req.query.page || 1,
+        limit: req.query.limit || 40,
+      },
     });
     return res.status(200).json(data);
   } catch (err) {

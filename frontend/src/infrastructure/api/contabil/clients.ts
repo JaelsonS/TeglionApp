@@ -71,6 +71,49 @@ export function createContabilClientsApi(api: AxiosInstance) {
     getHub: (clientId: string) =>
       api.get(`/contabil/clients/${encodeURIComponent(clientId)}/hub`).then((r) => r.data),
 
+    listActivityHistory: (
+      clientId: string,
+      params?: {
+        from?: string
+        to?: string
+        kind?: string
+        q?: string
+        hidden?: 'all' | 'visible' | 'hidden'
+        page?: number
+        limit?: number
+      },
+    ) =>
+      api
+        .get(`/contabil/clients/${encodeURIComponent(clientId)}/activity-history`, { params })
+        .then(
+          (r) =>
+            r.data as {
+              items: import('./types').ClientHubTimelineItem[]
+              total: number
+              page: number
+              limit: number
+            },
+        ),
+
+    hideActivity: (clientId: string, activityId: string) =>
+      api
+        .post(
+          `/contabil/clients/${encodeURIComponent(clientId)}/activity/${encodeURIComponent(activityId)}/hide`,
+        )
+        .then((r) => r.data as { item: import('./types').ClientHubTimelineItem }),
+
+    unhideActivity: (clientId: string, activityId: string) =>
+      api
+        .post(
+          `/contabil/clients/${encodeURIComponent(clientId)}/activity/${encodeURIComponent(activityId)}/unhide`,
+        )
+        .then((r) => r.data as { item: import('./types').ClientHubTimelineItem }),
+
+    hideAllFeedActivity: (clientId: string) =>
+      api
+        .post(`/contabil/clients/${encodeURIComponent(clientId)}/activity/hide-all`)
+        .then((r) => r.data as { hidden: number }),
+
     patch: (clientId: string, payload: Record<string, unknown>) =>
       api.patch(`/contabil/clients/${encodeURIComponent(clientId)}`, payload).then((r) => r.data),
 

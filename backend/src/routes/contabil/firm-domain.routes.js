@@ -215,6 +215,26 @@ router.get('/clients', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clien
 router.get('/clients/validate-nif', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.validateNif);
 router.post('/clients', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.create);
 router.get('/clients/:id/hub', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.getHub);
+router.get(
+  '/clients/:id/activity-history',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  clientsController.listActivityHistory,
+);
+router.post(
+  '/clients/:id/activity/hide-all',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  clientsController.hideAllFeedActivity,
+);
+router.post(
+  '/clients/:id/activity/:activityId/hide',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  clientsController.hideActivity,
+);
+router.post(
+  '/clients/:id/activity/:activityId/unhide',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  clientsController.unhideActivity,
+);
 router.patch('/clients/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.patch);
 router.delete('/clients/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.archive);
 router.get('/clients/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.getById);

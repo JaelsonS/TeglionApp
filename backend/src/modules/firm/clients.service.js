@@ -237,6 +237,38 @@ async function getClientHub({ firmId, clientId }) {
   return clientHubService.getClientHub({ firmId, clientId });
 }
 
+async function hideClientActivity({ firmId, clientId, activityId }) {
+  const client = await clientsRepository.findClientById(firmId, clientId);
+  if (!client) throw new AppError('Cliente não encontrado', 404);
+  return activityService.hideActivityForClient({ firmId, clientId, activityId });
+}
+
+async function unhideClientActivity({ firmId, clientId, activityId }) {
+  const client = await clientsRepository.findClientById(firmId, clientId);
+  if (!client) throw new AppError('Cliente não encontrado', 404);
+  return activityService.unhideActivityForClient({ firmId, clientId, activityId });
+}
+
+async function hideAllClientFeedActivity({ firmId, clientId }) {
+  const client = await clientsRepository.findClientById(firmId, clientId);
+  if (!client) throw new AppError('Cliente não encontrado', 404);
+  return activityService.hideAllVisibleForClient({ firmId, clientId });
+}
+
+async function listClientActivityHistory({ firmId, clientId, filters }) {
+  const client = await clientsRepository.findClientById(firmId, clientId);
+  if (!client) throw new AppError('Cliente não encontrado', 404);
+  const result = await activityService.listActivityHistory({
+    firmId,
+    clientId,
+    ...filters,
+  });
+  return {
+    ...result,
+    items: (result.items || []).map((a) => activityService.toTimelineItem(a)),
+  };
+}
+
 async function updateClient({ firmId, clientId, patch, actor }) {
   const existing = await clientsRepository.findClientById(firmId, clientId);
   if (!existing) throw new AppError('Cliente não encontrado', 404);
@@ -331,6 +363,10 @@ module.exports = {
   createClient,
   getClient,
   getClientHub,
+  hideClientActivity,
+  unhideClientActivity,
+  hideAllClientFeedActivity,
+  listClientActivityHistory,
   updateClient,
   archiveClient,
   validateClientNif,

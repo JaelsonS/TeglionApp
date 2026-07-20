@@ -182,7 +182,11 @@ Requer: auth + `requireActiveFirm` + permissões RBAC.
 | POST | `/clients` | Criar cliente |
 | GET | `/clients/:id` | Detalhe |
 | PATCH | `/clients/:id` | Actualizar |
-| GET | `/clients/:id/hub` | Hub do cliente (fiscal + operacional) |
+| GET | `/clients/:id/hub` | Hub do cliente (fiscal + operacional); timeline = feed (eventos não ocultos) |
+| GET | `/clients/:id/activity-history` | Histórico completo filtrável (`from`, `to`, `kind`, `q`, `hidden`, `page`, `limit`) |
+| POST | `/clients/:id/activity/hide-all` | Ocultar do feed todas as entradas visíveis |
+| POST | `/clients/:id/activity/:activityId/hide` | Ocultar entrada do feed (fica no histórico) |
+| POST | `/clients/:id/activity/:activityId/unhide` | Restaurar entrada no feed |
 | POST | `/clients/:id/invites` | Enviar convite portal |
 
 ### Documentos
