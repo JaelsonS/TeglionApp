@@ -118,6 +118,21 @@ Helpers em `shared.ts`: `affiliateBlock`, `affiliateSection`, `articleSection`, 
 
 ---
 
+## Cadência e distribuição (Fase 3)
+
+1. **Semanal:** 1 artigo novo (terça/quarta) + commit em `staging`/`main`
+2. **Mensal:** actualizar 1 pilar (calendário, limiares IVA, IRS)
+3. **Newsletter (rail direito):** 1 insight fiscal + link produto/TegLion
+4. **Repurpose (15 min):**
+   - Copiar 3 `keyTakeaways` do artigo
+   - LinkedIn: cenário + 1 lista + CTA para `/blog/{slug}`
+   - WhatsApp Status: 1 frase + link curto
+5. **SEO:** após publish, `npm run seo:generate` e pedir indexação no Search Console dos slugs novos
+
+Imagens leves: preferir `/blog/covers/*.svg` e `/blog/products/*.svg` (< 5 KB) em vez de stock Unsplash genérico.
+
+---
+
 ## Afiliados
 
 Links centralizados em `frontend/src/content/blog/affiliates.ts` (Amazon + Hotmart activos).

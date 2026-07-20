@@ -18,9 +18,9 @@ export const postGestaoPrazosEscritorio: BlogPost = {
   excerpt:
     'Calendário por cliente, alertas, responsáveis, checklist do dia 15 e do dia 19 — como escritórios organizados cumprem SS, IVA e IRS sem depender da memória de uma pessoa.',
   publishedAt: '2026-06-18',
-  updatedAt: '2026-06-18',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  updatedAt: '2026-07-20',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Escritórios',
   audience: ['escritorio'],
   tags: [
@@ -31,18 +31,18 @@ export const postGestaoPrazosEscritorio: BlogPost = {
     'IVA prazo',
     'alertas fiscais',
   ],
-  readMinutes: 20,
+  readMinutes: 14,
   featured: false,
   series: {
-    id: 'carreira-contabilidade',
-    title: 'Carreira em contabilidade',
-    description: 'Do estudo à prática profissional — estudantes, estagiários e escritórios.',
-    part: 3,
-    totalParts: 3,
+    id: 'operacoes-escritorio-teglion',
+    title: 'Operações do escritório com TegLion',
+    description: 'Digitalizar, prazos, SAF-T e software — trilho operacional para escritórios de contabilidade.',
+    part: 2,
+    totalParts: 5,
   },
   coverImage: {
-    src: 'https://images.unsplash.com/photo-1506784365847-bbad939e9335?w=1200&h=630&fit=crop&q=80',
-    alt: 'Calendário com prazos marcados num escritório',
+    src: '/blog/covers/escritorio.svg',
+    alt: 'Gestão de prazos no escritório de contabilidade',
     width: 1200,
     height: 630,
   },
@@ -61,8 +61,9 @@ export const postGestaoPrazosEscritorio: BlogPost = {
   relatedSlugs: [
     'calendario-fiscal-portugal-2026-completo',
     'digitalizar-escritorio-contabilidade-portugal',
+    'software-escritorio-contabilidade-portugal',
+    'saft-efatura-validacao-documentos-escritorio',
     'ferramentas-essenciais-contabilista-2026',
-    'obrigacoes-fiscais-mes-a-mes',
   ],
   blocks: [
     legalCallout(),
@@ -74,7 +75,8 @@ export const postGestaoPrazosEscritorio: BlogPost = {
       'Software como TegLion centraliza prazos e pedidos — complementa ERP e calendário de parede.',
     ]),
     ...proseParagraphs(
-      'Em Janeiro parece controlável. Em Março, com IRS a aproximar-se e IVA de dezenas de clientes no mesmo dia 20, escritórios sem sistema falham — ou queimam equipas. A gestão de prazos não é glamour — é o que separa o escritório de referência do que «só falha uma vez por ano» (essa vez custa caro).',
+      'É dia 19 às 18h: três clientes ainda não enviaram compras, o IVA de um quarto está «quase» e o estagiário pergunta quem é responsável pelo fecho da Lda. X. Em Janeiro parece controlável. Em Março, com IRS a aproximar-se e IVA de dezenas de clientes no mesmo dia 20, escritórios sem sistema falham — ou queimam equipas.',
+      'Uma coima de algumas centenas de euros (ou juros de mora) dói; perder um cliente de 120 €/mês dói mais. A gestão de prazos não é glamour — é o que separa o escritório de referência do que «só falha uma vez por ano».',
       'Este artigo é para gestores de escritório, contadores sénior e estagiários que querem entender como opera um sistema de prazos maduro. Freelancers com um cliente (si próprios) também beneficiam de adaptar a lógica à escala de um.',
     ),
     quoteBlock(
@@ -98,6 +100,11 @@ export const postGestaoPrazosEscritorio: BlogPost = {
             ['Erro de submissão', 'Sem revisão a quatro olhos', 'Checklist pré-envio'],
           ],
         }),
+        {
+          type: 'link',
+          label: 'Caso real: escritório saiu do WhatsApp e recuperou prazos',
+          slug: 'caso-escritorio-digitalizacao-prazos',
+        },
       ],
     }),
     sectionDivider(),
@@ -109,12 +116,20 @@ export const postGestaoPrazosEscritorio: BlogPost = {
         'Sincronize com o artigo «Calendário fiscal 2026» do blog como base — depois personalize no software ou agenda.',
       ],
       blocks: [
-        { type: 'link', label: 'Calendário fiscal Portugal 2026 completo', slug: 'calendario-fiscal-portugal-2026-completo' },
+    { type: 'link', label: 'Calendário fiscal Portugal 2026 completo', slug: 'calendario-fiscal-portugal-2026-completo' },
+        {
+          type: 'link',
+          label: 'Software para escritório de contabilidade em Portugal',
+          slug: 'software-escritorio-contabilidade-portugal',
+        },
       ],
     }),
     ...articleSection({
       h2: 'Ritmo interno: dias 5, 15 e 19',
       id: 'ritmo',
+      paragraphs: [
+        'O prazo legal é o dia 20 — o prazo interno tem de ser anterior. Escritórios que trabalham «contra o relógio do cliente» vivem em modo bombeiro; quem define ritmo próprio recupera margem (e horas de sono).',
+      ],
       blocks: [
         {
           type: 'ul',
@@ -130,8 +145,13 @@ export const postGestaoPrazosEscritorio: BlogPost = {
         {
           type: 'callout',
           variant: 'tip',
-          title: 'Agenda física + digital',
-          text: 'Muitos contadores mantêm agenda de parede com código de cores por tipo de obrigação — funciona em paralelo com software, não em substituição.',
+          title: 'Checklist do dia 15 (imprimir / partilhar na equipa)',
+          text: 'Para cada cliente do período: documentos completos? Totais batem com extracto/SAF-T? Pedidos em aberto registados? Responsável de submissão definido? Se algum «não» — escalar agora, não no dia 19 às 18h.',
+        },
+        {
+          type: 'link',
+          label: 'SAF-T, e-Fatura e validação de documentos',
+          slug: 'saft-efatura-validacao-documentos-escritorio',
         },
       ],
     }),
@@ -140,7 +160,14 @@ export const postGestaoPrazosEscritorio: BlogPost = {
       id: 'equipa',
       paragraphs: [
         'Estagiário: entrada e validação de documentos. Contador: mapas e submissão. Revisor: checklist pré-envio em clientes acima de limiar de risco. Gestor: excepções e relacionamento quando o cliente falha repetidamente.',
-        'Um único «herói» que sabe tudo dos 100 clientes é risco de negócio — documente processos.',
+        'Um único «herói» que sabe tudo dos 100 clientes é risco de negócio — documente processos. Se esse herói sai, o calendário não pode sair com ele.',
+      ],
+      blocks: [
+        {
+          type: 'link',
+          label: 'Como digitalizar o escritório de contabilidade',
+          slug: 'digitalizar-escritorio-contabilidade-portugal',
+        },
       ],
     }),
     teglionCtaBlock({
@@ -153,6 +180,14 @@ export const postGestaoPrazosEscritorio: BlogPost = {
       id: 'metricas',
       paragraphs: [
         '% clientes com documentos completos no dia 15; número de submissões no dia 20 vs dia 19; incidentes de prazo falhado por trimestre. Três números — foco de melhoria contínua.',
+        'Se mais de 20 % das submissões caem no dia 20, o sistema de pedidos está atrasado — não «a equipa é lenta». Corrija o dia 5 e o portal antes de contratar mais horas.',
+      ],
+      blocks: [
+        {
+          type: 'link',
+          label: 'Ferramentas essenciais do contabilista em 2026',
+          slug: 'ferramentas-essenciais-contabilista-2026',
+        },
       ],
     }),
     ...affiliateSection({
@@ -201,10 +236,10 @@ export const postGestaoPrazosEscritorio: BlogPost = {
       title: 'Trilha escritório de contabilidade',
       slugs: [
         'digitalizar-escritorio-contabilidade-portugal',
+        'software-escritorio-contabilidade-portugal',
         'ferramentas-essenciais-contabilista-2026',
         'obrigacoes-fiscais-mes-a-mes',
         'organizar-documentos-fiscais-arquivo-digital',
-        'estudar-contabilidade-portugal-guia-estudantes',
       ],
     }),
     legalCallout('Prazos legais são publicados pela AT e SS — confirme sempre fontes oficiais antes de submeter.'),

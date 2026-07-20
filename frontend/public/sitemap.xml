@@ -76,6 +76,12 @@
     <priority>0.85</priority>
   </url>
   <url>
+    <loc>https://teglion.com/blog/declaracao-irs-guia-pratico</loc>
+    <lastmod>2026-07-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
     <loc>https://teglion.com/blog/deducoes-irs-portugal-guia-completo</loc>
     <lastmod>2026-07-20</lastmod>
     <changefreq>monthly</changefreq>
@@ -83,6 +89,12 @@
   </url>
   <url>
     <loc>https://teglion.com/blog/digitalizar-escritorio-contabilidade-portugal</loc>
+    <lastmod>2026-07-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://teglion.com/blog/gestao-prazos-fiscais-escritorio-contabilidade</loc>
     <lastmod>2026-07-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
@@ -100,19 +112,25 @@
     <priority>0.85</priority>
   </url>
   <url>
+    <loc>https://teglion.com/blog/portal-financas-guia-completo-iniciantes</loc>
+    <lastmod>2026-07-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
     <loc>https://teglion.com/blog/saft-efatura-validacao-documentos-escritorio</loc>
     <lastmod>2026-07-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://teglion.com/blog/organizar-documentos-fiscais-arquivo-digital</loc>
-    <lastmod>2026-07-17</lastmod>
+    <loc>https://teglion.com/blog/software-escritorio-contabilidade-portugal</loc>
+    <lastmod>2026-07-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://teglion.com/blog/portal-financas-guia-completo-iniciantes</loc>
+    <loc>https://teglion.com/blog/organizar-documentos-fiscais-arquivo-digital</loc>
     <lastmod>2026-07-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
@@ -131,12 +149,6 @@
   </url>
   <url>
     <loc>https://teglion.com/blog/ferramentas-essenciais-contabilista-2026</loc>
-    <lastmod>2026-06-18</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://teglion.com/blog/gestao-prazos-fiscais-escritorio-contabilidade</loc>
     <lastmod>2026-06-18</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
@@ -228,12 +240,6 @@
   <url>
     <loc>https://teglion.com/blog/seguranca-social-trabalhador-independente</loc>
     <lastmod>2026-06-17</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-  <url>
-    <loc>https://teglion.com/blog/declaracao-irs-guia-pratico</loc>
-    <lastmod>2026-05-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>

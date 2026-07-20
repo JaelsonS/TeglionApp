@@ -17,13 +17,13 @@ export const postQuantoCustaAbrir: BlogPost = {
     'Início de actividade, Segurança Social, software, contador e IVA — quanto reservar no primeiro ano como independente, com tabela de custos típicos.',
   publishedAt: '2026-05-26',
   updatedAt: '2026-06-17',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Actividade',
   audience: ['independente', 'pme'],
   featured: false,
   tags: ['custos', 'abrir actividade', 'freelancer', 'ENI', 'orçamento'],
-  readMinutes: 16,
+  readMinutes: 8,
   coverImage: {
     src: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=1200&h=630&fit=crop&q=80&auto=format',
     alt: 'Calculadora e notas sobre uma secretária',
@@ -159,6 +159,8 @@ export const postQuantoCustaAbrir: BlogPost = {
         },
       ],
     }),
+    { type: 'link', label: 'Abrir empresa individual (ENI)', slug: 'abrir-empresa-individual-eni' },
+    { type: 'link', label: 'Guia completo do trabalhador independente 2026', slug: 'guia-completo-trabalhador-independente-portugal-2026' },
     ...internalLinksSection({
       title: 'Guias relacionados',
       slugs: [

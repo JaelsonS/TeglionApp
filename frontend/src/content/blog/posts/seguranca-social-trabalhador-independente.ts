@@ -17,13 +17,13 @@ export const postSegurancaSocial: BlogPost = {
     'NISS, contribuições mensais, base contributiva, primeiro ano, cessação e integração com IRS — tudo o que precisa de saber como recibos verdes.',
   publishedAt: '2026-05-27',
   updatedAt: '2026-06-17',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Segurança Social',
   audience: ['independente'],
   featured: false,
   tags: ['Segurança Social', 'NISS', 'trabalhador independente', 'contribuições', 'recibos verdes', 'TSU'],
-  readMinutes: 18,
+  readMinutes: 11,
   coverImage: {
     src: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&h=630&fit=crop&q=80',
     alt: 'Pessoa a estudar documentos num portátil',
@@ -190,6 +190,8 @@ export const postSegurancaSocial: BlogPost = {
       title: 'Não confundir',
       text: 'IRS (Finanças) e Segurança Social são entidades diferentes. Cumprir uma não isenta a outra.',
     },
+    { type: 'link', label: 'Obrigações fiscais mês a mês', slug: 'obrigacoes-fiscais-mes-a-mes' },
+    { type: 'link', label: 'Calendário fiscal Portugal 2026', slug: 'calendario-fiscal-portugal-2026-completo' },
     ...internalLinksSection({
       title: 'Ler a seguir',
       slugs: [

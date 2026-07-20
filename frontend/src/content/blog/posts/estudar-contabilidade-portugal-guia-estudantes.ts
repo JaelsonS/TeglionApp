@@ -19,8 +19,8 @@ export const postEstudarContabilidade: BlogPost = {
     'Calculadora certa, livros, método de estudo, estágios OCC e primeiros passos na profissão — do 1.º ano à licenciatura, com recursos práticos para quem quer perceber números sem dormir no livro.',
   publishedAt: '2026-06-18',
   updatedAt: '2026-06-18',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Estudantes',
   audience: ['estudante'],
   tags: [
@@ -31,7 +31,7 @@ export const postEstudarContabilidade: BlogPost = {
     'licenciatura contabilidade',
     'Portugal',
   ],
-  readMinutes: 20,
+  readMinutes: 12,
   featured: false,
   series: {
     id: 'carreira-contabilidade',
@@ -199,6 +199,8 @@ export const postEstudarContabilidade: BlogPost = {
         },
       ],
     }),
+    { type: 'link', label: 'Ferramentas essenciais do contabilista em 2026', slug: 'ferramentas-essenciais-contabilista-2026' },
+    { type: 'link', label: 'Contabilidade explicada a leigos', slug: 'contabilidade-explicada-leigos-portugal' },
     ...internalLinksSection({
       title: 'Continuar a aprender',
       intro: 'Artigos do blog para aprofundar temas que vai cruzar nos exames e no estágio.',

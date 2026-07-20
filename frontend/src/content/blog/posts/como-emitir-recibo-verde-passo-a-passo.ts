@@ -16,13 +16,13 @@ export const postComoEmitirReciboVerde: BlogPost = {
     'Guia completo para emitir recibo verde no e-Fatura: login, dados do cliente, IVA, retenções, erros comuns e arquivo — do primeiro ao décimo recibo.',
   publishedAt: '2026-05-28',
   updatedAt: '2026-06-17',
-  author: 'Equipa Teglion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Facturação',
   audience: ['independente', 'pme'],
   featured: false,
   tags: ['recibos verdes', 'e-Fatura', 'Portal das Finanças', 'freelancer', 'passo a passo', 'tutorial'],
-  readMinutes: 17,
+  readMinutes: 8,
   coverImage: {
     src: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&h=630&fit=crop&q=80',
     alt: 'Documentos e caneta sobre uma mesa',
@@ -156,6 +156,8 @@ export const postComoEmitirReciboVerde: BlogPost = {
         },
       ],
     }),
+    { type: 'link', label: 'Recibos verdes vs facturação', slug: 'recibos-verdes-vs-faturacao' },
+    { type: 'link', label: 'Portal das Finanças para iniciantes', slug: 'portal-financas-guia-completo-iniciantes' },
     ...internalLinksSection({
       title: 'Próximos passos',
       slugs: [

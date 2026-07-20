@@ -17,12 +17,12 @@ export const postGuiaCompletoIndependente: BlogPost = {
     'Do zero ao primeiro recibo, SS, IRS e arquivo: mapa completo com ligações a todos os guias do blog — para freelancers e prestadores de serviços em Portugal.',
   publishedAt: '2026-06-17',
   updatedAt: '2026-07-20',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Guias completos',
   audience: ['independente', 'pme'],
   tags: ['trabalhador independente', 'freelancer', 'recibos verdes', 'IRS', 'guia 2026', 'Portugal'],
-  readMinutes: 28,
+  readMinutes: 18,
   featured: true,
   series: {
     id: 'independente-2026',
@@ -32,8 +32,8 @@ export const postGuiaCompletoIndependente: BlogPost = {
     totalParts: 5,
   },
   coverImage: {
-    src: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1200&h=630&fit=crop&q=80',
-    alt: 'Profissional a trabalhar com portátil num café',
+    src: '/blog/covers/independente.svg',
+    alt: 'Trabalhador independente a organizar a actividade',
     width: 1200,
     height: 630,
   },
@@ -89,7 +89,7 @@ export const postGuiaCompletoIndependente: BlogPost = {
           title: 'ENI vs sociedade',
           text: 'Empresário em Nome Individual (ENI) é a forma mais simples para começar. Sociedade (Lda.) faz sentido quando há sócios, investimento estruturado ou necessidade de separar património pessoal e empresarial — decisão para contador e advogado.',
         },
-        { type: 'link', label: 'Abrir empresa individual (ENI): o primeiro passo', slug: 'abrir-empresa-individual-eni' },
+    { type: 'link', label: 'Abrir empresa individual (ENI): o primeiro passo', slug: 'abrir-empresa-individual-eni' },
       ],
     }),
     ...articleSection({
@@ -97,9 +97,19 @@ export const postGuiaCompletoIndependente: BlogPost = {
       id: 'custos',
       paragraphs: [
         'Além de impostos sobre rendimento (IRS) e eventual IVA, há contribuições mensais à Segurança Social. O valor depende da base contributiva declarada. Nos primeiros meses existem regras de transição — não assuma que «ainda não facturei muito» dispensa pagamento.',
-        'Software de facturação pode ser gratuito no início (recibos verdes no portal) ou pago quando precisa de certificação AT. Contabilista: muitos cobram mensalidade ou pacote anual — comparar preço com o tempo que poupa.',
+        'Na prática de balcão: um independente a facturar 1 500–2 500 €/mês brutos costuma reservar mentalmente 20–30 % para «Estado + SS + eventual contabilista». Não é regra fiscal — é margem de segurança para não gastar o que ainda não é seu.',
+        'Software de facturação pode ser gratuito no início (recibos verdes no portal) ou 10–30 €/mês quando precisa de certificação AT. Contabilista: muitos cobram 40–120 €/mês conforme volume — compare preço com o tempo que poupa e com o custo de uma coima.',
       ],
-      blocks: [{ type: 'link', label: 'Quanto custa abrir actividade?', slug: 'quanto-custa-abrir-actividade-portugal' }],
+      blocks: [
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Checklist de custos no mês 1',
+          text: 'Anote: contribuição SS estimada, mensalidade do contador (se houver), software, e uma reserva de 200–400 € para imprevistos (atrasos, declarações, material). Quem começa sem esta lista gasta o primeiro recibo como se fosse lucro líquido.',
+        },
+    { type: 'link', label: 'Quanto custa abrir actividade?', slug: 'quanto-custa-abrir-actividade-portugal' },
+    { type: 'link', label: 'Segurança Social do trabalhador independente', slug: 'seguranca-social-trabalhador-independente' },
+      ],
     }),
     { type: 'h2', id: 'fases', text: 'As 6 fases do independente' },
     {
@@ -122,6 +132,11 @@ export const postGuiaCompletoIndependente: BlogPost = {
       type: 'link',
       label: 'Como emitir o primeiro recibo verde (passo a passo)',
       slug: 'como-emitir-recibo-verde-passo-a-passo',
+    },
+    {
+      type: 'link',
+      label: 'Portal das Finanças para iniciantes',
+      slug: 'portal-financas-guia-completo-iniciantes',
     },
     ...internalLinksSection({
       title: 'Fase 1 — Abrir actividade',

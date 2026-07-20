@@ -17,13 +17,13 @@ export const postIva: BlogPost = {
     'Regime de isenção, limite de volume de negócios, declaração periódica, taxas de IVA e sinais de transição — guia completo para não especialistas.',
   publishedAt: '2026-05-14',
   updatedAt: '2026-06-17',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'IVA',
   audience: ['independente', 'pme'],
   featured: false,
   tags: ['IVA', 'isenção', 'facturação', 'volume de negócios', 'AT', 'declaração periódica'],
-  readMinutes: 18,
+  readMinutes: 8,
   coverImage: {
     src: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&h=630&fit=crop&q=80',
     alt: 'Pagamento com cartão num terminal de loja',
@@ -161,6 +161,8 @@ export const postIva: BlogPost = {
         'Cada erro pode gerar regularização, juros ou perda de dedução. Configure o software com ajuda do contador e revise o primeiro trimestre linha a linha.',
       ],
     }),
+    { type: 'link', label: 'Quando passar de isento a IVA', slug: 'quando-passar-de-isento-a-iva' },
+    { type: 'link', label: 'Obrigações fiscais mês a mês', slug: 'obrigacoes-fiscais-mes-a-mes' },
     ...internalLinksSection({
       title: 'Aprofundar IVA e facturação',
       slugs: [

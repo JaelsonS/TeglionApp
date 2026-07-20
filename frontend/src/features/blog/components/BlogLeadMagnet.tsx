@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { api } from '@/infrastructure/api'
+import { subscribeBlogNewsletter } from '@/features/blog/subscribeBlogNewsletter'
+import { trackBlogEvent } from '@/features/blog/blogAnalytics'
 
 type Props = {
   source?: string
@@ -28,17 +29,13 @@ export function BlogLeadMagnet({
     }
     setLoading(true)
     try {
-      await api.post('/public/blog/newsletter', {
-        email: email.trim().toLowerCase(),
-        source,
-        audience: 'lead-magnet',
-        consent: true,
-      })
-      toast.success('Checklist pedida. Confirme o e-mail quando chegar.')
+      await subscribeBlogNewsletter({ email, source: source.slice(0, 80), consent: true })
+      trackBlogEvent('blog_lead_magnet_subscribe', { source: source.slice(0, 40) })
+      toast.success('Checklist pedida. Em breve recebe novidades no e-mail.')
       setEmail('')
       setConsent(false)
-    } catch {
-      toast.error('Não foi possível enviar. Tente novamente.')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Não foi possível enviar. Tente novamente.')
     } finally {
       setLoading(false)
     }

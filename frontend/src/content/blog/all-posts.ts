@@ -32,8 +32,10 @@ import { postAbrirSociedadeLda } from '@/content/blog/posts/abrir-sociedade-lda-
 import { postSaftEfatura } from '@/content/blog/posts/saft-efatura-validacao-documentos-escritorio'
 import { postCasoDigitalizacao } from '@/content/blog/posts/caso-escritorio-digitalizacao-prazos'
 import { postCasoEniLda } from '@/content/blog/posts/caso-pme-transicao-eni-lda'
+import { postSoftwareEscritorioPortugal } from '@/content/blog/posts/software-escritorio-contabilidade-portugal'
 
 const RAW_POSTS: BlogPost[] = [
+  postSoftwareEscritorioPortugal,
   postIrcSociedadesLda,
   postAbrirSociedadeLda,
   postSaftEfatura,

@@ -17,13 +17,13 @@ export const postPassarIsentoIva: BlogPost = {
     'Sinais de que ultrapassou o limite de isenção, o que preparar antes da mudança, impacto na facturação, preços e software certificado — guia completo para freelancers.',
   publishedAt: '2026-05-20',
   updatedAt: '2026-06-17',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'IVA',
   audience: ['independente', 'pme'],
   featured: false,
   tags: ['IVA', 'isenção', 'sujeito passivo', 'volume negócios', 'facturação'],
-  readMinutes: 14,
+  readMinutes: 11,
   coverImage: {
     src: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&h=630&fit=crop&q=80',
     alt: 'Terminal de pagamento',
@@ -158,6 +158,8 @@ export const postPassarIsentoIva: BlogPost = {
       description:
         'Antes de mudar de regime IVA, domine abertura de actividade, recibos e obrigações mensais com um guia passo a passo para Portugal.',
     }),
+    { type: 'link', label: 'IVA: quando preciso de me registar?', slug: 'iva-quando-preciso-de-me-registar' },
+    { type: 'link', label: 'Escolher software de facturação', slug: 'escolher-software-faturacao-portugal' },
     ...internalLinksSection({
       title: 'Continuar a ler',
       intro: 'Artigos relacionados para completar a transição de regime.',

@@ -17,13 +17,13 @@ export const postEscolherSoftware: BlogPost = {
     'Certificação AT, recibos verdes vs factura, preço, SAF-T e integração contabilística — critérios completos para escolher sem surpresas nem multas.',
   publishedAt: '2026-05-24',
   updatedAt: '2026-06-17',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Facturação',
   audience: ['independente', 'pme'],
   featured: false,
   tags: ['software facturação', 'certificação AT', 'Moloni', 'InvoiceXpress', 'freelancer', 'SAF-T'],
-  readMinutes: 18,
+  readMinutes: 8,
   coverImage: {
     src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=630&fit=crop&q=80',
     alt: 'Dashboard de software num portátil',
@@ -176,6 +176,7 @@ export const postEscolherSoftware: BlogPost = {
         },
       ],
     }),
+    { type: 'link', label: 'Quando passar de isento a IVA', slug: 'quando-passar-de-isento-a-iva' },
     ...internalLinksSection({
       title: 'Ler a seguir',
       slugs: [

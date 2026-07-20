@@ -18,12 +18,12 @@ export const postEscolherContabilista: BlogPost = {
     'OCC, especialização, preço, portal do cliente e comunicação — critérios para escolher (ou mudar de) contabilista sem surpresas.',
   publishedAt: '2026-06-10',
   updatedAt: '2026-07-20',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Contabilidade',
   audience: ['independente', 'pme'],
   tags: ['contabilista', 'OCC', 'contabilidade', 'freelancer', 'escritório'],
-  readMinutes: 17,
+  readMinutes: 14,
   featured: true,
   series: {
     id: 'independente-2026',
@@ -33,8 +33,8 @@ export const postEscolherContabilista: BlogPost = {
     totalParts: 5,
   },
   coverImage: {
-    src: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=1200&h=630&fit=crop&q=80&auto=format',
-    alt: 'Reunião de consultoria com documentos e portátil',
+    src: '/blog/covers/escritorio.svg',
+    alt: 'Escolher contabilista e escritório de contabilidade',
     width: 1200,
     height: 630,
   },
@@ -48,6 +48,7 @@ export const postEscolherContabilista: BlogPost = {
     'regime-simplificado-vs-contabilidade-organizada',
     'guia-completo-trabalhador-independente-portugal-2026',
     'organizar-documentos-fiscais-arquivo-digital',
+    'digitalizar-escritorio-contabilidade-portugal',
   ],
   blocks: [
     legalCallout(),
@@ -59,8 +60,9 @@ export const postEscolherContabilista: BlogPost = {
       'Revisão trimestral evita surpresas no IRS anual.',
     ]),
     ...proseParagraphs(
+      'Ligou a três escritórios: um responde «mande WhatsApp», outro pede a senha das Finanças «para agilizar», e o terceiro envia proposta com 65 €/mês, portal do cliente e revisão trimestral. A diferença não é só preço — é risco. Este guia ajuda a escolher (ou mudar) com critérios de balcão.',
       'Um bom contabilista não é só quem «entrega o IRS». É quem explica obrigações antes do prazo, responde em tempo útil e usa ferramentas que não o obrigam a pedir documentos por mensagens soltas.',
-      'Este guia ajuda a escolher — ou mudar de — escritório com critérios objectivos. Para perceber regimes de contabilidade antes da conversa, leia também o artigo sobre regime simplificado vs organizado.',
+      'Para perceber regimes de contabilidade antes da conversa, leia também o artigo sobre regime simplificado vs organizado — e o guia completo do independente se ainda está a abrir actividade.',
     ),
     { type: 'h2', id: 'criterios', text: '7 critérios de escolha' },
     {
@@ -81,12 +83,22 @@ export const postEscolherContabilista: BlogPost = {
       title: 'Sinais de alerta',
       text: 'Promessas de «pagar zero IRS», pedidos de senha do Portal das Finanças, ausência de recibo de honorários ou comunicação só por mensagens de voz sem registo.',
     },
+    {
+      type: 'link',
+      label: 'Guia completo do trabalhador independente 2026',
+      slug: 'guia-completo-trabalhador-independente-portugal-2026',
+    },
     { type: 'h2', id: 'preco', text: 'Quanto custa em 2026?' },
     {
       type: 'p',
-      text: 'Trabalhador independente com contabilidade organizada: tipicamente 40–120 €/mês conforme volume de documentos e complexidade. Regime simplificado pode ser mais barato; sociedades e IVA regular custam mais. Peça proposta por escrito.',
+      text: 'Trabalhador independente com contabilidade organizada: tipicamente 40–120 €/mês conforme volume de documentos e complexidade. Regime simplificado pode ficar nos 40–70 €; sociedades e IVA regular sobem facilmente para 120–250 €+. Peça proposta por escrito — «à volta de X» sem papel é conversa de café, não contrato.',
     },
     { type: 'link', label: 'Regime simplificado vs contabilidade organizada', slug: 'regime-simplificado-vs-contabilidade-organizada' },
+    {
+      type: 'link',
+      label: 'Quanto custa abrir actividade em Portugal',
+      slug: 'quanto-custa-abrir-actividade-portugal',
+    },
     sectionDivider(),
     comparisonTable({
       caption: 'Pacotes típicos de honorários (indicativos)',
@@ -109,6 +121,11 @@ export const postEscolherContabilista: BlogPost = {
         'Sem depender de email perdido ou grupos de WhatsApp',
       ],
     },
+    {
+      type: 'link',
+      label: 'Como digitalizar um escritório de contabilidade',
+      slug: 'digitalizar-escritorio-contabilidade-portugal',
+    },
     ...articleSection({
       h2: 'Checklist para a primeira reunião',
       id: 'primeira-reuniao',
@@ -125,6 +142,7 @@ export const postEscolherContabilista: BlogPost = {
             'Combinar revisão trimestral ou semestral',
             'Esclarecer quem emite recibos/facturas (você vs escritório)',
             'Perguntar sobre software de facturação recomendado',
+            'Anotar honorários: mensalidade + extras (cessação, substituição IRS, etc.)',
           ],
         },
       ],
@@ -134,21 +152,35 @@ export const postEscolherContabilista: BlogPost = {
       id: 'perguntas',
       paragraphs: [
         '«Como me avisam de prazos?» — Resposta boa: alertas por email ou portal, não só «ligamos se houver problema». «Posso ver o que falta entregar?» — Lista actualizada, não memória do contador.',
-        '«Trabalham com regime simplificado e organizado?» — Especialização na sua estrutura. «Quem trata do IVA se passar a sujeito passivo?» — Transição planeado, não surpresa de honorários.',
+        '«Trabalham com regime simplificado e organizado?» — Especialização na sua estrutura. «Quem trata do IVA se passar a sujeito passivo?» — Transição planeada, não surpresa de honorários de +50 €/mês sem aviso.',
       ],
-    }),
-    ...articleSection({
-      h2: 'Como mudar de contabilista',
-      id: 'mudar',
-      paragraphs: [
-        'Pode mudar a qualquer momento. Peça exportação de documentos e mapas; comunique à AT se havia procuração ao contador anterior.',
-        'O novo escritório precisa de histórico de recibos e declarações — organize arquivo antes da transição para não pagar horas de reconstrução.',
+      blocks: [
+        {
+          type: 'link',
+          label: 'Portal das Finanças — guia para iniciantes',
+          slug: 'portal-financas-guia-completo-iniciantes',
+        },
       ],
     }),
     teglionCtaBlock({
       variant: 'firm',
       title: 'É contabilista certificado?',
       text: 'Ofereça portal TegLion aos seus clientes — marca do escritório, pedidos formais e menos tempo em follow-up de documentos.',
+    }),
+    ...articleSection({
+      h2: 'Como mudar de contabilista',
+      id: 'mudar',
+      paragraphs: [
+        'Pode mudar a qualquer momento. Peça exportação de documentos e mapas; comunique à AT se havia procuração ao contador anterior.',
+        'O novo escritório precisa de histórico de recibos e declarações — organize arquivo antes da transição para não pagar horas de reconstrução a 30–50 €/hora.',
+      ],
+      blocks: [
+        {
+          type: 'link',
+          label: 'Organizar documentos fiscais — arquivo digital',
+          slug: 'organizar-documentos-fiscais-arquivo-digital',
+        },
+      ],
     }),
     ...internalLinksSection({
       title: 'Preparar-se antes da primeira reunião',

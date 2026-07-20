@@ -16,13 +16,20 @@ export const postIrsErros: BlogPost = {
     'Esquecer rendimentos, não cruzar recibos emitidos, confundir regimes — os erros mais frequentes de independentes no IRS e como evitar coimas.',
   publishedAt: '2026-05-25',
   updatedAt: '2026-06-17',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'IRS',
   audience: ['independente', 'pme'],
   featured: false,
   tags: ['IRS', 'recibos verdes', 'erros', 'multas', 'trabalhador independente'],
-  readMinutes: 15,
+  series: {
+    id: 'zero-ao-primeiro-irs',
+    title: 'Do zero ao primeiro IRS',
+    description: 'Deduções, declaração, prazos e erros comuns — trilho para a primeira (ou próxima) entrega de IRS.',
+    part: 4,
+    totalParts: 4,
+  },
+  readMinutes: 8,
   coverImage: {
     src: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&h=630&fit=crop&q=80',
     alt: 'Portátil com gráficos e documentos',
@@ -157,6 +164,8 @@ export const postIrsErros: BlogPost = {
         },
       ],
     }),
+    { type: 'link', label: 'Guia prático de declaração de IRS', slug: 'declaracao-irs-guia-pratico' },
+    { type: 'link', label: 'Deduções no IRS — guia completo', slug: 'deducoes-irs-portugal-guia-completo' },
     ...internalLinksSection({
       title: 'Próximos passos',
       slugs: [

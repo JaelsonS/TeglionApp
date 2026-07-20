@@ -19,8 +19,8 @@ export const postContabilidadeLeigos: BlogPost = {
     'Balanço, IRS, IVA, recibos verdes e contador — conceitos fiscais em linguagem normal, para empreendedores, estudantes e pessoas que queiram perceber o sistema sem licenciatura.',
   publishedAt: '2026-06-18',
   updatedAt: '2026-06-18',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Guias completos',
   audience: ['independente', 'pme'],
   tags: [
@@ -31,7 +31,7 @@ export const postContabilidadeLeigos: BlogPost = {
     'IVA simples',
     'empreendedor',
   ],
-  readMinutes: 19,
+  readMinutes: 8,
   featured: false,
   coverImage: {
     src: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=1200&h=630&fit=crop&q=80&auto=format',
@@ -113,7 +113,7 @@ export const postContabilidadeLeigos: BlogPost = {
         'Híbrido (empregado + freelance) é possível — e é onde muita gente se confunde. Cada euro tem endereço fiscal diferente.',
       ],
       blocks: [
-        { type: 'link', label: 'Guia completo do trabalhador independente 2026', slug: 'guia-completo-trabalhador-independente-portugal-2026' },
+    { type: 'link', label: 'Guia completo do trabalhador independente 2026', slug: 'guia-completo-trabalhador-independente-portugal-2026' },
       ],
     }),
     ...articleSection({
@@ -124,7 +124,7 @@ export const postContabilidadeLeigos: BlogPost = {
         'Escolha um inscrito na OCC, com comunicação clara e, idealmente, portal para enviar documentos sem caos de email.',
       ],
       blocks: [
-        { type: 'link', label: 'Como escolher contabilista em Portugal', slug: 'como-escolher-contabilista-portugal' },
+    { type: 'link', label: 'Como escolher contabilista em Portugal', slug: 'como-escolher-contabilista-portugal' },
       ],
     }),
     teglionCtaBlock({

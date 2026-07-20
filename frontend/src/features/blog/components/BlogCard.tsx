@@ -9,11 +9,12 @@ import { cn } from '@/shared/lib/utils'
 type Props = {
   post: BlogPostMeta
   featured?: boolean
-  /** Destaque largo (2 colunas no índice) */
   wide?: boolean
 }
 
 export function BlogCard({ post, featured = false, wide = false }: Props) {
+  const tags = post.tags.slice(0, 4)
+
   return (
     <article className={cn('blog-card-shell', wide && 'blog-card-shell--wide')}>
       <Link to={blogPostUrl(post.slug)} className={cn('blog-card h-full', wide && 'blog-card--wide')}>
@@ -57,6 +58,15 @@ export function BlogCard({ post, featured = false, wide = false }: Props) {
           </p>
         </div>
       </Link>
+      {tags.length > 0 ? (
+        <div className="blog-card-tags" aria-label="Etiquetas">
+          {tags.map((t) => (
+            <Link key={t} to={`/blog?tag=${encodeURIComponent(t)}`} className="blog-tag-chip">
+              {t}
+            </Link>
+          ))}
+        </div>
+      ) : null}
       <div className="blog-card-share-row">
         <BlogShareButtons compact post={toBlogSharePayload(post)} />
       </div>

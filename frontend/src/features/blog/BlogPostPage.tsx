@@ -8,9 +8,11 @@ import { BlogAuthorCard } from '@/features/blog/components/BlogAuthorCard'
 import { BlogCoverImage } from '@/features/blog/components/BlogCoverImage'
 import { BlogLeadMagnet } from '@/features/blog/components/BlogLeadMagnet'
 import { BlogPostPaths } from '@/features/blog/components/BlogPostPaths'
+import { BlogProductShelf } from '@/features/blog/components/BlogProductShelf'
 import { BlogShareButtons } from '@/features/blog/components/BlogShareButtons'
 import { LazyWhenVisible } from '@/features/blog/components/LazyWhenVisible'
 import { useBlogSeo } from '@/features/blog/useBlogSeo'
+import { trackBlogEvent } from '@/features/blog/blogAnalytics'
 import { fetchBlogPost } from '@/content/blog/blog-post-api'
 import { BLOG_BASE_PATH, blogPostUrl } from '@/content/blog/blog-paths'
 import { readPrerenderedBlogPost } from '@/content/blog/read-prerendered-post'
@@ -28,9 +30,6 @@ const BlogTableOfContents = lazy(() =>
 )
 const BlogRelatedPosts = lazy(() =>
   import('@/features/blog/components/BlogRelatedPosts').then((m) => ({ default: m.BlogRelatedPosts })),
-)
-const BlogNewsletter = lazy(() =>
-  import('@/features/blog/components/BlogNewsletter').then((m) => ({ default: m.BlogNewsletter })),
 )
 
 function formatBlogDate(iso: string) {
@@ -96,6 +95,12 @@ export function BlogPostPage() {
   }, [slug])
 
   useBlogSeo({ post: post && post !== 'loading' ? post : undefined })
+
+  useEffect(() => {
+    if (post && post !== 'loading') {
+      trackBlogEvent('blog_post_view', { slug: post.slug, category: post.category })
+    }
+  }, [post])
 
   if (post === null) {
     return <Navigate to={BLOG_BASE_PATH} replace />
@@ -168,10 +173,13 @@ export function BlogPostPage() {
         <BlogCoverImage coverImage={post.coverImage} />
 
         <div className="blog-article-layout mt-10">
-          <aside className="blog-article-rail blog-article-rail--left" aria-label="Índice">
+          <aside className="blog-article-rail blog-article-rail--left" aria-label="Índice e produtos">
             <Suspense fallback={null}>
               <BlogTableOfContents blocks={post.blocks} sticky />
             </Suspense>
+            <div className="mt-4 hidden lg:block">
+              <BlogProductShelf compact />
+            </div>
           </aside>
 
           <div className="blog-article-column min-w-0">
@@ -190,9 +198,9 @@ export function BlogPostPage() {
             <BlogAuthorCard post={post} />
             <BlogAudienceCta post={post} compact />
             <BlogLeadMagnet
-              source={`blog-post-lead-${post.slug}`}
-              title="Checklist fiscal por e-mail"
-              description="Receba a checklist mensal (AT + SS + documentos). Ideal para independentes e PME."
+              source={`lead-${post.slug}`.slice(0, 80)}
+              title="Newsletter + checklist fiscal"
+              description="Um insight por semana + checklist AT/SS. Sem spam. Ideal para independentes, PME e escritórios."
             />
             <div className="blog-rail-card">
               <p className="blog-rail-eyebrow">Continuar a ler</p>
@@ -215,6 +223,9 @@ export function BlogPostPage() {
 
       <LazyWhenVisible>
         <div className="blog-container-wide">
+          <div className="mt-10 lg:hidden">
+            <BlogProductShelf />
+          </div>
           <BlogPostPaths slug={post.slug} />
           <div className="mt-10 lg:hidden">
             <BlogAudienceCta post={post} />
@@ -222,11 +233,6 @@ export function BlogPostPage() {
           <Suspense fallback={null}>
             <BlogRelatedPosts slug={post.slug} />
           </Suspense>
-          <section className="blog-defer-section mt-16 max-w-3xl">
-            <Suspense fallback={null}>
-              <BlogNewsletter source={`blog-post-${post.slug}`} />
-            </Suspense>
-          </section>
         </div>
       </LazyWhenVisible>
     </article>

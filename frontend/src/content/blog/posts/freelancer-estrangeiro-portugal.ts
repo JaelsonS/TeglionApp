@@ -17,13 +17,13 @@ export const postFreelancerEstrangeiro: BlogPost = {
     'NIF, residência fiscal, vistos, abrir actividade, Segurança Social e recibos verdes — guia completo para brasileiros e outros cidadãos em Portugal.',
   publishedAt: '2026-05-22',
   updatedAt: '2026-06-17',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Actividade',
   audience: ['independente', 'pme'],
   featured: false,
   tags: ['estrangeiro', 'NIF', 'freelancer', 'Portugal', 'recibos verdes', 'imigrante', 'D7', 'Nómada digital'],
-  readMinutes: 18,
+  readMinutes: 8,
   coverImage: {
     src: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&h=630&fit=crop&q=80',
     alt: 'Pessoas numa reunião de trabalho',
@@ -147,6 +147,7 @@ export const postFreelancerEstrangeiro: BlogPost = {
         },
       ],
     }),
+    { type: 'link', label: 'Abrir empresa individual (ENI)', slug: 'abrir-empresa-individual-eni' },
     ...internalLinksSection({
       title: 'Próximos passos no blog',
       slugs: [

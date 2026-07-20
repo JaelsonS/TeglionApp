@@ -17,13 +17,13 @@ export const postProtegerDados: BlogPost = {
     'Backup de recibos, antivírus, gestor de passwords, RGPD e cuidados com Wi‑Fi público — guia completo de segurança digital para independentes em Portugal.',
   publishedAt: '2026-05-29',
   updatedAt: '2026-06-17',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Organização',
   audience: ['independente', 'escritorio'],
   featured: false,
   tags: ['segurança digital', 'backup', 'freelancer', 'Microsoft 365', 'antivírus', 'RGPD', 'phishing'],
-  readMinutes: 16,
+  readMinutes: 8,
   coverImage: {
     src: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=1200&h=630&fit=crop&q=80',
     alt: 'Portátil com candado digital — proteção de dados',
@@ -173,6 +173,8 @@ export const postProtegerDados: BlogPost = {
         },
       ],
     }),
+    { type: 'link', label: 'Organizar documentos fiscais', slug: 'organizar-documentos-fiscais-arquivo-digital' },
+    { type: 'link', label: 'Portal das Finanças para iniciantes', slug: 'portal-financas-guia-completo-iniciantes' },
     ...internalLinksSection({
       title: 'Ler também',
       slugs: [

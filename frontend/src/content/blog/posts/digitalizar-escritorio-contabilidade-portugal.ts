@@ -19,8 +19,8 @@ export const postDigitalizarEscritorio: BlogPost = {
     'Portal do cliente, pedidos de documentos, arquivo digital, RGPD e comunicação profissional — roteiro para PME contabilísticas que ainda vivem no email e no WhatsApp.',
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-20',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Escritórios',
   audience: ['escritorio'],
   tags: [
@@ -31,11 +31,18 @@ export const postDigitalizarEscritorio: BlogPost = {
     'RGPD contabilista',
     'TegLion',
   ],
-  readMinutes: 22,
+  readMinutes: 16,
   featured: true,
+  series: {
+    id: 'operacoes-escritorio-teglion',
+    title: 'Operações do escritório com TegLion',
+    description: 'Digitalizar, prazos, SAF-T e software — trilho operacional para escritórios de contabilidade.',
+    part: 1,
+    totalParts: 5,
+  },
   coverImage: {
-    src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&h=630&fit=crop&q=80',
-    alt: 'Escritório moderno com portáteis e reunião',
+    src: '/blog/covers/escritorio.svg',
+    alt: 'Escritório de contabilidade digital',
     width: 1200,
     height: 630,
   },
@@ -53,6 +60,7 @@ export const postDigitalizarEscritorio: BlogPost = {
   relatedSlugs: [
     'ferramentas-essenciais-contabilista-2026',
     'gestao-prazos-fiscais-escritorio-contabilidade',
+    'software-escritorio-contabilidade-portugal',
     'organizar-documentos-fiscais-arquivo-digital',
     'como-escolher-contabilista-portugal',
   ],
@@ -67,6 +75,7 @@ export const postDigitalizarEscritorio: BlogPost = {
     ]),
     ...proseParagraphs(
       'Recebeu um email do cliente às 23h com «segue a factura» em anexo — e no dia seguinte a mesma pessoa diz que já tinha enviado no WhatsApp a semana passada. Se isto soa familiar, a digitalização do escritório não é um luxo de TI: é o único caminho para recuperar o calendário fiscal sem perder clientes.',
+      'No balcão, o custo escondido é tempo: 15 minutos a caçar um PDF × 40 clientes × 12 meses = centenas de horas. A 25–40 €/hora de custo interno da equipa, o «WhatsApp gratuito» sai caro. Digitalizar é recuperar margem e nervos.',
       'Muitos escritórios de contabilidade em Portugal já usam ERP robusto — e ainda passam o dia a pedir «aquela factura de Junho» por mensagem. A digitalização que falta não é contabilística; é relacional: como o cliente entrega, como o escritório confirma e como ambos provam que cumpriram.',
       'Este guia é para sócios, directores técnicos e contadores que querem modernizar sem perder a confiança de clientes habituados ao telefone. Também serve a empresas que procuram escritório — saber o que pedir num parceiro digitalmente maduro.',
     ),
@@ -158,6 +167,21 @@ export const postDigitalizarEscritorio: BlogPost = {
           label: 'Ferramentas essenciais do contabilista em 2026',
           slug: 'ferramentas-essenciais-contabilista-2026',
         },
+        {
+          type: 'link',
+          label: 'Software para escritório de contabilidade em Portugal',
+          slug: 'software-escritorio-contabilidade-portugal',
+        },
+        {
+          type: 'ol',
+          items: [
+            'Inventariar canais actuais (email, WhatsApp, Drive partilhado)',
+            'Definir canal oficial único a partir de data X',
+            'Escolher 5 clientes piloto e medir tempo de fecho',
+            'Formar equipa 1 hora — protocolo escrito de 1 página',
+            'Comunicar aos restantes clientes com vídeo/email curto',
+          ],
+        },
       ],
     }),
     teglionCtaBlock({
@@ -170,6 +194,7 @@ export const postDigitalizarEscritorio: BlogPost = {
       id: 'stack',
       paragraphs: [
         'ERP contabilístico + Microsoft 365 + portal cliente + antivírus + backup. O TegLion ocupa a camada cliente — não compete com PHC ou Primavera, reduz o ruído entre o contador e quem deve enviar a factura.',
+        'Orçamento orientativo para um escritório pequeno (3–8 pessoas): cloud/Office 10–20 €/utilizador/mês, portal do cliente conforme plano, e 1–2 dias de onboarding interno. O retorno aparece quando deixa de haver «fogo» no dia 19.',
       ],
     }),
     teglionCtaBlock({

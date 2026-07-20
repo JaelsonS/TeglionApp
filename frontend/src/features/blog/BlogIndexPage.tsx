@@ -6,7 +6,7 @@ import { BlogMonetizationSlot } from '@/features/blog/components/BlogMonetizatio
 import { BlogCard } from '@/features/blog/components/BlogCard'
 import { BlogCategoryFilter } from '@/features/blog/components/BlogCategoryFilter'
 import { BlogLeadMagnet } from '@/features/blog/components/BlogLeadMagnet'
-import { BlogNewsletter } from '@/features/blog/components/BlogNewsletter'
+import { BlogProductShelf } from '@/features/blog/components/BlogProductShelf'
 import { BlogReadingPaths } from '@/features/blog/components/BlogReadingPaths'
 import { useBlogSeo } from '@/features/blog/useBlogSeo'
 import { BLOG_POSTS, getFeaturedPosts } from '@/content/blog'
@@ -25,6 +25,7 @@ export function BlogIndexPage() {
     (params.get('audience') as BlogAudience) || 'todos',
   )
   const [q, setQ] = useState(params.get('q') || '')
+  const [tag, setTag] = useState(params.get('tag') || '')
 
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = { todos: BLOG_POSTS.length }
@@ -34,25 +35,32 @@ export function BlogIndexPage() {
     return counts
   }, [])
 
-  const filtered = useMemo(
-    () => filterBlogPosts({ category, audience, q }),
-    [category, audience, q],
-  )
+  const filtered = useMemo(() => {
+    let list = filterBlogPosts({ category, audience, q })
+    if (tag.trim()) {
+      const t = tag.trim().toLowerCase()
+      list = list.filter((p) => p.tags.some((x) => x.toLowerCase() === t))
+    }
+    return list
+  }, [category, audience, q, tag])
   const featured = useMemo(() => getFeaturedPosts(4), [])
   const heroPost = featured[0]
   const sideFeatured = featured.slice(1, 4)
 
-  function syncParams(next: { cat?: string; audience?: string; q?: string }) {
+  function syncParams(next: { cat?: string; audience?: string; q?: string; tag?: string }) {
     const sp = new URLSearchParams(params)
     const cat = next.cat ?? category
     const aud = next.audience ?? audience
     const query = next.q ?? q
+    const tg = next.tag ?? tag
     if (cat && cat !== 'todos') sp.set('cat', cat)
     else sp.delete('cat')
     if (aud && aud !== 'todos') sp.set('audience', aud)
     else sp.delete('audience')
     if (query.trim()) sp.set('q', query.trim())
     else sp.delete('q')
+    if (tg.trim()) sp.set('tag', tg.trim())
+    else sp.delete('tag')
     setParams(sp, { replace: true })
   }
 
@@ -176,6 +184,22 @@ export function BlogIndexPage() {
                 {category !== 'todos' ? ` em «${category}»` : ''}
                 {audience !== 'todos' ? ` · ${BLOG_AUDIENCE_FILTERS.find((a) => a.id === audience)?.label}` : ''}
                 {q.trim() ? ` · «${q.trim()}»` : ''}
+                {tag.trim() ? (
+                  <>
+                    {' '}
+                    · etiqueta «{tag}»{' '}
+                    <button
+                      type="button"
+                      className="underline blog-text-navy"
+                      onClick={() => {
+                        setTag('')
+                        syncParams({ tag: '' })
+                      }}
+                    >
+                      limpar
+                    </button>
+                  </>
+                ) : null}
               </p>
 
               {filtered.length === 0 ? (
@@ -194,7 +218,12 @@ export function BlogIndexPage() {
           </div>
 
           <aside className="blog-index-rail" aria-label="Laterais do blog">
-            <BlogLeadMagnet source="blog-index-lead-magnet" />
+            <BlogLeadMagnet
+              source="blog-index-lead"
+              title="Newsletter + checklist fiscal"
+              description="Insight semanal + checklist AT/SS. Um sítio só — sem repetir no rodapé."
+            />
+            <BlogProductShelf />
             <div className="blog-rail-card">
               <p className="blog-rail-eyebrow">Escritórios</p>
               <p className="blog-rail-title">Software para o dia-a-dia do escritório</p>
@@ -205,30 +234,15 @@ export function BlogIndexPage() {
                 Testar 14 dias
               </Link>
               <Link
-                to={blogPostUrl('digitalizar-escritorio-contabilidade-portugal')}
+                to={blogPostUrl('software-escritorio-contabilidade-portugal')}
                 className="mt-2 block text-center text-sm font-medium blog-text-navy underline-offset-2 hover:underline"
               >
-                Ler: digitalizar o escritório
-              </Link>
-            </div>
-            <div className="blog-rail-card">
-              <p className="blog-rail-eyebrow">Trilhas</p>
-              <p className="blog-rail-title">PME e sociedades</p>
-              <p className="blog-rail-text mt-2">IRC, abrir Lda e casos de transição ENI → empresa.</p>
-              <Link
-                to={blogPostUrl('irc-sociedades-lda-portugal-guia')}
-                className="mt-3 inline-flex text-sm font-semibold blog-text-navy underline-offset-2 hover:underline"
-              >
-                Abrir guia IRC / Lda →
+                Ler: software para escritórios
               </Link>
             </div>
           </aside>
         </div>
       </div>
-
-      <section className="blog-container-wide pb-20">
-        <BlogNewsletter source="blog-index" />
-      </section>
     </>
   )
 }

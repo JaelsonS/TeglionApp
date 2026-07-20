@@ -17,13 +17,13 @@ export const postAbrirEni: BlogPost = {
     'O que é um ENI, quando faz sentido vs Lda, passos no Portal das Finanças, CAE, SS e primeiras obrigações — guia completo para iniciantes.',
   publishedAt: '2026-05-18',
   updatedAt: '2026-06-17',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Actividade',
   audience: ['independente', 'pme'],
   featured: false,
   tags: ['ENI', 'empresário individual', 'início de actividade', 'NISS', 'Portugal', 'CAE'],
-  readMinutes: 16,
+  readMinutes: 8,
   coverImage: {
     src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&h=630&fit=crop&q=80',
     alt: 'Escritório moderno com portátil aberto',
@@ -192,6 +192,8 @@ export const postAbrirEni: BlogPost = {
         },
       ],
     }),
+    { type: 'link', label: 'Quanto custa abrir actividade?', slug: 'quanto-custa-abrir-actividade-portugal' },
+    { type: 'link', label: 'Guia completo do trabalhador independente 2026', slug: 'guia-completo-trabalhador-independente-portugal-2026' },
     ...internalLinksSection({
       title: 'Continuar a leitura',
       slugs: [

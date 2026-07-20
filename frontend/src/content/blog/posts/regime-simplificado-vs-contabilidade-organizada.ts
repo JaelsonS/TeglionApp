@@ -17,13 +17,13 @@ export const postRegimeSimplificado: BlogPost = {
     'Diferenças práticas entre os dois regimes de contabilidade para trabalhadores independentes e PME em Portugal — custos, obrigações e quando mudar.',
   publishedAt: '2026-05-21',
   updatedAt: '2026-06-17',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'IRS',
   audience: ['independente', 'pme'],
   featured: false,
   tags: ['regime simplificado', 'contabilidade organizada', 'IRC', 'IRS', 'ENI'],
-  readMinutes: 17,
+  readMinutes: 8,
   coverImage: {
     src: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=1200&h=630&fit=crop&q=80',
     alt: 'Portátil numa mesa de trabalho',
@@ -172,6 +172,8 @@ export const postRegimeSimplificado: BlogPost = {
         },
       ],
     }),
+    { type: 'link', label: 'Como escolher contabilista em Portugal', slug: 'como-escolher-contabilista-portugal' },
+    { type: 'link', label: 'Guia completo do trabalhador independente 2026', slug: 'guia-completo-trabalhador-independente-portugal-2026' },
     ...internalLinksSection({
       title: 'Ler também',
       slugs: [

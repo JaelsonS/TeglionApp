@@ -1,0 +1,207 @@
+import type { BlogPost } from '@/content/blog/types'
+import {
+  articleSection,
+  comparisonTable,
+  internalLinksSection,
+  keyTakeaways,
+  legalCallout,
+  proseParagraphs,
+  quoteBlock,
+  sectionDivider,
+  teglionCtaBlock,
+} from '@/content/blog/shared'
+
+export const postSoftwareEscritorioPortugal: BlogPost = {
+  slug: 'software-escritorio-contabilidade-portugal',
+  title: 'Software para escritório de contabilidade em Portugal: o que precisa em 2026',
+  excerpt:
+    'WhatsApp vs portal do cliente, SAF-T, documentos e prazos — o que um escritório OCC precisa de software em 2026 para operar com controlo e menos caos.',
+  publishedAt: '2026-07-20',
+  updatedAt: '2026-07-20',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
+  category: 'Escritórios',
+  audience: ['escritorio'],
+  featured: false,
+  tags: [
+    'software escritório contabilidade',
+    'portal cliente OCC',
+    'gestão clientes contabilista',
+    'TegLion',
+    'escritório digital',
+  ],
+  readMinutes: 12,
+  series: {
+    id: 'operacoes-escritorio-teglion',
+    title: 'Operações do escritório com TegLion',
+    description: 'Digitalizar, prazos, SAF-T e software — trilho operacional para escritórios de contabilidade.',
+    part: 4,
+    totalParts: 5,
+  },
+  coverImage: {
+    src: '/blog/covers/software.svg',
+    alt: 'Software e operações de escritório de contabilidade',
+    width: 1200,
+    height: 630,
+  },
+  seo: {
+    title: 'Software escritório contabilidade Portugal 2026 | Blog TegLion',
+    description:
+      'O que precisa de software num escritório de contabilidade em Portugal: gestão de clientes, portal OCC, SAF-T, prazos e documentos. Menos WhatsApp, mais operações.',
+    keywords: [
+      'software escritório contabilidade Portugal',
+      'gestão clientes contabilista',
+      'portal cliente OCC',
+      'software contabilista 2026',
+      'portal documentos escritório',
+    ],
+  },
+  relatedSlugs: [
+    'digitalizar-escritorio-contabilidade-portugal',
+    'gestao-prazos-fiscais-escritorio-contabilidade',
+    'saft-efatura-validacao-documentos-escritorio',
+    'ferramentas-essenciais-contabilista-2026',
+  ],
+  blocks: [
+    legalCallout(),
+    keyTakeaways([
+      'ERP faz a contabilidade; portal do cliente faz a última milha — são camadas diferentes.',
+      'WhatsApp sem registo escala mal: 50 clientes × mensagens soltas = prazos em risco e RGPD frágil.',
+      'Em 2026, o stack mínimo maduro: ERP + cloud + portal com pedidos/prazos + backup.',
+      'SAF-T e e-Fatura pedem validação de documentos antes do fecho — não «fotos às 23h».',
+      'TegLion cobre portal, pedidos e alertas com a marca do escritório — complementar ao ERP.',
+    ]),
+    ...proseParagraphs(
+      'Segunda-feira de manhã: o telemóvel do sócio tem 37 unread no WhatsApp Business, três «segue a factura» no email pessoal, e um Drive partilhado onde ninguém sabe qual PDF é a versão correcta. O ERP está impecável — o caos está na relação com o cliente.',
+      'Este artigo é para escritórios de contabilidade em Portugal que já têm (ou vão escolher) software e querem perceber o que falta para operar em 2026 sem viver de mensagens. Não é uma lista de marcas de facturação: é um mapa de capacidades — e onde o portal do cliente encaixa.',
+    ),
+    quoteBlock(
+      'Software que só o contador usa não digitaliza o escritório — digitaliza a secretária. O cliente continua no WhatsApp.',
+    ),
+    ...articleSection({
+      h2: 'WhatsApp chaos vs operações estruturadas',
+      id: 'whatsapp-vs-ops',
+      paragraphs: [
+        'WhatsApp é excelente para urgências pontuais. Como canal oficial de documentos fiscais, falha: não há lista do que falta, não há prova clara de pedido, e misturar conversas pessoais com NIF de clientes é risco RGPD real.',
+        'Operações estruturadas significam: pedido formal → prazo → upload → validação → arquivo. O cliente vê o estado; o escritório mede % de documentos no dia 15. Isso não cabe numa thread de chat.',
+      ],
+      blocks: [
+        comparisonTable({
+          caption: 'Canal de documentos — impacto no dia a dia',
+          headers: ['Critério', 'WhatsApp / email solto', 'Portal + pedidos'],
+          rows: [
+            ['Lista do que falta', 'Memória / Excel paralelo', 'Visível para cliente e equipa'],
+            ['Prova de pedido', 'Frágil', 'Histórico com data'],
+            ['RGPD / acesso', 'Telemóvel pessoal', 'Contas e permissões'],
+            ['Escala (80+ clientes)', 'Quebra no dia 19', 'Ritmo dia 5 → 15 → 19'],
+            ['Custo escondido', 'Horas de follow-up', 'Onboarding + hábito'],
+          ],
+        }),
+        {
+          type: 'link',
+          label: 'Como digitalizar o escritório (roteiro 90 dias)',
+          slug: 'digitalizar-escritorio-contabilidade-portugal',
+        },
+        {
+          type: 'link',
+          label: 'Caso: escritório recuperou prazos ao sair do WhatsApp',
+          slug: 'caso-escritorio-digitalizacao-prazos',
+        },
+      ],
+    }),
+    sectionDivider(),
+    ...articleSection({
+      h2: 'O que o software tem de cobrir em 2026',
+      id: 'capacidades',
+      paragraphs: [
+        'Pense em camadas, não num «programa único que faz tudo». Misturar facturação do cliente, ERP do escritório e portal de pedidos no mesmo produto raramente é o melhor desenho — o importante é que as camadas se falem (ou pelo menos não se contradigam).',
+      ],
+      blocks: [
+        {
+          type: 'ol',
+          items: [
+            'Contabilidade / ERP — lançamentos, mapas, obrigações (o coração técnico)',
+            'Facturação do cliente — software certificado AT quando aplicável (lado do contribuinte)',
+            'Portal do cliente — pedidos, uploads, mensagens, marca do escritório',
+            'Prazos e alertas — calendário por cliente e por obrigação',
+            'Validação SAF-T / e-Fatura — cruzamento antes do fecho',
+            'Segurança — acessos, backups, política de retenção',
+          ],
+        },
+        {
+          type: 'callout',
+          variant: 'tip',
+          title: 'Checklist de compra (15 minutos)',
+          text: 'Antes de assinar: (1) quem exporta SAF-T e com que frequência?; (2) o cliente vê o que falta entregar?; (3) há alertas no dia 5/15?; (4) marca branca / portal próprio?; (5) RGPD e localização de dados?; (6) preço por cliente vs por utilizador — projete a 100 e a 200 clientes.',
+        },
+        {
+          type: 'link',
+          label: 'Gestão de prazos fiscais no escritório',
+          slug: 'gestao-prazos-fiscais-escritorio-contabilidade',
+        },
+        {
+          type: 'link',
+          label: 'SAF-T, e-Fatura e validação de documentos',
+          slug: 'saft-efatura-validacao-documentos-escritorio',
+        },
+      ],
+    }),
+    teglionCtaBlock({
+      variant: 'firm',
+      title: 'Portal do cliente com a marca do escritório',
+      text: 'TegLion: pedidos de documentos, prazos, mensagens e histórico — feito para escritórios OCC em Portugal. Teste 14 dias grátis, sem cartão. Complementa o ERP; não o substitui.',
+    }),
+    ...articleSection({
+      h2: 'SAF-T, documentos e prazos — o trio que o software tem de servir',
+      id: 'saft-docs-prazos',
+      paragraphs: [
+        'Sem documentos validados a tempo, o melhor ERP do mundo espera. Sem prazos internos (dia 15/19), o portal enche-se e ninguém fecha. Sem cruzamento com e-Fatura/SAF-T, o fecho de IVA vira caça ao PDF.',
+        'Na prática de balcão: um escritório com 60 clientes de IVA mensal que reduz o follow-up de 20 para 8 minutos por cliente no dia 10 recupera dezenas de horas por mês — isso paga software e ainda sobra margem para consultoria.',
+      ],
+      blocks: [
+        {
+          type: 'link',
+          label: 'Ferramentas essenciais do contabilista em 2026',
+          slug: 'ferramentas-essenciais-contabilista-2026',
+        },
+        {
+          type: 'ul',
+          items: [
+            'Pedido de documentos com prazo visível ao cliente',
+            'Upload único (nada de «já enviei no outro chat»)',
+            'Estados: pedido → recebido → validado → arquivado',
+            'Alertas alinhados com o calendário fiscal português',
+            'Export / histórico para auditoria e mudança de colaborador',
+          ],
+        },
+      ],
+    }),
+    ...articleSection({
+      h2: 'Como encaixar TegLion sem trocar o ERP',
+      id: 'teglion',
+      paragraphs: [
+        'TegLion ocupa a camada portal + pedidos + prazos + comunicação. O PHC, Primavera, Sage ou o software que já usa continua a ser o motor contabilístico. A equipa deixa de pedinchar facturas por mensagem; o cliente deixa de perguntar «já receberam?».',
+        'Onboarding típico: 5–10 clientes piloto → protocolo interno de 1 página («tudo pelo portal») → rollout. Quem tenta «big bang» na véspera do IRS sofre — quem faseia, fica.',
+      ],
+    }),
+    teglionCtaBlock({
+      variant: 'firm',
+      title: 'Pronto para estruturar as operações?',
+      text: 'Crie a conta do escritório no TegLion, personalize o portal e convide os primeiros clientes. Menos caos no telemóvel — mais fechos no dia 19.',
+    }),
+    ...internalLinksSection({
+      title: 'Continuar na trilha do escritório',
+      intro: 'Artigos que completam este mapa de software e operações.',
+      slugs: [
+        'digitalizar-escritorio-contabilidade-portugal',
+        'gestao-prazos-fiscais-escritorio-contabilidade',
+        'saft-efatura-validacao-documentos-escritorio',
+        'ferramentas-essenciais-contabilista-2026',
+        'caso-escritorio-digitalizacao-prazos',
+      ],
+    }),
+    legalCallout(
+      'Escolha de software depende do tamanho, ERP actual e obrigações dos seus clientes — valide com a equipa técnica e, quando aplicável, com assessoria OCC/RGPD.',
+    ),
+  ],
+}

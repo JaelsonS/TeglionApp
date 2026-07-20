@@ -8,9 +8,12 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 exports.subscribe = async (req, res, next) => {
   try {
     const email = String(req.body?.email || '').trim().toLowerCase();
-    const consent = req.body?.consent === true || req.body?.consent === 'true';
-    const source = String(req.body?.source || 'blog').slice(0, 120);
-    const audience = String(req.body?.audience || 'blog').slice(0, 40);
+    const consent = req.body?.consent === true || req.body?.consent === 'true' || req.body?.consent === 1;
+    const source = String(req.body?.source || 'blog')
+      .replace(/[^a-zA-Z0-9._:-]+/g, '-')
+      .slice(0, 80);
+    // Audience estável — evita 400 por valores inesperados no cliente
+    const audience = 'blog';
     const locale = String(req.body?.locale || 'pt-PT').slice(0, 12);
 
     if (!email || !EMAIL_RE.test(email)) {
@@ -34,6 +37,7 @@ exports.subscribe = async (req, res, next) => {
 
     return res.status(201).json({ ok: true, subscribed: true });
   } catch (err) {
+    logger.warn('[blog-newsletter] subscribe failed', err?.message || err);
     return next(err);
   }
 };

@@ -19,8 +19,8 @@ export const postFerramentasContabilista: BlogPost = {
     'O stack profissional do contador certificado: calculadora, Excel/365, segurança, arquivo físico e digital, e software de gestão de clientes — com comparação do que ainda se faz no email vs portal moderno.',
   publishedAt: '2026-06-18',
   updatedAt: '2026-06-18',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Escritórios',
   audience: ['escritorio'],
   tags: [
@@ -31,7 +31,7 @@ export const postFerramentasContabilista: BlogPost = {
     'software contabilidade',
     'Microsoft 365',
   ],
-  readMinutes: 21,
+  readMinutes: 12,
   featured: false,
   series: {
     id: 'carreira-contabilidade',
@@ -214,6 +214,8 @@ export const postFerramentasContabilista: BlogPost = {
         },
       ],
     }),
+    { type: 'link', label: 'Digitalizar o escritório de contabilidade', slug: 'digitalizar-escritorio-contabilidade-portugal' },
+    { type: 'link', label: 'Software para escritório de contabilidade', slug: 'software-escritorio-contabilidade-portugal' },
     ...internalLinksSection({
       title: 'Para escritórios que querem ir mais longe',
       slugs: [

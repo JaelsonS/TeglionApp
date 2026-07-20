@@ -17,13 +17,13 @@ export const postRetencaoFonte: BlogPost = {
     'Quando o cliente retém IRS, que taxas aplicar, como reflectir no recibo, no IRS anual e no fluxo de caixa — guia completo para independentes em Portugal.',
   publishedAt: '2026-05-23',
   updatedAt: '2026-06-17',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Facturação',
   audience: ['independente', 'pme'],
   featured: false,
   tags: ['retenção na fonte', 'IRS', 'recibos verdes', 'retenções', 'freelancer'],
-  readMinutes: 16,
+  readMinutes: 11,
   coverImage: {
     src: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&h=630&fit=crop&q=80',
     alt: 'Pagamento num terminal',
@@ -183,6 +183,8 @@ export const postRetencaoFonte: BlogPost = {
         },
       ],
     }),
+    { type: 'link', label: 'Como emitir recibo verde passo a passo', slug: 'como-emitir-recibo-verde-passo-a-passo' },
+    { type: 'link', label: 'Erros comuns em IRS com recibos verdes', slug: 'irs-recibos-verdes-erros-comuns' },
     ...internalLinksSection({
       title: 'Artigos relacionados',
       slugs: [

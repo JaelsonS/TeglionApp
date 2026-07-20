@@ -18,12 +18,12 @@ export const postOrganizarDocumentos: BlogPost = {
     'Pastas por ano, nomenclatura de ficheiros, backup e o que guardar 4+ anos — sistema prático para freelancers e microempresas em Portugal.',
   publishedAt: '2026-06-12',
   updatedAt: '2026-07-17',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Organização',
   audience: ['independente', 'escritorio'],
   tags: ['arquivo', 'documentos fiscais', 'organização', 'freelancer', 'IRS'],
-  readMinutes: 20,
+  readMinutes: 12,
   featured: false,
   series: {
     id: 'independente-2026',
@@ -169,6 +169,8 @@ export const postOrganizarDocumentos: BlogPost = {
         },
       ],
     }),
+    { type: 'link', label: 'Portal das Finanças para iniciantes', slug: 'portal-financas-guia-completo-iniciantes' },
+    { type: 'link', label: 'Proteger dados fiscais no portátil', slug: 'proteger-dados-fiscais-freelancer-portugal' },
     ...internalLinksSection({
       title: 'Ler também',
       slugs: [

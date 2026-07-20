@@ -18,13 +18,13 @@ export const postRecibos: BlogPost = {
     'Diferenças práticas entre emitir recibos no e-Fatura e usar software certificado — quando usar cada um, custos, IVA e transição para PME.',
   publishedAt: '2026-05-12',
   updatedAt: '2026-06-17',
-  author: 'Equipa TegLion',
-  authorRole: 'Equipa editorial · Guias de fiscalidade portuguesa',
+  author: 'Liliana Nunes',
+  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Facturação',
   audience: ['independente', 'pme'],
   featured: false,
   tags: ['recibos verdes', 'e-Fatura', 'facturação certificada', 'AT', 'freelancer'],
-  readMinutes: 15,
+  readMinutes: 8,
   coverImage: {
     src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=630&fit=crop&q=80',
     alt: 'Ecrã de computador com gráficos de negócio',
@@ -163,6 +163,8 @@ export const postRecibos: BlogPost = {
       title: 'Escritórios de contabilidade',
       text: 'Receber documentos desorganizados de dezenas de clientes consome horas. O TegLion centraliza pedidos e prazos por cliente.',
     }),
+    { type: 'link', label: 'Como emitir recibo verde passo a passo', slug: 'como-emitir-recibo-verde-passo-a-passo' },
+    { type: 'link', label: 'Escolher software de facturação', slug: 'escolher-software-faturacao-portugal' },
     ...internalLinksSection({
       title: 'Artigos relacionados',
       slugs: [

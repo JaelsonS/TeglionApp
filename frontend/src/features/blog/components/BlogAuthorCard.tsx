@@ -13,7 +13,9 @@ function formatBlogDate(iso: string) {
 }
 
 export function BlogAuthorCard({ post }: Props) {
-  const initials = (post.author || 'TL')
+  const name = post.author || 'Liliana Nunes'
+  const role = post.authorRole || 'Revisão editorial TegLion · Guias de fiscalidade portuguesa'
+  const initials = name
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
@@ -24,16 +26,19 @@ export function BlogAuthorCard({ post }: Props) {
     <aside className="blog-rail-card blog-author-card" aria-label="Autor">
       <div className="blog-author-row">
         <span className="blog-author-avatar" aria-hidden>
-          {initials || 'TL'}
+          {initials || 'LN'}
         </span>
         <div>
           <p className="blog-rail-title" itemProp="author" itemScope itemType="https://schema.org/Person">
-            <span itemProp="name">{post.author}</span>
+            <span itemProp="name">{name}</span>
           </p>
-          <p className="blog-rail-text">{post.authorRole || 'Equipa editorial · Fiscalidade portuguesa'}</p>
+          <p className="blog-rail-text">{role}</p>
         </div>
       </div>
       <p className="mt-3 text-xs blog-text-muted">
+        Conteúdo educativo para Portugal. Não substitui aconselhamento de um contabilista certificado (OCC).
+      </p>
+      <p className="mt-2 text-xs blog-text-muted">
         Publicado{' '}
         <time dateTime={post.publishedAt} itemProp="datePublished">
           {formatBlogDate(post.publishedAt)}
@@ -41,12 +46,18 @@ export function BlogAuthorCard({ post }: Props) {
         {post.updatedAt !== post.publishedAt ? (
           <>
             {' '}
-            · Última revisão{' '}
+            · <strong className="font-semibold text-[var(--blog-navy)]">Última revisão</strong>{' '}
             <time dateTime={post.updatedAt} itemProp="dateModified">
               {formatBlogDate(post.updatedAt)}
             </time>
           </>
-        ) : null}
+        ) : (
+          <>
+            {' '}
+            · <strong className="font-semibold text-[var(--blog-navy)]">Última revisão</strong>{' '}
+            <time dateTime={post.updatedAt}>{formatBlogDate(post.updatedAt)}</time>
+          </>
+        )}
       </p>
     </aside>
   )
