@@ -1,5 +1,6 @@
 import { useLayoutEffect } from 'react'
 
+import { BLOG_AUTHOR } from '@/content/blog/author'
 import { BRAND } from '@/shared/config/brand'
 import type { BlogPost, BlogPostMeta } from '@/content/blog/types'
 import { blogPostUrl } from '@/content/blog/blog-paths'
@@ -123,12 +124,18 @@ export function useBlogSeo({ post, index }: BlogSeoInput) {
       '@type': 'BlogPosting',
       headline: post.title,
       description: post.seo.description,
-      image: [post.coverImage.src],
+      image: [post.coverImage.src.startsWith('http') ? post.coverImage.src : `${BRAND.url}${post.coverImage.src}`],
       datePublished: post.publishedAt,
       dateModified: post.updatedAt,
       author: {
-        '@type': 'Organization',
-        name: post.author,
+        '@type': 'Person',
+        name: BLOG_AUTHOR.name,
+        url: BLOG_AUTHOR.url,
+        image: `${BRAND.url}${BLOG_AUTHOR.image}`,
+        jobTitle: BLOG_AUTHOR.role,
+        description: BLOG_AUTHOR.bio,
+        sameAs: [...BLOG_AUTHOR.sameAs],
+        email: BLOG_AUTHOR.email,
       },
       publisher: {
         '@type': 'Organization',

@@ -19,8 +19,8 @@ export const postDigitalizarEscritorio: BlogPost = {
     'Portal do cliente, pedidos de documentos, arquivo digital, RGPD e comunicação profissional — roteiro para PME contabilísticas que ainda vivem no email e no WhatsApp.',
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-20',
-  author: 'Liliana Nunes',
-  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
+  author: 'Jaelson Santos',
+  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
   category: 'Escritórios',
   audience: ['escritorio'],
   tags: [
@@ -42,7 +42,7 @@ export const postDigitalizarEscritorio: BlogPost = {
   },
   coverImage: {
     src: '/blog/covers/escritorio.svg',
-    alt: 'Escritório de contabilidade digital',
+    alt: 'Digitalizar escritório de contabilidade',
     width: 1200,
     height: 630,
   },

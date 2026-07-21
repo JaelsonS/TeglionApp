@@ -5,8 +5,8 @@
   <circle cx="160" cy="520" r="220" fill="#ffffff" opacity="0.05"/>
   <rect x="80" y="120" width="720" height="390" rx="28" fill="#fafaf7"/>
   <rect x="110" y="160" width="140" height="14" rx="7" fill="#0f2942"/>
-  <text x="110" y="240" font-family="Georgia, serif" font-size="64" fill="#0f2942">Software escritório</text>
-  <text x="110" y="300" font-family="system-ui,sans-serif" font-size="28" fill="#3d4f63">Blog TegLion · Fiscalidade portuguesa</text>
+  <text x="110" y="250" font-family="Georgia, serif" font-size="54" fill="#0f2942">Software e ferramentas</text>
+  <text x="110" y="310" font-family="system-ui,sans-serif" font-size="26" fill="#3d4f63">Facturação · portal · stack</text>
   <rect x="110" y="360" width="220" height="18" rx="9" fill="#c9932e"/>
   <rect x="110" y="400" width="360" height="12" rx="6" fill="#3d4f63" opacity="0.2"/>
   <rect x="110" y="430" width="280" height="12" rx="6" fill="#3d4f63" opacity="0.15"/>

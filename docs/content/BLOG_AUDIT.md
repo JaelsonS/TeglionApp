@@ -42,12 +42,12 @@ Legenda: **M** manter · **R** reescrever/enriquecer · **F** fundir · **A** ar
 
 **Nenhum artigo arquivado nesta ronda.** Featured activos: 4 pilares (independente, calendário, digitalizar, escolher contabilista).
 
-## Ronda 2026-07-21
+## Ronda 2026-07-21 (autor + capas)
 
-- Sticky rail do índice: removido `landing-page`/`overflow-x:hidden` que matava `position:sticky`
-- FAQ schema em todos os slugs em falta (15+) via `pillar-faqs.ts`
-- Titles SERP ≤ ~55–60 caracteres; JSON-LD usa `seo.description`
-- Próximo: capas OG únicas (menos Unsplash/SVG repetido); 1 artigo novo/semana
+- Autor único: **Jaelson Santos** (foto, bio, WhatsApp/redes) — removida Liliana Nunes
+- Capas SVG locais por cluster (sem Unsplash)
+- Mid-links nos casos; share removido da grelha do índice
+- Sticky rail + FAQ schema (ronda anterior)
 
 ## Cadência operacional
 
@@ -65,7 +65,6 @@ Legenda: **M** manter · **R** reescrever/enriquecer · **F** fundir · **A** ar
 
 ## Evolução ainda em aberto (prioridade)
 
-1. Capas/OG distintas por pilar (CTR social + SERP)
-2. Mid-links internos mais densos nos artigos «caso»
-3. Autor com foto/bio OCC mais forte (E-E-A-T)
-4. Index: reduzir chrome de share nos cards; reforçar hero editorial
+1. Página `/sobre` do autor (schema Person com URL própria)
+2. 1 artigo novo / semana + actualizar calendário/prazos trimestralmente
+3. Capas ilustradas mais distintas além dos clusters SVG

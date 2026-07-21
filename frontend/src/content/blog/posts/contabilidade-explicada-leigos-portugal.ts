@@ -19,8 +19,8 @@ export const postContabilidadeLeigos: BlogPost = {
     'Balanço, IRS, IVA, recibos verdes e contador — conceitos fiscais em linguagem normal, para empreendedores, estudantes e pessoas que queiram perceber o sistema sem licenciatura.',
   publishedAt: '2026-06-18',
   updatedAt: '2026-06-18',
-  author: 'Liliana Nunes',
-  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
+  author: 'Jaelson Santos',
+  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
   category: 'Guias completos',
   audience: ['independente', 'pme'],
   tags: [
@@ -34,8 +34,8 @@ export const postContabilidadeLeigos: BlogPost = {
   readMinutes: 8,
   featured: false,
   coverImage: {
-    src: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=1200&h=630&fit=crop&q=80&auto=format',
-    alt: 'Pessoa a olhar para documentos e calculadora com ar curioso',
+    src: '/blog/covers/independente.svg',
+    alt: 'Contabilidade explicada para leigos',
     width: 1200,
     height: 630,
   },

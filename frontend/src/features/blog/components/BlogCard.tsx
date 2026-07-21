@@ -10,9 +10,11 @@ type Props = {
   post: BlogPostMeta
   featured?: boolean
   wide?: boolean
+  /** Partilhar nas redes — desligado na grelha do índice */
+  showShare?: boolean
 }
 
-export function BlogCard({ post, featured = false, wide = false }: Props) {
+export function BlogCard({ post, featured = false, wide = false, showShare = false }: Props) {
   const tags = post.tags.slice(0, 4)
 
   return (
@@ -67,9 +69,11 @@ export function BlogCard({ post, featured = false, wide = false }: Props) {
           ))}
         </div>
       ) : null}
-      <div className="blog-card-share-row">
-        <BlogShareButtons compact post={toBlogSharePayload(post)} />
-      </div>
+      {showShare ? (
+        <div className="blog-card-share-row">
+          <BlogShareButtons compact post={toBlogSharePayload(post)} />
+        </div>
+      ) : null}
     </article>
   )
 }

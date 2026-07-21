@@ -18,8 +18,8 @@ export const postEscolherContabilista: BlogPost = {
     'OCC, especialização, preço, portal do cliente e comunicação — critérios para escolher (ou mudar de) contabilista sem surpresas.',
   publishedAt: '2026-06-10',
   updatedAt: '2026-07-21',
-  author: 'Liliana Nunes',
-  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
+  author: 'Jaelson Santos',
+  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
   category: 'Contabilidade',
   audience: ['independente', 'pme'],
   tags: ['contabilista', 'OCC', 'contabilidade', 'freelancer', 'escritório'],
@@ -34,7 +34,7 @@ export const postEscolherContabilista: BlogPost = {
   },
   coverImage: {
     src: '/blog/covers/escritorio.svg',
-    alt: 'Escolher contabilista e escritório de contabilidade',
+    alt: 'Como escolher contabilista em Portugal',
     width: 1200,
     height: 630,
   },
@@ -132,6 +132,11 @@ export const postEscolherContabilista: BlogPost = {
       type: 'link',
       label: 'Como digitalizar um escritório de contabilidade',
       slug: 'digitalizar-escritorio-contabilidade-portugal',
+    },
+    {
+      type: 'link',
+      label: 'Software para escritório de contabilidade em Portugal',
+      slug: 'software-escritorio-contabilidade-portugal',
     },
     ...articleSection({
       h2: 'Checklist para a primeira reunião',

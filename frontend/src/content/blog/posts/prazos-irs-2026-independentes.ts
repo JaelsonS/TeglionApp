@@ -17,8 +17,8 @@ export const postPrazosIrs2026: BlogPost = {
     'Calendário de entrega, fases da campanha, documentos a reunir, pagamentos e checklist completo para quem entrega IRS com recibos verdes ou facturas.',
   publishedAt: '2026-05-19',
   updatedAt: '2026-06-17',
-  author: 'Liliana Nunes',
-  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
+  author: 'Jaelson Santos',
+  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
   category: 'IRS',
   audience: ['independente', 'pme'],
   featured: false,
@@ -33,7 +33,7 @@ export const postPrazosIrs2026: BlogPost = {
   },
   coverImage: {
     src: '/blog/covers/irs.svg',
-    alt: 'Prazos de IRS e calendário fiscal',
+    alt: 'Prazos IRS 2026 para independentes',
     width: 1200,
     height: 630,
   },
@@ -64,7 +64,7 @@ export const postPrazosIrs2026: BlogPost = {
     ),
     {
       type: 'image',
-      src: 'https://images.unsplash.com/photo-1506784365847-bbad939e9335?w=960&h=540&fit=crop&q=80',
+      src: '/blog/covers/irs.svg',
       alt: 'Calendário numa parede',
       caption: 'Anote o último dia útil do seu prazo — não deixe para a véspera.',
     },

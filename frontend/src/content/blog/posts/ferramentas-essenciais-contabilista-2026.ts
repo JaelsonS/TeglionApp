@@ -19,8 +19,8 @@ export const postFerramentasContabilista: BlogPost = {
     'O stack profissional do contador certificado: calculadora, Excel/365, segurança, arquivo físico e digital, e software de gestão de clientes — com comparação do que ainda se faz no email vs portal moderno.',
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-20',
-  author: 'Liliana Nunes',
-  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
+  author: 'Jaelson Santos',
+  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
   category: 'Escritórios',
   audience: ['escritorio'],
   tags: [
@@ -41,8 +41,8 @@ export const postFerramentasContabilista: BlogPost = {
     totalParts: 3,
   },
   coverImage: {
-    src: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=1200&h=630&fit=crop&q=80&auto=format',
-    alt: 'Mesa de contabilista com calculadora, portátil e documentos',
+    src: '/blog/covers/software.svg',
+    alt: 'Ferramentas essenciais do contabilista',
     width: 1200,
     height: 630,
   },

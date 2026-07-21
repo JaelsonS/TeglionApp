@@ -35,14 +35,13 @@ export function blogCoverSrcSet(src: string): string {
   }).join(', ')
 }
 
-export const BLOG_IMAGE_FALLBACK_UNSPLASH =
-  'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=1200&h=630&fit=crop&q=80&auto=format'
+export const BLOG_IMAGE_FALLBACK_LOCAL = '/blog/covers/independente.svg'
 
 /** Fallback local — sempre disponível em produção. */
 export const BLOG_IMAGE_FALLBACK = '/og/teglion-og.png'
 
 export function resolveBlogImageOnError(current: string): string {
   if (current === BLOG_IMAGE_FALLBACK) return current
-  if (current !== BLOG_IMAGE_FALLBACK_UNSPLASH) return BLOG_IMAGE_FALLBACK_UNSPLASH
+  if (current !== BLOG_IMAGE_FALLBACK_LOCAL) return BLOG_IMAGE_FALLBACK_LOCAL
   return BLOG_IMAGE_FALLBACK
 }

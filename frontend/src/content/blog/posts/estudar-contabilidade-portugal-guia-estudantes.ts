@@ -19,8 +19,8 @@ export const postEstudarContabilidade: BlogPost = {
     'Calculadora certa, livros, método de estudo, estágios OCC e primeiros passos na profissão — do 1.º ano à licenciatura, com recursos práticos para quem quer perceber números sem dormir no livro.',
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-20',
-  author: 'Liliana Nunes',
-  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
+  author: 'Jaelson Santos',
+  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
   category: 'Estudantes',
   audience: ['estudante'],
   tags: [
@@ -41,8 +41,8 @@ export const postEstudarContabilidade: BlogPost = {
     totalParts: 3,
   },
   coverImage: {
-    src: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1200&h=630&fit=crop&q=80',
-    alt: 'Estudante a estudar contabilidade com calculadora e cadernos',
+    src: '/blog/covers/estudante.svg',
+    alt: 'Estudar contabilidade em Portugal',
     width: 1200,
     height: 630,
   },

@@ -33,8 +33,6 @@ function useBlogAnalytics() {
 function useBlogResourceHints() {
   useEffect(() => {
     const links = [
-      { rel: 'preconnect', href: 'https://images.unsplash.com' },
-      { rel: 'dns-prefetch', href: 'https://images.unsplash.com' },
       { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
       { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
       { rel: 'preconnect', href: 'https://www.googletagmanager.com' },

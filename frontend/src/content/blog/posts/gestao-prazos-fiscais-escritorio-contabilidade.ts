@@ -19,8 +19,8 @@ export const postGestaoPrazosEscritorio: BlogPost = {
     'Calendário por cliente, alertas, responsáveis, checklist do dia 15 e do dia 19 — como escritórios organizados cumprem SS, IVA e IRS sem depender da memória de uma pessoa.',
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-20',
-  author: 'Liliana Nunes',
-  authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
+  author: 'Jaelson Santos',
+  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
   category: 'Escritórios',
   audience: ['escritorio'],
   tags: [
@@ -41,8 +41,8 @@ export const postGestaoPrazosEscritorio: BlogPost = {
     totalParts: 5,
   },
   coverImage: {
-    src: '/blog/covers/escritorio.svg',
-    alt: 'Gestão de prazos no escritório de contabilidade',
+    src: '/blog/covers/escritorio-prazos.svg',
+    alt: 'Gestão de prazos fiscais no escritório',
     width: 1200,
     height: 630,
   },
