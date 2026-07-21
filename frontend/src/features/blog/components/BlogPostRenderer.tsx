@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
-import type { ReactElement } from 'react'
 
 import { BlogResponsiveImage } from '@/features/blog/components/BlogResponsiveImage'
 import { BlogInternalLinks } from '@/features/blog/components/BlogInternalLinks'
 import { BlogTeglionCta } from '@/features/blog/components/BlogTeglionCta'
+import { linkifyBlogText } from '@/features/blog/linkifyBlogText'
 import { blogPostUrl } from '@/content/blog/blog-paths'
 import type { BlogBlock, BlogPost } from '@/content/blog/types'
 
@@ -26,7 +26,7 @@ export function BlogPostRenderer({ blocks, post }: Props) {
   return (
     <div className="blog-article">
       {blocks.map((block, i) => (
-        <div key={`b-${i}`}>{renderBlock(block, i)}</div>
+        <div key={`b-${i}`}>{renderBlock(block)}</div>
       ))}
       <p className="mt-8 text-sm blog-text-body">
         Publicado em {formatDate(post.publishedAt)} · Actualizado em {formatDate(post.updatedAt)} ·{' '}
@@ -44,45 +44,33 @@ function formatDate(iso: string) {
   }
 }
 
-function renderBlock(block: BlogBlock, key: number) {
+function renderBlock(block: BlogBlock) {
   switch (block.type) {
     case 'p':
-      return (
-        <p key={key}>
-          {renderInlineLinks(block.text)}
-        </p>
-      )
+      return <p>{linkifyBlogText(block.text)}</p>
     case 'h2':
-      return (
-        <h2 key={key} id={block.id || slugifyHeading(block.text)}>
-          {block.text}
-        </h2>
-      )
+      return <h2 id={block.id || slugifyHeading(block.text)}>{block.text}</h2>
     case 'h3':
-      return (
-        <h3 key={key} id={block.id || slugifyHeading(block.text)}>
-          {block.text}
-        </h3>
-      )
+      return <h3 id={block.id || slugifyHeading(block.text)}>{block.text}</h3>
     case 'ul':
       return (
-        <ul key={key}>
+        <ul>
           {block.items.map((item) => (
-            <li key={item.slice(0, 40)}>{item}</li>
+            <li key={item.slice(0, 40)}>{linkifyBlogText(item)}</li>
           ))}
         </ul>
       )
     case 'ol':
       return (
-        <ol key={key}>
+        <ol>
           {block.items.map((item) => (
-            <li key={item.slice(0, 40)}>{item}</li>
+            <li key={item.slice(0, 40)}>{linkifyBlogText(item)}</li>
           ))}
         </ol>
       )
     case 'image':
       return (
-        <figure key={key} className="blog-figure">
+        <figure className="blog-figure">
           <BlogResponsiveImage
             src={block.src}
             alt={block.alt}
@@ -90,41 +78,69 @@ function renderBlock(block: BlogBlock, key: number) {
             height={block.height ?? 540}
             className="w-full rounded-xl object-cover"
           />
-          {block.caption ? <figcaption>{block.caption}</figcaption> : null}
+          {block.caption ? <figcaption>{linkifyBlogText(block.caption)}</figcaption> : null}
         </figure>
       )
     case 'callout':
       return (
         <aside
-          key={key}
           className={`blog-callout blog-callout--${block.variant}`}
           role="note"
           aria-label={block.title || 'Nota'}
         >
           {block.title ? <p className="mb-1 font-semibold blog-text-navy">{block.title}</p> : null}
-          <p className="mb-0 text-sm leading-relaxed">{renderInlineLinks(block.text)}</p>
+          <p className="mb-0 text-sm leading-relaxed">{linkifyBlogText(block.text)}</p>
         </aside>
       )
     case 'link':
-      return (
-        <p key={key}>
-          <Link
-            to={blogPostUrl(block.slug)}
-            className="font-medium blog-text-navy underline underline-offset-4 hover:blog-text-gold"
-          >
-            → {block.label}
-          </Link>
-        </p>
-      )
+      if (block.href) {
+        if (/^https?:\/\//i.test(block.href)) {
+          return (
+            <p>
+              <a
+                href={block.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium blog-text-navy underline underline-offset-4 hover:blog-text-gold"
+              >
+                → {block.label}
+              </a>
+            </p>
+          )
+        }
+        return (
+          <p>
+            <Link
+              to={block.href}
+              className="font-medium blog-text-navy underline underline-offset-4 hover:blog-text-gold"
+            >
+              → {block.label}
+            </Link>
+          </p>
+        )
+      }
+      if (block.slug) {
+        return (
+          <p>
+            <Link
+              to={blogPostUrl(block.slug)}
+              className="font-medium blog-text-navy underline underline-offset-4 hover:blog-text-gold"
+            >
+              → {block.label}
+            </Link>
+          </p>
+        )
+      }
+      return null
     case 'faq':
       return (
-        <section key={key} id={block.id || 'faq'} className="blog-faq" aria-label={block.heading || 'Perguntas frequentes'}>
+        <section id={block.id || 'faq'} className="blog-faq" aria-label={block.heading || 'Perguntas frequentes'}>
           {block.heading ? <h2 className="sr-only">{block.heading}</h2> : null}
           <dl className="space-y-4">
             {block.items.map((item) => (
               <div key={item.question.slice(0, 48)} className="rounded-xl border blog-border-subtle blog-bg-surface p-4">
                 <dt className="font-semibold blog-text-navy">{item.question}</dt>
-                <dd className="mt-2 text-sm leading-relaxed blog-text-body">{item.answer}</dd>
+                <dd className="mt-2 text-sm leading-relaxed blog-text-body">{linkifyBlogText(item.answer)}</dd>
               </div>
             ))}
           </dl>
@@ -145,7 +161,7 @@ function renderBlock(block: BlogBlock, key: number) {
           ) : null}
           <p className="text-xs font-semibold uppercase tracking-wide blog-text-gold">Sugestão</p>
           <p className="mt-1 text-lg font-semibold blog-text-navy">{block.title}</p>
-          <p className="mt-2 text-sm blog-text-body">{block.description}</p>
+          <p className="mt-2 text-sm blog-text-body">{linkifyBlogText(block.description)}</p>
           <span className="mt-3 inline-block text-sm font-medium blog-text-navy">
             {block.ctaLabel ?? 'Saber mais'} →
           </span>
@@ -161,37 +177,37 @@ function renderBlock(block: BlogBlock, key: number) {
         </a>
       )
       return (
-        <div key={key} className="blog-affiliate-wrap">
-          {block.leadIn ? <p className="blog-affiliate-lead">{block.leadIn}</p> : null}
+        <div className="blog-affiliate-wrap">
+          {block.leadIn ? <p className="blog-affiliate-lead">{linkifyBlogText(block.leadIn)}</p> : null}
           {card}
         </div>
       )
     }
     case 'internalLinks':
-      return <BlogInternalLinks key={key} block={block} />
+      return <BlogInternalLinks block={block} />
     case 'teglionCta':
-      return <BlogTeglionCta key={key} block={block} />
+      return <BlogTeglionCta block={block} />
     case 'quote':
       return (
-        <blockquote key={key} className="blog-quote">
-          <p>{block.text}</p>
+        <blockquote className="blog-quote">
+          <p>{linkifyBlogText(block.text)}</p>
           {block.attribution ? <footer>— {block.attribution}</footer> : null}
         </blockquote>
       )
     case 'keyTakeaways':
       return (
-        <aside key={key} className="blog-key-takeaways" aria-label={block.title || 'Resumo'}>
+        <aside className="blog-key-takeaways" aria-label={block.title || 'Resumo'}>
           <p className="blog-key-takeaways__title">{block.title || 'O essencial'}</p>
           <ul>
             {block.items.map((item) => (
-              <li key={item.slice(0, 48)}>{item}</li>
+              <li key={item.slice(0, 48)}>{linkifyBlogText(item)}</li>
             ))}
           </ul>
         </aside>
       )
     case 'table':
       return (
-        <figure key={key} className="blog-table-wrap">
+        <figure className="blog-table-wrap">
           <div className="blog-table-scroll">
             <table className="blog-table">
               <thead>
@@ -205,62 +221,19 @@ function renderBlock(block: BlogBlock, key: number) {
                 {block.rows.map((row, ri) => (
                   <tr key={ri}>
                     {row.map((cell, ci) => (
-                      <td key={ci}>{cell}</td>
+                      <td key={ci}>{linkifyBlogText(cell)}</td>
                     ))}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          {block.caption ? <figcaption>{block.caption}</figcaption> : null}
+          {block.caption ? <figcaption>{linkifyBlogText(block.caption)}</figcaption> : null}
         </figure>
       )
     case 'divider':
-      return <hr key={key} className="blog-divider" aria-hidden />
+      return <hr className="blog-divider" aria-hidden />
     default:
       return null
   }
-}
-
-function renderInlineLinks(text: string) {
-  const linkPattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g
-  const output: Array<string | ReactElement> = []
-  let lastIndex = 0
-  let match = linkPattern.exec(text)
-
-  while (match) {
-    const full = match[0]
-    const label = match[1]
-    const href = match[2]
-    const start = match.index
-
-    if (start > lastIndex) {
-      output.push(text.slice(lastIndex, start))
-    }
-
-    output.push(
-      <a
-        key={`${keyForAnchor(href, start)}`}
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer sponsored"
-        className="font-medium blog-text-navy underline underline-offset-4 hover:blog-text-gold"
-      >
-        {label || full}
-      </a>,
-    )
-
-    lastIndex = start + full.length
-    match = linkPattern.exec(text)
-  }
-
-  if (lastIndex < text.length) {
-    output.push(text.slice(lastIndex))
-  }
-
-  return output.length ? output : text
-}
-
-function keyForAnchor(href: string, index: number) {
-  return `${href}-${index}`
 }

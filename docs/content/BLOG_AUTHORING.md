@@ -104,14 +104,31 @@ Ver `frontend/src/content/blog/types.ts`:
 
 | Tipo | Uso |
 |------|-----|
-| `p`, `h2`, `h3`, `ul`, `ol` | Texto |
-| `image` | Unsplash ou `/blog/images/...` em `public/` |
+| `p`, `h2`, `h3`, `ul`, `ol` | Texto (domínios oficiais e URLs tornam-se clicáveis automaticamente) |
+| `image` | Capas em `/blog/covers/...` ou `/blog/images/...` |
 | `callout` | Avisos (`legal`, `tip`, `warning`, `info`) |
-| `link` | Ligação interna (`slug`) |
-| `affiliate` | Caixa de produto afiliado |
-| `table` | Tabelas comparativas |
+| `link` | Ligação interna (`slug`) **ou** externa (`href`) |
+| `affiliate` | Caixa de produto afiliado (Amazon / Hotmart) |
+| `table` | Tabelas comparativas (células também linkificam) |
 | `faq` | Perguntas frequentes (schema FAQPage) |
 | `teglionCta` | CTA para teste grátis escritório |
+
+### Links no texto (recomendado)
+
+No parágrafo, lista, FAQ ou tabela pode usar:
+
+```ts
+'Confirme em portaldasfinancas.gov.pt antes de submeter.' // auto-link
+'Veja o [guia do IRS](slug:declaracao-irs-guia-pratico).' // artigo interno
+'Leia o [Portal das Finanças](https://www.portaldasfinancas.gov.pt/).' // externo com rótulo
+```
+
+Ou bloco dedicado:
+
+```ts
+{ type: 'link', label: 'Abrir Portal das Finanças', href: 'https://www.portaldasfinancas.gov.pt/' }
+{ type: 'link', label: 'Guia do independente', slug: 'guia-completo-trabalhador-independente-portugal-2026' }
+```
 
 Helpers em `shared.ts`: `affiliateBlock`, `affiliateSection`, `articleSection`, `keyTakeaways`, `legalCallout`, etc.
 

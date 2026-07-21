@@ -74,6 +74,8 @@ export const postSegurancaSocial: BlogPost = {
         ['Documento chave', 'Recibos / facturas', 'NISS, comprovativos pagamento'],
       ],
     }),
+    { type: 'link', label: 'Abrir portal da Segurança Social (oficial)', href: 'https://www.seg-social.pt/' },
+    { type: 'link', label: 'Abrir Portal das Finanças (oficial)', href: 'https://www.portaldasfinancas.gov.pt/' },
     ...articleSection({
       h2: 'Contribuições mensais e base contributiva',
       id: 'contribuicoes',

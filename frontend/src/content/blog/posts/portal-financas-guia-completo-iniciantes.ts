@@ -87,6 +87,7 @@ export const postPortalFinancas: BlogPost = {
       type: 'p',
       text: 'Em «Faturas e recibos» emite documentos de venda, consulta histórico e exporta PDFs. Cada recibo fica associado ao NIF do cliente e alimenta o cruzamento de dados no IRS.',
     },
+    { type: 'link', label: 'Abrir o Portal das Finanças (site oficial)', href: 'https://www.portaldasfinancas.gov.pt/' },
     { type: 'link', label: 'Passo a passo para emitir recibo verde', slug: 'como-emitir-recibo-verde-passo-a-passo' },
     {
       type: 'h3',

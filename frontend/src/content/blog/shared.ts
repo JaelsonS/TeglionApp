@@ -162,6 +162,10 @@ export function legalCallout(extra?: string) {
 }
 
 /** Secção FAQ — alimenta schema FAQPage no SEO. */
+export function externalResourceLink(label: string, href: string): BlogBlock {
+  return { type: 'link', label, href }
+}
+
 export function faqSection(input: {
   heading?: string
   headingId?: string

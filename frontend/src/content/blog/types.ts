@@ -6,7 +6,7 @@ export type BlogBlock =
   | { type: 'ol'; items: string[] }
   | { type: 'image'; src: string; alt: string; caption?: string; width?: number; height?: number }
   | { type: 'callout'; variant: 'tip' | 'info' | 'warning' | 'legal'; title?: string; text: string }
-  | { type: 'link'; label: string; slug: string }
+  | { type: 'link'; label: string; slug?: string; href?: string }
   | {
       type: 'faq'
       id?: string
