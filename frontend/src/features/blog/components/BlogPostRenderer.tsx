@@ -94,7 +94,17 @@ function renderBlock(block: BlogBlock) {
       )
     case 'link':
       if (block.href) {
-        if (/^https?:\/\//i.test(block.href)) {
+        const isHttp = /^https?:\/\//i.test(block.href)
+        const isTeglion =
+          isHttp &&
+          (() => {
+            try {
+              return /(^|\.)teglion\.com$/i.test(new URL(block.href).hostname)
+            } catch {
+              return false
+            }
+          })()
+        if (isHttp && !isTeglion) {
           return (
             <p>
               <a
@@ -108,10 +118,20 @@ function renderBlock(block: BlogBlock) {
             </p>
           )
         }
+        const to = isTeglion
+          ? (() => {
+              try {
+                const u = new URL(block.href)
+                return `${u.pathname}${u.search}${u.hash}` || '/'
+              } catch {
+                return block.href
+              }
+            })()
+          : block.href
         return (
           <p>
             <Link
-              to={block.href}
+              to={to}
               className="font-medium blog-text-navy underline underline-offset-4 hover:blog-text-gold"
             >
               → {block.label}

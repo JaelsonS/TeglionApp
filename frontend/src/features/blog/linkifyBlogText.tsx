@@ -17,8 +17,7 @@ export const BLOG_KNOWN_DOMAINS: Record<string, { href: string; label?: string }
   'www.eportugal.gov.pt': { href: 'https://eportugal.gov.pt/' },
   'occ.pt': { href: 'https://www.occ.pt/' },
   'www.occ.pt': { href: 'https://www.occ.pt/' },
-  'teglion.com': { href: 'https://www.teglion.com/' },
-  'www.teglion.com': { href: 'https://www.teglion.com/' },
+  // teglion.com NÃO entra aqui: fica na mesma aba (não é “externo”)
 }
 
 const MARKDOWN_LINK =
