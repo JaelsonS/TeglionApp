@@ -14,13 +14,13 @@ import {
 
 export const postEstudarContabilidade: BlogPost = {
   slug: 'estudar-contabilidade-portugal-guia-estudantes',
-  title: 'Como estudar contabilidade em Portugal: guia para estudantes.',
+  title: 'Como estudar contabilidade em Portugal: guia para estudantes',
   excerpt:
     'Calculadora certa, livros, método de estudo, estágios OCC e primeiros passos na profissão — do 1.º ano à licenciatura, com recursos práticos para quem quer perceber números sem dormir no livro.',
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Estudantes',
   audience: ['estudante'],
   tags: [
@@ -71,7 +71,7 @@ export const postEstudarContabilidade: BlogPost = {
       'Calculadora científica com memórias (ex.: Casio fx-991) é investimento que dura toda a licenciatura.',
       'Organize pastas por disciplina (Fiscal, Societária, Analítica) — no estágio, o hábito paga dividendos.',
       'Estágio profissional OCC é porta de entrada — trate o escritório como escola, não só como CV.',
-      'Quem quer conhecer a área de contabilidade sem formação formal podem aprender conceitos base com livros acessíveis antes de decidir estudar.',
+      'Quem quer conhecer a área de contabilidade sem formação formal pode aprender conceitos base com livros acessíveis antes de decidir estudar.',
     ]),
     ...proseParagraphs(
       'Se está no 1.º ano de Contabilidade, a preparar o CET, ou simplesmente curioso sobre «como é que isto funciona na vida real», este guia junta o que os manuais raramente dizem: que material comprar, como estudar sem burnout, e o que esperar quando chegar a um escritório.',

@@ -14,13 +14,13 @@ import {
 
 export const postContabilidadeLeigos: BlogPost = {
   slug: 'contabilidade-explicada-leigos-portugal',
-  title: 'Contabilidade explicada para quem quer conhecer a área de contabilidade: o que é e por que importa',
+  title: 'Contabilidade explicada em português: IRS, IVA e recibos verdes sem juridiquês',
   excerpt:
-    'Balanço, IRS, IVA, recibos verdes e contador — conceitos fiscais em linguagem normal, para empreendedores, estudantes e pessoas que queiram perceber o sistema sem licenciatura.',
+    'Balanço, IRS, IVA, recibos verdes e contabilista — conceitos fiscais em linguagem clara, para empreendedores, estudantes e quem quer perceber o sistema sem licenciatura.',
   publishedAt: '2026-06-18',
   updatedAt: '2026-06-18',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Guias completos',
   audience: ['independente', 'pme'],
   tags: [
@@ -40,7 +40,7 @@ export const postContabilidadeLeigos: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Contabilidade explicada para leigos Portugal | Blog TegLion',
+    title: 'Contabilidade explicada em português — sem juridiquês',
     description:
       'Balanço, IRS, IVA e recibos verdes em linguagem clara — para empreendedores e quem quer perceber contabilidade em Portugal sem juridiquês.',
     keywords: [
@@ -63,12 +63,12 @@ export const postContabilidadeLeigos: BlogPost = {
       'Contabilidade é registar o que a empresa ganha, gasta e deve — para decidir e para cumprir a lei.',
       'IRS é imposto sobre rendimento das pessoas; IVA é imposto sobre consumo que muitas empresas cobram e entregam ao Estado.',
       'Recibo verde = documento de quem trabalha por conta própria em Portugal (não é «cor de papel» — é regime).',
-      'Contador certificado (OCC) traduz regras complexas — não é luxo para quem tem actividade aberta.',
-      'Perceber o básico poupa dinheiro, evita multas e torna conversas com o contador muito mais produtivas.',
+      'Contabilista certificado (OCC) traduz regras complexas — não é luxo para quem tem actividade aberta.',
+      'Perceber o básico poupa dinheiro, evita multas e torna conversas com o contabilista muito mais produtivas.',
     ]),
     ...proseParagraphs(
       '«Contabilidade» assusta. Parece linguagem de outro planeta — débito, crédito, anexo B, coeficiente, sujeito passivo. Mas no fundo, é a forma como a sociedade pergunta: quanto ganhaste, quanto gastaste, quanto deves ao Estado?',
-      'Este artigo é para si se: pensa abrir um negócio, ouve o contador e faz cara de paisagem, é estudante de outra área curioso, ou quer impressionar alguém no jantar explicando a diferença entre IRS e IVA. Sem formulas pesadas — com analogias e ligações ao dia a dia em Portugal.',
+      'Este artigo é para si se: pensa abrir um negócio, ouve o contabilista e faz cara de paisagem, é estudante de outra área curioso, ou quer impressionar alguém no jantar explicando a diferença entre IRS e IVA. Sem formulas pesadas — com analogias e ligações ao dia a dia em Portugal.',
     ),
     quoteBlock(
       'Não precisa de ser contador para não ser enganado — precisa de perceber o mapa, ainda que alguém conduza o carro.',
@@ -120,7 +120,7 @@ export const postContabilidadeLeigos: BlogPost = {
       h2: 'Preciso mesmo de contador?',
       id: 'contador',
       paragraphs: [
-        'Legalmente, algumas situações simples permitem entregar IRS sozinho. Pragmaticamente, actividade aberta, IVA, despesas dedutíveis e retenções justificam um contador — o custo mensal evita multas que custam mais.',
+        'Legalmente, algumas situações simples permitem entregar IRS sozinho. Pragmaticamente, actividade aberta, IVA, despesas dedutíveis e retenções justificam um contabilista — o custo mensal evita multas que custam mais.',
         'Escolha um inscrito na OCC, com comunicação clara e, idealmente, portal para enviar documentos sem caos de email.',
       ],
       blocks: [

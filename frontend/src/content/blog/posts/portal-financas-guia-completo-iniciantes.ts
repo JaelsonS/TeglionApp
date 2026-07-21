@@ -18,7 +18,7 @@ export const postPortalFinancas: BlogPost = {
   publishedAt: '2026-06-15',
   updatedAt: '2026-07-21',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Organização',
   audience: ['independente', 'escritorio'],
   tags: ['Portal das Finanças', 'e-Fatura', 'AT', 'recibos verdes', 'Chave Móvel Digital'],
@@ -51,16 +51,16 @@ export const postPortalFinancas: BlogPost = {
   blocks: [
     legalCallout(),
     keyTakeaways([
-      'portaldasfinancas.gov.pt concentra actividade, recibos, IRS, IVA e notificações da AT.',
-      'Chave Móvel Digital (CMD) é o método de acesso mais prático no dia a dia.',
-      'Nunca partilhe a senha das Finanças — nem com o contador (use procuração ou envio de documentos).',
-      'Notificações electrónicas no portal têm prazos legais — consulte regularmente.',
-      'e-Fatura é onde emite recibos verdes e consulta histórico para o IRS.',
+      'portaldasfinancas.gov.pt junta actividade, recibos, IRS, IVA e notificações da AT.',
+      'A Chave Móvel Digital (CMD) é, no dia a dia, o acesso mais prático.',
+      'Nunca partilhe a senha das Finanças — nem com o contabilista (use procuração ou envio de documentos).',
+      'As notificações electrónicas no portal têm prazos legais: consulte com regularidade.',
+      'No e-Fatura emite recibos verdes e consulta o histórico útil para o IRS.',
     ]),
     ...proseParagraphs(
-      'Abriu o portaldasfinancas.gov.pt pela primeira vez, a senha falhou duas vezes, e o cliente (ou o contador) espera o recibo «ainda hoje». Esse momento de pânico é exactamente o que este guia evita: saber onde clicar, o que nunca partilhar, e o que marcar na agenda.',
-      'O Portal das Finanças é a porta de entrada para quase tudo o que um trabalhador independente faz com a Autoridade Tributária: abrir actividade, emitir recibos, entregar declarações e consultar dívidas. Não é «só para o IRS» — é o sítio onde a AT junta a história fiscal.',
-      'Este guia percorre as áreas mais usadas — sem substituir o manual oficial da AT. Para emitir o primeiro recibo passo a passo, veja o artigo dedicado no blog.',
+      'Abriu o Portal das Finanças, a senha falhou duas vezes, e o cliente (ou o contabilista) espera o recibo «ainda hoje». Este guia mostra onde entrar, o que nunca partilhar e o que marcar na agenda — sem substituir o manual oficial da AT.',
+      'Para um trabalhador independente, o portal não é «só o IRS»: é onde abre actividade, emite recibos, entrega declarações e consulta dívidas. A AT junta aí a sua história fiscal.',
+      'Para emitir o primeiro recibo passo a passo, use o artigo dedicado no blog; aqui fica o mapa das áreas que mais usa.',
     ),
     { type: 'h2', id: 'acesso', text: 'Como entrar no portal' },
     {
@@ -75,7 +75,7 @@ export const postPortalFinancas: BlogPost = {
       type: 'callout',
       variant: 'tip',
       title: 'Guarde credenciais em local seguro',
-      text: 'Use um gestor de palavras-passe. Nunca partilhe a senha das Finanças por email ou WhatsApp — nem com o contador (ele deve pedir procuração ou documentos, não a sua senha).',
+      text: 'Use um gestor de palavras-passe. Nunca partilhe a senha das Finanças por email ou WhatsApp — nem com o contabilista (ele deve pedir procuração ou documentos, não a sua senha).',
     },
     { type: 'h2', id: 'areas', text: 'Áreas que vai usar com frequência' },
     {
@@ -212,7 +212,7 @@ export const postPortalFinancas: BlogPost = {
         {
           key: 'amazonM365Pessoal',
           leadIn:
-            'Exportar o PDF do recibo e deixá-lo só no Ambiente de Trabalho é o erro clássico. Office com OneDrive permite uma pasta «Fiscal» com sincronização — o mesmo sítio onde o contador depois pede o histórico.',
+            'Exportar o PDF do recibo e deixá-lo só no Ambiente de Trabalho é o erro clássico. Office com OneDrive permite uma pasta «Fiscal» com sincronização — o mesmo sítio onde o contabilista depois pede o histórico.',
           title: 'Microsoft 365 Pessoal (Amazon)',
           description: 'Excel, Word e 1 TB na nuvem para o arquivo anual.',
         },

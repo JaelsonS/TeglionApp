@@ -18,7 +18,7 @@ export const postEscolherSoftware: BlogPost = {
   publishedAt: '2026-05-24',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Facturação',
   audience: ['independente', 'pme'],
   featured: false,
@@ -81,7 +81,7 @@ export const postEscolherSoftware: BlogPost = {
       h2: 'Quando ainda NÃO precisa de software pago',
       id: 'quando-nao',
       paragraphs: [
-        'Se está isento de IVA, presta serviços a particulares ou pequenos volumes B2B, e o contador aceita recibos verdes do portal — pode adiar a subscrição.',
+        'Se está isento de IVA, presta serviços a particulares ou pequenos volumes B2B, e o contabilista aceita recibos verdes do portal — pode adiar a subscrição.',
         'Sinais de que já precisa: cliente recusa recibo sem IVA, ultrapassou limite de isenção, contador exige SAF-T mensal, ou facturação >50 documentos/mês com risco de erros manuais.',
       ],
     }),
@@ -133,18 +133,18 @@ export const postEscolherSoftware: BlogPost = {
       ],
     }),
     ...articleSection({
-      h2: 'O que pedir ao contador antes de pagar',
+      h2: 'O que pedir ao contabilista antes de pagar',
       id: 'contador-software',
       paragraphs: [
         'Antes de subscrever 12 meses, pergunte ao contador: «Qual software já conhece?», «Precisa de SAF-T mensal ou trimestral?», «Há custo extra se eu exportar mal os mapas?». Muitos escritórios têm parceria ou preferência — alinhar reduz fricção.',
-        'Se o contador pede acesso de leitura ao software, confirme se o plano base inclui utilizador «contabilista» ou se é add-on pago.',
+        'Se o contabilista pede acesso de leitura ao software, confirme se o plano base inclui utilizador «contabilista» ou se é add-on pago.',
       ],
     }),
     ...affiliateSection({
       heading: 'Antes de assinar um plano anual',
       headingId: 'antes-software',
       intro:
-        'Software certificado faz sentido quando o volume e o IVA o exigem. Antes disso, a maioria dos independentes precisa de solidificar a emissão no e-Fatura e de falar a mesma língua que o contador quando surge SAF-T, mapas e exportações.',
+        'Software certificado faz sentido quando o volume e o IVA o exigem. Antes disso, a maioria dos independentes precisa de solidificar a emissão no e-Fatura e de falar a mesma língua que o contabilista quando surge SAF-T, mapas e exportações.',
       items: [
         {
           key: 'hotmartReciboVerde7Dias',
@@ -156,7 +156,7 @@ export const postEscolherSoftware: BlogPost = {
         {
           key: 'amazonLivroGestaoContabil',
           leadIn:
-            'Na demonstração do software, o fornecedor fala em homologação AT e o contador em SAF-T. Um livro de gestão contabilística para não especialistas dá o vocabulário mínimo para comparar planos sem se perder no jargão.',
+            'Na demonstração do software, o fornecedor fala em homologação AT e o contabilista em SAF-T. Um livro de gestão contabilística para não especialistas dá o vocabulário mínimo para comparar planos sem se perder no jargão.',
           title: 'Gestão Contábil — Para Contadores e Não Contadores (Amazon)',
           description: 'fundamentos em português para decidir com critério, não por marketing.',
         },

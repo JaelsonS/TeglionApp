@@ -18,7 +18,7 @@ export const postQuantoCustaAbrir: BlogPost = {
   publishedAt: '2026-05-26',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Actividade',
   audience: ['independente', 'pme'],
   featured: false,
@@ -53,14 +53,14 @@ export const postQuantoCustaAbrir: BlogPost = {
     ]),
     ...proseParagraphs(
       '«Quanto vou gastar para trabalhar legalmente?» É uma das primeiras perguntas — e a resposta depende do regime, do volume de facturação, se contrata contador desde o início e se fica isento ou sujeito a IVA.',
-      'Este artigo organiza custos em categorias com faixas realistas para Portugal em 2026. Não substitui orçamento personalizado — use-o para planear o primeiro trimestre e negociar honorários com o contador com números na mão.',
+      'Este artigo organiza custos em categorias com faixas realistas para Portugal em 2026. Não substitui orçamento personalizado — use-o para planear o primeiro trimestre e negociar honorários com o contabilista com números na mão.',
     ),
     ...articleSection({
       h2: 'Início de actividade: o que é gratuito',
       id: 'inicio',
       paragraphs: [
         'O registo de início de actividade no Portal das Finanças não implica taxa elevada de abertura. Também não precisa de advogado só para «abrir recibos verdes» — precisa de escolher bem o CAE, o regime de IVA e o regime de contabilidade, porque mudar depois custa tempo e dinheiro.',
-        'Custos que surgem logo a seguir: primeira contribuição à Segurança Social, eventual software, primeira consulta com contador e equipamento mínimo (computador, arquivo, seguro se a actividade exigir).',
+        'Custos que surgem logo a seguir: primeira contribuição à Segurança Social, eventual software, primeira consulta com contabilista e equipamento mínimo (computador, arquivo, seguro se a actividade exigir).',
       ],
     }),
     sectionDivider(),
@@ -90,7 +90,7 @@ export const postQuantoCustaAbrir: BlogPost = {
       h2: 'Contador: quando compensa desde o dia 1',
       id: 'contador',
       paragraphs: [
-        'Legalmente pode abrir sozinho; pragmaticamente, um contador evita CAE errado, regime de IVA inadequado e erros no primeiro IRS. O custo mensal é frequentemente recuperado em deduções e multas evitadas.',
+        'Legalmente pode abrir sozinho; pragmaticamente, um contabilista evita CAE errado, regime de IVA inadequado e erros no primeiro IRS. O custo mensal é frequentemente recuperado em deduções e multas evitadas.',
         'Peça proposta por escrito: o que inclui (IVA, SS, IRS, número de recibos/mês). Compare 2–3 escritórios antes de decidir.',
       ],
     }),
@@ -124,7 +124,7 @@ export const postQuantoCustaAbrir: BlogPost = {
       id: 'disparar',
       paragraphs: [
         'O orçamento do primeiro trimestre raramente iguala o do segundo ano. Passar de isento a sujeito passivo de IVA acrescenta software certificado, tempo de contador e possivelmente contabilidade organizada. Contratar o primeiro colaborador multiplica obrigações de Segurança Social e processamento salarial.',
-        'Antecipe estes gatilhos: quando a facturação se aproxima de 70 % do limite de isenção de IVA, simule com o contador o custo mensal extra. Se planeia crescer de freelancer solo para equipa, reserve 150–300 €/mês adicionais só em contabilidade.',
+        'Antecipe estes gatilhos: quando a facturação se aproxima de 70 % do limite de isenção de IVA, simule com o contabilista o custo mensal extra. Se planeia crescer de freelancer solo para equipa, reserve 150–300 €/mês adicionais só em contabilidade.',
       ],
     }),
     comparisonTable({
@@ -169,6 +169,6 @@ export const postQuantoCustaAbrir: BlogPost = {
         'guia-completo-trabalhador-independente-portugal-2026',
       ],
     }),
-    legalCallout('Valores exactos dependem do seu enquadramento — peça simulação a um contador certificado.'),
+    legalCallout('Valores exactos dependem do seu enquadramento — peça simulação a um contabilista certificado.'),
   ],
 }

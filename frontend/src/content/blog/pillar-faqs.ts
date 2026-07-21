@@ -15,7 +15,7 @@ export const PILLAR_FAQ_BLOCKS: Record<string, BlogBlock[]> = {
       {
         question: 'Posso entregar IRS sozinho no Portal das Finanças?',
         answer:
-          'Sim. Com NIF e senha (ou Chave Móvel Digital) pode preencher o Modelo 3 online. Se tiver rendimentos de várias fontes, imóveis ou actividade aberta, um contador reduz erros e optimiza deduções legais.',
+          'Sim. Com NIF e senha (ou Chave Móvel Digital) pode preencher o Modelo 3 online. Se tiver rendimentos de várias fontes, imóveis ou actividade aberta, um contabilista reduz erros e optimiza deduções legais.',
       },
       {
         question: 'O que acontece se entregar IRS fora do prazo?',
@@ -185,7 +185,7 @@ export const PILLAR_FAQ_BLOCKS: Record<string, BlogBlock[]> = {
       {
         question: 'O contador entrega por mim?',
         answer:
-          'Pode autorizar o contador via procuração ou entregar dados para ele submeter. A responsabilidade fiscal final continua a ser sua — confira antes de assinar.',
+          'Pode autorizar o contabilista via procuração ou entregar dados para ele submeter. A responsabilidade fiscal final continua a ser sua — confira antes de assinar.',
       },
     ],
   }),
@@ -211,12 +211,12 @@ export const PILLAR_FAQ_BLOCKS: Record<string, BlogBlock[]> = {
       {
         question: 'O que é o SAF-T?',
         answer:
-          'Ficheiro normalizado de facturação (Standard Audit File for Tax) que o contador usa para importar movimentos. Muitos softwares certificados exportam SAF-T PT.',
+          'Ficheiro normalizado de facturação (Standard Audit File for Tax) que o contabilista usa para importar movimentos. Muitos softwares certificados exportam SAF-T PT.',
       },
       {
         question: 'Posso mudar de software no meio do ano?',
         answer:
-          'Sim, com planeamento: exporte histórico, defina data de corte com o contador e configure séries no novo programa. Guarde backups do período anterior.',
+          'Sim, com planeamento: exporte histórico, defina data de corte com o contabilista e configure séries no novo programa. Guarde backups do período anterior.',
       },
     ],
   }),
@@ -268,7 +268,7 @@ export const PILLAR_FAQ_BLOCKS: Record<string, BlogBlock[]> = {
       {
         question: 'Posso estar empregado e pagar SS como independente?',
         answer:
-          'Sim, com regras de cumulação. Cada vínculo tem contributiva própria — o contador ou a SS esclarecem tetos e deduções aplicáveis.',
+          'Sim, com regras de cumulação. Cada vínculo tem contributiva própria — o contabilista ou a SS esclarecem tetos e deduções aplicáveis.',
       },
       {
         question: 'Cessei actividade nas Finanças. E a SS?',

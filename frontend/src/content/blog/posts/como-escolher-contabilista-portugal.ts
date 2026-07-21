@@ -19,7 +19,7 @@ export const postEscolherContabilista: BlogPost = {
   publishedAt: '2026-06-10',
   updatedAt: '2026-07-21',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Contabilidade',
   audience: ['independente', 'pme'],
   tags: ['contabilista', 'OCC', 'contabilidade', 'freelancer', 'escritório'],
@@ -67,7 +67,7 @@ export const postEscolherContabilista: BlogPost = {
       'Revisão trimestral evita surpresas no IRS anual.',
     ]),
     ...proseParagraphs(
-      'Ligou a três escritórios: um responde «mande WhatsApp», outro pede a senha das Finanças «para agilizar», e o terceiro envia proposta com 65 €/mês, portal do cliente e revisão trimestral. A diferença não é só preço — é risco. Este guia ajuda a escolher contabilista em Portugal (ou mudar) com critérios de balcão, para freelancers e PME.',
+      'Ligou a três escritórios: um responde «mande WhatsApp», outro pede a senha das Finanças «para agilizar», e o terceiro envia proposta com 65 €/mês, portal do cliente e revisão trimestral. A diferença não é só preço — é risco. Este guia ajuda a escolher contabilista em Portugal (ou mudar) com critérios práticos, para freelancers e PME.',
       'Um bom contabilista certificado OCC não é só quem «entrega o IRS». É quem explica obrigações antes do prazo, responde em tempo útil e usa ferramentas que não o obrigam a pedir documentos por mensagens soltas.',
       'Para perceber regimes de contabilidade antes da conversa, leia também o artigo sobre regime simplificado vs organizado — e o guia completo do trabalhador independente se ainda está a abrir actividade. Se gere um escritório, cruze com digitalizar o escritório e software para contabilidade.',
     ),
@@ -183,7 +183,7 @@ export const postEscolherContabilista: BlogPost = {
       h2: 'Como mudar de contabilista',
       id: 'mudar',
       paragraphs: [
-        'Pode mudar a qualquer momento. Peça exportação de documentos e mapas; comunique à AT se havia procuração ao contador anterior.',
+        'Pode mudar a qualquer momento. Peça exportação de documentos e mapas; comunique à AT se havia procuração ao contabilista anterior.',
         'O novo escritório precisa de histórico de recibos e declarações — organize arquivo antes da transição para não pagar horas de reconstrução a 30–50 €/hora.',
       ],
       blocks: [
@@ -206,7 +206,7 @@ export const postEscolherContabilista: BlogPost = {
     ...affiliateSection({
       heading: 'Aprofundar conhecimento',
       headingId: 'livros',
-      intro: 'Para entender o que o contador faz (sem substituí-lo), estes recursos ajudam.',
+      intro: 'Para entender o que o contabilista faz (sem substituí-lo), estes recursos ajudam.',
       items: [
         {
           key: 'amazonLivroGestaoContabil',

@@ -18,7 +18,7 @@ export const postFreelancerEstrangeiro: BlogPost = {
   publishedAt: '2026-05-22',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Actividade',
   audience: ['independente', 'pme'],
   featured: false,
@@ -101,7 +101,7 @@ export const postFreelancerEstrangeiro: BlogPost = {
       h2: 'Regimes especiais (visão geral)',
       id: 'regimes',
       paragraphs: [
-        'Portugal teve regimes como o NHR (Residente Não Habitual), com regras que evoluíram. Verifique enquadramento actual com contador — não assuma benefícios fiscais por ter visto de nómada digital ou D7.',
+        'Portugal teve regimes como o NHR (Residente Não Habitual), com regras que evoluíram. Verifique enquadramento actual com contabilista — não assuma benefícios fiscais por ter visto de nómada digital ou D7.',
         'O visto permite residir; a fiscalidade depende dos factos: dias em Portugal, tipo de rendimentos, país da fonte pagadora.',
       ],
     }),

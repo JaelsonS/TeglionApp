@@ -19,7 +19,7 @@ export const postCasoEniLda: BlogPost = {
   publishedAt: '2026-07-20',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Contabilidade',
   audience: ['pme', 'independente'],
   featured: false,
@@ -34,7 +34,7 @@ export const postCasoEniLda: BlogPost = {
   seo: {
     title: 'Caso PME: transição de ENI para Lda | Blog TegLion',
     description:
-      'Caso ilustrativo de passagem de freelancer ENI a sociedade Lda: facturação, custos, impostos e checklist. Conteúdo educativo — confirme com contador certificado.',
+      'Caso ilustrativo de passagem de freelancer ENI a sociedade Lda: facturação, custos, impostos e checklist. Conteúdo educativo — confirme com contabilista certificado.',
     keywords: [
       'passar de ENI a Lda',
       'caso transição sociedade',

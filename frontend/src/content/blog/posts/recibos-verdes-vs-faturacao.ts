@@ -19,7 +19,7 @@ export const postRecibos: BlogPost = {
   publishedAt: '2026-05-12',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Facturação',
   audience: ['independente', 'pme'],
   featured: false,
@@ -56,7 +56,7 @@ export const postRecibos: BlogPost = {
       'Facturação certificada exige software homologado pela AT — obrigatória quando sujeito passivo de IVA.',
       'Clientes empresas preferem facturas com IVA dedutível; particulares muitas vezes aceitam recibo verde.',
       'Em ambos os casos, todos os rendimentos devem ser declarados no IRS.',
-      'A transição de recibos para factura deve ser planeada com contador para não haver lacunas documentais.',
+      'A transição de recibos para factura deve ser planeada com contabilista para não haver lacunas documentais.',
     ]),
     ...proseParagraphs(
       '«Emito recibo verde ou factura?» É uma das primeiras perguntas de quem abre actividade. Não existe uma resposta única: depende do regime de IVA, do tipo de cliente e do volume de negócio.',
@@ -108,7 +108,7 @@ export const postRecibos: BlogPost = {
       h2: 'Como fazer a transição',
       id: 'transicao',
       paragraphs: [
-        'Mude de regime num fim de mês ou trimestre acordado com o contador — não a meio de uma série de recibos sem comunicar ao cliente.',
+        'Mude de regime num fim de mês ou trimestre acordado com o contabilista — não a meio de uma série de recibos sem comunicar ao cliente.',
         'Exporte histórico de recibos do e-Fatura antes de migrar. Configure o software certificado com NIF, morada, CAE e regime de IVA correctos.',
         'Informe clientes recorrentes sobre o novo formato de documento e se os preços passam a incluir ou acrescentar IVA.',
       ],
@@ -145,7 +145,7 @@ export const postRecibos: BlogPost = {
         {
           key: 'amazonPastaSanfona12',
           leadIn:
-            'Quando mudar de e-Fatura para software homologado, o contador vai pedir o histórico. Um bolso por mês (ou por trimestre) para PDFs e comprovativos evita caçar ficheiros no meio da migração.',
+            'Quando mudar de e-Fatura para software homologado, o contabilista vai pedir o histórico. Um bolso por mês (ou por trimestre) para PDFs e comprovativos evita caçar ficheiros no meio da migração.',
           title: 'Pasta sanfonada ThinkTex 12 bolsos (Amazon)',
           description: 'arquivo portátil A4 para acompanhar a transição sem perder meses.',
         },

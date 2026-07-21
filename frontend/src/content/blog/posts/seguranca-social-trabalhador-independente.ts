@@ -14,11 +14,11 @@ export const postSegurancaSocial: BlogPost = {
   slug: 'seguranca-social-trabalhador-independente',
   title: 'Segurança Social para trabalhadores independentes: guia completo',
   excerpt:
-    'NISS, contribuições mensais, base contributiva, primeiro ano, cessação e integração com IRS — tudo o que precisa de saber como recibos verdes.',
+    'NISS, contribuições mensais, base contributiva, primeiro ano, cessação e ligação ao IRS — o essencial para quem trabalha a recibos verdes.',
   publishedAt: '2026-05-27',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Segurança Social',
   audience: ['independente'],
   featured: false,
@@ -139,7 +139,7 @@ export const postSegurancaSocial: BlogPost = {
       id: 'calculo',
       paragraphs: [
         'Em termos gerais, a contribuição baseia-se numa percentagem aplicada à base contributiva — que, para trabalhadores independentes, reflecte os rendimentos da actividade (com regras específicas nos primeiros meses).',
-        'Não tente replicar o cálculo exacto numa folha Excel sem confirmar a fórmula vigente: a SS publica orientações e o contador valida o valor que aparece no portal. O importante é perceber que a contribuição sobe quando a facturação sobe — não é um valor fixo para sempre.',
+        'Não tente replicar o cálculo exacto numa folha Excel sem confirmar a fórmula vigente: a SS publica orientações e o contabilista valida o valor que aparece no portal. O importante é perceber que a contribuição sobe quando a facturação sobe — não é um valor fixo para sempre.',
       ],
       blocks: [
         comparisonTable({

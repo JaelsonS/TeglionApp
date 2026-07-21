@@ -8,10 +8,10 @@ export function BlogReadingPaths() {
   return (
     <section className="blog-container pb-12" aria-labelledby="reading-paths-title">
       <h2 id="reading-paths-title" className="text-xl font-semibold blog-text-navy">
-        Trilhas de leitura
+        Percursos de leitura
       </h2>
       <p className="mt-2 max-w-2xl text-sm blog-text-body">
-        Percursos ordenados — cada artigo liga ao seguinte. Ideal para quem está a começar ou quer aprofundar um tema.
+        Caminhos ordenados — cada artigo liga ao seguinte. Útil se está a começar ou quer aprofundar um tema.
       </p>
       <div className="blog-paths-grid mt-8">
         {BLOG_READING_PATHS.map((path) => (
@@ -32,7 +32,7 @@ export function BlogReadingPaths() {
               })}
             </ol>
             {path.slugs.length > 5 ? (
-              <p className="mt-2 text-xs blog-text-body">+ {path.slugs.length - 5} artigos na trilha</p>
+              <p className="mt-2 text-xs blog-text-body">+ {path.slugs.length - 5} artigos neste percurso</p>
             ) : null}
           </article>
         ))}

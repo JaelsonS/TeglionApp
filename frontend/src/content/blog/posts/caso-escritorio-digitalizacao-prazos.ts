@@ -19,7 +19,7 @@ export const postCasoDigitalizacao: BlogPost = {
   publishedAt: '2026-07-20',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Escritórios',
   audience: ['escritorio'],
   featured: false,
@@ -27,7 +27,7 @@ export const postCasoDigitalizacao: BlogPost = {
   readMinutes: 10,
   series: {
     id: 'operacoes-escritorio-teglion',
-    title: 'Operações do escritório com TegLion',
+    title: 'Operações do escritório',
     description: 'Digitalizar, prazos, SAF-T e software — trilho operacional para escritórios de contabilidade.',
     part: 5,
     totalParts: 5,
@@ -175,7 +175,7 @@ export const postCasoDigitalizacao: BlogPost = {
       h2: 'Lições para outros escritórios',
       id: 'licoes',
       paragraphs: [
-        'Digitalizar a relação com o cliente não substitui o ERP nem o TOC. Substitui o caos da última milha. Prazos precisam de dono e de data interna. O cliente colabora mais quando vê o estado do pedido — não quando recebe a quinta mensagem de voz às 22h. Se quer o roteiro completo, leia também digitalizar o escritório e a gestão de prazos fiscais.',
+        'Digitalizar a relação com o cliente não substitui o ERP nem o TOC. Substitui o caos da última etapa com o cliente. Prazos precisam de dono e de data interna. O cliente colabora mais quando vê o estado do pedido — não quando recebe a quinta mensagem de voz às 22h. Se quer o roteiro completo, leia também digitalizar o escritório e a gestão de prazos fiscais.',
         'Se está no mesmo sítio que o Escritório A estava, comece por medir o chase durante duas semanas. O número costuma ser o melhor argumento interno.',
       ],
     }),

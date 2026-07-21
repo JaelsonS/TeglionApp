@@ -18,7 +18,7 @@ export const postPrazosIrs2026: BlogPost = {
   publishedAt: '2026-05-19',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'IRS',
   audience: ['independente', 'pme'],
   featured: false,
@@ -60,7 +60,7 @@ export const postPrazosIrs2026: BlogPost = {
     ]),
     ...proseParagraphs(
       'Todos os anos, trabalhadores independentes entregam IRS entre Abril e Junho/Julho (conforme calendário oficial da Autoridade Tributária). Marcar prazos evita coimas e dá tempo para corrigir erros antes da submissão final.',
-      'Este guia organiza o que preparar, quando começar e como evitar os erros de quem deixa tudo para o último dia útil — quando o portal está sobrecarregado e o contador já não tem vagas.',
+      'Este guia organiza o que preparar, quando começar e como evitar os erros de quem deixa tudo para o último dia útil — quando o portal está sobrecarregado e o contabilista já não tem vagas.',
     ),
     {
       type: 'image',
@@ -81,7 +81,7 @@ export const postPrazosIrs2026: BlogPost = {
       headers: ['Quando', 'O que fazer'],
       rows: [
         ['Jan–Fev', 'Exportar lista de recibos emitidos no ano anterior; organizar despesas'],
-        ['Março', 'Reunião com contador ou simulação no portal; actualizar IBAN'],
+        ['Março', 'Reunião com contabilista ou simulação no portal; actualizar IBAN'],
         ['Abril (abertura)', 'Entregar se números conferidos — prioridade se espera reembolso'],
         ['Maio–Junho', 'Última janela — evitar só se ainda a recolher documentos em falta'],
         ['Após prazo', 'Entrega extemporânea com coimas; regularização o quanto antes'],
@@ -112,7 +112,7 @@ export const postPrazosIrs2026: BlogPost = {
       id: 'anexo',
       paragraphs: [
         'No regime simplificado, a tributação baseia-se em coeficientes aplicados à facturação — nem todas as despesas entram da mesma forma que na contabilidade organizada.',
-        'Na contabilidade organizada, o contador prepara mapas com despesas reais. Em ambos os casos, os rendimentos da actividade devem coincidir com os documentos emitidos e comunicados à AT.',
+        'Na contabilidade organizada, o contabilista prepara mapas com despesas reais. Em ambos os casos, os rendimentos da actividade devem coincidir com os documentos emitidos e comunicados à AT.',
       ],
     }),
     ...articleSection({

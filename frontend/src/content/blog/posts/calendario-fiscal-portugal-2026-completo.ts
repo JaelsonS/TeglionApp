@@ -20,7 +20,7 @@ export const postCalendarioFiscal2026: BlogPost = {
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-21',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Guias completos',
   audience: ['independente', 'pme'],
   tags: ['calendário fiscal', 'prazos 2026', 'obrigações', 'IVA', 'IRS', 'Segurança Social', 'PME'],
@@ -53,17 +53,16 @@ export const postCalendarioFiscal2026: BlogPost = {
   blocks: [
     legalCallout(),
     keyTakeaways([
-      'Finanças (AT) e Segurança Social têm calendários separados — cumprir IRS não dispensa contribuições SS.',
+      'Finanças (AT) e Segurança Social têm calendários separados — cumprir IRS não dispensa as contribuições SS.',
       'A maioria dos prazos mensais cai no dia 20 do mês seguinte (SS, IVA mensal) — confirme sempre no portal oficial.',
-      'IRS é anual (primavera–verão); prepare documentos ao longo do ano, não na véspera.',
-      'Guarde PDF de cada entrega e pagamento — o arquivo é a sua defesa em caso de audição.',
-      'Um contador certificado adapta este calendário ao seu regime (isenção IVA, trimestral, sociedade, etc.).',
+      'O IRS é anual (primavera–verão): prepare documentos ao longo do ano, não na véspera.',
+      'Guarde PDF de cada entrega e pagamento — o arquivo é a sua defesa se houver audição.',
+      'Um contabilista certificado adapta este calendário ao seu regime (isenção IVA, trimestral, sociedade, etc.).',
     ]),
     ...proseParagraphs(
-      'Recebeu um aviso da Segurança Social a lembrar a contribuição do mês e, no mesmo dia, o contador pergunta se o IVA do trimestre já está preparado — e apercebe-se que não tem um único calendário onde tudo caiba. Este artigo existe para esse momento.',
-      'No balcão do escritório, a conversa é quase sempre a mesma: «pensei que o IRS cobria tudo». Não cobre. SS no dia 20, IVA no dia 20, retenções quando há, e o Modelo 3 na primavera — cada um com comprovativo e pasta. Se factura 800 € num mês e gasta tudo, a contribuição e o IVA (se houver) saem do mês seguinte: daí o stress.',
-      'Se gere um pequeno negócio ou trabalha como independente em Portugal, o calendário fiscal não é um único evento anual — é um ritmo contínuo de emissão de documentos, pagamentos e declarações. Este artigo reúne os marcos que a maioria dos profissionais encontra ao longo de 2026, organizados por frequência e por mês.',
-      'Os prazos exactos são publicados pela Autoridade Tributária e pela Segurança Social e podem ser ajustados quando caem em feriados ou fins-de-semana. Use este guia como mapa de estudo e confirme datas no Portal das Finanças e em seguranca-social.pt antes de agir.',
+      'A Segurança Social lembra a contribuição do mês e, no mesmo dia, o contabilista pergunta se o IVA do trimestre está pronto — e apercebe-se de que não tem um único sítio onde caiba tudo. Este artigo junta o ritmo do ano num mapa legível.',
+      'No balcão, a frase é quase sempre a mesma: «pensei que o IRS cobria tudo». Não cobre. SS no dia 20, IVA no dia 20, retenções quando há, e o Modelo 3 na primavera — cada um com comprovativo e pasta. Se factura 800 € num mês e gasta tudo, a contribuição (e o IVA, se houver) saem do mês seguinte: daí o aperto.',
+      'Os prazos exactos publicam-se na Autoridade Tributária e na Segurança Social e podem mudar com feriados. Use este guia como mapa e confirme datas no Portal das Finanças e em seguranca-social.pt antes de agir.',
     ),
     quoteBlock(
       'Escritórios que falham prazos raramente o fazem por ignorância da lei — falham porque não tinham um calendário partilhado por cliente e por obrigação.',
@@ -78,7 +77,7 @@ export const postCalendarioFiscal2026: BlogPost = {
       ],
       blocks: [
         comparisonTable({
-          caption: 'Resumo informativo — valide o seu enquadramento com contador certificado.',
+          caption: 'Resumo informativo — valide o seu enquadramento com um contabilista certificado.',
           headers: ['Obrigação', 'Frequência', 'Prazo típico', 'Onde'],
           rows: [
             ['Emitir recibos/facturas', 'Por cada venda', 'No momento da prestação', 'e-Fatura / software certificado'],
@@ -156,7 +155,7 @@ export const postCalendarioFiscal2026: BlogPost = {
       h2: 'Julho a Setembro: consolidar rotinas',
       id: 't3',
       paragraphs: [
-        'Após o IRS, o foco volta ao mensal: facturar sem atrasos, SS em dia e IVA conforme regime. É também boa altura para rever se o contador (ou o software) está a reflectir correctamente o enquadramento.',
+        'Após o IRS, o foco volta ao mensal: facturar sem atrasos, SS em dia e IVA conforme regime. É também boa altura para rever se o contabilista (ou o software) está a reflectir correctamente o enquadramento.',
       ],
       blocks: [
         {

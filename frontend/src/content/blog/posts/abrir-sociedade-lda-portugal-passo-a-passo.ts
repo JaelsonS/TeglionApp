@@ -19,7 +19,7 @@ export const postAbrirSociedadeLda: BlogPost = {
   publishedAt: '2026-07-20',
   updatedAt: '2026-07-21',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Actividade',
   audience: ['pme', 'independente'],
   featured: false,

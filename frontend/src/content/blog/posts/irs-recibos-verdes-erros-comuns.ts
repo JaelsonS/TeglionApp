@@ -17,7 +17,7 @@ export const postIrsErros: BlogPost = {
   publishedAt: '2026-05-25',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'IRS',
   audience: ['independente', 'pme'],
   featured: false,
@@ -135,7 +135,7 @@ export const postIrsErros: BlogPost = {
       h2: '10. Não pedir ajuda a tempo',
       id: 'erro-ajuda',
       paragraphs: [
-        'Imóveis, heranças, mudança de regime, primeira inspecção — há situações em que o custo de um contador é menor que o de um erro. Marque reunião em Março, não em Junho.',
+        'Imóveis, heranças, mudança de regime, primeira inspecção — há situações em que o custo de um contabilista é menor que o de um erro. Marque reunião em Março, não em Junho.',
       ],
     }),
     ...affiliateSection({

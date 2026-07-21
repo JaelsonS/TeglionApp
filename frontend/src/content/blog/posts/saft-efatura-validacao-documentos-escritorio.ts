@@ -19,7 +19,7 @@ export const postSaftEfatura: BlogPost = {
   publishedAt: '2026-07-20',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Escritórios',
   audience: ['escritorio'],
   featured: false,
@@ -27,7 +27,7 @@ export const postSaftEfatura: BlogPost = {
   readMinutes: 12,
   series: {
     id: 'operacoes-escritorio-teglion',
-    title: 'Operações do escritório com TegLion',
+    title: 'Operações do escritório',
     description: 'Digitalizar, prazos, SAF-T e software — trilho operacional para escritórios de contabilidade.',
     part: 3,
     totalParts: 5,
@@ -68,7 +68,7 @@ export const postSaftEfatura: BlogPost = {
       'Validação = completude + legibilidade + consistência (NIF, datas, IVA, série) antes do lançamento.',
       'Pedidos formais com prazo batem WhatsApp: o cliente vê o que falta; o escritório prova que pediu.',
       'Erros típicos: foto ilegível, factura de fornecedor sem NIF, duplicados, e «já enviei» sem estar no portal.',
-      'Ferramentas como TegLion fecham a última milha (pedido → entrega → histórico); o ERP continua a ser o coração contabilístico.',
+      'Ferramentas como TegLion fecham a última etapa com o cliente — pedido → entrega → histórico); o ERP continua a ser o coração contabilístico.',
     ]),
     ...proseParagraphs(
       'No fecho de IVA, o problema raramente é «não saber lançar». É não ter a factura certa, a tempo, legível, sem duplicar o que já veio no SAF-T do software do cliente. Escritórios maduros tratam SAF-T, e-Fatura e validação de documentos como um único fluxo — não como três tarefas soltas.',
@@ -176,7 +176,7 @@ export const postSaftEfatura: BlogPost = {
       h2: 'Papel do portal do cliente (e do TegLion)',
       id: 'portal',
       paragraphs: [
-        'O ERP resolve lançamentos, mapas e declarações. A última milha — pedir a factura de Junho, rejeitar a foto ilegível, provar que pediu três vezes — é onde muitos escritórios perdem horas. Um portal com marca do escritório torna o pedido formal, rastreável e menos dependente da memória de uma pessoa.',
+        'O ERP resolve lançamentos, mapas e declarações. A última etapa com o cliente — pedir a factura de Junho, rejeitar a foto ilegível, provar que pediu três vezes — é onde muitos escritórios perdem horas. Um portal com marca do escritório torna o pedido formal, rastreável e menos dependente da memória de uma pessoa.',
         'Na digitalização, combine: ERP + calendário de prazos + portal de documentos. SAF-T e e-Fatura entram como fontes de cruzamento; o portal fecha o ciclo humano com o contribuinte.',
       ],
     }),

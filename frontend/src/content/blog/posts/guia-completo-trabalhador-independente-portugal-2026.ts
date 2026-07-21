@@ -18,7 +18,7 @@ export const postGuiaCompletoIndependente: BlogPost = {
   publishedAt: '2026-06-17',
   updatedAt: '2026-07-21',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Guias completos',
   audience: ['independente', 'pme'],
   tags: ['trabalhador independente', 'freelancer', 'recibos verdes', 'IRS', 'guia 2026', 'Portugal'],
@@ -59,17 +59,16 @@ export const postGuiaCompletoIndependente: BlogPost = {
   blocks: [
     legalCallout(),
     keyTakeaways([
-      'Trabalhador independente em Portugal = actividade nas Finanças + Segurança Social + facturação regular + IRS anual.',
-      'Recibos verdes servem muitos freelancers no início; IVA e software certificado entram quando o negócio cresce.',
-      'Arquivo digital desde o mês 1 evita caça a PDFs em Abril.',
-      'Contador certificado (OCC) compensa quando há vários rendimentos, imóveis ou actividade B2B.',
-      'Este artigo é o índice mestre — cada fase tem guias profundos ligados abaixo.',
+      'Independente em Portugal: actividade nas Finanças, Segurança Social, facturação regular e IRS anual.',
+      'Muitos começam com recibos verdes; IVA e software certificado entram quando o volume cresce.',
+      'Arquivo digital desde o primeiro mês poupa horas em Abril.',
+      'Um contabilista certificado (OCC) vale a pena com vários rendimentos, imóveis ou clientes B2B.',
+      'Use este artigo como mapa: cada fase tem um guia próprio mais abaixo.',
     ]),
     ...proseParagraphs(
-      'Recebeu um email do cliente a pedir «recibo verde até amanhã» e apercebeu-se que ainda não tem actividade aberta — ou tem, mas não sabe se a Segurança Social e o IRS estão alinhados. Esse momento de pânico é exactamente o que este guia evita: um mapa claro do que fazer, por ordem.',
-      'Ser trabalhador independente em Portugal é mais do que «emitir recibos verdes». Há um percurso claro — abrir actividade, estar em dia na Segurança Social, facturar correctamente, guardar comprovativos e entregar o IRS no prazo. Este guia é o mapa: em cada fase, aprofunda com os artigos ligados abaixo.',
-      'Ao longo de 2026, o TegLion publicou dezenas de artigos sobre cada tema. Este guia não repete tudo — organiza-o. Leia primeiro a visão geral aqui; depois escolha a fase que precisa de resolver hoje (abrir actividade, emitir o primeiro recibo, perceber SS, preparar IRS, etc.).',
-      'Se ainda está a decidir se vale a pena abrir actividade ou trabalhar «a negro», fale com um contador antes de facturar. O custo de regularizar atrasos supera quase sempre o custo de começar bem.',
+      'O cliente pede o recibo «até amanhã» e apercebe-se: ainda não tem actividade aberta — ou tem, mas não sabe se a Segurança Social e o IRS estão alinhados. Este guia existe para ordenar essa conversa: o que fazer primeiro, o que vem a seguir, e onde aprofundar.',
+      'Ser trabalhador independente em Portugal não se resume a emitir recibos verdes. Há um percurso concreto — abrir actividade, contribuir para a Segurança Social, facturar bem, guardar comprovativos e entregar o IRS a tempo. Aqui fica o mapa; em cada fase, ligamos aos guias detalhados.',
+      'Se ainda está a decidir entre abrir actividade e continuar «por fora», fale com um contabilista antes de facturar. Regularizar atrasos quase sempre sai mais caro do que começar bem.',
     ),
     quoteBlock(
       'A maioria dos problemas fiscais de freelancers não vem de fraude — vem de desorganização e de não saber o que vem a seguir no calendário.',
@@ -79,15 +78,15 @@ export const postGuiaCompletoIndependente: BlogPost = {
       h2: 'Quem é trabalhador independente em Portugal?',
       id: 'quem-e',
       paragraphs: [
-        'Em termos práticos, é quem presta serviços ou vende bens por conta própria, com actividade aberta nas Finanças (código de actividade CAE adequado). Pode ser designer, programador, consultor, fotógrafo, professor particular, ou qualquer profissão liberal enquadrada na lei.',
-        'Não confunda «ter NIF» com «ter actividade aberta». Muitas pessoas têm NIF há anos mas só abrem início de actividade quando começam a facturar — esse é o momento em que o calendário fiscal começa a contar.',
+        'Em termos práticos, é quem presta serviços ou vende bens por conta própria, com actividade aberta nas Finanças (CAE adequado). Pode ser designer, programador, consultor, fotógrafo, professor particular — ou outra profissão liberal enquadrada na lei.',
+        'Não confunda «ter NIF» com «ter actividade aberta». Muita gente tem NIF há anos e só abre início de actividade quando começa a facturar — é aí que o calendário fiscal passa a contar.',
       ],
       blocks: [
         {
           type: 'callout',
           variant: 'info',
           title: 'ENI vs sociedade',
-          text: 'Empresário em Nome Individual (ENI) é a forma mais simples para começar. Sociedade (Lda.) faz sentido quando há sócios, investimento estruturado ou necessidade de separar património pessoal e empresarial — decisão para contador e advogado.',
+          text: 'Empresário em Nome Individual (ENI) é a forma mais simples para começar. Uma sociedade (Lda.) faz sentido com sócios, investimento estruturado ou necessidade de separar património pessoal e empresarial — decisão para contabilista e, se preciso, advogado.',
         },
     { type: 'link', label: 'Abrir empresa individual (ENI): o primeiro passo', slug: 'abrir-empresa-individual-eni' },
       ],
@@ -105,7 +104,7 @@ export const postGuiaCompletoIndependente: BlogPost = {
           type: 'callout',
           variant: 'tip',
           title: 'Checklist de custos no mês 1',
-          text: 'Anote: contribuição SS estimada, mensalidade do contador (se houver), software, e uma reserva de 200–400 € para imprevistos (atrasos, declarações, material). Quem começa sem esta lista gasta o primeiro recibo como se fosse lucro líquido.',
+          text: 'Anote: contribuição SS estimada, mensalidade do contabilista (se houver), software, e uma reserva de 200–400 € para imprevistos (atrasos, declarações, material). Quem começa sem esta lista gasta o primeiro recibo como se fosse lucro líquido.',
         },
     { type: 'link', label: 'Quanto custa abrir actividade?', slug: 'quanto-custa-abrir-actividade-portugal' },
     { type: 'link', label: 'Segurança Social do trabalhador independente', slug: 'seguranca-social-trabalhador-independente' },
@@ -209,7 +208,7 @@ export const postGuiaCompletoIndependente: BlogPost = {
       heading: 'Se está a abrir actividade pela primeira vez',
       headingId: 'recursos',
       intro:
-        'Os guias gratuitos deste blog cobrem o mapa. No terreno, quem abre recibos verdes pela primeira vez costuma precisar de um roteiro impresso para a primeira semana — e, mais tarde, de um guia só para o IRS. Dois ebooks em português resolvem esses momentos sem substituir o contador certificado.',
+        'Os guias gratuitos deste blog cobrem o mapa. No terreno, quem abre recibos verdes pela primeira vez costuma precisar de um roteiro impresso para a primeira semana — e, mais tarde, de um guia só para o IRS. Dois ebooks em português resolvem esses momentos sem substituir o contabilista certificado.',
       items: [
         {
           key: 'hotmartReciboVerde7Dias',

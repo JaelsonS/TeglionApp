@@ -20,7 +20,7 @@ export const postGestaoPrazosEscritorio: BlogPost = {
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Escritórios',
   audience: ['escritorio'],
   tags: [
@@ -35,7 +35,7 @@ export const postGestaoPrazosEscritorio: BlogPost = {
   featured: false,
   series: {
     id: 'operacoes-escritorio-teglion',
-    title: 'Operações do escritório com TegLion',
+    title: 'Operações do escritório',
     description: 'Digitalizar, prazos, SAF-T e software — trilho operacional para escritórios de contabilidade.',
     part: 2,
     totalParts: 5,

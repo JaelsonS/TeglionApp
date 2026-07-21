@@ -17,7 +17,7 @@ export const postComoEmitirReciboVerde: BlogPost = {
   publishedAt: '2026-05-28',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Facturação',
   audience: ['independente', 'pme'],
   featured: false,
@@ -92,7 +92,7 @@ export const postComoEmitirReciboVerde: BlogPost = {
     ),
     { type: 'h3', id: 'passo-4', text: '4. Valor, IVA e retenção' },
     ...proseParagraphs(
-      'Se isento de IVA, seleccione motivo de isenção correcto (art. 53.º ou outro). Se o cliente for empresa, pode haver retenção de IRS — o portal calcula conforme categoria. Em dúvida, confirme com o contador antes da série anual de recibos.',
+      'Se isento de IVA, seleccione motivo de isenção correcto (art. 53.º ou outro). Se o cliente for empresa, pode haver retenção de IRS — o portal calcula conforme categoria. Em dúvida, confirme com o contabilista antes da série anual de recibos.',
     ),
     { type: 'h3', id: 'passo-5', text: '5. Validar, emitir e arquivar' },
     ...proseParagraphs(

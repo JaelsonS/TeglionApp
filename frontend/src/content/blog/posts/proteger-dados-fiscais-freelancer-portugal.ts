@@ -18,7 +18,7 @@ export const postProtegerDados: BlogPost = {
   publishedAt: '2026-05-29',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Organização',
   audience: ['independente', 'escritorio'],
   featured: false,
@@ -169,6 +169,6 @@ export const postProtegerDados: BlogPost = {
         'freelancer-estrangeiro-portugal',
       ],
     }),
-    legalCallout('Segurança digital não substitui boas práticas de arquivo e contador certificado.'),
+    legalCallout('Segurança digital não substitui boas práticas de arquivo e contabilista certificado.'),
   ],
 }

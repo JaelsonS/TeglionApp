@@ -20,7 +20,7 @@ export const postDigitalizarEscritorio: BlogPost = {
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Escritórios',
   audience: ['escritorio'],
   tags: [
@@ -35,7 +35,7 @@ export const postDigitalizarEscritorio: BlogPost = {
   featured: true,
   series: {
     id: 'operacoes-escritorio-teglion',
-    title: 'Operações do escritório com TegLion',
+    title: 'Operações do escritório',
     description: 'Digitalizar, prazos, SAF-T e software — trilho operacional para escritórios de contabilidade.',
     part: 1,
     totalParts: 5,
@@ -67,17 +67,17 @@ export const postDigitalizarEscritorio: BlogPost = {
   blocks: [
     legalCallout(),
     keyTakeaways([
-      'Digitalizar não é só «PDF em vez de papel» — é processo: pedir, receber, validar, arquivar, comunicar.',
-      'Clientes resistem menos quando veem benefício: menos emails, lista clara do que falta, histórico acessível.',
-      'WhatsApp sem registo é risco RGPD e profissional — canal oficial com arquivo protege o escritório.',
-      'Migração em fases: 5 clientes piloto → ajustar → rollout — não «big bang» na véspera do IRS.',
-      'Portal do cliente (TegLion) complementa o ERP — resolve a última milha com o contribuinte.',
+      'Digitalizar não é só «PDF em vez de papel» — é processo: pedir, receber, validar, arquivar e comunicar.',
+      'Os clientes resistem menos quando veem benefício: menos emails, lista clara do que falta, histórico acessível.',
+      'WhatsApp sem registo é risco RGPD e profissional — um canal oficial com arquivo protege o escritório.',
+      'Migre em fases: 5 clientes piloto → ajustar → alargar — não «tudo de uma vez» na véspera do IRS.',
+      'O portal do cliente complementa o ERP: organiza pedidos e prazos com o contribuinte.',
     ]),
     ...proseParagraphs(
-      'Recebeu um email do cliente às 23h com «segue a factura» em anexo — e no dia seguinte a mesma pessoa diz que já tinha enviado no WhatsApp a semana passada. Se isto soa familiar, a digitalização do escritório não é um luxo de TI: é o único caminho para recuperar o calendário fiscal sem perder clientes.',
-      'No balcão, o custo escondido é tempo: 15 minutos a caçar um PDF × 40 clientes × 12 meses = centenas de horas. A 25–40 €/hora de custo interno da equipa, o «WhatsApp gratuito» sai caro. Digitalizar é recuperar margem e nervos.',
-      'Muitos escritórios de contabilidade em Portugal já usam ERP robusto — e ainda passam o dia a pedir «aquela factura de Junho» por mensagem. A digitalização que falta não é contabilística; é relacional: como o cliente entrega, como o escritório confirma e como ambos provam que cumpriram.',
-      'Este guia é para sócios, directores técnicos e contadores que querem modernizar sem perder a confiança de clientes habituados ao telefone. Também serve a empresas que procuram escritório — saber o que pedir num parceiro digitalmente maduro.',
+      'Às 23h chega um email com «segue a factura» — e no dia seguinte a mesma pessoa jura que já tinha enviado no WhatsApp na semana passada. Se isto soa familiar, digitalizar o escritório não é luxo de TI: é recuperar o calendário fiscal sem perder clientes.',
+      'No balcão, o custo escondido é tempo: 15 minutos a caçar um PDF × 40 clientes × 12 meses = centenas de horas. A 25–40 €/hora de custo interno, o «WhatsApp gratuito» sai caro.',
+      'Muitos escritórios em Portugal já têm ERP sólido — e ainda passam o dia a pedir «aquela factura de Junho» por mensagem. O que falta muitas vezes não é lançar: é a relação com o cliente — como entrega, como o escritório confirma e como ambos provam que cumpriram.',
+      'Este guia é para sócios e directores técnicos que querem modernizar sem assustar clientes habituados ao telefone. Também ajuda quem escolhe escritório: saber o que pedir a quem já trabalha com portal e pedidos claros.',
     ),
     quoteBlock(
       'O cliente não quer «mais uma app» — quer saber em 10 segundos o que falta entregar e ter a certeza de que o escritório recebeu.',
@@ -193,7 +193,7 @@ export const postDigitalizarEscritorio: BlogPost = {
       h2: 'Stack típico do escritório digital',
       id: 'stack',
       paragraphs: [
-        'ERP contabilístico + Microsoft 365 + portal cliente + antivírus + backup. O TegLion ocupa a camada cliente — não compete com PHC ou Primavera, reduz o ruído entre o contador e quem deve enviar a factura.',
+        'ERP contabilístico + Microsoft 365 + portal cliente + antivírus + backup. O TegLion ocupa a camada cliente — não compete com PHC ou Primavera, reduz o ruído entre o contabilista e quem deve enviar a factura.',
         'Orçamento orientativo para um escritório pequeno (3–8 pessoas): cloud/Office 10–20 €/utilizador/mês, portal do cliente conforme plano, e 1–2 dias de onboarding interno. O retorno aparece quando deixa de haver «fogo» no dia 19.',
       ],
     }),

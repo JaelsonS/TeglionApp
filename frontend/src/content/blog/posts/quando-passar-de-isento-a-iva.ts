@@ -18,7 +18,7 @@ export const postPassarIsentoIva: BlogPost = {
   publishedAt: '2026-05-20',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'IVA',
   audience: ['independente', 'pme'],
   featured: false,
@@ -49,7 +49,7 @@ export const postPassarIsentoIva: BlogPost = {
       'Pode optar voluntariamente por IVA antes do limite se clientes B2B precisarem de deduzir IVA nas compras.',
       'A transição implica software certificado, facturas com IVA e declarações periódicas (mensais ou trimestrais).',
       'Reveja preços: o IVA pode ser repercutido ao cliente ou absorvido na margem — decisão comercial, não só fiscal.',
-      'Planeie com o contador 2–3 meses antes de atingir o limite para não emitir documentos inválidos.',
+      'Planeie com o contabilista 2–3 meses antes de atingir o limite para não emitir documentos inválidos.',
     ]),
     ...proseParagraphs(
       'Crescer é bom — mas quando a facturação se aproxima do limite de isenção de IVA, convém planear a transição com calma. Passar a sujeito passivo muda facturas, preços, deduções nas compras e o software que usa no dia a dia.',
@@ -108,7 +108,7 @@ export const postPassarIsentoIva: BlogPost = {
       h2: 'O que preparar antes da mudança',
       id: 'preparar',
       paragraphs: [
-        'Uma transição bem feita demora semanas, não horas. Use esta sequência como roteiro — o contador ajusta datas e formalidades ao seu caso.',
+        'Uma transição bem feita demora semanas, não horas. Use esta sequência como roteiro — o contabilista ajusta datas e formalidades ao seu caso.',
       ],
       blocks: [
         {
@@ -119,7 +119,7 @@ export const postPassarIsentoIva: BlogPost = {
             'Rever contratos e propostas comerciais: preços com ou sem IVA, cláusulas de revisão',
             'Organizar fornecedores: pedir facturas com NIF da actividade para dedução futura',
             'Actualizar dados no Portal das Finanças e comunicar mudança a clientes recorrentes',
-            'Formar-se na declaração periódica de IVA ou delegar ao contador com documentos a tempo',
+            'Formar-se na declaração periódica de IVA ou delegar ao contabilista com documentos a tempo',
           ],
         },
       ],
@@ -145,7 +145,7 @@ export const postPassarIsentoIva: BlogPost = {
             'Não emitir factura no mês da mudança — lacunas no e-Fatura geram coimas',
             'Esquecer de comunicar SAF-T ou ficheiros de facturação conforme regime',
             'Não guardar facturas de compra com IVA dedutível',
-            'Assumir que o contador «trata de tudo» sem enviar documentos a tempo',
+            'Assumir que o contabilista «trata de tudo» sem enviar documentos a tempo',
           ],
         },
       ],
@@ -170,6 +170,6 @@ export const postPassarIsentoIva: BlogPost = {
         'calendario-fiscal-portugal-2026-completo',
       ],
     }),
-    legalCallout('Limites legais de isenção e prazos actualizam-se — confirme valores vigentes no Portal das Finanças e com contador certificado.'),
+    legalCallout('Limites legais de isenção e prazos actualizam-se — confirme valores vigentes no Portal das Finanças e com contabilista certificado.'),
   ],
 }

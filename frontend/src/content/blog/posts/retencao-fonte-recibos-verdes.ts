@@ -18,7 +18,7 @@ export const postRetencaoFonte: BlogPost = {
   publishedAt: '2026-05-23',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Facturação',
   audience: ['independente', 'pme'],
   featured: false,
@@ -150,7 +150,7 @@ export const postRetencaoFonte: BlogPost = {
       id: 'erros-cliente',
       paragraphs: [
         'Cliente retém de menos: pode ter imposto a pagar no acerto anual. Cliente retém de mais: reembolso possível no IRS, mas o fluxo de caixa sofre no meio do ano.',
-        'Se o cliente recusa corrigir um recibo errado, guarde emails e PDFs — o contador pode orientar sobre regularização. Não anule recibos sem perceber o impacto na cadeia de comunicação à AT.',
+        'Se o cliente recusa corrigir um recibo errado, guarde emails e PDFs — o contabilista pode orientar sobre regularização. Não anule recibos sem perceber o impacto na cadeia de comunicação à AT.',
       ],
       blocks: [
         {

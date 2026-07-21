@@ -18,7 +18,7 @@ export const postAbrirEni: BlogPost = {
   publishedAt: '2026-05-18',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Actividade',
   audience: ['independente', 'pme'],
   featured: false,
@@ -110,7 +110,7 @@ export const postAbrirEni: BlogPost = {
       type: 'callout',
       variant: 'warning',
       title: 'Quando considerar Lda em vez de ENI',
-      text: 'Facturação elevada, necessidade de sócios, investidores, responsabilidade limitada ou sector com risco legal elevado — um contador pode recomendar sociedade em vez de ENI.',
+      text: 'Facturação elevada, necessidade de sócios, investidores, responsabilidade limitada ou sector com risco legal elevado — um contabilista pode recomendar sociedade em vez de ENI.',
     },
     ...articleSection({
       h2: 'Passos no Portal das Finanças',
@@ -146,7 +146,7 @@ export const postAbrirEni: BlogPost = {
       id: '90-dias',
       paragraphs: [
         'Mês 1: primeira contribuição SS, primeiro recibo ao cliente, arquivo de contratos e PDFs.',
-        'Mês 2–3: ritmo mensal de facturação, reconciliação banco, reunião com contador se contratado.',
+        'Mês 2–3: ritmo mensal de facturação, reconciliação banco, reunião com contabilista se contratado.',
         'Evite: acumular recibos «para o fim do trimestre», misturar despesas pessoais, ignorar notificações do portal.',
       ],
     }),

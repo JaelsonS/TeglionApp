@@ -3,8 +3,8 @@ import { BRAND } from '@/shared/config/brand'
 /** Autor único do blog TegLion — fonte de verdade para UI e JSON-LD. */
 export const BLOG_AUTHOR = {
   name: 'Jaelson Santos',
-  role: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
-  bio: 'Formado em contabilidade no Brasil, vivo em Coimbra e aprofundo a fiscalidade portuguesa enquanto construo software. Vim de supervisão de vendas e estou na transição para desenvolvimento de Software. O TegLion nasce da dor real de uma contabilista em Portugal — documentos, prazos e clientes sem caos. Estes guias são investigação educativa; confirme sempre com um contabilista certificado (OCC).',
+  role: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  bio: 'Formado em contabilidade no Brasil, vivo em Coimbra e estudo a fiscalidade portuguesa enquanto construo o TegLion — software nascido do dia-a-dia de um escritório de contabilidade. Estes guias são educativos: ajudam a perceber obrigações e a preparar a conversa com o contabilista certificado (OCC), não o substituem.',
   image: '/blog/authors/jaelson-santos.jpg',
   imageAlt: 'Jaelson Santos, fundador do TegLion',
   email: BRAND.emails.hello,

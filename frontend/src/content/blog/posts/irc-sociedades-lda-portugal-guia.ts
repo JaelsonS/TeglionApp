@@ -19,7 +19,7 @@ export const postIrcSociedadesLda: BlogPost = {
   publishedAt: '2026-07-20',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Guias completos',
   audience: ['pme', 'escritorio'],
   featured: false,
@@ -52,7 +52,7 @@ export const postIrcSociedadesLda: BlogPost = {
   ],
   blocks: [
     legalCallout(
-      'Taxas de IRC, regimes especiais e limiares mudam com o Orçamento do Estado — confirme sempre no Portal das Finanças e com um contador certificado (OCC) antes de decidir.',
+      'Taxas de IRC, regimes especiais e limiares mudam com o Orçamento do Estado — confirme sempre no Portal das Finanças e com um contabilista certificado (OCC) antes de decidir.',
     ),
     keyTakeaways([
       'ENI declara IRS (pessoa singular); a Lda é pessoa colectiva e paga IRC sobre o lucro da sociedade.',
@@ -63,7 +63,7 @@ export const postIrcSociedadesLda: BlogPost = {
       'Transição mal planeada custa: IVA, SS, contratos e facturação têm de mudar no dia certo — não «quando der jeito».',
     ]),
     ...proseParagraphs(
-      'Imagine: facturou 80 mil euros no ano passado como ENI, tem dois clientes grandes a pedir «factura da empresa», e o contador já falou em «olhar para uma Lda». Não é vaidade de cartão de visita — é o momento em que o regime de pessoa singular começa a apertar: IRS progressivo, responsabilidade ilimitada e imagem perante bancos ou parceiros.',
+      'Imagine: facturou 80 mil euros no ano passado como ENI, tem dois clientes grandes a pedir «factura da empresa», e o contabilista já falou em «olhar para uma Lda». Não é vaidade de cartão de visita — é o momento em que o regime de pessoa singular começa a apertar: IRS progressivo, responsabilidade ilimitada e imagem perante bancos ou parceiros.',
       'Este guia explica, em linguagem de balcão do escritório, o que muda quando passa de empresário em nome individual para sociedade por quotas (Lda): imposto (IRC vs IRS), obrigações, custos e armadilhas. Não substitui o parecer do seu TOC — serve para chegar à reunião com perguntas certas.',
     ),
     quoteBlock(
@@ -83,7 +83,7 @@ export const postIrcSociedadesLda: BlogPost = {
           type: 'callout',
           variant: 'info',
           title: 'Taxas reduzidas e PME',
-          text: 'Existem regimes e taxas reduzidas para certos escalões de matéria colectável ou perfis de PME. Os limiares e condições mudam — peça ao contador o cenário com números do seu negócio, não uma percentagem solta da internet.',
+          text: 'Existem regimes e taxas reduzidas para certos escalões de matéria colectável ou perfis de PME. Os limiares e condições mudam — peça ao contabilista o cenário com números do seu negócio, não uma percentagem solta da internet.',
         },
       ],
     }),

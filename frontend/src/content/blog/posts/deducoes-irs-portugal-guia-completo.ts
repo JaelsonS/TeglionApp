@@ -20,7 +20,7 @@ export const postDeducoesIrs: BlogPost = {
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'IRS',
   audience: ['independente', 'pme'],
   tags: ['IRS', 'deduções fiscais', 'Modelo 3', 'saúde', 'educação', 'habitação', 'Portugal'],
@@ -67,7 +67,7 @@ export const postDeducoesIrs: BlogPost = {
       'Guarde facturas e comprovativos pelo menos 4 anos após a entrega do IRS.',
     ]),
     ...proseParagraphs(
-      'Está na mesa do contador com um envelope de facturas de farmácia e propinas — e a pergunta é sempre a mesma: «isto conta para o IRS?» Todos os anos milhares de contribuintes perdem dinheiro no IRS não por fraude, mas por não saber que podiam deduzir despesas de saúde, educação ou habitação — ou por não terem guardado a factura com NIF.',
+      'Está na mesa do contabilista com um envelope de facturas de farmácia e propinas — e a pergunta é sempre a mesma: «isto conta para o IRS?» Todos os anos milhares de contribuintes perdem dinheiro no IRS não por fraude, mas por não saber que podiam deduzir despesas de saúde, educação ou habitação — ou por não terem guardado a factura com NIF.',
       'Em euros: se tem 800 € de despesas de saúde elegíveis e a percentagem/legalidade do ano fiscal permite deduzir uma fatia, a diferença no reembolso (ou no imposto a pagar) pode ser de dezenas a algumas centenas de euros. Não é «enriquecer» — é não deixar benefício na mesa por desorganização.',
       'Este guia explica, em linguagem clara, como funcionam as principais deduções à coleta no Modelo 3 em Portugal. As regras e percentagens mudam com o Orçamento do Estado; o que segue é estrutura para planear o ano — na entrega, confirme limites do ano fiscal com a AT ou o seu contador.',
     ),
@@ -198,7 +198,7 @@ export const postDeducoesIrs: BlogPost = {
         {
           question: 'Vale a pena contratar contador só para deduções?',
           answer:
-            'Para agregados simples, muitos entregam sozinhos. Com actividade aberta, imóveis, rendimentos no estrangeiro ou património relevante, um contador certificado costuma compensar pelo tempo e pelo risco de erro.',
+            'Para agregados simples, muitos entregam sozinhos. Com actividade aberta, imóveis, rendimentos no estrangeiro ou património relevante, um contabilista certificado costuma compensar pelo tempo e pelo risco de erro.',
         },
       ],
     }),

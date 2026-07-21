@@ -19,7 +19,7 @@ export const postSoftwareEscritorioPortugal: BlogPost = {
   publishedAt: '2026-07-20',
   updatedAt: '2026-07-21',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Escritórios',
   audience: ['escritorio'],
   featured: false,
@@ -33,7 +33,7 @@ export const postSoftwareEscritorioPortugal: BlogPost = {
   readMinutes: 12,
   series: {
     id: 'operacoes-escritorio-teglion',
-    title: 'Operações do escritório com TegLion',
+    title: 'Operações do escritório',
     description: 'Digitalizar, prazos, SAF-T e software — trilho operacional para escritórios de contabilidade.',
     part: 4,
     totalParts: 5,
@@ -47,7 +47,7 @@ export const postSoftwareEscritorioPortugal: BlogPost = {
   seo: {
     title: 'Software para escritório de contabilidade 2026',
     description:
-      'Software para escritório de contabilidade em Portugal: portal do cliente OCC, pedidos de documentos, prazos, SAF-T e menos WhatsApp. Stack operacional 2026.',
+      'Software para escritório de contabilidade em Portugal: portal do cliente OCC, pedidos de documentos, prazos, SAF-T e menos WhatsApp. Ferramentas para 2026.',
     keywords: [
       'software escritório contabilidade Portugal',
       'gestão clientes contabilista',
@@ -66,25 +66,25 @@ export const postSoftwareEscritorioPortugal: BlogPost = {
   blocks: [
     legalCallout(),
     keyTakeaways([
-      'ERP faz a contabilidade; portal do cliente faz a última milha — são camadas diferentes.',
+      'O ERP faz a contabilidade; o portal do cliente organiza pedidos e prazos — são camadas diferentes.',
       'WhatsApp sem registo escala mal: 50 clientes × mensagens soltas = prazos em risco e RGPD frágil.',
-      'Em 2026, o stack mínimo maduro: ERP + cloud + portal com pedidos/prazos + backup.',
+      'Em 2026, o conjunto mínimo sensato: ERP + arquivos na cloud + portal com pedidos/prazos + backup.',
       'SAF-T e e-Fatura pedem validação de documentos antes do fecho — não «fotos às 23h».',
-      'TegLion cobre portal, pedidos e alertas com a marca do escritório — complementar ao ERP.',
+      'Ferramentas como o TegLion cobrem portal, pedidos e alertas com a marca do escritório — a complementar o ERP.',
     ]),
     ...proseParagraphs(
-      'Segunda-feira de manhã: o telemóvel do sócio tem 37 unread no WhatsApp Business, três «segue a factura» no email pessoal, e um Drive partilhado onde ninguém sabe qual PDF é a versão correcta. O ERP está impecável — o caos está na relação com o cliente.',
-      'Este guia de software para escritório de contabilidade em Portugal é para equipas OCC que já têm (ou vão escolher) ferramentas e querem perceber o que falta para operar em 2026 sem viver de mensagens. Não é uma lista de marcas de facturação: é um mapa de capacidades — portal do cliente, prazos, SAF-T e onde o TegLion encaixa.',
+      'Segunda-feira de manhã: o telemóvel do sócio tem 37 mensagens por ler no WhatsApp Business, três «segue a factura» no email pessoal, e um Drive onde ninguém sabe qual PDF é a versão correcta. O ERP está impecável — o caos está na relação com o cliente.',
+      'Este guia é para equipas OCC que já têm (ou vão escolher) ferramentas e querem perceber o que falta para trabalhar em 2026 sem viver de mensagens. Não é uma lista de marcas de facturação: é um mapa de capacidades — portal do cliente, prazos, SAF-T e onde encaixa um portal como o TegLion.',
     ),
     quoteBlock(
-      'Software que só o contador usa não digitaliza o escritório — digitaliza a secretária. O cliente continua no WhatsApp.',
+      'Software que só o contabilista usa não digitaliza o escritório — digitaliza a secretária. O cliente continua no WhatsApp.',
     ),
     ...articleSection({
-      h2: 'WhatsApp chaos vs operações estruturadas',
+      h2: 'Caos do WhatsApp vs operação com portal',
       id: 'whatsapp-vs-ops',
       paragraphs: [
-        'WhatsApp é excelente para urgências pontuais. Como canal oficial de documentos fiscais, falha: não há lista do que falta, não há prova clara de pedido, e misturar conversas pessoais com NIF de clientes é risco RGPD real.',
-        'Operações estruturadas significam: pedido formal → prazo → upload → validação → arquivo. O cliente vê o estado; o escritório mede % de documentos no dia 15. Isso não cabe numa thread de chat.',
+        'WhatsApp serve para urgências pontuais. Como canal oficial de documentos fiscais, falha: não há lista do que falta, não há prova clara de pedido, e misturar conversas pessoais com NIF de clientes é risco RGPD real.',
+        'Operar com estrutura significa: pedido formal → prazo → upload → validação → arquivo. O cliente vê o estado; o escritório mede a percentagem de documentos no dia 15. Isso não cabe numa conversa de chat.',
       ],
       blocks: [
         comparisonTable({

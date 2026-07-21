@@ -18,7 +18,7 @@ export const postDeclaracaoIrs: BlogPost = {
   publishedAt: '2026-05-20',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'IRS',
   audience: ['independente', 'pme'],
   featured: false,
@@ -40,7 +40,7 @@ export const postDeclaracaoIrs: BlogPost = {
   seo: {
     title: 'Declaração de IRS em Portugal — guia prático 2026',
     description:
-      'Aprenda o básico da declaração de IRS: prazos, documentos, Portal das Finanças e erros comuns. Conteúdo informativo — confirme sempre com um contador certificado.',
+      'Aprenda o básico da declaração de IRS: prazos, documentos, Portal das Finanças e erros comuns. Conteúdo informativo — confirme sempre com um contabilista certificado.',
     keywords: [
       'declaração IRS',
       'como fazer IRS',
@@ -179,7 +179,7 @@ export const postDeclaracaoIrs: BlogPost = {
         {
           key: 'hotmartIrsReciboVerde',
           leadIn:
-            'Na primeira declaração com actividade aberta, o anexo B e as retenções geram mais dúvidas do que o próprio login. Um guia dedicado a IRS e recibos verdes em Portugal preenche lacunas deste artigo — sempre a validar com contador certificado.',
+            'Na primeira declaração com actividade aberta, o anexo B e as retenções geram mais dúvidas do que o próprio login. Um guia dedicado a IRS e recibos verdes em Portugal preenche lacunas deste artigo — sempre a validar com contabilista certificado.',
           title: 'IRS & Recibo Verde — guia prático (Hotmart)',
           description: 'estrutura a preparação para independentes sem improvisar na última semana.',
         },
@@ -195,7 +195,7 @@ export const postDeclaracaoIrs: BlogPost = {
     { type: 'h2', id: 'quando-contador', text: 'Quando falar com um contador?' },
     {
       type: 'p',
-      text: 'Se teve rendimentos no estrangeiro, actividade aberta, vários empregadores, arrendamento, crypto, ou heranças no ano, a declaração deixa de ser «básica». Um contador certificado evita coimas e optimiza legalmente a situação — honorários pontuais de IRS costumam ficar bem abaixo do custo de uma correcção mal feita.',
+      text: 'Se teve rendimentos no estrangeiro, actividade aberta, vários empregadores, arrendamento, crypto, ou heranças no ano, a declaração deixa de ser «básica». Um contabilista certificado evita coimas e optimiza legalmente a situação — honorários pontuais de IRS costumam ficar bem abaixo do custo de uma correcção mal feita.',
     },
     {
       type: 'link',

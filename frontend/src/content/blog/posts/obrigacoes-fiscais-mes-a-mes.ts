@@ -18,7 +18,7 @@ export const postObrigacoesMes: BlogPost = {
   publishedAt: '2026-05-16',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Obrigações',
   audience: ['independente', 'escritorio', 'pme'],
   featured: false,
@@ -33,7 +33,7 @@ export const postObrigacoesMes: BlogPost = {
   seo: {
     title: 'Obrigações fiscais mensais em Portugal — checklist',
     description:
-      'Checklist informativa das obrigações que um pequeno negócio em Portugal costuma ter ao longo do ano. Confirme prazos e enquadramento com contador certificado.',
+      'Checklist informativa das obrigações que um pequeno negócio em Portugal costuma ter ao longo do ano. Confirme prazos e enquadramento com contabilista certificado.',
     keywords: [
       'obrigações fiscais Portugal',
       'calendário fiscal PME',
@@ -62,7 +62,7 @@ export const postObrigacoesMes: BlogPost = {
       type: 'image',
       src: '/blog/covers/fiscal-calendar.svg',
       alt: 'Calendário de parede num escritório',
-      caption: 'Um calendário fiscal evita surpresas — o contador pode personalizar o seu.',
+      caption: 'Um calendário fiscal evita surpresas — o contabilista pode personalizar o seu.',
     },
     { type: 'h2', id: 'mensal', text: 'Todos os meses (quase sempre)' },
     {
@@ -149,7 +149,7 @@ export const postObrigacoesMes: BlogPost = {
         {
           key: 'amazonPastaThinkTex26',
           leadIn:
-            'Depois da lista mensal, a pergunta prática é onde guardar IVA, SS, despesas e IRS. Uma pasta expansível com um bolso por trimestre (ou por obrigação) evita a mistura que o contador depois tem de desemaranhar.',
+            'Depois da lista mensal, a pergunta prática é onde guardar IVA, SS, despesas e IRS. Uma pasta expansível com um bolso por trimestre (ou por obrigação) evita a mistura que o contabilista depois tem de desemaranhar.',
           title: 'Pasta ThinkTex A4 — 26 bolsos (Amazon)',
           description: 'arquivo físico portátil para acompanhar o ritmo mês a mês.',
         },

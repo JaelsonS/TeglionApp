@@ -18,7 +18,7 @@ export const postIva: BlogPost = {
   publishedAt: '2026-05-14',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'IVA',
   audience: ['independente', 'pme'],
   featured: false,
@@ -73,7 +73,7 @@ export const postIva: BlogPost = {
       type: 'callout',
       variant: 'warning',
       title: 'Limite anual de volume de negócios',
-      text: 'Se ultrapassar o limite legal, pode ser obrigado a passar a sujeito passivo. A 70–80 % do limite, fale com o contador — não espere a notificação da AT.',
+      text: 'Se ultrapassar o limite legal, pode ser obrigado a passar a sujeito passivo. A 70–80 % do limite, fale com o contabilista — não espere a notificação da AT.',
     },
     sectionDivider(),
     comparisonTable({
@@ -139,7 +139,7 @@ export const postIva: BlogPost = {
       id: 'voluntario',
       paragraphs: [
         'Pode solicitar enquadramento como sujeito passivo mesmo abaixo do limite de isenção — útil se compra muito material dedutível (equipamento, stock) ou se clientes B2B exigem factura com IVA.',
-        'A decisão não é só fiscal: passa a ter obrigações mensais ou trimestrais e custo de software. Simule com contador o impacto líquido (IVA a pagar vs IVA dedutido) antes de optar.',
+        'A decisão não é só fiscal: passa a ter obrigações mensais ou trimestrais e custo de software. Simule com contabilista o impacto líquido (IVA a pagar vs IVA dedutido) antes de optar.',
       ],
       blocks: [
         comparisonTable({
@@ -158,7 +158,7 @@ export const postIva: BlogPost = {
       id: 'erros-iva',
       paragraphs: [
         'Confundir recibo verde isento com factura com IVA; não guardar facturas de compras com NIF; entregar declaração periódica com valor zero sem conferir mapas; cobrar 23 % em serviço que devia taxa reduzida.',
-        'Cada erro pode gerar regularização, juros ou perda de dedução. Configure o software com ajuda do contador e revise o primeiro trimestre linha a linha.',
+        'Cada erro pode gerar regularização, juros ou perda de dedução. Configure o software com ajuda do contabilista e revise o primeiro trimestre linha a linha.',
       ],
     }),
     { type: 'link', label: 'Quando passar de isento a IVA', slug: 'quando-passar-de-isento-a-iva' },

@@ -16,11 +16,11 @@ export const postFerramentasContabilista: BlogPost = {
   slug: 'ferramentas-essenciais-contabilista-2026',
   title: 'Ferramentas essenciais para o contabilista em 2026: calculadora, arquivo e software',
   excerpt:
-    'O stack profissional do contador certificado: calculadora, Excel/365, segurança, arquivo físico e digital, e software de gestão de clientes — com comparação do que ainda se faz no email vs portal moderno.',
+    'O kit de trabalho do contabilista certificado: calculadora, Excel/365, segurança, arquivo e software de gestão de clientes — com comparação entre email/WhatsApp e portal moderno.',
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Escritórios',
   audience: ['escritorio'],
   tags: [
@@ -74,8 +74,8 @@ export const postFerramentasContabilista: BlogPost = {
       'Software de gestão de escritório (TegLion) centraliza prazos, documentos e comunicação com clientes.',
     ]),
     ...proseParagraphs(
-      'Um contabilista certificado em 2026 usa mais tecnologia do que há dez anos — mas ainda perde horas a perseguir PDFs por email. Este artigo lista o stack que realmente importa: do objecto físico na secretária ao portal que o cliente usa para enviar facturas.',
-      'Escrito para contadores em exercício, sócios de escritórios e estagiários OCC que querem montar o posto de trabalho certo desde o início. Estudantes e quem quer conhecer a área de contabilidade também encontram aqui o mapa do que a profissão usa no dia a dia.',
+      'Um contabilista certificado em 2026 usa mais tecnologia do que há dez anos — mas ainda perde horas a perseguir PDFs por email. Este artigo lista o que realmente importa na secretária: do objecto físico ao portal onde o cliente envia facturas.',
+      'Escrito para contabilistas em exercício, sócios de escritórios e estagiários OCC que querem montar o posto de trabalho certo desde o início. Estudantes encontram aqui um mapa do que a profissão usa no dia a dia.',
     ),
     quoteBlock(
       'O melhor software do mundo não substitui o julgamento profissional — mas o pior fluxo de trabalho pode roubar-lhe o tempo para exercer esse julgamento.',

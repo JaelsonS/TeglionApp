@@ -19,7 +19,7 @@ export const postOrganizarDocumentos: BlogPost = {
   publishedAt: '2026-06-12',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'Organização',
   audience: ['independente', 'escritorio'],
   tags: ['arquivo', 'documentos fiscais', 'organização', 'freelancer', 'IRS'],
@@ -135,7 +135,7 @@ export const postOrganizarDocumentos: BlogPost = {
       ],
     }),
     ...articleSection({
-      h2: 'Partilhar com o contador sem caos',
+      h2: 'Partilhar com o contabilista sem caos',
       id: 'partilhar',
       paragraphs: [
         'O melhor envio não é o email com 40 anexos. É uma pasta do ano (ou um link de nuvem) com a mesma estrutura todos os meses, mais um resumo curto: «faltam facturas de Maio do cliente X».',
@@ -147,7 +147,7 @@ export const postOrganizarDocumentos: BlogPost = {
           items: [
             'No dia 1–5 de cada mês: fechar o mês anterior (recibos + despesas).',
             'Exportar ou copiar a pasta do mês para a pasta do ano.',
-            'Enviar ao contador (ou carregar no portal) com nota do que falta.',
+            'Enviar ao contabilista (ou carregar no portal) com nota do que falta.',
             'Arquivar o comprovativo de envio na subpasta «Comunicações».',
           ],
         },
@@ -189,7 +189,7 @@ export const postOrganizarDocumentos: BlogPost = {
         {
           key: 'amazonPastaThinkTex26',
           leadIn:
-            'Independente ou PME: um bolso por mês (ou por categoria — saúde, actividade, contratos) transforma a caixa de sapatos numa rotina. No fim do trimestre, digitaliza o que ainda está em papel e libera espaço — o contador agradece a pasta etiquetada, não o envelope amassado.',
+            'Independente ou PME: um bolso por mês (ou por categoria — saúde, actividade, contratos) transforma a caixa de sapatos numa rotina. No fim do trimestre, digitaliza o que ainda está em papel e libera espaço — o contabilista agradece a pasta etiquetada, não o envelope amassado.',
           title: 'Pasta expansível A4 ThinkTex (Amazon)',
           description: '26 compartimentos para cópias físicas de contratos e recibos até estarem na nuvem.',
         },

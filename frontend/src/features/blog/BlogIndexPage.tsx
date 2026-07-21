@@ -74,8 +74,8 @@ export function BlogIndexPage() {
               Contabilidade portuguesa explicada sem rodeios
             </h1>
             <p className="mt-4 max-w-xl text-base blog-text-body sm:text-lg">
-              Guias com números, prazos e checklists para independentes, PME e escritórios OCC — conteúdo para decidir
-              amanhã de manhã, não para decorar teoria.
+              Guias práticos para independentes, PME e escritórios OCC: prazos, recibos verdes, IVA, IRS e o dia-a-dia
+              com clientes — escrito para quem precisa de decidir com clareza, não de decorar artigos de lei.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link to={authFirmRegisterUrl()} className="landing-btn-primary inline-flex">
@@ -111,7 +111,7 @@ export function BlogIndexPage() {
                     <h2 id="featured-posts" className="text-xl font-semibold blog-text-navy">
                       Em destaque
                     </h2>
-                    <p className="mt-1 text-sm blog-text-body">Pilares actualizados — comece por aqui.</p>
+                    <p className="mt-1 text-sm blog-text-body">Comece por estes guias — são os pilares do blog.</p>
                   </div>
                   <p className="text-xs blog-text-muted">{BLOG_POSTS.length} artigos indexados</p>
                 </div>
@@ -221,7 +221,7 @@ export function BlogIndexPage() {
             <BlogLeadMagnet
               source="blog-index-lead"
               title="Newsletter + checklist fiscal"
-              description="Insight semanal + checklist AT/SS. Um sítio só — sem repetir no rodapé."
+              description="Resumo semanal e checklist AT/SS num só sítio — sem repetir no rodapé."
             />
             <BlogProductShelf />
             <div className="blog-rail-card">

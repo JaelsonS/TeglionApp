@@ -18,7 +18,7 @@ export const postRegimeSimplificado: BlogPost = {
   publishedAt: '2026-05-21',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
   category: 'IRS',
   audience: ['independente', 'pme'],
   featured: false,
@@ -46,15 +46,15 @@ export const postRegimeSimplificado: BlogPost = {
     legalCallout(),
     keyTakeaways([
       'Regime simplificado: tributa uma parte da facturação (coeficientes) — não todas as despesas reais.',
-      'Contabilidade organizada: tributa lucro real (rendimentos − despesas documentadas) — exige contador certificado.',
+      'Contabilidade organizada: tributa lucro real (rendimentos − despesas documentadas) — exige contabilista certificado.',
       'Há limite de volume de negócios para manter regime simplificado — ultrapassar obriga a mudança.',
       'Muitas despesas elevadas (aluguer escritório, equipa, stock) favorecem contabilidade organizada.',
       'A escolha afecta IRS, IVA e burocracia durante anos — simule antes de decidir.',
     ]),
     ...proseParagraphs(
-      'Ao abrir actividade, escolhe (ou herda) um regime de contabilidade. O regime simplificado é comum no início; a contabilidade organizada exige contador certificado e livros contabilísticos — mas pode ser vantajosa com despesas elevadas ou facturação alta.',
+      'Ao abrir actividade, escolhe (ou herda) um regime de contabilidade. O regime simplificado é comum no início; a contabilidade organizada exige contabilista certificado e livros contabilísticos — mas pode ser vantajosa com despesas elevadas ou facturação alta.',
       'Confundir os dois regimes é uma das principais fontes de erro no IRS: quem está no simplificado não «deduz tudo» como numa empresa com contabilidade completa; quem está na organizada não pode ignorar facturas de compra.',
-      'Este guia compara ambos em linguagem prática. A decisão final deve ser simulada com contador — especialmente se está perto dos limites legais ou planeia crescer rápido.',
+      'Este guia compara ambos em linguagem prática. A decisão final deve ser simulada com contabilista — especialmente se está perto dos limites legais ou planeia crescer rápido.',
     ),
     sectionDivider(),
     comparisonTable({
@@ -62,7 +62,7 @@ export const postRegimeSimplificado: BlogPost = {
       headers: ['Critério', 'Regime simplificado', 'Contabilidade organizada'],
       rows: [
         ['Base de tributação', 'Coeficientes × facturação', 'Rendimentos − despesas reais'],
-        ['Contador certificado', 'Recomendado, não sempre obrigatório', 'Obrigatório'],
+        ['Contabilista certificado', 'Recomendado, não sempre obrigatório', 'Obrigatório'],
         ['Arquivo de despesas', 'Importante, mas menos granular', 'Todas as facturas por rubrica'],
         ['Volume de negócios', 'Limite máximo anual', 'Obrigatório acima do limite'],
         ['Complexidade mensal', 'Menor', 'Maior (mapas, balancetes)'],
@@ -153,7 +153,7 @@ export const postRegimeSimplificado: BlogPost = {
       heading: 'Aprofundar antes de decidir',
       headingId: 'aprofundar',
       intro:
-        'Escolher regime não é só «clicar uma opção no portal». Quem percebe o básico fala com o contador em igual — e evita mudanças caras por engano.',
+        'Escolher regime não é só «clicar uma opção no portal». Quem percebe o básico fala com o contabilista em igual — e evita mudanças caras por engano.',
       items: [
         {
           key: 'amazonLivroGestaoContabil',
@@ -182,6 +182,6 @@ export const postRegimeSimplificado: BlogPost = {
         'deducoes-irs-portugal-guia-completo',
       ],
     }),
-    legalCallout('A escolha de regime tem impacto fiscal relevante — simule com contador antes de decidir.'),
+    legalCallout('A escolha de regime tem impacto fiscal relevante — simule com contabilista antes de decidir.'),
   ],
 }

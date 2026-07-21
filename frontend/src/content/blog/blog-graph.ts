@@ -1,4 +1,4 @@
-/** Trilhas de leitura e séries — liga artigos entre si para SEO e retenção. */
+/** Percursos de leitura e séries — liga artigos entre si para SEO e retenção. */
 export type BlogReadingPath = {
   id: string
   title: string
@@ -85,8 +85,8 @@ export const BLOG_READING_PATHS: BlogReadingPath[] = [
   },
   {
     id: 'operacoes-escritorio-teglion',
-    title: 'Operações do escritório com TegLion',
-    description: 'Digitalizar, prazos, SAF-T, software e caso prático — trilho operacional para escritórios.',
+    title: 'Operações do escritório',
+    description: 'Digitalizar, prazos, documentos e software — o dia-a-dia do escritório OCC.',
     slugs: [
       'digitalizar-escritorio-contabilidade-portugal',
       'gestao-prazos-fiscais-escritorio-contabilidade',
