@@ -1,4 +1,4 @@
-# CODEOWNERS — TegLion
+# CODEOWNERS — Teglion
 # Exige review de dono antes de merge em áreas sensíveis quando a branch
 # protection do GitHub tiver "Require review from Code Owners" activo.
 # Ver docs/product/SCALE_100K_1M_CHECKLIST.md (F0-02).

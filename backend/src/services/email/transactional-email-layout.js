@@ -6,7 +6,7 @@
 const { env } = require('../../config/env');
 
 const APP_URL = (env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
-const BRAND = 'TegLion';
+const BRAND = 'Teglion';
 const BRAND_COLOR = '#0f2942';
 const ACCENT = '#1d4ed8';
 

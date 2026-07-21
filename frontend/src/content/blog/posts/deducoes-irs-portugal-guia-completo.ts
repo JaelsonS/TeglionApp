@@ -20,7 +20,7 @@ export const postDeducoesIrs: BlogPost = {
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'IRS',
   audience: ['independente', 'pme'],
   tags: ['IRS', 'deduções fiscais', 'Modelo 3', 'saúde', 'educação', 'habitação', 'Portugal'],
@@ -40,7 +40,7 @@ export const postDeducoesIrs: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Deduções IRS Portugal — guia completo 2026 | Blog TegLion',
+    title: 'Deduções IRS Portugal — guia completo 2026 | Blog Teglion',
     description:
       'Entenda deduções à coleta no IRS: saúde, educação, habitação, pensões e despesas gerais. Documentos, limites e erros comuns. Conteúdo informativo.',
     keywords: [
@@ -169,7 +169,7 @@ export const postDeducoesIrs: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Clientes a enviar facturas só em Abril?',
-      text: 'Com TegLion, o escritório pede despesas de saúde, educação e actividade ao longo do ano — o IRS deixa de ser uma caça a PDFs na última semana.',
+      text: 'Com Teglion, o escritório pede despesas de saúde, educação e actividade ao longo do ano — o IRS deixa de ser uma caça a PDFs na última semana.',
     }),
     ...faqSection({
       heading: 'Perguntas frequentes sobre deduções',

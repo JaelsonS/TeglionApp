@@ -1,4 +1,4 @@
-# TegLion
+# Teglion
 
 > Software de gestão para escritórios de contabilidade — documentos, prazos fiscais, portal do cliente e comunicação num só sistema.
 

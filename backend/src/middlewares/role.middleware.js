@@ -53,7 +53,7 @@ function requireRole(allowedRoles) {
   };
 }
 
-/** Legado pré-TegLion — não usado no domínio atual; noop para compatibilidade. */
+/** Legado pré-Teglion — não usado no domínio atual; noop para compatibilidade. */
 async function requireConsultantForClient(_req, _res, next) {
   next();
 }

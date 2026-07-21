@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-/** Publisher AdSense TegLion — carregar apenas dentro de `BlogLayout` (/blog). */
+/** Publisher AdSense Teglion — carregar apenas dentro de `BlogLayout` (/blog). */
 export const ADSENSE_CLIENT = 'ca-pub-8576885038152568'
 const ADSENSE_SCRIPT_ID = 'teglion-adsense'
 const ADSENSE_SRC = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`

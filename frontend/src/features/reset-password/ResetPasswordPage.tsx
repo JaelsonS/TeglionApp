@@ -75,7 +75,7 @@ export function ResetPasswordPage() {
   useEffect(() => {
     document.title = t('resetPassword.documentTitle')
     return () => {
-      document.title = 'TegLion — Escritórios de contabilidade'
+      document.title = 'Teglion — Escritórios de contabilidade'
     }
   }, [t])
 

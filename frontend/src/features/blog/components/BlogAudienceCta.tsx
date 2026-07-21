@@ -24,7 +24,7 @@ export function BlogAudienceCta({ post, compact = false }: Props) {
           Portal do cliente, validações e calendário fiscal num só sítio. Teste 14 dias grátis, sem cartão.
         </p>
         <Link to={authFirmRegisterUrl()} className="landing-btn-primary mt-3 inline-flex text-sm">
-          Testar TegLion grátis
+          Testar Teglion grátis
         </Link>
       </aside>
     )

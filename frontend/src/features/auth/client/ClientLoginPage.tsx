@@ -128,7 +128,7 @@ export function ClientLoginPage() {
 
   return (
     <AuthLayout
-      title="Entrar no TegLion"
+      title="Entrar no Teglion"
       subtitle={subtitle}
       leftPanelSlot={<OfficeScreensCarousel />}
     >

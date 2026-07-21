@@ -1,4 +1,4 @@
-# TegLion — Performance Charter
+# Teglion — Performance Charter
 
 **Actualizado: 17 Julho 2026**  
 Complemento de [EVOLUTION_PLAN.md](./EVOLUTION_PLAN.md).  

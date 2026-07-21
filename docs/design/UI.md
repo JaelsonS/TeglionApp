@@ -1,6 +1,6 @@
 # UI — design system, padrões e QA
 
-Documento único para interface do TegLion (escritório + portal cliente).
+Documento único para interface do Teglion (escritório + portal cliente).
 
 ---
 

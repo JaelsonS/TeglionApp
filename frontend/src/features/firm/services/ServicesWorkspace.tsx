@@ -440,7 +440,7 @@ export function ServicesWorkspace() {
         }}
       />
 
-      <p className="cb-services-foot shrink-0">TegLion — Serviços</p>
+      <p className="cb-services-foot shrink-0">Teglion — Serviços</p>
     </div>
   )
 }

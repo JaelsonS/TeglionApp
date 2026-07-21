@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Cria (ou reutiliza) o produto e os preços da Stripe exactamente como o
- * TegLion espera — mesmos valores que estão em backend/src/config/env.js
+ * Teglion espera — mesmos valores que estão em backend/src/config/env.js
  * (FIRM_PLAN_EUR_MONTHLY_CENTS / FIRM_PLAN_EUR_YEARLY_CENTS) e que o
  * frontend mostra em pricingConstants.ts.
  *
@@ -15,7 +15,7 @@
 const Stripe = require('stripe');
 const { env } = require('../src/config/env');
 
-const PRODUCT_NAME = 'TegLion — Plano Escritório';
+const PRODUCT_NAME = 'Teglion — Plano Escritório';
 const PRODUCT_METADATA = { app: 'teglion', role: 'firm_plan' };
 const CURRENCY = 'eur';
 

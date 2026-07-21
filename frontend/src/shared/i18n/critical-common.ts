@@ -47,7 +47,7 @@ export const criticalCommonResources = {
       contabil: {
         firm: {
           subtitle: 'Escritório',
-          fallback: 'TegLion',
+          fallback: 'Teglion',
           nav: {
             overview: 'Visão geral',
             clients: 'Clientes',

@@ -1,8 +1,8 @@
-# TegLion — API
+# Teglion — API
 
 **Documento oficial · Última actualização: Julho 2026**
 
-Contrato HTTP da API TegLion. Descreve áreas, convenções e endpoints. Para detalhe de implementação, ver código em `backend/src/routes/`.
+Contrato HTTP da API Teglion. Descreve áreas, convenções e endpoints. Para detalhe de implementação, ver código em `backend/src/routes/`.
 
 ---
 
@@ -354,7 +354,7 @@ Fields:
 
 ```
 POST /api/v1/webhooks/{firmId}
-X-TegLion-Signature: sha256=...
+X-Teglion-Signature: sha256=...
 ```
 
 Eventos: `document.uploaded`, `obligation.overdue`, `client.created`, `message.received`.

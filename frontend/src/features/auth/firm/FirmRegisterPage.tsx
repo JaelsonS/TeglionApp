@@ -126,7 +126,7 @@ export function FirmRegisterPage() {
 
   return (
     <AuthLayout
-      title="Começar com o TegLion"
+      title="Começar com o Teglion"
       subtitle="Registe o seu escritório e comece a gerir clientes e obrigações com confiança."
       leftPanelSlot={<OfficeScreensCarousel />}
     >
@@ -148,7 +148,7 @@ export function FirmRegisterPage() {
                 <p>
                   {pendingConfirm.emailSent
                     ? 'Abra a caixa de entrada (e o spam), clique em «Confirmar e-mail» e depois entre no login com a palavra-passe que definiu.'
-                    : 'Não foi possível enviar o e-mail agora. Tente mais tarde ou contacte o suporte TegLion.'}
+                    : 'Não foi possível enviar o e-mail agora. Tente mais tarde ou contacte o suporte Teglion.'}
                 </p>
                 <p className="text-emerald-800/90">O link é válido durante 48 horas.</p>
               </div>

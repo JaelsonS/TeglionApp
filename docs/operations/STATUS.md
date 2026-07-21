@@ -1,4 +1,4 @@
-# TegLion — Estado do projecto
+# Teglion — Estado do projecto
 
 **Última actualização:** 17 Julho 2026
 

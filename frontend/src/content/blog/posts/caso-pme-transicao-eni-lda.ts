@@ -19,7 +19,7 @@ export const postCasoEniLda: BlogPost = {
   publishedAt: '2026-07-20',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Contabilidade',
   audience: ['pme', 'independente'],
   featured: false,
@@ -32,7 +32,7 @@ export const postCasoEniLda: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Caso PME: transição de ENI para Lda | Blog TegLion',
+    title: 'Caso PME: transição de ENI para Lda | Blog Teglion',
     description:
       'Caso ilustrativo de passagem de freelancer ENI a sociedade Lda: facturação, custos, impostos e checklist. Conteúdo educativo — confirme com contabilista certificado.',
     keywords: [
@@ -133,7 +133,7 @@ export const postCasoEniLda: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Escritório a gerir várias transições ENI → Lda?',
-      text: 'Padronize a checklist de documentos e a data de corte no portal TegLion — o cliente vê o que falta; a equipa não perde o fio no WhatsApp.',
+      text: 'Padronize a checklist de documentos e a data de corte no portal Teglion — o cliente vê o que falta; a equipa não perde o fio no WhatsApp.',
     }),
     ...articleSection({
       h2: 'O dia D e os 30 dias seguintes',
@@ -197,7 +197,7 @@ export const postCasoEniLda: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Do lado do escritório',
-      text: 'Transições ENI → Lda geram picos de documentos. Com TegLion, o cliente entrega no portal e a equipa valida com estados — menos ruído no mês mais sensível.',
+      text: 'Transições ENI → Lda geram picos de documentos. Com Teglion, o cliente entrega no portal e a equipa valida com estados — menos ruído no mês mais sensível.',
     }),
     ...internalLinksSection({
       title: 'Guias para decidir e executar',

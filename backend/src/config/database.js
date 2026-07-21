@@ -10,13 +10,13 @@ let supabaseConnected = false;
 async function connectDatabase() {
   if (!isSupabaseConfigured()) {
     throw new Error(
-      '[TegLion] Supabase não configurado.'
+      '[Teglion] Supabase não configurado.'
     );
   }
 
   const client = getSupabaseAdmin();
   if (!client) {
-    throw new Error('[TegLion] Cliente Supabase não inicializado.');
+    throw new Error('[Teglion] Cliente Supabase não inicializado.');
   }
 
   const { error } = await client.from('firms').select('id').limit(1);
@@ -25,18 +25,18 @@ async function connectDatabase() {
     logger.warn('SUPABASE_PING', {
       message: error.message,
       code: error.code,
-      hint: '[TegLion] Executar as migrações',
+      hint: '[Teglion] Executar as migrações',
     });
 
     if (!acceptableErrorCodes.includes(error.code)) {
       throw new Error(
-        `[TegLion] Supabase unreachable: ${error.message || error.code}`
+        `[Teglion] Supabase unreachable: ${error.message || error.code}`
       );
     }
   }
 
   supabaseConnected = true;
-  logger.info('Supabase conectado (TegLion — primary DB)');
+  logger.info('Supabase conectado (Teglion — primary DB)');
 }
 
 function isSupabasePrimary() {

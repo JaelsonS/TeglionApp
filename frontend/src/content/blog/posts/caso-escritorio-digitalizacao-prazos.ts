@@ -19,7 +19,7 @@ export const postCasoDigitalizacao: BlogPost = {
   publishedAt: '2026-07-20',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Escritórios',
   audience: ['escritorio'],
   featured: false,
@@ -104,7 +104,7 @@ export const postCasoDigitalizacao: BlogPost = {
       id: 'o-que-mudaram',
       paragraphs: [
         'Decidiram não fazer «revolução total». Mantiveram o ERP. Introduziram três peças: (1) portal do cliente para pedidos e upload; (2) ritual interno de prazos (dia 8 pedidos, dia 12 chase, dia 15 corte, dia 18–19 submissão); (3) estados visíveis para o cliente.',
-        'Ferramentas de portal (no espírito do que o TegLion oferece a escritórios) passaram a ser o canal oficial. WhatsApp ficou para urgências pontuais — com regra: «se for documento do fecho, carrega no portal».',
+        'Ferramentas de portal (no espírito do que o Teglion oferece a escritórios) passaram a ser o canal oficial. WhatsApp ficou para urgências pontuais — com regra: «se for documento do fecho, carrega no portal».',
       ],
       blocks: [
         {
@@ -124,7 +124,7 @@ export const postCasoDigitalizacao: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Quer o mesmo tipo de ritual com portal?',
-      text: 'TegLion dá ao escritório pedidos formais, histórico e menos dependência do chat — para a equipa viver o calendário, não a caixa de mensagens.',
+      text: 'Teglion dá ao escritório pedidos formais, histórico e menos dependência do chat — para a equipa viver o calendário, não a caixa de mensagens.',
     }),
     ...articleSection({
       h2: 'Resultados aos 90 dias',
@@ -182,7 +182,7 @@ export const postCasoDigitalizacao: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Do piloto ao hábito',
-      text: 'Monte um piloto com dezenas de clientes no TegLion, meça horas de follow-up e só depois faça rollout — o mesmo caminho do Escritório A, com menos improvisação.',
+      text: 'Monte um piloto com dezenas de clientes no Teglion, meça horas de follow-up e só depois faça rollout — o mesmo caminho do Escritório A, com menos improvisação.',
     }),
     ...internalLinksSection({
       title: 'Aprofundar o método',

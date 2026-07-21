@@ -1,8 +1,8 @@
-# TegLion — Segurança
+# Teglion — Segurança
 
 **Documento oficial · Última actualização: Julho 2026**
 
-Esta é a política de segurança que eu uso para operar o TegLion com previsibilidade e sem fragilizar produção.
+Esta é a política de segurança que eu uso para operar o Teglion com previsibilidade e sem fragilizar produção.
 Define controlos, riscos, responsabilidades e requisitos para um SaaS que processa dados fiscais e pessoais.
 
 ---

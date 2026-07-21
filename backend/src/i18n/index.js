@@ -1,6 +1,6 @@
 const ptPT = require('./locales/pt-PT');
 
-/** TegLion — pt-PT only (multilíngue = fase futura). */
+/** Teglion — pt-PT only (multilíngue = fase futura). */
 const DEFAULT_LOCALE = 'pt-PT';
 const SUPPORTED_LOCALES = ['pt-PT'];
 

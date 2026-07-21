@@ -1,6 +1,6 @@
 /**
  * Sincroniza estados OVERDUE e envia lembretes automáticos (5d / 1d / dia).
- * Executado periodicamente pelo boot TegLion.
+ * Executado periodicamente pelo boot Teglion.
  */
 const { getSupabaseAdmin, isSupabaseConfigured } = require('../../../db/supabase/client');
 const messagesRepository = require('../../../db/supabase/repositories/messages.repository');
@@ -88,12 +88,12 @@ async function runAllFirms() {
   const sb = getSupabaseAdmin();
   const { data, error } = await sb.from('firms').select('id').eq('status', 'ACTIVE');
   if (error) {
-    console.warn('[TegLion] obligation reminders:', error.message);
+    console.warn('[Teglion] obligation reminders:', error.message);
     return;
   }
   for (const row of data || []) {
     await processFirm(row.id).catch((e) => {
-      console.warn('[TegLion] reminders firm', row.id, e.message);
+      console.warn('[Teglion] reminders firm', row.id, e.message);
     });
   }
 }

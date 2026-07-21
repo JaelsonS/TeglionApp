@@ -58,7 +58,7 @@ export function LandingHero() {
             >
               <LandingScreenshot
                 src={LANDING_SCREENS.dashboard}
-                alt="Painel do escritório no TegLion"
+                alt="Painel do escritório no Teglion"
                 priority
                 className="shadow-[0_20px_50px_rgba(15,41,66,0.12)]"
               />

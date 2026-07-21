@@ -1,4 +1,4 @@
-/** TegLion — pt-PT only (multilíngue = fase futura). */
+/** Teglion — pt-PT only (multilíngue = fase futura). */
 export type AppLocale = 'pt-PT' | 'pt-BR'
 
 export const APP_LOCALE: AppLocale = 'pt-PT'
@@ -7,7 +7,7 @@ export const APP_LOCALES: Array<{ value: AppLocale; label: string }> = [
   { value: 'pt-PT', label: '🇵🇹 PT' },
 ]
 
-export const APP_LOCALE_STORAGE_KEY = 'TegLion.locale'
+export const APP_LOCALE_STORAGE_KEY = 'Teglion.locale'
 export const APP_LOCALE_CHANGED_EVENT = 'contabil:locale-changed'
 
 export function normalizeAppLocale(raw?: string | null): AppLocale {

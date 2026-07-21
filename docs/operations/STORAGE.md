@@ -1,4 +1,4 @@
-# Armazenamento de ficheiros — TegLion
+# Armazenamento de ficheiros — Teglion
 
 **Único backend activo:** Supabase Storage (bucket privado `contabil-documents`).
 

@@ -19,7 +19,7 @@ const APP_URL = (env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '')
  */
 async function sendEmail({ to, subject, html, text, tags, replyTo }) {
   if (!env.EMAIL_ENABLED || !env.BREVO_API_KEY) {
-    console.log('[TegLion][email] skip (desativado):', subject, '→', to);
+    console.log('[Teglion][email] skip (desativado):', subject, '→', to);
     return { skipped: true };
   }
   if (!to || !subject) return { skipped: true };
@@ -30,7 +30,7 @@ async function sendEmail({ to, subject, html, text, tags, replyTo }) {
 
   const payload = {
     sender: {
-      name: env.FROM_NAME || 'TegLion',
+      name: env.FROM_NAME || 'Teglion',
       email: env.FROM_EMAIL || 'noreply@teglion.com',
     },
     to: [{ email: String(to).trim() }],
@@ -55,7 +55,7 @@ async function sendEmail({ to, subject, html, text, tags, replyTo }) {
   } else if (env.FROM_EMAIL) {
     payload.replyTo = {
       email: env.FROM_EMAIL,
-      name: env.FROM_NAME || 'TegLion',
+      name: env.FROM_NAME || 'Teglion',
     };
   }
 

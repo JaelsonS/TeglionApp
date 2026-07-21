@@ -1,4 +1,4 @@
-# Deploy em produção — TegLion
+# Deploy em produção — Teglion
 
 **Objetivo:** colocar o piloto no escritório de contabilidade com confiança.
 
@@ -6,12 +6,12 @@
 
 ## Email: Brevo vs Supabase Auth
 
-| Canal | Uso no TegLion | Recomendação |
+| Canal | Uso no Teglion | Recomendação |
 |-------|-----------------|--------------|
 | **Brevo (API)** | Convites, tarefas, lembretes, docs recebidos | **Usar** — já integrado |
 | **Supabase Auth emails** | Magic link, confirm signup em `auth.users` | **Não usamos** — auth é custom (`firm_users` + `clients` + JWT) |
 
-O Supabase **pode** enviar emails de autenticação se migrares para Supabase Auth. Hoje o login/registo/password são geridos pelo backend TegLion — por isso **Brevo é o canal certo** para emails transacionais do produto.
+O Supabase **pode** enviar emails de autenticação se migrares para Supabase Auth. Hoje o login/registo/password são geridos pelo backend Teglion — por isso **Brevo é o canal certo** para emails transacionais do produto.
 
 Storage e base de dados continuam no Supabase; só os emails de produto vão pela Brevo.
 
@@ -100,7 +100,7 @@ Opcional SMS:
 
 ```
 SMS_ENABLED=true
-BREVO_SMS_SENDER=TegLion   # nome validado na Brevo SMS
+BREVO_SMS_SENDER=Teglion   # nome validado na Brevo SMS
 ```
 
 ### 3. Frontend (Vercel)

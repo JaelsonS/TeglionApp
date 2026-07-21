@@ -223,7 +223,7 @@ export function DocumentsFilesWorkspace() {
       </Sheet>
       ) : null}
 
-      <p className="cb-docs-foot">TegLion — Documentos / Ficheiros</p>
+      <p className="cb-docs-foot">Teglion — Documentos / Ficheiros</p>
     </div>
   )
 }

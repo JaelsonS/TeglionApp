@@ -1,6 +1,6 @@
 # Engenharia
 
-**Porque esta pasta existe:** Define *como* o TegLion é construído — arquitectura, contratos, dados e regras de código.
+**Porque esta pasta existe:** Define *como* o Teglion é construído — arquitectura, contratos, dados e regras de código.
 
 **Quem deve ler:** Engenheiros, arquitectos, revisores de PR.
 

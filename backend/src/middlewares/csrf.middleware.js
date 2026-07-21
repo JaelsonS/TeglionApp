@@ -275,7 +275,7 @@ const csrfSkipPaths = [
   /^\/api\/public\/.*/, // Público (geo, search, etc.)
   /^\/api\/checkout\/webhook.*/, // Stripe webhook (valida signature)
   /^\/api\/stripe\/webhook.*/, // Stripe webhook legado
-  /^\/api\/public\/stripe\/webhook.*/, // TegLion Stripe webhook
+  /^\/api\/public\/stripe\/webhook.*/, // Teglion Stripe webhook
   /^\/api\/webhook\/.*/, // Webhook WhatsApp 360dialog
   /^\/api\/webhooks\/.*/, // Webhooks gerais
   /^\/api\/health.*/, // Health check

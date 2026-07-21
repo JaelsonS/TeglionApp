@@ -148,7 +148,7 @@ export function FirmSidebar({
 
   const fullLogoUrl = firmLogoUrl || toPublicAssetUrl(firm?.branding?.logoUrl)
   const subtitle = t('contabil.firm.subtitle', { defaultValue: 'Escritório' })
-  const fallbackName = t('contabil.firm.fallback', { defaultValue: 'TegLion' })
+  const fallbackName = t('contabil.firm.fallback', { defaultValue: 'Teglion' })
 
   const labelFor = (item: FirmNavItemConfig) => t(item.labelKey, { defaultValue: item.labelDefault })
 

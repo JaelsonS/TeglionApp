@@ -3,7 +3,7 @@
 **Data base:** Julho 2026
 **Responsável:** Jaelson Silva dos Santos
 
-Este documento é o meu plano operativo para colocar o TegLion em produção com controlo, segurança e rollback pronto.
+Este documento é o meu plano operativo para colocar o Teglion em produção com controlo, segurança e rollback pronto.
 
 ---
 

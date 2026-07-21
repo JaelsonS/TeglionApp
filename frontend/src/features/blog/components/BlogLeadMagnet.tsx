@@ -67,7 +67,7 @@ export function BlogLeadMagnet({
         <label className="blog-lead-consent">
           <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} required />
           <span>
-            Quero receber a checklist e conteúdos úteis da TegLion.{' '}
+            Quero receber a checklist e conteúdos úteis da Teglion.{' '}
             <Link to="/privacidade" className="underline underline-offset-2">
               Privacidade
             </Link>

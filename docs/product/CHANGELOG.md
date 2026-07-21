@@ -1,8 +1,8 @@
-# TegLion — Changelog
+# Teglion — Changelog
 
 **Documento oficial · Última actualização: Julho 2026**
 
-Histórico de evolução do TegLion. Entradas em ordem cronológica inversa.
+Histórico de evolução do Teglion. Entradas em ordem cronológica inversa.
 
 Formato baseado em [Keep a Changelog](https://keepachangelog.com/).
 
@@ -130,7 +130,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/).
 ## [1.0.0] — 2025–2026
 
 ### Produto
-- **Migração de produto:** TegLion (clínicas/saúde) → ContaBil (escritórios de contabilidade)
+- **Migração de produto:** Teglion (clínicas/saúde) → ContaBil (escritórios de contabilidade)
 - Portal do escritório: clientes, documentos, tarefas, mensagens
 - Portal do cliente: upload, pedidos, obrigações
 - Auth: registo escritório, convite cliente, login, recuperação password
@@ -153,7 +153,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/).
 
 ## [0.x] — 2024–2025
 
-### Produto (era TegLion Saúde)
+### Produto (era Teglion Saúde)
 - SaaS para clínicas: pacientes, consultas, exames, prontuários
 - Portal do paciente
 - Facturação clínica

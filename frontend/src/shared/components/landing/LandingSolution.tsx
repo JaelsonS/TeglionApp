@@ -41,7 +41,7 @@ export function LandingSolution() {
             <div className="mt-6">
               <LandingScreenshot
                 src={LANDING_SCREENS.dashboard}
-                alt="Painel operacional do TegLion"
+                alt="Painel operacional do Teglion"
               />
             </div>
           </FadeInView>
@@ -59,7 +59,7 @@ export function LandingSolution() {
             <div className="mt-6">
               <LandingScreenshot
                 src={LANDING_SCREENS.portalCliente}
-                alt="Portal do cliente TegLion no browser — início, pedidos e mensagens"
+                alt="Portal do cliente Teglion no browser — início, pedidos e mensagens"
               />
             </div>
           </FadeInView>

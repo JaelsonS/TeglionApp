@@ -1,4 +1,4 @@
-/** Limite de upload alinhado com o backend (MAX_FILE_SIZE_MB / TegLion 25 MB). */
+/** Limite de upload alinhado com o backend (MAX_FILE_SIZE_MB / Teglion 25 MB). */
 export const MAX_UPLOAD_MB = Number(import.meta.env.VITE_MAX_FILE_SIZE_MB) || 25
 export const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024
 

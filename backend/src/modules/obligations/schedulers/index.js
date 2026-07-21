@@ -1,5 +1,5 @@
 /**
- * Schedulers TegLion — lembretes de obrigações e sync OVERDUE.
+ * Schedulers Teglion — lembretes de obrigações e sync OVERDUE.
  */
 const { runAllFirms } = require('./obligation-reminders.scheduler');
 

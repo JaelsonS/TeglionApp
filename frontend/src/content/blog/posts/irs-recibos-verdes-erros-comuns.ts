@@ -17,7 +17,7 @@ export const postIrsErros: BlogPost = {
   publishedAt: '2026-05-25',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'IRS',
   audience: ['independente', 'pme'],
   featured: false,
@@ -37,7 +37,7 @@ export const postIrsErros: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Erros comuns no IRS para recibos verdes | Blog TegLion',
+    title: 'Erros comuns no IRS para recibos verdes | Blog Teglion',
     description:
       'Evite multas e coimas no IRS: erros frequentes de quem trabalha com recibos verdes em Portugal, com explicação de cada um e como os prevenir.',
     keywords: ['IRS recibos verdes erros', 'multa IRS independente', 'declaração IRS freelancer', 'coimas IRS Portugal'],

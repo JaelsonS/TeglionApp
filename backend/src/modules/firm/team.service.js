@@ -123,13 +123,13 @@ async function createMember({ firmId, actor, payload, req }) {
             });
             if (delivery?.skipped) {
                 welcomeEmailError = 'email_disabled';
-                console.warn('[TegLion][team] welcome email skipped (BREVO desactivado):', created.email);
+                console.warn('[Teglion][team] welcome email skipped (BREVO desactivado):', created.email);
             } else {
                 welcomeEmailSent = true;
             }
         } catch (err) {
             welcomeEmailError = err?.response?.data?.message || err?.message || 'email_delivery_failed';
-            console.warn('[TegLion][team] falha no e-mail de boas-vindas:', welcomeEmailError);
+            console.warn('[Teglion][team] falha no e-mail de boas-vindas:', welcomeEmailError);
         }
     }
 

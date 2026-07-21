@@ -2,7 +2,7 @@
   "name": "contabil-backend",
   "version": "2.0.0",
   "private": true,
-  "description": "TegLion — Backend SaaS para escritórios de contabilidade",
+  "description": "Teglion — Backend SaaS para escritórios de contabilidade",
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {

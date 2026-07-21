@@ -1,8 +1,8 @@
-# TegLion — Base de Dados
+# Teglion — Base de Dados
 
 **Documento oficial · Última actualização: Julho 2026**
 
-Modelagem, convenções e evolução da base de dados PostgreSQL (Supabase) do TegLion.
+Modelagem, convenções e evolução da base de dados PostgreSQL (Supabase) do Teglion.
 
 ---
 

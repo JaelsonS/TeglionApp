@@ -1,5 +1,5 @@
 /**
- * Timeline de atividades e auditoria operacional TegLion.
+ * Timeline de atividades e auditoria operacional Teglion.
  */
 const { getRepository } = require('../../db/supabase/repositories');
 const { getSupabaseAdmin, isSupabaseConfigured } = require('../../db/supabase/client');

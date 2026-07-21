@@ -98,7 +98,7 @@ export function FirmOnboardingWizard({ className }: FirmOnboardingWizardProps) {
             Configure o escritório em poucos minutos
           </h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Complete estes passos para tirar partido do TegLion — documentos, prazos e portal do cliente.
+            Complete estes passos para tirar partido do Teglion — documentos, prazos e portal do cliente.
           </p>
           <div className="mt-3 max-w-md">
             <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">

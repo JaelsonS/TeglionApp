@@ -1,5 +1,5 @@
 /**
- * Autenticação TegLion — Supabase (firm_users + clients).
+ * Autenticação Teglion — Supabase (firm_users + clients).
  */
 const crypto = require('crypto');
 const { AppError } = require('../../middlewares/error.middleware');
@@ -632,7 +632,7 @@ async function requestPasswordRecovery({ email, role }) {
     if (err instanceof AppError) throw err;
     await passwordResetRepository.invalidateUserTokens(account.userType, account.userId).catch(() => {});
     const message = err?.response?.data?.message || err?.message || 'email_delivery_failed';
-    console.warn('[TegLion][auth] falha no e-mail de reset:', message);
+    console.warn('[Teglion][auth] falha no e-mail de reset:', message);
     throw new AppError(
       'Não foi possível enviar o e-mail de recuperação. Tente novamente mais tarde.',
       503,

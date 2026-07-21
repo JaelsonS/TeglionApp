@@ -1,16 +1,16 @@
-# TegLion — Produto
+# Teglion — Produto
 
 **Documento oficial · Última actualização: Julho 2026**
 
-Este documento descreve o **negócio** do TegLion — quem compra, quem usa, como ganha dinheiro e como cresce. Não descreve código nem rotas técnicas.
+Este documento descreve o **negócio** do Teglion — quem compra, quem usa, como ganha dinheiro e como cresce. Não descreve código nem rotas técnicas.
 
 ---
 
-## O que é o TegLion
+## O que é o Teglion
 
 SaaS B2B multi-tenant que dá a escritórios de contabilidade um **painel operacional** e aos seus clientes um **portal digital** para documentos, prazos e comunicação.
 
-O TegLion **não é** um ERP, **não é** software de facturação e **não substitui** o trabalho contabilístico. É a camada operacional que elimina o caos entre escritório e cliente.
+O Teglion **não é** um ERP, **não é** software de facturação e **não substitui** o trabalho contabilístico. É a camada operacional que elimina o caos entre escritório e cliente.
 
 ---
 
@@ -57,7 +57,7 @@ O cliente **não paga** directamente — o valor percebido justifica a mensalida
 | **FIRM_OWNER** | Tudo: billing, equipa, definições, fecho de conta |
 | **FIRM_STAFF** | Operações: clientes, documentos, tarefas, mensagens |
 | **FIRM_CONSULTANT** | Consultorias e clientes atribuídos |
-| **Equipa TegLion** (interno) | Infra, suporte L2, billing platform, segurança |
+| **Equipa Teglion** (interno) | Infra, suporte L2, billing platform, segurança |
 
 ---
 
@@ -128,7 +128,7 @@ O cliente **não paga** directamente — o valor percebido justifica a mensalida
 
 ## Dores que resolve
 
-| Dor | Solução TegLion | Métrica de sucesso |
+| Dor | Solução Teglion | Métrica de sucesso |
 |-----|-----------------|-------------------|
 | "Onde está o extrato de Março?" | Pedidos estruturados + portal | Tempo para obter documento ↓ 70% |
 | Cliente não sabe o que falta | Dashboard cliente com pedidos pendentes | % clientes autónomos ↑ |
@@ -145,7 +145,7 @@ O cliente **não paga** directamente — o valor percebido justifica a mensalida
                     Operações do dia-a-dia
                             ▲
                             │
-              TegLion ★     │
+              Teglion ★     │
                             │
     ◄───────────────────────┼───────────────────────►
     Simples                 │                 Complexo
@@ -156,7 +156,7 @@ O cliente **não paga** directamente — o valor percebido justifica a mensalida
                     Contabilidade profunda
 ```
 
-**TegLion ocupa o quadrante superior-esquerdo:** operações simples e modernas, sem competir com ERPs na contabilidade profunda.
+**Teglion ocupa o quadrante superior-esquerdo:** operações simples e modernas, sem competir com ERPs na contabilidade profunda.
 
 ### Concorrentes indirectos
 

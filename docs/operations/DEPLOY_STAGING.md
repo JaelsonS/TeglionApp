@@ -1,4 +1,4 @@
-# Deploy staging — TegLion
+# Deploy staging — Teglion
 
 Ambiente isolado para desenvolver e testar **sem afectar o escritório em produção** (`teglion.com`).
 

@@ -1,4 +1,4 @@
-/** i18next — TegLion pt-PT only (multilíngue = fase futura). */
+/** i18next — Teglion pt-PT only (multilíngue = fase futura). */
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 

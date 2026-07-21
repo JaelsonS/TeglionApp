@@ -1,8 +1,8 @@
-# TegLion — Padrões de Código
+# Teglion — Padrões de Código
 
 **Documento oficial · Última actualização: Julho 2026**
 
-Regras obrigatórias para todo o código do TegLion. Aplicam-se a humanos e a agentes IA. Sem excepções sem aprovação do CTO.
+Regras obrigatórias para todo o código do Teglion. Aplicam-se a humanos e a agentes IA. Sem excepções sem aprovação do CTO.
 
 ---
 

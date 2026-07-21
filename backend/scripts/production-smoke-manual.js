@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Smoke manual/automático de produção TegLion.
+ * Smoke manual/automático de produção Teglion.
  *
  * Cobre: health, páginas públicas, Redis, Brevo, Sentry config,
  * JWT autenticado (owner real na BD), listagem de equipa, settings RBAC,
@@ -59,7 +59,7 @@ async function httpGet(url, opts = {}) {
 }
 
 async function main() {
-  console.log('\n=== TegLion Production Smoke Manual ===\n');
+  console.log('\n=== Teglion Production Smoke Manual ===\n');
   console.log(`API_BASE=${API_BASE}`);
   console.log(`FE_BASE=${FE_BASE}\n`);
 

@@ -8,7 +8,7 @@ function blockLegacyTeglionRoutes(req, res, next) {
   return res.status(410).json({
     code: 'LEGACY_ROUTE_DISABLED',
     message:
-      'Este endpoint foi desactivado. Use as rotas /api/contabil/* ou /api/client-portal/* no TegLion.',
+      'Este endpoint foi desactivado. Use as rotas /api/contabil/* ou /api/client-portal/* no Teglion.',
     path: req.originalUrl,
   });
 }

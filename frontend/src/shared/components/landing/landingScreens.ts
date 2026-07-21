@@ -24,13 +24,13 @@ export const LANDING_CAROUSEL_SLIDES: {
     title: 'Painel operacional',
     copy: 'Fecha o mês com prazos e pendências à vista — sem abrir dez separadores.',
     src: LANDING_SCREENS.dashboard,
-    alt: 'Painel operacional do TegLion com KPIs e prioridades',
+    alt: 'Painel operacional do Teglion com KPIs e prioridades',
   },
   {
     title: 'Empresas',
     copy: 'Carteira com NIF, regime, obrigações pendentes e estado de cada cliente.',
     src: LANDING_SCREENS.empresas,
-    alt: 'Lista de empresas no TegLion',
+    alt: 'Lista de empresas no Teglion',
   },
   {
     title: 'Ficheiros',

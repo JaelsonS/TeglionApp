@@ -93,7 +93,7 @@ export function BlogProductShelf({ compact = false }: Props) {
           >
             <img src="/blog/products/prod-teglion.svg" alt="" width={72} height={54} loading="lazy" />
             <span>
-              <span className="blog-product-card-title">TegLion — teste 14 dias</span>
+              <span className="blog-product-card-title">Teglion — teste 14 dias</span>
               <span className="blog-product-card-blurb">Portal, documentos e prazos do escritório</span>
             </span>
           </Link>

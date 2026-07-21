@@ -1,4 +1,4 @@
-/** Locale TegLion — Português de Portugal por defeito no produto contabilidade. */
+/** Locale Teglion — Português de Portugal por defeito no produto contabilidade. */
 import { APP_LOCALE_STORAGE_KEY, normalizeAppLocale, type AppLocale } from '@/shared/i18n/appLocale'
 import { isContabilMode } from '@/shared/config/productMode'
 

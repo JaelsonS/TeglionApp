@@ -18,7 +18,7 @@ export const postPrazosIrs2026: BlogPost = {
   publishedAt: '2026-05-19',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'IRS',
   audience: ['independente', 'pme'],
   featured: false,
@@ -38,7 +38,7 @@ export const postPrazosIrs2026: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Prazos IRS 2026 independentes Portugal | Blog TegLion',
+    title: 'Prazos IRS 2026 independentes Portugal | Blog Teglion',
     description:
       'Datas, fases e checklist para entregar IRS 2026 como trabalhador independente em Portugal. Prepare documentos com antecedência e evite coimas.',
     keywords: ['prazos IRS 2026', 'IRS independente prazo', 'calendário IRS Portugal', 'entregar IRS 2026', 'campanha IRS'],

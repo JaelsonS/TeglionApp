@@ -53,7 +53,7 @@ export const LOCALES: RecoverLocale[] = ['pt-PT', 'pt-BR', 'es-ES', 'en']
 
 export const COPY: Record<RecoverLocale, RecoverCopy> = {
   'pt-PT': {
-    brand: 'TegLion',
+    brand: 'Teglion',
     titleRecover: 'Esqueceu a palavra-passe?',
     subtitleRecover: 'Enviaremos um link para redefinir a sua palavra-passe.',
     titleReset: 'Redefinir palavra-passe',
@@ -105,7 +105,7 @@ export const COPY: Record<RecoverLocale, RecoverCopy> = {
     },
   },
   'pt-BR': {
-    brand: 'TegLion',
+    brand: 'Teglion',
     titleRecover: 'Esqueceu a senha?',
     subtitleRecover: 'Enviaremos um link para redefinir sua senha.',
     titleReset: 'Redefinir senha',
@@ -157,7 +157,7 @@ export const COPY: Record<RecoverLocale, RecoverCopy> = {
     },
   },
   'es-ES': {
-    brand: 'TegLion',
+    brand: 'Teglion',
     titleRecover: '¿Olvidó su contraseña?',
     subtitleRecover: 'Te enviaremos un enlace para restablecerla.',
     titleReset: 'Restablecer contraseña',
@@ -209,7 +209,7 @@ export const COPY: Record<RecoverLocale, RecoverCopy> = {
     },
   },
   en: {
-    brand: 'TegLion',
+    brand: 'Teglion',
     titleRecover: 'Forgot password?',
     subtitleRecover: 'We’ll send you a link to reset your password.',
     titleReset: 'Reset password',

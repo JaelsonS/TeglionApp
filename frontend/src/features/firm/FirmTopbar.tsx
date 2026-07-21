@@ -16,7 +16,7 @@ export function FirmTopbar({ compact = false }: { compact?: boolean }) {
   const { firm } = useFirmBranding()
   const location = useLocation()
 
-  const firmName = firm?.name?.trim() || t('contabil.firm.fallback', { defaultValue: 'TegLion' })
+  const firmName = firm?.name?.trim() || t('contabil.firm.fallback', { defaultValue: 'Teglion' })
   const pageLabel = firmNavLabelForPath(location.pathname)
 
   return (

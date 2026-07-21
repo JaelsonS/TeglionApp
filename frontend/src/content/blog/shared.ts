@@ -100,7 +100,7 @@ export function internalLinksSection(input: {
   return blocks
 }
 
-/** CTA TegLion no meio do artigo (escritório ou portal cliente). */
+/** CTA Teglion no meio do artigo (escritório ou portal cliente). */
 export function teglionCtaBlock(input: {
   variant: 'firm' | 'client'
   title?: string

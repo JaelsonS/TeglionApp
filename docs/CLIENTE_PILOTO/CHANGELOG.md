@@ -21,7 +21,7 @@
 ## 2026-07-06
 - Corrigida a navegação móvel do portal do cliente.
 - Ajustado o scroll do dashboard no mobile.
-- Simplificada a página de recuperação de senha para o estilo TegLion.
+- Simplificada a página de recuperação de senha para o estilo Teglion.
 - Removida a duplicação de menus no mobile do escritório.
 - Ajustado o composer do chat no desktop.
 - Sincronizadas as branches `main` e `staging`.

@@ -1,4 +1,4 @@
-# TegLion
+# Teglion
 
 **Gestão digital para escritórios de contabilidade em Portugal** — documentos, prazos, portal do cliente e comunicação num só lugar.
 
@@ -16,7 +16,7 @@ Escritórios pequenos e médios em Portugal ainda vivem entre **email, WhatsApp,
 
 ## A solução
 
-O TegLion junta num único sistema:
+O Teglion junta num único sistema:
 
 - **Portal do escritório** — clientes, pedidos de documentos, validação, tarefas, calendário fiscal, mensagens, alertas.
 - **Portal do cliente** — upload de ficheiros, estado dos pedidos, obrigações, mensagens com o escritório.
@@ -133,7 +133,7 @@ Guia completo: [`docs/operations/DEV_LOCAL.md`](docs/operations/DEV_LOCAL.md)
 Ver [`STRUCTURE.md`](STRUCTURE.md) — mapa backend/frontend, camadas e comandos.
 
 ```
-TegLion/
+Teglion/
 ├── frontend/          SPA React (marketing + app + blog)
 ├── backend/           API Express + módulos de negócio
 ├── supabase/          Migrations SQL e políticas RLS

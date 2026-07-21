@@ -234,7 +234,7 @@ export function DocumentsHistoryWorkspace() {
         onConfirm={handleDelete}
       />
 
-      <p className="cb-docs-foot">TegLion — Documentos / Histórico</p>
+      <p className="cb-docs-foot">Teglion — Documentos / Histórico</p>
     </div>
   )
 }

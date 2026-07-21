@@ -3,10 +3,10 @@ const { computeFirmAccess } = require('../modules/billing/billing.service');
 
 const FIRM_ACCESS_MESSAGES = {
   TRIAL_EXPIRED:
-    'O período de teste terminou. Active o plano ou contacte o suporte TegLion para continuar.',
-  CANCELLED: 'Esta conta de escritório foi encerrada. Contacte o suporte TegLion se precisar de reactivação.',
-  SUSPENDED: 'Acesso suspenso. Regularize o pagamento ou contacte o suporte TegLion.',
-  BLOCKED: 'Acesso bloqueado. Contacte o suporte TegLion.',
+    'O período de teste terminou. Active o plano ou contacte o suporte Teglion para continuar.',
+  CANCELLED: 'Esta conta de escritório foi encerrada. Contacte o suporte Teglion se precisar de reactivação.',
+  SUSPENDED: 'Acesso suspenso. Regularize o pagamento ou contacte o suporte Teglion.',
+  BLOCKED: 'Acesso bloqueado. Contacte o suporte Teglion.',
   NOT_FOUND: 'Escritório não encontrado.',
 };
 

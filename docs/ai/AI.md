@@ -1,8 +1,8 @@
-# TegLion — Inteligência Artificial
+# Teglion — Inteligência Artificial
 
 **Documento oficial · Última actualização: Julho 2026**
 
-Arquitectura de IA para o TegLion. **Nenhuma implementação neste documento** — apenas desenho, organização e plano de crescimento.
+Arquitectura de IA para o Teglion. **Nenhuma implementação neste documento** — apenas desenho, organização e plano de crescimento.
 
 **Princípio:** IA reforça a proposta de valor operacional. Não é um chatbot genérico. É um assistente que conhece o contexto fiscal, o cliente e o histórico do escritório.
 

@@ -46,7 +46,7 @@ function exitAfterFlush(code) {
 }
 
 process.on('unhandledRejection', (reason) => {
-  console.error('[TegLion] unhandledRejection:', reason);
+  console.error('[Teglion] unhandledRejection:', reason);
   logger.error('Unhandled promise rejection', {
     reason: reason?.message || String(reason),
     stack: reason?.stack,
@@ -60,7 +60,7 @@ process.on('unhandledRejection', (reason) => {
 });
 
 process.on('uncaughtException', (err) => {
-  console.error('[TegLion] uncaughtException:', err);
+  console.error('[Teglion] uncaughtException:', err);
   logger.error('Uncaught exception', { message: err?.message, stack: err?.stack });
   void reportFatalError(err, 'uncaughtException').finally(() => exitAfterFlush(1));
 });
@@ -108,7 +108,7 @@ async function bootstrap() {
     const PORT = Number(process.env.PORT || env.PORT || 8001);
 
     const server = app.listen(PORT, '0.0.0.0', () => {
-      logger.info(`TegLion API em http://0.0.0.0:${PORT}/api (Supabase)`);
+      logger.info(`Teglion API em http://0.0.0.0:${PORT}/api (Supabase)`);
     });
 
     startContabilSchedulers();
@@ -166,7 +166,7 @@ async function bootstrap() {
     process.on('SIGTERM', () => shutdown('SIGTERM'));
     process.on('SIGINT', () => shutdown('SIGINT'));
   } catch (err) {
-    console.error('[TegLion] Falha ao iniciar o servidor:', err);
+    console.error('[Teglion] Falha ao iniciar o servidor:', err);
     logger.error('Falha ao iniciar o servidor', {
       message: err?.message,
       name: err?.name,

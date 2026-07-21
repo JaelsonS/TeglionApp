@@ -1,4 +1,4 @@
-# Auditoria editorial do blog TegLion (Jul 2026)
+# Auditoria editorial do blog Teglion (Jul 2026)
 
 Matriz de decisão para os artigos publicados. Actualizar trimestralmente.
 
@@ -8,7 +8,7 @@ Legenda: **M** manter · **R** reescrever/enriquecer · **F** fundir · **A** ar
 |------|---------|--------|
 | guia-completo-trabalhador-independente-portugal-2026 | M/R | Pilar hub — featured |
 | calendario-fiscal-portugal-2026-completo | M/R | Actualizar trimestral (AT/SS) |
-| digitalizar-escritorio-contabilidade-portugal | M/R | Série operações TegLion |
+| digitalizar-escritorio-contabilidade-portugal | M/R | Série operações Teglion |
 | deducoes-irs-portugal-guia-completo | M/R | Série zero→IRS |
 | como-escolher-contabilista-portugal | M | Conversão B2B + FAQ (2026-07-21) |
 | portal-financas-guia-completo-iniciantes | M/R | Tutorial + FAQ |

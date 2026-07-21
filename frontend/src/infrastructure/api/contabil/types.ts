@@ -1,4 +1,4 @@
-/** Tipos canónicos da API TegLion (domínio escritório). */
+/** Tipos canónicos da API Teglion (domínio escritório). */
 
 export type ClientOperationalStatus = 'ativo' | 'atencao' | 'critico'
 

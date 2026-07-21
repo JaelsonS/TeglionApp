@@ -20,7 +20,7 @@ export const postFerramentasContabilista: BlogPost = {
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Escritórios',
   audience: ['escritorio'],
   tags: [
@@ -47,7 +47,7 @@ export const postFerramentasContabilista: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Ferramentas essenciais contabilista 2026 | Blog TegLion',
+    title: 'Ferramentas essenciais contabilista 2026 | Blog Teglion',
     description:
       'Calculadora, Microsoft 365, arquivo, antivírus e software de gestão para contabilistas certificados e escritórios em Portugal. Guia prático com recomendações.',
     keywords: [
@@ -71,7 +71,7 @@ export const postFerramentasContabilista: BlogPost = {
       'Microsoft 365 com OneDrive é o padrão de facto para mapas, SAF-T e partilha segura com clientes.',
       'Antivírus e backup não são luxo — lidam com NIF, senhas e documentos sensíveis todos os dias.',
       'Email + WhatsApp sem registo é risco profissional e de RGPD — portal estruturado reduz disputas.',
-      'Software de gestão de escritório (TegLion) centraliza prazos, documentos e comunicação com clientes.',
+      'Software de gestão de escritório (Teglion) centraliza prazos, documentos e comunicação com clientes.',
     ]),
     ...proseParagraphs(
       'Um contabilista certificado em 2026 usa mais tecnologia do que há dez anos — mas ainda perde horas a perseguir PDFs por email. Este artigo lista o que realmente importa na secretária: do objecto físico ao portal onde o cliente envia facturas.',
@@ -123,12 +123,12 @@ export const postFerramentasContabilista: BlogPost = {
       id: 'gestao',
       paragraphs: [
         'ERP contabilístico (PHC, Primavera, etc.) trata da contabilidade formal. Mas entre o ERP e o cliente há um vazio: pedir documentos, lembrar prazos, responder mensagens, partilhar comprovativos.',
-        'É aqui que um portal de escritório como o TegLion encaixa — não substitui o ERP, complementa a relação com o cliente: pedidos formais, estado de entregas, mensagens registadas, marca do escritório.',
+        'É aqui que um portal de escritório como o Teglion encaixa — não substitui o ERP, complementa a relação com o cliente: pedidos formais, estado de entregas, mensagens registadas, marca do escritório.',
       ],
       blocks: [
         comparisonTable({
           caption: 'Email/WhatsApp vs portal do cliente',
-          headers: ['Aspecto', 'Email / WhatsApp', 'Portal (ex.: TegLion)'],
+          headers: ['Aspecto', 'Email / WhatsApp', 'Portal (ex.: Teglion)'],
           rows: [
             ['Registo de pedidos', 'Caixa dispersa', 'Lista por cliente com estado'],
             ['Prova de entrega', 'Difícil', 'Upload com data e utilizador'],
@@ -142,7 +142,7 @@ export const postFerramentasContabilista: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Menos «já enviei por email» — mais controlo',
-      text: 'Teste o TegLion 14 dias grátis: portal do cliente, pedidos de documentos, prazos e mensagens. Pensado para escritórios de contabilidade em Portugal.',
+      text: 'Teste o Teglion 14 dias grátis: portal do cliente, pedidos de documentos, prazos e mensagens. Pensado para escritórios de contabilidade em Portugal.',
     }),
     ...affiliateSection({
       heading: 'Duas peças que o escritório usa todos os dias',

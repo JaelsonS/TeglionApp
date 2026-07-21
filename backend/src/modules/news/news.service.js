@@ -1,5 +1,5 @@
 /**
- * Notícias e atualizações fiscais — portal interno TegLion.
+ * Notícias e atualizações fiscais — portal interno Teglion.
  */
 const { AppError } = require('../../middlewares/error.middleware');
 const { getSupabaseAdmin, isSupabaseConfigured } = require('../../db/supabase/client');
@@ -242,7 +242,7 @@ function getEditorTemplates() {
       category: 'IVA',
       title: 'IVA — prazo de entrega da declaração periódica',
       excerpt: 'Relembrar clientes do prazo legal de entrega da declaração periódica de IVA em Portugal.',
-      body: `## Declaração periódica de IVA\n\nA declaração periódica de IVA deve ser entregue e liquidada até ao **dia 20** do mês seguinte ao período de tributação (ou no dia útil imediatamente seguinte, quando o prazo coincida com fim de semana ou feriado).\n\n### O que precisa de fazer\n- Confirmar se o seu regime (mensal ou trimestral) está correto\n- Enviar faturas e documentos de compras e vendas atempadamente\n- Verificar saldos de IVA a entregar ou a recuperar\n\n### Na plataforma TegLion\nPode enviar documentos, consultar obrigações e mensagens com o seu escritório num só lugar.\n\n*Informação genérica para apoio à comunicação — confirme sempre datas e valores com o seu contabilista certificado.*`,
+      body: `## Declaração periódica de IVA\n\nA declaração periódica de IVA deve ser entregue e liquidada até ao **dia 20** do mês seguinte ao período de tributação (ou no dia útil imediatamente seguinte, quando o prazo coincida com fim de semana ou feriado).\n\n### O que precisa de fazer\n- Confirmar se o seu regime (mensal ou trimestral) está correto\n- Enviar faturas e documentos de compras e vendas atempadamente\n- Verificar saldos de IVA a entregar ou a recuperar\n\n### Na plataforma Teglion\nPode enviar documentos, consultar obrigações e mensagens com o seu escritório num só lugar.\n\n*Informação genérica para apoio à comunicação — confirme sempre datas e valores com o seu contabilista certificado.*`,
       tags: ['IVA', 'AT', 'prazos'],
     },
     {
@@ -250,7 +250,7 @@ function getEditorTemplates() {
       category: 'Segurança Social',
       title: 'Segurança Social — entrega de remunerações (DMR)',
       excerpt: 'Comunicação sobre prazos de entrega de remunerações à Segurança Social.',
-      body: `## Declaração de Remunerações (DMR)\n\nAs entidades empregadoras devem entregar a **Declaração Mensal de Remunerações** nos prazos fixados pela Segurança Social, em função do NISS e do calendário aplicável.\n\n### Boas práticas\n- Validar dados dos trabalhadores antes do fecho do mês\n- Enviar alterações contratuais com antecedência\n- Manter comprovativos de pagamento organizados\n\nO seu escritório acompanha estes prazos consigo através do portal TegLion.\n\n*Conteúdo informativo — não substitui aconselhamento profissional.*`,
+      body: `## Declaração de Remunerações (DMR)\n\nAs entidades empregadoras devem entregar a **Declaração Mensal de Remunerações** nos prazos fixados pela Segurança Social, em função do NISS e do calendário aplicável.\n\n### Boas práticas\n- Validar dados dos trabalhadores antes do fecho do mês\n- Enviar alterações contratuais com antecedência\n- Manter comprovativos de pagamento organizados\n\nO seu escritório acompanha estes prazos consigo através do portal Teglion.\n\n*Conteúdo informativo — não substitui aconselhamento profissional.*`,
       tags: ['Segurança Social', 'DMR', 'RH'],
     },
     {

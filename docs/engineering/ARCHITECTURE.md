@@ -1,8 +1,8 @@
-# TegLion — Arquitectura
+# Teglion — Arquitectura
 
 **Documento oficial · Última actualização: Julho 2026**
 
-Este documento define a **arquitectura alvo** do TegLion — como o sistema deve estar organizado para suportar milhares de escritórios e centenas de milhares de clientes durante muitos anos.
+Este documento define a **arquitectura alvo** do Teglion — como o sistema deve estar organizado para suportar milhares de escritórios e centenas de milhares de clientes durante muitos anos.
 
 Descreve o estado **ideal**. O estado actual está documentado em [MODULES.md](../product/MODULES.md) com classificações de maturidade.
 
@@ -66,7 +66,7 @@ Descreve o estado **ideal**. O estado actual está documentado em [MODULES.md](.
 ## Estrutura de repositório (alvo)
 
 ```
-TegLion/
+Teglion/
 ├── package.json                 # Workspace root (npm/pnpm workspaces)
 ├── .github/workflows/           # CI: build, test, lint, deploy, tenant-isolation
 │

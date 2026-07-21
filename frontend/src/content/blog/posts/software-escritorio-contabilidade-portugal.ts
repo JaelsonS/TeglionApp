@@ -19,7 +19,7 @@ export const postSoftwareEscritorioPortugal: BlogPost = {
   publishedAt: '2026-07-20',
   updatedAt: '2026-07-21',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Escritórios',
   audience: ['escritorio'],
   featured: false,
@@ -27,7 +27,7 @@ export const postSoftwareEscritorioPortugal: BlogPost = {
     'software escritório contabilidade',
     'portal cliente OCC',
     'gestão clientes contabilista',
-    'TegLion',
+    'Teglion',
     'escritório digital',
   ],
   readMinutes: 12,
@@ -70,11 +70,11 @@ export const postSoftwareEscritorioPortugal: BlogPost = {
       'WhatsApp sem registo escala mal: 50 clientes × mensagens soltas = prazos em risco e RGPD frágil.',
       'Em 2026, o conjunto mínimo sensato: ERP + arquivos na cloud + portal com pedidos/prazos + backup.',
       'SAF-T e e-Fatura pedem validação de documentos antes do fecho — não «fotos às 23h».',
-      'Ferramentas como o TegLion cobrem portal, pedidos e alertas com a marca do escritório — a complementar o ERP.',
+      'Ferramentas como o Teglion cobrem portal, pedidos e alertas com a marca do escritório — a complementar o ERP.',
     ]),
     ...proseParagraphs(
       'Segunda-feira de manhã: o telemóvel do sócio tem 37 mensagens por ler no WhatsApp Business, três «segue a factura» no email pessoal, e um Drive onde ninguém sabe qual PDF é a versão correcta. O ERP está impecável — o caos está na relação com o cliente.',
-      'Este guia é para equipas OCC que já têm (ou vão escolher) ferramentas e querem perceber o que falta para trabalhar em 2026 sem viver de mensagens. Não é uma lista de marcas de facturação: é um mapa de capacidades — portal do cliente, prazos, SAF-T e onde encaixa um portal como o TegLion.',
+      'Este guia é para equipas OCC que já têm (ou vão escolher) ferramentas e querem perceber o que falta para trabalhar em 2026 sem viver de mensagens. Não é uma lista de marcas de facturação: é um mapa de capacidades — portal do cliente, prazos, SAF-T e onde encaixa um portal como o Teglion.',
     ),
     quoteBlock(
       'Software que só o contabilista usa não digitaliza o escritório — digitaliza a secretária. O cliente continua no WhatsApp.',
@@ -150,7 +150,7 @@ export const postSoftwareEscritorioPortugal: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Portal do cliente com a marca do escritório',
-      text: 'TegLion: pedidos de documentos, prazos, mensagens e histórico — feito para escritórios OCC em Portugal. Teste 14 dias grátis, sem cartão. Complementa o ERP; não o substitui.',
+      text: 'Teglion: pedidos de documentos, prazos, mensagens e histórico — feito para escritórios OCC em Portugal. Teste 14 dias grátis, sem cartão. Complementa o ERP; não o substitui.',
     }),
     ...articleSection({
       h2: 'SAF-T, documentos e prazos — o trio que o software tem de servir',
@@ -178,17 +178,17 @@ export const postSoftwareEscritorioPortugal: BlogPost = {
       ],
     }),
     ...articleSection({
-      h2: 'Como encaixar TegLion sem trocar o ERP',
+      h2: 'Como encaixar Teglion sem trocar o ERP',
       id: 'teglion',
       paragraphs: [
-        'TegLion ocupa a camada portal + pedidos + prazos + comunicação. O PHC, Primavera, Sage ou o software que já usa continua a ser o motor contabilístico. A equipa deixa de pedinchar facturas por mensagem; o cliente deixa de perguntar «já receberam?».',
+        'Teglion ocupa a camada portal + pedidos + prazos + comunicação. O PHC, Primavera, Sage ou o software que já usa continua a ser o motor contabilístico. A equipa deixa de pedinchar facturas por mensagem; o cliente deixa de perguntar «já receberam?».',
         'Onboarding típico: 5–10 clientes piloto → protocolo interno de 1 página («tudo pelo portal») → rollout. Quem tenta «big bang» na véspera do IRS sofre — quem faseia, fica.',
       ],
     }),
     teglionCtaBlock({
       variant: 'firm',
       title: 'Pronto para estruturar as operações?',
-      text: 'Crie a conta do escritório no TegLion, personalize o portal e convide os primeiros clientes. Menos caos no telemóvel — mais fechos no dia 19.',
+      text: 'Crie a conta do escritório no Teglion, personalize o portal e convide os primeiros clientes. Menos caos no telemóvel — mais fechos no dia 19.',
     }),
     ...internalLinksSection({
       title: 'Continuar na trilha do escritório',

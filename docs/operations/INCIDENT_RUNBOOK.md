@@ -1,4 +1,4 @@
-# TegLion - Incident Runbook
+# Teglion - Incident Runbook
 
 ## Escopo
 

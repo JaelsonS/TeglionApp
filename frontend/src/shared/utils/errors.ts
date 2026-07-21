@@ -139,13 +139,13 @@ export function getErrorMessage(err: unknown): string {
     }
     if (code === 'ACCOUNT_INACTIVE') return t('common.errors.accountInactive')
     if (code === 'TRIAL_EXPIRED') {
-      return 'O período de teste terminou. Active o plano ou contacte o suporte TegLion para continuar.'
+      return 'O período de teste terminou. Active o plano ou contacte o suporte Teglion para continuar.'
     }
     if (code === 'FIRM_CANCELLED') {
-      return 'Esta conta de escritório foi encerrada. Contacte o suporte TegLion se precisar de reactivação.'
+      return 'Esta conta de escritório foi encerrada. Contacte o suporte Teglion se precisar de reactivação.'
     }
     if (code === 'SUSPENDED' || code === 'FIRM_BLOCKED') {
-      return 'Acesso suspenso. Regularize o pagamento ou contacte o suporte TegLion.'
+      return 'Acesso suspenso. Regularize o pagamento ou contacte o suporte Teglion.'
     }
 
     const lowered = (rawMessage || '').toLowerCase()

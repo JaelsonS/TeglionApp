@@ -1,4 +1,4 @@
-/** Normaliza papel JWT legado → domínio TegLion. */
+/** Normaliza papel JWT legado → domínio Teglion. */
 function normalizeSessionRole(role) {
   const key = String(role || '').trim().toUpperCase();
   const legacyConsultantRole = ['D', 'O', 'C', 'T', 'O', 'R'].join('');

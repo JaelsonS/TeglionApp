@@ -9,7 +9,7 @@ export const noticeDocument: LegalDocument = {
   updatedAtValue: '22 de maio de 2026',
   version: CONTABIL_LEGAL_VERSIONS.notice,
   intro: [
-    'Em cumprimento do dever de informação e boa-fé comercial, disponibilizamos os dados de identificação do prestador do serviço digital TegLion.',
+    'Em cumprimento do dever de informação e boa-fé comercial, disponibilizamos os dados de identificação do prestador do serviço digital Teglion.',
   ],
   sections: [
     {
@@ -52,7 +52,7 @@ export const noticeDocument: LegalDocument = {
       id: 'propriedade',
       title: '5. Propriedade intelectual',
       paragraphs: [
-        'Textos, software, design e marca TegLion estão protegidos. Reprodução não autorizada é proibida salvo permissão escrita ou uso permitido por lei.',
+        'Textos, software, design e marca Teglion estão protegidos. Reprodução não autorizada é proibida salvo permissão escrita ou uso permitido por lei.',
       ],
     },
   ],

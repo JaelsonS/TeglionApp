@@ -20,7 +20,7 @@ export const postCalendarioFiscal2026: BlogPost = {
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-21',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Guias completos',
   audience: ['independente', 'pme'],
   tags: ['calendário fiscal', 'prazos 2026', 'obrigações', 'IVA', 'IRS', 'Segurança Social', 'PME'],
@@ -35,7 +35,7 @@ export const postCalendarioFiscal2026: BlogPost = {
   seo: {
     title: 'Calendário fiscal Portugal 2026 — prazos AT e SS',
     description:
-      'Mapa mês a mês de Segurança Social, IVA, IRS e retenções em 2026 para independentes e PME — com checklists e links aos guias do blog TegLion.',
+      'Mapa mês a mês de Segurança Social, IVA, IRS e retenções em 2026 para independentes e PME — com checklists e links aos guias do blog Teglion.',
     keywords: [
       'calendário fiscal 2026 Portugal',
       'prazos fiscais independente',
@@ -215,7 +215,7 @@ export const postCalendarioFiscal2026: BlogPost = {
     teglionCtaBlock({
       variant: 'client',
       title: 'Prefere que o escritório lhe lembre os prazos?',
-      text: 'Peça ao seu contabilista um portal com alertas — no TegLion, cada obrigação tem data e lista do que falta enviar, em vez de mensagens soltas no WhatsApp.',
+      text: 'Peça ao seu contabilista um portal com alertas — no Teglion, cada obrigação tem data e lista do que falta enviar, em vez de mensagens soltas no WhatsApp.',
     }),
     ...affiliateSection({
       heading: 'Como transformar este calendário numa rotina',
@@ -246,7 +246,7 @@ export const postCalendarioFiscal2026: BlogPost = {
     }),
     ...internalLinksSection({
       title: 'Aprofundar cada tema do calendário',
-      intro: 'Ligações aos guias detalhados do blog TegLion.',
+      intro: 'Ligações aos guias detalhados do blog Teglion.',
       slugs: [
         'obrigacoes-fiscais-mes-a-mes',
         'seguranca-social-trabalhador-independente',

@@ -18,7 +18,7 @@ export const postDeclaracaoIrs: BlogPost = {
   publishedAt: '2026-05-20',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'IRS',
   audience: ['independente', 'pme'],
   featured: false,
@@ -163,7 +163,7 @@ export const postDeclaracaoIrs: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Clientes a entregar PDFs só na última semana?',
-      text: 'Com TegLion, o escritório pede documentos ao longo do ano — a declaração deixa de ser uma maratona de Abril. Portal com a marca do escritório, histórico e menos WhatsApp.',
+      text: 'Com Teglion, o escritório pede documentos ao longo do ano — a declaração deixa de ser uma maratona de Abril. Portal com a marca do escritório, histórico e menos WhatsApp.',
     }),
     { type: 'h2', id: 'backup-cloud', text: 'Backup na cloud além do pen drive' },
     {

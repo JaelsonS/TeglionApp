@@ -72,8 +72,8 @@ Checks recomendados como obrigatórios:
 
 | Projeto | Branch de produção | Domínio |
 |---------|-------------------|---------|
-| TegLion (prod) | `main` | `teglion.com` |
-| TegLion Staging *(novo projeto)* | `staging` | `staging.teglion.com` |
+| Teglion (prod) | `main` | `teglion.com` |
+| Teglion Staging *(novo projeto)* | `staging` | `staging.teglion.com` |
 
 Cada projeto com as suas env vars (`VITE_API_BASE_URL` aponta para a API correcta).
 

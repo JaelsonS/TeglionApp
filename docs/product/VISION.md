@@ -1,8 +1,8 @@
-# TegLion — Visão, Missão e Valores
+# Teglion — Visão, Missão e Valores
 
 **Documento oficial · Última actualização: 02/Julho/2026**
 
-Este documento define *porquê* o TegLion existe e *para onde* vamos. Todas as decisões de produto, engenharia e negócio devem ser avaliadas contra este texto.
+Este documento define *porquê* o Teglion existe e *para onde* vamos. Todas as decisões de produto, engenharia e negócio devem ser avaliadas contra este texto.
 
 ---
 
@@ -10,7 +10,7 @@ Este documento define *porquê* o TegLion existe e *para onde* vamos. Todas as d
 
 **Ser a plataforma de crescimento que permite a cada escritório de contabilidade poupar tempo, reter clientes, ganhar novos clientes e parecer premium — com operações, comunicação, conformidade e inteligência num só lugar.**
 
-O TegLion não substitui o contabilista nem compete com ERPs. Liberta-o do caos administrativo (email, WhatsApp, Excel) para que possa focar-se no que gera valor e crescimento: aconselhamento, conformidade e relação com o cliente.
+O Teglion não substitui o contabilista nem compete com ERPs. Liberta-o do caos administrativo (email, WhatsApp, Excel) para que possa focar-se no que gera valor e crescimento: aconselhamento, conformidade e relação com o cliente.
 
 ---
 
@@ -18,7 +18,7 @@ O TegLion não substitui o contabilista nem compete com ERPs. Liberta-o do caos 
 
 **Ser a principal plataforma de crescimento para escritórios de contabilidade na Europa** — começando por Portugal e Brasil, expandindo para Espanha, Itália e mercado lusófono.
 
-Daqui a 5 anos (2031), o TegLion deve ser percebido como:
+Daqui a 5 anos (2031), o Teglion deve ser percebido como:
 
 > *"O sistema onde o escritório trabalha todos os dias — e onde o cliente sabe exactamente o que falta entregar — para o contabilista crescer sem caos."*
 
@@ -30,12 +30,12 @@ Não como mais um ERP. Não como software de facturação. Como a **plataforma d
 |----------|-----------------|
 | **Escala** | 100.000 escritórios, milhões de clientes activos no portal |
 | **Geografia** | PT + BR consolidados; ES + IT em expansão; arquitectura pan-europeia |
-| **Crescimento** | Escritórios citam TegLion na proposta comercial; ROI visível in-app |
+| **Crescimento** | Escritórios citam Teglion na proposta comercial; ROI visível in-app |
 | **IA** | OCR, copilot fecho de mês, alertas inteligentes — horas poupadas mensuráveis |
 | **Canais** | Portal web, PWA mobile, WhatsApp, API e marketplace de integrações |
 | **Posicionamento** | Plataforma de crescimento — não contabilidade fiscal profunda (integra com ERPs) |
 | **Receita** | SaaS recorrente €100M+ ARR; churn <3%; NPS > 60 |
-| **Ecossistema** | Academy, parceiros certificados, TegLion Connect, benchmarks sector |
+| **Ecossistema** | Academy, parceiros certificados, Teglion Connect, benchmarks sector |
 
 ---
 
@@ -81,7 +81,7 @@ Escritórios de contabilidade pequenos e médios (5–200 clientes) vivem num ca
 
 ### Secundário — quem utiliza diariamente
 
-| Papel | O que faz no TegLion |
+| Papel | O que faz no Teglion |
 |-------|----------------------|
 | **Contabilista / técnico** | Valida documentos, gere tarefas, acompanha prazos, responde mensagens |
 | **Assistente administrativo** | Cria pedidos de documentos, envia convites, organiza ficheiros |
@@ -109,14 +109,14 @@ Escritórios de contabilidade pequenos e médios (5–200 clientes) vivem num ca
 
 ---
 
-## Porque o TegLion existe
+## Porque o Teglion existe
 
 O mercado português de software para contabilidade está dominado por ERPs legacy (Primavera, PHC, Sage) focados em **contabilidade e fiscalidade**, não em **operações do dia-a-dia**.
 
 O gap é claro:
 
 ```
-ERPs fazem:              TegLion faz:
+ERPs fazem:              Teglion faz:
 ─────────────────        ─────────────────
 Lançamentos contábeis    Pedidos de documentos
 Mapas fiscais            Portal do cliente
@@ -125,7 +125,7 @@ Facturação               Comunicação auditável
                          IA operacional
 ```
 
-O TegLion existe para **fechar esse gap** — ser a camada que liga o escritório ao cliente, antes e depois da contabilidade propriamente dita.
+O Teglion existe para **fechar esse gap** — ser a camada que liga o escritório ao cliente, antes e depois da contabilidade propriamente dita.
 
 ---
 
@@ -144,7 +144,7 @@ Antes de adicionar qualquer funcionalidade, perguntar:
 3. Isto ajuda o escritório a **ganhar novos clientes**?
 4. Isto faz o escritório **parecer mais premium**?
 5. Isto **escala** para 100k escritórios?
-6. Isto fortalece o **ecossistema** TegLion?
+6. Isto fortalece o **ecossistema** Teglion?
 
 Se a resposta for **não** a todas, a funcionalidade não entra no produto.
 

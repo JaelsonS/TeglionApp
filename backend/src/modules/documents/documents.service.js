@@ -1,5 +1,5 @@
 /**
- * Download de documentos TegLion — Supabase Storage.
+ * Download de documentos Teglion — Supabase Storage.
  */
 const { AppError } = require('../../middlewares/error.middleware');
 const { getRepository } = require('../../db/supabase/repositories');

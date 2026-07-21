@@ -1,4 +1,4 @@
-# Ambiente local — TegLion
+# Ambiente local — Teglion
 
 | Serviço | URL |
 |---------|-----|

@@ -5,7 +5,7 @@
 
 ## Objectivo
 
-Enviar a partir de um endereço do domínio TegLion (ex.: `noreply@teglion.com` ou `ola@teglion.com`) com **SPF + DKIM** (e idealmente DMARC) validados no Brevo.
+Enviar a partir de um endereço do domínio Teglion (ex.: `noreply@teglion.com` ou `ola@teglion.com`) com **SPF + DKIM** (e idealmente DMARC) validados no Brevo.
 
 ## Checklist (Brevo Console)
 
@@ -14,7 +14,7 @@ Enviar a partir de um endereço do domínio TegLion (ex.: `noreply@teglion.com` 
 3. [ ] Copiar registos DNS (SPF, DKIM, eventualmente DMARC) para o DNS do domínio.
 4. [ ] Esperar validação verde no Brevo (pode demorar minutos a horas).
 5. [ ] Definir sender verificado como `FROM_EMAIL` (ex.: `noreply@teglion.com`).
-6. [ ] Definir `FROM_NAME=TegLion`.
+6. [ ] Definir `FROM_NAME=Teglion`.
 7. [ ] Enviar e-mail de teste (registo novo) e confirmar que chega a **Primary**, não Promoções.
 8. [ ] Remover/evitar `FROM_EMAIL` em Gmail pessoal em produção.
 
@@ -23,7 +23,7 @@ Enviar a partir de um endereço do domínio TegLion (ex.: `noreply@teglion.com` 
 ```
 BREVO_API_KEY=...
 FROM_EMAIL=noreply@teglion.com
-FROM_NAME=TegLion
+FROM_NAME=Teglion
 FRONTEND_URL=https://app.teglion.com   # ou URL real do FE
 EMAIL_ENABLED=true                     # se existir no env; senão activa-se com BREVO_API_KEY
 ```

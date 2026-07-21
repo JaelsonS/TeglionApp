@@ -136,7 +136,7 @@ export function FirmInviteRegisterPage() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 px-5 py-10 pb-24">
       <Link to="/" className="text-sm font-semibold text-[#2563eb]">
-        TegLion
+        Teglion
       </Link>
 
       <div className="mx-auto mt-10 w-full max-w-md flex-1 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

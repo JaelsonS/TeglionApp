@@ -1,5 +1,5 @@
 /**
- * Router TegLion — produto contabilidade (firm + client + auth + landing).
+ * Router Teglion — produto contabilidade (firm + client + auth + landing).
  */
 import { Suspense, lazy } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'

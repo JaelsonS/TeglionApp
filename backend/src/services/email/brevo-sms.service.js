@@ -20,13 +20,13 @@ function normalizePhone(phone) {
 
 async function sendSms({ to, message }) {
   if (!env.SMS_ENABLED || !env.BREVO_API_KEY) {
-    console.log('[TegLion][sms] skip (desativado):', to);
+    console.log('[Teglion][sms] skip (desativado):', to);
     return { skipped: true };
   }
   const recipient = normalizePhone(to);
   if (!recipient || !message) return { skipped: true };
 
-  const sender = env.BREVO_SMS_SENDER || 'TegLion';
+  const sender = env.BREVO_SMS_SENDER || 'Teglion';
   await axios.post(
     BREVO_SMS_URL,
     {

@@ -1,4 +1,4 @@
-# Relatório — Isolamento Multi-Tenant (TegLion)
+# Relatório — Isolamento Multi-Tenant (Teglion)
 
 **Data:** 2026-05-22  
 **Script:** `backend/scripts/tenant-isolation-test.js`  

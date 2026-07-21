@@ -1,4 +1,4 @@
--- Newsletter do blog público TegLion
+-- Newsletter do blog público Teglion
 create table if not exists blog_newsletter_subscribers (
   id uuid primary key default gen_random_uuid(),
   email text not null,

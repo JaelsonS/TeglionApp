@@ -18,7 +18,7 @@ export const postObrigacoesMes: BlogPost = {
   publishedAt: '2026-05-16',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Obrigações',
   audience: ['independente', 'escritorio', 'pme'],
   featured: false,
@@ -131,7 +131,7 @@ export const postObrigacoesMes: BlogPost = {
       type: 'callout',
       variant: 'info',
       title: 'Donos de escritórios de contabilidade',
-      text: 'Se gere dezenas de clientes com prazos diferentes, um software com alertas por empresa (como o TegLion) reduz o risco de falhar entregas — experimente o teste gratuito de 14 dias.',
+      text: 'Se gere dezenas de clientes com prazos diferentes, um software com alertas por empresa (como o Teglion) reduz o risco de falhar entregas — experimente o teste gratuito de 14 dias.',
     },
     ...affiliateSection({
       heading: 'Do calendário ao arquivo mensal',

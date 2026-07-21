@@ -69,7 +69,7 @@ export function BlogIndexPage() {
       <section className="blog-hero-index">
         <div className="blog-container-wide blog-hero-index-inner">
           <div className="blog-hero-copy">
-            <p className="text-sm font-semibold uppercase tracking-wide blog-text-gold">Revista fiscal TegLion</p>
+            <p className="text-sm font-semibold uppercase tracking-wide blog-text-gold">Revista fiscal Teglion</p>
             <h1 className="blog-display mt-3 text-3xl font-semibold blog-text-navy sm:text-4xl lg:text-5xl">
               Contabilidade portuguesa explicada sem rodeios
             </h1>

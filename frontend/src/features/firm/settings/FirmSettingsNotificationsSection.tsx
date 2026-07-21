@@ -25,7 +25,7 @@ export function FirmSettingsNotificationsSection() {
       return
     }
     try {
-      new Notification('TegLion', {
+      new Notification('Teglion', {
         body: 'Teste de notificação — os alertas vão aparecer assim.',
         icon: '/icons/icon.svg',
       })

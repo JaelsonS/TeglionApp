@@ -18,7 +18,7 @@ export const postQuantoCustaAbrir: BlogPost = {
   publishedAt: '2026-05-26',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Actividade',
   audience: ['independente', 'pme'],
   featured: false,
@@ -31,7 +31,7 @@ export const postQuantoCustaAbrir: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Quanto custa abrir actividade em Portugal? | Blog TegLion',
+    title: 'Quanto custa abrir actividade em Portugal? | Blog Teglion',
     description:
       'Custos típicos para abrir actividade como freelancer ou ENI: Finanças, SS, facturação e contabilidade. Estimativas informativas para planear o primeiro ano.',
     keywords: ['custo abrir actividade', 'quanto custa recibos verdes', 'freelancer Portugal custos', 'ENI custos', 'orçamento independente'],

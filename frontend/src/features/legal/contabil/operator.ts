@@ -1,5 +1,5 @@
 export const CONTABIL_LEGAL_OPERATOR = {
-  brand: 'TegLion',
+  brand: 'Teglion',
   legalName: 'Jaelson Silva dos Santos',
   nif: '331 759 276',
   nifRaw: '331759276',

@@ -1,6 +1,6 @@
-# Login com Google (SSO) — TegLion
+# Login com Google (SSO) — Teglion
 
-O TegLion **não usa Supabase Auth** para login. A autenticação é custom no backend (`firm_users` + JWT em cookies). O Google SSO passa pelo **backend Express**, não pelo painel Authentication do Supabase.
+O Teglion **não usa Supabase Auth** para login. A autenticação é custom no backend (`firm_users` + JWT em cookies). O Google SSO passa pelo **backend Express**, não pelo painel Authentication do Supabase.
 
 ---
 
@@ -12,7 +12,7 @@ O TegLion **não usa Supabase Auth** para login. A autenticação é custom no b
 | Supabase → Edge Functions (secrets) | **Não** (a menos que cries uma função própria — não é o fluxo actual) |
 | Frontend `.env` (`VITE_*`) | **Não** — o secret nunca vai para o browser |
 
-Colocar o Client ID/Secret no Supabase **não activa** o botão «Entrar com Google» do TegLion e pode gerar confusão com credenciais erradas.
+Colocar o Client ID/Secret no Supabase **não activa** o botão «Entrar com Google» do Teglion e pode gerar confusão com credenciais erradas.
 
 ---
 

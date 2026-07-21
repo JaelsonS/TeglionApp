@@ -18,7 +18,7 @@ export const postIva: BlogPost = {
   publishedAt: '2026-05-14',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'IVA',
   audience: ['independente', 'pme'],
   featured: false,
@@ -31,7 +31,7 @@ export const postIva: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'IVA em Portugal: quando sou obrigado? | Blog TegLion',
+    title: 'IVA em Portugal: quando sou obrigado? | Blog Teglion',
     description:
       'Perceba isenção de IVA, limites de volume de negócios, declaração periódica e facturação certificada. Guia completo para independentes em Portugal.',
     keywords: ['IVA Portugal', 'isenção IVA', 'registar IVA', 'volume negócios IVA', 'factura com IVA', 'artigo 53 CIVA'],

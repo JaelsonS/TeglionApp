@@ -1,5 +1,5 @@
 /**
- * Notificações TegLion — email (Brevo) + SMS (Brevo transactional).
+ * Notificações Teglion — email (Brevo) + SMS (Brevo transactional).
  */
 const { sendEmail } = require('../email/brevo-email.service');
 const { sendSms } = require('../email/brevo-sms.service');
@@ -41,7 +41,7 @@ async function notifyClientInvite({ clientEmail, clientName, firmName, inviteUrl
       preheader: `Convite para aceder ao portal do escritório ${firm}`,
       title: 'Convite para o portal do cliente',
       greeting: `Olá${clientName ? ` ${clientName}` : ''},`,
-      bodyHtml: `<p style="margin:0 0 12px">O escritório <strong>${escapeHtml(firm)}</strong> convidou-o a aceder ao portal TegLion para enviar documentos, ver obrigações e comunicar com a equipa.</p>`,
+      bodyHtml: `<p style="margin:0 0 12px">O escritório <strong>${escapeHtml(firm)}</strong> convidou-o a aceder ao portal Teglion para enviar documentos, ver obrigações e comunicar com a equipa.</p>`,
       ctaLabel: 'Aceitar convite',
       ctaUrl: link,
       footerNote: `Link válido até ${expiry}. Se não esperava este e-mail, ignore-o.`,
@@ -49,13 +49,13 @@ async function notifyClientInvite({ clientEmail, clientName, firmName, inviteUrl
     text: [
       `Olá${clientName ? ` ${clientName}` : ''},`,
       '',
-      `O escritório ${firm} convidou-o a aceder ao portal TegLion.`,
+      `O escritório ${firm} convidou-o a aceder ao portal Teglion.`,
       '',
       `Aceitar convite: ${link}`,
       '',
       `Válido até ${expiry}. Se não esperava este e-mail, ignore-o.`,
       '',
-      'TegLion',
+      'Teglion',
     ].join('\n'),
   });
 }
@@ -152,7 +152,7 @@ async function notifyClientObligationReminder({ clientEmail, clientName, obligat
         body ||
         `A obrigação <strong>${escapeHtml(obligationTitle || '')}</strong> tem prazo ${escapeHtml(dueDate || 'em breve')}.`
       }</p>`,
-      ctaLabel: 'Abrir portal TegLion',
+      ctaLabel: 'Abrir portal Teglion',
       ctaUrl: portalUrl(),
     }),
     text: body || `Lembrete: ${obligationTitle}. Portal: ${portalUrl()}`,
@@ -185,8 +185,8 @@ async function notifyPasswordReset({ email, resetUrl, userType }) {
   if (!email || !resetUrl) return { skipped: true };
   const isClient = userType === 'client';
   const subject = isClient
-    ? 'Redefinição de palavra-passe — portal TegLion'
-    : 'Redefinição de palavra-passe — escritório TegLion';
+    ? 'Redefinição de palavra-passe — portal Teglion'
+    : 'Redefinição de palavra-passe — escritório Teglion';
   return sendEmail({
     to: email,
     subject,
@@ -194,12 +194,12 @@ async function notifyPasswordReset({ email, resetUrl, userType }) {
     html: renderTransactionalEmail({
       preheader: 'Pedido de redefinição de palavra-passe (válido 15 minutos)',
       title: 'Redefinir palavra-passe',
-      bodyHtml: `<p style="margin:0">Recebemos um pedido para redefinir a sua palavra-passe no TegLion. Se não foi você, ignore este e-mail.</p>`,
+      bodyHtml: `<p style="margin:0">Recebemos um pedido para redefinir a sua palavra-passe no Teglion. Se não foi você, ignore este e-mail.</p>`,
       ctaLabel: 'Criar nova palavra-passe',
       ctaUrl: resetUrl,
       footerNote: 'O link expira em 15 minutos por segurança.',
     }),
-    text: `Redefinir palavra-passe TegLion: ${resetUrl} (válido 15 minutos)`,
+    text: `Redefinir palavra-passe Teglion: ${resetUrl} (válido 15 minutos)`,
   });
 }
 
@@ -223,7 +223,7 @@ async function notifyFirmConsultationBooked({ staffEmail, firmName, clientName, 
 
 async function notifyFirmStaffWelcome({ staffEmail, staffName, firmName }) {
   if (!staffEmail) return { skipped: true };
-  const appName = firmName || 'TegLion';
+  const appName = firmName || 'Teglion';
   const loginLink = `${APP_URL}/auth/firm/login`;
   return sendEmail({
     to: staffEmail,
@@ -234,7 +234,7 @@ async function notifyFirmStaffWelcome({ staffEmail, staffName, firmName }) {
       title: 'A sua conta está pronta',
       greeting: `Olá${staffName ? ` ${staffName}` : ''},`,
       bodyHtml: `<p style="margin:0">Foi criada uma conta de colaborador para si no escritório <strong>${escapeHtml(appName)}</strong>.</p>`,
-      ctaLabel: 'Entrar no TegLion',
+      ctaLabel: 'Entrar no Teglion',
       ctaUrl: loginLink,
       footerNote: 'Se ainda não recebeu a palavra-passe inicial, contacte o administrador do escritório.',
     }),
@@ -243,12 +243,12 @@ async function notifyFirmStaffWelcome({ staffEmail, staffName, firmName }) {
       '',
       `Foi criada uma conta de colaborador para si no ${appName}.`,
       '',
-      'Entrar no TegLion:',
+      'Entrar no Teglion:',
       loginLink,
       '',
       'Se ainda não recebeu a sua palavra-passe inicial, contacte o dono/administrador do escritório.',
       '',
-      'TegLion',
+      'Teglion',
     ].join('\n'),
   });
 }
@@ -257,7 +257,7 @@ async function notifyFirmMemberInvite({ staffEmail, staffName, firmName, inviteT
   if (!staffEmail) return { skipped: true, reason: 'no_email' };
   const link = teamInviteUrl(inviteToken);
   const expiry = expiresAt ? new Date(expiresAt).toLocaleDateString('pt-PT') : '14 dias';
-  const firm = firmName || 'TegLion';
+  const firm = firmName || 'Teglion';
   return sendEmail({
     to: staffEmail,
     subject: `Convite para a equipa — ${firm}`,
@@ -266,7 +266,7 @@ async function notifyFirmMemberInvite({ staffEmail, staffName, firmName, inviteT
       preheader: `Defina a sua palavra-passe para entrar na equipa de ${firm}`,
       title: 'Convite para a equipa',
       greeting: `Olá${staffName ? ` ${staffName}` : ''},`,
-      bodyHtml: `<p style="margin:0 0 12px">Foi convidado(a) a juntar-se à equipa do escritório <strong>${escapeHtml(firm)}</strong> no TegLion.</p><p style="margin:0">Clique no botão abaixo para criar a sua palavra-passe e concluir o acesso. Depois confirme o e-mail para activar a conta.</p>`,
+      bodyHtml: `<p style="margin:0 0 12px">Foi convidado(a) a juntar-se à equipa do escritório <strong>${escapeHtml(firm)}</strong> no Teglion.</p><p style="margin:0">Clique no botão abaixo para criar a sua palavra-passe e concluir o acesso. Depois confirme o e-mail para activar a conta.</p>`,
       ctaLabel: 'Criar palavra-passe e aceitar',
       ctaUrl: link,
       footerNote: `Convite válido até ${expiry}. Se não esperava este e-mail, ignore-o.`,
@@ -274,14 +274,14 @@ async function notifyFirmMemberInvite({ staffEmail, staffName, firmName, inviteT
     text: [
       `Olá${staffName ? ` ${staffName}` : ''},`,
       '',
-      `Foi convidado(a) a juntar-se à equipa do escritório ${firm} no TegLion.`,
+      `Foi convidado(a) a juntar-se à equipa do escritório ${firm} no Teglion.`,
       '',
       'Criar palavra-passe e aceitar:',
       link,
       '',
       `Convite válido até ${expiry}. Se não esperava este e-mail, ignore-o.`,
       '',
-      'TegLion',
+      'Teglion',
     ].join('\n'),
   });
 }
@@ -289,7 +289,7 @@ async function notifyFirmMemberInvite({ staffEmail, staffName, firmName, inviteT
 async function notifyFirmStaffEmailConfirmation({ staffEmail, staffName, firmName, token }) {
   if (!staffEmail || !token) return { skipped: true };
   const link = staffEmailConfirmUrl(token);
-  const firm = firmName || 'TegLion';
+  const firm = firmName || 'Teglion';
   return sendEmail({
     to: staffEmail,
     subject: `Confirme o e-mail — ${firm}`,
@@ -314,11 +314,11 @@ async function notifyFirmOwnerSignupConfirm({ ownerEmail, ownerName, firmName, t
   const firm = firmName || 'o seu escritório';
   return sendEmail({
     to: ownerEmail,
-    subject: `Bem-vindo ao TegLion — confirme o e-mail`,
+    subject: `Bem-vindo ao Teglion — confirme o e-mail`,
     tags: ['transactional', 'owner-signup', 'email-confirm'],
     html: renderTransactionalEmail({
       preheader: 'Confirme o e-mail para activar a conta do escritório',
-      title: 'Bem-vindo ao TegLion',
+      title: 'Bem-vindo ao Teglion',
       greeting: `Olá${ownerName ? ` ${ownerName}` : ''},`,
       bodyHtml: `<p style="margin:0 0 12px">A conta do seu escritório <strong>${escapeHtml(firm)}</strong> foi criada.</p><p style="margin:0">Para a activar e entrar no painel, confirme o seu e-mail. O link é válido durante 48 horas.</p>`,
       ctaLabel: 'Confirmar e-mail e activar conta',
@@ -328,14 +328,14 @@ async function notifyFirmOwnerSignupConfirm({ ownerEmail, ownerName, firmName, t
     text: [
       `Olá${ownerName ? ` ${ownerName}` : ''},`,
       '',
-      `A conta do escritório ${firm} foi criada no TegLion.`,
+      `A conta do escritório ${firm} foi criada no Teglion.`,
       '',
       'Confirme o e-mail para activar a conta:',
       link,
       '',
       'Depois entre com o e-mail e a palavra-passe que definiu.',
       '',
-      'TegLion',
+      'Teglion',
     ].join('\n'),
   });
 }
@@ -347,11 +347,11 @@ async function notifyFirmOwnerWelcome({ ownerEmail, ownerName, firmName }) {
   const firm = firmName || 'o seu escritório';
   return sendEmail({
     to: ownerEmail,
-    subject: `Bem-vindo ao TegLion — ${firm}`,
+    subject: `Bem-vindo ao Teglion — ${firm}`,
     tags: ['transactional', 'owner-welcome', 'google-signup'],
     html: renderTransactionalEmail({
       preheader: 'A sua conta está pronta — entre com Google',
-      title: 'Bem-vindo ao TegLion',
+      title: 'Bem-vindo ao Teglion',
       greeting: `Olá${ownerName ? ` ${ownerName}` : ''},`,
       bodyHtml: `<p style="margin:0 0 12px">A conta do escritório <strong>${escapeHtml(firm)}</strong> está activa.</p><p style="margin:0">Como se registou com Google, o e-mail já está confirmado. Use <strong>Continuar com Google</strong> sempre que quiser entrar.</p>`,
       ctaLabel: 'Ir para o login',
@@ -361,13 +361,13 @@ async function notifyFirmOwnerWelcome({ ownerEmail, ownerName, firmName }) {
     text: [
       `Olá${ownerName ? ` ${ownerName}` : ''},`,
       '',
-      `A conta do escritório ${firm} está activa no TegLion.`,
+      `A conta do escritório ${firm} está activa no Teglion.`,
       'Como se registou com Google, o e-mail já está confirmado.',
       '',
       'Login:',
       loginLink,
       '',
-      'TegLion',
+      'Teglion',
     ].join('\n'),
   });
 }
@@ -398,7 +398,7 @@ async function notifyClientWelcome({ clientEmail, clientName, firmName }) {
       'Entrar:',
       loginLink,
       '',
-      'TegLion',
+      'Teglion',
     ].join('\n'),
   });
 }

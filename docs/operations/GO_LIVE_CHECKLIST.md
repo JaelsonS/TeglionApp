@@ -1,4 +1,4 @@
-# TegLion - Checklist de Go-Live (automatizado)
+# Teglion - Checklist de Go-Live (automatizado)
 
 ## Objetivo
 

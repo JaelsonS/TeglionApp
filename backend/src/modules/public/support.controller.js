@@ -29,7 +29,7 @@ exports.submit = async (req, res, next) => {
     }
 
     const notifyTo = env.SUPPORT_NOTIFY_EMAIL || BRAND.emails.support;
-    const finalSubject = subject ? `[Suporte TegLion] ${subject}` : `[Suporte TegLion] Novo pedido de ${name}`;
+    const finalSubject = subject ? `[Suporte Teglion] ${subject}` : `[Suporte Teglion] Novo pedido de ${name}`;
 
     let delivered = true;
     if (notifyTo) {

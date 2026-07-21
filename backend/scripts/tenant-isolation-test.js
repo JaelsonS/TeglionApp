@@ -388,7 +388,7 @@ async function staticAudit() {
 }
 
 async function main() {
-  console.log('\n=== TegLion — Teste de Isolamento Multi-Tenant ===\n');
+  console.log('\n=== Teglion — Teste de Isolamento Multi-Tenant ===\n');
   console.log(`Run ID: ${RUN}\n`);
 
   if (!isSupabaseConfigured()) {

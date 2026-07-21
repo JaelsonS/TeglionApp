@@ -19,7 +19,7 @@ export const postRecibos: BlogPost = {
   publishedAt: '2026-05-12',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Facturação',
   audience: ['independente', 'pme'],
   featured: false,
@@ -32,7 +32,7 @@ export const postRecibos: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Recibos verdes ou factura certificada? | Blog TegLion',
+    title: 'Recibos verdes ou factura certificada? | Blog Teglion',
     description:
       'Compare recibos verdes (e-Fatura) e facturação certificada em Portugal: custos, IVA, obrigações e quando mudar de regime. Guia para independentes.',
     keywords: [
@@ -154,7 +154,7 @@ export const postRecibos: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Escritórios de contabilidade',
-      text: 'Receber documentos desorganizados de dezenas de clientes consome horas. O TegLion centraliza pedidos e prazos por cliente.',
+      text: 'Receber documentos desorganizados de dezenas de clientes consome horas. O Teglion centraliza pedidos e prazos por cliente.',
     }),
     { type: 'link', label: 'Como emitir recibo verde passo a passo', slug: 'como-emitir-recibo-verde-passo-a-passo' },
     { type: 'link', label: 'Escolher software de facturação', slug: 'escolher-software-faturacao-portugal' },

@@ -18,7 +18,7 @@ export const postGuiaCompletoIndependente: BlogPost = {
   publishedAt: '2026-06-17',
   updatedAt: '2026-07-21',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Guias completos',
   audience: ['independente', 'pme'],
   tags: ['trabalhador independente', 'freelancer', 'recibos verdes', 'IRS', 'guia 2026', 'Portugal'],
@@ -202,7 +202,7 @@ export const postGuiaCompletoIndependente: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Independentes pedem canal claro ao escritório',
-      text: 'Com TegLion, o seu cliente envia recibos e despesas pelo portal — menos WhatsApp, mais prazos cumpridos e histórico auditável para a época de IRS.',
+      text: 'Com Teglion, o seu cliente envia recibos e despesas pelo portal — menos WhatsApp, mais prazos cumpridos e histórico auditável para a época de IRS.',
     }),
     ...affiliateSection({
       heading: 'Se está a abrir actividade pela primeira vez',

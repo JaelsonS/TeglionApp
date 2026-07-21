@@ -1,8 +1,8 @@
-# TegLion — Design System
+# Teglion — Design System
 
 **Documento oficial · Última actualização: Julho 2026**
 
-Sistema de design do TegLion. Define tokens, componentes, padrões e regras para uma interface consistente, acessível e escalável.
+Sistema de design do Teglion. Define tokens, componentes, padrões e regras para uma interface consistente, acessível e escalável.
 
 ---
 
@@ -251,7 +251,7 @@ globals.css → app-shell.css → animations.css
 
 | Prefixo | Uso |
 |---------|-----|
-| `cb-` | ContaBil/TegLion app styles |
+| `cb-` | ContaBil/Teglion app styles |
 | `landing-` | Marketing/landing pages |
 | `blog-` | Blog |
 

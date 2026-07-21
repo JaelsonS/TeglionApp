@@ -1,12 +1,12 @@
 /**
- * Templates SMS TegLion — Português de Portugal.
+ * Templates SMS Teglion — Português de Portugal.
  */
 const TEMPLATES = {
   DOCUMENT_SENT: {
     key: 'DOCUMENT_SENT',
     label: 'Documento enviado pelo escritório',
     build: ({ firmName }) =>
-      `${firmName || 'O seu escritório de contabilidade'} enviou um novo documento. Consulte na plataforma TegLion.`,
+      `${firmName || 'O seu escritório de contabilidade'} enviou um novo documento. Consulte na plataforma Teglion.`,
   },
   OBLIGATION_CREATED: {
     key: 'OBLIGATION_CREATED',
@@ -18,13 +18,13 @@ const TEMPLATES = {
     key: 'DEADLINE_NEAR',
     label: 'Prazo próximo',
     build: ({ firmName, obligationTitle, dueDate }) =>
-      `Lembrete TegLion: ${obligationTitle || 'obrigação fiscal'} vence ${dueDate || 'em breve'}. ${firmName || 'O seu escritório'}.`,
+      `Lembrete Teglion: ${obligationTitle || 'obrigação fiscal'} vence ${dueDate || 'em breve'}. ${firmName || 'O seu escritório'}.`,
   },
   URGENT_DOCUMENT: {
     key: 'URGENT_DOCUMENT',
     label: 'Documento urgente',
     build: ({ firmName }) =>
-      `URGENTE: ${firmName || 'O seu escritório'} enviou um documento que requer a sua atenção imediata. Aceda ao portal TegLion.`,
+      `URGENTE: ${firmName || 'O seu escritório'} enviou um documento que requer a sua atenção imediata. Aceda ao portal Teglion.`,
   },
   NEW_TAX_AVAILABLE: {
     key: 'NEW_TAX_AVAILABLE',
@@ -36,7 +36,7 @@ const TEMPLATES = {
     key: 'TASK_CREATED',
     label: 'Nova tarefa no portal',
     build: ({ firmName, taskTitle, dueDate }) =>
-      `${firmName || 'O seu escritório'} pediu-lhe: ${taskTitle || 'nova tarefa no portal'}${dueDate ? ` (prazo ${dueDate})` : ''}. Aceda ao TegLion.`,
+      `${firmName || 'O seu escritório'} pediu-lhe: ${taskTitle || 'nova tarefa no portal'}${dueDate ? ` (prazo ${dueDate})` : ''}. Aceda ao Teglion.`,
   },
 };
 

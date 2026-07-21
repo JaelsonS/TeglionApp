@@ -1,4 +1,4 @@
-/** TegLion — modo de produto único. */
+/** Teglion — modo de produto único. */
 export type ProductMode = 'contabil'
 
 export function getProductMode(): ProductMode {

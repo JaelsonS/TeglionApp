@@ -1,5 +1,5 @@
 /**
- * Portal do cliente TegLion — Supabase only.
+ * Portal do cliente Teglion — Supabase only.
  */
 const express = require('express');
 const { authMiddleware } = require('../middlewares/auth.middleware');

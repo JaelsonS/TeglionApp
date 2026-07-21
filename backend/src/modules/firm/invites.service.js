@@ -62,7 +62,7 @@ async function createClientInvite({ firmId: firmIdRaw, clientId, email, createdB
         inviteUrl,
         expiresAt,
       })
-      .catch((err) => console.warn('[TegLion] invite email:', err.message));
+      .catch((err) => console.warn('[Teglion] invite email:', err.message));
   }
 
   return {

@@ -140,7 +140,7 @@ function renderBlock(block: BlogBlock): string {
       return `<section><h2>${escapeHtml(block.title)}</h2>${block.intro ? `<p>${escapeHtml(block.intro)}</p>` : ''}<ul>${links}</ul></section>`
     }
     case 'teglionCta':
-      return `<aside><p><strong>TegLion</strong></p><p>${escapeHtml(block.text ?? '')}</p><a href="/auth/firm/register">Testar grátis</a></aside>`
+      return `<aside><p><strong>Teglion</strong></p><p>${escapeHtml(block.text ?? '')}</p><a href="/auth/firm/register">Testar grátis</a></aside>`
     case 'quote':
       return `<blockquote><p>${escapeHtml(block.text)}</p>${block.attribution ? `<footer>${escapeHtml(block.attribution)}</footer>` : ''}</blockquote>`
     case 'keyTakeaways':

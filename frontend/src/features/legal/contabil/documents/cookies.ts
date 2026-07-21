@@ -9,7 +9,7 @@ export const cookiesDocument: LegalDocument = {
   updatedAtValue: '22 de maio de 2026',
   version: CONTABIL_LEGAL_VERSIONS.cookies,
   intro: [
-    'Esta política explica o uso de cookies e tecnologias similares no website e na aplicação TegLion.',
+    'Esta política explica o uso de cookies e tecnologias similares no website e na aplicação Teglion.',
     'Cookies essenciais são necessários para login, segurança e preferências básicas. Cookies não essenciais (ex.: analítica) só são activados após consentimento explícito no banner de cookies.',
   ],
   sections: [

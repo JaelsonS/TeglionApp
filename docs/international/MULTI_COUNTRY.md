@@ -1,8 +1,8 @@
-# TegLion — Multi-País
+# Teglion — Multi-País
 
 **Documento oficial · Última actualização: Julho 2026**
 
-Estratégia para o TegLion operar em **múltiplos países** — começando por Portugal e Brasil — sem alterar a arquitectura ao adicionar novos mercados.
+Estratégia para o Teglion operar em **múltiplos países** — começando por Portugal e Brasil — sem alterar a arquitectura ao adicionar novos mercados.
 
 **Princípio:** País é uma **configuração**, não um fork de código.
 

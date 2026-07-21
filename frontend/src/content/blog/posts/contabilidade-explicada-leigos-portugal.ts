@@ -20,7 +20,7 @@ export const postContabilidadeLeigos: BlogPost = {
   publishedAt: '2026-06-18',
   updatedAt: '2026-06-18',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Guias completos',
   audience: ['independente', 'pme'],
   tags: [
@@ -102,7 +102,7 @@ export const postContabilidadeLeigos: BlogPost = {
         'IRS: «Quanto ganhei no ano e quanto imposto devo sobre isso?» — declaração anual (e retenções ao longo do ano).',
         'IVA: «Quanto cobrei de imposto aos clientes e quanto paguei em compras?» — declarações mensais ou trimestrais se for empresa sujeita a IVA.',
         'Segurança Social: «Quanto contribuo para pensão e subsídios?» — pagamento mensal, entidade diferente das Finanças.',
-        'Cumprir um não dispensa os outros. O calendário do blog TegLion ajuda a visualizar prazos — confirme sempre com profissional.',
+        'Cumprir um não dispensa os outros. O calendário do blog Teglion ajuda a visualizar prazos — confirme sempre com profissional.',
       ],
     }),
     ...articleSection({
@@ -130,7 +130,7 @@ export const postContabilidadeLeigos: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'É contabilista? Ajude clientes leigos a entregar bem',
-      text: 'Com o TegLion, o cliente vê o que falta enviar — menos confusão, menos telefonemas. Teste grátis 14 dias no escritório.',
+      text: 'Com o Teglion, o cliente vê o que falta enviar — menos confusão, menos telefonemas. Teste grátis 14 dias no escritório.',
     }),
     ...articleSection({
       h2: 'Quero aprender mais — por onde começo?',

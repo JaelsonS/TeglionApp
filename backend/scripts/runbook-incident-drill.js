@@ -36,7 +36,7 @@ async function main() {
         process.exit(1);
     }
 
-    console.log('\n=== Drill de Incidente TegLion ===\n');
+    console.log('\n=== Drill de Incidente Teglion ===\n');
 
     const health = await expectStatus('/health', 200);
     ok('Health geral', `${base}/health`);

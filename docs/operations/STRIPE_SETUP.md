@@ -1,4 +1,4 @@
-# Stripe — como configurar o TegLion (mensal + anual)
+# Stripe — como configurar o Teglion (mensal + anual)
 
 Guia prático para ti, com a Stripe aberta ao lado.  
 **Última actualização:** 17 Julho 2026
@@ -7,7 +7,7 @@ Guia prático para ti, com a Stripe aberta ao lado.
 
 | Plano | O que o cliente vê | O que cobras na Stripe |
 |-------|--------------------|------------------------|
-| **Teste** | 14 dias grátis, sem cartão | Nada (é interno no TegLion) |
+| **Teste** | 14 dias grátis, sem cartão | Nada (é interno no Teglion) |
 | **Mensal** | 35 € / mês | Recurring **35,00 EUR** / month |
 | **Anual** | 29,99 €/mês (equiv.) | Recurring **359,88 EUR** / year |
 
@@ -21,7 +21,7 @@ Regra: site, app e Stripe têm de bater certo. O teste de **14 dias** continua c
 
 1. Abre [dashboard.stripe.com](https://dashboard.stripe.com) → **Test mode** ligado.
 2. **Product catalog** → **Add product**.
-3. Nome: `TegLion — Plano Escritório`.
+3. Nome: `Teglion — Plano Escritório`.
 4. Descrição (opcional): `Software para o escritório de contabilidade · portal do cliente incluído`.
 
 ### 2. Dois preços no mesmo produto

@@ -19,7 +19,7 @@ export const postIrcSociedadesLda: BlogPost = {
   publishedAt: '2026-07-20',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Guias completos',
   audience: ['pme', 'escritorio'],
   featured: false,
@@ -32,7 +32,7 @@ export const postIrcSociedadesLda: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'IRC e sociedades Lda: de ENI a empresa | Blog TegLion',
+    title: 'IRC e sociedades Lda: de ENI a empresa | Blog Teglion',
     description:
       'IRC vs IRS, responsabilidade e contabilidade organizada: o que muda ao passar de ENI a Lda em Portugal — guia prático para PME.',
     keywords: [
@@ -68,7 +68,7 @@ export const postIrcSociedadesLda: BlogPost = {
     ),
     quoteBlock(
       'Abrir Lda não é «pagar menos imposto por magia». É mudar a estrutura do negócio — e o imposto segue a estrutura, não o desejo.',
-      'Equipa editorial TegLion',
+      'Equipa editorial Teglion',
     ),
     ...articleSection({
       h2: 'IRC em linguagem simples (vs IRS do ENI)',
@@ -137,7 +137,7 @@ export const postIrcSociedadesLda: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Escritório a acompanhar PME em transição?',
-      text: 'Com TegLion, peça documentos por portal, acompanhe prazos e deixe de caçar facturas no WhatsApp — a Lda do cliente precisa de processo, não só de ERP.',
+      text: 'Com Teglion, peça documentos por portal, acompanhe prazos e deixe de caçar facturas no WhatsApp — a Lda do cliente precisa de processo, não só de ERP.',
     }),
     comparisonTable({
       caption: 'ENI vs Lda — comparação rápida (orientação 2026)',
@@ -211,7 +211,7 @@ export const postIrcSociedadesLda: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Clientes a passar para Lda?',
-      text: 'Centralize pedidos, prazos e mensagens no portal TegLion — menos follow-up manual, mais controlo no mês em que a estrutura muda.',
+      text: 'Centralize pedidos, prazos e mensagens no portal Teglion — menos follow-up manual, mais controlo no mês em que a estrutura muda.',
     }),
     ...internalLinksSection({
       title: 'Continuar a ler',

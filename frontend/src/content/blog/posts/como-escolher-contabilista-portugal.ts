@@ -19,7 +19,7 @@ export const postEscolherContabilista: BlogPost = {
   publishedAt: '2026-06-10',
   updatedAt: '2026-07-21',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Contabilidade',
   audience: ['independente', 'pme'],
   tags: ['contabilista', 'OCC', 'contabilidade', 'freelancer', 'escritório'],
@@ -177,7 +177,7 @@ export const postEscolherContabilista: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'É contabilista certificado?',
-      text: 'Ofereça portal TegLion aos seus clientes — marca do escritório, pedidos formais e menos tempo em follow-up de documentos.',
+      text: 'Ofereça portal Teglion aos seus clientes — marca do escritório, pedidos formais e menos tempo em follow-up de documentos.',
     }),
     ...articleSection({
       h2: 'Como mudar de contabilista',

@@ -1,4 +1,4 @@
--- TegLion — Stripe billing por escritório
+-- Teglion — Stripe billing por escritório
 ALTER TABLE public.firms
   ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT,
   ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT;

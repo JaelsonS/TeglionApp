@@ -176,7 +176,7 @@ export function FirmLogoSettingsCard({
                 )}
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold">Portal · {firm?.name || 'TegLion'}</p>
+                <p className="truncate text-sm font-semibold">Portal · {firm?.name || 'Teglion'}</p>
                 <p className="text-xs text-muted-foreground">Cabeçalho do cliente</p>
               </div>
             </div>

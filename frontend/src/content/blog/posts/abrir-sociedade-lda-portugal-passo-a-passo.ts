@@ -19,7 +19,7 @@ export const postAbrirSociedadeLda: BlogPost = {
   publishedAt: '2026-07-20',
   updatedAt: '2026-07-21',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Actividade',
   audience: ['pme', 'independente'],
   featured: false,
@@ -142,7 +142,7 @@ export const postAbrirSociedadeLda: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Acompanhar constituição e primeiros meses?',
-      text: 'Use o portal TegLion para pedir documentos ao cliente por etapas (pacto, NIF, IBAN, facturas) e manter o histórico limpo desde o dia 1 da Lda.',
+      text: 'Use o portal Teglion para pedir documentos ao cliente por etapas (pacto, NIF, IBAN, facturas) e manter o histórico limpo desde o dia 1 da Lda.',
     }),
     ...articleSection({
       h2: '7. Conta bancária da sociedade',
@@ -201,7 +201,7 @@ export const postAbrirSociedadeLda: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Escritório com várias constituições por ano?',
-      text: 'Padronize pedidos de documentos e prazos no TegLion — cada nova Lda começa com o mesmo processo, não com um chat diferente.',
+      text: 'Padronize pedidos de documentos e prazos no Teglion — cada nova Lda começa com o mesmo processo, não com um chat diferente.',
     }),
     ...internalLinksSection({
       title: 'Artigos relacionados',

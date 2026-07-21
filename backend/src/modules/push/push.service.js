@@ -55,7 +55,7 @@ async function sendPushToUser({ firmId, userId, userRole, title, body, url }) {
   if (error) throw error;
   if (!subs?.length) return { sent: 0 };
 
-  const payload = JSON.stringify({ title: title || 'TegLion', body: body || '', url: url || '/' });
+  const payload = JSON.stringify({ title: title || 'Teglion', body: body || '', url: url || '/' });
   let sent = 0;
 
   for (const sub of subs) {

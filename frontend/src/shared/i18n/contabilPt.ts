@@ -1,6 +1,6 @@
 import { PRICING_TEXT } from '@/shared/config/pricingConstants'
 
-/** Textos TegLion — Português de Portugal (pt-PT) */
+/** Textos Teglion — Português de Portugal (pt-PT) */
 export const contabilPt = {
   brand: 'Teglion',
   nav: { login: 'Entrar', trial: 'Começar gratuitamente' },
@@ -222,7 +222,7 @@ export const contabilPt = {
       'Envie este endereço ao cliente (e-mail, WhatsApp, etc.). Ele pode colar no browser para criar conta e aceder ao portal.',
     inviteCopyAgain: 'Copiar de novo',
     inviteShare: 'Partilhar…',
-    inviteShareTitle: 'Convite portal TegLion',
+    inviteShareTitle: 'Convite portal Teglion',
     inviteShareBody: 'Olá! Usa este link para criar o teu acesso ao portal:',
   },
 } as const

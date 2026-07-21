@@ -19,7 +19,7 @@ export const postSaftEfatura: BlogPost = {
   publishedAt: '2026-07-20',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Escritórios',
   audience: ['escritorio'],
   featured: false,
@@ -68,7 +68,7 @@ export const postSaftEfatura: BlogPost = {
       'Validação = completude + legibilidade + consistência (NIF, datas, IVA, série) antes do lançamento.',
       'Pedidos formais com prazo batem WhatsApp: o cliente vê o que falta; o escritório prova que pediu.',
       'Erros típicos: foto ilegível, factura de fornecedor sem NIF, duplicados, e «já enviei» sem estar no portal.',
-      'Ferramentas como TegLion fecham a última etapa com o cliente — pedido → entrega → histórico); o ERP continua a ser o coração contabilístico.',
+      'Ferramentas como Teglion fecham a última etapa com o cliente — pedido → entrega → histórico); o ERP continua a ser o coração contabilístico.',
     ]),
     ...proseParagraphs(
       'No fecho de IVA, o problema raramente é «não saber lançar». É não ter a factura certa, a tempo, legível, sem duplicar o que já veio no SAF-T do software do cliente. Escritórios maduros tratam SAF-T, e-Fatura e validação de documentos como um único fluxo — não como três tarefas soltas.',
@@ -148,7 +148,7 @@ export const postSaftEfatura: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Pedidos de documentos com estado e histórico',
-      text: 'TegLion ajuda o escritório a pedir, receber e acompanhar documentos dos clientes com portal próprio — o complemento natural ao ERP e ao cruzamento SAF-T / e-Fatura.',
+      text: 'Teglion ajuda o escritório a pedir, receber e acompanhar documentos dos clientes com portal próprio — o complemento natural ao ERP e ao cruzamento SAF-T / e-Fatura.',
     }),
     ...articleSection({
       h2: 'Erros que atrasam o fecho',
@@ -173,7 +173,7 @@ export const postSaftEfatura: BlogPost = {
       ],
     }),
     ...articleSection({
-      h2: 'Papel do portal do cliente (e do TegLion)',
+      h2: 'Papel do portal do cliente (e do Teglion)',
       id: 'portal',
       paragraphs: [
         'O ERP resolve lançamentos, mapas e declarações. A última etapa com o cliente — pedir a factura de Junho, rejeitar a foto ilegível, provar que pediu três vezes — é onde muitos escritórios perdem horas. Um portal com marca do escritório torna o pedido formal, rastreável e menos dependente da memória de uma pessoa.',
@@ -200,7 +200,7 @@ export const postSaftEfatura: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Menos chase, mais fecho',
-      text: 'Se a equipa ainda caça documentos por chat na véspera do IVA, experimente padronizar pedidos no TegLion e medir horas recuperadas num mês piloto.',
+      text: 'Se a equipa ainda caça documentos por chat na véspera do IVA, experimente padronizar pedidos no Teglion e medir horas recuperadas num mês piloto.',
     }),
     ...internalLinksSection({
       title: 'Continuar no tema escritório',

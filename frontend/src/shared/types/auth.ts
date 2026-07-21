@@ -1,5 +1,5 @@
 /**
- * auth.ts — domínio de autenticação TegLion (sem semântica clínica).
+ * auth.ts — domínio de autenticação Teglion (sem semântica clínica).
  */
 
 import type { Firm } from '@/shared/types/firm'

@@ -104,7 +104,7 @@ function buildRss(posts) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Blog TegLion — Contabilidade e fiscalidade em Portugal</title>
+    <title>Blog Teglion — Contabilidade e fiscalidade em Portugal</title>
     <link>${SITE}/blog</link>
     <description>Artigos informativos sobre IRS, IVA, recibos verdes e obrigações fiscais para PME e trabalhadores independentes em Portugal.</description>
     <language>pt-PT</language>

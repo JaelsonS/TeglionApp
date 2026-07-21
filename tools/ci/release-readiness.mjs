@@ -26,7 +26,7 @@ function main() {
     const frontendDir = path.join(root, 'frontend')
     const backendDir = path.join(root, 'backend')
 
-    console.log('\n=== Release Readiness TegLion ===')
+    console.log('\n=== Release Readiness Teglion ===')
     console.log('Executando checklist automatizado (frontend + backend + operação).')
 
     run('npm', ['run', 'test'], frontendDir)

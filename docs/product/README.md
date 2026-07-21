@@ -1,8 +1,8 @@
 # Produto
 
-**Porque esta pasta existe:** Documenta *o quê*, *para quem* e *para onde* vai o TegLion — decisões de negócio e evolução do produto.
+**Porque esta pasta existe:** Documenta *o quê*, *para quem* e *para onde* vai o Teglion — decisões de negócio e evolução do produto.
 
-**Quem deve ler:** Fundadores, product owners, investidores, qualquer pessoa que precise entender o TegLion sem ler código.
+**Quem deve ler:** Fundadores, product owners, investidores, qualquer pessoa que precise entender o Teglion sem ler código.
 
 | Documento | Quando ler |
 |-----------|------------|

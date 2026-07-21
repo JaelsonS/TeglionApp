@@ -1,4 +1,4 @@
-/** Rotas de autenticação TegLion (firm vs client). */
+/** Rotas de autenticação Teglion (firm vs client). */
 
 export type AuthIntent = 'login' | 'register' | 'trial'
 export type AuthProfile = 'firm' | 'client'

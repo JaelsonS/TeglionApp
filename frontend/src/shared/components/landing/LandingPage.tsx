@@ -18,7 +18,7 @@ import { applyPageSeo } from '@/shared/utils/seo'
 export function LandingPage() {
   useLayoutEffect(() => {
     applyPageSeo({
-      title: 'TegLion — Fecha o mês sem caçar documentos no WhatsApp',
+      title: 'Teglion — Fecha o mês sem caçar documentos no WhatsApp',
       description:
         'Sistema para escritórios de contabilidade em Portugal: pedidos de documentos, prazos fiscais e portal do cliente num só sítio. 14 dias grátis, sem cartão.',
       path: '/',

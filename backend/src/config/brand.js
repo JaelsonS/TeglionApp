@@ -1,8 +1,8 @@
-/** Marca e domínio oficial TegLion — escritórios de contabilidade em Portugal. */
+/** Marca e domínio oficial Teglion — escritórios de contabilidade em Portugal. */
 const BRAND = {
-  name: 'TegLion',
+  name: 'Teglion',
   domain: 'teglion.com',
-  logPrefix: '[TegLion]',
+  logPrefix: '[Teglion]',
   emails: {
     hello: 'jaelsonsilva345@gmail.com',
     support: 'jaelsonsilva345@gmail.com',

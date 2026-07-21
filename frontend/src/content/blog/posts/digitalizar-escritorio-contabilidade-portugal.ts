@@ -20,7 +20,7 @@ export const postDigitalizarEscritorio: BlogPost = {
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Escritórios',
   audience: ['escritorio'],
   tags: [
@@ -29,7 +29,7 @@ export const postDigitalizarEscritorio: BlogPost = {
     'portal cliente',
     'contabilidade digital',
     'RGPD contabilista',
-    'TegLion',
+    'Teglion',
   ],
   readMinutes: 16,
   featured: true,
@@ -187,13 +187,13 @@ export const postDigitalizarEscritorio: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Portal com a marca do seu escritório',
-      text: 'TegLion: pedidos de documentos, prazos fiscais, mensagens e portal do cliente — teste 14 dias grátis, sem cartão. Feito para escritórios de contabilidade em Portugal.',
+      text: 'Teglion: pedidos de documentos, prazos fiscais, mensagens e portal do cliente — teste 14 dias grátis, sem cartão. Feito para escritórios de contabilidade em Portugal.',
     }),
     ...articleSection({
       h2: 'Stack típico do escritório digital',
       id: 'stack',
       paragraphs: [
-        'ERP contabilístico + Microsoft 365 + portal cliente + antivírus + backup. O TegLion ocupa a camada cliente — não compete com PHC ou Primavera, reduz o ruído entre o contabilista e quem deve enviar a factura.',
+        'ERP contabilístico + Microsoft 365 + portal cliente + antivírus + backup. O Teglion ocupa a camada cliente — não compete com PHC ou Primavera, reduz o ruído entre o contabilista e quem deve enviar a factura.',
         'Orçamento orientativo para um escritório pequeno (3–8 pessoas): cloud/Office 10–20 €/utilizador/mês, portal do cliente conforme plano, e 1–2 dias de onboarding interno. O retorno aparece quando deixa de haver «fogo» no dia 19.',
       ],
     }),

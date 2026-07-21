@@ -14,7 +14,7 @@ type Copy = {
 
 const COPY: Record<AuthProfileLocale, Copy> = {
   'pt-PT': {
-    brand: 'TegLion',
+    brand: 'Teglion',
     title: 'Como pretende aceder?',
     subtitle: 'Escolha o seu perfil para continuar para o login ou registo.',
     firm: {
@@ -31,7 +31,7 @@ const COPY: Record<AuthProfileLocale, Copy> = {
     intents: { login: 'Entrar', register: 'Criar conta', trial: 'Testar sistema' },
   },
   'pt-BR': {
-    brand: 'TegLion',
+    brand: 'Teglion',
     title: 'Como você quer acessar?',
     subtitle: 'Escolha seu perfil para continuar para login ou cadastro.',
     firm: {
@@ -48,7 +48,7 @@ const COPY: Record<AuthProfileLocale, Copy> = {
     intents: { login: 'Entrar', register: 'Criar conta', trial: 'Testar o sistema' },
   },
   'es-ES': {
-    brand: 'TegLion',
+    brand: 'Teglion',
     title: '¿Cómo desea acceder?',
     subtitle: 'Elija su perfil para continuar al inicio de sesión o registro.',
     firm: {
@@ -65,7 +65,7 @@ const COPY: Record<AuthProfileLocale, Copy> = {
     intents: { login: 'Entrar', register: 'Crear cuenta', trial: 'Probar el sistema' },
   },
   en: {
-    brand: 'TegLion',
+    brand: 'Teglion',
     title: 'How do you want to sign in?',
     subtitle: 'Choose your profile to continue to login or registration.',
     firm: {

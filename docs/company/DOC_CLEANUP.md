@@ -1,4 +1,4 @@
-# TegLion — Limpeza
+# Teglion — Limpeza
 
 **Actualizado: 17 Julho 2026**
 

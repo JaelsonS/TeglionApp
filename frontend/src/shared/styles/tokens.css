@@ -1,5 +1,5 @@
 /**
- * TegLion — tokens CSS (source of truth para Tailwind + .cb-*)
+ * Teglion — tokens CSS (source of truth para Tailwind + .cb-*)
  */
 @layer base {
   :root {
@@ -12,7 +12,7 @@
     --pc-primary-oklch: oklch(0.28 0.06 250);
     --pc-accent-oklch: oklch(0.55 0.18 260);
 
-    /* Brand TegLion */
+    /* Brand Teglion */
     --cb-brand: 210 52% 16%;
     --cb-brand-hover: 210 48% 22%;
     --cb-accent: 243 75% 59%;

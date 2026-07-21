@@ -61,7 +61,7 @@ export function useBlogSeo({ post, index }: BlogSeoInput) {
     if (index) {
       const title = `Blog ${BRAND.name} — Contabilidade e fiscalidade em Portugal`
       const description =
-        'Revista fiscal TegLion: IRS, IVA, Lda, recibos verdes e operação de escritórios em Portugal. Guias práticos indexados para Google — com checklists e prazos reais.'
+        'Revista fiscal Teglion: IRS, IVA, Lda, recibos verdes e operação de escritórios em Portugal. Guias práticos indexados para Google — com checklists e prazos reais.'
       document.title = title
       upsertMeta('description', description)
       upsertMeta('og:title', title, 'property')

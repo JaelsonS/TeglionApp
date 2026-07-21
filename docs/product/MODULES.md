@@ -1,8 +1,8 @@
-# TegLion — Módulos
+# Teglion — Módulos
 
 **Documento oficial · Última actualização: Julho 2026**
 
-Inventário de todos os módulos do TegLion, classificados por importância estratégica e estado de maturidade.
+Inventário de todos os módulos do Teglion, classificados por importância estratégica e estado de maturidade.
 
 **Legenda:**
 - ✅ **Essencial** — core do produto; manter e investir

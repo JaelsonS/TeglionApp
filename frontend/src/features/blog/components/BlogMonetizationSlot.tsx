@@ -24,7 +24,7 @@ type Props = {
 
 /**
  * Espaço de monetização do blog:
- * - Sem AdSense aprovado: afiliados ou CTA TegLion (sem buracos vazios).
+ * - Sem AdSense aprovado: afiliados ou CTA Teglion (sem buracos vazios).
  * - Com VITE_ADSENSE_LIVE=true: tenta AdSense; se não preencher, mostra afiliado.
  */
 export function BlogMonetizationSlot({

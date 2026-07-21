@@ -9,7 +9,7 @@ export const dpaDocument: LegalDocument = {
   updatedAtValue: '22 de maio de 2026',
   version: CONTABIL_LEGAL_VERSIONS.dpa,
   intro: [
-    'O presente Acordo de Tratamento de Dados («DPA») complementa os Termos de Utilização e aplica-se quando o escritório de contabilidade («Controlador», «Escritório», «você») utiliza a plataforma TegLion («Processador», «Plataforma», «nós») para tratar dados pessoais dos seus clientes finais.',
+    'O presente Acordo de Tratamento de Dados («DPA») complementa os Termos de Utilização e aplica-se quando o escritório de contabilidade («Controlador», «Escritório», «você») utiliza a plataforma Teglion («Processador», «Plataforma», «nós») para tratar dados pessoais dos seus clientes finais.',
     'Ao aceitar este DPA no registo ou na re-aceitação exigida por nova versão, o representante do Escritório declara ter poderes para vincular a entidade e compromete-se a cumprir as obrigações de controlador nos termos do RGPD.',
     'Prestador do software: Jaelson Silva dos Santos, NIF 331 759 276, Coimbra, Portugal.',
   ],

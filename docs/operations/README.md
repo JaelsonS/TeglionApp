@@ -1,6 +1,6 @@
 # Operações
 
-Este é o meu centro de comando operacional do TegLion.
+Este é o meu centro de comando operacional do Teglion.
 Eu mantenho aqui o que preciso para preparar, lançar, monitorizar e recuperar produção sem improviso.
 
 | Documento | Quando ler |

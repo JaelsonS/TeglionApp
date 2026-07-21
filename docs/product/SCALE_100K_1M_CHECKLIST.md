@@ -1,10 +1,10 @@
-# TegLion — Checklist Mestre 100k → 1M
+# Teglion — Checklist Mestre 100k → 1M
 
 **Documento executivo oficial**
 **Última actualização:** Julho 2026
 **Baseado em:** [ROADMAP.md](./ROADMAP.md), [ARCHITECTURE.md](../engineering/ARCHITECTURE.md), [STATUS.md](../operations/STATUS.md)
 
-Este documento traduz a visão do TegLion para um plano executável, com **400 checkpoints** ordenados por prioridade e por fase.
+Este documento traduz a visão do Teglion para um plano executável, com **400 checkpoints** ordenados por prioridade e por fase.
 
 ## Como usar
 
@@ -15,7 +15,7 @@ Este documento traduz a visão do TegLion para um plano executável, com **400 c
 
 ## Meta de saída
 
-Quando os 400 itens abaixo estiverem concluídos, o TegLion deverá estar:
+Quando os 400 itens abaixo estiverem concluídos, o Teglion deverá estar:
 
 - operacionalmente pronto para **100 mil utilizadores**;
 - arquitecturalmente preparado para expansão rumo a **1 milhão de utilizadores**;
@@ -110,7 +110,7 @@ Quando os 400 itens abaixo estiverem concluídos, o TegLion deverá estar:
 - [ ] `F1-22 [P2]` Criar modo “visão simplificada” para escritórios menos digitais.
 - [ ] `F1-23 [P2]` Criar glossário de termos fiscais e operacionais no produto.
 - [ ] `F1-24 [P2]` Criar barra lateral com agrupamento semântico por fluxo de trabalho.
-- [ ] `F1-25 [P2]` Preparar guia visual formal do TegLion para UX/UI consistente.
+- [ ] `F1-25 [P2]` Preparar guia visual formal do Teglion para UX/UI consistente.
 
 ## Fase 2 — Equipa, cargos, departamentos e permissões
 
@@ -402,7 +402,7 @@ Quando os 400 itens abaixo estiverem concluídos, o TegLion deverá estar:
 - [ ] `F12-06 [P1]` Criar tracking de uploads no prazo por cliente.
 - [ ] `F12-07 [P1]` Criar tracking de carga operacional por departamento.
 - [ ] `F12-08 [P1]` Criar relatórios executivos do escritório dentro do produto.
-- [ ] `F12-09 [P1]` Criar health score por conta do TegLion.
+- [ ] `F12-09 [P1]` Criar health score por conta do Teglion.
 - [ ] `F12-10 [P1]` Criar cohorts de trial, retenção e expansão de módulos.
 - [ ] `F12-11 [P2]` Criar warehouse leve para analytics sem degradar produção.
 - [ ] `F12-12 [P2]` Criar catálogo de dados e ownership por métrica.
@@ -488,7 +488,7 @@ Quando os 400 itens abaixo estiverem concluídos, o TegLion deverá estar:
 - [ ] `F15-08 [P1]` Criar programa de referrals de escritórios.
 - [ ] `F15-09 [P1]` Criar case studies estruturados por segmento.
 - [ ] `F15-10 [P1]` Criar landing pages por ICP e dor principal.
-- [ ] `F15-11 [P2]` Criar templates de proposta comercial com ROI do TegLion.
+- [ ] `F15-11 [P2]` Criar templates de proposta comercial com ROI do Teglion.
 - [ ] `F15-12 [P2]` Criar benchmark de maturidade digital do escritório.
 - [ ] `F15-13 [P2]` Criar score de adopção interna da equipa.
 - [ ] `F15-14 [P2]` Criar detecção de contas “estagnadas” com playbook de recuperação.
@@ -498,7 +498,7 @@ Quando os 400 itens abaixo estiverem concluídos, o TegLion deverá estar:
 - [ ] `F15-18 [P2]` Criar SLA interno por tipo de conta e risco.
 - [ ] `F15-19 [P2]` Criar dashboards de suporte, CS e expansão.
 - [ ] `F15-20 [P3]` Criar marketplace de integrações e parceiros.
-- [ ] `F15-21 [P3]` Criar programa para consultores externos especializados em TegLion.
+- [ ] `F15-21 [P3]` Criar programa para consultores externos especializados em Teglion.
 - [ ] `F15-22 [P3]` Criar comunidade de escritórios com partilha de boas práticas.
 - [ ] `F15-23 [P3]` Criar eventos e webinars recorrentes para retenção e growth.
 - [ ] `F15-24 [P3]` Criar plataforma de feedback contínuo com votação.
@@ -568,7 +568,7 @@ Quando os 400 itens abaixo estiverem concluídos, o TegLion deverá estar:
 
 ## Critério formal de conclusão desta checklist
 
-O TegLion só pode ser considerado pronto para 100 mil utilizadores quando:
+O Teglion só pode ser considerado pronto para 100 mil utilizadores quando:
 
 - os itens `P0` estiverem concluídos;
 - pelo menos 80% dos itens `P1` estiverem concluídos;

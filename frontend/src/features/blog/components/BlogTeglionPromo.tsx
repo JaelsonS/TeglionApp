@@ -11,9 +11,9 @@ export function BlogTeglionPromo({ compact = false, className = '' }: Props) {
   return (
     <aside
       className={`blog-promo blog-promo--teglion ${compact ? 'blog-promo--compact' : ''} ${className}`.trim()}
-      aria-label="TegLion"
+      aria-label="Teglion"
     >
-      <span className="blog-promo-eyebrow">TegLion · Escritórios</span>
+      <span className="blog-promo-eyebrow">Teglion · Escritórios</span>
       <span className="blog-promo-title">Menos caos no WhatsApp, mais tempo para contabilidade</span>
       {!compact ? (
         <span className="blog-promo-body">

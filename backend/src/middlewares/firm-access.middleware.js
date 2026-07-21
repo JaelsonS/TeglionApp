@@ -10,9 +10,9 @@ const FIRM_ACCESS_MESSAGES = {
   firmNotFound: 'Escritório não encontrado',
   firmBlockedByStatus:
     'Acesso bloqueado. A subscrição está suspensa ou inactiva. Regularize o pagamento em Plano e subscrição.',
-  trialValidationError: 'Erro ao validar o período de teste. Contacte o suporte TegLion.',
+  trialValidationError: 'Erro ao validar o período de teste. Contacte o suporte Teglion.',
   trialExpired:
-    'O período de teste terminou. Active o plano em Plano e subscrição para continuar a usar o TegLion.',
+    'O período de teste terminou. Active o plano em Plano e subscrição para continuar a usar o Teglion.',
 };
 
 function firmAccessMessage(key) {
@@ -36,7 +36,7 @@ async function requireActiveFirm(req, res, next) {
     }
     if (firm.status === 'CANCELLED') {
       return next(
-        new AppError('Esta conta de escritório foi encerrada. Contacte o suporte TegLion se precisar de reactivação.', 403, {
+        new AppError('Esta conta de escritório foi encerrada. Contacte o suporte Teglion se precisar de reactivação.', 403, {
           code: 'FIRM_CANCELLED',
         }),
       );

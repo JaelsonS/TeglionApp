@@ -1,10 +1,10 @@
-# TegLion — Roadmap Estratégico
+# Teglion — Roadmap Estratégico
 
 **Plataforma de Crescimento para Escritórios de Contabilidade · Europa**
 
 **Documento oficial · Última actualização: Julho 2026**
 
-Este documento substitui o roadmap anterior orientado a «SaaS de gestão contábil». O TegLion passa a ser desenhado como **a principal plataforma de crescimento para escritórios de contabilidade na Europa** — não apenas uma ferramenta operacional, mas o **sistema nervoso** que permite ao escritório **ganhar clientes, reter clientes, poupar tempo e parecer premium**.
+Este documento substitui o roadmap anterior orientado a «SaaS de gestão contábil». O Teglion passa a ser desenhado como **a principal plataforma de crescimento para escritórios de contabilidade na Europa** — não apenas uma ferramenta operacional, mas o **sistema nervoso** que permite ao escritório **ganhar clientes, reter clientes, poupar tempo e parecer premium**.
 
 ---
 
@@ -26,7 +26,7 @@ Foco explícito: fazer o escritório CRESCER — em clientes, receita, eficiênc
 
 ### Definição oficial (2026)
 
-> **TegLion é a plataforma de crescimento B2B2C que liga escritórios de contabilidade aos seus clientes — com operações, comunicação, conformidade e inteligência num só lugar — para que o contabilista pare de perder tempo em administração e comece a ganhar mercado.**
+> **Teglion é a plataforma de crescimento B2B2C que liga escritórios de contabilidade aos seus clientes — com operações, comunicação, conformidade e inteligência num só lugar — para que o contabilista pare de perder tempo em administração e comece a ganhar mercado.**
 
 ### O que NÃO somos
 
@@ -81,7 +81,7 @@ Para atingir escala real, o roadmap técnico-operacional deve manter estes pilar
 2. **CountryConfig** fiscal profundo por mercado
 3. **Dados agregados** — benchmarks anónimos do sector
 4. **Integrações certificadas** — AT, ERPs, WhatsApp, bancos
-5. **TegLion Academy + Certified Partner** — comunidade e certificação
+5. **Teglion Academy + Certified Partner** — comunidade e certificação
 6. **IA operacional** treinada em fluxos reais de contabilidade
 
 ---
@@ -118,7 +118,7 @@ Toda feature futura deve mapear para pelo menos um pilar:
 
 - ROI visível, case studies, certificação
 - Landing de alta conversão, referências
-- **Métrica:** escritórios que citam TegLion na proposta comercial
+- **Métrica:** escritórios que citam Teglion na proposta comercial
 
 ### Pilar 4 — Parecer premium (Marca)
 
@@ -258,7 +258,7 @@ Google OAuth configurado; migration Supabase; Render keys.
 
 ## Fase 3 — Motor de crescimento
 
-**Objectivo:** O TegLion não só opera — **ajuda o escritório a vender e a crescer**.  
+**Objectivo:** O Teglion não só opera — **ajuda o escritório a vender e a crescer**.  
 **Duração:** Meses 6–9 · **Prioridade:** P0
 
 ### Entregas
@@ -267,14 +267,14 @@ Google OAuth configurado; migration Supabase; Render keys.
 |---|---------|-------|---------|
 | 3.1 | Landing conversão completa (A/B, comparativos) | Ganhar | Muito alto |
 | 3.2 | Calculadora ROI «horas poupadas» in-app | Ganhar | Alto |
-| 3.3 | Badge «Escritório Digital TegLion» | Premium | Alto |
+| 3.3 | Badge «Escritório Digital Teglion» | Premium | Alto |
 | 3.4 | Relatório PDF anual ao cliente do escritório | Reter + Premium | Alto |
 | 3.5 | Programa referência escritório→escritório | Ganhar | Alto |
 | 3.6 | WhatsApp Business API notificações | Reter | Muito alto |
 | 3.7 | Integração AT consulta (NIF, validações) | Poupar + Premium | Muito alto |
 | 3.8 | CRM lite: pipeline, tags, segmentos | Ganhar | Médio |
 | 3.9 | Score «cliente em risco» (atrasos) | Reter | Alto |
-| 3.10 | Academia TegLion v1 (10 vídeos + certificado) | Ecossistema | Alto |
+| 3.10 | Academia Teglion v1 (10 vídeos + certificado) | Ecossistema | Alto |
 | 3.11 | Parceria 2 associações contabilistas PT | Ecossistema | Muito alto |
 | 3.12 | Google Ads + LinkedIn ABM (€5–10k/mês) | Ganhar | Alto |
 | 3.13 | Pricing por clientes activos (não só users) | Growth | Alto |
@@ -421,7 +421,7 @@ Ver [MULTI_COUNTRY.md](../international/MULTI_COUNTRY.md).
 | 8.5 | Webhooks outbound completos |
 | 8.6 | White-label portal (domínio custom) |
 | 8.7 | Programa parceiros revenue share |
-| 8.8 | TegLion Connect evento anual |
+| 8.8 | Teglion Connect evento anual |
 
 ---
 
@@ -546,8 +546,8 @@ Se não medimos e mostramos, somos «mais um software». Se mostramos 8h/mês, s
 
 ### Máquinas de crescimento (não só produto)
 
-1. **TegLion Academy** — certificação contabilistas
-2. **TegLion Connect** — evento anual + webinars mensais
+1. **Teglion Academy** — certificação contabilistas
+2. **Teglion Connect** — evento anual + webinars mensais
 3. **Programa embaixadores** — contabilistas que referem
 4. **Parcerias OCC / associações** — credibilidade
 5. **Content SEO** — 2 posts/semana fiscal PT/BR/ES
@@ -650,7 +650,7 @@ Se **não** a nenhuma → não entra no roadmap.
 
 ---
 
-## 13. Veredito — O plano se o TegLion fosse meu
+## 13. Veredito — O plano se o Teglion fosse meu
 
 Se competisse com qualquer software europeu nos próximos 24 meses:
 
@@ -661,7 +661,7 @@ Se competisse com qualquer software europeu nos próximos 24 meses:
 5. **Meses 13–18:** Brasil + marketplace integrações PT — segundo mercado
 6. **Meses 19–24:** Espanha pilot + enterprise SAML — «plataforma europeia»
 
-**Não** tentaria competir com ERP. **Sim** tentaria que todo empresário em Portugal dissesse: *«O meu contabilista é moderno — tenho portal TegLion.»*
+**Não** tentaria competir com ERP. **Sim** tentaria que todo empresário em Portugal dissesse: *«O meu contabilista é moderno — tenho portal Teglion.»*
 
 Esse é o caminho para centenas de milhões de euros de valor.
 

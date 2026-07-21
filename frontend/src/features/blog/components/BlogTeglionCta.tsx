@@ -19,8 +19,8 @@ export function BlogTeglionCta({ block }: Props) {
       : 'Peça ao seu contador um portal seguro para enviar documentos — sem WhatsApp perdido.')
 
   return (
-    <aside className="blog-teglion-cta" aria-label="TegLion">
-      <p className="blog-teglion-cta-label">TegLion</p>
+    <aside className="blog-teglion-cta" aria-label="Teglion">
+      <p className="blog-teglion-cta-label">Teglion</p>
       <h3 className="blog-teglion-cta-title">{title}</h3>
       <p className="blog-teglion-cta-text">{text}</p>
       <Link

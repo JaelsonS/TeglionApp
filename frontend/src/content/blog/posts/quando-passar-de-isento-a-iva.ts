@@ -18,7 +18,7 @@ export const postPassarIsentoIva: BlogPost = {
   publishedAt: '2026-05-20',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'IVA',
   audience: ['independente', 'pme'],
   featured: false,
@@ -31,7 +31,7 @@ export const postPassarIsentoIva: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Passar de isento a sujeito passivo de IVA | Blog TegLion',
+    title: 'Passar de isento a sujeito passivo de IVA | Blog Teglion',
     description:
       'Quando deixa de estar isento de IVA em Portugal: limites, preparação, software certificado, ajuste de preços e declarações periódicas.',
     keywords: ['passar a sujeito passivo IVA', 'fim isenção IVA', 'limite IVA Portugal', 'transição IVA freelancer'],

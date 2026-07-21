@@ -364,7 +364,7 @@ export function AgendaWorkspace() {
         </div>
       )}
 
-      <p className="cb-agenda-foot">TegLion — Consultorias / Agenda</p>
+      <p className="cb-agenda-foot">Teglion — Consultorias / Agenda</p>
     </div>
   )
 }

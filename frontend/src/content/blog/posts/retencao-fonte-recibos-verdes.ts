@@ -18,7 +18,7 @@ export const postRetencaoFonte: BlogPost = {
   publishedAt: '2026-05-23',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Facturação',
   audience: ['independente', 'pme'],
   featured: false,
@@ -31,7 +31,7 @@ export const postRetencaoFonte: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Retenção na fonte recibos verdes explicada | Blog TegLion',
+    title: 'Retenção na fonte recibos verdes explicada | Blog Teglion',
     description:
       'Perceba retenções IRS nos recibos verdes: quando aplicam, taxas comuns, cálculo bruto/líquido e impacto na declaração anual de rendimentos.',
     keywords: ['retenção na fonte recibos verdes', 'IRS retenção freelancer', 'taxa retenção independente', 'retenção IRS Portugal'],

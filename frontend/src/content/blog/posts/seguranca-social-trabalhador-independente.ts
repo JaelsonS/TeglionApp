@@ -18,7 +18,7 @@ export const postSegurancaSocial: BlogPost = {
   publishedAt: '2026-05-27',
   updatedAt: '2026-06-17',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Segurança Social',
   audience: ['independente'],
   featured: false,

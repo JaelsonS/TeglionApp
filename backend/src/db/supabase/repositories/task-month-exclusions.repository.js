@@ -17,7 +17,7 @@ function mapRow(row) {
 
 function ensureClient() {
   const sb = getSupabaseAdmin();
-  if (!sb) throw new Error('[TegLion] Supabase não configurado.');
+  if (!sb) throw new Error('[Teglion] Supabase não configurado.');
   return sb;
 }
 

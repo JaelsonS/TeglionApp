@@ -56,7 +56,7 @@ export function BlogNewsletter({
         <p className="blog-rail-text mt-2">{insight}</p>
         <p className="blog-rail-text mt-2">
           <Link to={authFirmRegisterUrl()} className="font-semibold blog-text-navy underline-offset-2 hover:underline">
-            Testar TegLion 14 dias →
+            Testar Teglion 14 dias →
           </Link>
         </p>
         <form className="mt-4 space-y-2" onSubmit={onSubmit} noValidate>
@@ -78,7 +78,7 @@ export function BlogNewsletter({
           <label className="blog-lead-consent">
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} required />
             <span>
-              Aceito e-mails da TegLion.{' '}
+              Aceito e-mails da Teglion.{' '}
               <Link to="/privacidade" className="underline underline-offset-2">
                 Privacidade
               </Link>
@@ -95,7 +95,7 @@ export function BlogNewsletter({
   return (
     <section className="blog-newsletter" aria-labelledby="blog-newsletter-title">
       <h2 id="blog-newsletter-title" className={isCompact ? 'text-lg font-semibold' : 'text-xl font-semibold sm:text-2xl'}>
-        Newsletter TegLion
+        Newsletter Teglion
       </h2>
       <p className={`mt-2 text-white/85 ${isCompact ? 'text-sm' : ''}`}>
         {insight} Sem spam — artigos e dicas para escritórios e independentes.
@@ -128,7 +128,7 @@ export function BlogNewsletter({
         <label className="blog-newsletter-consent">
           <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} required />
           <span>
-            Aceito receber e-mails da TegLion. Pode cancelar a qualquer momento.{' '}
+            Aceito receber e-mails da Teglion. Pode cancelar a qualquer momento.{' '}
             <Link to="/privacidade" className="underline underline-offset-2 hover:text-white">
               Privacidade
             </Link>
@@ -139,7 +139,7 @@ export function BlogNewsletter({
       <p className="mt-4 text-xs text-white/70">
         É contabilista?{' '}
         <Link to={authFirmRegisterUrl()} className="font-medium blog-text-gold underline">
-          Experimente o TegLion 14 dias grátis
+          Experimente o Teglion 14 dias grátis
         </Link>
         .
       </p>

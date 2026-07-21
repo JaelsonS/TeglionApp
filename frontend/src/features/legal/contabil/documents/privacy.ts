@@ -9,7 +9,7 @@ export const privacyDocument: LegalDocument = {
   updatedAtValue: '22 de maio de 2026',
   version: CONTABIL_LEGAL_VERSIONS.privacy,
   intro: [
-    'Esta Política de Privacidade descreve como o TegLion trata dados pessoais no âmbito do website, da aplicação web e dos serviços associados.',
+    'Esta Política de Privacidade descreve como o Teglion trata dados pessoais no âmbito do website, da aplicação web e dos serviços associados.',
     'O tratamento decorre da prestação de software a escritórios de contabilidade (B2B) e do acesso de clientes finais convidados pelo escritório (B2B2C indirecto).',
   ],
   sections: [
@@ -25,7 +25,7 @@ export const privacyDocument: LegalDocument = {
       id: 'papel-escritorio',
       title: '2. Papel do escritório de contabilidade',
       paragraphs: [
-        'Os dados dos clientes finais (nome, NIF, documentos fiscais, mensagens, obrigações) são, em regra, tratados pelo escritório de contabilidade como Responsável pelo Tratamento. O TegLion actua como Subcontratante, nos termos do DPA em /dpa.',
+        'Os dados dos clientes finais (nome, NIF, documentos fiscais, mensagens, obrigações) são, em regra, tratados pelo escritório de contabilidade como Responsável pelo Tratamento. O Teglion actua como Subcontratante, nos termos do DPA em /dpa.',
         'Para exercer direitos sobre dados fiscais ou documentos, o titular deve contactar prioritariamente o seu escritório de contabilidade.',
       ],
     },

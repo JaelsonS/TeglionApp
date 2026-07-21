@@ -1,6 +1,6 @@
 # Design
 
-**Porque esta pasta existe:** Garante interface consistente, acessível e alinhada com a marca TegLion.
+**Porque esta pasta existe:** Garante interface consistente, acessível e alinhada com a marca Teglion.
 
 **Quem deve ler:** Designers, frontend engineers, QA visual.
 

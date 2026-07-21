@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Smoke E2E piloto TegLion — valida infra mínima antes do escritório piloto.
+ * Smoke E2E piloto Teglion — valida infra mínima antes do escritório piloto.
  *
  * Uso:
  *   cd backend && node scripts/pilot-smoke-e2e.js
@@ -97,7 +97,7 @@ async function checkApiHealth() {
 }
 
 async function main() {
-  console.log('\n=== TegLion Pilot Smoke E2E ===\n');
+  console.log('\n=== Teglion Pilot Smoke E2E ===\n');
   await checkEnv();
   await checkSupabaseConnection();
   await checkStorageBucket();

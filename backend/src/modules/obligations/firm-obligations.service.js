@@ -1,5 +1,5 @@
 /**
- * Operações TegLion — escritório (staff).
+ * Operações Teglion — escritório (staff).
  * Dados via getRepository() — Mongo (staging) ou Supabase (futuro prod).
  */
 const { AppError } = require('../../middlewares/error.middleware');

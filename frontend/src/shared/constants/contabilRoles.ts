@@ -1,5 +1,5 @@
 /**
- * Papéis TegLion — alinhados com `Role` em `@/shared/types/auth`.
+ * Papéis Teglion — alinhados com `Role` em `@/shared/types/auth`.
  */
 
 import type { Role } from '@/shared/types/auth'

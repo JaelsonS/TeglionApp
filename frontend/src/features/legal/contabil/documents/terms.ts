@@ -9,7 +9,7 @@ export const termsDocument: LegalDocument = {
   updatedAtValue: '22 de maio de 2026',
   version: CONTABIL_LEGAL_VERSIONS.terms,
   intro: [
-    'Os presentes Termos de Utilização («Termos») regulam o acesso e a utilização da plataforma TegLion («Plataforma», «Serviço»), disponibilizada por Jaelson Silva dos Santos, NIF 331 759 276, com sede em Coimbra, Portugal («Operador», «nós»).',
+    'Os presentes Termos de Utilização («Termos») regulam o acesso e a utilização da plataforma Teglion («Plataforma», «Serviço»), disponibilizada por Jaelson Silva dos Santos, NIF 331 759 276, com sede em Coimbra, Portugal («Operador», «nós»).',
     'Ao criar conta de escritório, convidar utilizadores ou utilizar o Serviço, o representante do escritório declara ter poderes para vincular a entidade e aceita integralmente estes Termos.',
     'A Plataforma destina-se exclusivamente a escritórios de contabilidade e respetivos clientes finais (empresas ou particulares com relação contratual com o escritório).',
   ],
@@ -18,7 +18,7 @@ export const termsDocument: LegalDocument = {
       id: 'natureza',
       title: '1. Natureza do Serviço — software, não contabilidade',
       paragraphs: [
-        'O TegLion é um software de gestão digital em modelo SaaS (Software as a Service): carteira de clientes, obrigações fiscais, documentos, mensagens, alertas, agenda de consultorias e portal do cliente.',
+        'O Teglion é um software de gestão digital em modelo SaaS (Software as a Service): carteira de clientes, obrigações fiscais, documentos, mensagens, alertas, agenda de consultorias e portal do cliente.',
         'O Operador não presta serviços de contabilidade, assessoria fiscal, representação perante a Autoridade Tributária ou qualquer ato reservado a profissionais habilitados. Todas as decisões fiscais, prazos legais e conformidade regulatória são da exclusiva responsabilidade do escritório e dos seus profissionais.',
         'Nenhuma funcionalidade da Plataforma constitui aconselhamento jurídico, fiscal ou financeiro por parte do Operador.',
       ],
@@ -54,7 +54,7 @@ export const termsDocument: LegalDocument = {
       title: '5. Conteúdo e responsabilidade do escritório',
       paragraphs: [
         'O escritório é o único responsável pelos dados, documentos, mensagens, valores, prazos e configurações que introduz ou autoriza a introduzir na Plataforma.',
-        'O escritório garante que dispõe de base legal (contrato, obrigação legal, consentimento quando aplicável) para tratar e subcontratar o tratamento dos dados dos seus clientes através do TegLion.',
+        'O escritório garante que dispõe de base legal (contrato, obrigação legal, consentimento quando aplicável) para tratar e subcontratar o tratamento dos dados dos seus clientes através do Teglion.',
         'O Operador não verifica a exactidão fiscal dos conteúdos carregados e não substitui arquivo físico ou legal obrigatório fora da Plataforma, salvo acordo escrito em contrário.',
       ],
     },
@@ -100,7 +100,7 @@ export const termsDocument: LegalDocument = {
       id: 'pi',
       title: '10. Propriedade intelectual',
       paragraphs: [
-        'O software, marca TegLion, documentação e interfaces são propriedade do Operador ou dos seus licenciantes. Nenhum direito de propriedade é transferido além da licença de uso.',
+        'O software, marca Teglion, documentação e interfaces são propriedade do Operador ou dos seus licenciantes. Nenhum direito de propriedade é transferido além da licença de uso.',
       ],
     },
     {

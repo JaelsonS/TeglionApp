@@ -20,7 +20,7 @@ export const postEstudarContabilidade: BlogPost = {
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Estudantes',
   audience: ['estudante'],
   tags: [
@@ -147,7 +147,7 @@ export const postEstudarContabilidade: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Estágio num escritório que ainda usa email para pedir PDFs?',
-      text: 'Conheça o TegLion — portal do cliente, pedidos de documentos e prazos num só lugar. Sugira ao seu mentor ou experimente no próximo estágio.',
+      text: 'Conheça o Teglion — portal do cliente, pedidos de documentos e prazos num só lugar. Sugira ao seu mentor ou experimente no próximo estágio.',
     }),
     ...affiliateSection({
       heading: 'O que vale a pena ter à mão na faculdade',

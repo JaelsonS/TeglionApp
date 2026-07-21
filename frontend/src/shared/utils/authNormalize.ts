@@ -1,5 +1,5 @@
 /**
- * Normaliza payloads do backend para o domínio TegLion.
+ * Normaliza payloads do backend para o domínio Teglion.
  */
 
 import type { AuthTenant, AuthUser, Role } from '@/shared/types/auth'

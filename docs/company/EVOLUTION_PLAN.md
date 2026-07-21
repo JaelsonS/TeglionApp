@@ -1,4 +1,4 @@
-# TegLion — Onde estou e o que faço a seguir
+# Teglion — Onde estou e o que faço a seguir
 
 **Actualizado: 17 Julho 2026 (noite)**  
 **Para mim (Jaelson)** — bússola do dia a dia.  
@@ -32,7 +32,7 @@ Fecha o mês sem caçar documentos no WhatsApp — sistema para o escritório e 
 Trabalho **em cima desta documentação**, não invento sprint novo.
 
 ### Bloco 1 — Cobrar (Fase B) — P0
-- [ ] Stripe Dashboard: produto TegLion + preço mensal **35,00 €** + anual **359,88 €**
+- [ ] Stripe Dashboard: produto Teglion + preço mensal **35,00 €** + anual **359,88 €**
 - [ ] Copiar Price IDs para Render (`STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY` ou nomes do [STRIPE_SETUP.md](../operations/STRIPE_SETUP.md))
 - [ ] Smoke: registo escritório → trial 14 dias → checkout (cartão teste)
 

@@ -73,7 +73,7 @@ export function SupportPage() {
   return (
     <LandingMarketingShell
       title={`Atendimento ao cliente | ${BRAND.name}`}
-      description="Fale com a equipa TegLion por telefone, WhatsApp, e-mail ou pelo formulário de suporte."
+      description="Fale com a equipa Teglion por telefone, WhatsApp, e-mail ou pelo formulário de suporte."
       path="/suporte"
     >
       <section className="landing-section pb-0">

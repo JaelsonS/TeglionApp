@@ -390,7 +390,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // ============================================
-// 7) ROTAS DA API — TegLion (core)
+// 7) ROTAS DA API — Teglion (core)
 // ============================================
 
 mountApiRoutes(app, { prefix: '/api/v1' });

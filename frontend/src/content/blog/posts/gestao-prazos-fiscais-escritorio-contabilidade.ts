@@ -20,7 +20,7 @@ export const postGestaoPrazosEscritorio: BlogPost = {
   publishedAt: '2026-06-18',
   updatedAt: '2026-07-20',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Escritórios',
   audience: ['escritorio'],
   tags: [
@@ -72,7 +72,7 @@ export const postGestaoPrazosEscritorio: BlogPost = {
       'Separe prazos por cliente, obrigação e responsável — uma folha Excel única explode com 80 clientes.',
       'Dia 15: documentos em falta; dia 19: submissão; dia 20: pagamento — ritmo interno antes do prazo legal.',
       'Alertas automáticos + portal de documentos reduzem o «ainda não recebi a factura» na véspera.',
-      'Software como TegLion centraliza prazos e pedidos — complementa ERP e calendário de parede.',
+      'Software como Teglion centraliza prazos e pedidos — complementa ERP e calendário de parede.',
     ]),
     ...proseParagraphs(
       'É dia 19 às 18h: três clientes ainda não enviaram compras, o IVA de um quarto está «quase» e o estagiário pergunta quem é responsável pelo fecho da Lda. X. Em Janeiro parece controlável. Em Março, com IRS a aproximar-se e IVA de dezenas de clientes no mesmo dia 20, escritórios sem sistema falham — ou queimam equipas.',
@@ -173,7 +173,7 @@ export const postGestaoPrazosEscritorio: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Prazos e documentos no mesmo sítio',
-      text: 'TegLion alerta por cliente, regista pedidos de documentos e reduz falhas na véspera do dia 20. Teste grátis 14 dias — feito para escritórios portugueses.',
+      text: 'Teglion alerta por cliente, regista pedidos de documentos e reduz falhas na véspera do dia 20. Teste grátis 14 dias — feito para escritórios portugueses.',
     }),
     ...articleSection({
       h2: 'Métricas simples para o sócio',

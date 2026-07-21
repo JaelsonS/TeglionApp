@@ -1,4 +1,4 @@
-# Pacote legal TegLion (RGPD / Portugal)
+# Pacote legal Teglion (RGPD / Portugal)
 
 ## Operador do SaaS
 
@@ -24,7 +24,7 @@ As versões devem coincidir em:
 ## Papéis RGPD
 
 - **Escritório de contabilidade** = Responsável pelo Tratamento (dados dos clientes finais).
-- **TegLion (Operador)** = Subcontratante / Processador (software).
+- **Teglion (Operador)** = Subcontratante / Processador (software).
 - **Cliente final** = Titular; relação contratual com o escritório.
 
 ## Consentimento no registo de escritório

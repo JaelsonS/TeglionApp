@@ -1,4 +1,4 @@
-# Blog TegLion — autoría e SEO
+# Blog Teglion — autoría e SEO
 
 Guia único para criar artigos, afiliados, newsletter e deploy SEO.
 
@@ -52,7 +52,7 @@ export const postMeuArtigo: BlogPost = {
   publishedAt: '2026-06-18',
   updatedAt: '2026-06-18',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Dev de software · Contabilidade (BR) → fiscalidade PT',
+  authorRole: 'Fundador do Teglion · Dev de software · Contabilidade (BR) → fiscalidade PT',
   category: 'Guias completos',
   tags: ['tag1', 'tag2'],
   readMinutes: 12,
@@ -63,7 +63,7 @@ export const postMeuArtigo: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Título SEO | Blog TegLion',
+    title: 'Título SEO | Blog Teglion',
     description: 'Meta description até ~160 caracteres.',
     keywords: ['palavra-chave'],
   },
@@ -140,7 +140,7 @@ Helpers em `shared.ts`: `affiliateBlock`, `affiliateSection`, `articleSection`, 
 
 1. **Semanal:** 1 artigo novo (terça/quarta) + commit em `staging`/`main`
 2. **Mensal:** actualizar 1 pilar (calendário, limiares IVA, IRS)
-3. **Newsletter (rail direito):** 1 insight fiscal + link produto/TegLion
+3. **Newsletter (rail direito):** 1 insight fiscal + link produto/Teglion
 4. **Repurpose (15 min):**
    - Copiar 3 `keyTakeaways` do artigo
    - LinkedIn: cenário + 1 lista + CTA para `/blog/{slug}`

@@ -1,5 +1,5 @@
 /**
- * firm.ts — tenant TegLion (escritório de contabilidade).
+ * firm.ts — tenant Teglion (escritório de contabilidade).
  */
 
 export type FirmCountry = 'BR' | 'PT' | 'ES' | 'US'

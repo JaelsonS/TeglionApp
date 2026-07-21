@@ -12,7 +12,7 @@ coverage/
 .env
 .env.*
 !.env.example
-backend/TegLionRender.env
+backend/TeglionRender.env
 
 # OS and editor files
 .DS_Store

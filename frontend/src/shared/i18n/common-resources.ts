@@ -1,5 +1,5 @@
 /**
- * Namespace `common` — TegLion .
+ * Namespace `common` — Teglion .
  */
 import { criticalCommonResources } from '@/shared/i18n/critical-common'
 
@@ -195,7 +195,7 @@ function baseExtra(locale: 'pt-PT' | 'pt-BR' | 'en' | 'es-ES') {
     contabil: {
       firm: {
         subtitle: isPt ? 'Escritório' : locale === 'es-ES' ? 'Despacho' : 'Firm',
-        fallback: 'TegLion',
+        fallback: 'Teglion',
         nav: {
           overview: isPt ? 'Visão geral' : 'Overview',
           clients: isPt ? 'Clientes' : 'Clients',
@@ -254,7 +254,7 @@ function baseExtra(locale: 'pt-PT' | 'pt-BR' | 'en' | 'es-ES') {
             ? 'Las contraseñas no coinciden.'
             : 'Passwords do not match.',
       },
-      documentTitle: isPt ? (isBr ? 'Redefinir senha · TegLion' : 'Redefinir palavra-passe · TegLion') : 'Reset password · TegLion',
+      documentTitle: isPt ? (isBr ? 'Redefinir senha · Teglion' : 'Redefinir palavra-passe · Teglion') : 'Reset password · Teglion',
       title: isPt ? (isBr ? 'Redefinir senha' : 'Redefinir palavra-passe') : locale === 'es-ES' ? 'Restablecer contraseña' : 'Reset password',
       subtitle: isPt
         ? isBr

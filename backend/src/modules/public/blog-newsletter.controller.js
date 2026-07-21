@@ -29,7 +29,7 @@ exports.subscribe = async (req, res, next) => {
     if (notifyTo) {
       void sendEmail({
         to: notifyTo,
-        subject: `[TegLion Blog] Nova subscrição: ${email}`,
+        subject: `[Teglion Blog] Nova subscrição: ${email}`,
         text: `Nova subscrição newsletter (${source})\nE-mail: ${email}\nID: ${row?.id}`,
         html: `<p>Nova subscrição no blog (<strong>${source}</strong>).</p><p>E-mail: ${email}</p>`,
       }).catch((err) => logger.warn('[blog-newsletter] notify failed', err?.message));

@@ -1,5 +1,5 @@
 /**
- * Autenticação JWT — TegLion (Supabase).
+ * Autenticação JWT — Teglion (Supabase).
  */
 const { verifyAccessToken } = require('../config/jwt');
 const { env } = require('../config/env');

@@ -25,7 +25,7 @@ export const PILLAR_FAQ_BLOCKS: Record<string, BlogBlock[]> = {
       {
         question: 'Preciso de guardar recibos e facturas quanto tempo?',
         answer:
-          'Regra prática: pelo menos 4 anos após a entrega do IRS, alinhado com prazos de prescrição fiscal. Digitalize e organize por ano — o TegLion ajuda escritórios a pedir e validar documentos de clientes.',
+          'Regra prática: pelo menos 4 anos após a entrega do IRS, alinhado com prazos de prescrição fiscal. Digitalize e organize por ano — o Teglion ajuda escritórios a pedir e validar documentos de clientes.',
       },
       {
         question: 'IRS dá sempre reembolso?',
@@ -77,7 +77,7 @@ export const PILLAR_FAQ_BLOCKS: Record<string, BlogBlock[]> = {
       {
         question: 'Como não esquecer prazos fiscais?',
         answer:
-          'Use calendário partilhado com o contador, alertas no telemóvel e um sistema como o TegLion que centraliza prazos por cliente.',
+          'Use calendário partilhado com o contador, alertas no telemóvel e um sistema como o Teglion que centraliza prazos por cliente.',
       },
       {
         question: 'O contador trata de tudo automaticamente?',
@@ -247,7 +247,7 @@ export const PILLAR_FAQ_BLOCKS: Record<string, BlogBlock[]> = {
       {
         question: 'Onde vejo todos os prazos do ano?',
         answer:
-          'No blog TegLion temos calendário fiscal 2026 e artigo de obrigações mês a mês. Confirme sempre datas oficiais na AT e SS.',
+          'No blog Teglion temos calendário fiscal 2026 e artigo de obrigações mês a mês. Confirme sempre datas oficiais na AT e SS.',
       },
     ],
   }),
@@ -371,7 +371,7 @@ export const PILLAR_FAQ_BLOCKS: Record<string, BlogBlock[]> = {
       {
         question: 'Contador lembra todos os prazos?',
         answer:
-          'Orienta e submete o que está no contrato, mas a responsabilidade final é do contribuinte. Use calendário partilhado ou software como o TegLion para prazos por cliente.',
+          'Orienta e submete o que está no contrato, mas a responsabilidade final é do contribuinte. Use calendário partilhado ou software como o Teglion para prazos por cliente.',
       },
     ],
   }),
@@ -431,7 +431,7 @@ export const PILLAR_FAQ_BLOCKS: Record<string, BlogBlock[]> = {
           'Com piloto de 5–10 clientes, 30–90 dias para processo estável. Rollout completo depende do tamanho da carteira e da equipa.',
       },
       {
-        question: 'O TegLion serve escritórios pequenos?',
+        question: 'O Teglion serve escritórios pequenos?',
         answer:
           'Sim — pensado para escritórios que querem portal do cliente, pedidos de documentos e prazos sem complexidade de ERP. Teste grátis 14 dias.',
       },
@@ -464,7 +464,7 @@ export const PILLAR_FAQ_BLOCKS: Record<string, BlogBlock[]> = {
       {
         question: 'Por onde começo a aprender?',
         answer:
-          'Leia guias introdutórios no blog TegLion, um livro em português para não contadores, e se gostar explore formação formal ou cursos práticos sobre recibos verdes e IRS.',
+          'Leia guias introdutórios no blog Teglion, um livro em português para não contadores, e se gostar explore formação formal ou cursos práticos sobre recibos verdes e IRS.',
       },
     ],
   }),
@@ -485,7 +485,7 @@ export const PILLAR_FAQ_BLOCKS: Record<string, BlogBlock[]> = {
       {
         question: 'Que software para pedir documentos aos clientes?',
         answer:
-          'Portal do cliente dedicado (ex.: TegLion) com lista de pedidos e estado — evita caixa de email caótica e melhora RGPD.',
+          'Portal do cliente dedicado (ex.: Teglion) com lista de pedidos e estado — evita caixa de email caótica e melhora RGPD.',
       },
       {
         question: 'Antivírus é obrigatório para contabilistas?',
@@ -950,7 +950,7 @@ export const PILLAR_FAQ_BLOCKS: Record<string, BlogBlock[]> = {
       {
         question: 'Preciso de software caro para digitalizar?',
         answer:
-          'Não. O salto maior é processo (pedidos, responsáveis, checklist). Ferramentas como o TegLion aceleram, mas sem hábito o software não salva.',
+          'Não. O salto maior é processo (pedidos, responsáveis, checklist). Ferramentas como o Teglion aceleram, mas sem hábito o software não salva.',
       },
       {
         question: 'Por onde começar amanhã?',
@@ -960,7 +960,7 @@ export const PILLAR_FAQ_BLOCKS: Record<string, BlogBlock[]> = {
       {
         question: 'O que ler a seguir?',
         answer:
-          'Os guias de digitalizar escritório, gestão de prazos e SAF-T/e-Fatura no blog TegLion — formam a série de operações.',
+          'Os guias de digitalizar escritório, gestão de prazos e SAF-T/e-Fatura no blog Teglion — formam a série de operações.',
       },
     ],
   }),

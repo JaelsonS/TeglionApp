@@ -18,7 +18,7 @@ export const postPortalFinancas: BlogPost = {
   publishedAt: '2026-06-15',
   updatedAt: '2026-07-21',
   author: 'Jaelson Santos',
-  authorRole: 'Fundador do TegLion · Escreve sobre fiscalidade em Portugal',
+  authorRole: 'Fundador do Teglion · Escreve sobre fiscalidade em Portugal',
   category: 'Organização',
   audience: ['independente', 'escritorio'],
   tags: ['Portal das Finanças', 'e-Fatura', 'AT', 'recibos verdes', 'Chave Móvel Digital'],
@@ -152,7 +152,7 @@ export const postPortalFinancas: BlogPost = {
     teglionCtaBlock({
       variant: 'firm',
       title: 'Contador com dezenas de clientes no portal?',
-      text: 'O TegLion centraliza pedidos de documentos e validação — menos email perdido, mais tempo para consultoria. O cliente deixa de partilhar senhas; envia o que falta pelo portal do escritório.',
+      text: 'O Teglion centraliza pedidos de documentos e validação — menos email perdido, mais tempo para consultoria. O cliente deixa de partilhar senhas; envia o que falta pelo portal do escritório.',
     }),
     ...articleSection({
       h2: 'Cidadão e dados pessoais',

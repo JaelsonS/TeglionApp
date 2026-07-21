@@ -60,7 +60,7 @@ async function deliverTeamInviteEmail({ staffEmail, staffName, firmName, inviteT
         return { emailSent: true, emailError: null };
     } catch (err) {
         const message = err?.response?.data?.message || err?.message || 'email_delivery_failed';
-        console.warn('[TegLion][team-invite] falha no envio de email:', message);
+        console.warn('[Teglion][team-invite] falha no envio de email:', message);
         return { emailSent: false, emailError: String(message) };
     }
 }
@@ -244,7 +244,7 @@ async function previewInvite(token) {
     const firm = await firmsRepository.findFirmById(invite.firm_id);
 
     return {
-        firmName: firm?.name || 'TegLion',
+        firmName: firm?.name || 'Teglion',
         emailHint: invite.email,
         fullNameHint: member?.full_name || null,
         jobTitleHint: member?.job_title || null,
