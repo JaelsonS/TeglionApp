@@ -17,7 +17,7 @@ export const postAbrirSociedadeLda: BlogPost = {
   excerpt:
     'Nome, capital, certidão, registo, NIF colectivo, Segurança Social, banco, facturação e contabilista — roteiro claro para constituir uma Lda sem saltar etapas críticas.',
   publishedAt: '2026-07-20',
-  updatedAt: '2026-07-20',
+  updatedAt: '2026-07-21',
   author: 'Liliana Nunes',
   authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Actividade',
@@ -32,9 +32,9 @@ export const postAbrirSociedadeLda: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Como abrir uma sociedade Lda em Portugal (passo a passo) | Blog TegLion',
+    title: 'Abrir sociedade Lda em Portugal — passo a passo',
     description:
-      'Roteiro prático para constituir Lda: firma, capital, certidão, registo comercial, NIF, SS, banco e facturação. Informe-se e confirme com TOC / profissional habilitado.',
+      'Nome, capital, registo, NIF colectivo, SS, banco e facturação: roteiro para constituir uma Lda em Portugal sem saltar etapas críticas.',
     keywords: [
       'abrir sociedade Lda',
       'constituir empresa Portugal',

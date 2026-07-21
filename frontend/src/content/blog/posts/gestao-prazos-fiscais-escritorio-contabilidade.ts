@@ -47,7 +47,7 @@ export const postGestaoPrazosEscritorio: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Gestão prazos fiscais escritório contabilidade | Blog TegLion',
+    title: 'Gestão de prazos fiscais no escritório OCC',
     description:
       'Como gerir prazos fiscais num escritório de contabilidade: calendário por cliente, alertas, checklists e software. Evite falhas em IVA, SS e IRS.',
     keywords: [

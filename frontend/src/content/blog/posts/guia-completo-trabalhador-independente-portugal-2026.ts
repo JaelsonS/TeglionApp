@@ -16,7 +16,7 @@ export const postGuiaCompletoIndependente: BlogPost = {
   excerpt:
     'Do zero ao primeiro recibo, SS, IRS e arquivo: mapa completo com ligações a todos os guias do blog — para freelancers e prestadores de serviços em Portugal.',
   publishedAt: '2026-06-17',
-  updatedAt: '2026-07-20',
+  updatedAt: '2026-07-21',
   author: 'Liliana Nunes',
   authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Guias completos',
@@ -38,7 +38,7 @@ export const postGuiaCompletoIndependente: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Guia completo trabalhador independente Portugal 2026 | Blog TegLion',
+    title: 'Trabalhador independente Portugal 2026 — guia completo',
     description:
       'Tudo o que precisa para ser trabalhador independente em Portugal: abrir actividade, recibos verdes, Segurança Social, IRS, IVA e organização. Mapa com links para cada tema.',
     keywords: [

@@ -39,7 +39,7 @@ export const postCasoDigitalizacao: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Caso: digitalizar escritório e gerir prazos fiscais | Blog TegLion',
+    title: 'Caso: escritório digitaliza e recupera prazos fiscais',
     description:
       'Caso anonimizado de escritório de contabilidade no Norte: de WhatsApp caótico a portal e prazos. Horas poupadas, lições e erros a evitar.',
     keywords: [

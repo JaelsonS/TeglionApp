@@ -31,7 +31,7 @@ export const postSegurancaSocial: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Segurança Social trabalhador independente Portugal | Blog TegLion',
+    title: 'Segurança Social para trabalhador independente',
     description:
       'NISS, pagamentos mensais, base contributiva, primeiro ano de actividade e cessação — guia completo para independentes em Portugal.',
     keywords: ['Segurança Social independente', 'NISS freelancer', 'contribuições recibos verdes', 'TSU independente', 'dia 20 SS'],

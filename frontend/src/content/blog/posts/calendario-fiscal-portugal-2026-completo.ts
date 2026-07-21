@@ -18,7 +18,7 @@ export const postCalendarioFiscal2026: BlogPost = {
   excerpt:
     'Mapa mês a mês de Segurança Social, IVA, IRS, retenções e arquivo — com tabelas, checklists e ligações aos guias detalhados do blog.',
   publishedAt: '2026-06-18',
-  updatedAt: '2026-07-20',
+  updatedAt: '2026-07-21',
   author: 'Liliana Nunes',
   authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Guias completos',
@@ -33,9 +33,9 @@ export const postCalendarioFiscal2026: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Calendário fiscal 2026 Portugal — prazos independente e PME | Blog Teglion',
+    title: 'Calendário fiscal Portugal 2026 — prazos AT e SS',
     description:
-      'Todos os prazos fiscais que um trabalhador independente ou pequena empresa em Portugal costuma ter em 2026: SS, IVA, IRS, retenções e arquivo. Guia informativo com tabelas.',
+      'Mapa mês a mês de Segurança Social, IVA, IRS e retenções em 2026 para independentes e PME — com checklists e links aos guias do blog TegLion.',
     keywords: [
       'calendário fiscal 2026 Portugal',
       'prazos fiscais independente',

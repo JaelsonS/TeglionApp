@@ -42,7 +42,7 @@ export const postContabilidadeLeigos: BlogPost = {
   seo: {
     title: 'Contabilidade explicada para leigos Portugal | Blog TegLion',
     description:
-      'O que é contabilidade, IRS, IVA e recibos verdes — explicado sem jargão para quem quer conhecer a área de contabilidade, empreendedores e futuros estudantes em Portugal.',
+      'Balanço, IRS, IVA e recibos verdes em linguagem clara — para empreendedores e quem quer perceber contabilidade em Portugal sem juridiquês.',
     keywords: [
       'contabilidade para leigos',
       'fiscalidade explicada Portugal',

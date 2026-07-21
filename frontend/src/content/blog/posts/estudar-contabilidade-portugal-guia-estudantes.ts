@@ -47,7 +47,7 @@ export const postEstudarContabilidade: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Como estudar contabilidade em Portugal — guia estudantes | Blog TegLion',
+    title: 'Estudar contabilidade em Portugal — guia do estudante',
     description:
       'Calculadora, livros, método de estudo e carreira OCC para estudantes de contabilidade em Portugal. Recursos práticos para licenciatura, CET e quem quer conhecer a área de contabilidade.',
     keywords: [

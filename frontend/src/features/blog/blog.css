@@ -11,6 +11,8 @@
   font-size: 1.0625rem;
   line-height: 1.65;
   min-height: 100vh;
+  /* NÃO usar overflow-x:hidden aqui — mata position:sticky da rail */
+  overflow-x: visible;
 }
 
 .blog-page h1,
@@ -855,6 +857,12 @@
   .blog-index-rail {
     position: sticky;
     top: 5.5rem;
+    align-self: start;
+    max-height: calc(100vh - 6rem);
+    overflow: auto;
+    padding-bottom: 1rem;
+    /* evita que overflow do rail mate o sticky no scroll da página */
+    overscroll-behavior: contain;
   }
 }
 

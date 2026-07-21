@@ -530,6 +530,471 @@ export const PILLAR_FAQ_BLOCKS: Record<string, BlogBlock[]> = {
       },
     ],
   }),
+  'como-escolher-contabilista-portugal': faqSection({
+    heading: 'Perguntas frequentes: escolher contabilista',
+    headingId: 'faq-escolher-contabilista',
+    items: [
+      {
+        question: 'O contabilista tem de ser inscrito na OCC?',
+        answer:
+          'Para actos reservados a técnicos oficiais de contas, sim — confirme inscrição na Ordem dos Contabilistas Certificados. Peça número de cédula e valide no site da OCC.',
+      },
+      {
+        question: 'Quanto custa um contabilista para freelancer em Portugal?',
+        answer:
+          'Faixas típicas de 40–150 €/mês para independentes simples; PME e Lda sobem conforme volume e complexidade. Peça proposta por escrito com o que está incluído (IRS, IVA, SS, pedidos de documentos).',
+      },
+      {
+        question: 'Quando devo mudar de contabilista?',
+        answer:
+          'Atrasos recorrentes, falta de resposta, erros no Portal das Finanças ou ausência de portal/checklist são sinais. Planeie a transição entre trimestres para não perder prazos.',
+      },
+      {
+        question: 'Preciso de contabilista se só emito recibos verdes?',
+        answer:
+          'Não é obrigatório em todos os casos, mas reduz risco em IRS, IVA e Segurança Social. Se a facturação cresce ou abre Lda, o TOC torna-se quase indispensável.',
+      },
+      {
+        question: 'O que pedir na primeira reunião?',
+        answer:
+          'CAE, regime (simplificado/organizado), software de facturação, prazos de entrega de documentos, canal de comunicação e se há portal do cliente — evite «só WhatsApp».',
+      },
+    ],
+  }),
+  'portal-financas-guia-completo-iniciantes': faqSection({
+    heading: 'Perguntas frequentes: Portal das Finanças',
+    headingId: 'faq-portal-financas',
+    items: [
+      {
+        question: 'Como obter senha do Portal das Finanças?',
+        answer:
+          'Pode pedir senha no portal (envio por correio) ou usar Chave Móvel Digital / autenticação.gov. Guarde a senha num gestor — não partilhe por WhatsApp.',
+      },
+      {
+        question: 'O que consigo fazer no e-Fatura?',
+        answer:
+          'Emitir recibos verdes, consultar facturas associadas ao NIF, gerir despesas e validar documentos relevantes para IRS e IVA, conforme o seu enquadramento.',
+      },
+      {
+        question: 'Perdi a senha — o que faço?',
+        answer:
+          'Use a recuperação no portal ou autenticação.gov. Se tiver Chave Móvel Digital activa, muitas vezes consegue entrar sem a senha antiga.',
+      },
+      {
+        question: 'Portal das Finanças e Segurança Social são a mesma coisa?',
+        answer:
+          'Não. Finanças (AT) trata impostos e facturação; Segurança Social trata contribuições e NISS. Independentes usam ambos todos os meses.',
+      },
+      {
+        question: 'Posso autorizar o contabilista a aceder?',
+        answer:
+          'Sim, via procurações/autorizações no portal. Defina o âmbito (consulta vs submissão) e revogue quando mudar de TOC.',
+      },
+    ],
+  }),
+  'software-escritorio-contabilidade-portugal': faqSection({
+    heading: 'Perguntas frequentes: software para escritórios',
+    headingId: 'faq-software-escritorio',
+    items: [
+      {
+        question: 'WhatsApp serve para gerir documentos de clientes?',
+        answer:
+          'Serve para urgências, não como arquivo. Mensagens misturam conversas, sem checklist nem histórico auditável — o risco de prazo perdido sobe.',
+      },
+      {
+        question: 'O que um escritório OCC precisa em 2026?',
+        answer:
+          'Portal do cliente, pedidos de documentos, calendário de prazos, validação SAF-T/e-Fatura e comunicação rastreável — além do software de contabilidade clássico.',
+      },
+      {
+        question: 'Quanto tempo demora digitalizar um escritório?',
+        answer:
+          'Piloto de 2–4 semanas com 10–20 clientes costuma bastar para provar o fluxo; migração total depende do volume e da disciplina da equipa.',
+      },
+      {
+        question: 'Software de facturação e portal do escritório são a mesma coisa?',
+        answer:
+          'Não. Facturação emite documentos certificados; o portal organiza pedidos, prazos e comunicação com o cliente. Idealmente integram-se.',
+      },
+      {
+        question: 'Como convencer a equipa a deixar o email?',
+        answer:
+          'Comece por um ritual semanal (segunda: prazos; quarta: documentos em falta) e mostre tempo recuperado — mudança por hábito, não por software sozinho.',
+      },
+    ],
+  }),
+  'abrir-empresa-individual-eni': faqSection({
+    heading: 'Perguntas frequentes: abrir ENI',
+    headingId: 'faq-eni',
+    items: [
+      {
+        question: 'ENI e trabalhador independente são a mesma coisa?',
+        answer:
+          'Na prática, empresário em nome individual é a forma de abrir actividade a solo. «Trabalhador independente» descreve o estatuto fiscal/SS — muitas vezes coincidem.',
+      },
+      {
+        question: 'Preciso de capital mínimo para abrir ENI?',
+        answer:
+          'Não há capital social como numa Lda. Há custos de início (eventuais taxas, software, SS) e obrigações contínuas — veja o guia de custos no blog.',
+      },
+      {
+        question: 'Posso passar de ENI a Lda depois?',
+        answer:
+          'Sim. Muitos negócios começam ENI e migram quando a facturação, responsabilidade ou imagem comercial o justificam. Planeie com TOC antes do «dia D».',
+      },
+      {
+        question: 'Tenho de ter contabilista para ENI?',
+        answer:
+          'Depende do regime e complexidade. Em regime simplificado muitos começam sozinhos; com IVA, retenções ou crescimento, um TOC reduz erros caros.',
+      },
+      {
+        question: 'Onde se abre a actividade?',
+        answer:
+          'No Portal das Finanças (início de actividade). Depois trate NISS/SS e, se aplicável, software de facturação certificado.',
+      },
+    ],
+  }),
+  'abrir-sociedade-lda-portugal-passo-a-passo': faqSection({
+    heading: 'Perguntas frequentes: abrir Lda',
+    headingId: 'faq-abrir-lda',
+    items: [
+      {
+        question: 'Quanto capital preciso para uma Lda?',
+        answer:
+          'O capital social mínimo legal é baixo face ao passado, mas reserve margem para notário/registo, contabilidade organizada e fundo de maneio dos primeiros meses.',
+      },
+      {
+        question: 'Empresa na hora vs processo clássico?',
+        answer:
+          'Empresa na Hora é mais rápido para estruturas simples; processos com pacto social à medida ou várias quotas podem precisar de canal tradicional. Confirme nomes e CAE antes.',
+      },
+      {
+        question: 'Lda obriga a contabilidade organizada?',
+        answer:
+          'Sim, sociedades estão tipicamente em contabilidade organizada com TOC. Orçamente honorários mensais antes de constituir.',
+      },
+      {
+        question: 'Quanto tempo demora abrir uma Lda?',
+        answer:
+          'Com documentação pronta, Empresa na Hora pode ser no próprio dia; com banco, NISS colectivo e facturação, conte 1–4 semanas para estar operacional.',
+      },
+      {
+        question: 'ENI ou Lda — o que escolher?',
+        answer:
+          'ENI é mais simples no arranque; Lda limita responsabilidade e pode fazer sentido com facturação alta, sócios ou risco comercial. Cruze com o guia de IRC no blog.',
+      },
+    ],
+  }),
+  'irc-sociedades-lda-portugal-guia': faqSection({
+    heading: 'Perguntas frequentes: IRC e Lda',
+    headingId: 'faq-irc-lda',
+    items: [
+      {
+        question: 'Qual a diferença entre IRS e IRC?',
+        answer:
+          'IRS taxa pessoas (incl. ENI); IRC taxa lucros das sociedades. Na Lda o sócio pode ainda ter IRS sobre lucros distribuídos (dividendos), conforme regras em vigor.',
+      },
+      {
+        question: 'A Lda paga sempre menos imposto que o ENI?',
+        answer:
+          'Não automaticamente. Depende da taxa efectiva, encargos, distribuição de lucros e custos de compliance. Simule com o TOC com números reais.',
+      },
+      {
+        question: 'O que é PEC / pagamentos por conta?',
+        answer:
+          'Adiantamentos de IRC ao longo do ano com base no imposto do exercício anterior (com excepções). Falhar prazos gera juros — calendário do escritório é crítico.',
+      },
+      {
+        question: 'Preciso de TOC para IRC?',
+        answer:
+          'Na prática sim: contabilidade organizada, IES e cumprimento de prazos. Escolher TOC com experiência em PME evita surpresas na declaração.',
+      },
+      {
+        question: 'Quando faz sentido passar de ENI a Lda por imposto?',
+        answer:
+          'Quando o lucro e o risco justificam a estrutura — não só «porque ouvi dizer». Cruze responsabilidade limitada, imagem e custo administrativo.',
+      },
+    ],
+  }),
+  'regime-simplificado-vs-contabilidade-organizada': faqSection({
+    heading: 'Perguntas frequentes: regimes de contabilidade',
+    headingId: 'faq-regimes',
+    items: [
+      {
+        question: 'O que é o regime simplificado?',
+        answer:
+          'Regime em que o rendimento tributável se apura com coeficientes sobre facturação, com menos obrigações contabilísticas do que a contabilidade organizada.',
+      },
+      {
+        question: 'Quando sou obrigado a passar a organizado?',
+        answer:
+          'Há limiares de facturação e situações (ex.: certas sociedades) que impõem ou tornam preferível o organizado. Confirme limiares actuais com AT/TOC.',
+      },
+      {
+        question: 'Organizado é sempre melhor?',
+        answer:
+          'Permite deduzir custos reais com rigor, mas custa mais (TOC, software). Se tem poucas despesas, o simplificado pode ser suficiente no início.',
+      },
+      {
+        question: 'Posso mudar de regime a meio do ano?',
+        answer:
+          'Em regra as opções e mudanças respeitam prazos e formalidades no início de actividade ou em períodos definidos — não improvise; alinhe com o contabilista.',
+      },
+      {
+        question: 'Lda pode estar em simplificado?',
+        answer:
+          'Sociedades estão tipicamente em contabilidade organizada. O simplificado é mais associado a independentes/ENI que cumprem condições.',
+      },
+    ],
+  }),
+  'quando-passar-de-isento-a-iva': faqSection({
+    heading: 'Perguntas frequentes: sair da isenção de IVA',
+    headingId: 'faq-sair-isencao-iva',
+    items: [
+      {
+        question: 'Qual o sinal de que ultrapassei a isenção?',
+        answer:
+          'Volume de negócios a aproximar o limiar do art. 53.º, ou opção voluntária. Monitorize facturação acumulada mês a mês — não espere pelo fim do ano.',
+      },
+      {
+        question: 'Tenho de mudar de software ao passar a IVA?',
+        answer:
+          'Se emite só recibos verdes isentos, prepare software certificado ou configuração correcta no e-Fatura para liquidar IVA e comunicar SAF-T se aplicável.',
+      },
+      {
+        question: 'Os preços ao cliente sobem 23%?',
+        answer:
+          'Depende se trabalha B2B (cliente pode deduzir) ou B2C. Negocie transparência: preço + IVA vs preço «tudo incluído».',
+      },
+      {
+        question: 'Posso voltar à isenção depois?',
+        answer:
+          'Há regras e prazos para regressar à isenção. Não assuma que é automático — confirme com TOC antes de planear.',
+      },
+      {
+        question: 'O que preparar 60 dias antes?',
+        answer:
+          'TOC, software, grelha de preços, calendário de declarações periódicas e comunicação aos clientes habituais.',
+      },
+    ],
+  }),
+  'irs-recibos-verdes-erros-comuns': faqSection({
+    heading: 'Perguntas frequentes: erros no IRS com recibos verdes',
+    headingId: 'faq-erros-irs-rv',
+    items: [
+      {
+        question: 'Qual o erro mais caro nos recibos verdes?',
+        answer:
+          'Não cruzar o que emitiu no e-Fatura com o que declara no Modelo 3 — omissões e duplicações geram inspecções e coimas.',
+      },
+      {
+        question: 'Esqueci retenções na fonte — e agora?',
+        answer:
+          'Regularize na declaração e, se necessário, com o TOC. Guarde comprovativos dos clientes que reterem; sem papel, o risco de inconsistência sobe.',
+      },
+      {
+        question: 'Despesas pessoais entram no IRS da actividade?',
+        answer:
+          'Não misture. Só custos da actividade, com factura a seu NIF e enquadramento correcto no regime. Pessoais seguem deduções à coleta quando aplicáveis.',
+      },
+      {
+        question: 'Posso corrigir IRS já entregue?',
+        answer:
+          'Sim, via declaração de substituição dentro dos prazos. Quanto mais cedo, menor o impacto de juros/coimas.',
+      },
+      {
+        question: 'Recibos verdes estrangeiros entram no IRS português?',
+        answer:
+          'Se for residente fiscal em Portugal, a regra geral é tributação mundial — com possíveis créditos por imposto pago no estrangeiro. Casos complexos: TOC + documentação.',
+      },
+    ],
+  }),
+  'retencao-fonte-recibos-verdes': faqSection({
+    heading: 'Perguntas frequentes: retenção na fonte',
+    headingId: 'faq-retencao',
+    items: [
+      {
+        question: 'Quando o cliente deve reter IRS no recibo verde?',
+        answer:
+          'Quando a lei obriga retenção na fonte sobre aquele rendimento (ex.: certos serviços a entidades que retêm). O recibo deve reflectir a taxa e o líquido correctamente.',
+      },
+      {
+        question: 'A retenção é o imposto final?',
+        answer:
+          'É um adiantamento. No IRS anual apura-se o imposto devido; pode haver reembolso ou valor a pagar.',
+      },
+      {
+        question: 'Que taxa de retenção usar?',
+        answer:
+          'Depende da natureza do rendimento e regras em vigor. Confirme a taxa legal actual — não copie um recibo antigo sem validar.',
+      },
+      {
+        question: 'Cliente estrangeiro também retém?',
+        answer:
+          'Muitas vezes não, ou aplica regras diferentes. Documente o país do cliente e alinhe com o TOC para evitar falhas no Modelo 3.',
+      },
+      {
+        question: 'Como reflectir retenções no IRS?',
+        answer:
+          'Some o imposto retido nos campos próprios do Modelo 3 e guarde os recibos. Divergências com a AT costumam vir de totais mal somados.',
+      },
+    ],
+  }),
+  'saft-efatura-validacao-documentos-escritorio': faqSection({
+    heading: 'Perguntas frequentes: SAF-T e e-Fatura',
+    headingId: 'faq-saft-efatura',
+    items: [
+      {
+        question: 'O que é o SAF-T (PT)?',
+        answer:
+          'Ficheiro standard de auditoria fiscal com movimentos de facturação/contabilidade, comunicado à AT conforme obrigações do contribuinte e do software.',
+      },
+      {
+        question: 'Porque o escritório pede SAF-T ao cliente?',
+        answer:
+          'Para cruzar facturação emitida com o que chega por PDF/WhatsApp e detectar buracos antes das declarações — poupa horas no fecho do mês.',
+      },
+      {
+        question: 'e-Fatura substitui o SAF-T?',
+        answer:
+          'Não. São canais complementares. O e-Fatura ajuda a ver documentos associados ao NIF; o SAF-T traz a visão do software certificado.',
+      },
+      {
+        question: 'Cliente só envia fotos no chat — chega?',
+        answer:
+          'Não como processo. Exija portal ou pasta padronizada; fotos soltas atrasam validação e aumentam risco de documento ilegível.',
+      },
+      {
+        question: 'Com que frequência validar?',
+        answer:
+          'Ritmo mensal alinhado ao fecho (antes do dia 15–20). Escritórios maduros fazem checklist por cliente, não «quando der».',
+      },
+    ],
+  }),
+  'organizar-documentos-fiscais-arquivo-digital': faqSection({
+    heading: 'Perguntas frequentes: arquivo digital fiscal',
+    headingId: 'faq-arquivo-digital',
+    items: [
+      {
+        question: 'Quanto tempo guardar documentos fiscais?',
+        answer:
+          'Regra prática: pelo menos 4 anos após o período a que respeitam (alinhado a prazos de fiscalização). Digitalize e faça backup.',
+      },
+      {
+        question: 'Qual a melhor estrutura de pastas?',
+        answer:
+          'Ano → tipo (recibos, compras, banco, SS, IRS) → mês. Nomes de ficheiro com data ISO (2026-03-15_fornecedor.pdf) aceleram pesquisas.',
+      },
+      {
+        question: 'PDF ou foto do telemóvel?',
+        answer:
+          'PDF legível preferível. Foto só se nítida e completa; o TOC deve conseguir ler NIF, valores e datas sem zoom eterno.',
+      },
+      {
+        question: 'Posso apagar originais em papel?',
+        answer:
+          'Depende do documento e da política do TOC. Muitos aceitam digital desde que a qualidade e a integridade estejam garantidas — confirme antes de destruir.',
+      },
+      {
+        question: 'Como partilhar arquivo com o contabilista?',
+        answer:
+          'Portal do cliente ou pasta partilhada com permissões — evite WhatsApp como arquivo mestre.',
+      },
+    ],
+  }),
+  'freelancer-estrangeiro-portugal': faqSection({
+    heading: 'Perguntas frequentes: freelancer estrangeiro',
+    headingId: 'faq-freelancer-estrangeiro',
+    items: [
+      {
+        question: 'Preciso de NIF para trabalhar a recibos verdes?',
+        answer:
+          'Sim. Sem NIF não abre actividade nem emite recibos no Portal das Finanças. Trate identificação e morada fiscal cedo.',
+      },
+      {
+        question: 'Residência fiscal em Portugal — o que muda?',
+        answer:
+          'Em regra, residentes são tributados sobre rendimentos mundiais. Dias de permanência e laços pessoais/económicos importam — casos limítrofes: aconselhe-se.',
+      },
+      {
+        question: 'Brasileiros têm regras especiais?',
+        answer:
+          'Há convenções e formalidades (NIF, SS, eventualmente vistos/autorizações). O processo fiscal português aplica-se; não copie só tutoriais de outro país.',
+      },
+      {
+        question: 'Posso emitir recibos a clientes no estrangeiro?',
+        answer:
+          'Sim, com atenção a IVA (regras de localização), retenções e documentação. Software e TOC evitam erros de enquadramento.',
+      },
+      {
+        question: 'Segurança Social sendo estrangeiro?',
+        answer:
+          'Com actividade aberta em Portugal, em regra há enquadramento na SS portuguesa (com excepções de destacamento/A1). Valide o seu caso antes do primeiro mês.',
+      },
+    ],
+  }),
+  'caso-escritorio-digitalizacao-prazos': faqSection({
+    heading: 'Perguntas frequentes sobre este caso',
+    headingId: 'faq-caso-escritorio',
+    items: [
+      {
+        question: 'Este caso é de um cliente real?',
+        answer:
+          'É uma história anonimizada e ilustrativa com base em padrões comuns de escritórios pequenos em Portugal — não é testemunho nominal.',
+      },
+      {
+        question: 'Quanto tempo até ver resultados?',
+        answer:
+          'No relato, rituais de prazo e portal estruturado mostram ganhos em cerca de 90 dias — o seu ritmo depende da disciplina da equipa.',
+      },
+      {
+        question: 'Preciso de software caro para digitalizar?',
+        answer:
+          'Não. O salto maior é processo (pedidos, responsáveis, checklist). Ferramentas como o TegLion aceleram, mas sem hábito o software não salva.',
+      },
+      {
+        question: 'Por onde começar amanhã?',
+        answer:
+          'Liste clientes com prazo nos próximos 20 dias, peça documentos em falta num canal único e marque um ritual semanal de 30 minutos.',
+      },
+      {
+        question: 'O que ler a seguir?',
+        answer:
+          'Os guias de digitalizar escritório, gestão de prazos e SAF-T/e-Fatura no blog TegLion — formam a série de operações.',
+      },
+    ],
+  }),
+  'caso-pme-transicao-eni-lda': faqSection({
+    heading: 'Perguntas frequentes sobre este caso',
+    headingId: 'faq-caso-eni-lda',
+    items: [
+      {
+        question: 'Os números do caso são reais?',
+        answer:
+          'São ilustrativos e arredondados para ensinar o raciocínio — não são aconselhamento fiscal personalizado nem garantia de poupança.',
+      },
+      {
+        question: 'Quando uma PME deve considerar Lda?',
+        answer:
+          'Facturação a crescer, risco comercial, entrada de sócio ou necessidade de imagem perante bancos/clientes — sempre com simulação TOC.',
+      },
+      {
+        question: 'O que o TOC pediu antes do «dia D»?',
+        answer:
+          'No relato: mapa de custos, calendário de obrigações, software e contas — a transição falha quando se constitui a sociedade sem operação preparada.',
+      },
+      {
+        question: 'Posso manter ENI e abrir Lda em paralelo?',
+        answer:
+          'Por vezes faz-se durante a transição, com cuidado a não misturar facturação e património. Estrutura incorrecta cria problemas fiscais — alinhe com TOC.',
+      },
+      {
+        question: 'Que artigos do blog completam este caso?',
+        answer:
+          'Abrir Lda passo a passo e o guia de IRC/sociedades — use o caso como motivação e os guias como checklist.',
+      },
+    ],
+  }),
 }
 
 export const PILLAR_SLUGS = Object.keys(PILLAR_FAQ_BLOCKS)

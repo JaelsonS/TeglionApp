@@ -34,7 +34,7 @@ export const postIrcSociedadesLda: BlogPost = {
   seo: {
     title: 'IRC e sociedades Lda: de ENI a empresa | Blog TegLion',
     description:
-      'Guia prático: o que muda ao passar de ENI para Lda — IRC vs IRS, responsabilidade limitada, contabilidade organizada e checklist. Conteúdo informativo para PME em Portugal.',
+      'IRC vs IRS, responsabilidade e contabilidade organizada: o que muda ao passar de ENI a Lda em Portugal — guia prático para PME.',
     keywords: [
       'IRC Portugal',
       'sociedade Lda',

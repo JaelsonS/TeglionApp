@@ -31,7 +31,7 @@ export const postFreelancerEstrangeiro: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Freelancer estrangeiro em Portugal: guia completo | Blog TegLion',
+    title: 'Freelancer estrangeiro em Portugal — NIF e recibos',
     description:
       'Como abrir actividade e emitir recibos verdes em Portugal sendo cidadão estrangeiro. NIF, SS, residência fiscal e obrigações explicadas passo a passo.',
     keywords: ['freelancer estrangeiro Portugal', 'NIF estrangeiro', 'recibos verdes imigrante', 'trabalhar Portugal', 'nómada digital Portugal fiscal'],

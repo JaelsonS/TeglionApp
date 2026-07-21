@@ -31,7 +31,7 @@ export const postRegimeSimplificado: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Regime simplificado ou contabilidade organizada? | Blog TegLion',
+    title: 'Regime simplificado vs contabilidade organizada',
     description:
       'Compare regime simplificado e contabilidade organizada para independentes em Portugal: custos, obrigações, coeficientes e quando mudar de regime.',
     keywords: ['regime simplificado Portugal', 'contabilidade organizada', 'IRS independente regime', 'coeficientes IRS'],

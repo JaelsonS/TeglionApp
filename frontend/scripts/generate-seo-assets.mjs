@@ -10,7 +10,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 const POSTS_DIR = join(ROOT, 'src/content/blog/posts')
 const PUBLIC_DIR = join(ROOT, 'public')
-const SITE = 'https://teglion.com'
+const SITE = 'https://www.teglion.com'
 
 function extractField(content, field) {
   const re = new RegExp(`${field}:\\s*['"\`]([^'"\`]+)['"\`]`)

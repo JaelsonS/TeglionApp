@@ -17,7 +17,7 @@ export const postSoftwareEscritorioPortugal: BlogPost = {
   excerpt:
     'WhatsApp vs portal do cliente, SAF-T, documentos e prazos — o que um escritório OCC precisa de software em 2026 para operar com controlo e menos caos.',
   publishedAt: '2026-07-20',
-  updatedAt: '2026-07-20',
+  updatedAt: '2026-07-21',
   author: 'Liliana Nunes',
   authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Escritórios',
@@ -45,15 +45,16 @@ export const postSoftwareEscritorioPortugal: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Software escritório contabilidade Portugal 2026 | Blog TegLion',
+    title: 'Software para escritório de contabilidade 2026',
     description:
-      'O que precisa de software num escritório de contabilidade em Portugal: gestão de clientes, portal OCC, SAF-T, prazos e documentos. Menos WhatsApp, mais operações.',
+      'Software para escritório de contabilidade em Portugal: portal do cliente OCC, pedidos de documentos, prazos, SAF-T e menos WhatsApp. Stack operacional 2026.',
     keywords: [
       'software escritório contabilidade Portugal',
       'gestão clientes contabilista',
       'portal cliente OCC',
       'software contabilista 2026',
       'portal documentos escritório',
+      'WhatsApp vs portal contabilista',
     ],
   },
   relatedSlugs: [
@@ -73,7 +74,7 @@ export const postSoftwareEscritorioPortugal: BlogPost = {
     ]),
     ...proseParagraphs(
       'Segunda-feira de manhã: o telemóvel do sócio tem 37 unread no WhatsApp Business, três «segue a factura» no email pessoal, e um Drive partilhado onde ninguém sabe qual PDF é a versão correcta. O ERP está impecável — o caos está na relação com o cliente.',
-      'Este artigo é para escritórios de contabilidade em Portugal que já têm (ou vão escolher) software e querem perceber o que falta para operar em 2026 sem viver de mensagens. Não é uma lista de marcas de facturação: é um mapa de capacidades — e onde o portal do cliente encaixa.',
+      'Este guia de software para escritório de contabilidade em Portugal é para equipas OCC que já têm (ou vão escolher) ferramentas e querem perceber o que falta para operar em 2026 sem viver de mensagens. Não é uma lista de marcas de facturação: é um mapa de capacidades — portal do cliente, prazos, SAF-T e onde o TegLion encaixa.',
     ),
     quoteBlock(
       'Software que só o contador usa não digitaliza o escritório — digitaliza a secretária. O cliente continua no WhatsApp.',

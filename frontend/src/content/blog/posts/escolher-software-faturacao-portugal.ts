@@ -31,7 +31,7 @@ export const postEscolherSoftware: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Melhor software facturação Portugal? Critérios | Blog TegLion',
+    title: 'Software de facturação em Portugal — critérios',
     description:
       'Como escolher programa de facturação certificado pela AT: requisitos legais, comparação de funcionalidades, preços e quando deixar recibos verdes.',
     keywords: ['software facturação Portugal', 'programa certificado AT', 'facturação online freelancer', 'Moloni vs InvoiceXpress'],

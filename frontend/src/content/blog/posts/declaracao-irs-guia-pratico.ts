@@ -38,7 +38,7 @@ export const postDeclaracaoIrs: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Como entregar a declaração de IRS em Portugal (guia 2026) | Blog TegLion',
+    title: 'Declaração de IRS em Portugal — guia prático 2026',
     description:
       'Aprenda o básico da declaração de IRS: prazos, documentos, Portal das Finanças e erros comuns. Conteúdo informativo — confirme sempre com um contador certificado.',
     keywords: [

@@ -31,7 +31,7 @@ export const postProtegerDados: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Proteger dados fiscais como freelancer em Portugal | Blog TegLion',
+    title: 'Proteger dados fiscais do freelancer em Portugal',
     description:
       'Backup OneDrive, antivírus, 2FA, phishing da AT e boas práticas RGPD para quem guarda recibos verdes, IRS e documentos de clientes no portátil.',
     keywords: [

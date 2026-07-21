@@ -31,7 +31,7 @@ export const postAbrirEni: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Como abrir empresa individual (ENI) em Portugal | Blog TegLion',
+    title: 'Abrir ENI em Portugal — guia do independente',
     description:
       'Guia completo para abrir actividade como empresário em nome individual: passos, custos, CAE, SS e obrigações. Consulte contador antes de decidir.',
     keywords: [

@@ -3,7 +3,7 @@ export const BRAND = {
   name: 'Teglion',
   tagline: 'Gestão completa para escritórios de contabilidade',
   domain: 'teglion.com',
-  url: 'https://teglion.com',
+  url: 'https://www.teglion.com',
   apiUrl: 'https://teglionapp.onrender.com',
   initials: 'TL',
   colors: {

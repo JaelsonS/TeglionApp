@@ -39,7 +39,7 @@ export const postOrganizarDocumentos: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Organizar documentos fiscais em Portugal (arquivo digital) | Blog TegLion',
+    title: 'Arquivo digital fiscal em Portugal — pastas que funcionam',
     description:
       'Sistema de pastas, nomenclatura e backup para recibos, facturas e comprovativos. Prepare o IRS sem stress e evite multas por falta de arquivo.',
     keywords: ['organizar documentos fiscais', 'arquivo digital IRS', 'guardar recibos verdes', 'pastas fiscais'],

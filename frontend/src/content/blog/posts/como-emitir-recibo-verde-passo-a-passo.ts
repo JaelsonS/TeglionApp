@@ -30,7 +30,7 @@ export const postComoEmitirReciboVerde: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Como emitir recibo verde em Portugal (passo a passo) | Blog Teglion',
+    title: 'Como emitir recibo verde — passo a passo (e-Fatura)',
     description:
       'Tutorial completo: emitir recibo verde no Portal das Finanças com NIF do cliente, IVA, retenção na fonte e boas práticas de arquivo.',
     keywords: ['emitir recibo verde', 'e-Fatura recibo', 'recibo verde passo a passo', 'Portal das Finanças recibo', 'tutorial recibo verde'],

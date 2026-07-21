@@ -16,7 +16,7 @@ export const postPortalFinancas: BlogPost = {
   excerpt:
     'Senha, Chave Móvel Digital, e-Fatura, recibos verdes e consulta de dívidas — tudo o que um independente usa no portal, explicado por secção.',
   publishedAt: '2026-06-15',
-  updatedAt: '2026-07-20',
+  updatedAt: '2026-07-21',
   author: 'Liliana Nunes',
   authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Organização',
@@ -38,7 +38,7 @@ export const postPortalFinancas: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Portal das Finanças para iniciantes (guia completo) | Blog TegLion',
+    title: 'Portal das Finanças para iniciantes — guia completo',
     description:
       'Aprenda a usar o Portal das Finanças: login, e-Fatura, emitir recibos, consultar situação fiscal e evitar erros comuns. Guia para trabalhadores independentes.',
     keywords: ['Portal das Finanças guia', 'e-Fatura iniciantes', 'recibo verde portal', 'AT login'],

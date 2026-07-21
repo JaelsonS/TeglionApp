@@ -122,7 +122,7 @@ export function useBlogSeo({ post, index }: BlogSeoInput) {
       '@context': 'https://schema.org',
       '@type': 'BlogPosting',
       headline: post.title,
-      description: post.excerpt,
+      description: post.seo.description,
       image: [post.coverImage.src],
       datePublished: post.publishedAt,
       dateModified: post.updatedAt,

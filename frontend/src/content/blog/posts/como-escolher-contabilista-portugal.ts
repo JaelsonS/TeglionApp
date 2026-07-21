@@ -17,7 +17,7 @@ export const postEscolherContabilista: BlogPost = {
   excerpt:
     'OCC, especialização, preço, portal do cliente e comunicação — critérios para escolher (ou mudar de) contabilista sem surpresas.',
   publishedAt: '2026-06-10',
-  updatedAt: '2026-07-20',
+  updatedAt: '2026-07-21',
   author: 'Liliana Nunes',
   authorRole: 'Revisão editorial TegLion · Guias de fiscalidade portuguesa',
   category: 'Contabilidade',
@@ -39,10 +39,17 @@ export const postEscolherContabilista: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Como escolher contabilista em Portugal | Blog TegLion',
+    title: 'Como escolher contabilista em Portugal (OCC)',
     description:
-      'Critérios para escolher contabilista certificado (OCC): preços, comunicação, portal digital e especialização. Para trabalhadores independentes e pequenas empresas.',
-    keywords: ['escolher contabilista Portugal', 'contabilista OCC', 'contabilidade freelancer', 'mudar de contabilista'],
+      'Como escolher contabilista certificado OCC em Portugal: preços típicos, portal do cliente, comunicação e quando mudar. Para freelancers, recibos verdes e PME.',
+    keywords: [
+      'escolher contabilista Portugal',
+      'contabilista OCC',
+      'contabilidade freelancer',
+      'mudar de contabilista',
+      'preço contabilista independente',
+      'portal cliente contabilista',
+    ],
   },
   relatedSlugs: [
     'regime-simplificado-vs-contabilidade-organizada',
@@ -60,9 +67,9 @@ export const postEscolherContabilista: BlogPost = {
       'Revisão trimestral evita surpresas no IRS anual.',
     ]),
     ...proseParagraphs(
-      'Ligou a três escritórios: um responde «mande WhatsApp», outro pede a senha das Finanças «para agilizar», e o terceiro envia proposta com 65 €/mês, portal do cliente e revisão trimestral. A diferença não é só preço — é risco. Este guia ajuda a escolher (ou mudar) com critérios de balcão.',
-      'Um bom contabilista não é só quem «entrega o IRS». É quem explica obrigações antes do prazo, responde em tempo útil e usa ferramentas que não o obrigam a pedir documentos por mensagens soltas.',
-      'Para perceber regimes de contabilidade antes da conversa, leia também o artigo sobre regime simplificado vs organizado — e o guia completo do independente se ainda está a abrir actividade.',
+      'Ligou a três escritórios: um responde «mande WhatsApp», outro pede a senha das Finanças «para agilizar», e o terceiro envia proposta com 65 €/mês, portal do cliente e revisão trimestral. A diferença não é só preço — é risco. Este guia ajuda a escolher contabilista em Portugal (ou mudar) com critérios de balcão, para freelancers e PME.',
+      'Um bom contabilista certificado OCC não é só quem «entrega o IRS». É quem explica obrigações antes do prazo, responde em tempo útil e usa ferramentas que não o obrigam a pedir documentos por mensagens soltas.',
+      'Para perceber regimes de contabilidade antes da conversa, leia também o artigo sobre regime simplificado vs organizado — e o guia completo do trabalhador independente se ainda está a abrir actividade. Se gere um escritório, cruze com digitalizar o escritório e software para contabilidade.',
     ),
     { type: 'h2', id: 'criterios', text: '7 critérios de escolha' },
     {

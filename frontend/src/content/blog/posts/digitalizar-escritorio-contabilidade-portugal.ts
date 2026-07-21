@@ -47,7 +47,7 @@ export const postDigitalizarEscritorio: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Digitalizar escritório de contabilidade Portugal | Blog TegLion',
+    title: 'Digitalizar escritório de contabilidade em Portugal',
     description:
       'Guia para digitalizar escritório de contabilidade: portal do cliente, arquivo, prazos e RGPD. Menos email, mais controlo — roteiro prático para Portugal.',
     keywords: [

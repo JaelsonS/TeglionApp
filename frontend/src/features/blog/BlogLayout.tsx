@@ -6,6 +6,7 @@ import { BlogAdSense } from '@/shared/components/ads/BlogAdSense'
 import { BlogHeader } from '@/features/blog/components/BlogHeader'
 import { LandingFooter } from '@/shared/components/landing/LandingFooter'
 import { loadThirdPartyScripts, trackPageView } from '@/shared/utils/thirdPartyScripts'
+import '@/shared/components/landing/landing.css'
 import '@/features/blog/blog.css'
 
 function hasAcceptedCookieConsent() {
@@ -67,7 +68,7 @@ export function BlogLayout() {
   useBlogResourceHints()
   useBlogAnalytics()
   return (
-    <div className="blog-page landing-page">
+    <div className="blog-page">
       {ADSENSE_LIVE ? <BlogAdSense /> : null}
       <a href="#blog-main" className="blog-skip-link">
         Saltar para o conteúdo

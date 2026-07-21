@@ -2,147 +2,147 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Blog TegLion — Contabilidade e fiscalidade em Portugal</title>
-    <link>https://teglion.com/blog</link>
+    <link>https://www.teglion.com/blog</link>
     <description>Artigos informativos sobre IRS, IVA, recibos verdes e obrigações fiscais para PME e trabalhadores independentes em Portugal.</description>
     <language>pt-PT</language>
-    <atom:link href="https://teglion.com/rss.xml" rel="self" type="application/rss+xml"/>
+    <atom:link href="https://www.teglion.com/rss.xml" rel="self" type="application/rss+xml"/>
     <item>
       <title>Abrir sociedade Lda em Portugal: passo a passo prático</title>
-      <link>https://teglion.com/blog/abrir-sociedade-lda-portugal-passo-a-passo</link>
-      <guid isPermaLink="true">https://teglion.com/blog/abrir-sociedade-lda-portugal-passo-a-passo</guid>
+      <link>https://www.teglion.com/blog/abrir-sociedade-lda-portugal-passo-a-passo</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/abrir-sociedade-lda-portugal-passo-a-passo</guid>
       <pubDate>Mon, 20 Jul 2026 00:00:00 GMT</pubDate>
       <description>Nome, capital, certidão, registo, NIF colectivo, Segurança Social, banco, facturação e contabilista — roteiro claro para constituir uma Lda sem saltar etapas críticas.</description>
     </item>
     <item>
       <title>Calendário fiscal Portugal 2026: todos os prazos do independente e da PME</title>
-      <link>https://teglion.com/blog/calendario-fiscal-portugal-2026-completo</link>
-      <guid isPermaLink="true">https://teglion.com/blog/calendario-fiscal-portugal-2026-completo</guid>
+      <link>https://www.teglion.com/blog/calendario-fiscal-portugal-2026-completo</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/calendario-fiscal-portugal-2026-completo</guid>
       <pubDate>Thu, 18 Jun 2026 00:00:00 GMT</pubDate>
       <description>Mapa mês a mês de Segurança Social, IVA, IRS, retenções e arquivo — com tabelas, checklists e ligações aos guias detalhados do blog.</description>
     </item>
     <item>
+      <title>Como escolher contabilista em Portugal: guia para freelancers e PME</title>
+      <link>https://www.teglion.com/blog/como-escolher-contabilista-portugal</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/como-escolher-contabilista-portugal</guid>
+      <pubDate>Wed, 10 Jun 2026 00:00:00 GMT</pubDate>
+      <description>OCC, especialização, preço, portal do cliente e comunicação — critérios para escolher (ou mudar de) contabilista sem surpresas.</description>
+    </item>
+    <item>
+      <title>Guia completo do trabalhador independente em Portugal (2026)</title>
+      <link>https://www.teglion.com/blog/guia-completo-trabalhador-independente-portugal-2026</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/guia-completo-trabalhador-independente-portugal-2026</guid>
+      <pubDate>Wed, 17 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Do zero ao primeiro recibo, SS, IRS e arquivo: mapa completo com ligações a todos os guias do blog — para freelancers e prestadores de serviços em Portugal.</description>
+    </item>
+    <item>
+      <title>Portal das Finanças: guia completo para iniciantes</title>
+      <link>https://www.teglion.com/blog/portal-financas-guia-completo-iniciantes</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/portal-financas-guia-completo-iniciantes</guid>
+      <pubDate>Mon, 15 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Senha, Chave Móvel Digital, e-Fatura, recibos verdes e consulta de dívidas — tudo o que um independente usa no portal, explicado por secção.</description>
+    </item>
+    <item>
+      <title>Software para escritório de contabilidade em Portugal: o que precisa em 2026</title>
+      <link>https://www.teglion.com/blog/software-escritorio-contabilidade-portugal</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/software-escritorio-contabilidade-portugal</guid>
+      <pubDate>Mon, 20 Jul 2026 00:00:00 GMT</pubDate>
+      <description>WhatsApp vs portal do cliente, SAF-T, documentos e prazos — o que um escritório OCC precisa de software em 2026 para operar com controlo e menos caos.</description>
+    </item>
+    <item>
       <title>Caso: escritório no Norte saiu do WhatsApp e recuperou o calendário fiscal</title>
-      <link>https://teglion.com/blog/caso-escritorio-digitalizacao-prazos</link>
-      <guid isPermaLink="true">https://teglion.com/blog/caso-escritorio-digitalizacao-prazos</guid>
+      <link>https://www.teglion.com/blog/caso-escritorio-digitalizacao-prazos</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/caso-escritorio-digitalizacao-prazos</guid>
       <pubDate>Mon, 20 Jul 2026 00:00:00 GMT</pubDate>
       <description>História anonimizada: Escritório A (Norte), equipa pequena, documentos por chat e prazos na memória de uma pessoa — o que mudou com portal estruturado e rituais de prazo.</description>
     </item>
     <item>
       <title>Caso: de freelancer ENI a Lda — números ilustrativos e lições</title>
-      <link>https://teglion.com/blog/caso-pme-transicao-eni-lda</link>
-      <guid isPermaLink="true">https://teglion.com/blog/caso-pme-transicao-eni-lda</guid>
+      <link>https://www.teglion.com/blog/caso-pme-transicao-eni-lda</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/caso-pme-transicao-eni-lda</guid>
       <pubDate>Mon, 20 Jul 2026 00:00:00 GMT</pubDate>
       <description>Transição anonimizada de trabalhador independente para sociedade por quotas: facturação, custos, IRC vs IRS e o que o TOC pediu antes do «dia D». Números ilustrativos para PME.</description>
     </item>
     <item>
-      <title>Como escolher contabilista em Portugal: guia para freelancers e PME</title>
-      <link>https://teglion.com/blog/como-escolher-contabilista-portugal</link>
-      <guid isPermaLink="true">https://teglion.com/blog/como-escolher-contabilista-portugal</guid>
-      <pubDate>Wed, 10 Jun 2026 00:00:00 GMT</pubDate>
-      <description>OCC, especialização, preço, portal do cliente e comunicação — critérios para escolher (ou mudar de) contabilista sem surpresas.</description>
-    </item>
-    <item>
       <title>Declaração de IRS: guia prático para quem nunca entregou</title>
-      <link>https://teglion.com/blog/declaracao-irs-guia-pratico</link>
-      <guid isPermaLink="true">https://teglion.com/blog/declaracao-irs-guia-pratico</guid>
+      <link>https://www.teglion.com/blog/declaracao-irs-guia-pratico</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/declaracao-irs-guia-pratico</guid>
       <pubDate>Wed, 20 May 2026 00:00:00 GMT</pubDate>
       <description>Passo a passo simples para perceber prazos, documentos e o Portal das Finanças — sem juridiquês. Ideal para trabalhadores por conta própria e primeiras declarações.</description>
     </item>
     <item>
       <title>Deduções no IRS em Portugal: guia completo para famílias e independentes</title>
-      <link>https://teglion.com/blog/deducoes-irs-portugal-guia-completo</link>
-      <guid isPermaLink="true">https://teglion.com/blog/deducoes-irs-portugal-guia-completo</guid>
+      <link>https://www.teglion.com/blog/deducoes-irs-portugal-guia-completo</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/deducoes-irs-portugal-guia-completo</guid>
       <pubDate>Thu, 18 Jun 2026 00:00:00 GMT</pubDate>
       <description>Saúde, educação, habitação, pensões e despesas gerais — como funcionam as deduções no Modelo 3, limites e documentos a guardar.</description>
     </item>
     <item>
       <title>Como digitalizar um escritório de contabilidade em Portugal (sem perder clientes)</title>
-      <link>https://teglion.com/blog/digitalizar-escritorio-contabilidade-portugal</link>
-      <guid isPermaLink="true">https://teglion.com/blog/digitalizar-escritorio-contabilidade-portugal</guid>
+      <link>https://www.teglion.com/blog/digitalizar-escritorio-contabilidade-portugal</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/digitalizar-escritorio-contabilidade-portugal</guid>
       <pubDate>Thu, 18 Jun 2026 00:00:00 GMT</pubDate>
       <description>Portal do cliente, pedidos de documentos, arquivo digital, RGPD e comunicação profissional — roteiro para PME contabilísticas que ainda vivem no email e no WhatsApp.</description>
     </item>
     <item>
-      <title>Gestão de prazos fiscais no escritório de contabilidade: método que evita falhas</title>
-      <link>https://teglion.com/blog/gestao-prazos-fiscais-escritorio-contabilidade</link>
-      <guid isPermaLink="true">https://teglion.com/blog/gestao-prazos-fiscais-escritorio-contabilidade</guid>
-      <pubDate>Thu, 18 Jun 2026 00:00:00 GMT</pubDate>
-      <description>Calendário por cliente, alertas, responsáveis, checklist do dia 15 e do dia 19 — como escritórios organizados cumprem SS, IVA e IRS sem depender da memória de uma pessoa.</description>
-    </item>
-    <item>
-      <title>Guia completo do trabalhador independente em Portugal (2026)</title>
-      <link>https://teglion.com/blog/guia-completo-trabalhador-independente-portugal-2026</link>
-      <guid isPermaLink="true">https://teglion.com/blog/guia-completo-trabalhador-independente-portugal-2026</guid>
-      <pubDate>Wed, 17 Jun 2026 00:00:00 GMT</pubDate>
-      <description>Do zero ao primeiro recibo, SS, IRS e arquivo: mapa completo com ligações a todos os guias do blog — para freelancers e prestadores de serviços em Portugal.</description>
-    </item>
-    <item>
-      <title>IRC e sociedades (Lda): o que muda quando passa de ENI a empresa</title>
-      <link>https://teglion.com/blog/irc-sociedades-lda-portugal-guia</link>
-      <guid isPermaLink="true">https://teglion.com/blog/irc-sociedades-lda-portugal-guia</guid>
-      <pubDate>Mon, 20 Jul 2026 00:00:00 GMT</pubDate>
-      <description>Quando a facturação cresce, a Lda deixa de ser «complicação» e passa a ser decisão de negócio. IRC vs IRS, responsabilidade, contabilidade organizada e erros comuns — guia para PME.</description>
-    </item>
-    <item>
-      <title>Portal das Finanças: guia completo para iniciantes</title>
-      <link>https://teglion.com/blog/portal-financas-guia-completo-iniciantes</link>
-      <guid isPermaLink="true">https://teglion.com/blog/portal-financas-guia-completo-iniciantes</guid>
-      <pubDate>Mon, 15 Jun 2026 00:00:00 GMT</pubDate>
-      <description>Senha, Chave Móvel Digital, e-Fatura, recibos verdes e consulta de dívidas — tudo o que um independente usa no portal, explicado por secção.</description>
-    </item>
-    <item>
-      <title>SAF-T, e-Fatura e validação de documentos: fluxo para escritórios</title>
-      <link>https://teglion.com/blog/saft-efatura-validacao-documentos-escritorio</link>
-      <guid isPermaLink="true">https://teglion.com/blog/saft-efatura-validacao-documentos-escritorio</guid>
-      <pubDate>Mon, 20 Jul 2026 00:00:00 GMT</pubDate>
-      <description>Como escritórios de contabilidade organizam extração SAF-T, cruzamento com e-Fatura e validação de documentos dos clientes — sem viver de PDFs no WhatsApp.</description>
-    </item>
-    <item>
-      <title>Software para escritório de contabilidade em Portugal: o que precisa em 2026</title>
-      <link>https://teglion.com/blog/software-escritorio-contabilidade-portugal</link>
-      <guid isPermaLink="true">https://teglion.com/blog/software-escritorio-contabilidade-portugal</guid>
-      <pubDate>Mon, 20 Jul 2026 00:00:00 GMT</pubDate>
-      <description>WhatsApp vs portal do cliente, SAF-T, documentos e prazos — o que um escritório OCC precisa de software em 2026 para operar com controlo e menos caos.</description>
-    </item>
-    <item>
-      <title>Como organizar documentos fiscais: arquivo digital que funciona</title>
-      <link>https://teglion.com/blog/organizar-documentos-fiscais-arquivo-digital</link>
-      <guid isPermaLink="true">https://teglion.com/blog/organizar-documentos-fiscais-arquivo-digital</guid>
-      <pubDate>Fri, 12 Jun 2026 00:00:00 GMT</pubDate>
-      <description>Pastas por ano, nomenclatura de ficheiros, backup e o que guardar 4+ anos — sistema prático para freelancers e microempresas em Portugal.</description>
-    </item>
-    <item>
-      <title>Contabilidade explicada para quem quer conhecer a área de contabilidade: o que é e por que importa</title>
-      <link>https://teglion.com/blog/contabilidade-explicada-leigos-portugal</link>
-      <guid isPermaLink="true">https://teglion.com/blog/contabilidade-explicada-leigos-portugal</guid>
-      <pubDate>Thu, 18 Jun 2026 00:00:00 GMT</pubDate>
-      <description>Balanço, IRS, IVA, recibos verdes e contador — conceitos fiscais em linguagem normal, para empreendedores, estudantes e pessoas que queiram perceber o sistema sem licenciatura.</description>
-    </item>
-    <item>
       <title>Como estudar contabilidade em Portugal: guia para estudantes.</title>
-      <link>https://teglion.com/blog/estudar-contabilidade-portugal-guia-estudantes</link>
-      <guid isPermaLink="true">https://teglion.com/blog/estudar-contabilidade-portugal-guia-estudantes</guid>
+      <link>https://www.teglion.com/blog/estudar-contabilidade-portugal-guia-estudantes</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/estudar-contabilidade-portugal-guia-estudantes</guid>
       <pubDate>Thu, 18 Jun 2026 00:00:00 GMT</pubDate>
       <description>Calculadora certa, livros, método de estudo, estágios OCC e primeiros passos na profissão — do 1.º ano à licenciatura, com recursos práticos para quem quer perceber números sem dormir no livro.</description>
     </item>
     <item>
       <title>Ferramentas essenciais para o contabilista em 2026: calculadora, arquivo e software</title>
-      <link>https://teglion.com/blog/ferramentas-essenciais-contabilista-2026</link>
-      <guid isPermaLink="true">https://teglion.com/blog/ferramentas-essenciais-contabilista-2026</guid>
+      <link>https://www.teglion.com/blog/ferramentas-essenciais-contabilista-2026</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/ferramentas-essenciais-contabilista-2026</guid>
       <pubDate>Thu, 18 Jun 2026 00:00:00 GMT</pubDate>
       <description>O stack profissional do contador certificado: calculadora, Excel/365, segurança, arquivo físico e digital, e software de gestão de clientes — com comparação do que ainda se faz no email vs portal moderno.</description>
     </item>
     <item>
+      <title>Gestão de prazos fiscais no escritório de contabilidade: método que evita falhas</title>
+      <link>https://www.teglion.com/blog/gestao-prazos-fiscais-escritorio-contabilidade</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/gestao-prazos-fiscais-escritorio-contabilidade</guid>
+      <pubDate>Thu, 18 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Calendário por cliente, alertas, responsáveis, checklist do dia 15 e do dia 19 — como escritórios organizados cumprem SS, IVA e IRS sem depender da memória de uma pessoa.</description>
+    </item>
+    <item>
+      <title>IRC e sociedades (Lda): o que muda quando passa de ENI a empresa</title>
+      <link>https://www.teglion.com/blog/irc-sociedades-lda-portugal-guia</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/irc-sociedades-lda-portugal-guia</guid>
+      <pubDate>Mon, 20 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Quando a facturação cresce, a Lda deixa de ser «complicação» e passa a ser decisão de negócio. IRC vs IRS, responsabilidade, contabilidade organizada e erros comuns — guia para PME.</description>
+    </item>
+    <item>
+      <title>Como organizar documentos fiscais: arquivo digital que funciona</title>
+      <link>https://www.teglion.com/blog/organizar-documentos-fiscais-arquivo-digital</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/organizar-documentos-fiscais-arquivo-digital</guid>
+      <pubDate>Fri, 12 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Pastas por ano, nomenclatura de ficheiros, backup e o que guardar 4+ anos — sistema prático para freelancers e microempresas em Portugal.</description>
+    </item>
+    <item>
+      <title>SAF-T, e-Fatura e validação de documentos: fluxo para escritórios</title>
+      <link>https://www.teglion.com/blog/saft-efatura-validacao-documentos-escritorio</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/saft-efatura-validacao-documentos-escritorio</guid>
+      <pubDate>Mon, 20 Jul 2026 00:00:00 GMT</pubDate>
+      <description>Como escritórios de contabilidade organizam extração SAF-T, cruzamento com e-Fatura e validação de documentos dos clientes — sem viver de PDFs no WhatsApp.</description>
+    </item>
+    <item>
+      <title>Contabilidade explicada para quem quer conhecer a área de contabilidade: o que é e por que importa</title>
+      <link>https://www.teglion.com/blog/contabilidade-explicada-leigos-portugal</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/contabilidade-explicada-leigos-portugal</guid>
+      <pubDate>Thu, 18 Jun 2026 00:00:00 GMT</pubDate>
+      <description>Balanço, IRS, IVA, recibos verdes e contador — conceitos fiscais em linguagem normal, para empreendedores, estudantes e pessoas que queiram perceber o sistema sem licenciatura.</description>
+    </item>
+    <item>
       <title>Abrir actividade como empresário em nome individual (ENI)</title>
-      <link>https://teglion.com/blog/abrir-empresa-individual-eni</link>
-      <guid isPermaLink="true">https://teglion.com/blog/abrir-empresa-individual-eni</guid>
+      <link>https://www.teglion.com/blog/abrir-empresa-individual-eni</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/abrir-empresa-individual-eni</guid>
       <pubDate>Mon, 18 May 2026 00:00:00 GMT</pubDate>
       <description>O que é um ENI, quando faz sentido vs Lda, passos no Portal das Finanças, CAE, SS e primeiras obrigações — guia completo para iniciantes.</description>
     </item>
     <item>
       <title>Como emitir recibo verde: passo a passo no Portal das Finanças</title>
-      <link>https://teglion.com/blog/como-emitir-recibo-verde-passo-a-passo</link>
-      <guid isPermaLink="true">https://teglion.com/blog/como-emitir-recibo-verde-passo-a-passo</guid>
+      <link>https://www.teglion.com/blog/como-emitir-recibo-verde-passo-a-passo</link>
+      <guid isPermaLink="true">https://www.teglion.com/blog/como-emitir-recibo-verde-passo-a-passo</guid>
       <pubDate>Thu, 28 May 2026 00:00:00 GMT</pubDate>
       <description>Guia completo para emitir recibo verde no e-Fatura: login, dados do cliente, IVA, retenções, erros comuns e arquivo — do primeiro ao décimo recibo.</description>
     </item>

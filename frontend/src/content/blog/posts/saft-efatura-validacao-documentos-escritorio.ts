@@ -39,7 +39,7 @@ export const postSaftEfatura: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'SAF-T e e-Fatura: validação de documentos no escritório | Blog TegLion',
+    title: 'SAF-T e e-Fatura: validar documentos no escritório',
     description:
       'Fluxo prático para escritórios: SAF-T, e-Fatura AT, pedidos de documentos e validação antes do fecho. Menos erros, mais rastreio — Portugal 2026.',
     keywords: [

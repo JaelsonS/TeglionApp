@@ -31,7 +31,7 @@ export const postObrigacoesMes: BlogPost = {
     height: 630,
   },
   seo: {
-    title: 'Obrigações fiscais mensais em Portugal (checklist) | Blog TegLion',
+    title: 'Obrigações fiscais mensais em Portugal — checklist',
     description:
       'Checklist informativa das obrigações que um pequeno negócio em Portugal costuma ter ao longo do ano. Confirme prazos e enquadramento com contador certificado.',
     keywords: [
