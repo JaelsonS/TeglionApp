@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: [
         'icons/icon.svg',
         'icons/wordmark.svg',
@@ -70,7 +70,7 @@ export default defineConfig({
         ],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
-        skipWaiting: true,
+        skipWaiting: false,
         clientsClaim: false,
         cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 2_500_000,

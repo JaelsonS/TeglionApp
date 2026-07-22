@@ -3216,7 +3216,9 @@
 
   @media (max-width: 1279px) {
     .pc-shell {
+      height: 100vh;
       height: 100dvh;
+      max-height: 100vh;
       max-height: 100dvh;
       min-height: 0;
     }
@@ -3241,7 +3243,7 @@
   }
 
   .pc-drawer-root {
-    @apply fixed inset-0 z-50;
+    @apply fixed inset-0 z-[100];
   }
 
   .pc-drawer-backdrop {
@@ -3250,6 +3252,7 @@
 
   .pc-drawer-panel {
     @apply absolute inset-y-0 left-0 flex w-[min(100%,16rem)] flex-col bg-[#F3F2ED] shadow-xl;
+    padding-top: env(safe-area-inset-top, 0px);
     animation: pc-drawer-in 160ms ease-out;
   }
 
@@ -3289,6 +3292,8 @@
 
   .pc-topbar {
     @apply z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border/80 bg-card/90 px-3 shadow-[0_1px_0_rgba(15,41,66,0.04)] backdrop-blur-md sm:gap-3 sm:px-4 xl:hidden;
+    padding-top: env(safe-area-inset-top, 0px);
+    min-height: calc(3.5rem + env(safe-area-inset-top, 0px));
   }
 
   .pc-scroll {

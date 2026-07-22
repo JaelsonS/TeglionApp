@@ -157,29 +157,36 @@ if (import.meta.env.PROD && !isPwaEnabled()) {
 }
 
 if (import.meta.env.PROD && isPwaEnabled() && 'serviceWorker' in navigator && shouldRegisterPwa(window.location.pathname)) {
-  try {
-    const updateSW = registerSW({
-      immediate: true,
-      onNeedRefresh() {
-        void updateSW(true).catch(() => {
-          // ignore InvalidStateError ao reclamar clients
-        })
-      },
-      onRegisteredSW(_url, registration) {
-        registration?.update().catch(() => {})
-      },
-      onRegisterError() {
-        // SW falhou — a app continua em modo rede
-      },
-    })
-  } catch {
-    // ignore
+  const registerPwa = () => {
+    try {
+      const updateSW = registerSW({
+        immediate: false,
+        onNeedRefresh() {
+          void updateSW(true).catch(() => {
+            // ignore InvalidStateError ao reclamar clients
+          })
+        },
+        onRegisteredSW(_url, registration) {
+          registration?.update().catch(() => {})
+        },
+        onRegisterError() {
+          // SW falhou — a app continua em modo rede
+        },
+      })
+    } catch {
+      // ignore
+    }
+  }
+
+  if (document.readyState === 'complete') {
+    registerPwa()
+  } else {
+    window.addEventListener('load', registerPwa, { once: true })
   }
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <Sentry.ErrorBoundary
+const app = (
+  <Sentry.ErrorBoundary
       fallback={({ error, resetError }) => {
         const message = error instanceof Error ? error.message : String(error || '')
         const isChunk =
@@ -217,5 +224,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <App />
       </I18nextProvider>
     </Sentry.ErrorBoundary>
-  </React.StrictMode>,
+)
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  import.meta.env.DEV ? <React.StrictMode>{app}</React.StrictMode> : app,
 )

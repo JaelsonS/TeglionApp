@@ -1,5 +1,4 @@
 import { Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { createPortal } from 'react-dom'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Bell,
@@ -26,6 +25,7 @@ import { AgencyCredit } from '@/shared/components/agency/AgencyCredit'
 import { PageRouteFallback } from '@/shared/components/layout/PageRouteFallback'
 import { clientPortalContabilApi } from '@/infrastructure/api'
 import { onAppDataChanged } from '@/shared/utils/appEvents'
+import { releaseBodyScrollLock } from '@/shared/utils/releaseBodyScrollLock'
 
 function buildClientNav(copy: ReturnType<typeof getClientHubCopy>): Omit<ClientNavItem, 'badge'>[] {
   return [
@@ -140,6 +140,7 @@ export function ClientPortalShell({
     document.body.style.overflow = 'hidden'
     return () => {
       document.body.style.overflow = prev
+      requestAnimationFrame(() => releaseBodyScrollLock())
     }
   }, [previewMode, drawerOpen])
 
@@ -219,45 +220,40 @@ export function ClientPortalShell({
   )?.label
 
   const mobileDrawer =
-    !previewMode && drawerOpen
-      ? createPortal(
-          <div className="pc-drawer-root xl:hidden" role="dialog" aria-modal="true" aria-label="Menu do portal">
+    !previewMode && drawerOpen ? (
+      <div className="pc-drawer-root xl:hidden" role="dialog" aria-modal="true" aria-label="Menu do portal">
+        <button
+          type="button"
+          className="pc-drawer-backdrop"
+          aria-label="Fechar menu"
+          onClick={() => setDrawerOpen(false)}
+        />
+        <aside className="pc-drawer-panel">
+          <div className="flex shrink-0 items-center justify-between border-b border-border/70 px-3 py-2.5">
+            <p className="truncate text-sm font-semibold text-foreground">{firm?.name || 'Portal cliente'}</p>
             <button
               type="button"
-              className="pc-drawer-backdrop"
-              aria-label="Fechar menu"
+              className="rounded-lg p-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               onClick={() => setDrawerOpen(false)}
-            />
-            <aside className="pc-drawer-panel">
-              <div className="flex shrink-0 items-center justify-between border-b border-border/70 px-3 py-2.5">
-                <p className="truncate text-sm font-semibold text-foreground">{firm?.name || 'Portal cliente'}</p>
-                <button
-                  type="button"
-                  className="rounded-lg p-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  onClick={() => setDrawerOpen(false)}
-                  aria-label="Fechar menu"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-              <ClientPortalSidebar
-                {...sidebarProps}
-                brandAction={undefined}
-                onItemClick={() => setDrawerOpen(false)}
-              />
-            </aside>
-          </div>,
-          document.body,
-        )
-      : null
+              aria-label="Fechar menu"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <ClientPortalSidebar
+            {...sidebarProps}
+            brandAction={undefined}
+            onItemClick={() => setDrawerOpen(false)}
+          />
+        </aside>
+      </div>
+    ) : null
 
   return (
     <div className="pc-shell">
       <aside className={previewMode ? 'pc-sidebar flex' : 'pc-sidebar'}>
         <ClientPortalSidebar {...sidebarProps} />
       </aside>
-
-      {mobileDrawer}
 
       <div className="pc-main">
         <header className="pc-topbar">
@@ -294,6 +290,8 @@ export function ClientPortalShell({
           </div>
         </main>
       </div>
+
+      {mobileDrawer}
     </div>
   )
 }
