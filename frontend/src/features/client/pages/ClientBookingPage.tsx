@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 
 import { ClientBookingPanel } from '@/features/client/ClientBookingPanel'
 import { getClientHubCopy, toClientHubLocale } from '@/features/client/clientHubI18n'
@@ -17,8 +18,14 @@ export function ClientBookingPage() {
     <div className="space-y-6" data-testid="client-booking-page">
       <PageHeader
         title={t.tabs.booking}
-        subtitle="Marca uma reunião com o teu contabilista num horário disponível"
+        subtitle="Marca consultoria ou reunião com o escritório — tudo dentro do Teglion"
       />
+      <p className="rounded-2xl border border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+        Prefere escrever primeiro?{' '}
+        <Link to="/app/client/messages" className="font-semibold text-brand hover:underline">
+          Abrir mensagens
+        </Link>
+      </p>
       <ClientBookingPanel t={t} />
     </div>
   )

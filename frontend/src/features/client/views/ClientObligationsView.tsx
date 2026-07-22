@@ -76,8 +76,11 @@ function sentAtFromObligation(o: Obligation) {
 
 export function ClientObligationsView({
   t,
+  filterDateKey = null,
 }: {
   t: ReturnType<typeof getClientHubCopy>
+  /** Filtrar obrigações pelo dia seleccionado no calendário (YYYY-MM-DD). */
+  filterDateKey?: string | null
 }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedId = searchParams.get('obligation') || ''
@@ -136,12 +139,21 @@ export function ClientObligationsView({
       })
       .filter((o) => inPeriod(o.sentAt, period))
       .filter((o) => {
+        if (!filterDateKey) return true
+        const dueKey = (() => {
+          const d = new Date(o.dueDate)
+          if (Number.isNaN(d.getTime())) return ''
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+        })()
+        return dueKey === filterDateKey
+      })
+      .filter((o) => {
         if (!q) return true
         const hay = `${o.title || ''} ${o.type || ''} ${o.accountantNotes || ''} ${o.notes || ''}`.toLowerCase()
         return hay.includes(q)
       })
       .sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime())
-  }, [period, query.data?.documents, query.data?.obligations, search])
+  }, [filterDateKey, period, query.data?.documents, query.data?.obligations, search])
 
   const selected = useMemo(
     () => items.find((o) => o._id === selectedId) || items[items.length - 1] || null,

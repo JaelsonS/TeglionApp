@@ -131,6 +131,9 @@ const ClientNewsPage = lazy(() =>
 const ClientBookingPage = lazy(() =>
   import('@/features/client/pages/ClientBookingPage').then((m) => ({ default: m.ClientBookingPage })),
 )
+const ClientAccountPage = lazy(() =>
+  import('@/features/client/pages/ClientAccountPage').then((m) => ({ default: m.ClientAccountPage })),
+)
 const NotFoundPage = lazy(() => import('@/features/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
 const ClientNoAccessPage = lazy(() =>
   import('@/features/client/ClientNoAccessPage').then((m) => ({ default: m.ClientNoAccessPage })),
@@ -262,6 +265,7 @@ export function ContabilAppRouter() {
               <Route path="alerts" element={<ClientAlertsPage />} />
               <Route path="news" element={<ClientNewsPage />} />
               <Route path="booking" element={<ClientBookingPage />} />
+              <Route path="account" element={<ClientAccountPage />} />
             </Route>
           </Route>
         </Route>

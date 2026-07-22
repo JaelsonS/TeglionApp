@@ -146,7 +146,6 @@ export function ClientPremiumHome({
 
       <ClientContactFirmCta
         firmName={hub.firm.name}
-        contactPhone={hub.firm.contactPhone}
         onGoMessages={goMessages}
         onGoBooking={onGoBooking}
       />
