@@ -3,7 +3,7 @@
   "framework": "vite",
   "build": {
     "env": {
-      "VITE_ENABLE_PWA": "true"
+      "VITE_ENABLE_PWA": "false"
     }
   },
   "rewrites": [

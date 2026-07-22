@@ -1,7 +1,7 @@
 /**
  * Layout do portal cliente — contexto de branding + shell adaptativo (sidebar / drawer).
  */
-import { createContext, useContext, useMemo } from 'react'
+import { createContext, useContext, useEffect, useMemo } from 'react'
 import { Navigate } from 'react-router-dom'
 
 import { ClientPortalShell } from '@/features/client/ClientPortalShell'
@@ -10,6 +10,7 @@ import { LiveEventsProvider } from '@/shared/providers/LiveEventsProvider'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { useFirmBranding } from '@/shared/hooks/useFirmBranding'
 import { authClientLoginUrl } from '@/shared/constants/authPaths'
+import { cleanRecoverQueryFromUrl } from '@/shared/utils/cleanRecoverQuery'
 import type { Firm } from '@/shared/types/firm'
 
 type ClientPortalContextValue = {
@@ -29,6 +30,15 @@ export function ClientPortalLayout() {
   const { user } = useAuth()
   const { firm, firmLogoUrl, isLoading } = useFirmBranding()
   const value = useMemo(() => ({ firm, firmLogoUrl }), [firm, firmLogoUrl])
+
+  useEffect(() => {
+    cleanRecoverQueryFromUrl()
+    document.documentElement.classList.add('client-portal-active')
+    return () => {
+      document.documentElement.classList.remove('client-portal-active')
+      document.body.style.removeProperty('overflow')
+    }
+  }, [])
 
   if (isLoading) {
     return (

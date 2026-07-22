@@ -22,9 +22,7 @@ function installChunkLoadRecovery(): void {
       text.includes('Failed to fetch dynamically imported module') ||
       text.includes('Importing a module script failed') ||
       text.includes('Loading chunk') ||
-      text.includes('/assets/') ||
-      text.includes('removeChild') ||
-      text.includes('NotFoundError')
+      text.includes('/assets/')
     )
   }
 
@@ -126,6 +124,15 @@ function loadGoogleFonts() {
 
 if (typeof window !== 'undefined') {
   installChunkLoadRecovery()
+  try {
+    const url = new URL(window.location.href)
+    if (url.searchParams.has('__chunk_recover')) {
+      url.searchParams.delete('__chunk_recover')
+      window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`)
+    }
+  } catch {
+    /* ignore */
+  }
   const w = window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }
   if (w.requestIdleCallback) {
     w.requestIdleCallback(() => loadGoogleFonts(), { timeout: 2500 })
@@ -152,7 +159,7 @@ if (import.meta.env.PROD && typeof window !== 'undefined' && 'requestIdleCallbac
   bootSentry()
 }
 
-if (import.meta.env.PROD && !isPwaEnabled()) {
+if (import.meta.env.PROD && !isPwaEnabled() && typeof window !== 'undefined') {
   void disableExistingPwaRegistrations()
 }
 
@@ -193,11 +200,7 @@ const app = (
           message.includes('Failed to fetch dynamically imported module') ||
           message.includes('Importing a module script failed') ||
           message.includes('Loading chunk')
-        const isDomRace =
-          message.includes('removeChild') ||
-          message.includes('NotFoundError') ||
-          message.includes('The node to be removed is not a child')
-        if ((isChunk || isDomRace) && typeof window !== 'undefined') {
+        if (isChunk && typeof window !== 'undefined') {
           try {
             if (window.sessionStorage.getItem(CHUNK_RECOVERY_KEY) !== '1') {
               window.sessionStorage.setItem(CHUNK_RECOVERY_KEY, '1')
