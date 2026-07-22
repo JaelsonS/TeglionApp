@@ -11,6 +11,9 @@ type LookupPatch = {
   city?: string
   region?: string
   neighborhood?: string
+  parish?: string
+  municipality?: string
+  district?: string
 }
 
 export function usePostalAddressLookup(
@@ -49,6 +52,9 @@ export function usePostalAddressLookup(
           city: addr.city,
           region: addr.region,
           neighborhood: addr.neighborhood,
+          parish: addr.parish,
+          municipality: addr.municipality,
+          district: addr.district,
         })
         setStatus('success')
       } catch {

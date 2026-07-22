@@ -98,3 +98,21 @@ Status: Resolvido
 Responsável: Frontend / Backend
 Correção aplicada: `hidden_from_feed_at` em `activity_events`; hide/unhide/hide-all + `GET activity-history` com filtros; feed do hub só eventos visíveis; UI de ocultar + painel Histórico com restaurar.
 Data da correção: 2026-07-20
+
+## Bug 012
+Título: Particular obrigado a Regime de IVA.
+Descrição: Na ficha e no wizard, particulares eram forçados a preencher Regime de IVA (e defaults como «Normal Trimestral»). Particulares não têm IVA; IRS deve manter-se.
+Data: 2026-07-22
+Status: Resolvido
+Responsável: Frontend
+Correção aplicada: IVA (e motivo de isenção) ocultos e não obrigatórios para `INDIVIDUAL`; não se persiste IVA em novos particulares; IRS / IRC mantém-se editável e obrigatório.
+Data da correção: 2026-07-22
+
+## Bug 013
+Título: Freguesia só aparece depois de guardar a ficha.
+Descrição: No cadastro só existia Localidade; após guardar, a ficha mostrava Freguesia vazia. O lookup do CP descartava a freguesia devolvida pela API.
+Data: 2026-07-22
+Status: Resolvido
+Responsável: Frontend
+Correção aplicada: Localidade + Freguesia no wizard; mapeamento correto de `parish`/`municipality`/`district` no lookup; label «Freguesia» na ficha.
+Data da correção: 2026-07-22

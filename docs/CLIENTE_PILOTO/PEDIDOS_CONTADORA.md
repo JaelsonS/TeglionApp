@@ -12,7 +12,9 @@
 - [x] Separação entre Obrigações Fiscais e Tarefas Internas
 
 ## P1 - Importante
-- [ ] Rever campos exibidos dinamicamente conforme o Tipo de Cliente
+- [x] Particulares sem Regime de IVA (wizard + ficha); IRS mantém-se
+- [x] Freguesia visível no cadastro junto com Localidade; lookup de CP preenche freguesia
+- [ ] Rever restantes campos dinâmicos conforme o Tipo de Cliente (CAE/SS refinamentos)
 - [ ] Garantir persistência dos novos campos no perfil do cliente
 - [ ] Validar responsividade dos formulários de cadastro
 

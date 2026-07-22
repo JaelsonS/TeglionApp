@@ -81,7 +81,9 @@ export function buildClientCreateMetadata(
   const caeSecondary = [form.caeSecondary1, form.caeSecondary2].map((s) => s.trim()).filter(Boolean)
   const meta: Partial<ClientFiscalProfile> = {}
 
-  if (form.clientType) meta.clientType = normalizeClientType(form.clientType)
+  const clientType = normalizeClientType(form.clientType)
+  const isIndividual = clientType === 'INDIVIDUAL'
+  if (form.clientType) meta.clientType = clientType
   if (form.legalForm.trim()) meta.legalForm = form.legalForm.trim()
   if (form.accountingType.trim()) meta.accountingType = form.accountingType.trim() as ClientFiscalProfile['accountingType']
   if (form.legalName.trim()) meta.legalName = form.legalName.trim()
@@ -90,8 +92,12 @@ export function buildClientCreateMetadata(
   if (addressMeta) meta.address = addressMeta
   if (form.caePrimary.trim()) meta.caePrimary = form.caePrimary.trim()
   if (caeSecondary.length) meta.caeSecondary = caeSecondary
-  if (form.vatRegime.trim()) meta.vatRegime = form.vatRegime.trim()
-  if (form.vatExemptionReason.trim()) meta.vatExemptionReason = form.vatExemptionReason.trim()
+
+  // Particulares não têm regime de IVA — não persistir defaults/valores de IVA.
+  if (!isIndividual) {
+    if (form.vatRegime.trim()) meta.vatRegime = form.vatRegime.trim()
+    if (form.vatExemptionReason.trim()) meta.vatExemptionReason = form.vatExemptionReason.trim()
+  }
   if (form.irsFramework.trim()) meta.irsFramework = form.irsFramework.trim()
   if (form.shareCapital.trim()) meta.shareCapital = form.shareCapital.trim()
   if (form.activityStartDate.trim()) meta.activityStartDate = form.activityStartDate.trim()

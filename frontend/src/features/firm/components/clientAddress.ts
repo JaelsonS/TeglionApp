@@ -54,13 +54,16 @@ export function applyPostalLookupToAddress(
     city?: string
     region?: string
     neighborhood?: string
+    parish?: string
+    municipality?: string
+    district?: string
   },
 ): ClientAddressFormState {
   return {
     postalCode: lookup.postalCode || current.postalCode,
     street: lookup.street || current.street,
-    municipality: lookup.city || current.municipality,
-    district: lookup.region || current.district,
-    parish: lookup.neighborhood || current.parish,
+    municipality: lookup.municipality || lookup.city || current.municipality,
+    district: lookup.district || lookup.region || current.district,
+    parish: lookup.parish || lookup.neighborhood || current.parish,
   }
 }

@@ -275,21 +275,25 @@ export function ClientHubProfilePanel({ hub, onPatch, isSaving }: Props) {
               }}
             />
           ))}
-          <InlineEditSelect
-            label="Regime de IVA"
-            value={fp.vatRegime || ''}
-            options={vatOptions}
-            saving={isSaving}
-            onSave={(v) => saveMetaField('vatRegime', v)}
-          />
-          {fp.vatRegime === 'Isento' ? (
-            <InlineEditSelect
-              label="Motivo da isenção"
-              value={fp.vatExemptionReason || ''}
-              options={vatExemptionOptions}
-              saving={isSaving}
-              onSave={(v) => saveMetaField('vatExemptionReason', v)}
-            />
+          {!isIndividualClient ? (
+            <>
+              <InlineEditSelect
+                label="Regime de IVA"
+                value={fp.vatRegime || ''}
+                options={vatOptions}
+                saving={isSaving}
+                onSave={(v) => saveMetaField('vatRegime', v)}
+              />
+              {fp.vatRegime === 'Isento' ? (
+                <InlineEditSelect
+                  label="Motivo da isenção"
+                  value={fp.vatExemptionReason || ''}
+                  options={vatExemptionOptions}
+                  saving={isSaving}
+                  onSave={(v) => saveMetaField('vatExemptionReason', v)}
+                />
+              ) : null}
+            </>
           ) : null}
           <InlineEditSelect
             label="Enquadramento IRS / IRC"

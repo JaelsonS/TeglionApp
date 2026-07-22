@@ -55,8 +55,6 @@ export function CreateCompanyAddressFields({
     onChange({ ...value, [key]: v })
   }
 
-  const locality = value.parish || value.municipality
-
   return (
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
@@ -64,7 +62,7 @@ export function CreateCompanyAddressFields({
           id={`${idPrefix}-postal`}
           label="Código postal"
           required
-          hint="Introduza o código postal — a localidade é sugerida automaticamente."
+          hint="Introduza o código postal — localidade e freguesia são sugeridas automaticamente."
         >
           <div className="relative">
             <input
@@ -84,22 +82,30 @@ export function CreateCompanyAddressFields({
           {status === 'error' && error ? <p className="cb-company-hint text-amber-700">{error}</p> : null}
         </WizardField>
 
-        <WizardField id={`${idPrefix}-locality`} label="Localidade" required hint="Localidade da sede da empresa.">
+        <WizardField id={`${idPrefix}-locality`} label="Localidade" required hint="Localidade / concelho.">
           <input
             id={`${idPrefix}-locality`}
             className="cb-company-input"
-            value={locality}
-            onChange={(e) => {
-              set('parish', e.target.value)
-              if (!value.municipality) set('municipality', e.target.value)
-            }}
+            value={value.municipality}
+            onChange={(e) => set('municipality', e.target.value)}
             placeholder="Ex.: Porto"
             autoComplete="address-level2"
           />
         </WizardField>
       </div>
 
-      <WizardField id={`${idPrefix}-street`} label="Morada" required hint="Morada da sede da empresa.">
+      <WizardField id={`${idPrefix}-parish`} label="Freguesia" hint="Preenchida automaticamente com o código postal; pode editar.">
+        <input
+          id={`${idPrefix}-parish`}
+          className="cb-company-input"
+          value={value.parish}
+          onChange={(e) => set('parish', e.target.value)}
+          placeholder="Ex.: Cedofeita"
+          autoComplete="address-level3"
+        />
+      </WizardField>
+
+      <WizardField id={`${idPrefix}-street`} label="Morada" required hint="Morada da sede / residência.">
         <input
           id={`${idPrefix}-street`}
           className="cb-company-input"
@@ -111,8 +117,7 @@ export function CreateCompanyAddressFields({
       </WizardField>
 
       <div className="hidden">
-        <input value={value.district} readOnly />
-        <input value={value.municipality} readOnly />
+        <input value={value.district} readOnly tabIndex={-1} aria-hidden />
       </div>
     </div>
   )

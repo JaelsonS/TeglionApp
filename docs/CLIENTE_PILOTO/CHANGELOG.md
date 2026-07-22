@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-22
+- **Particulares:** Regime de IVA deixa de aparecer / ser obrigatório (wizard + ficha); IRS mantém-se.
+- **Morada:** Localidade e Freguesia no cadastro; lookup do código postal preenche a freguesia correctamente.
+- Docs piloto actualizados (`PEDIDOS_CONTADORA`, `BACKLOG`, `BUGS_ENCONTRADOS`).
+
 ## 2026-07-17
 - Hub de **Definições** com abas reais (`?tab=…`): Identidade, Escritório, Perfil, Equipa, Notificações, Encerrar — um painel de cada vez (já não é scroll por âncoras).
 - Polimento visual do hub: nav lateral com ícones coloridos, cabeçalhos com gradiente suave, cartões de métrica clicáveis na Equipa, CTAs primários em criar/convidar colaborador.

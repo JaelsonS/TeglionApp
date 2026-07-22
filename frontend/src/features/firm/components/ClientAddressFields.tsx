@@ -102,7 +102,7 @@ export function ClientAddressFields({ value, onChange, idPrefix = 'addr', classN
         </Field>
       </div>
 
-      <Field id={`${idPrefix}-parish`} label="Freguesia / Localidade">
+      <Field id={`${idPrefix}-parish`} label="Freguesia">
         <Input
           id={`${idPrefix}-parish`}
           value={value.parish}

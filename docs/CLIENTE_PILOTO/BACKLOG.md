@@ -9,7 +9,9 @@
 ## Cadastro
 - [x] Tipo de Cliente
 - [x] Validação de NIF no cadastro
-- Campos fiscais dinâmicos por tipo de cliente (refinar)
+- [x] Particulares sem Regime de IVA (IRS mantém-se)
+- [x] Localidade + Freguesia no cadastro; lookup CP preenche freguesia
+- Campos fiscais dinâmicos por tipo de cliente (refinar restantes)
 
 ## Clientes
 - Expansão do perfil fiscal

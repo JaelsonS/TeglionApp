@@ -107,7 +107,25 @@ export function CreateCompanyWizard({ open, onOpenChange, onCreated }: Props) {
     ) || []
 
   const set = <K extends keyof ClientCreateFormState>(key: K, value: ClientCreateFormState[K]) => {
-    setForm((prev) => ({ ...prev, [key]: value }))
+    setForm((prev) => {
+      if (key === 'clientType') {
+        const nextType = normalizeClientType(value as ClientCreateFormState['clientType'])
+        if (nextType === 'INDIVIDUAL') {
+          return {
+            ...prev,
+            clientType: nextType,
+            vatRegime: '',
+            vatExemptionReason: '',
+          }
+        }
+        return {
+          ...prev,
+          clientType: nextType,
+          vatRegime: prev.vatRegime || 'Normal Trimestral',
+        }
+      }
+      return { ...prev, [key]: value }
+    })
     if (key === 'taxId') {
       setNifStatus('idle')
       setNifMessage('')
@@ -209,7 +227,7 @@ export function CreateCompanyWizard({ open, onOpenChange, onCreated }: Props) {
         toast.error(t('clientWizard.validation.invalidPostalCode'))
         return false
       }
-      const locality = form.address.parish || form.address.municipality
+      const locality = form.address.municipality || form.address.parish
       if (!locality?.trim()) {
         toast.error(t('clientWizard.validation.localityRequired'))
         return false
@@ -229,11 +247,15 @@ export function CreateCompanyWizard({ open, onOpenChange, onCreated }: Props) {
         toast.error(t('clientWizard.validation.activityStartDateRequired'))
         return false
       }
-      if (!form.vatRegime.trim() || !form.irsFramework.trim()) {
+      if (!isIndividualClient && (!form.vatRegime.trim() || !form.irsFramework.trim())) {
         toast.error(t('clientWizard.validation.fiscalFrameworkRequired'))
         return false
       }
-      if (isIsentoVat && !form.vatExemptionReason.trim()) {
+      if (isIndividualClient && !form.irsFramework.trim()) {
+        toast.error(t('clientWizard.validation.fiscalFrameworkRequired'))
+        return false
+      }
+      if (!isIndividualClient && isIsentoVat && !form.vatExemptionReason.trim()) {
         toast.error(t('clientWizard.validation.vatExemptionReasonRequired'))
         return false
       }
@@ -572,35 +594,39 @@ export function CreateCompanyWizard({ open, onOpenChange, onCreated }: Props) {
               ) : null}
 
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <WizardField id="vatRegime" label={t('clientWizard.fields.vatRegime')} required>
-                  <WizardSelect
-                    id="vatRegime"
-                    value={form.vatRegime}
-                    onChange={(e) => set('vatRegime', e.target.value)}
-                  >
-                    {VAT_REGIMES.map((r) => (
-                      <option key={r} value={r}>
-                        {r}
-                      </option>
-                    ))}
-                  </WizardSelect>
-                </WizardField>
+                {!isIndividualClient ? (
+                  <>
+                    <WizardField id="vatRegime" label={t('clientWizard.fields.vatRegime')} required>
+                      <WizardSelect
+                        id="vatRegime"
+                        value={form.vatRegime}
+                        onChange={(e) => set('vatRegime', e.target.value)}
+                      >
+                        {VAT_REGIMES.map((r) => (
+                          <option key={r} value={r}>
+                            {r}
+                          </option>
+                        ))}
+                      </WizardSelect>
+                    </WizardField>
 
-                {isIsentoVat ? (
-                  <WizardField id="vatExemptionReason" label={t('clientWizard.fields.vatExemptionReason')} required>
-                    <WizardSelect
-                      id="vatExemptionReason"
-                      value={form.vatExemptionReason}
-                      onChange={(e) => set('vatExemptionReason', e.target.value)}
-                    >
-                      <option value="">{t('clientWizard.options.select')}</option>
-                      {VAT_EXEMPTION_REASONS.map((reason) => (
-                        <option key={reason} value={reason}>
-                          {reason}
-                        </option>
-                      ))}
-                    </WizardSelect>
-                  </WizardField>
+                    {isIsentoVat ? (
+                      <WizardField id="vatExemptionReason" label={t('clientWizard.fields.vatExemptionReason')} required>
+                        <WizardSelect
+                          id="vatExemptionReason"
+                          value={form.vatExemptionReason}
+                          onChange={(e) => set('vatExemptionReason', e.target.value)}
+                        >
+                          <option value="">{t('clientWizard.options.select')}</option>
+                          {VAT_EXEMPTION_REASONS.map((reason) => (
+                            <option key={reason} value={reason}>
+                              {reason}
+                            </option>
+                          ))}
+                        </WizardSelect>
+                      </WizardField>
+                    ) : null}
+                  </>
                 ) : null}
 
                 <WizardField id="irsFramework" label={t('clientWizard.fields.irsFramework')} required>
@@ -843,7 +869,11 @@ export function CreateCompanyWizard({ open, onOpenChange, onCreated }: Props) {
               <div className="mt-4 rounded-lg border border-border/50 bg-muted/10 p-3 text-xs text-muted-foreground">
                 <p className="font-medium text-foreground">{form.legalName || form.displayName || t('clientWizard.summary.newClient')}</p>
                 <p>{countryConfig.taxIdLabel} {form.taxId || '—'} · {clientTypeLabel} · {form.accountingType || '—'}</p>
-                <p>{form.vatRegime}{isIsentoVat && form.vatExemptionReason ? ` · ${form.vatExemptionReason}` : ''}</p>
+                {!isIndividualClient && form.vatRegime ? (
+                  <p>{form.vatRegime}{isIsentoVat && form.vatExemptionReason ? ` · ${form.vatExemptionReason}` : ''}</p>
+                ) : form.irsFramework ? (
+                  <p>{form.irsFramework}</p>
+                ) : null}
               </div>
             </section>
           ) : null}
