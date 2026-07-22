@@ -14,6 +14,9 @@ export function AgencyPromoCard() {
         </span>
       </div>
       <p className="px-3.5 text-sm text-muted-foreground">{AGENCY.promoBody}</p>
+      <p className="mt-1 px-3.5 text-xs font-medium text-foreground/70">
+        {AGENCY.displayName}
+      </p>
       <a
         href={AGENCY.url}
         target="_blank"

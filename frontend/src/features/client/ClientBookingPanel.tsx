@@ -208,7 +208,7 @@ export function ClientBookingPanel({ t }: { t: ReturnType<typeof getClientHubCop
           disabled={!selectedSlot || booking}
           onClick={() => void confirmBooking()}
         >
-          {booking ? t.loading : 'Confirmar marcação'}
+          {booking ? t.loading : 'Confirmar consultoria'}
         </Button>
       </section>
     </div>

@@ -66,9 +66,9 @@ export function ClientAccountPage() {
           <Link to="/app/client/booking">
             <Bell className="h-5 w-5 text-brand" aria-hidden />
             <span className="text-left">
-              <span className="block text-sm font-semibold">Agendar reunião</span>
+              <span className="block text-sm font-semibold">Consultoria</span>
               <span className="block text-xs font-normal text-muted-foreground">
-                Pedir consultoria ou reunião com o escritório
+                Marcar consultoria ou reunião com o escritório
               </span>
             </span>
           </Link>

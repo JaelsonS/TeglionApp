@@ -37,10 +37,10 @@ export function ClientContactFirmCta({ firmName, onGoMessages, onGoBooking, clas
           type="button"
           className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={onGoBooking}
-          aria-label="Agendar reunião com o escritório"
+          aria-label="Marcar consultoria com o escritório"
         >
           <CalendarCheck className="h-3.5 w-3.5" aria-hidden />
-          Agendar reunião
+          Consultoria
         </button>
       </div>
     </section>

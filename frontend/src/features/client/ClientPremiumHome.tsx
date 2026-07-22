@@ -261,7 +261,7 @@ export function ClientPremiumHome({
             { label: 'Enviar documento', icon: Upload, onClick: onGoDocuments },
             { label: 'Agenda', icon: Wallet, onClick: onGoObligations },
             { label: 'Pedidos do escritório', icon: Inbox, onClick: onGoRequests },
-            { label: 'Agendar reunião', icon: Calendar, onClick: onGoBooking },
+            { label: 'Consultoria', icon: Calendar, onClick: onGoBooking },
           ].map(({ label, icon: Icon, onClick }) => (
             <button
               key={label}

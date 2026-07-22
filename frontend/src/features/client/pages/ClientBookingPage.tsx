@@ -18,7 +18,7 @@ export function ClientBookingPage() {
     <div className="space-y-6" data-testid="client-booking-page">
       <PageHeader
         title={t.tabs.booking}
-        subtitle="Marca consultoria ou reunião com o escritório — tudo dentro do Teglion"
+        subtitle="Marca uma consultoria com o escritório — horários disponíveis dentro do Teglion"
       />
       <p className="rounded-2xl border border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
         Prefere escrever primeiro?{' '}

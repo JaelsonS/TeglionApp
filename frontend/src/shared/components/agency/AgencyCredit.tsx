@@ -17,8 +17,9 @@ export function AgencyCredit({ surface, className }: Props) {
         rel="noopener noreferrer"
         className="font-medium text-foreground/80 underline-offset-2 hover:text-brand hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
         onClick={() => trackProductEvent('agency_click', { surface, placement: 'credit' })}
+        aria-label={`${AGENCY.creditLabel} ${AGENCY.displayName}`}
       >
-        {AGENCY.name}
+        {AGENCY.displayName}
       </a>
     </p>
   )
