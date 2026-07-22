@@ -2,6 +2,7 @@ const { getRepository } = require('../../db/supabase/repositories');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const contabilNotifications = require('../../services/notifications/contabil-notifications.service');
+const clientPortalNotify = require('../../services/notifications/client-portal-notify.service');
 const clientTasksFirm = require('./client-tasks-firm.service');
 const { requireUserFirmId, parseEntityId, parseClientIdFromRequest } = require('../../utils/contabil-scope');
 const { AppError } = require('../../middlewares/error.middleware');
@@ -110,19 +111,15 @@ exports.create = async (req, res, next) => {
         .catch(() => { });
     }
 
-    const sb = require('../../db/supabase/client').getSupabaseAdmin();
-    if (sb) {
-      const { error: notifErr } = await sb.from('in_app_notifications').insert({
-        firm_id: firmId,
-        client_id: parsedClientId,
-        type: 'CLIENT_TASK',
-        title: attachment ? 'Nova tarefa com documento' : 'Nova tarefa no portal',
-        body: notifyBody,
-        entity_type: 'CLIENT_TASK',
-        entity_id: task.id,
-      });
-      if (notifErr) console.warn('[client-tasks] notification:', notifErr.message);
-    }
+    await clientPortalNotify.notifyClientPortal({
+      firmId: firmId,
+      clientId: parsedClientId,
+      type: 'CLIENT_TASK',
+      title: attachment ? 'Nova tarefa com documento' : 'Nova tarefa no portal',
+      body: notifyBody,
+      entityType: 'CLIENT_TASK',
+      entityId: task.id,
+    });
 
     return res.status(201).json({ task, attachment });
   } catch (err) {

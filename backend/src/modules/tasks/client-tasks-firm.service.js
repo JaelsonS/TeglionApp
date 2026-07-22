@@ -1,6 +1,7 @@
 /**
  * Tarefas do cliente — anexos e documentos enviados pelo escritório.
  */
+const clientPortalNotify = require('../../services/notifications/client-portal-notify.service');
 const { AppError } = require('../../middlewares/error.middleware');
 const { getRepository } = require('../../db/supabase/repositories');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
@@ -70,23 +71,19 @@ async function attachDocumentToTask({
   });
 
   if (notifyClient) {
-    const sb = require('../../db/supabase/client').getSupabaseAdmin();
-    if (sb) {
-      const hasObligation = Boolean(doc.obligation_id || doc.obligationId);
-      const targetRoute = hasObligation ? '/app/client/agenda' : '/app/client/requests';
-      const { error: notifErr } = await sb.from('in_app_notifications').insert({
-        firm_id: firmId,
-        client_id: clientId,
-        category: 'DOCUMENT',
-        type: 'DOCUMENT',
-        title: 'Novo documento do escritório',
-        body: doc.title,
-        entity_type: 'DOCUMENT',
-        entity_id: doc.id,
-        action_url: targetRoute,
-      });
-      if (notifErr) console.warn('[client-tasks] notification:', notifErr.message);
-    }
+    const hasObligation = Boolean(doc.obligation_id || doc.obligationId);
+    const targetRoute = hasObligation ? '/app/client/agenda' : '/app/client/requests';
+    await clientPortalNotify.notifyClientPortal({
+      firmId,
+      clientId,
+      category: 'DOCUMENT',
+      type: 'DOCUMENT',
+      title: 'Novo documento do escritório',
+      body: doc.title,
+      entityType: 'DOCUMENT',
+      entityId: doc.id,
+      actionUrl: targetRoute,
+    });
   }
 
   return { document: { _id: doc.id, title: doc.title, mimeType: doc.mime_type } };

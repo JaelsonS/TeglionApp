@@ -11,6 +11,7 @@ const activityService = require('../../services/activity/activity.service');
 const smsLogsService = require('../../services/sms/sms-logs.service');
 const viewTracking = require('../../services/tracking/view-tracking.service');
 const contabilNotifications = require('../../services/notifications/contabil-notifications.service');
+const clientPortalNotify = require('../../services/notifications/client-portal-notify.service');
 
 function currentPeriod() {
   const now = new Date();
@@ -165,23 +166,17 @@ async function uploadGuideToObligation({
   }
 
   if (notifyClient) {
-    const sb = require('../../db/supabase/client').getSupabaseAdmin();
-    if (sb) {
-      const { error: notifErr } = await sb.from('in_app_notifications').insert({
-        firm_id: firmId,
-        client_id: client.id,
-        category: 'OBLIGATION',
-        type: docClass.notificationType,
-        title: docClass.notificationTitle,
-        body: `${ob.title || ob.type} — consulte e efetue o pagamento no portal.`,
-        entity_type: 'OBLIGATION',
-        entity_id: ob.id,
-        action_url: '/app/client/agenda',
-      });
-      if (notifErr) {
-        console.warn('[obligations] in_app_notification insert:', notifErr.message);
-      }
-    }
+    await clientPortalNotify.notifyClientPortal({
+      firmId,
+      clientId: client.id,
+      category: 'OBLIGATION',
+      type: docClass.notificationType,
+      title: docClass.notificationTitle,
+      body: `${ob.title || ob.type} — consulte e efetue o pagamento no portal.`,
+      entityType: 'OBLIGATION',
+      entityId: ob.id,
+      actionUrl: '/app/client/agenda',
+    });
   }
 
   return { obligation: updated, document: { _id: doc.id, title: doc.title, mimeType: doc.mime_type } };

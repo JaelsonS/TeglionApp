@@ -6,6 +6,7 @@ const { AppError } = require('../../middlewares/error.middleware');
 const { getRepository } = require('../../db/supabase/repositories');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const contabilNotifications = require('../../services/notifications/contabil-notifications.service');
+const clientPortalNotify = require('../../services/notifications/client-portal-notify.service');
 
 const OBLIGATION_TYPE_LABELS = {
   IVA: 'IVA',
@@ -157,19 +158,17 @@ async function createObligationWithTask({
         .catch(() => {});
     }
 
-    const sbClient = require('../../db/supabase/client').getSupabaseAdmin();
-    if (sbClient) {
-      const { error: notifErr } = await sbClient.from('in_app_notifications').insert({
-        firm_id: firmId,
-        client_id: clientId,
-        type: 'OBLIGATION_CREATED',
-        title: 'Nova obrigação fiscal',
-        body: `${obligation.title} — consulte na plataforma.`,
-        entity_type: 'OBLIGATION',
-        entity_id: obligation._id,
-      });
-      if (notifErr) console.warn('[obligations] notification:', notifErr.message);
-    }
+    await clientPortalNotify.notifyClientPortal({
+      firmId,
+      clientId,
+      category: 'OBLIGATION',
+      type: 'OBLIGATION_CREATED',
+      title: 'Nova obrigação fiscal',
+      body: `${obligation.title} — consulte na plataforma.`,
+      entityType: 'OBLIGATION',
+      entityId: obligation._id,
+      actionUrl: '/app/client/agenda',
+    });
   }
 
   return { obligation, task };

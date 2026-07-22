@@ -22,41 +22,10 @@ async function notifyFirmStaff({ firmId, firmUserId, category, type, title, body
   });
 }
 
-function resolveDefaultClientActionUrl(entityType, type) {
-  const e = String(entityType || '').toUpperCase();
-  const t = String(type || '').toUpperCase();
-  if (e === 'MESSAGE' || t === 'MESSAGE') return '/app/client/messages';
-  if (e === 'DOCUMENT' || t.includes('DOCUMENT')) return '/app/client/documents';
-  if (e === 'OBLIGATION' || t.includes('OBLIGATION')) return '/app/client/agenda';
-  if (e === 'CLIENT_TASK' || t.includes('TASK') || t.includes('REQUEST')) return '/app/client/requests';
-  return '/app/client';
-}
+const clientPortalNotify = require('../../services/notifications/client-portal-notify.service');
 
-async function notifyClientInApp({
-  firmId,
-  clientId,
-  category,
-  type,
-  title,
-  body,
-  entityType,
-  entityId,
-  actionUrl,
-}) {
-  const sb = require('../../db/supabase/client').getSupabaseAdmin();
-  if (!sb) return;
-  const nextEntityType = entityType || 'CLIENT_TASK';
-  await sb.from('in_app_notifications').insert({
-    firm_id: firmId,
-    client_id: clientId,
-    category: category || nextEntityType || type || 'GENERAL',
-    type,
-    title,
-    body,
-    entity_type: nextEntityType,
-    entity_id: entityId,
-    action_url: actionUrl || resolveDefaultClientActionUrl(nextEntityType, type),
-  });
+async function notifyClientInApp(params) {
+  await clientPortalNotify.notifyClientPortal(params);
 }
 
 async function createInternalRecurringRule({ firmId, clientId, title, description, frequency, dueDate }) {

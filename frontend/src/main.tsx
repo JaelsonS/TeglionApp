@@ -9,6 +9,7 @@ import i18n from '@/i18n'
 import App from '@/core/App'
 import { registerSW } from 'virtual:pwa-register'
 import { shouldRegisterPwa } from '@/shared/utils/pwaPolicy'
+import { isPushServiceWorkerScript, PUSH_SW_URL } from '@/shared/utils/pushSetup'
 import { isLightweightPublicRoute } from '@/shared/utils/publicRoutes'
 
 const CHUNK_RECOVERY_KEY = 'teglion.chunk-recovery'
@@ -98,7 +99,17 @@ async function disableExistingPwaRegistrations(): Promise<void> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
   try {
     const registrations = await navigator.serviceWorker.getRegistrations()
-    await Promise.all(registrations.map((registration) => registration.unregister()))
+    await Promise.all(
+      registrations
+        .filter((registration) => {
+          const scriptUrl =
+            registration.active?.scriptURL ||
+            registration.installing?.scriptURL ||
+            registration.waiting?.scriptURL
+          return !isPushServiceWorkerScript(scriptUrl)
+        })
+        .map((registration) => registration.unregister()),
+    )
   } catch {
     // noop
   }
@@ -111,6 +122,17 @@ async function disableExistingPwaRegistrations(): Promise<void> {
   } catch {
     // noop
   }
+}
+
+function shouldRegisterPushServiceWorker(pathname: string): boolean {
+  return pathname.startsWith('/app/client') || pathname.startsWith('/app/firm')
+}
+
+function registerPushServiceWorker(): void {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
+  void navigator.serviceWorker.register(PUSH_SW_URL, { scope: '/' }).catch(() => {
+    // push opcional — a app continua sem notificações
+  })
 }
 
 function loadGoogleFonts() {
@@ -161,6 +183,14 @@ if (import.meta.env.PROD && typeof window !== 'undefined' && 'requestIdleCallbac
 
 if (import.meta.env.PROD && !isPwaEnabled() && typeof window !== 'undefined') {
   void disableExistingPwaRegistrations()
+}
+
+if (typeof window !== 'undefined' && shouldRegisterPushServiceWorker(window.location.pathname)) {
+  if (document.readyState === 'complete') {
+    registerPushServiceWorker()
+  } else {
+    window.addEventListener('load', registerPushServiceWorker, { once: true })
+  }
 }
 
 if (import.meta.env.PROD && isPwaEnabled() && 'serviceWorker' in navigator && shouldRegisterPwa(window.location.pathname)) {

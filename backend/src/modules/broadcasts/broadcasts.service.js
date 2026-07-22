@@ -5,6 +5,7 @@ const { AppError } = require('../../middlewares/error.middleware');
 const broadcastsRepository = require('../../db/supabase/repositories/broadcasts.repository');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const activityService = require('../../services/activity/activity.service');
+const clientPortalNotify = require('../../services/notifications/client-portal-notify.service');
 const { FAN_OUT_CHUNK } = require('./broadcast.constants');
 
 function slugify(title) {
@@ -63,6 +64,18 @@ async function fanOutBroadcast(broadcast) {
       entity_id: broadcast.id,
     }));
     await broadcastsRepository.bulkInsertNotifications(notifRows);
+    for (const clientId of chunk) {
+      void clientPortalNotify
+        .notifyClientPortal({
+          firmId: broadcast.firmId,
+          clientId,
+          title: broadcast.title,
+          body: broadcast.excerpt || broadcast.body?.slice(0, 200) || null,
+          actionUrl: '/app/client/updates',
+          skipInApp: true,
+        })
+        .catch(() => {});
+    }
     delivered += chunk.length;
   }
 

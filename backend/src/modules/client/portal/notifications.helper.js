@@ -2,42 +2,10 @@
  * Notificações in-app do portal cliente.
  */
 const { requireLinkedClient } = require('./client.guard');
+const clientPortalNotify = require('../../../services/notifications/client-portal-notify.service');
 
-function resolveDefaultActionUrl(entityType, type) {
-  const e = String(entityType || '').toUpperCase();
-  const t = String(type || '').toUpperCase();
-  if (e === 'MESSAGE' || t === 'MESSAGE') return '/app/client/messages';
-  if (e === 'DOCUMENT' || t.includes('DOCUMENT')) return '/app/client/documents';
-  if (e === 'OBLIGATION' || t.includes('OBLIGATION')) return '/app/client/agenda';
-  if (e === 'CLIENT_TASK' || t.includes('TASK') || t.includes('REQUEST')) return '/app/client/requests';
-  return '/app/client';
-}
-
-async function createInAppNotification({
-  firmId,
-  clientId,
-  category,
-  type,
-  title,
-  body,
-  entityType,
-  entityId,
-  actionUrl,
-}) {
-  const sb = require('../../../db/supabase/client').getSupabaseAdmin();
-  if (!sb) return;
-  const { error } = await sb.from('in_app_notifications').insert({
-    firm_id: firmId,
-    client_id: clientId,
-    category: category || entityType || type || 'GENERAL',
-    type,
-    title,
-    body,
-    entity_type: entityType,
-    entity_id: entityId,
-    action_url: actionUrl || resolveDefaultActionUrl(entityType, type),
-  });
-  if (error) console.warn('[portal] notification:', error.message);
+async function createInAppNotification(params) {
+  await clientPortalNotify.notifyClientPortal(params);
 }
 
 async function listMyNotifications({ actor }) {
@@ -61,7 +29,7 @@ async function listMyNotifications({ actor }) {
       createdAt: n.created_at,
       entityType: n.entity_type,
       entityId: n.entity_id,
-      actionUrl: n.action_url || resolveDefaultActionUrl(n.entity_type, n.type),
+      actionUrl: n.action_url || clientPortalNotify.resolveDefaultClientActionUrl(n.entity_type, n.type),
     })),
   };
 }
