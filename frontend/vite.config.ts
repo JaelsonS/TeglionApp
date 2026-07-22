@@ -8,7 +8,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/icon.svg', 'icons/wordmark.svg', 'og/teglion-og.png'],
+      includeAssets: [
+        'icons/icon.svg',
+        'icons/wordmark.svg',
+        'icons/icon-192.png',
+        'icons/icon-512.png',
+        'icons/icon-512-maskable.png',
+        'og/teglion-og.png',
+      ],
       manifest: {
         name: 'Teglion',
         short_name: 'Teglion',
@@ -16,19 +23,31 @@ export default defineConfig({
         theme_color: '#0f2942',
         background_color: '#fafaf7',
         display: 'standalone',
-        start_url: '/auth',
+        start_url: '/auth/client/login',
         icons: [
           {
-            src: '/icons/icon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
+            src: '/icons/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
             purpose: 'any',
+          },
+          {
+            src: '/icons/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: '/icons/icon-512-maskable.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
           },
           {
             src: '/icons/icon.svg',
             sizes: 'any',
             type: 'image/svg+xml',
-            purpose: 'maskable',
+            purpose: 'any',
           },
         ],
         shortcuts: [
@@ -45,7 +64,6 @@ export default defineConfig({
           '**/vendor-query-*.js',
           '**/vendor-motion-*.js',
           '**/Firm*.js',
-          '**/Client*.js',
           '**/RecoverPasswordPage-*.js',
           '**/ResetPasswordPage-*.js',
           '**/FirmTasksWorkspacePage-*.js',

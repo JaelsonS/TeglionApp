@@ -87,7 +87,11 @@ function installChunkLoadRecovery(): void {
 }
 
 function isPwaEnabled(): boolean {
-  return String(import.meta.env.VITE_ENABLE_PWA || '').toLowerCase() === 'true'
+  const raw = String(import.meta.env.VITE_ENABLE_PWA || '').toLowerCase()
+  if (raw === 'false' || raw === '0') return false
+  if (raw === 'true' || raw === '1') return true
+  // Em produção activa por defeito (portal cliente / app instalável).
+  return Boolean(import.meta.env.PROD)
 }
 
 async function disableExistingPwaRegistrations(): Promise<void> {

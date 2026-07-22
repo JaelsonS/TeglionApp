@@ -187,7 +187,14 @@ export type Consultation = {
 
 export type ContabilHubSummary = {
   period: string
-  firm: { id: string; name: string; status?: string | null }
+  firm: {
+    id: string
+    name: string
+    status?: string | null
+    slug?: string | null
+    logoUrl?: string | null
+    contactPhone?: string | null
+  }
   fiscalHealth?: FiscalHealth
   nextCriticalObligation?: Obligation | null
   counts: {

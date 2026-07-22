@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ExternalLink, FileText, Newspaper, Search } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -32,6 +32,7 @@ export function ClientNewsFeed({ previewMode }: Props) {
 
   const { items: allItems, isLoading, refetch } = useClientNewsFeed(!previewMode)
   const readVersion = useClientNewsReadVersion()
+  const openedSlugRef = useRef<string | null>(null)
 
   const items = search.trim()
     ? allItems.filter(
@@ -53,22 +54,25 @@ export function ClientNewsFeed({ previewMode }: Props) {
       if (id) markNewsArticleRead(id)
       notifyReadChange()
       setActiveSlug(a.slug)
-      setSearchParams({ tab: 'noticias', slug: a.slug }, { replace: true })
+      setSearchParams({ slug: a.slug }, { replace: true })
       setLoadingArticle(true)
       try {
         const res = (await clientPortalContabilApi.getNewsArticle(a.slug)) as { article: NewsArticle }
         setArticle(res.article)
+        openedSlugRef.current = a.slug
         const aid = res.article.id || res.article._id || id
         if (aid) markNewsArticleRead(aid)
         notifyReadChange()
       } catch (err) {
         toast.error('Não foi possível abrir a notícia', { description: getErrorMessage(err) })
         setActiveSlug(null)
+        openedSlugRef.current = null
+        setSearchParams({}, { replace: true })
       } finally {
         setLoadingArticle(false)
       }
     },
-    [previewMode, notifyReadChange],
+    [previewMode, notifyReadChange, setSearchParams],
   )
 
   useEffect(() => {
@@ -77,12 +81,10 @@ export function ClientNewsFeed({ previewMode }: Props) {
     return () => window.removeEventListener('cb-client-news-read-changed', onRead)
   }, [refetch])
 
-  const openedSlugRef = useRef<string | null>(null)
   useEffect(() => {
     if (!slugFromUrl || previewMode || openedSlugRef.current === slugFromUrl) return
     const match = allItems.find((a) => a.slug === slugFromUrl)
     if (match) {
-      openedSlugRef.current = slugFromUrl
       void openArticle(match)
     }
   }, [slugFromUrl, previewMode, allItems, openArticle])
@@ -96,7 +98,7 @@ export function ClientNewsFeed({ previewMode }: Props) {
           onClick={() => {
             setActiveSlug(null)
             setArticle(null)
-            setSearchParams({ tab: 'noticias' }, { replace: true })
+            setSearchParams({}, { replace: true })
           }}
         >
           <ArrowLeft className="h-4 w-4" />
@@ -172,6 +174,14 @@ export function ClientNewsFeed({ previewMode }: Props) {
           <p className="mt-3 text-sm text-muted-foreground">
             Ainda não há notícias publicadas pelo escritório.
           </p>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            <Button asChild variant="outline" className="rounded-full">
+              <Link to="/app/client/messages">Escrever mensagem</Link>
+            </Button>
+            <Button asChild variant="outline" className="rounded-full">
+              <Link to="/app/client/documents">Enviar documento</Link>
+            </Button>
+          </div>
         </div>
       ) : (
         <ul className="space-y-3">

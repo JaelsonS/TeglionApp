@@ -113,6 +113,7 @@ async function getHubSummary({ actor }) {
       name: firm?.name || 'Escritório',
       status: firm?.status || null,
       logoUrl: firmLogoUrl,
+      contactPhone: firm?.settings?.contact?.phone || null,
     },
     fiscalHealth,
     nextCriticalObligation: nextCritical || null,
@@ -175,6 +176,7 @@ async function getClientDashboard({ actor }) {
       id: String(firmId),
       name: firm?.name || 'Escritório',
       logoUrl: firmLogoUrl,
+      contactPhone: firm?.settings?.contact?.phone || null,
     },
     fiscalHealth,
     counts: {

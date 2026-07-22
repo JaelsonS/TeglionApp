@@ -8,6 +8,7 @@ import {
   ListChecks,
   Megaphone,
   MessageSquare,
+  Newspaper,
   ReceiptText,
   Settings,
   UserRound,
@@ -113,6 +114,12 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         labelKey: 'contabil.firm.nav.alerts',
         labelDefault: 'Central de Alertas',
         icon: Megaphone,
+      },
+      {
+        to: '/app/firm/news',
+        labelKey: 'contabil.firm.nav.news',
+        labelDefault: 'Notícias',
+        icon: Newspaper,
       },
       {
         to: '/app/firm/services',

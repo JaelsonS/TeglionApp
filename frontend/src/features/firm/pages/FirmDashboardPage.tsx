@@ -32,6 +32,7 @@ import {
   relativeUpdated,
   type PeriodScope,
 } from '@/features/firm/dashboard/firmDashboardUtils'
+import { AgencyPromoCard } from '@/shared/components/agency/AgencyPromoCard'
 import { SkeletonCard } from '@/shared/design-system'
 import { useFirmDashboard } from '@/shared/hooks/queries/useFirmDashboard'
 import { contabilMessagesApi } from '@/infrastructure/api'
@@ -466,6 +467,8 @@ export function FirmDashboardPage() {
                   ))}
                 </div>
               </section>
+
+              <AgencyPromoCard />
             </aside>
           </div>
         </>

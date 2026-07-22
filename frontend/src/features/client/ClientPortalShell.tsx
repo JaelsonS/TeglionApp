@@ -25,16 +25,18 @@ import { useAuth } from '@/shared/hooks/useAuth'
 import { useClientPortalBellCount } from '@/shared/hooks/useClientPortalBellCount'
 import { useLiveEventsContext } from '@/shared/providers/LiveEventsProvider'
 import { ClientNotificationCenter } from '@/features/client/ClientNotificationCenter'
+import { AgencyCredit } from '@/shared/components/agency/AgencyCredit'
 import { PageRouteFallback } from '@/shared/components/layout/PageRouteFallback'
 import { clientPortalContabilApi } from '@/infrastructure/api'
 import { onAppDataChanged } from '@/shared/utils/appEvents'
 
+/** Bottom nav: loop diário (home, pedidos, mensagens, agenda, notícias). Resto no drawer. */
 const NAV_MOBILE_ROUTES = [
   '/app/client',
   '/app/client/requests',
   '/app/client/messages',
-  '/app/client/documents',
-  '/app/client/alerts',
+  '/app/client/agenda',
+  '/app/client/news',
 ] as const
 
 function buildClientNav(copy: ReturnType<typeof getClientHubCopy>): Omit<ClientNavItem, 'badge'>[] {
@@ -143,6 +145,31 @@ export function ClientPortalShell({
     items: navItems,
     onLogout: previewMode ? undefined : handleLogout,
     loggingOut,
+    footer: (
+      <div className="space-y-3">
+        <div className="flex items-center gap-3 rounded-[10px] px-2 py-1">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-primary">
+            {(user?.fullName || user?.email || '?').slice(0, 2).toUpperCase()}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-medium text-foreground">{user?.fullName || 'Cliente'}</span>
+            <span className="block truncate text-xs text-muted-foreground">{user?.email}</span>
+          </span>
+        </div>
+        <AgencyCredit surface="client" />
+        {!previewMode ? (
+          <button
+            type="button"
+            className="flex w-full items-center gap-3 rounded-[10px] px-2 py-2 text-left text-sm font-medium text-destructive transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={() => void handleLogout()}
+            disabled={loggingOut}
+          >
+            <LogOut className="h-4 w-4" />
+            {loggingOut ? 'A sair…' : 'Sair'}
+          </button>
+        ) : null}
+      </div>
+    ),
   }
 
   const activeLabel = navItems.find((n) =>
@@ -161,7 +188,7 @@ export function ClientPortalShell({
             <>
               <motion.button
                 type="button"
-                className="fixed inset-0 z-40 bg-foreground/40 backdrop-blur-sm lg:hidden"
+                className="fixed inset-0 z-40 bg-foreground/40 backdrop-blur-sm xl:hidden"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -169,7 +196,7 @@ export function ClientPortalShell({
                 onClick={() => setDrawerOpen(false)}
               />
               <motion.aside
-                className="fixed inset-y-0 left-0 z-50 flex w-[min(100%,280px)] flex-col bg-card shadow-lg lg:hidden"
+                className="fixed inset-y-0 left-0 z-50 flex w-[min(100%,280px)] flex-col bg-card shadow-lg xl:hidden"
                 initial={{ x: '-100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
@@ -197,14 +224,14 @@ export function ClientPortalShell({
           {!previewMode ? (
             <button
               type="button"
-              className="hidden rounded-[10px] p-2 hover:bg-muted lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="rounded-[10px] p-2 hover:bg-muted xl:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               onClick={() => setDrawerOpen(true)}
               aria-label="Abrir menu"
             >
               <Menu className="h-5 w-5" />
             </button>
           ) : null}
-          <div className="min-w-0 flex-1 lg:hidden">
+          <div className="min-w-0 flex-1 xl:hidden">
             <p className="truncate text-sm font-semibold text-foreground">{activeLabel || firm?.name || 'Portal'}</p>
             {firm?.name && activeLabel ? (
               <p className="truncate cb-text-caption text-muted-foreground">{firm.name}</p>
@@ -243,7 +270,7 @@ export function ClientPortalShell({
       </div>
 
       {!previewMode ? (
-        <div className="lg:hidden">
+        <div className="xl:hidden">
           <MobileBottomNav
             items={navMobilePrimary.map((item) => {
               const Icon = item.icon
@@ -270,6 +297,7 @@ export function ClientPortalShell({
                     ) : null}
                   </span>
                 ),
+                end: item.end,
               }
             })}
           />

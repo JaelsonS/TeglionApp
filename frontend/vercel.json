@@ -1,6 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
+  "build": {
+    "env": {
+      "VITE_ENABLE_PWA": "true"
+    }
+  },
   "rewrites": [
     {
       "source": "/favicon.ico",

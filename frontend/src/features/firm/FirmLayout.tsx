@@ -4,6 +4,7 @@ import { Outlet } from 'react-router-dom'
 import { FirmMobileNavBar } from '@/features/firm/FirmMobileNavBar'
 import { FirmSidebar } from '@/features/firm/FirmSidebar'
 import { FirmTopbar } from '@/features/firm/FirmTopbar'
+import { AgencyCredit } from '@/shared/components/agency/AgencyCredit'
 import { PageRouteFallback } from '@/shared/components/layout/PageRouteFallback'
 import { LiveEventsProvider } from '@/shared/providers/LiveEventsProvider'
 
@@ -18,6 +19,9 @@ export function FirmLayout() {
               <Outlet />
             </Suspense>
           </main>
+          <div className="border-t border-border bg-card px-3 py-2">
+            <AgencyCredit surface="firm" />
+          </div>
           <FirmMobileNavBar />
         </div>
 
@@ -33,6 +37,9 @@ export function FirmLayout() {
                 <Suspense fallback={<PageRouteFallback />}>
                   <Outlet />
                 </Suspense>
+              </div>
+              <div className="border-t border-border px-4 py-2">
+                <AgencyCredit surface="firm" />
               </div>
             </div>
           </main>

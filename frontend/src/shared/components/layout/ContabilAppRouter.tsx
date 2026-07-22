@@ -103,6 +103,7 @@ const FirmServiceRequestsPage = lazy(() =>
   import('@/features/firm/pages/FirmServiceRequestsPage').then((m) => ({ default: m.FirmServiceRequestsPage })),
 )
 const FirmAlertsPage = lazy(() => import('@/features/firm/pages/FirmAlertsPage').then((m) => ({ default: m.FirmAlertsPage })))
+const FirmNewsPage = lazy(() => import('@/features/firm/pages/FirmNewsPage').then((m) => ({ default: m.FirmNewsPage })))
 const ClientDashboardPage = lazy(() =>
   import('@/features/client/pages/ClientDashboardPage').then((m) => ({ default: m.ClientDashboardPage })),
 )
@@ -227,8 +228,8 @@ export function ContabilAppRouter() {
                 <Route path="fiscal-calendar" element={<FirmFiscalCalendarPage />} />
                 <Route path="messages" element={<FirmMessagesPage />} />
                 <Route path="alerts" element={<FirmAlertsPage />} />
+                <Route path="news" element={<FirmNewsPage />} />
                 <Route path="services" element={<FirmServiceRequestsPage />} />
-                <Route path="news" element={<Navigate to="/app/firm/alerts" replace />} />
                 <Route path="settings" element={<FirmSettingsPage />} />
               </Route>
               <Route path="billing" element={<FirmBillingPage />} />

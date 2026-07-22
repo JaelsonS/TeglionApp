@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   AlertTriangle,
@@ -6,17 +7,31 @@ import {
   Calendar,
   FileText,
   Inbox,
+  MessageSquare,
   Newspaper,
   Sparkles,
   Upload,
   Wallet,
 } from 'lucide-react'
+import { toast } from 'sonner'
 
 import type { ClientAlertItem } from '@/infrastructure/api/contabil/broadcasts'
 import type { getClientHubCopy } from '@/features/client/clientHubI18n'
+import {
+  ClientContactFirmCta,
+  ClientFirstVisitOnboarding,
+} from '@/features/client/ClientContactAndOnboarding'
+import { ClientPushOptIn } from '@/features/client/ClientPushOptIn'
+import { PwaInstallBanner } from '@/shared/components/pwa/PwaInstallBanner'
+import {
+  DocumentPreviewModal,
+  getViewSessionId,
+} from '@/shared/components/contabil/DocumentPreviewModal'
+import { clientPortalContabilApi, fetchDocumentPreviewUrl } from '@/infrastructure/api'
 import { clientDocumentDisplayName } from '@/shared/utils/clientDocumentLabel'
 import { isNewsArticleRead, useClientNewsReadVersion } from '@/shared/utils/clientNewsRead'
-import type { ContabilHubSummary, FiscalHealth, NewsArticle, Obligation } from '@/shared/types/contabil'
+import { getErrorMessage } from '@/shared/utils/errors'
+import type { ContabilDocument, ContabilHubSummary, FiscalHealth, NewsArticle, Obligation } from '@/shared/types/contabil'
 import { formatPtDate } from '@/shared/utils/contabilLocale'
 import { cn } from '@/shared/lib/utils'
 
@@ -66,6 +81,12 @@ export function ClientPremiumHome({
   onOpenNews,
 }: Props) {
   const readVersion = useClientNewsReadVersion()
+  const goMessages = onGoMessages || onGoAlerts
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewTitle, setPreviewTitle] = useState('')
+  const [previewLoading, setPreviewLoading] = useState(false)
+
   const pendingObligations = hub.obligations.filter(
     (o) => o.paymentStatus !== 'PAID' && (isOverdue(o) || o.status !== 'DELIVERED'),
   )
@@ -91,8 +112,45 @@ export function ClientPremiumHome({
     return now - created <= 14 * 24 * 60 * 60 * 1000
   }).length
 
+  async function openDocument(d: ContabilDocument) {
+    setPreviewTitle(clientDocumentDisplayName(d))
+    setPreviewOpen(true)
+    setPreviewLoading(true)
+    setPreviewUrl(null)
+    try {
+      await clientPortalContabilApi.recordDocumentView(d._id, getViewSessionId())
+      const url = await fetchDocumentPreviewUrl(d._id, 'client')
+      setPreviewUrl(url)
+    } catch (err) {
+      toast.error('Não foi possível abrir o documento', { description: getErrorMessage(err) })
+      setPreviewOpen(false)
+    } finally {
+      setPreviewLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
+      <ClientFirstVisitOnboarding
+        onGoDocuments={onGoDocuments}
+        onGoObligations={onGoObligations}
+        onGoMessages={goMessages}
+        onInstallHint={() => {
+          document.getElementById('client-pwa-install')?.scrollIntoView({ behavior: 'smooth' })
+        }}
+      />
+
+      <PwaInstallBanner surface="client" className="scroll-mt-4" id="client-pwa-install" />
+
+      <ClientPushOptIn />
+
+      <ClientContactFirmCta
+        firmName={hub.firm.name}
+        contactPhone={hub.firm.contactPhone}
+        onGoMessages={goMessages}
+        onGoBooking={onGoBooking}
+      />
+
       {urgentBanner && (!urgentBanner.isRead || urgentBanner.needsAck) ? (
         <motion.div
           initial={{ opacity: 0, y: -4 }}
@@ -107,7 +165,7 @@ export function ClientPremiumHome({
               {urgentBanner.excerpt ? <p className="mt-1 text-sm text-red-50">{urgentBanner.excerpt}</p> : null}
               <button
                 type="button"
-                className="mt-3 rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50"
+                className="mt-3 rounded-full bg-white px-4 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                 onClick={onGoAlerts}
               >
                 Ver alerta
@@ -158,38 +216,38 @@ export function ClientPremiumHome({
       </motion.div>
 
       <section>
-        <h3 className="cb-text-label">Indicadores</h3>
+        <h3 className="cb-text-label">Hoje</h3>
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-          <button type="button" className="cb-quick-action items-start text-left" onClick={onGoObligations}>
+          <button type="button" className="cb-quick-action items-start text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={onGoObligations}>
             <Calendar className="h-5 w-5 text-brand" />
             <span className="text-xs text-muted-foreground">Prazo próximo</span>
             <span className="text-sm font-semibold text-foreground">{dueSoonCount}</span>
           </button>
-          <button type="button" className="cb-quick-action items-start text-left" onClick={onGoObligations}>
+          <button type="button" className="cb-quick-action items-start text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={onGoObligations}>
             <AlertTriangle className="h-5 w-5 text-red-600" />
             <span className="text-xs text-muted-foreground">Em atraso</span>
             <span className="text-sm font-semibold text-foreground">{overdueCount}</span>
           </button>
-          <button type="button" className="cb-quick-action items-start text-left" onClick={onGoObligations}>
+          <button type="button" className="cb-quick-action items-start text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={onGoObligations}>
             <Wallet className="h-5 w-5 text-amber-700" />
             <span className="text-xs text-muted-foreground">Pagamentos pendentes</span>
             <span className="text-sm font-semibold text-foreground">{pendingPaymentsCount}</span>
           </button>
-          <button type="button" className="cb-quick-action items-start text-left" onClick={onGoDocuments}>
+          <button type="button" className="cb-quick-action items-start text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={onGoDocuments}>
             <FileText className="h-5 w-5 text-brand" />
             <span className="text-xs text-muted-foreground">Novos documentos</span>
             <span className="text-sm font-semibold text-foreground">{newDocsCount}</span>
           </button>
           <button
             type="button"
-            className="cb-quick-action items-start text-left"
-            onClick={onGoMessages || onGoAlerts}
+            className="cb-quick-action items-start text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={goMessages}
           >
-            <Bell className="h-5 w-5 text-brand" />
+            <MessageSquare className="h-5 w-5 text-brand" />
             <span className="text-xs text-muted-foreground">Novas mensagens</span>
             <span className="text-sm font-semibold text-foreground">{unreadMessagesCount}</span>
           </button>
-          <button type="button" className="cb-quick-action items-start text-left" onClick={onGoRequests}>
+          <button type="button" className="cb-quick-action items-start text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={onGoRequests}>
             <Inbox className="h-5 w-5 text-brand" />
             <span className="text-xs text-muted-foreground">Novos pedidos</span>
             <span className="text-sm font-semibold text-foreground">{newRequestsCount}</span>
@@ -206,7 +264,12 @@ export function ClientPremiumHome({
             { label: 'Pedidos do escritório', icon: Inbox, onClick: onGoRequests },
             { label: 'Agendar reunião', icon: Calendar, onClick: onGoBooking },
           ].map(({ label, icon: Icon, onClick }) => (
-            <button key={label} type="button" onClick={onClick} className="cb-quick-action">
+            <button
+              key={label}
+              type="button"
+              onClick={onClick}
+              className="cb-quick-action focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
               <Icon className="h-5 w-5 text-brand" />
               <span className="text-xs font-semibold text-foreground">{label}</span>
             </button>
@@ -221,7 +284,7 @@ export function ClientPremiumHome({
               <Newspaper className="h-3.5 w-3.5" />
               Novidades do escritório
             </span>
-            <button type="button" className="text-xs font-semibold text-brand" onClick={onGoNews}>
+            <button type="button" className="text-xs font-semibold text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm" onClick={onGoNews}>
               Ver todas
             </button>
           </div>
@@ -234,7 +297,7 @@ export function ClientPremiumHome({
                 <li key={id || a.slug}>
                   <button
                     type="button"
-                    className="flex w-full items-start justify-between gap-2 rounded-xl bg-muted/30 px-3 py-2.5 text-left text-sm transition hover:bg-brand/5"
+                    className="flex w-full items-start justify-between gap-2 rounded-xl bg-muted/30 px-3 py-2.5 text-left text-sm transition hover:bg-brand/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     onClick={() => (onOpenNews ? onOpenNews(a) : onGoNews())}
                   >
                     <span className="min-w-0">
@@ -268,15 +331,21 @@ export function ClientPremiumHome({
                   <FileText className="h-3.5 w-3.5" />
                   Documentos recebidos
                 </span>
-                <button type="button" className="text-xs font-semibold text-brand" onClick={onGoDocuments}>
+                <button type="button" className="text-xs font-semibold text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm" onClick={onGoDocuments}>
                   Ver todos
                 </button>
               </div>
               <ul className="space-y-2">
                 {firmDocuments.map((d) => (
-                  <li key={d._id} className="text-sm">
-                    <p className="font-medium text-foreground">{clientDocumentDisplayName(d)}</p>
-                    <p className="text-xs text-muted-foreground">{d.createdAt ? formatPtDate(d.createdAt) : ''}</p>
+                  <li key={d._id}>
+                    <button
+                      type="button"
+                      className="w-full rounded-xl bg-muted/20 px-3 py-2.5 text-left text-sm transition hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={() => void openDocument(d)}
+                    >
+                      <p className="font-medium text-foreground">{clientDocumentDisplayName(d)}</p>
+                      <p className="text-xs text-muted-foreground">{d.createdAt ? formatPtDate(d.createdAt) : ''}</p>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -290,14 +359,14 @@ export function ClientPremiumHome({
                   <Wallet className="h-3.5 w-3.5" />
                   Obrigações pendentes
                 </span>
-                <button type="button" className="text-xs font-semibold text-brand" onClick={onGoObligations}>
+                <button type="button" className="text-xs font-semibold text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm" onClick={onGoObligations}>
                   Ver todas
                 </button>
               </div>
               <ul className="space-y-2">
                 {pendingObligations.slice(0, 3).map((o) => (
                   <li key={o._id}>
-                    <button type="button" className="w-full text-left text-sm" onClick={() => onOpenObligation(o)}>
+                    <button type="button" className="w-full rounded-xl bg-muted/20 px-3 py-2.5 text-left text-sm transition hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => onOpenObligation(o)}>
                       <p className="font-medium text-foreground">{o.title || o.type}</p>
                       <p className="text-xs text-muted-foreground">Prazo {formatPtDate(o.dueDate, 'date')}</p>
                     </button>
@@ -310,7 +379,7 @@ export function ClientPremiumHome({
           <button
             type="button"
             onClick={onGoAlerts}
-            className="flex w-full items-center gap-2 rounded-xl border border-border/60 bg-muted/20 px-3 py-2.5 text-sm text-foreground transition hover:bg-muted/40"
+            className="flex w-full items-center gap-2 rounded-xl border border-border/60 bg-muted/20 px-3 py-2.5 text-sm text-foreground transition hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Bell className="h-4 w-4 shrink-0 text-brand" />
             <span>Alertas e avisos do escritório</span>
@@ -318,10 +387,32 @@ export function ClientPremiumHome({
           </button>
 
           {firmDocuments.length === 0 && pendingObligations.length === 0 && newsPreview.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Tudo em dia — sem novidades por agora.</p>
+            <div className="rounded-xl border border-dashed border-border px-4 py-5 text-center">
+              <p className="text-sm text-muted-foreground">Tudo em dia — sem novidades por agora.</p>
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                <button type="button" className="text-xs font-semibold text-brand" onClick={onGoDocuments}>
+                  Enviar documento
+                </button>
+                <span className="text-muted-foreground">·</span>
+                <button type="button" className="text-xs font-semibold text-brand" onClick={goMessages}>
+                  Escrever mensagem
+                </button>
+              </div>
+            </div>
           ) : null}
         </div>
       </section>
+
+      <DocumentPreviewModal
+        open={previewOpen}
+        onClose={() => {
+          setPreviewOpen(false)
+          setPreviewUrl(null)
+        }}
+        title={previewTitle}
+        previewUrl={previewUrl}
+        loading={previewLoading}
+      />
     </div>
   )
 }
