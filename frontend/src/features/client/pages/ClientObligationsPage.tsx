@@ -57,7 +57,9 @@ export function ClientObligationsPage() {
         clientPortalContabilApi.listDocumentRequests() as Promise<{ items?: DocumentRequest[] }>,
         clientPortalContabilApi.listTasks() as Promise<{ items?: ClientTask[] } | ClientTask[]>,
       ])
-      const tasks = Array.isArray(tasksRes) ? tasksRes : tasksRes.items ?? []
+      const tasks = (Array.isArray(tasksRes) ? tasksRes : tasksRes.items ?? []).filter(
+        (t) => t.taskType !== 'internal_task',
+      )
       return {
         obligations: obligationsRes.items ?? [],
         requests: requestsRes.items ?? [],
@@ -69,7 +71,9 @@ export function ClientObligationsPage() {
   })
 
   const obligations = agendaQuery.data?.obligations || hubQuery.data?.obligations || []
-  const tasks = agendaQuery.data?.tasks || hubQuery.data?.tasks || []
+  const tasks = (agendaQuery.data?.tasks || hubQuery.data?.tasks || []).filter(
+    (t) => t.taskType !== 'internal_task',
+  )
   const requests = agendaQuery.data?.requests || []
 
   function openEvent(id: string) {

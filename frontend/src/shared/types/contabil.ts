@@ -129,6 +129,8 @@ export type ClientTask = {
   isOverdue?: boolean
   helpRequestedAt?: string | null
   submittedAt?: string | null
+  /** internal_task = só escritório; nunca deve aparecer no portal cliente */
+  taskType?: 'recurring_obligation' | 'manual_task' | 'internal_task'
 }
 
 export type FiscalHealth = 'ok' | 'attention' | 'critical'

@@ -56,6 +56,7 @@ function mapTaskRow(row) {
     priority: row.priority || 'NORMAL',
     dueDate: due,
     isOverdue: due && due < today && !['DONE', 'ARCHIVED'].includes(status),
+    taskType: row.task_type || 'manual_task',
     assigneeId: row.assignee_id,
     tags: row.tags || [],
     helpRequestedAt: row.help_requested_at,

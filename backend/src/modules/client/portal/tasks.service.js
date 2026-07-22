@@ -1,5 +1,6 @@
 /**
  * Operações de tarefas do portal cliente — extraído de portal.service.js.
+ * Nunca expõe task_type = 'internal_task' (tarefas só do escritório).
  */
 const { AppError } = require('../../../middlewares/error.middleware');
 const { getRepository } = require('../../../db/supabase/repositories');
@@ -8,14 +9,20 @@ const tasksWorkspace = require('../../tasks/tasks-workspace.service');
 const { normalizeStatus } = require('../../tasks/task.constants');
 const { requireLinkedClient } = require('./client.guard');
 
+async function requireClientVisibleTask(client, taskId) {
+  const task = await getRepository().findClientTaskById(taskId, client.firmId, client.id);
+  if (!task) throw new AppError('Tarefa não encontrada', 404);
+  return task;
+}
+
 async function listMyTasks({ actor, status }) {
   const client = await requireLinkedClient(actor);
   const statusIn = status ? [String(status).trim()] : undefined;
-  const { items } = await tasksRepo.listTasks(client.firmId, {
+  // listClientTasks já exclui task_type = 'internal_task'
+  const items = await getRepository().listClientTasks({
+    firmId: client.firmId,
     clientId: client.id,
     statusIn,
-    includeArchived: false,
-    limit: 100,
   });
   const active = items.filter((t) => !['ARCHIVED', 'DONE'].includes(t.status));
   return { items: statusIn ? items : active.length ? active : items };
@@ -23,16 +30,14 @@ async function listMyTasks({ actor, status }) {
 
 async function getMyTaskDetail({ actor, taskId }) {
   const client = await requireLinkedClient(actor);
-  const task = await tasksRepo.findTaskById(client.firmId, taskId, client.id);
-  if (!task) throw new AppError('Tarefa não encontrada', 404);
+  const task = await requireClientVisibleTask(client, taskId);
   const comments = await tasksRepo.listComments(taskId);
   return { task, comments };
 }
 
 async function submitTask({ actor, taskId, note }) {
   const client = await requireLinkedClient(actor);
-  const task = await tasksRepo.findTaskById(client.firmId, taskId, client.id);
-  if (!task) throw new AppError('Tarefa não encontrada', 404);
+  const task = await requireClientVisibleTask(client, taskId);
   if (task.status === 'ARCHIVED') throw new AppError('Tarefa arquivada', 409);
 
   const updated = await tasksRepo.updateTask(taskId, client.firmId, {
@@ -58,8 +63,8 @@ async function submitTask({ actor, taskId, note }) {
     title: 'Cliente respondeu tarefa',
     body: task.title,
     entityType: 'CLIENT_TASK',
-    entityId: task.id,
-    actionUrl: `/app/firm/tasks?task=${task.id}`,
+    entityId: task.id || task._id,
+    actionUrl: `/app/firm/tasks?task=${task.id || task._id}`,
   });
 
   if (task.obligationId) {
@@ -74,8 +79,7 @@ async function submitTask({ actor, taskId, note }) {
 
 async function completeTask({ actor, taskId, note }) {
   const client = await requireLinkedClient(actor);
-  const task = await tasksRepo.findTaskById(client.firmId, taskId, client.id);
-  if (!task) throw new AppError('Tarefa não encontrada', 404);
+  const task = await requireClientVisibleTask(client, taskId);
 
   const updated = await tasksRepo.updateTask(taskId, client.firmId, {
     status: 'REVIEW',
@@ -100,7 +104,7 @@ async function completeTask({ actor, taskId, note }) {
     title: 'Cliente marcou tarefa como concluída',
     body: task.title,
     entityType: 'CLIENT_TASK',
-    entityId: task.id,
+    entityId: task.id || task._id,
   });
 
   return { task: updated };
@@ -108,8 +112,7 @@ async function completeTask({ actor, taskId, note }) {
 
 async function requestTaskHelp({ actor, taskId, message }) {
   const client = await requireLinkedClient(actor);
-  const task = await tasksRepo.findTaskById(client.firmId, taskId, client.id);
-  if (!task) throw new AppError('Tarefa não encontrada', 404);
+  const task = await requireClientVisibleTask(client, taskId);
 
   const updated = await tasksRepo.updateTask(taskId, client.firmId, {
     helpRequestedAt: new Date().toISOString(),
@@ -134,7 +137,7 @@ async function requestTaskHelp({ actor, taskId, message }) {
     title: 'Cliente pediu ajuda',
     body: task.title,
     entityType: 'CLIENT_TASK',
-    entityId: task.id,
+    entityId: task.id || task._id,
   });
 
   return { task: updated };
@@ -142,8 +145,7 @@ async function requestTaskHelp({ actor, taskId, message }) {
 
 async function addTaskComment({ actor, taskId, body }) {
   const client = await requireLinkedClient(actor);
-  const task = await tasksRepo.findTaskById(client.firmId, taskId, client.id);
-  if (!task) throw new AppError('Tarefa não encontrada', 404);
+  await requireClientVisibleTask(client, taskId);
   const comment = await tasksWorkspace.addComment({
     firmId: client.firmId,
     taskId,

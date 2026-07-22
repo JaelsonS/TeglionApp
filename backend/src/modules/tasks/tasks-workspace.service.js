@@ -228,8 +228,9 @@ async function createTask({ firmId, actor, payload, file }) {
   if (!clientId || !payload.title?.trim()) throw new AppError('Cliente e título obrigatórios', 400);
   const client = await clientsRepository.findClientById(firmId, clientId);
   if (!client) throw new AppError('Cliente não encontrado', 404);
-  const notifyClient = Boolean(payload.notifyClient);
   const taskType = payload.taskType || 'internal_task';
+  // Tarefas internas do escritório nunca notificam o cliente
+  const notifyClient = taskType === 'internal_task' ? false : Boolean(payload.notifyClient);
   const recurrenceRule = payload.recurrenceRule && typeof payload.recurrenceRule === 'object' ? payload.recurrenceRule : null;
   const dueDateValue = payload.dueDate || null;
   let recurringRuleId = null;
