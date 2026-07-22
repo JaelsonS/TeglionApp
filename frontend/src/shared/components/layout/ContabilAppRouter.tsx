@@ -122,14 +122,8 @@ const ClientArchivePage = lazy(() =>
 const ClientObligationsPage = lazy(() =>
   import('@/features/client/pages/ClientObligationsPage').then((m) => ({ default: m.ClientObligationsPage })),
 )
-const ClientAlertsPage = lazy(() =>
-  import('@/features/client/pages/ClientAlertsPage').then((m) => ({ default: m.ClientAlertsPage })),
-)
-const ClientNewsPage = lazy(() =>
-  import('@/features/client/pages/ClientNewsPage').then((m) => ({ default: m.ClientNewsPage })),
-)
-const ClientBookingPage = lazy(() =>
-  import('@/features/client/pages/ClientBookingPage').then((m) => ({ default: m.ClientBookingPage })),
+const ClientUpdatesPage = lazy(() =>
+  import('@/features/client/pages/ClientUpdatesPage').then((m) => ({ default: m.ClientUpdatesPage })),
 )
 const ClientAccountPage = lazy(() =>
   import('@/features/client/pages/ClientAccountPage').then((m) => ({ default: m.ClientAccountPage })),
@@ -262,9 +256,10 @@ export function ContabilAppRouter() {
               <Route path="archive" element={<ClientArchivePage />} />
               <Route path="agenda" element={<ClientObligationsPage />} />
               <Route path="obligations" element={<Navigate to="/app/client/agenda" replace />} />
-              <Route path="alerts" element={<ClientAlertsPage />} />
-              <Route path="news" element={<ClientNewsPage />} />
-              <Route path="booking" element={<ClientBookingPage />} />
+              <Route path="updates" element={<ClientUpdatesPage />} />
+              <Route path="alerts" element={<Navigate to="/app/client/updates" replace />} />
+              <Route path="news" element={<Navigate to="/app/client/updates?tab=news" replace />} />
+              <Route path="booking" element={<Navigate to="/app/client/agenda?view=consultoria" replace />} />
               <Route path="account" element={<ClientAccountPage />} />
             </Route>
           </Route>

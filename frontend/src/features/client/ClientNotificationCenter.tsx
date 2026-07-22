@@ -105,7 +105,7 @@ export function ClientNotificationCenter() {
         <div className="cb-sheet-scroll mt-4 flex flex-col gap-4">
           {unreadAlerts > 0 ? (
             <Link
-              to="/app/client/alerts"
+              to="/app/client/updates"
               className="block rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-900"
               onClick={() => {
                 void qc.invalidateQueries({ queryKey: broadcastQueryKeys.clientFeed('bell') })
@@ -118,7 +118,7 @@ export function ClientNotificationCenter() {
 
           {unreadNews > 0 ? (
             <Link
-              to="/app/client/news"
+              to="/app/client/updates?tab=news"
               className="block rounded-xl border border-brand/20 bg-brand/[0.04] px-4 py-3 text-sm font-medium text-foreground"
               onClick={() => {
                 void qc.invalidateQueries({ queryKey: ['client', 'news', 'feed'] })

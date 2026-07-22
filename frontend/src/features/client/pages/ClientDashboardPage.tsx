@@ -121,12 +121,12 @@ export function ClientDashboardPage() {
           onGoObligations={() => navigate('/app/client/agenda')}
           onGoDocuments={() => navigate('/app/client/documents')}
           onGoMessages={() => navigate('/app/client/messages')}
-          onGoAlerts={() => navigate('/app/client/alerts')}
-          onGoNews={() => navigate('/app/client/news')}
+          onGoAlerts={() => navigate('/app/client/updates')}
+          onGoNews={() => navigate('/app/client/updates?tab=news')}
           onGoRequests={() => navigate('/app/client/requests')}
-          onGoBooking={() => navigate('/app/client/booking')}
+          onGoBooking={() => navigate('/app/client/agenda?view=consultoria')}
           onOpenObligation={(o) => navigate(`/app/client/agenda?obligation=${o._id}`)}
-          onOpenNews={(a) => navigate(`/app/client/news?slug=${encodeURIComponent(a.slug)}`)}
+          onOpenNews={(a) => navigate(`/app/client/updates?tab=news&slug=${encodeURIComponent(a.slug)}`)}
         />
       ) : null}
     </div>

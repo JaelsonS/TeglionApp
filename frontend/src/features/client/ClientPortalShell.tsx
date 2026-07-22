@@ -2,16 +2,13 @@ import { Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } f
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Archive,
   Bell,
-  CalendarCheck,
   CalendarDays,
   Home,
   Inbox,
   LogOut,
   Menu,
   MessageSquare,
-  Newspaper,
   Settings,
   Upload,
   X,
@@ -37,11 +34,7 @@ function buildClientNav(copy: ReturnType<typeof getClientHubCopy>): Omit<ClientN
     { to: '/app/client/messages', label: copy.tabs.messages, icon: MessageSquare },
     { to: '/app/client/documents', label: copy.tabs.documents, icon: Upload },
     { to: '/app/client/agenda', label: copy.tabs.obligations, icon: CalendarDays },
-    { to: '/app/client/booking', label: copy.tabs.booking, icon: CalendarCheck },
-    { to: '/app/client/alerts', label: copy.tabs.alerts, icon: Bell },
-    { to: '/app/client/news', label: copy.tabs.news, icon: Newspaper },
-    { to: '/app/client/archive', label: copy.tabs.archive, icon: Archive },
-    { to: '/app/client/account', label: 'Conta', icon: Settings },
+    { to: '/app/client/updates', label: 'Avisos', icon: Bell },
   ]
 }
 
@@ -114,8 +107,7 @@ export function ClientPortalShell({
   const navItems: ClientNavItem[] = navBase.map((item) => {
     if (item.to === '/app/client/requests') return { ...item, badge: pendingRequests }
     if (item.to === '/app/client/messages') return { ...item, badge: unreadMessages }
-    if (item.to === '/app/client/alerts') return { ...item, badge: unreadAlerts }
-    if (item.to === '/app/client/news') return { ...item, badge: unreadNews }
+    if (item.to === '/app/client/updates') return { ...item, badge: unreadAlerts + unreadNews }
     return item
   })
 

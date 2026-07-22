@@ -10,7 +10,7 @@ type Props = {
   className?: string
 }
 
-/** Contacto do escritório — apenas canais dentro do Teglion. */
+/** Contacto do escritório — mensagens e consultoria. */
 export function ClientContactFirmCta({ firmName, onGoMessages, onGoBooking, className }: Props) {
   return (
     <section
@@ -19,9 +19,9 @@ export function ClientContactFirmCta({ firmName, onGoMessages, onGoBooking, clas
         className,
       )}
     >
-      <p className="cb-text-label text-brand">Falar com {firmName}</p>
+      <p className="cb-text-label text-brand">Precisa de ajuda?</p>
       <p className="mt-1 text-sm text-muted-foreground">
-        Mensagens e reuniões ficam no Teglion — sem sair da aplicação.
+        Escreva ao {firmName} ou marque uma consultoria — o que for mais fácil para si.
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         <button
@@ -40,7 +40,7 @@ export function ClientContactFirmCta({ firmName, onGoMessages, onGoBooking, clas
           aria-label="Marcar consultoria com o escritório"
         >
           <CalendarCheck className="h-3.5 w-3.5" aria-hidden />
-          Consultoria
+          Marcar consultoria
         </button>
       </div>
     </section>

@@ -9,7 +9,6 @@ import { PwaInstallBanner } from '@/shared/components/pwa/PwaInstallBanner'
 import { PageHeader } from '@/shared/components/portal-cliente/PageHeader'
 import { Button } from '@/shared/components/ui/button'
 import { useAuth } from '@/shared/hooks/useAuth'
-import { BRAND } from '@/shared/config/brand'
 
 export function ClientAccountPage() {
   const { user, logout } = useAuth()
@@ -57,18 +56,18 @@ export function ClientAccountPage() {
             <span className="text-left">
               <span className="block text-sm font-semibold">Mensagens</span>
               <span className="block text-xs font-normal text-muted-foreground">
-                Falar com o escritório dentro do {BRAND.name}
+                Escreva ao escritório quando precisar
               </span>
             </span>
           </Link>
         </Button>
         <Button asChild variant="outline" className="h-auto w-full justify-start gap-3 rounded-2xl px-4 py-3">
-          <Link to="/app/client/booking">
+          <Link to="/app/client/agenda?view=consultoria">
             <Bell className="h-5 w-5 text-brand" aria-hidden />
             <span className="text-left">
               <span className="block text-sm font-semibold">Consultoria</span>
               <span className="block text-xs font-normal text-muted-foreground">
-                Marcar consultoria ou reunião com o escritório
+                Marcar horário com o escritório
               </span>
             </span>
           </Link>
