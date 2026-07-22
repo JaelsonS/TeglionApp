@@ -4,7 +4,6 @@ import type { LucideIcon } from 'lucide-react'
 import { LogOut } from 'lucide-react'
 
 import { SafeImage } from '@/shared/components/ui/SafeImage'
-import { Button } from '@/shared/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +32,7 @@ type Props = {
   logoutLabel?: string
   footer?: ReactNode
   onItemClick?: () => void
+  className?: string
 }
 
 export function ClientPortalSidebar({
@@ -46,27 +46,29 @@ export function ClientPortalSidebar({
   logoutLabel = 'Sair',
   footer,
   onItemClick,
+  className,
 }: Props) {
   return (
-    <>
-      <div className="pc-sidebar-brand">
+    <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
+      <div className="pc-sidebar-brand shrink-0">
         <div className="flex items-center gap-2.5">
-          <BrandMark size="md" variant="onLight" className="rounded-[10px]" />
+          {firmLogoUrl ? (
+            <SafeImage
+              src={firmLogoUrl}
+              alt=""
+              className="h-9 w-9 shrink-0 rounded-[10px] object-contain"
+            />
+          ) : (
+            <BrandMark size="md" variant="onLight" className="shrink-0 rounded-[10px]" />
+          )}
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Portal cliente</p>
-            {firmLogoUrl ? (
-              <SafeImage src={firmLogoUrl} alt="" className="mt-1 h-6 max-w-[120px] object-contain object-left" />
-            ) : (
-              <p className="mt-0.5 truncate text-sm font-semibold text-foreground">{firmName || 'Escritório'}</p>
-            )}
+            <p className="truncate text-sm font-semibold text-foreground">{firmName || 'Escritório'}</p>
+            <p className="truncate text-xs text-muted-foreground">Portal cliente</p>
           </div>
         </div>
-        {firmLogoUrl && firmName ? (
-          <p className="mt-2 truncate text-sm font-medium text-foreground">{firmName}</p>
-        ) : null}
       </div>
 
-      <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto p-3" aria-label="Navegação do portal">
+      <nav className="flex shrink-0 flex-col gap-0.5 px-2 py-2" aria-label="Navegação do portal">
         {items.map(({ to, label, icon: Icon, end, badge }) => (
           <NavLink
             key={to}
@@ -76,7 +78,7 @@ export function ClientPortalSidebar({
             className={({ isActive }) => cn('pc-nav-item', isActive && 'pc-nav-item-active')}
           >
             <Icon className="h-4 w-4 shrink-0" aria-hidden />
-            <span className="flex-1">{label}</span>
+            <span className="flex-1 truncate">{label}</span>
             {badge && badge > 0 ? (
               <span className="pc-nav-badge">{badge > 99 ? '99+' : badge}</span>
             ) : null}
@@ -84,7 +86,7 @@ export function ClientPortalSidebar({
         ))}
       </nav>
 
-      <div className="border-t border-border p-3">
+      <div className="shrink-0 border-t border-border px-2 py-3">
         {footer ?? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -116,6 +118,6 @@ export function ClientPortalSidebar({
           </DropdownMenu>
         )}
       </div>
-    </>
+    </div>
   )
 }

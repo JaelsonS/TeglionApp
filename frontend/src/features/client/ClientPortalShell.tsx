@@ -1,6 +1,6 @@
 import { Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
 import {
   Bell,
   CalendarDays,
@@ -36,6 +36,62 @@ function buildClientNav(copy: ReturnType<typeof getClientHubCopy>): Omit<ClientN
     { to: '/app/client/agenda', label: copy.tabs.obligations, icon: CalendarDays },
     { to: '/app/client/updates', label: 'Avisos', icon: Bell },
   ]
+}
+
+function ClientSidebarFooter({
+  previewMode,
+  loggingOut,
+  userName,
+  userEmail,
+  showNotifications,
+  onAccount,
+  onLogout,
+}: {
+  previewMode: boolean
+  loggingOut: boolean
+  userName?: string
+  userEmail?: string
+  showNotifications: boolean
+  onAccount: () => void
+  onLogout: () => void
+}) {
+  return (
+    <div className="space-y-1">
+      {!previewMode && showNotifications ? (
+        <div className="mb-2 hidden justify-start px-1 xl:flex">
+          <ClientNotificationCenter />
+        </div>
+      ) : null}
+      <button
+        type="button"
+        className="flex w-full items-center gap-3 rounded-[10px] px-2 py-2 text-left transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        onClick={onAccount}
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-primary">
+          {(userName || userEmail || '?').slice(0, 2).toUpperCase()}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-medium text-foreground">{userName || 'Cliente'}</span>
+          <span className="block truncate text-xs text-muted-foreground">Conta e definições</span>
+        </span>
+        <Settings className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+      </button>
+      {!previewMode ? (
+        <button
+          type="button"
+          className="flex w-full items-center gap-3 rounded-[10px] px-2 py-2 text-left text-sm font-medium text-destructive transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          onClick={() => onLogout()}
+          disabled={loggingOut}
+        >
+          <LogOut className="h-4 w-4" />
+          {loggingOut ? 'A sair…' : 'Sair'}
+        </button>
+      ) : null}
+      <div className="border-t border-border/60 pt-3">
+        <AgencyCredit surface="client" />
+      </div>
+    </div>
+  )
 }
 
 export function ClientPortalShell({
@@ -86,6 +142,15 @@ export function ClientPortalShell({
   }, [location.pathname])
 
   useEffect(() => {
+    if (previewMode || !drawerOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [previewMode, drawerOpen])
+
+  useEffect(() => {
     if (previewMode) return
     if (live.badge?.messages != null) void refreshBadges()
   }, [previewMode, live.badge?.messages, refreshBadges])
@@ -122,6 +187,23 @@ export function ClientPortalShell({
     }
   }
 
+  function goToAccount() {
+    setDrawerOpen(false)
+    navigate('/app/client/account')
+  }
+
+  const sidebarFooter = (
+    <ClientSidebarFooter
+      previewMode={previewMode}
+      loggingOut={loggingOut}
+      userName={user?.fullName}
+      userEmail={user?.email}
+      showNotifications
+      onAccount={goToAccount}
+      onLogout={() => void handleLogout()}
+    />
+  )
+
   const sidebarProps = {
     firmName: firm?.name,
     firmLogoUrl,
@@ -130,87 +212,49 @@ export function ClientPortalShell({
     items: navItems,
     onLogout: previewMode ? undefined : handleLogout,
     loggingOut,
-    footer: (
-      <div className="space-y-3">
-        <button
-          type="button"
-          className="flex w-full items-center gap-3 rounded-[10px] px-2 py-2 text-left transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          onClick={() => {
-            setDrawerOpen(false)
-            navigate('/app/client/account')
-          }}
-        >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-primary">
-            {(user?.fullName || user?.email || '?').slice(0, 2).toUpperCase()}
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-medium text-foreground">{user?.fullName || 'Cliente'}</span>
-            <span className="block truncate text-xs text-muted-foreground">Conta e definições</span>
-          </span>
-          <Settings className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-        </button>
-        <AgencyCredit surface="client" />
-        {!previewMode ? (
-          <button
-            type="button"
-            className="flex w-full items-center gap-3 rounded-[10px] px-2 py-2 text-left text-sm font-medium text-destructive transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={() => void handleLogout()}
-            disabled={loggingOut}
-          >
-            <LogOut className="h-4 w-4" />
-            {loggingOut ? 'A sair…' : 'Sair'}
-          </button>
-        ) : null}
-      </div>
-    ),
+    footer: sidebarFooter,
   }
 
   const activeLabel = navItems.find((n) =>
     n.end ? location.pathname === n.to : location.pathname.startsWith(n.to),
   )?.label
 
+  const mobileDrawer =
+    !previewMode && drawerOpen
+      ? createPortal(
+          <div className="pc-drawer-root xl:hidden" role="dialog" aria-modal="true" aria-label="Menu do portal">
+            <button
+              type="button"
+              className="pc-drawer-backdrop"
+              aria-label="Fechar menu"
+              onClick={() => setDrawerOpen(false)}
+            />
+            <aside className="pc-drawer-panel">
+              <div className="flex shrink-0 items-center justify-between border-b border-border px-3 py-3">
+                <p className="truncate text-sm font-semibold text-foreground">{firm?.name || 'Portal cliente'}</p>
+                <button
+                  type="button"
+                  className="rounded-[10px] p-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  onClick={() => setDrawerOpen(false)}
+                  aria-label="Fechar menu"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <ClientPortalSidebar {...sidebarProps} onItemClick={() => setDrawerOpen(false)} />
+            </aside>
+          </div>,
+          document.body,
+        )
+      : null
+
   return (
-    <motion.div className="pc-shell" initial={false} animate={{ opacity: 1 }}>
+    <div className="pc-shell">
       <aside className={previewMode ? 'pc-sidebar flex' : 'pc-sidebar'}>
         <ClientPortalSidebar {...sidebarProps} />
       </aside>
 
-      {!previewMode ? (
-        <AnimatePresence>
-          {drawerOpen ? (
-            <>
-              <motion.button
-                type="button"
-                className="fixed inset-0 z-40 bg-foreground/40 backdrop-blur-sm xl:hidden"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                aria-label="Fechar menu"
-                onClick={() => setDrawerOpen(false)}
-              />
-              <motion.aside
-                className="fixed inset-y-0 left-0 z-50 flex w-[min(100%,300px)] flex-col bg-card shadow-lg xl:hidden"
-                initial={{ x: '-100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '-100%' }}
-              >
-                <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                  <p className="text-sm font-semibold text-foreground">Portal cliente</p>
-                  <button
-                    type="button"
-                    className="rounded-[10px] p-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    onClick={() => setDrawerOpen(false)}
-                    aria-label="Fechar menu"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-                <ClientPortalSidebar {...sidebarProps} onItemClick={() => setDrawerOpen(false)} />
-              </motion.aside>
-            </>
-          ) : null}
-        </AnimatePresence>
-      ) : null}
+      {mobileDrawer}
 
       <div className="pc-main">
         <header className="pc-topbar">
@@ -230,19 +274,8 @@ export function ClientPortalShell({
               <p className="truncate cb-text-caption text-muted-foreground">{firm.name}</p>
             ) : null}
           </div>
-          <div className="relative z-10 ml-auto flex items-center gap-1.5 sm:gap-2">
+          <div className="relative z-10 ml-auto flex items-center gap-1.5 sm:gap-2 xl:hidden">
             {!previewMode ? <ClientNotificationCenter /> : null}
-            {!previewMode ? (
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-[10px] border border-border bg-card p-2 text-foreground transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-3"
-                onClick={() => navigate('/app/client/account')}
-                aria-label="Conta e definições"
-              >
-                <Settings className="h-4 w-4" />
-                <span className="ml-2 hidden text-sm font-medium sm:inline">Conta</span>
-              </button>
-            ) : null}
           </div>
         </header>
 
@@ -258,6 +291,6 @@ export function ClientPortalShell({
           </div>
         </main>
       </div>
-    </motion.div>
+    </div>
   )
 }

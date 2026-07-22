@@ -3229,11 +3229,33 @@
   }
 
   .pc-sidebar {
-    @apply hidden w-64 shrink-0 flex-col border-r border-border/80 bg-card xl:flex;
+    @apply hidden h-dvh w-[15.5rem] shrink-0 flex-col border-r border-border/80 bg-card xl:flex;
   }
 
   .pc-sidebar-brand {
-    @apply border-b border-border/80 px-4 py-5;
+    @apply border-b border-border/80 px-3 py-4;
+  }
+
+  .pc-drawer-root {
+    @apply fixed inset-0 z-50;
+  }
+
+  .pc-drawer-backdrop {
+    @apply absolute inset-0 bg-foreground/40 backdrop-blur-[2px];
+  }
+
+  .pc-drawer-panel {
+    @apply absolute inset-y-0 left-0 flex w-[min(100%,15.5rem)] flex-col bg-card shadow-xl;
+    animation: pc-drawer-in 180ms ease-out;
+  }
+
+  @keyframes pc-drawer-in {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
   }
 
   .pc-nav-item {
@@ -3262,7 +3284,7 @@
   }
 
   .pc-topbar {
-    @apply z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border/80 bg-card/90 px-3 shadow-[0_1px_0_rgba(15,41,66,0.04)] backdrop-blur-md sm:gap-3 sm:px-4 lg:h-[3.75rem] lg:px-6;
+    @apply z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border/80 bg-card/90 px-3 shadow-[0_1px_0_rgba(15,41,66,0.04)] backdrop-blur-md sm:gap-3 sm:px-4 xl:hidden;
   }
 
   .pc-scroll {
