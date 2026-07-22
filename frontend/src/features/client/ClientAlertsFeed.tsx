@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
-import { motion } from 'framer-motion'
 import { AlertTriangle, CheckCircle2, Megaphone, Search } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
@@ -43,11 +42,7 @@ export function ClientAlertsFeed() {
   return (
     <div className="space-y-4">
       {urgentBanner && (!urgentBanner.isRead || urgentBanner.needsAck) ? (
-        <motion.div
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-red-300 bg-gradient-to-r from-red-600 to-red-700 p-4 text-white shadow-lg"
-        >
+        <div className="rounded-2xl border border-red-300 bg-gradient-to-r from-red-600 to-red-700 p-4 text-white shadow-lg">
           <div className="flex items-start gap-3">
             <AlertTriangle className="h-6 w-6 shrink-0" />
             <div className="min-w-0 flex-1">
@@ -74,7 +69,7 @@ export function ClientAlertsFeed() {
               )}
             </div>
           </div>
-        </motion.div>
+        </div>
       ) : null}
 
       <div className="relative">

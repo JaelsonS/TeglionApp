@@ -43,7 +43,6 @@ function ClientSidebarFooter({
   loggingOut,
   userName,
   userEmail,
-  showNotifications,
   onAccount,
   onLogout,
 }: {
@@ -51,43 +50,37 @@ function ClientSidebarFooter({
   loggingOut: boolean
   userName?: string
   userEmail?: string
-  showNotifications: boolean
   onAccount: () => void
   onLogout: () => void
 }) {
   return (
-    <div className="space-y-1">
-      {!previewMode && showNotifications ? (
-        <div className="mb-2 hidden justify-start px-1 xl:flex">
-          <ClientNotificationCenter />
-        </div>
-      ) : null}
+    <div className="space-y-0.5">
       <button
         type="button"
-        className="flex w-full items-center gap-3 rounded-[10px] px-2 py-2 text-left transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition hover:bg-black/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         onClick={onAccount}
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-primary">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-[11px] font-semibold text-primary">
           {(userName || userEmail || '?').slice(0, 2).toUpperCase()}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium text-foreground">{userName || 'Cliente'}</span>
-          <span className="block truncate text-xs text-muted-foreground">Conta e definições</span>
+          <span className="block truncate text-[13px] font-medium text-foreground">{userName || 'Cliente'}</span>
+          <span className="block truncate text-[11px] text-muted-foreground">Conta</span>
         </span>
-        <Settings className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+        <Settings className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
       </button>
       {!previewMode ? (
         <button
           type="button"
-          className="flex w-full items-center gap-3 rounded-[10px] px-2 py-2 text-left text-sm font-medium text-destructive transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left text-[13px] font-medium text-destructive/90 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={() => onLogout()}
           disabled={loggingOut}
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut className="h-3.5 w-3.5" />
           {loggingOut ? 'A sair…' : 'Sair'}
         </button>
       ) : null}
-      <div className="border-t border-border/60 pt-3">
+      <div className="border-t border-border/50 px-1 pt-2">
         <AgencyCredit surface="client" />
       </div>
     </div>
@@ -198,11 +191,16 @@ export function ClientPortalShell({
       loggingOut={loggingOut}
       userName={user?.fullName}
       userEmail={user?.email}
-      showNotifications
       onAccount={goToAccount}
       onLogout={() => void handleLogout()}
     />
   )
+
+  const desktopBell = !previewMode ? (
+    <div className="hidden xl:block">
+      <ClientNotificationCenter />
+    </div>
+  ) : null
 
   const sidebarProps = {
     firmName: firm?.name,
@@ -213,6 +211,7 @@ export function ClientPortalShell({
     onLogout: previewMode ? undefined : handleLogout,
     loggingOut,
     footer: sidebarFooter,
+    brandAction: desktopBell,
   }
 
   const activeLabel = navItems.find((n) =>
@@ -230,18 +229,22 @@ export function ClientPortalShell({
               onClick={() => setDrawerOpen(false)}
             />
             <aside className="pc-drawer-panel">
-              <div className="flex shrink-0 items-center justify-between border-b border-border px-3 py-3">
+              <div className="flex shrink-0 items-center justify-between border-b border-border/70 px-3 py-2.5">
                 <p className="truncate text-sm font-semibold text-foreground">{firm?.name || 'Portal cliente'}</p>
                 <button
                   type="button"
-                  className="rounded-[10px] p-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="rounded-lg p-2 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   onClick={() => setDrawerOpen(false)}
                   aria-label="Fechar menu"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <ClientPortalSidebar {...sidebarProps} onItemClick={() => setDrawerOpen(false)} />
+              <ClientPortalSidebar
+                {...sidebarProps}
+                brandAction={undefined}
+                onItemClick={() => setDrawerOpen(false)}
+              />
             </aside>
           </div>,
           document.body,
@@ -261,7 +264,7 @@ export function ClientPortalShell({
           {!previewMode ? (
             <button
               type="button"
-              className="rounded-[10px] p-2 hover:bg-muted xl:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="rounded-lg p-2 hover:bg-muted xl:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               onClick={() => setDrawerOpen(true)}
               aria-label="Abrir menu"
             >

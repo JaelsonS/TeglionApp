@@ -22,7 +22,9 @@ function installChunkLoadRecovery(): void {
       text.includes('Failed to fetch dynamically imported module') ||
       text.includes('Importing a module script failed') ||
       text.includes('Loading chunk') ||
-      text.includes('/assets/')
+      text.includes('/assets/') ||
+      text.includes('removeChild') ||
+      text.includes('NotFoundError')
     )
   }
 
@@ -155,15 +157,24 @@ if (import.meta.env.PROD && !isPwaEnabled()) {
 }
 
 if (import.meta.env.PROD && isPwaEnabled() && 'serviceWorker' in navigator && shouldRegisterPwa(window.location.pathname)) {
-  const updateSW = registerSW({
-    immediate: true,
-    onNeedRefresh() {
-      void updateSW(true)
-    },
-    onRegisteredSW(_url, registration) {
-      registration?.update().catch(() => { })
-    },
-  })
+  try {
+    const updateSW = registerSW({
+      immediate: true,
+      onNeedRefresh() {
+        void updateSW(true).catch(() => {
+          // ignore InvalidStateError ao reclamar clients
+        })
+      },
+      onRegisteredSW(_url, registration) {
+        registration?.update().catch(() => {})
+      },
+      onRegisterError() {
+        // SW falhou — a app continua em modo rede
+      },
+    })
+  } catch {
+    // ignore
+  }
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -175,7 +186,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           message.includes('Failed to fetch dynamically imported module') ||
           message.includes('Importing a module script failed') ||
           message.includes('Loading chunk')
-        if (isChunk && typeof window !== 'undefined') {
+        const isDomRace =
+          message.includes('removeChild') ||
+          message.includes('NotFoundError') ||
+          message.includes('The node to be removed is not a child')
+        if ((isChunk || isDomRace) && typeof window !== 'undefined') {
           try {
             if (window.sessionStorage.getItem(CHUNK_RECOVERY_KEY) !== '1') {
               window.sessionStorage.setItem(CHUNK_RECOVERY_KEY, '1')

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import {
   AlertTriangle,
   ArrowRight,
@@ -151,11 +150,7 @@ export function ClientPremiumHome({
       />
 
       {urgentBanner && (!urgentBanner.isRead || urgentBanner.needsAck) ? (
-        <motion.div
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-red-300/80 bg-gradient-to-r from-red-600 to-red-700 p-4 text-white shadow-lg"
-        >
+        <div className="rounded-2xl border border-red-300/80 bg-gradient-to-r from-red-600 to-red-700 p-4 text-white shadow-lg">
           <div className="flex items-start gap-3">
             <AlertTriangle className="h-6 w-6 shrink-0" />
             <div className="min-w-0 flex-1">
@@ -171,12 +166,10 @@ export function ClientPremiumHome({
               </button>
             </div>
           </div>
-        </motion.div>
+        </div>
       ) : null}
 
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className={cn(
           'cb-card-padded',
           fiscalHealth === 'ok' && 'border-emerald-200/80 bg-gradient-to-br from-emerald-50/80 to-card',
@@ -212,7 +205,7 @@ export function ClientPremiumHome({
         <p className="mt-3 text-xs text-muted-foreground">
           {t.home.period} {hub.period}
         </p>
-      </motion.div>
+      </div>
 
       <section>
         <h3 className="cb-text-label">Hoje</h3>
