@@ -130,7 +130,7 @@ Guia completo: [`docs/operations/DEV_LOCAL.md`](docs/operations/DEV_LOCAL.md)
 
 ## Estrutura do repositório
 
-Ver [`STRUCTURE.md`](STRUCTURE.md) — mapa backend/frontend, camadas e comandos.
+Detalhe de camadas e comandos: [`docs/engineering/ARCHITECTURE.md`](docs/engineering/ARCHITECTURE.md).
 
 ```
 Teglion/
@@ -145,18 +145,18 @@ Teglion/
 
 ## Documentação
 
-Índice completo: [`docs/README.md`](docs/README.md)
+Começa por aqui: [`docs/COMECE_AQUI.md`](docs/COMECE_AQUI.md) — explica o projecto, o estado actual e a ordem de leitura recomendada.
 
 | Documento | Conteúdo |
 |-----------|----------|
 | [`docs/product/VISION.md`](docs/product/VISION.md) | Missão, visão e valores |
 | [`docs/operations/STATUS.md`](docs/operations/STATUS.md) | Estado actual e piloto |
-| [`docs/product/ROADMAP.md`](docs/product/ROADMAP.md) | Plano de evolução (8 fases) |
+| [`docs/product/ROADMAP.md`](docs/product/ROADMAP.md) | Plano de evolução (Fases 0–10) |
+| [`docs/product/SPRINT_PLAYBOOK.md`](docs/product/SPRINT_PLAYBOOK.md) | Sprints até comercial em escala |
 | [`docs/operations/DEV_LOCAL.md`](docs/operations/DEV_LOCAL.md) | Ambiente de desenvolvimento |
 | [`docs/operations/DEPLOY_PRODUCTION.md`](docs/operations/DEPLOY_PRODUCTION.md) | Deploy produção |
 | [`docs/operations/GO_PRODUCTION.md`](docs/operations/GO_PRODUCTION.md) | Execução final de GO e rollback |
 | [`docs/operations/REDIS_RENDER_SETUP.md`](docs/operations/REDIS_RENDER_SETUP.md) | Activação e validação de Redis no Render |
-| [`docs/operations/EXECUCAO_ROLES_TELAS.md`](docs/operations/EXECUCAO_ROLES_TELAS.md) | Plano de evolução de funcionalidades e telas por role |
 | [`docs/security/SECURITY.md`](docs/security/SECURITY.md) | Segurança e multi-tenant |
 
 ---

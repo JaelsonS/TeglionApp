@@ -97,9 +97,10 @@ GET /api/contabil/clients?limit=20&offset=0
 ├── /auth          — Autenticação (público + autenticado)
 ├── /public        — Endpoints públicos (sem auth)
 ├── /contabil      — API do escritório (auth + RBAC)
-├── /client-portal — API do portal cliente (auth)
-└── /patient-portal — Alias legacy → client-portal
+└── /client-portal — API do portal cliente (auth)
 ```
+
+O alias legacy `/patient-portal` (produto anterior de clínica) já foi removido do código activo (Etapa 1.6, ver `product/CHANGELOG.md`).
 
 ---
 
@@ -164,13 +165,13 @@ Requer: auth + `requireActiveFirm` + permissões RBAC.
 
 | Método | Path | Permissão | Descrição |
 |--------|------|-----------|-----------|
-| GET | `/dashboard` | CLINIC_READ | KPIs do escritório |
-| GET | `/firm/settings` | CLINIC_READ | Definições |
-| PATCH | `/firm/settings` | CLINIC_UPDATE | Actualizar definições |
+| GET | `/dashboard` | FIRM_CLIENTS_MANAGE | KPIs do escritório |
+| GET | `/firm/settings` | FIRM_SETTINGS_MANAGE | Definições |
+| PATCH | `/firm/settings` | FIRM_SETTINGS_MANAGE | Actualizar definições |
 | GET | `/firm/cae-history` | FIRM_CLIENTS_MANAGE | Histórico CAE do escritório |
 | POST | `/firm/cae-history` | FIRM_CLIENTS_MANAGE | Guardar CAE no histórico (MRU) |
 | GET | `/firm/cae-search?q=` | FIRM_CLIENTS_MANAGE | Autocomplete CAE (catálogo INE Rev.3 + live opcional) |
-| POST | `/firm/logo` | CLINIC_UPDATE | Upload logo |
+| POST | `/firm/logo` | requireFirmOwner | Upload logo |
 | GET | `/firm/team` | USERS_READ | Listar equipa |
 | POST | `/firm/team` | USERS_CREATE | Adicionar membro |
 

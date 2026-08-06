@@ -1,5 +1,7 @@
 # Relatório — Isolamento Multi-Tenant (Teglion)
 
+> ⚠️ **Desactualizado (2026-08-06):** esta execução é de 2026-05-22, mais de dois meses antes do heurístico estático do script ter sido corrigido (2026-08-06, ver `SPRINT_PLAYBOOK.md` Sprint 0). O veredito abaixo continua a única referência disponível porque o script escreve na única base Supabase existente (partilhada com produção) — não voltou a correr desde então. Reexecutar `npm run test:tenant-isolation` contra staging isolado assim que existir (Sprint 1) e substituir este relatório.
+
 **Data:** 2026-05-22  
 **Script:** `backend/scripts/tenant-isolation-test.js`  
 **Última execução:** APROVADO (0 falhas críticas de isolamento)
@@ -42,7 +44,7 @@
 
 ### 4. API / repositório
 - Queries em `documents`, `client_tasks`, `clients`, `obligations`, `messages`, `activity_events` usam `.eq('firm_id', firmId)`
-- Detalhe por ID sempre acoplado a `firmId` do JWT (`req.user.clinicId`)
+- Detalhe por ID sempre acoplado a `firmId` do JWT (`req.user.firmId` — `clinicId` era o nome antigo do claim)
 
 ### 5. Deep links
 - `/client-tasks/:id` e documentos cross-tenant → **404** (não 200 com dados alheios)

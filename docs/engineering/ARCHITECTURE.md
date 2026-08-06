@@ -238,7 +238,8 @@ Teglion/
 
 ```
 JWT (server-issued)
-  └─ claims: { sub, role, clinicId (= firmId), clientId? }
+  └─ claims: { sub, role, firmId, clientId? }
+      (clinicId sobrevive só como leitura de compatibilidade em session-user.js — não é mais emitido)
       └─ auth.middleware → req.user
           └─ contabil-scope.requireFirmId(req) → UUID
               └─ repository.*.eq('firm_id', firmId)

@@ -88,7 +88,7 @@ Inventário de todos os módulos do Teglion, classificados por importância estr
 | **Legacy clinic/patient** | ~~Espalhado~~ | ✅ Removido (Etapa 1.6) | Domínio unificado `firm`/`client`; JWT antigos aceites só na leitura de sessão |
 | **Legacy print (exames)** | ~~`styles/legacy-print.css`~~ | ✅ Removido (Etapa 1.3) | Fluxo de impressão da era saúde; sem uso |
 | **Legacy API blocks** | `middlewares/legacy-teglion` | 🟡 Precisa melhorar | Necessário temporariamente; remover após período de transição |
-| **Permissões clínica** | ~~`PATIENTS_MANAGE`, `EXAM_*`, `DOCTORS_*`~~ | ✅ Renomeado (Etapa 1.5) | Substituído por permissões `FIRM_*`; `CLINIC_*` e `APPOINTMENTS_MANAGE` ficam para etapa futura |
+| **Permissões clínica** | ~~`PATIENTS_MANAGE`, `EXAM_*`, `DOCTORS_*`, `CLINIC_*`, `APPOINTMENTS_MANAGE`~~ | ✅ Removido (Etapa 1.5–1.6) | Substituído por permissões `FIRM_*`; nada clínico resta no código (confirmado por grep 2026-08-06) |
 | **Auth API fantasma** | ~~`login()`, `registerAdmin()`~~ | ✅ Removido (Etapa 1.4) | Rotas inexistentes no backend |
 | **Design system morto** | ~~`MetricCard`, `PageShell`~~ | ✅ Removido (Etapa 1.3) | Exportados mas nunca usados |
 | **PublicAdSense** | ~~`components/ads/PublicAdSense`~~ | ✅ Removido (Etapa 1.4) | Renomeado para `BlogAdSense.tsx` |

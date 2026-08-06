@@ -48,7 +48,7 @@ Guia: [REDIS_RENDER_SETUP.md](./REDIS_RENDER_SETUP.md)
 - [ ] Eu valido rota de billing/Stripe.
 - [ ] Eu valido bloqueios de permissão para role sem acesso.
 
-Plano de execução: [EXECUCAO_ROLES_TELAS.md](./EXECUCAO_ROLES_TELAS.md)
+RBAC por permissão já implementado e verificado (`requirePermission`/`requireRole`, ver [`docs/security/SECURITY.md`](../security/SECURITY.md)) — este bloco confirma que continua correcto, não é mais um plano em aberto.
 
 ## 5. Rollback (se necessário)
 

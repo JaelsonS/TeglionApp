@@ -128,14 +128,14 @@ Histórico completo: [CHANGELOG.md](../product/CHANGELOG.md)
 
 ### O meu foco imediato para robustez
 
-1. Fechar regras de role por tela e por endpoint
-2. Manter Redis activo em produção sem fallback
-3. Travar promoção para `main` sem checklist de GO
-4. Consolidar documentação operacional para execução sem dúvida
+1. Manter Redis activo em produção sem fallback
+2. Travar promoção para `main` sem checklist de GO
+3. Consolidar documentação operacional para execução sem dúvida
+
+Regras de role por tela e por endpoint já fechadas (`requirePermission`/`requireRole` em todas as rotas autenticadas, confirmado na auditoria de 2026-08-06) — deixou de ser um plano em aberto.
 
 Plano operacional ligado a este foco:
 
-- [EXECUCAO_ROLES_TELAS.md](./EXECUCAO_ROLES_TELAS.md)
 - [REDIS_RENDER_SETUP.md](./REDIS_RENDER_SETUP.md)
 - [GO_PRODUCTION.md](./GO_PRODUCTION.md)
 

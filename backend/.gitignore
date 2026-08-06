@@ -2,9 +2,9 @@
 node_modules/
 
 # Ambiente e configurações locais
-.env.example
 .env
 .env.local
+!.env.example
 .env.development.local
 .env.test.local
 .env.production.local

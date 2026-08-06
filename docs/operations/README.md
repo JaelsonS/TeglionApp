@@ -17,7 +17,6 @@ Eu mantenho aqui o que preciso para preparar, lançar, monitorizar e recuperar p
 | [GO_PRODUCTION.md](./GO_PRODUCTION.md) | Checklist final de GO e rollback |
 | [GO_LIVE_CHECKLIST.md](./GO_LIVE_CHECKLIST.md) | Gate automatizado antes de qualquer release |
 | [REDIS_RENDER_SETUP.md](./REDIS_RENDER_SETUP.md) | Como eu deixo Redis activo no Render com segurança |
-| [EXECUCAO_ROLES_TELAS.md](./EXECUCAO_ROLES_TELAS.md) | Plano de execução para evoluir funcionalidades e telas por role |
 | [GOOGLE_SSO_SETUP.md](./GOOGLE_SSO_SETUP.md) | Login Google (não é Supabase Auth) |
 | [BREVO_DOMAIN_SETUP.md](./BREVO_DOMAIN_SETUP.md) | Domínio autenticado para e-mails (Primary inbox) |
 | [STORAGE.md](./STORAGE.md) | Ficheiros no Supabase Storage |

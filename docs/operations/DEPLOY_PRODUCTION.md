@@ -51,7 +51,7 @@ cd backend && npm run smoke:pilot
 
 ### 2. Backend (Render)
 
-Variáveis **obrigatórias** em produção — ver [`backend/.env.local`](../../backend/.env.local):
+Variáveis **obrigatórias** em produção — nomes de referência em [`backend/.env.example`](../../backend/.env.example) (nunca copiar valores reais para lá; produção usa as env vars do Render):
 
 | Variável | Notas |
 |----------|-------|

@@ -160,17 +160,11 @@ Isso **não** é isolamento total, mas é suficiente para fechar `F0-01` e parte
 
 ### 3.1 Frontend local
 
-Usar:
-
-- [frontend/.env.example](../../frontend/.env.example)
-- [frontend/.env.staging.example](../../frontend/.env.staging.example)
+Usar: [frontend/.env.example](../../frontend/.env.example) — mesmo ficheiro serve de base para local e staging (só os valores mudam, a forma é igual).
 
 ### 3.2 Backend local
 
-Usar:
-
-- [backend/.env.example](../../backend/.env.example)
-- [backend/.env.staging.example](../../backend/.env.staging.example)
+Usar: [backend/.env.example](../../backend/.env.example) — mesmo ficheiro serve de base para local e staging (só os valores mudam, a forma é igual).
 
 ### 3.3 Regra
 
