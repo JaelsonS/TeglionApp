@@ -286,6 +286,34 @@ export type DocumentRequirement = {
   instructions?: string | null
 }
 
+export type IntakeQuestionType =
+  | 'text'
+  | 'email'
+  | 'phone'
+  | 'tax_id'
+  | 'date'
+  | 'single_choice'
+  | 'multiple_choice'
+  | 'yes_no'
+
+export type IntakeQuestionOption = {
+  id?: string
+  label: string
+  documentTags: string[]
+}
+
+export type IntakeQuestion = {
+  id?: string
+  label: string
+  type: IntakeQuestionType
+  required: boolean
+  options?: IntakeQuestionOption[]
+}
+
+export type IntakeForm = {
+  questions: IntakeQuestion[]
+}
+
 export type AccountingService = {
   id: string
   catalogKey?: string | null
@@ -300,6 +328,7 @@ export type AccountingService = {
   isPubliclyListed?: boolean
   requiresBooking?: boolean
   documentRequirements?: DocumentRequirement[]
+  intakeForm?: IntakeForm | null
 }
 
 export type ConsultingCatalogEntry = {

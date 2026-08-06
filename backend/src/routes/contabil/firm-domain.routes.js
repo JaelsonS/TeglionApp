@@ -360,6 +360,11 @@ router.post('/leads/:id/convert-to-client', requirePermission(PERMISSIONS.FIRM_L
 
 router.get('/service-inquiries', requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE), serviceInquiriesController.list);
 router.get('/service-inquiries/:id', requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE), serviceInquiriesController.getDetail);
+router.get(
+  '/service-inquiries/:id/documents/:documentId/download',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  serviceInquiriesController.downloadDocument,
+);
 router.post(
   '/service-inquiries',
   requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),

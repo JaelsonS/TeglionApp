@@ -12,6 +12,9 @@ function map(row) {
     status: row.status,
     assignedStaffId: row.assigned_staff_id,
     notes: row.notes,
+    answers: row.answers || null,
+    submittedAt: row.submitted_at || null,
+    accessToken: row.access_token || null,
     createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -45,21 +48,49 @@ async function findByIdForFirm(id, firmId) {
   return map(data);
 }
 
-async function createRow({ firmId, serviceId, leadId, clientId, notes, assignedStaffId, createdBy }) {
+async function createRow({
+  firmId,
+  serviceId,
+  leadId,
+  clientId,
+  notes,
+  assignedStaffId,
+  createdBy,
+  answers,
+  submittedAt,
+  accessToken,
+  status,
+}) {
+  const sb = getSupabaseAdmin();
+  const insertRow = {
+    firm_id: firmId,
+    service_id: serviceId,
+    lead_id: leadId || null,
+    client_id: clientId || null,
+    notes: notes ? String(notes).trim() : null,
+    assigned_staff_id: assignedStaffId || null,
+    created_by: createdBy || null,
+    answers: answers || null,
+    submitted_at: submittedAt || null,
+    access_token: accessToken || null,
+  };
+  if (status) insertRow.status = status;
+  const { data, error } = await sb.from('service_inquiries').insert(insertRow).select().single();
+  if (error) throw error;
+  return map(data);
+}
+
+/** Lookup público pelo token opaco do mini-portal — não faz .eq('firm_id', ...) porque
+ * o token É a credencial (o chamador ainda não sabe a que firm pertence). */
+async function findByAccessToken(token) {
+  const value = String(token || '').trim();
+  if (!value) return null;
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
     .from('service_inquiries')
-    .insert({
-      firm_id: firmId,
-      service_id: serviceId,
-      lead_id: leadId || null,
-      client_id: clientId || null,
-      notes: notes ? String(notes).trim() : null,
-      assigned_staff_id: assignedStaffId || null,
-      created_by: createdBy || null,
-    })
-    .select()
-    .single();
+    .select('*')
+    .eq('access_token', value)
+    .maybeSingle();
   if (error) throw error;
   return map(data);
 }
@@ -99,6 +130,7 @@ async function reassignLeadToClient(firmId, leadId, clientId) {
 module.exports = {
   listByFirm,
   findByIdForFirm,
+  findByAccessToken,
   createRow,
   updateRow,
   reassignLeadToClient,

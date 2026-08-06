@@ -44,3 +44,15 @@ exports.patch = async (req, res, next) => {
     return next(err);
   }
 };
+
+exports.downloadDocument = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const inquiryId = parseEntityId(req.params.id, 'id');
+    const documentId = parseEntityId(req.params.documentId, 'documentId');
+    const result = await serviceInquiriesService.getDocumentDownloadUrl({ firmId, inquiryId, documentId });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+};

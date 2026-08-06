@@ -4,6 +4,7 @@ import {
   Check,
   ChevronDown,
   Copy,
+  FileQuestion,
   Globe,
   Layers,
   Pencil,
@@ -31,10 +32,29 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/
 import { EuroInput, ProfileSectionCard } from '@/shared/design-system'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
-import type { AccountingService, DocumentRequirement } from '@/shared/types/contabil'
+import type {
+  AccountingService,
+  DocumentRequirement,
+  IntakeQuestion,
+  IntakeQuestionOption,
+  IntakeQuestionType,
+} from '@/shared/types/contabil'
 import { cn } from '@/shared/lib/utils'
 
 type FilterMode = 'all' | 'active' | 'inactive'
+
+const CHOICE_TYPES: IntakeQuestionType[] = ['single_choice', 'multiple_choice', 'yes_no']
+
+const QUESTION_TYPE_LABELS: Record<IntakeQuestionType, string> = {
+  text: 'Texto livre',
+  email: 'Email',
+  phone: 'Telefone',
+  tax_id: 'NIF',
+  date: 'Data',
+  single_choice: 'Escolha única',
+  multiple_choice: 'Escolha múltipla',
+  yes_no: 'Sim / Não',
+}
 
 type Props = {
   services: AccountingService[]
@@ -209,6 +229,7 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
           isPubliclyListed: s.isPubliclyListed ?? false,
           requiresBooking: s.requiresBooking ?? true,
           documentRequirements: s.documentRequirements ?? [],
+          intakeForm: s.intakeForm ?? { questions: [] },
         },
       }))
       return s.id
@@ -225,6 +246,7 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
         isPubliclyListed: draft.isPubliclyListed,
         requiresBooking: draft.requiresBooking,
         documentRequirements: draft.documentRequirements,
+        intakeForm: draft.intakeForm,
       })
       toast.success('Serviço actualizado')
       await onReload()
@@ -281,6 +303,82 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
   const removeRequirement = (id: string, index: number) => {
     const current = advancedDraft[id]?.documentRequirements ?? []
     patchAdvanced(id, { documentRequirements: current.filter((_, i) => i !== index) })
+  }
+
+  const addQuestion = (id: string) => {
+    const current = advancedDraft[id]?.intakeForm?.questions ?? []
+    const next: IntakeQuestion[] = [...current, { label: '', type: 'text', required: false }]
+    patchAdvanced(id, { intakeForm: { questions: next } })
+  }
+
+  const updateQuestion = (id: string, index: number, patch: Partial<IntakeQuestion>) => {
+    const current = advancedDraft[id]?.intakeForm?.questions ?? []
+    const next = current.map((q, i) => {
+      if (i !== index) return q
+      const merged: IntakeQuestion = { ...q, ...patch }
+      if (patch.type !== undefined) {
+        if (CHOICE_TYPES.includes(patch.type)) {
+          merged.options =
+            patch.type === 'yes_no'
+              ? [
+                  { label: 'Sim', documentTags: [] },
+                  { label: 'Não', documentTags: [] },
+                ]
+              : q.options && q.options.length
+                ? q.options
+                : [{ label: '', documentTags: [] }]
+        } else {
+          delete merged.options
+        }
+      }
+      return merged
+    })
+    patchAdvanced(id, { intakeForm: { questions: next } })
+  }
+
+  const removeQuestion = (id: string, index: number) => {
+    const current = advancedDraft[id]?.intakeForm?.questions ?? []
+    patchAdvanced(id, { intakeForm: { questions: current.filter((_, i) => i !== index) } })
+  }
+
+  const addOption = (id: string, qIndex: number) => {
+    const current = advancedDraft[id]?.intakeForm?.questions ?? []
+    const next = current.map((q, i) =>
+      i !== qIndex ? q : { ...q, options: [...(q.options ?? []), { label: '', documentTags: [] }] },
+    )
+    patchAdvanced(id, { intakeForm: { questions: next } })
+  }
+
+  const updateOption = (id: string, qIndex: number, oIndex: number, patch: Partial<IntakeQuestionOption>) => {
+    const current = advancedDraft[id]?.intakeForm?.questions ?? []
+    const next = current.map((q, i) => {
+      if (i !== qIndex) return q
+      const options = (q.options ?? []).map((o, oi) => (oi === oIndex ? { ...o, ...patch } : o))
+      return { ...q, options }
+    })
+    patchAdvanced(id, { intakeForm: { questions: next } })
+  }
+
+  const removeOption = (id: string, qIndex: number, oIndex: number) => {
+    const current = advancedDraft[id]?.intakeForm?.questions ?? []
+    const next = current.map((q, i) =>
+      i !== qIndex ? q : { ...q, options: (q.options ?? []).filter((_, oi) => oi !== oIndex) },
+    )
+    patchAdvanced(id, { intakeForm: { questions: next } })
+  }
+
+  const toggleOptionDocumentTag = (id: string, qIndex: number, oIndex: number, tag: string) => {
+    const current = advancedDraft[id]?.intakeForm?.questions ?? []
+    const next = current.map((q, i) => {
+      if (i !== qIndex) return q
+      const options = (q.options ?? []).map((o, oi) => {
+        if (oi !== oIndex) return o
+        const has = o.documentTags.includes(tag)
+        return { ...o, documentTags: has ? o.documentTags.filter((t) => t !== tag) : [...o.documentTags, tag] }
+      })
+      return { ...q, options }
+    })
+    patchAdvanced(id, { intakeForm: { questions: next } })
   }
 
   return (
@@ -465,6 +563,7 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
               const adv = advancedDraft[s.id]
               const advDirty = Boolean(adv)
               const requirements = adv?.documentRequirements ?? s.documentRequirements ?? []
+              const questions = adv?.intakeForm?.questions ?? s.intakeForm?.questions ?? []
 
               return (
                 <li key={s.id}>
@@ -628,6 +727,131 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
                                 >
                                   <Trash2 className="h-3.5 w-3.5 opacity-60" />
                                 </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1.5 text-caption font-medium text-muted-foreground">
+                            <FileQuestion className="h-3.5 w-3.5" /> Formulário de captação
+                          </span>
+                          <Button type="button" size="sm" variant="outline" onClick={() => addQuestion(s.id)}>
+                            <Plus className="mr-1 h-3.5 w-3.5" /> Adicionar pergunta
+                          </Button>
+                        </div>
+                        {questions.length === 0 ? (
+                          <p className="cb-text-caption">
+                            Sem perguntas — a página pública pede só nome e email/telefone.
+                          </p>
+                        ) : (
+                          <div className="space-y-3">
+                            {questions.map((q, qIndex) => (
+                              <div key={qIndex} className="space-y-2 rounded-lg border border-border/40 p-3">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <Input
+                                    placeholder="Pergunta"
+                                    className="h-8 min-w-[180px] flex-1 rounded-md text-sm"
+                                    value={q.label}
+                                    onChange={(e: FormChangeEvent) =>
+                                      updateQuestion(s.id, qIndex, { label: e.target.value })
+                                    }
+                                  />
+                                  <select
+                                    className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+                                    value={q.type}
+                                    onChange={(e) =>
+                                      updateQuestion(s.id, qIndex, {
+                                        type: e.target.value as IntakeQuestionType,
+                                      })
+                                    }
+                                  >
+                                    {Object.entries(QUESTION_TYPE_LABELS).map(([value, label]) => (
+                                      <option key={value} value={value}>
+                                        {label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                    <Checkbox
+                                      checked={q.required}
+                                      onCheckedChange={(checked: boolean | 'indeterminate') =>
+                                        updateQuestion(s.id, qIndex, { required: Boolean(checked) })
+                                      }
+                                    />
+                                    Obrigatória
+                                  </label>
+                                  <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 shrink-0 rounded-full"
+                                    onClick={() => removeQuestion(s.id, qIndex)}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 opacity-60" />
+                                  </Button>
+                                </div>
+
+                                {q.options ? (
+                                  <div className="ml-2 space-y-2 border-l-2 border-border/30 pl-3">
+                                    {q.options.map((opt, oIndex) => (
+                                      <div key={oIndex} className="space-y-1.5">
+                                        <div className="flex items-center gap-2">
+                                          <Input
+                                            placeholder="Opção"
+                                            className="h-7 min-w-[140px] flex-1 rounded-md text-xs"
+                                            value={opt.label}
+                                            onChange={(e: FormChangeEvent) =>
+                                              updateOption(s.id, qIndex, oIndex, { label: e.target.value })
+                                            }
+                                          />
+                                          {q.type !== 'yes_no' ? (
+                                            <Button
+                                              type="button"
+                                              size="icon"
+                                              variant="ghost"
+                                              className="h-7 w-7 shrink-0 rounded-full"
+                                              onClick={() => removeOption(s.id, qIndex, oIndex)}
+                                            >
+                                              <Trash2 className="h-3 w-3 opacity-50" />
+                                            </Button>
+                                          ) : null}
+                                        </div>
+                                        {requirements.length > 0 ? (
+                                          <div className="flex flex-wrap gap-2 pl-1">
+                                            {requirements.map((req) => (
+                                              <label
+                                                key={req.tag}
+                                                className="flex items-center gap-1 text-[11px] text-muted-foreground"
+                                              >
+                                                <Checkbox
+                                                  checked={opt.documentTags.includes(req.tag)}
+                                                  onCheckedChange={() =>
+                                                    toggleOptionDocumentTag(s.id, qIndex, oIndex, req.tag)
+                                                  }
+                                                />
+                                                {req.title || req.tag}
+                                              </label>
+                                            ))}
+                                          </div>
+                                        ) : null}
+                                      </div>
+                                    ))}
+                                    {q.type !== 'yes_no' ? (
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 rounded-full text-xs"
+                                        onClick={() => addOption(s.id, qIndex)}
+                                      >
+                                        <Plus className="mr-1 h-3 w-3" /> Adicionar opção
+                                      </Button>
+                                    ) : null}
+                                  </div>
+                                ) : null}
                               </div>
                             ))}
                           </div>

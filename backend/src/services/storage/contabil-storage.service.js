@@ -31,6 +31,11 @@ function buildNewsCoverPath(firmId, filename) {
   return `firm/${firmId}/news/covers/${Date.now()}-${safe}`;
 }
 
+function buildServiceInquiryDocumentPath(firmId, serviceInquiryId, filename) {
+  const safe = sanitizeFilename(filename);
+  return `firm/${firmId}/service-inquiries/${serviceInquiryId}/${Date.now()}-${safe}`;
+}
+
 function ensureStorage() {
   if (!isSupabaseConfigured()) {
     throw new AppError('Armazenamento não configurado (Supabase).', 503, { code: 'STORAGE_NOT_CONFIGURED' });
@@ -127,12 +132,30 @@ async function uploadFirmLogo({ firmId, file }) {
   return { bucket: BUCKET, path, provider: 'supabase' };
 }
 
+async function uploadServiceInquiryDocument({ firmId, serviceInquiryId, file }) {
+  if (!file?.buffer?.length) throw new AppError('Ficheiro vazio', 400);
+  const sb = ensureStorage();
+  const path = buildServiceInquiryDocumentPath(firmId, serviceInquiryId, file.originalname);
+
+  const { error } = await sb.storage.from(BUCKET).upload(path, file.buffer, {
+    contentType: file.mimetype || 'application/octet-stream',
+    upsert: false,
+  });
+  if (error) {
+    throw new AppError(error.message || 'Falha ao guardar ficheiro', 500, { code: 'STORAGE_UPLOAD_FAILED' });
+  }
+
+  return { bucket: BUCKET, path, provider: 'supabase' };
+}
+
 module.exports = {
   BUCKET,
   buildStoragePath,
   buildFirmLogoPath,
   buildNewsCoverPath,
+  buildServiceInquiryDocumentPath,
   uploadClientDocument,
+  uploadServiceInquiryDocument,
   deleteObject,
   uploadFirmLogo,
   uploadNewsCover,

@@ -1,0 +1,344 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { mock } = require('node:test');
+
+const firmsRepository = require('../../db/supabase/repositories/firms.repository');
+const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
+const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
+const serviceInquiriesRepository = require('../../db/supabase/repositories/service-inquiries.repository');
+const serviceInquiryDocumentsRepository = require('../../db/supabase/repositories/service-inquiry-documents.repository');
+const leadsRepository = require('../../db/supabase/repositories/leads.repository');
+const clientsRepository = require('../../db/supabase/repositories/clients.repository');
+const auditRepository = require('../../db/supabase/repositories/contabil/audit.repository');
+const leadsService = require('./leads.service');
+const contabilStorage = require('../../services/storage/contabil-storage.service');
+const contabilNotifications = require('../../services/notifications/contabil-notifications.service');
+const serviceInquiriesService = require('./service-inquiries.service');
+
+const FIRM = { id: 'firm-x', name: 'Escritório X', settings: {} };
+const SERVICE = {
+  id: 'service-irs',
+  name: 'IRS 2026',
+  slug: 'irs-2026',
+  isPubliclyListed: true,
+  documentRequirements: [{ tag: 'cc', title: 'Cartão de Cidadão' }],
+  intakeForm: { questions: [] },
+};
+
+function resetMocks() {
+  mock.restoreAll();
+}
+
+function mockNoise() {
+  mock.method(auditRepository, 'writeAuditLog', async () => {});
+  mock.method(firmUsersRepository, 'findFirmOwnerEmail', async () => null);
+  mock.method(contabilNotifications, 'notifyLeadIntakeChecklist', async () => ({ ok: true }));
+  mock.method(contabilNotifications, 'notifyFirmIntakeSubmitted', async () => ({ ok: true }));
+  mock.method(contabilNotifications, 'notifyFirmIntakeDocumentReceived', async () => ({ ok: true }));
+}
+
+test('submitPublicIntake: firm inexistente devolve 404', async () => {
+  resetMocks();
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => null);
+
+  await assert.rejects(
+    () => serviceInquiriesService.submitPublicIntake({ firmSlug: 'nao-existe', serviceSlug: 'irs-2026', payload: {} }),
+    (err) => {
+      assert.equal(err.statusCode, 404);
+      return true;
+    },
+  );
+});
+
+test('submitPublicIntake: serviço não público (ou slug errado) devolve 404', async () => {
+  resetMocks();
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [{ ...SERVICE, isPubliclyListed: false }]);
+
+  await assert.rejects(
+    () => serviceInquiriesService.submitPublicIntake({ firmSlug: 'x', serviceSlug: 'irs-2026', payload: { name: 'Ana' } }),
+    (err) => {
+      assert.equal(err.statusCode, 404);
+      return true;
+    },
+  );
+});
+
+test('submitPublicIntake: rejeita sem nome', async () => {
+  resetMocks();
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [SERVICE]);
+
+  await assert.rejects(
+    () =>
+      serviceInquiriesService.submitPublicIntake({
+        firmSlug: 'x',
+        serviceSlug: 'irs-2026',
+        payload: { email: 'a@x.com' },
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      return true;
+    },
+  );
+});
+
+test('submitPublicIntake: rejeita sem email nem telefone', async () => {
+  resetMocks();
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [SERVICE]);
+
+  await assert.rejects(
+    () =>
+      serviceInquiriesService.submitPublicIntake({
+        firmSlug: 'x',
+        serviceSlug: 'irs-2026',
+        payload: { name: 'Ana' },
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      return true;
+    },
+  );
+});
+
+test('submitPublicIntake: identidade nova (Lead), documentos pendentes -> status DOCS_REQUESTED', async () => {
+  resetMocks();
+  mockNoise();
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  mock.method(accountingServicesRepository, 'listByFirm', async (firmId) => {
+    assert.equal(firmId, FIRM.id);
+    return [SERVICE];
+  });
+  mock.method(leadsService, 'resolveIdentity', async (firmId, opts) => {
+    assert.equal(firmId, FIRM.id);
+    assert.equal(opts.source, 'PUBLIC_FORM');
+    return { type: 'LEAD', id: 'lead-novo' };
+  });
+  let created = null;
+  mock.method(serviceInquiriesRepository, 'createRow', async (args) => {
+    created = args;
+    return { id: 'inquiry-1', accessToken: args.accessToken, ...args };
+  });
+
+  const { inquiry, requiredDocuments } = await serviceInquiriesService.submitPublicIntake({
+    firmSlug: 'x',
+    serviceSlug: 'irs-2026',
+    payload: { name: 'Ana', email: 'ana@x.com' },
+  });
+
+  assert.equal(created.leadId, 'lead-novo');
+  assert.equal(created.clientId, null);
+  assert.equal(created.status, 'DOCS_REQUESTED');
+  assert.equal(created.accessToken.length, 64);
+  assert.equal(requiredDocuments.length, 1);
+  assert.equal(inquiry.id, 'inquiry-1');
+});
+
+test('submitPublicIntake: sem documentos exigidos -> status IN_PROGRESS logo à criação', async () => {
+  resetMocks();
+  mockNoise();
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [{ ...SERVICE, documentRequirements: [] }]);
+  mock.method(leadsService, 'resolveIdentity', async () => ({ type: 'LEAD', id: 'lead-novo' }));
+  let created = null;
+  mock.method(serviceInquiriesRepository, 'createRow', async (args) => {
+    created = args;
+    return { id: 'inquiry-2', ...args };
+  });
+
+  await serviceInquiriesService.submitPublicIntake({
+    firmSlug: 'x',
+    serviceSlug: 'irs-2026',
+    payload: { name: 'Bruno', phone: '900000000' },
+  });
+
+  assert.equal(created.status, 'IN_PROGRESS');
+});
+
+test('submitPublicIntake: identidade batida em Client existente -> clientId (não cria Lead)', async () => {
+  resetMocks();
+  mockNoise();
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [SERVICE]);
+  mock.method(leadsService, 'resolveIdentity', async () => ({ type: 'CLIENT', id: 'client-1' }));
+  let created = null;
+  mock.method(serviceInquiriesRepository, 'createRow', async (args) => {
+    created = args;
+    return { id: 'inquiry-3', ...args };
+  });
+
+  await serviceInquiriesService.submitPublicIntake({
+    firmSlug: 'x',
+    serviceSlug: 'irs-2026',
+    payload: { name: 'Carla', email: 'carla@x.com', taxId: '123456789' },
+  });
+
+  assert.equal(created.clientId, 'client-1');
+  assert.equal(created.leadId, null);
+});
+
+test('getByAccessToken: token inexistente devolve 404', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByAccessToken', async () => null);
+
+  await assert.rejects(
+    () => serviceInquiriesService.getByAccessToken('token-invalido'),
+    (err) => {
+      assert.equal(err.statusCode, 404);
+      return true;
+    },
+  );
+});
+
+test('getByAccessToken: devolve checklist com received=true só para tags já entregues', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByAccessToken', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM.id,
+    serviceId: SERVICE.id,
+    status: 'DOCS_REQUESTED',
+    answers: {},
+  }));
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
+    ...SERVICE,
+    documentRequirements: [
+      { tag: 'cc', title: 'Cartão de Cidadão' },
+      { tag: 'iban', title: 'Comprovativo de IBAN' },
+    ],
+  }));
+  mock.method(serviceInquiryDocumentsRepository, 'listByInquiry', async () => [{ tag: 'cc' }]);
+
+  const result = await serviceInquiriesService.getByAccessToken('token-valido');
+  assert.equal(result.serviceName, 'IRS 2026');
+  const byTag = Object.fromEntries(result.checklist.map((d) => [d.tag, d.received]));
+  assert.equal(byTag.cc, true);
+  assert.equal(byTag.iban, false);
+  assert.equal(result.firmId, undefined);
+});
+
+test('recordDocumentDelivery: token inexistente devolve 404', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByAccessToken', async () => null);
+
+  await assert.rejects(
+    () => serviceInquiriesService.recordDocumentDelivery({ token: 'x', tag: 'cc', file: {} }),
+    (err) => {
+      assert.equal(err.statusCode, 404);
+      return true;
+    },
+  );
+});
+
+test('recordDocumentDelivery: pedido já encerrado (COMPLETED) rejeita com 409', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByAccessToken', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM.id,
+    status: 'COMPLETED',
+  }));
+
+  await assert.rejects(
+    () => serviceInquiriesService.recordDocumentDelivery({ token: 'x', tag: 'cc', file: {} }),
+    (err) => {
+      assert.equal(err.statusCode, 409);
+      return true;
+    },
+  );
+});
+
+test('recordDocumentDelivery: tag não reconhecida para o pedido rejeita com 400', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByAccessToken', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM.id,
+    serviceId: SERVICE.id,
+    status: 'DOCS_REQUESTED',
+    answers: {},
+  }));
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
+
+  await assert.rejects(
+    () => serviceInquiriesService.recordDocumentDelivery({ token: 'x', tag: 'tag-fantasma', file: { buffer: Buffer.from('x') } }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      return true;
+    },
+  );
+});
+
+test('recordDocumentDelivery: entrega parcial não avança o estado', async () => {
+  resetMocks();
+  mockNoise();
+  mock.method(serviceInquiriesRepository, 'findByAccessToken', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM.id,
+    serviceId: SERVICE.id,
+    status: 'DOCS_REQUESTED',
+    answers: {},
+    leadId: 'lead-1',
+    clientId: null,
+  }));
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
+    ...SERVICE,
+    documentRequirements: [
+      { tag: 'cc', title: 'Cartão de Cidadão' },
+      { tag: 'iban', title: 'Comprovativo de IBAN' },
+    ],
+  }));
+  mock.method(contabilStorage, 'uploadServiceInquiryDocument', async () => ({ provider: 'supabase', path: 'p/1' }));
+  mock.method(serviceInquiryDocumentsRepository, 'createRow', async () => ({ id: 'doc-1' }));
+  mock.method(serviceInquiryDocumentsRepository, 'listByInquiry', async () => [{ tag: 'cc' }]);
+  let updateCalled = false;
+  mock.method(serviceInquiriesRepository, 'updateRow', async () => {
+    updateCalled = true;
+    return {};
+  });
+  mock.method(firmsRepository, 'findFirmById', async () => FIRM);
+  mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana' }));
+
+  const result = await serviceInquiriesService.recordDocumentDelivery({
+    token: 'x',
+    tag: 'cc',
+    file: { buffer: Buffer.from('x'), mimetype: 'application/pdf', size: 10 },
+  });
+
+  assert.equal(result.allComplete, false);
+  assert.equal(updateCalled, false);
+});
+
+test('recordDocumentDelivery: última entrega completa a checklist e avança DOCS_REQUESTED -> IN_PROGRESS', async () => {
+  resetMocks();
+  mockNoise();
+  mock.method(serviceInquiriesRepository, 'findByAccessToken', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM.id,
+    serviceId: SERVICE.id,
+    status: 'DOCS_REQUESTED',
+    answers: {},
+    leadId: 'lead-1',
+    clientId: null,
+  }));
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
+  mock.method(contabilStorage, 'uploadServiceInquiryDocument', async () => ({ provider: 'supabase', path: 'p/1' }));
+  mock.method(serviceInquiryDocumentsRepository, 'createRow', async () => ({ id: 'doc-1' }));
+  mock.method(serviceInquiryDocumentsRepository, 'listByInquiry', async () => [{ tag: 'cc' }]);
+  let updatedPatch = null;
+  mock.method(serviceInquiriesRepository, 'updateRow', async (id, firmId, patch) => {
+    updatedPatch = patch;
+    return {};
+  });
+  mock.method(firmsRepository, 'findFirmById', async () => FIRM);
+  mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana' }));
+
+  const result = await serviceInquiriesService.recordDocumentDelivery({
+    token: 'x',
+    tag: 'cc',
+    file: { buffer: Buffer.from('x'), mimetype: 'application/pdf', size: 10 },
+  });
+
+  assert.equal(result.allComplete, true);
+  assert.equal(updatedPatch.status, 'IN_PROGRESS');
+});
+
+resetMocks();

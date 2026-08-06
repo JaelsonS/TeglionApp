@@ -14,6 +14,7 @@ import { createContabilMessagesApi } from '@/infrastructure/api/contabil/message
 import { createContabilNewsApi } from '@/infrastructure/api/contabil/news'
 import { createContabilObligationsApi } from '@/infrastructure/api/contabil/obligations'
 import { createContabilPublicApi } from '@/infrastructure/api/contabil/public'
+import { createContabilServiceInquiriesApi } from '@/infrastructure/api/contabil/serviceInquiries'
 
 import { api, refreshApi } from '@/infrastructure/http/apiClient'
 import { prefetchAuthCsrf as prefetchAuthCsrfInternal, warmupAuthApi as warmupAuthApiInternal } from '@/infrastructure/http/csrf'
@@ -67,6 +68,7 @@ export const contabilNewsApi = createContabilNewsApi(api)
 export const contabilBroadcastsApi = createContabilBroadcastsApi(api)
 export const contabilBillingApi = createContabilBillingApi(api)
 export const contabilPublicApi = createContabilPublicApi(api)
+export const contabilServiceInquiriesApi = createContabilServiceInquiriesApi(api)
 export const clientPortalContabilApi = createClientPortalContabilApi(api)
 
 export type { BillingStatus }

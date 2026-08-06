@@ -24,6 +24,106 @@ function normalizeDocumentRequirements(value) {
   })).filter((item) => item.tag && item.title);
 }
 
+const INTAKE_QUESTION_TYPES = new Set([
+  'text', 'email', 'phone', 'tax_id', 'date', 'single_choice', 'multiple_choice', 'yes_no',
+]);
+const CHOICE_TYPES = new Set(['single_choice', 'multiple_choice', 'yes_no']);
+
+function slugifyId(label, index) {
+  const base = String(label || '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  return base || `pergunta_${index + 1}`;
+}
+
+function normalizeIntakeFormOptions(options) {
+  if (!Array.isArray(options)) return [];
+  return options
+    .slice(0, 20)
+    .map((opt, i) => ({
+      id: String(opt?.id || slugifyId(opt?.label, i)).slice(0, 60),
+      label: String(opt?.label || '').trim().slice(0, 200),
+      documentTags: Array.isArray(opt?.documentTags)
+        ? opt.documentTags.slice(0, 10).map((t) => String(t).trim().slice(0, 60)).filter(Boolean)
+        : [],
+    }))
+    .filter((opt) => opt.label);
+}
+
+/**
+ * Formulário de captação de um Service — perguntas + opções, cada opção pode
+ * activar tags de documento (condicional resposta→documento; ver decisão nº1
+ * da especificação da sessão: não é ramificação pergunta→pergunta).
+ */
+function normalizeIntakeForm(value) {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  if (typeof value !== 'object' || !Array.isArray(value.questions)) {
+    throw new AppError('intake_form deve ter uma lista de perguntas', 400);
+  }
+  const questions = value.questions
+    .slice(0, 30)
+    .map((q, index) => {
+      const type = String(q?.type || 'text');
+      if (!INTAKE_QUESTION_TYPES.has(type)) {
+        throw new AppError(`Tipo de pergunta inválido: ${type}`, 400);
+      }
+      const label = String(q?.label || '').trim().slice(0, 300);
+      if (!label) return null;
+      const question = {
+        id: String(q?.id || slugifyId(label, index)).slice(0, 60),
+        label,
+        type,
+        required: q?.required === true,
+      };
+      if (CHOICE_TYPES.has(type)) {
+        const options = normalizeIntakeFormOptions(q?.options);
+        question.options = options.length
+          ? options
+          : type === 'yes_no'
+            ? [
+                { id: 'sim', label: 'Sim', documentTags: [] },
+                { id: 'nao', label: 'Não', documentTags: [] },
+              ]
+            : [];
+      }
+      return question;
+    })
+    .filter(Boolean);
+  return { questions };
+}
+
+/**
+ * Junta os documentos base do Service (sempre exigidos) com os documentos
+ * condicionais activados pelas respostas (resposta→tag, via intake_form).
+ * Base tem sempre prioridade sobre título/instruções em caso de tag repetida.
+ */
+function resolveRequiredDocuments(service, answers) {
+  const answersMap = answers && typeof answers === 'object' ? answers : {};
+  const conditionalByTag = new Map();
+  for (const question of service?.intakeForm?.questions || []) {
+    if (!Array.isArray(question.options) || !question.options.length) continue;
+    const answer = answersMap[question.id];
+    const chosenIds = Array.isArray(answer) ? answer.map(String) : answer != null ? [String(answer)] : [];
+    if (!chosenIds.length) continue;
+    for (const option of question.options) {
+      if (!chosenIds.includes(option.id)) continue;
+      for (const tag of option.documentTags || []) {
+        if (!conditionalByTag.has(tag)) conditionalByTag.set(tag, { tag, title: tag, instructions: null });
+      }
+    }
+  }
+
+  const merged = new Map(conditionalByTag);
+  for (const req of service?.documentRequirements || []) {
+    if (req?.tag) merged.set(req.tag, { tag: req.tag, title: req.title, instructions: req.instructions || null });
+  }
+  return Array.from(merged.values());
+}
+
 function parsePriceEuros(payload) {
   if (payload?.priceEuros != null) {
     const priceEuros = Number(payload.priceEuros);
@@ -70,6 +170,7 @@ async function create({ firmId, payload }) {
     isPubliclyListed,
     requiresBooking: payload?.requiresBooking !== false,
     documentRequirements: normalizeDocumentRequirements(payload?.documentRequirements) || [],
+    intakeForm: normalizeIntakeForm(payload?.intakeForm) || null,
   });
   return { item };
 }
@@ -99,6 +200,9 @@ async function update({ firmId, id, payload }) {
   if (payload?.requiresBooking !== undefined) patch.requiresBooking = Boolean(payload.requiresBooking);
   if (payload?.documentRequirements !== undefined) {
     patch.documentRequirements = normalizeDocumentRequirements(payload.documentRequirements);
+  }
+  if (payload?.intakeForm !== undefined) {
+    patch.intakeForm = normalizeIntakeForm(payload.intakeForm);
   }
   if (payload?.isPubliclyListed !== undefined) {
     const nextSlug = patch.slug !== undefined ? patch.slug : existing.slug;
@@ -136,6 +240,7 @@ async function duplicate({ firmId, id }) {
     isPubliclyListed: false,
     requiresBooking: existing.requiresBooking,
     documentRequirements: existing.documentRequirements,
+    intakeForm: existing.intakeForm,
   });
   return { item };
 }
@@ -210,4 +315,6 @@ module.exports = {
   seedCatalog,
   activateFromCatalog,
   getCatalogTemplate: () => CONSULTING_SERVICES_CATALOG,
+  normalizeIntakeForm,
+  resolveRequiredDocuments,
 };
