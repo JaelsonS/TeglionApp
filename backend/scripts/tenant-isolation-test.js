@@ -361,19 +361,59 @@ async function runApiTests(ctx) {
   else fail('HTTP GET /clients/:id/hub cross-tenant', `status ${hubCross.status}`);
 }
 
+/**
+ * Tabelas sem coluna firm_id própria (a própria tabela é a raiz do tenant,
+ * ou não guarda dados por escritório) — não fazem sentido no scan abaixo.
+ */
+const STATIC_AUDIT_TABLE_ALLOWLIST = new Set(['firms']);
+
+/**
+ * Heurística (não substitui os testes dinâmicos acima): para cada `.from('tabela')...eq('id', …)`
+ * que não seja também filtrado por `firm_id`/`client_id` na mesma cadeia, assinala como candidato
+ * a IDOR para revisão humana. Falsos positivos existem (ex.: quando o próprio call site já
+ * garante posse do id antes de chamar o repositório) — por isso reporta `warn`, nunca `fail`.
+ */
+function findUnscopedIdLookups(content) {
+  const findings = [];
+  const fromRe = /\.from\('([a-z_]+)'\)/g;
+  let match;
+  while ((match = fromRe.exec(content))) {
+    const table = match[1];
+    if (STATIC_AUDIT_TABLE_ALLOWLIST.has(table)) continue;
+    const chainStart = match.index;
+    const terminatorIdx = content.indexOf(';', chainStart);
+    const chainEnd = terminatorIdx === -1 ? Math.min(content.length, chainStart + 600) : terminatorIdx;
+    const chain = content.slice(chainStart, chainEnd);
+    const hasIdLookup = /\.eq\('id',/.test(chain);
+    const hasTenantScope = /\.eq\('firm_id',|\.eq\('client_id',/.test(chain);
+    if (hasIdLookup && !hasTenantScope) {
+      const line = content.slice(0, chainStart).split('\n').length;
+      findings.push({ table, line });
+    }
+  }
+  return findings;
+}
+
 async function staticAudit() {
   const fs = require('fs');
   const path = require('path');
   const repoDir = path.join(__dirname, '../src/db/supabase/repositories');
   const files = fs.readdirSync(repoDir).filter((f) => f.endsWith('.js'));
-  let risky = [];
+  const risky = [];
   for (const f of files) {
     const content = fs.readFileSync(path.join(repoDir, f), 'utf8');
-    if (/\.from\([^)]+\)\.select\([^)]*\)\.eq\('id'/.test(content) && !/firm_id/.test(content.split('.eq(\'id\'')[0]?.slice(-200) || '')) {
-      // heuristic skip
+    for (const finding of findUnscopedIdLookups(content)) {
+      risky.push(`${f}:${finding.line} (tabela ${finding.table})`);
     }
   }
-  pass('Auditoria estática repositórios', `${files.length} ficheiros — queries críticas usam firm_id (ver código)`);
+  if (risky.length > 0) {
+    warn(
+      'Auditoria estática repositórios',
+      `${risky.length} query(ies) com .eq('id', …) sem firm_id/client_id na mesma cadeia — revisar se o id chega já validado pelo call site: ${risky.join('; ')}`,
+    );
+  } else {
+    pass('Auditoria estática repositórios', `${files.length} ficheiros — nenhuma query .eq('id', …) desacompanhada de firm_id/client_id`);
+  }
 
   const authServicePath = path.join(__dirname, '../src/modules/auth/contabil-auth.service.js');
   const authServiceContent = fs.readFileSync(authServicePath, 'utf8');

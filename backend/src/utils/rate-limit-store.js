@@ -8,12 +8,14 @@ const { RedisStore } = require('rate-limit-redis');
 const Redis = require('ioredis');
 const { env } = require('../config/env');
 const { logger } = require('./logger');
+const { Sentry } = require('../instrument');
 
 const REDIS_PROBE_MS = 8_000;
 
 let redisClient = null;
 let redisVerified = false;
 let redisInitAttempted = false;
+let redisUnavailableAlertSent = false;
 
 /** Respostas seguras quando Redis falha em runtime (fail-open: não bloqueia pedidos). */
 function failOpenRedisResponse(args) {
@@ -58,11 +60,28 @@ function redisClientOptions() {
   };
 }
 
+/** Alerta activo (Sentry) na transição para indisponível — evita spam a cada comando falho durante a mesma queda. */
+function alertRedisUnavailableOnce(reason) {
+  if (redisUnavailableAlertSent) return;
+  redisUnavailableAlertSent = true;
+  if (!env.isProduction || !Sentry || typeof Sentry.captureMessage !== 'function') return;
+  try {
+    Sentry.captureMessage('[rate-limit] Redis indisponível — rate limiting em fail-open', {
+      level: 'error',
+      tags: { component: 'rate-limit-store' },
+      extra: { reason: reason?.message || String(reason || 'unknown') },
+    });
+  } catch {
+    // Nunca bloquear o pedido por falha de telemetria
+  }
+}
+
 function markRedisUnavailable(reason) {
   redisVerified = false;
   logger.warn('[rate-limit] Redis indisponível — limites em fail-open (pedidos não bloqueados)', {
     message: reason?.message || String(reason || 'unknown'),
   });
+  alertRedisUnavailableOnce(reason);
 }
 
 function attachRedisListeners(client) {
@@ -83,6 +102,7 @@ function attachRedisListeners(client) {
   client.on('ready', () => {
     if (client === redisClient) {
       redisVerified = true;
+      redisUnavailableAlertSent = false;
       logger.info('[redis] rate-limit store pronto.');
     }
   });

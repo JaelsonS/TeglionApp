@@ -220,7 +220,8 @@ app.use(
           'https://images.unsplash.com',
           'https://teglionapp.onrender.com',
         ],
-        'script-src': ["'self'", "'unsafe-inline'"],
+        // Backend é API JSON pura (sem HTML renderizado com scripts inline) — sem 'unsafe-inline'.
+        'script-src': ["'self'"],
       },
     },
   })
