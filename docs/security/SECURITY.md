@@ -259,6 +259,14 @@ Referência prática: [REDIS_RENDER_SETUP.md](../operations/REDIS_RENDER_SETUP.m
 4. Testes de isolamento no CI (semanal + manual)
 5. RLS no Postgres como defesa em profundidade (alvo Fase 7)
 
+### Tabelas novas — Fase 1 (Service Domain Foundation, `leads`, `service_inquiries`)
+
+Mesmas 5 regras acima, aplicadas desde o desenho (não retrofit):
+- `service_inquiries.lead_id`/`client_id` são **XOR obrigatório por CHECK constraint na base** — nunca os dois preenchidos, garantido mesmo se a aplicação falhar em validar.
+- Resolução de identidade (`leads.service.js#resolveIdentity`) nunca aceita um ID vindo do exterior — só email/NIF, sempre `firm_id` como primeira condição de qualquer matching, nunca cross-tenant.
+- Conversão Lead→Client é sempre manual e auditada (`audit_logs`, `action: 'lead.converted'`) — nunca automática.
+- Distinto de `service_requests` (Central de Serviços, já existente) — ver `docs/product/SPRINT_PLAYBOOK.md` para o racional de nomenclatura.
+
 ---
 
 ## Compliance

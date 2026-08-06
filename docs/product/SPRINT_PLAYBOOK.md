@@ -14,6 +14,26 @@ Não inventa prioridades novas — sequencia o que já está escrito em `ROADMAP
 
 ---
 
+## Iniciativa paralela: Domínio de Serviços & Captação
+
+Pedido real da contadora piloto (2026-08-06): menu de captação para IRS anual (formulário com lógica condicional) e "Entregas Pontuais" (serviços avulsos), configurável por qualquer escritório — não hardcoded. Corre em paralelo aos sprints numerados acima (é trabalho de produto, não de infra/segurança), em fases próprias:
+
+| Fase | Entrega | Estado (2026-08-06) |
+|------|---------|------|
+| **1 — Service Domain Foundation** | `accounting_services` estendida (`slug`, `is_publicly_listed`, `requires_booking`, `document_requirements`); tabelas `leads` e `service_inquiries`; resolução de identidade (NIF→email→Lead→novo Lead, sempre `firm_id` scoped); conversão Lead→Client manual e auditada; UI mínima (`/app/firm/leads`) | ✅ Código implementado em `feature/service-domain-foundation`, testado (72 testes backend + typecheck/build frontend verdes), **migration ainda não aplicada em produção** — aguarda aprovação explícita antes de correr |
+| 2 — Dynamic Forms Engine | Motor de formulário com ramificação condicional (`visibleIf`), replicando a lógica real do formulário de IRS dela | Não iniciada |
+| 3 — Document Requirements Resolution | Base do Service ∪ tags do Form → `document_requests` em lote + email automático (fim do processo manual de 48h dela) | Não iniciada |
+| 4 — Public Service Intake | Página pública por serviço (`/:firmSlug/servicos/:serviceSlug`) | Não iniciada |
+| 5 — Booking Integration | `ServiceInquiry.consultation_id` ligado ao motor de agendamento já existente | Não iniciada |
+| 6 — Google Calendar | Sync bidirecional, `consultations` como fonte de verdade, `calendar_busy_blocks` para eventos externos | Não iniciada |
+| 7 — Google Drive | Picker + download server-side validado, staff-only | Não iniciada |
+
+**Achado importante da Fase 1:** já existia uma tabela/módulo `service_requests` em produção ("Central de Serviços" — pipeline de orçamento/pagamento `SUBMITTED→QUOTED→APPROVED→PAID→DONE→RATED` para clientes já existentes, com portal do cliente, comentários, PDF de orçamento). É uma ferramenta diferente e complementar — por isso o pivô novo desta iniciativa chama-se `service_inquiries` (fase de captação/Lead), não `service_requests`. Um Lead convertido pode, mais tarde, gerar um `service_requests` normal na Central de Serviços já existente para o pipeline de orçamento formal.
+
+Documento de arquitectura completo (modelo de domínio, análise de ameaça, especificação técnica da Fase 1) ficou no plan file da sessão que fez este trabalho — não commitado no repositório (é um artefacto de planeamento, não de produto). Resumo vive aqui e em `docs/security/SECURITY.md` (secção Multi-tenant).
+
+---
+
 ## 0. Antes do Sprint 1 — uma pergunta que bloqueia tudo
 
 A auditoria de segurança de **2026-08-05** (`docs/security/AUDIT_2026-08-05.md`, ainda não commitada no repositório) encontrou como achado **Crítico**: `backend/.env` e `backend/.env.local` contêm segredos **live** de produção em texto simples numa máquina local (chave `service_role` do Supabase, `JWT_ACCESS_SECRET`/`JWT_REFRESH_SECRET`, `STRIPE_SECRET_KEY` live, `BREVO_API_KEY`, `GOOGLE_OAUTH_CLIENT_SECRET`, `REDIS_URL` com password, `VAPID_PRIVATE_KEY`). Esse relatório terminou a aguardar aprovação para rodar esses segredos — não encontrei confirmação de que a rotação aconteceu.

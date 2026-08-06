@@ -2,6 +2,28 @@ const { AppError } = require('../../middlewares/error.middleware');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-catalog');
 
+const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+function normalizeSlug(value) {
+  if (value === undefined) return undefined;
+  if (value === null || value === '') return null;
+  const slug = String(value).trim().toLowerCase();
+  if (!SLUG_RE.test(slug) || slug.length > 80) {
+    throw new AppError('Slug inválido — use apenas letras minúsculas, números e hífen', 400);
+  }
+  return slug;
+}
+
+function normalizeDocumentRequirements(value) {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value)) throw new AppError('document_requirements deve ser uma lista', 400);
+  return value.slice(0, 50).map((item) => ({
+    tag: String(item?.tag || '').trim().slice(0, 60),
+    title: String(item?.title || '').trim().slice(0, 200),
+    instructions: item?.instructions != null ? String(item.instructions).trim().slice(0, 2000) : null,
+  })).filter((item) => item.tag && item.title);
+}
+
 function parsePriceEuros(payload) {
   if (payload?.priceEuros != null) {
     const priceEuros = Number(payload.priceEuros);
@@ -29,6 +51,11 @@ async function create({ firmId, payload }) {
     throw new AppError('Duração deve estar entre 15 e 480 minutos', 400);
   }
   const priceCents = parsePriceEuros(payload) ?? 0;
+  const slug = normalizeSlug(payload?.slug) ?? null;
+  const isPubliclyListed = payload?.isPubliclyListed === true;
+  if (isPubliclyListed && !slug) {
+    throw new AppError('Defina um slug antes de tornar o serviço público', 400);
+  }
   const item = await accountingServicesRepository.createRow({
     firmId,
     name,
@@ -39,6 +66,10 @@ async function create({ firmId, payload }) {
     sortOrder: payload?.sortOrder != null ? Number(payload.sortOrder) : 0,
     catalogKey: payload?.catalogKey || null,
     isActive: payload?.isActive !== false,
+    slug,
+    isPubliclyListed,
+    requiresBooking: payload?.requiresBooking !== false,
+    documentRequirements: normalizeDocumentRequirements(payload?.documentRequirements) || [],
   });
   return { item };
 }
@@ -64,6 +95,18 @@ async function update({ firmId, id, payload }) {
   const priceCents = parsePriceEuros(payload);
   if (priceCents !== undefined) patch.priceCents = priceCents;
   if (payload?.isActive !== undefined) patch.isActive = Boolean(payload.isActive);
+  if (payload?.slug !== undefined) patch.slug = normalizeSlug(payload.slug);
+  if (payload?.requiresBooking !== undefined) patch.requiresBooking = Boolean(payload.requiresBooking);
+  if (payload?.documentRequirements !== undefined) {
+    patch.documentRequirements = normalizeDocumentRequirements(payload.documentRequirements);
+  }
+  if (payload?.isPubliclyListed !== undefined) {
+    const nextSlug = patch.slug !== undefined ? patch.slug : existing.slug;
+    if (payload.isPubliclyListed === true && !nextSlug) {
+      throw new AppError('Defina um slug antes de tornar o serviço público', 400);
+    }
+    patch.isPubliclyListed = Boolean(payload.isPubliclyListed);
+  }
 
   const item = await accountingServicesRepository.updateRow(id, firmId, patch);
   return { item };

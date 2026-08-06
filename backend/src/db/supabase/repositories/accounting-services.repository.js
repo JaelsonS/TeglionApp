@@ -13,6 +13,10 @@ function map(row) {
     currency: row.currency || 'EUR',
     isActive: row.is_active,
     sortOrder: row.sort_order,
+    slug: row.slug || null,
+    isPubliclyListed: Boolean(row.is_publicly_listed),
+    requiresBooking: row.requires_booking !== false,
+    documentRequirements: Array.isArray(row.document_requirements) ? row.document_requirements : [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -54,6 +58,10 @@ async function createRow({
   sortOrder,
   catalogKey,
   isActive,
+  slug,
+  isPubliclyListed,
+  requiresBooking,
+  documentRequirements,
 }) {
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
@@ -68,11 +76,28 @@ async function createRow({
       currency: currency || 'EUR',
       is_active: isActive !== false,
       sort_order: sortOrder ?? 0,
+      slug: slug || null,
+      is_publicly_listed: isPubliclyListed === true,
+      requires_booking: requiresBooking !== false,
+      document_requirements: Array.isArray(documentRequirements) ? documentRequirements : [],
     })
     .select()
     .single();
   if (error) throw error;
   return map(data);
+}
+
+async function findByIdsForFirm(ids, firmId) {
+  const list = Array.isArray(ids) ? ids.filter(Boolean) : [];
+  if (!list.length) return [];
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from('accounting_services')
+    .select('*')
+    .eq('firm_id', firmId)
+    .in('id', list);
+  if (error) throw error;
+  return (data || []).map(map);
 }
 
 async function updateRow(id, firmId, patch) {
@@ -87,6 +112,12 @@ async function updateRow(id, firmId, patch) {
   if (patch.currency !== undefined) row.currency = patch.currency;
   if (patch.isActive !== undefined) row.is_active = Boolean(patch.isActive);
   if (patch.sortOrder !== undefined) row.sort_order = patch.sortOrder;
+  if (patch.slug !== undefined) row.slug = patch.slug || null;
+  if (patch.isPubliclyListed !== undefined) row.is_publicly_listed = Boolean(patch.isPubliclyListed);
+  if (patch.requiresBooking !== undefined) row.requires_booking = Boolean(patch.requiresBooking);
+  if (patch.documentRequirements !== undefined) {
+    row.document_requirements = Array.isArray(patch.documentRequirements) ? patch.documentRequirements : [];
+  }
 
   const { data, error } = await sb
     .from('accounting_services')
@@ -130,6 +161,7 @@ async function listCatalogKeys(firmId) {
 module.exports = {
   listByFirm,
   findByIdForFirm,
+  findByIdsForFirm,
   createRow,
   updateRow,
   bulkUpdate,

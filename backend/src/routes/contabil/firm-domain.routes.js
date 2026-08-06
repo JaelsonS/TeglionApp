@@ -323,4 +323,58 @@ router.get('/service-requests/:id/quote', requirePermission(PERMISSIONS.FIRM_CLI
 router.patch('/service-requests/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), serviceRequestsController.patch);
 router.post('/service-requests/:id/comments', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), serviceRequestsController.addComment);
 
+// ============================================================
+// Fase 1 — Service Domain Foundation: Leads + Service Inquiries
+// (distintos de /service-requests acima, que é a Central de Serviços
+// para clientes já existentes — ver migration 20260903000000)
+// ============================================================
+
+const leadsController = require('../../modules/firm/leads.controller');
+const serviceInquiriesController = require('../../modules/firm/service-inquiries.controller');
+
+router.get('/leads', requirePermission(PERMISSIONS.FIRM_LEADS_MANAGE), leadsController.list);
+router.get('/leads/:id', requirePermission(PERMISSIONS.FIRM_LEADS_MANAGE), leadsController.getDetail);
+router.post(
+  '/leads',
+  requirePermission(PERMISSIONS.FIRM_LEADS_MANAGE),
+  [
+    body('name').isString().trim().isLength({ min: 1, max: 140 }),
+    body('email').optional().isEmail(),
+    body('phone').optional().isString().trim().isLength({ max: 40 }),
+    body('taxId').optional().isString().trim().isLength({ max: 20 }),
+  ],
+  leadsController.create,
+);
+router.patch(
+  '/leads/:id',
+  requirePermission(PERMISSIONS.FIRM_LEADS_MANAGE),
+  [
+    body('name').optional().isString().trim().isLength({ min: 1, max: 140 }),
+    body('email').optional({ nullable: true }).isEmail(),
+    body('status').optional().isString().trim(),
+  ],
+  leadsController.patch,
+);
+router.post('/leads/:id/convert-to-client', requirePermission(PERMISSIONS.FIRM_LEADS_MANAGE), leadsController.convertToClient);
+
+router.get('/service-inquiries', requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE), serviceInquiriesController.list);
+router.get('/service-inquiries/:id', requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE), serviceInquiriesController.getDetail);
+router.post(
+  '/service-inquiries',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  [
+    body('serviceId').isUUID(),
+    body('leadId').optional().isUUID(),
+    body('clientId').optional().isUUID(),
+    body('notes').optional().isString().trim().isLength({ max: 4000 }),
+  ],
+  serviceInquiriesController.create,
+);
+router.patch(
+  '/service-inquiries/:id',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  [body('status').optional().isString().trim(), body('notes').optional().isString().trim().isLength({ max: 4000 })],
+  serviceInquiriesController.patch,
+);
+
 module.exports = router;
