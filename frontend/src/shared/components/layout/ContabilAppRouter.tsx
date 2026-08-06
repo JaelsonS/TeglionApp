@@ -102,7 +102,6 @@ const FirmClientHubPage = lazy(() =>
 const FirmServiceRequestsPage = lazy(() =>
   import('@/features/firm/pages/FirmServiceRequestsPage').then((m) => ({ default: m.FirmServiceRequestsPage })),
 )
-const FirmLeadsPage = lazy(() => import('@/features/firm/pages/FirmLeadsPage').then((m) => ({ default: m.FirmLeadsPage })))
 const FirmAlertsPage = lazy(() => import('@/features/firm/pages/FirmAlertsPage').then((m) => ({ default: m.FirmAlertsPage })))
 const FirmNewsPage = lazy(() => import('@/features/firm/pages/FirmNewsPage').then((m) => ({ default: m.FirmNewsPage })))
 const ClientDashboardPage = lazy(() =>
@@ -228,7 +227,6 @@ export function ContabilAppRouter() {
                 <Route path="alerts" element={<FirmAlertsPage />} />
                 <Route path="news" element={<FirmNewsPage />} />
                 <Route path="services" element={<FirmServiceRequestsPage />} />
-                <Route path="leads" element={<FirmLeadsPage />} />
                 <Route path="settings" element={<FirmSettingsPage />} />
               </Route>
               <Route path="billing" element={<FirmBillingPage />} />

@@ -20,17 +20,21 @@ Pedido real da contadora piloto (2026-08-06): menu de captação para IRS anual 
 
 | Fase | Entrega | Estado (2026-08-06) |
 |------|---------|------|
-| **1 — Service Domain Foundation** | `accounting_services` estendida (`slug`, `is_publicly_listed`, `requires_booking`, `document_requirements`); tabelas `leads` e `service_inquiries`; resolução de identidade (NIF→email→Lead→novo Lead, sempre `firm_id` scoped); conversão Lead→Client manual e auditada; UI mínima (`/app/firm/leads`) | ✅ Código implementado em `feature/service-domain-foundation`, testado (72 testes backend + typecheck/build frontend verdes), **migration ainda não aplicada em produção** — aguarda aprovação explícita antes de correr |
+| **1 — Service Domain Foundation** | `accounting_services` estendida (`slug`, `is_publicly_listed`, `requires_booking`, `document_requirements`); tabelas `leads` e `service_inquiries`; resolução de identidade (NIF→email→Lead→novo Lead, sempre `firm_id` scoped); conversão Lead→Client manual e auditada | ✅ Em produção, migration aplicada |
+| **1.5 — Service Catalog UI** | Escritório cria/nomeia/duplica Services ("IRS 2026", "Entregas Pontuais") sem código, editor de "documentos sempre necessários", toggles de agendamento/página pública — tudo dentro do painel de Serviços já existente em Agenda (`AgendaServicesCatalogPanel.tsx`), não uma tela nova | ✅ Implementado, testado, aguarda revisão visual antes de deploy — ver nota abaixo |
 | 2 — Dynamic Forms Engine | Motor de formulário com ramificação condicional (`visibleIf`), replicando a lógica real do formulário de IRS dela | Não iniciada |
 | 3 — Document Requirements Resolution | Base do Service ∪ tags do Form → `document_requests` em lote + email automático (fim do processo manual de 48h dela) | Não iniciada |
-| 4 — Public Service Intake | Página pública por serviço (`/:firmSlug/servicos/:serviceSlug`) | Não iniciada |
+| 4 — Vista operacional + sidebar "Captação" | Pipeline cruzando `service_inquiries` de todos os Services (mesmo padrão do board de `ServicesWorkspace.tsx`) + menu lateral "Captação" (Solicitações/Leads) | Não iniciada — substitui de vez a tela `/app/firm/leads` que existiu brevemente e foi removida (ver nota) |
 | 5 — Booking Integration | `ServiceInquiry.consultation_id` ligado ao motor de agendamento já existente | Não iniciada |
-| 6 — Google Calendar | Sync bidirecional, `consultations` como fonte de verdade, `calendar_busy_blocks` para eventos externos | Não iniciada |
-| 7 — Google Drive | Picker + download server-side validado, staff-only | Não iniciada |
+| 6 — Public Service Page | Página pública por serviço (`/:firmSlug/servicos/:serviceSlug`), path-based (não subdomínio) | Não iniciada |
+| 7 — Google Calendar | Sync bidirecional, `consultations` como fonte de verdade, `calendar_busy_blocks` para eventos externos | Não iniciada |
+| 8 — Google Drive | Picker + download server-side validado, staff-only | Não iniciada |
 
 **Achado importante da Fase 1:** já existia uma tabela/módulo `service_requests` em produção ("Central de Serviços" — pipeline de orçamento/pagamento `SUBMITTED→QUOTED→APPROVED→PAID→DONE→RATED` para clientes já existentes, com portal do cliente, comentários, PDF de orçamento). É uma ferramenta diferente e complementar — por isso o pivô novo desta iniciativa chama-se `service_inquiries` (fase de captação/Lead), não `service_requests`. Um Lead convertido pode, mais tarde, gerar um `service_requests` normal na Central de Serviços já existente para o pipeline de orçamento formal.
 
-Documento de arquitectura completo (modelo de domínio, análise de ameaça, especificação técnica da Fase 1) ficou no plan file da sessão que fez este trabalho — não commitado no repositório (é um artefacto de planeamento, não de produto). Resumo vive aqui e em `docs/security/SECURITY.md` (secção Multi-tenant).
+**Nota sobre a tela `/app/firm/leads`:** a Fase 1 tinha entregue uma UI mínima genérica ("Leads") no menu lateral. O founder achou-a confusa/feia e apontou correctamente que faltava a Fase 1.5 primeiro (deixar o escritório nomear os próprios Services). Essa tela e a entrada de menu foram removidas — a versão certa volta na Fase 4, integrada com nomes reais de Services, não antes.
+
+Documento de arquitectura completo (v2 e v3 — modelo de domínio, análise de ameaça, especificação técnica, respostas ao brief de 25 pontos do founder) ficou no plan file da sessão que fez este trabalho — não commitado no repositório (é um artefacto de planeamento, não de produto). Resumo vive aqui e em `docs/security/SECURITY.md` (secção Multi-tenant).
 
 ---
 

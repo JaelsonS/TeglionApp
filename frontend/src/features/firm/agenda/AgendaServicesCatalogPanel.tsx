@@ -3,12 +3,16 @@ import type { FormChangeEvent } from '@/shared/types/react-events'
 import {
   Check,
   ChevronDown,
+  Copy,
+  Globe,
   Layers,
   Pencil,
   Plus,
   Power,
   PowerOff,
   Search,
+  Settings2,
+  Trash2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -27,7 +31,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/
 import { EuroInput, ProfileSectionCard } from '@/shared/design-system'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
-import type { AccountingService } from '@/shared/types/contabil'
+import type { AccountingService, DocumentRequirement } from '@/shared/types/contabil'
 import { cn } from '@/shared/lib/utils'
 
 type FilterMode = 'all' | 'active' | 'inactive'
@@ -51,6 +55,9 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
   const [pickerKeys, setPickerKeys] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState(false)
   const [editing, setEditing] = useState<Record<string, Partial<AccountingService>>>({})
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [advancedDraft, setAdvancedDraft] = useState<Record<string, Partial<AccountingService>>>({})
+  const [duplicating, setDuplicating] = useState<string | null>(null)
 
   const inactiveCatalog = useMemo(
     () => services.filter((s) => s.isActive === false),
@@ -183,6 +190,97 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
       ...prev,
       [id]: { ...prev[id], ...patch },
     }))
+  }
+
+  const patchAdvanced = (id: string, patch: Partial<AccountingService>) => {
+    setAdvancedDraft((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], ...patch },
+    }))
+  }
+
+  const toggleExpanded = (s: AccountingService) => {
+    setExpandedId((prev) => {
+      if (prev === s.id) return null
+      setAdvancedDraft((draft) => ({
+        ...draft,
+        [s.id]: draft[s.id] ?? {
+          slug: s.slug ?? '',
+          isPubliclyListed: s.isPubliclyListed ?? false,
+          requiresBooking: s.requiresBooking ?? true,
+          documentRequirements: s.documentRequirements ?? [],
+        },
+      }))
+      return s.id
+    })
+  }
+
+  const saveAdvanced = async (s: AccountingService) => {
+    const draft = advancedDraft[s.id]
+    if (!draft) return
+    setBusy(true)
+    try {
+      await contabilAccountingServicesApi.patch(s.id, {
+        slug: draft.slug || null,
+        isPubliclyListed: draft.isPubliclyListed,
+        requiresBooking: draft.requiresBooking,
+        documentRequirements: draft.documentRequirements,
+      })
+      toast.success('Serviço actualizado')
+      await onReload()
+    } catch (err) {
+      toast.error('Erro ao guardar', { description: getErrorMessage(err) })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const duplicateService = async (s: AccountingService) => {
+    setDuplicating(s.id)
+    try {
+      await contabilAccountingServicesApi.duplicate(s.id)
+      toast.success(`"${s.name}" duplicado — edite o nome e active quando estiver pronto`)
+      await onReload()
+    } catch (err) {
+      toast.error('Erro ao duplicar', { description: getErrorMessage(err) })
+    } finally {
+      setDuplicating(null)
+    }
+  }
+
+  const slugifyTag = (title: string, index: number) => {
+    const base = title
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+    return base || `documento_${index + 1}`
+  }
+
+  const addRequirement = (id: string) => {
+    const current = advancedDraft[id]?.documentRequirements ?? []
+    patchAdvanced(id, {
+      documentRequirements: [...current, { tag: `documento_${current.length + 1}`, title: '', instructions: '' }],
+    })
+  }
+
+  const updateRequirement = (id: string, index: number, patch: Partial<DocumentRequirement>) => {
+    const current = advancedDraft[id]?.documentRequirements ?? []
+    const next = current.map((req, i) => {
+      if (i !== index) return req
+      const merged = { ...req, ...patch }
+      // tag deriva do título automaticamente — é um identificador interno, não editável directamente aqui.
+      if (patch.title !== undefined) merged.tag = slugifyTag(merged.title, index)
+      return merged
+    })
+    patchAdvanced(id, { documentRequirements: next })
+  }
+
+  const removeRequirement = (id: string, index: number) => {
+    const current = advancedDraft[id]?.documentRequirements ?? []
+    patchAdvanced(id, { documentRequirements: current.filter((_, i) => i !== index) })
   }
 
   return (
@@ -363,63 +461,191 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
               const duration = draft?.durationMinutes ?? s.durationMinutes
               const priceCents = draft?.priceCents ?? s.priceCents
               const isDirty = Boolean(draft)
+              const isExpanded = expandedId === s.id
+              const adv = advancedDraft[s.id]
+              const advDirty = Boolean(adv)
+              const requirements = adv?.documentRequirements ?? s.documentRequirements ?? []
 
               return (
-                <li
-                  key={s.id}
-                  className={cn(
-                    'grid grid-cols-[auto_1fr_auto] items-start gap-2 px-3 py-3 sm:grid-cols-[auto_1fr_repeat(3,auto)_auto]',
-                    active && 'bg-emerald-50/30',
-                  )}
-                >
-                  <Checkbox checked={selected.has(s.id)} onCheckedChange={() => toggleSelect(s.id)} />
-                  <div className="min-w-0 space-y-1">
-                    <Input
-                      className="h-9 rounded-lg text-sm font-medium"
-                      value={name}
-                      onChange={(e: FormChangeEvent) => patchEditing(s.id, { name: e.target.value })}
-                    />
-                    {s.description ? (
-                      <p className="line-clamp-2 cb-text-caption">{s.description}</p>
-                    ) : null}
-                  </div>
-                  <Input
-                    type="number"
-                    min={15}
-                    className="hidden h-9 w-20 rounded-lg sm:block"
-                    value={duration}
-                    onChange={(e: FormChangeEvent) =>
-                      patchEditing(s.id, { durationMinutes: Number(e.target.value) || s.durationMinutes })
-                    }
-                  />
-                  <div className="hidden w-28 sm:block">
-                    <EuroInput
-                      value={priceCents / 100}
-                      onChange={(v) => patchEditing(s.id, { priceCents: Math.round(v * 100) })}
-                    />
-                  </div>
-                  <button
-                    type="button"
+                <li key={s.id}>
+                  <div
                     className={cn(
-                      'hidden rounded-full px-2.5 py-1 text-caption font-bold uppercase sm:block',
-                      active
-                        ? 'bg-emerald-100 text-emerald-800'
-                        : 'bg-muted text-muted-foreground',
+                      'grid grid-cols-[auto_1fr_auto] items-start gap-2 px-3 py-3 sm:grid-cols-[auto_1fr_repeat(3,auto)_auto_auto]',
+                      active && 'bg-emerald-50/30',
                     )}
-                    onClick={() => patchEditing(s.id, { isActive: !active })}
                   >
-                    {active ? 'Activo' : 'Inactivo'}
-                  </button>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant={isDirty ? 'default' : 'ghost'}
-                    className="h-9 w-9 shrink-0 rounded-full"
-                    disabled={busy || !isDirty}
-                    onClick={() => void saveRow(s)}
-                  >
-                    {isDirty ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4 opacity-40" />}
-                  </Button>
+                    <Checkbox checked={selected.has(s.id)} onCheckedChange={() => toggleSelect(s.id)} />
+                    <div className="min-w-0 space-y-1">
+                      <Input
+                        className="h-9 rounded-lg text-sm font-medium"
+                        value={name}
+                        onChange={(e: FormChangeEvent) => patchEditing(s.id, { name: e.target.value })}
+                      />
+                      {s.description ? (
+                        <p className="line-clamp-2 cb-text-caption">{s.description}</p>
+                      ) : null}
+                      {s.isPubliclyListed ? (
+                        <span className="inline-flex items-center gap-1 text-caption text-emerald-700">
+                          <Globe className="h-3 w-3" /> Público
+                        </span>
+                      ) : null}
+                    </div>
+                    <Input
+                      type="number"
+                      min={15}
+                      className="hidden h-9 w-20 rounded-lg sm:block"
+                      value={duration}
+                      onChange={(e: FormChangeEvent) =>
+                        patchEditing(s.id, { durationMinutes: Number(e.target.value) || s.durationMinutes })
+                      }
+                    />
+                    <div className="hidden w-28 sm:block">
+                      <EuroInput
+                        value={priceCents / 100}
+                        onChange={(v) => patchEditing(s.id, { priceCents: Math.round(v * 100) })}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      className={cn(
+                        'hidden rounded-full px-2.5 py-1 text-caption font-bold uppercase sm:block',
+                        active
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-muted text-muted-foreground',
+                      )}
+                      onClick={() => patchEditing(s.id, { isActive: !active })}
+                    >
+                      {active ? 'Activo' : 'Inactivo'}
+                    </button>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-9 w-9 rounded-full"
+                        disabled={duplicating === s.id}
+                        title="Duplicar serviço"
+                        onClick={() => void duplicateService(s)}
+                      >
+                        <Copy className="h-4 w-4 opacity-60" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant={isExpanded ? 'default' : 'ghost'}
+                        className="h-9 w-9 rounded-full"
+                        title="Definições avançadas (link público, agendamento, documentos)"
+                        onClick={() => toggleExpanded(s)}
+                      >
+                        <Settings2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant={isDirty ? 'default' : 'ghost'}
+                      className="h-9 w-9 shrink-0 rounded-full"
+                      disabled={busy || !isDirty}
+                      onClick={() => void saveRow(s)}
+                    >
+                      {isDirty ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4 opacity-40" />}
+                    </Button>
+                  </div>
+
+                  {isExpanded && adv ? (
+                    <div className="space-y-4 border-t border-border/40 bg-muted/10 px-4 py-4">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <label className="space-y-1">
+                          <span className="text-caption font-medium text-muted-foreground">
+                            Endereço público (slug)
+                          </span>
+                          <Input
+                            placeholder="ex.: irs-2026"
+                            className="h-9 rounded-lg"
+                            value={adv.slug ?? ''}
+                            onChange={(e: FormChangeEvent) => patchAdvanced(s.id, { slug: e.target.value })}
+                          />
+                        </label>
+                        <div className="flex flex-col justify-end gap-2 sm:flex-row sm:items-center">
+                          <label className="flex items-center gap-2 text-sm">
+                            <Checkbox
+                              checked={adv.isPubliclyListed ?? false}
+                              onCheckedChange={(checked: boolean | 'indeterminate') =>
+                                patchAdvanced(s.id, { isPubliclyListed: Boolean(checked) })
+                              }
+                            />
+                            Aparece na página pública
+                          </label>
+                          <label className="flex items-center gap-2 text-sm">
+                            <Checkbox
+                              checked={adv.requiresBooking ?? true}
+                              onCheckedChange={(checked: boolean | 'indeterminate') =>
+                                patchAdvanced(s.id, { requiresBooking: Boolean(checked) })
+                              }
+                            />
+                            Precisa de agendamento
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-caption font-medium text-muted-foreground">
+                            Documentos sempre necessários
+                          </span>
+                          <Button type="button" size="sm" variant="outline" onClick={() => addRequirement(s.id)}>
+                            <Plus className="mr-1 h-3.5 w-3.5" /> Adicionar
+                          </Button>
+                        </div>
+                        {requirements.length === 0 ? (
+                          <p className="cb-text-caption">Nenhum documento configurado ainda.</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {requirements.map((req, index) => (
+                              <div key={index} className="flex flex-wrap items-center gap-2 rounded-lg border border-border/40 p-2">
+                                <Input
+                                  placeholder="Nome do documento"
+                                  className="h-8 min-w-[160px] flex-1 rounded-md text-sm"
+                                  value={req.title}
+                                  onChange={(e: FormChangeEvent) =>
+                                    updateRequirement(s.id, index, { title: e.target.value })
+                                  }
+                                />
+                                <Input
+                                  placeholder="Instruções (opcional)"
+                                  className="h-8 min-w-[160px] flex-1 rounded-md text-sm"
+                                  value={req.instructions ?? ''}
+                                  onChange={(e: FormChangeEvent) =>
+                                    updateRequirement(s.id, index, { instructions: e.target.value })
+                                  }
+                                />
+                                <Button
+                                  type="button"
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 shrink-0 rounded-full"
+                                  onClick={() => removeRequirement(s.id, index)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 opacity-60" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={busy || !advDirty}
+                          onClick={() => void saveAdvanced(s)}
+                        >
+                          Guardar definições avançadas
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
                 </li>
               )
             })}

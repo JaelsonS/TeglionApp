@@ -280,6 +280,12 @@ export type MessageThread = {
   unreadCount?: number
 }
 
+export type DocumentRequirement = {
+  tag: string
+  title: string
+  instructions?: string | null
+}
+
 export type AccountingService = {
   id: string
   catalogKey?: string | null
@@ -290,6 +296,10 @@ export type AccountingService = {
   currency?: string
   isActive?: boolean
   sortOrder?: number
+  slug?: string | null
+  isPubliclyListed?: boolean
+  requiresBooking?: boolean
+  documentRequirements?: DocumentRequirement[]
 }
 
 export type ConsultingCatalogEntry = {

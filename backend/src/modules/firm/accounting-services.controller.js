@@ -64,6 +64,17 @@ exports.patch = async (req, res, next) => {
   }
 };
 
+exports.duplicate = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const id = parseEntityId(req.params.id, 'id');
+    const result = await accountingServicesService.duplicate({ firmId, id });
+    return res.status(201).json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.bulkPatch = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);

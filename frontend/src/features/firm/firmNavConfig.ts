@@ -11,7 +11,6 @@ import {
   Newspaper,
   ReceiptText,
   Settings,
-  UserPlus,
   UserRound,
 } from 'lucide-react'
 
@@ -129,12 +128,6 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         icon: ClipboardList,
       },
       {
-        to: '/app/firm/leads',
-        labelKey: 'contabil.firm.nav.leads',
-        labelDefault: 'Leads',
-        icon: UserPlus,
-      },
-      {
         to: '/app/firm/billing',
         labelKey: 'nav.billing',
         labelDefault: 'Plano',
@@ -211,12 +204,6 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     labelKey: 'contabil.firm.nav.services',
     labelDefault: 'Serviços',
     icon: ClipboardList,
-  },
-  {
-    to: '/app/firm/leads',
-    labelKey: 'contabil.firm.nav.leads',
-    labelDefault: 'Leads',
-    icon: UserPlus,
   },
 ]
 

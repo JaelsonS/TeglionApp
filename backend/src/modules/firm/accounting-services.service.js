@@ -112,6 +112,34 @@ async function update({ firmId, id, payload }) {
   return { item };
 }
 
+/**
+ * Duplica um serviço (ex.: "IRS 2026" -> "IRS 2026 (cópia)", o escritório edita
+ * o nome para "IRS 2027" depois). Nunca copia slug/is_publicly_listed — um
+ * duplicado nasce sempre privado, sem endereço público, para o escritório
+ * rever antes de publicar (evita 2 serviços a disputar o mesmo slug).
+ */
+async function duplicate({ firmId, id }) {
+  const existing = await accountingServicesRepository.findByIdForFirm(id, firmId);
+  if (!existing) throw new AppError('Serviço não encontrado', 404);
+
+  const item = await accountingServicesRepository.createRow({
+    firmId,
+    name: `${existing.name} (cópia)`,
+    description: existing.description,
+    durationMinutes: existing.durationMinutes,
+    priceCents: existing.priceCents,
+    currency: existing.currency,
+    sortOrder: existing.sortOrder,
+    catalogKey: null,
+    isActive: false,
+    slug: null,
+    isPubliclyListed: false,
+    requiresBooking: existing.requiresBooking,
+    documentRequirements: existing.documentRequirements,
+  });
+  return { item };
+}
+
 async function bulkPatch({ firmId, ids, patch }) {
   const list = Array.isArray(ids) ? ids.filter(Boolean) : [];
   if (!list.length) throw new AppError('Seleccione pelo menos um serviço', 400);
@@ -177,6 +205,7 @@ module.exports = {
   list,
   create,
   update,
+  duplicate,
   bulkPatch,
   seedCatalog,
   activateFromCatalog,

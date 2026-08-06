@@ -19,6 +19,9 @@ export function createContabilAccountingServicesApi(api: AxiosInstance) {
     patch: (id: string, payload: Record<string, unknown>) =>
       api.patch(`/contabil/accounting-services/${encodeURIComponent(id)}`, payload).then((r) => r.data),
 
+    duplicate: (id: string) =>
+      api.post(`/contabil/accounting-services/${encodeURIComponent(id)}/duplicate`).then((r) => r.data),
+
     bulkPatch: (payload: { ids: string[]; patch: Record<string, unknown> }) =>
       api.post('/contabil/accounting-services/bulk', payload).then((r) => r.data),
   }

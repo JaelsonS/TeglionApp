@@ -248,6 +248,7 @@ router.post('/accounting-services/activate-catalog', requirePermission(PERMISSIO
 router.post('/accounting-services/bulk', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.bulkPatch);
 router.post('/accounting-services', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.create);
 router.patch('/accounting-services/:id', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.patch);
+router.post('/accounting-services/:id/duplicate', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.duplicate);
 
 router.get('/booking-settings', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), bookingSettingsController.get);
 router.patch('/booking-settings', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), bookingSettingsController.patch);
