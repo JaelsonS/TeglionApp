@@ -4,18 +4,27 @@ const contabilStorage = require('../../services/storage/contabil-storage.service
 
 const LOGO_SIGNED_TTL = 86400;
 
+/**
+ * URLs assinadas do Supabase Storage expiram (LOGO_SIGNED_TTL = 24h) — nunca
+ * devolver a `logoUrl` guardada como se fosse permanente. Sempre que existir
+ * `logoStorageKey`, gera uma URL assinada nova nesta chamada; só cai para a
+ * `logoUrl` guardada se não houver storage key (não deveria acontecer no fluxo
+ * actual — só upload gera logo — mas mantém-se como fallback defensivo).
+ */
 async function resolveLogoUrl(firm) {
   const branding = firm?.settings?.branding || {};
+  const key = branding.logoStorageKey;
+  if (key) {
+    try {
+      return await contabilStorage.createSignedDownloadUrl(key, LOGO_SIGNED_TTL);
+    } catch {
+      // cai para o fallback abaixo se a geração falhar (ex.: ficheiro removido do storage)
+    }
+  }
   if (branding.logoUrl && /^https?:\/\//i.test(String(branding.logoUrl))) {
     return String(branding.logoUrl);
   }
-  const key = branding.logoStorageKey;
-  if (!key) return branding.logoUrl || null;
-  try {
-    return await contabilStorage.createSignedDownloadUrl(key, LOGO_SIGNED_TTL);
-  } catch {
-    return branding.logoUrl || null;
-  }
+  return null;
 }
 
 async function getFirmProfile(firmId) {
