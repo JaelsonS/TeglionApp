@@ -9,15 +9,18 @@ const ignoreFiles = [
     'LICENSE',
 ]
 
+// Nota: usar [ \t]* (não \s*) entre "=" e o valor — \s* inclui \n, o que fazia o
+// padrão "vazar" para a linha seguinte quando a variável ficava vazia (KEY=\nOUTRA_KEY=...)
+// e gerava falso positivo a apontar a KEY seguinte como se fosse o valor da primeira.
 const rules = [
-    { name: 'Stripe live key', re: /STRIPE_SECRET_KEY\s*=\s*sk_live_[0-9A-Za-z]+/g },
-    { name: 'Stripe webhook secret', re: /STRIPE_WEBHOOK_SECRET\s*=\s*whsec_[0-9A-Za-z]+/g },
-    { name: 'Brevo API key', re: /BREVO_API_KEY\s*=\s*xkeysib-[0-9A-Za-z-]+/g },
-    { name: 'Google OAuth secret', re: /GOOGLE_OAUTH_CLIENT_SECRET\s*=\s*GOCSPX-(?!x{4,})[0-9A-Za-z_-]{10,}/g },
-    { name: 'Sentry DSN hardcoded', re: /SENTRY_DSN\s*=\s*https:\/\//g },
-    { name: 'Supabase service role key', re: /SUPABASE_SERVICE_ROLE_KEY\s*=\s*[A-Za-z0-9._-]+/g },
-    { name: 'JWT secret assignment', re: /JWT_(ACCESS|REFRESH)_SECRET\s*=\s*.+/g },
-    { name: 'Redis URL with credentials', re: /REDIS_URL\s*=\s*redis:\/\/.+:.+@/g },
+    { name: 'Stripe live key', re: /STRIPE_SECRET_KEY[ \t]*=[ \t]*sk_live_[0-9A-Za-z]+/g },
+    { name: 'Stripe webhook secret', re: /STRIPE_WEBHOOK_SECRET[ \t]*=[ \t]*whsec_[0-9A-Za-z]+/g },
+    { name: 'Brevo API key', re: /BREVO_API_KEY[ \t]*=[ \t]*xkeysib-[0-9A-Za-z-]+/g },
+    { name: 'Google OAuth secret', re: /GOOGLE_OAUTH_CLIENT_SECRET[ \t]*=[ \t]*GOCSPX-(?!x{4,})[0-9A-Za-z_-]{10,}/g },
+    { name: 'Sentry DSN hardcoded', re: /SENTRY_DSN[ \t]*=[ \t]*https:\/\//g },
+    { name: 'Supabase service role key', re: /SUPABASE_SERVICE_ROLE_KEY[ \t]*=[ \t]*[A-Za-z0-9._-]+/g },
+    { name: 'JWT secret assignment', re: /JWT_(ACCESS|REFRESH)_SECRET[ \t]*=[ \t]*.+/g },
+    { name: 'Redis URL with credentials', re: /REDIS_URL[ \t]*=[ \t]*redis:\/\/.+:.+@/g },
 ]
 
 function getTrackedFiles() {
