@@ -166,13 +166,13 @@ export function FirmMessagesModule({ embeddedClientId }: { embeddedClientId?: st
   const importFromDrive = async () => {
     if (!selectedClientId) return
     const config = driveConfigQuery.data
-    if (!config?.configured || !config.apiKey || !config.clientId) {
+    if (!config?.configured || !config.pickerApiKey || !config.clientId) {
       toast.error('Importação do Google Drive não está configurada')
       return
     }
     setImportingDrive(true)
     try {
-      const picked = await openGoogleDrivePicker({ apiKey: config.apiKey, clientId: config.clientId })
+      const picked = await openGoogleDrivePicker({ apiKey: config.pickerApiKey, clientId: config.clientId })
       if (!picked) return
       await contabilGoogleDriveApi.importFromDrive({
         clientId: selectedClientId,

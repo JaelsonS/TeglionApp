@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { FileText, Inbox, Loader2, Plus } from 'lucide-react'
+import { FileText, Inbox, Loader2, Mail, Phone, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
 import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
-import { contabilAccountingServicesApi, contabilServiceInquiriesApi } from '@/infrastructure/api'
+import { contabilAccountingServicesApi, contabilClientsApi, contabilLeadsApi, contabilServiceInquiriesApi } from '@/infrastructure/api'
 import type {
   ServiceInquiryChecklistItem,
   ServiceInquiryHistoryItem,
@@ -94,6 +94,36 @@ export function ServiceInquiriesWorkspace() {
     [services, detailQuery.data],
   )
   const questions = selectedService?.intakeForm?.questions ?? []
+
+  const leadId = detailQuery.data?.inquiry.leadId
+  const clientId = detailQuery.data?.inquiry.clientId
+
+  /** A Solicitação em si não guarda contacto — vem do Lead/Client associado.
+   * Sem isto, um Lead novo (captado pela página pública, sem conta ainda)
+   * fica sem nenhuma forma de a equipa ver o email/telefone para o contactar. */
+  const leadQuery = useQuery({
+    queryKey: ['service-inquiry-lead', leadId],
+    queryFn: () => contabilLeadsApi.getById(leadId!),
+    enabled: Boolean(leadId),
+  })
+  const clientContactQuery = useQuery({
+    queryKey: ['service-inquiry-client-contact', clientId],
+    queryFn: () => contabilClientsApi.getById(clientId!),
+    enabled: Boolean(clientId),
+  })
+  const contact = leadId
+    ? {
+        email: leadQuery.data?.lead.email ?? null,
+        phone: leadQuery.data?.lead.phone ?? null,
+        taxId: leadQuery.data?.lead.taxId ?? null,
+      }
+    : clientId
+      ? {
+          email: (clientContactQuery.data as { email?: string | null } | undefined)?.email ?? null,
+          phone: (clientContactQuery.data as { phone?: string | null } | undefined)?.phone ?? null,
+          taxId: (clientContactQuery.data as { taxId?: string | null } | undefined)?.taxId ?? null,
+        }
+      : null
 
   const updateStatus = async (status: string) => {
     if (!selectedId) return
@@ -238,6 +268,27 @@ export function ServiceInquiriesWorkspace() {
                   {detailQuery.data.inquiry.serviceName || 'Serviço'}
                 </p>
                 <h2 className="text-lg font-bold">{detailQuery.data.inquiry.requesterName || 'Sem nome'}</h2>
+                {contact && (contact.email || contact.phone || contact.taxId) ? (
+                  <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                    {contact.email ? (
+                      <a
+                        href={`mailto:${contact.email}`}
+                        className="inline-flex items-center gap-1 hover:text-foreground hover:underline"
+                      >
+                        <Mail className="h-3.5 w-3.5" /> {contact.email}
+                      </a>
+                    ) : null}
+                    {contact.phone ? (
+                      <a
+                        href={`tel:${contact.phone}`}
+                        className="inline-flex items-center gap-1 hover:text-foreground hover:underline"
+                      >
+                        <Phone className="h-3.5 w-3.5" /> {contact.phone}
+                      </a>
+                    ) : null}
+                    {contact.taxId ? <span>NIF {contact.taxId}</span> : null}
+                  </div>
+                ) : null}
               </div>
 
               {detailQuery.data.inquiry.consultation ? (

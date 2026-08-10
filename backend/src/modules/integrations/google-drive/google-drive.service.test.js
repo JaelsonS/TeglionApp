@@ -18,7 +18,7 @@ test('isGoogleDriveConfigured/getPickerConfig: false quando faltam credenciais',
   }
 });
 
-test('isGoogleDriveConfigured/getPickerConfig: true e devolve client_id/apiKey quando ambos presentes', () => {
+test('isGoogleDriveConfigured/getPickerConfig: true e devolve client_id/pickerApiKey quando ambos presentes', () => {
   const prevId = env.GOOGLE_OAUTH_CLIENT_ID;
   const prevKey = env.GOOGLE_PICKER_API_KEY;
   env.GOOGLE_OAUTH_CLIENT_ID = 'client-x';
@@ -27,7 +27,7 @@ test('isGoogleDriveConfigured/getPickerConfig: true e devolve client_id/apiKey q
     assert.equal(googleDriveService.isGoogleDriveConfigured(), true);
     assert.deepEqual(googleDriveService.getPickerConfig(), {
       configured: true,
-      apiKey: 'picker-key-x',
+      pickerApiKey: 'picker-key-x',
       clientId: 'client-x',
     });
   } finally {
