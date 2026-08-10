@@ -110,6 +110,12 @@ router.get(
   serviceIntakeController.getServiceValidators,
   serviceIntakeController.getPublicService,
 );
+router.get(
+  '/firms/:firmSlug/services/:serviceSlug/slots',
+  serviceViewLimiter,
+  serviceIntakeController.slotsValidators,
+  serviceIntakeController.getPublicSlots,
+);
 router.post(
   '/firms/:firmSlug/services/:serviceSlug/submit',
   serviceSubmitLimiter,

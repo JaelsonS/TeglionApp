@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -80,12 +80,14 @@ function QuestionField({
 
 export function ServiceIntakePublicPage() {
   const { firmSlug, serviceSlug } = useParams<{ firmSlug: string; serviceSlug: string }>()
+  const queryClient = useQueryClient()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [taxId, setTaxId] = useState('')
   const [website, setWebsite] = useState('')
   const [answers, setAnswers] = useState<Answers>({})
+  const [scheduledAt, setScheduledAt] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState<{ accessToken: string; documentsRequired: number } | null>(null)
 
@@ -93,6 +95,13 @@ export function ServiceIntakePublicPage() {
     queryKey: ['public-service-intake', firmSlug, serviceSlug],
     queryFn: () => contabilPublicApi.getPublicService(firmSlug!, serviceSlug!),
     enabled: Boolean(firmSlug && serviceSlug),
+    retry: false,
+  })
+
+  const slotsQuery = useQuery({
+    queryKey: ['public-service-slots', firmSlug, serviceSlug],
+    queryFn: () => contabilPublicApi.getPublicSlots(firmSlug!, serviceSlug!),
+    enabled: Boolean(firmSlug && serviceSlug && query.data?.requiresBooking),
     retry: false,
   })
 
@@ -110,6 +119,10 @@ export function ServiceIntakePublicPage() {
       toast.error('Indique pelo menos email ou telefone')
       return
     }
+    if (query.data?.requiresBooking && !scheduledAt) {
+      toast.error('Escolha um horário')
+      return
+    }
     setSubmitting(true)
     try {
       const res = await contabilPublicApi.submitServiceIntake(firmSlug!, serviceSlug!, {
@@ -119,10 +132,15 @@ export function ServiceIntakePublicPage() {
         taxId: taxId.trim() || undefined,
         answers,
         website: website || undefined,
+        scheduledAt: scheduledAt || undefined,
       })
       setResult(res)
     } catch (err) {
       toast.error('Não foi possível enviar o pedido', { description: getErrorMessage(err) })
+      if (query.data?.requiresBooking) {
+        setScheduledAt('')
+        void queryClient.invalidateQueries({ queryKey: ['public-service-slots', firmSlug, serviceSlug] })
+      }
     } finally {
       setSubmitting(false)
     }
@@ -211,6 +229,37 @@ export function ServiceIntakePublicPage() {
             <Input className="h-10 rounded-lg" value={phone} onChange={(e: FormChangeEvent) => setPhone(e.target.value)} />
           </label>
         </div>
+
+        {service.requiresBooking ? (
+          <label className="block space-y-1 border-t border-border/40 pt-4 text-sm">
+            <span className="font-medium">Horário *</span>
+            {slotsQuery.isLoading ? (
+              <p className="text-sm text-muted-foreground">A carregar horários disponíveis…</p>
+            ) : (slotsQuery.data?.slots.length ?? 0) === 0 ? (
+              <p className="text-sm text-muted-foreground">Sem horários disponíveis de momento.</p>
+            ) : (
+              <select
+                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+              >
+                <option value="">Escolha um horário…</option>
+                {slotsQuery.data?.slots.map((iso) => (
+                  <option key={iso} value={iso}>
+                    {new Date(iso).toLocaleString('pt-PT', {
+                      weekday: 'short',
+                      day: '2-digit',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      timeZone: 'Europe/Lisbon',
+                    })}
+                  </option>
+                ))}
+              </select>
+            )}
+          </label>
+        ) : null}
 
         {service.intakeForm.questions.map((q, index) => (
           <div key={q.id ?? index} className="space-y-1.5 border-t border-border/40 pt-4">

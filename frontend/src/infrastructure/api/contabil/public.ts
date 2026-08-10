@@ -6,6 +6,7 @@ export type PublicServiceIntake = {
   serviceName: string
   description?: string | null
   intakeForm: IntakeForm
+  requiresBooking: boolean
 }
 
 export type PublicIntakeSubmitPayload = {
@@ -15,6 +16,7 @@ export type PublicIntakeSubmitPayload = {
   taxId?: string
   answers: Record<string, string | string[]>
   website?: string
+  scheduledAt?: string
 }
 
 export type PublicIntakeSubmitResult = {
@@ -88,6 +90,11 @@ export function createContabilPublicApi(api: AxiosInstance) {
       api
         .get(`/public/firms/${encodeURIComponent(firmSlug)}/services/${encodeURIComponent(serviceSlug)}`)
         .then((r) => r.data as PublicServiceIntake),
+
+    getPublicSlots: (firmSlug: string, serviceSlug: string) =>
+      api
+        .get(`/public/firms/${encodeURIComponent(firmSlug)}/services/${encodeURIComponent(serviceSlug)}/slots`)
+        .then((r) => r.data as { slots: string[] }),
 
     submitServiceIntake: (firmSlug: string, serviceSlug: string, payload: PublicIntakeSubmitPayload) =>
       api

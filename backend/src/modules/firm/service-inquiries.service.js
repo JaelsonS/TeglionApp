@@ -9,6 +9,7 @@ const firmUsersRepository = require('../../db/supabase/repositories/firm-users.r
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const accountingServicesService = require('./accounting-services.service');
 const leadsService = require('./leads.service');
+const bookingService = require('../booking/booking.service');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
 const contabilNotifications = require('../../services/notifications/contabil-notifications.service');
 const auditRepository = require('../../db/supabase/repositories/contabil/audit.repository');
@@ -205,6 +206,35 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
     createdBy: null,
   });
 
+  // Agendamento — reaproveita bookingService.bookAsClient() tal e qual (o mesmo usado
+  // pelo portal do cliente autenticado). Só é possível reservar de imediato quando a
+  // identidade já é um Client: consultations.client_id não é opcional, não há como criar
+  // uma consulta real para um Lead novo sem alterar esse schema (fora do escopo desta fase).
+  // Para um Lead, o horário pretendido fica registado como nota — a equipa agenda pela
+  // agenda normal depois de converter o Lead (ver especificação da sessão, Fase D).
+  let bookedConsultation = null;
+  let bookingNote = null;
+  if (service.requiresBooking && payload?.scheduledAt) {
+    if (identity.type === 'CLIENT') {
+      const booked = await bookingService.bookAsClient({
+        firmId: firm.id,
+        clientId: identity.id,
+        serviceId: service.id,
+        scheduledAt: payload.scheduledAt,
+      });
+      bookedConsultation = booked.consultation;
+    } else {
+      const when = new Date(payload.scheduledAt);
+      if (Number.isFinite(when.getTime())) {
+        bookingNote = `Horário pretendido: ${when.toLocaleString('pt-PT', {
+          dateStyle: 'full',
+          timeStyle: 'short',
+          timeZone: 'Europe/Lisbon',
+        })}`;
+      }
+    }
+  }
+
   const requiredDocuments = accountingServicesService.resolveRequiredDocuments(service, answers);
   const accessToken = crypto.randomBytes(32).toString('hex');
   const submittedAt = new Date().toISOString();
@@ -216,11 +246,17 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
     serviceId: service.id,
     leadId: identity.type === 'LEAD' ? identity.id : null,
     clientId: identity.type === 'CLIENT' ? identity.id : null,
+    notes: bookingNote,
     answers,
     submittedAt,
     accessToken,
     status: initialStatus,
   });
+
+  if (bookedConsultation) {
+    await serviceInquiriesRepository.updateRow(inquiry.id, firm.id, { consultationId: bookedConsultation.id });
+    inquiry.consultationId = bookedConsultation.id;
+  }
 
   await auditRepository.writeAuditLog({
     firmId: firm.id,
@@ -257,7 +293,7 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
       .catch(() => {});
   }
 
-  return { inquiry, requiredDocuments };
+  return { inquiry, requiredDocuments, consultation: bookedConsultation };
 }
 
 /** Checklist pública pelo token do mini-portal — nunca devolve firm_id/lead_id/client_id. */

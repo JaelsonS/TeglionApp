@@ -7,11 +7,22 @@
  * pedido, e nunca revela mais do que o necessário (sem ids internos, sem
  * indicar se a identidade bateu num Lead novo/existente ou num Client).
  */
-const { param, body, validationResult } = require('express-validator');
+const { param, query, body, validationResult } = require('express-validator');
 const { AppError } = require('../../middlewares/error.middleware');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
+const bookingService = require('../booking/booking.service');
 const serviceInquiriesService = require('../firm/service-inquiries.service');
+
+/** Resolve Firm + Service publicado pelo par (firmSlug, serviceSlug) — nunca aceita ids crus. */
+async function resolvePublicService(firmSlug, serviceSlug) {
+  const firm = await firmsRepository.findFirmBySlugOrLabel(firmSlug);
+  if (!firm) throw new AppError('Serviço não encontrado', 404, { code: 'NOT_FOUND' });
+  const services = await accountingServicesRepository.listByFirm(firm.id, { activeOnly: true });
+  const service = services.find((s) => s.slug === serviceSlug && s.isPubliclyListed);
+  if (!service) throw new AppError('Serviço não encontrado', 404, { code: 'NOT_FOUND' });
+  return { firm, service };
+}
 
 function assertValid(req) {
   const errors = validationResult(req);
@@ -23,21 +34,47 @@ function assertValid(req) {
 async function getPublicService(req, res, next) {
   try {
     assertValid(req);
-    const firm = await firmsRepository.findFirmBySlugOrLabel(String(req.params.firmSlug || '').trim());
-    if (!firm) throw new AppError('Serviço não encontrado', 404, { code: 'NOT_FOUND' });
-
-    const services = await accountingServicesRepository.listByFirm(firm.id, { activeOnly: true });
-    const service = services.find(
-      (s) => s.slug === String(req.params.serviceSlug || '').trim() && s.isPubliclyListed,
+    const { firm, service } = await resolvePublicService(
+      String(req.params.firmSlug || '').trim(),
+      String(req.params.serviceSlug || '').trim(),
     );
-    if (!service) throw new AppError('Serviço não encontrado', 404, { code: 'NOT_FOUND' });
 
     return res.json({
       firmName: firm.name,
       serviceName: service.name,
       description: service.description || null,
       intakeForm: service.intakeForm || { questions: [] },
+      requiresBooking: service.requiresBooking !== false,
     });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+/** Slots disponíveis — reaproveita bookingService.listSlotsForBooking() tal e qual. */
+async function getPublicSlots(req, res, next) {
+  try {
+    assertValid(req);
+    const { firm, service } = await resolvePublicService(
+      String(req.params.firmSlug || '').trim(),
+      String(req.params.serviceSlug || '').trim(),
+    );
+    if (!service.requiresBooking) {
+      return res.json({ slots: [] });
+    }
+    const now = new Date();
+    const fromIso = req.query.from ? String(req.query.from) : now.toISOString();
+    const toIso = req.query.to
+      ? String(req.query.to)
+      : new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString();
+
+    const { slots } = await bookingService.listSlotsForBooking({
+      firmId: firm.id,
+      serviceId: service.id,
+      fromIso,
+      toIso,
+    });
+    return res.json({ slots });
   } catch (err) {
     return next(err);
   }
@@ -105,16 +142,26 @@ const submitValidators = [
   body('email').optional({ nullable: true }).isString().trim().isLength({ max: 200 }),
   body('phone').optional({ nullable: true }).isString().trim().isLength({ max: 40 }),
   body('taxId').optional({ nullable: true }).isString().trim().isLength({ max: 40 }),
+  body('scheduledAt').optional({ nullable: true }).isISO8601(),
+];
+
+const slotsValidators = [
+  param('firmSlug').isString().trim().isLength({ min: 2, max: 64 }),
+  param('serviceSlug').isString().trim().isLength({ min: 1, max: 80 }),
+  query('from').optional().isISO8601(),
+  query('to').optional().isISO8601(),
 ];
 
 const tokenValidators = [param('token').isString().trim().isLength({ min: 64, max: 128 })];
 
 module.exports = {
   getPublicService,
+  getPublicSlots,
   submitIntake,
   getByToken,
   uploadByToken,
   getServiceValidators,
   submitValidators,
+  slotsValidators,
   tokenValidators,
 };

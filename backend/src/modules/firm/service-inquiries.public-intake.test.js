@@ -13,6 +13,7 @@ const auditRepository = require('../../db/supabase/repositories/contabil/audit.r
 const leadsService = require('./leads.service');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
 const contabilNotifications = require('../../services/notifications/contabil-notifications.service');
+const bookingService = require('../booking/booking.service');
 const serviceInquiriesService = require('./service-inquiries.service');
 
 const FIRM = { id: 'firm-x', name: 'Escritório X', settings: {} };
@@ -176,6 +177,124 @@ test('submitPublicIntake: identidade batida em Client existente -> clientId (nã
 
   assert.equal(created.clientId, 'client-1');
   assert.equal(created.leadId, null);
+});
+
+test('submitPublicIntake: requiresBooking + Client + slot válido -> reaproveita bookAsClient e liga consultationId', async () => {
+  resetMocks();
+  mockNoise();
+  const bookableService = { ...SERVICE, requiresBooking: true };
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [bookableService]);
+  mock.method(leadsService, 'resolveIdentity', async () => ({ type: 'CLIENT', id: 'client-1' }));
+  let bookAsClientArgs = null;
+  mock.method(bookingService, 'bookAsClient', async (args) => {
+    bookAsClientArgs = args;
+    return { consultation: { id: 'consultation-1' }, service: bookableService };
+  });
+  let created = null;
+  let updatedPatch = null;
+  mock.method(serviceInquiriesRepository, 'createRow', async (args) => {
+    created = args;
+    return { id: 'inquiry-9', ...args };
+  });
+  mock.method(serviceInquiriesRepository, 'updateRow', async (id, firmId, patch) => {
+    updatedPatch = patch;
+    return {};
+  });
+
+  const { consultation } = await serviceInquiriesService.submitPublicIntake({
+    firmSlug: 'x',
+    serviceSlug: 'irs-2026',
+    payload: { name: 'Dora', email: 'dora@x.com', scheduledAt: '2026-09-10T10:00:00.000Z' },
+  });
+
+  assert.equal(bookAsClientArgs.clientId, 'client-1');
+  assert.equal(bookAsClientArgs.serviceId, bookableService.id);
+  assert.equal(bookAsClientArgs.scheduledAt, '2026-09-10T10:00:00.000Z');
+  assert.equal(created.notes, null);
+  assert.equal(updatedPatch.consultationId, 'consultation-1');
+  assert.equal(consultation.id, 'consultation-1');
+});
+
+test('submitPublicIntake: requiresBooking + Lead novo + slot -> não reserva, grava preferência em notes', async () => {
+  resetMocks();
+  mockNoise();
+  const bookableService = { ...SERVICE, requiresBooking: true };
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [bookableService]);
+  mock.method(leadsService, 'resolveIdentity', async () => ({ type: 'LEAD', id: 'lead-novo' }));
+  mock.method(bookingService, 'bookAsClient', async () => {
+    throw new Error('não devia reservar uma consulta real para um Lead');
+  });
+  let created = null;
+  mock.method(serviceInquiriesRepository, 'createRow', async (args) => {
+    created = args;
+    return { id: 'inquiry-10', ...args };
+  });
+
+  const { consultation } = await serviceInquiriesService.submitPublicIntake({
+    firmSlug: 'x',
+    serviceSlug: 'irs-2026',
+    payload: { name: 'Eva', email: 'eva@x.com', scheduledAt: '2026-09-10T10:00:00.000Z' },
+  });
+
+  assert.equal(consultation, null);
+  assert.equal(created.consultationId, undefined);
+  assert.ok(created.notes && created.notes.includes('Horário pretendido'));
+});
+
+test('submitPublicIntake: requiresBooking + Client + horário já indisponível propaga 409 e não cria nada', async () => {
+  resetMocks();
+  mockNoise();
+  const bookableService = { ...SERVICE, requiresBooking: true };
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [bookableService]);
+  mock.method(leadsService, 'resolveIdentity', async () => ({ type: 'CLIENT', id: 'client-1' }));
+  mock.method(bookingService, 'bookAsClient', async () => {
+    const err = new Error('Este horário já não está disponível');
+    err.statusCode = 409;
+    throw err;
+  });
+  mock.method(serviceInquiriesRepository, 'createRow', async () => {
+    throw new Error('não devia chegar a criar a inquiry se a reserva falhou');
+  });
+
+  await assert.rejects(
+    () =>
+      serviceInquiriesService.submitPublicIntake({
+        firmSlug: 'x',
+        serviceSlug: 'irs-2026',
+        payload: { name: 'Filipe', email: 'filipe@x.com', scheduledAt: '2026-09-10T10:00:00.000Z' },
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 409);
+      return true;
+    },
+  );
+});
+
+test('submitPublicIntake: requiresBooking=false ignora scheduledAt mesmo se enviado', async () => {
+  resetMocks();
+  mockNoise();
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [{ ...SERVICE, requiresBooking: false }]);
+  mock.method(leadsService, 'resolveIdentity', async () => ({ type: 'LEAD', id: 'lead-1' }));
+  mock.method(bookingService, 'bookAsClient', async () => {
+    throw new Error('não devia chamar bookAsClient quando requiresBooking=false');
+  });
+  let created = null;
+  mock.method(serviceInquiriesRepository, 'createRow', async (args) => {
+    created = args;
+    return { id: 'inquiry-11', ...args };
+  });
+
+  await serviceInquiriesService.submitPublicIntake({
+    firmSlug: 'x',
+    serviceSlug: 'irs-2026',
+    payload: { name: 'Gil', email: 'gil@x.com', scheduledAt: '2026-09-10T10:00:00.000Z' },
+  });
+
+  assert.equal(created.notes, null);
 });
 
 test('getByAccessToken: token inexistente devolve 404', async () => {
