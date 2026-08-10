@@ -333,6 +333,8 @@ export type AccountingService = {
   requiresBooking?: boolean
   documentRequirements?: DocumentRequirement[]
   intakeForm?: IntakeForm | null
+  /** Substitui, campo a campo, as regras gerais do escritório (firm.settings.booking) só para este serviço. null/undefined = usa as regras gerais. */
+  bookingOverrides?: Partial<FirmBookingSettings> | null
 }
 
 export type ConsultingCatalogEntry = {

@@ -115,3 +115,48 @@ test('bookAsClient: clientId sozinho continua a funcionar tal como antes', async
   assert.equal(createArgs.clientId, 'client-1');
   assert.equal(createArgs.leadId, null);
 });
+
+test('listSlotsForBooking: bookingOverrides do Service restringe os dias, sem afectar as regras do escritório (Fase 3b)', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
+    ...SERVICE,
+    bookingOverrides: { weekdays: [2] }, // só terça-feira
+  }));
+  mock.method(firmsRepository, 'findFirmById', async () => FIRM); // escritório: seg-sex (default)
+  mock.method(consultationsRepository, 'listConsultations', async () => []);
+
+  const now = new Date();
+  const from = now.toISOString();
+  const to = new Date(now.getTime() + 13 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { slots, booking } = await bookingService.listSlotsForBooking({
+    firmId: FIRM_ID,
+    serviceId: SERVICE.id,
+    fromIso: from,
+    toIso: to,
+  });
+
+  assert.deepEqual(booking.weekdays, [2]);
+  assert.ok(slots.length > 0, 'devia haver pelo menos um slot de terça-feira na janela de 13 dias');
+  for (const iso of slots) {
+    assert.equal(new Date(iso).getUTCDay(), 2, `slot ${iso} devia cair numa terça-feira`);
+  }
+});
+
+test('listSlotsForBooking: sem bookingOverrides, usa as regras do escritório tal como antes (sem regressão)', async () => {
+  resetMocks();
+  mockAvailability(); // SERVICE sem bookingOverrides
+
+  const now = new Date();
+  const from = now.toISOString();
+  const to = new Date(now.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { booking } = await bookingService.listSlotsForBooking({
+    firmId: FIRM_ID,
+    serviceId: SERVICE.id,
+    fromIso: from,
+    toIso: to,
+  });
+
+  assert.deepEqual(booking.weekdays, [1, 2, 3, 4, 5]);
+});

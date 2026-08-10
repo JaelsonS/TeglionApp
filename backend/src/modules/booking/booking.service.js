@@ -118,7 +118,10 @@ async function listSlotsForBooking({ firmId, serviceId, fromIso, toIso }) {
 
   const firm = await firmsRepository.findFirmById(firmId);
   if (!firm) throw new AppError('Escritório não encontrado', 404);
-  const booking = normalizeBooking(firm.settings?.booking);
+  // Overrides do Service sobrepõem, campo a campo, as regras gerais do escritório
+  // (ver plan file da sessão, v8, secção 4) — null/ausente em qualquer campo cai
+  // de volta para a regra do escritório, sem regressão para serviços sem overrides.
+  const booking = normalizeBooking({ ...(firm.settings?.booking || {}), ...(service.bookingOverrides || {}) });
 
   const now = Date.now();
   const fromMs = Math.max(now + booking.leadTimeHours * 60 * 60 * 1000, new Date(fromIso).getTime());

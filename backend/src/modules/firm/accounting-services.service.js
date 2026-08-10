@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const { AppError } = require('../../middlewares/error.middleware');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-catalog');
+const { BOOKING_TIMEZONES } = require('../booking/booking.service');
 
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -23,6 +24,60 @@ function normalizeDocumentRequirements(value) {
     title: String(item?.title || '').trim().slice(0, 200),
     instructions: item?.instructions != null ? String(item.instructions).trim().slice(0, 2000) : null,
   })).filter((item) => item.tag && item.title);
+}
+
+const TIME_RE = /^\d{1,2}:\d{2}$/;
+const BOOKING_TZ_SET = new Set(BOOKING_TIMEZONES);
+
+/**
+ * Overrides de agendamento por Service (ver plan file da sessão, v8, secção 4)
+ * — mesma forma de FirmBookingSettings, mas cada campo é opcional: um campo
+ * ausente significa "usa a regra geral do escritório" para esse campo
+ * especificamente, não um valor por omissão embutido aqui. `null`/ausente no
+ * objecto inteiro significa "sem overrides, usa tudo do escritório" (o
+ * comportamento de sempre, sem regressão — ver booking.service.js#listSlotsForBooking).
+ */
+function normalizeBookingOverrides(value) {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw new AppError('booking_overrides deve ser um objeto', 400);
+  }
+  const out = {};
+  if (value.slotMinutes != null) {
+    const n = Number(value.slotMinutes);
+    if (!Number.isFinite(n) || n < 15 || n > 120) throw new AppError('slotMinutes inválido', 400);
+    out.slotMinutes = n;
+  }
+  if (value.horizonDays != null) {
+    const n = Number(value.horizonDays);
+    if (!Number.isFinite(n) || n < 1 || n > 60) throw new AppError('horizonDays inválido', 400);
+    out.horizonDays = n;
+  }
+  if (value.leadTimeHours != null) {
+    const n = Number(value.leadTimeHours);
+    if (!Number.isFinite(n) || n < 0 || n > 168) throw new AppError('leadTimeHours inválido', 400);
+    out.leadTimeHours = n;
+  }
+  if (value.weekdays != null) {
+    if (!Array.isArray(value.weekdays)) throw new AppError('weekdays deve ser uma lista', 400);
+    const weekdays = [...new Set(value.weekdays.map(Number))].filter((d) => Number.isInteger(d) && d >= 0 && d <= 6);
+    if (!weekdays.length) throw new AppError('Seleccione pelo menos um dia', 400);
+    out.weekdays = weekdays;
+  }
+  if (value.dayStart != null) {
+    if (!TIME_RE.test(value.dayStart)) throw new AppError('dayStart inválido', 400);
+    out.dayStart = value.dayStart;
+  }
+  if (value.dayEnd != null) {
+    if (!TIME_RE.test(value.dayEnd)) throw new AppError('dayEnd inválido', 400);
+    out.dayEnd = value.dayEnd;
+  }
+  if (value.timezone != null) {
+    if (!BOOKING_TZ_SET.has(value.timezone)) throw new AppError('timezone inválido', 400);
+    out.timezone = value.timezone;
+  }
+  return Object.keys(out).length ? out : null;
 }
 
 const INTAKE_QUESTION_TYPES = new Set([
@@ -174,6 +229,7 @@ async function create({ firmId, payload }) {
     requiresBooking: payload?.requiresBooking !== false,
     documentRequirements: normalizeDocumentRequirements(payload?.documentRequirements) || [],
     intakeForm: normalizeIntakeForm(payload?.intakeForm) || null,
+    bookingOverrides: normalizeBookingOverrides(payload?.bookingOverrides) || null,
   });
   return { item };
 }
@@ -206,6 +262,9 @@ async function update({ firmId, id, payload }) {
   }
   if (payload?.intakeForm !== undefined) {
     patch.intakeForm = normalizeIntakeForm(payload.intakeForm);
+  }
+  if (payload?.bookingOverrides !== undefined) {
+    patch.bookingOverrides = normalizeBookingOverrides(payload.bookingOverrides);
   }
   if (payload?.isPubliclyListed !== undefined) {
     const nextSlug = patch.slug !== undefined ? patch.slug : existing.slug;
@@ -244,6 +303,7 @@ async function duplicate({ firmId, id }) {
     requiresBooking: existing.requiresBooking,
     documentRequirements: existing.documentRequirements,
     intakeForm: existing.intakeForm,
+    bookingOverrides: existing.bookingOverrides,
   });
   return { item };
 }
@@ -330,5 +390,6 @@ module.exports = {
   activateFromCatalog,
   getCatalogTemplate: () => CONSULTING_SERVICES_CATALOG,
   normalizeIntakeForm,
+  normalizeBookingOverrides,
   resolveRequiredDocuments,
 };

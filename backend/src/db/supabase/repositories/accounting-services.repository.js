@@ -18,6 +18,7 @@ function map(row) {
     requiresBooking: row.requires_booking !== false,
     documentRequirements: Array.isArray(row.document_requirements) ? row.document_requirements : [],
     intakeForm: row.intake_form || null,
+    bookingOverrides: row.booking_overrides || null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -64,6 +65,7 @@ async function createRow({
   requiresBooking,
   documentRequirements,
   intakeForm,
+  bookingOverrides,
 }) {
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
@@ -83,6 +85,7 @@ async function createRow({
       requires_booking: requiresBooking !== false,
       document_requirements: Array.isArray(documentRequirements) ? documentRequirements : [],
       intake_form: intakeForm || null,
+      booking_overrides: bookingOverrides || null,
     })
     .select()
     .single();
@@ -122,6 +125,7 @@ async function updateRow(id, firmId, patch) {
     row.document_requirements = Array.isArray(patch.documentRequirements) ? patch.documentRequirements : [];
   }
   if (patch.intakeForm !== undefined) row.intake_form = patch.intakeForm || null;
+  if (patch.bookingOverrides !== undefined) row.booking_overrides = patch.bookingOverrides || null;
 
   const { data, error } = await sb
     .from('accounting_services')

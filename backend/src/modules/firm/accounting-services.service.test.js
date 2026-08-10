@@ -87,6 +87,58 @@ test('normalizeIntakeForm: opção com documentTags é preservada', () => {
   assert.deepEqual(form.questions[0].options[1].documentTags, []);
 });
 
+test('normalizeBookingOverrides: undefined passa por undefined (não altera o patch)', () => {
+  assert.equal(accountingServicesService.normalizeBookingOverrides(undefined), undefined);
+});
+
+test('normalizeBookingOverrides: null remove os overrides (volta a herdar do escritório)', () => {
+  assert.equal(accountingServicesService.normalizeBookingOverrides(null), null);
+});
+
+test('normalizeBookingOverrides: objecto vazio normaliza para null (nada para sobrepor)', () => {
+  assert.equal(accountingServicesService.normalizeBookingOverrides({}), null);
+});
+
+test('normalizeBookingOverrides: aceita apenas alguns campos, ignora os restantes (parcial por desenho)', () => {
+  const out = accountingServicesService.normalizeBookingOverrides({ weekdays: [1, 2, 3] });
+  assert.deepEqual(out, { weekdays: [1, 2, 3] });
+});
+
+test('normalizeBookingOverrides: rejeita weekdays vazio', () => {
+  assert.throws(
+    () => accountingServicesService.normalizeBookingOverrides({ weekdays: [] }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      return true;
+    },
+  );
+});
+
+test('normalizeBookingOverrides: rejeita slotMinutes fora do intervalo', () => {
+  assert.throws(
+    () => accountingServicesService.normalizeBookingOverrides({ slotMinutes: 5 }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      return true;
+    },
+  );
+});
+
+test('normalizeBookingOverrides: rejeita timezone fora da whitelist', () => {
+  assert.throws(
+    () => accountingServicesService.normalizeBookingOverrides({ timezone: 'America/New_York' }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      return true;
+    },
+  );
+});
+
+test('normalizeBookingOverrides: dayStart/dayEnd válidos são preservados', () => {
+  const out = accountingServicesService.normalizeBookingOverrides({ dayStart: '09:00', dayEnd: '13:00' });
+  assert.deepEqual(out, { dayStart: '09:00', dayEnd: '13:00' });
+});
+
 test('resolveRequiredDocuments: sem intake_form, devolve só a base do serviço', () => {
   const service = { documentRequirements: [{ tag: 'cc', title: 'Cartão de Cidadão' }] };
   const result = accountingServicesService.resolveRequiredDocuments(service, {});

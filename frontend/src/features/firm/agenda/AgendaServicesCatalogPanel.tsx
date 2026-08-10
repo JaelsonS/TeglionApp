@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import {
+  CalendarClock,
   Check,
   ChevronDown,
   Copy,
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { AgendaAvailabilityPanel } from '@/features/firm/agenda/AgendaAvailabilityPanel'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import {
@@ -35,6 +37,7 @@ import { getErrorMessage } from '@/shared/utils/errors'
 import type {
   AccountingService,
   DocumentRequirement,
+  FirmBookingSettings,
   IntakeQuestion,
   IntakeQuestionOption,
   IntakeQuestionType,
@@ -58,6 +61,18 @@ function generateStableId(prefix: string): string {
 }
 
 const CHOICE_TYPES: IntakeQuestionType[] = ['single_choice', 'multiple_choice', 'yes_no']
+
+/** Valores iniciais quando o escritório liga "Personalizar horários deste serviço" pela
+ * primeira vez — independentes das regras gerais (o painel não recebe a config do escritório). */
+const DEFAULT_BOOKING_OVERRIDE: FirmBookingSettings = {
+  slotMinutes: 30,
+  horizonDays: 14,
+  leadTimeHours: 2,
+  weekdays: [1, 2, 3, 4, 5],
+  dayStart: '09:00',
+  dayEnd: '17:00',
+  timezone: 'Europe/Lisbon',
+}
 
 const QUESTION_TYPE_LABELS: Record<IntakeQuestionType, string> = {
   text: 'Texto livre',
@@ -233,6 +248,27 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
     }))
   }
 
+  const toggleBookingOverride = (id: string, enabled: boolean) => {
+    patchAdvanced(id, { bookingOverrides: enabled ? { ...DEFAULT_BOOKING_OVERRIDE } : null })
+  }
+
+  const patchBookingOverride = (id: string, patch: Partial<FirmBookingSettings>) => {
+    setAdvancedDraft((prev) => {
+      const current = { ...DEFAULT_BOOKING_OVERRIDE, ...prev[id]?.bookingOverrides }
+      return { ...prev, [id]: { ...prev[id], bookingOverrides: { ...current, ...patch } } }
+    })
+  }
+
+  const toggleBookingOverrideWeekday = (id: string, day: number) => {
+    setAdvancedDraft((prev) => {
+      const current = { ...DEFAULT_BOOKING_OVERRIDE, ...prev[id]?.bookingOverrides }
+      const weekdays = current.weekdays.includes(day)
+        ? current.weekdays.filter((d) => d !== day)
+        : [...current.weekdays, day].sort((a, b) => a - b)
+      return { ...prev, [id]: { ...prev[id], bookingOverrides: { ...current, weekdays } } }
+    })
+  }
+
   const toggleExpanded = (s: AccountingService) => {
     setExpandedId((prev) => {
       if (prev === s.id) return null
@@ -244,6 +280,7 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
           requiresBooking: s.requiresBooking ?? true,
           documentRequirements: s.documentRequirements ?? [],
           intakeForm: s.intakeForm ?? { questions: [] },
+          bookingOverrides: s.bookingOverrides ?? null,
         },
       }))
       return s.id
@@ -261,6 +298,7 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
         requiresBooking: draft.requiresBooking,
         documentRequirements: draft.documentRequirements,
         intakeForm: draft.intakeForm,
+        bookingOverrides: draft.bookingOverrides,
       })
       toast.success('Serviço actualizado')
       await onReload()
@@ -705,6 +743,42 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
                           </label>
                         </div>
                       </div>
+
+                      {adv.requiresBooking ? (
+                        <div className="space-y-2 rounded-lg border border-border/40 p-3">
+                          <label className="flex items-center gap-2 text-sm font-medium">
+                            <Checkbox
+                              checked={Boolean(adv.bookingOverrides)}
+                              onCheckedChange={(checked: boolean | 'indeterminate') =>
+                                toggleBookingOverride(s.id, Boolean(checked))
+                              }
+                            />
+                            <CalendarClock className="h-3.5 w-3.5 opacity-60" />
+                            Personalizar horários deste serviço
+                          </label>
+                          {adv.bookingOverrides ? (
+                            <AgendaAvailabilityPanel
+                              booking={null}
+                              hideSaveButton
+                              wd={adv.bookingOverrides.weekdays ?? DEFAULT_BOOKING_OVERRIDE.weekdays}
+                              slotMin={adv.bookingOverrides.slotMinutes ?? DEFAULT_BOOKING_OVERRIDE.slotMinutes}
+                              horizon={adv.bookingOverrides.horizonDays ?? DEFAULT_BOOKING_OVERRIDE.horizonDays}
+                              bookingTz={adv.bookingOverrides.timezone || DEFAULT_BOOKING_OVERRIDE.timezone || 'Europe/Lisbon'}
+                              dayStart={adv.bookingOverrides.dayStart ?? DEFAULT_BOOKING_OVERRIDE.dayStart}
+                              dayEnd={adv.bookingOverrides.dayEnd ?? DEFAULT_BOOKING_OVERRIDE.dayEnd}
+                              onToggleWeekday={(n) => toggleBookingOverrideWeekday(s.id, n)}
+                              onSlotMin={(n) => patchBookingOverride(s.id, { slotMinutes: n })}
+                              onHorizon={(n) => patchBookingOverride(s.id, { horizonDays: n })}
+                              onBookingTz={(tz) => patchBookingOverride(s.id, { timezone: tz })}
+                              onDayStart={(v) => patchBookingOverride(s.id, { dayStart: v })}
+                              onDayEnd={(v) => patchBookingOverride(s.id, { dayEnd: v })}
+                              onSaveAvailability={() => {}}
+                            />
+                          ) : (
+                            <p className="cb-text-caption">Usa os horários gerais do escritório (Definições da agenda).</p>
+                          )}
+                        </div>
+                      ) : null}
 
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
