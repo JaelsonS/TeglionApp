@@ -273,6 +273,7 @@ export function AgendaWorkspace() {
       {tab === 'settings' ? (
         <AgendaSettingsView
           services={services}
+          servicesLoading={loading}
           booking={booking}
           wd={wd}
           slotMin={slotMin}

@@ -7,6 +7,7 @@ import type { AccountingService, FirmBookingSettings } from '@/shared/types/cont
 
 type Props = {
   services: AccountingService[]
+  servicesLoading: boolean
   booking: FirmBookingSettings | null
   wd: number[]
   slotMin: number
@@ -73,7 +74,11 @@ export function AgendaSettingsView(props: Props) {
             <p className="cb-agenda-settings-block-sub">Tipos de consulta visíveis ao cliente no portal</p>
           </div>
         </div>
-        <AgendaServicesCatalogPanel services={props.services} onReload={props.onReload} />
+        <AgendaServicesCatalogPanel
+          services={props.services}
+          isLoading={props.servicesLoading}
+          onReload={props.onReload}
+        />
       </section>
 
       <section className="cb-agenda-settings-block">
