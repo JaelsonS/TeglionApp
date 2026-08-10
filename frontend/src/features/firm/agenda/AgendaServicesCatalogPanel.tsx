@@ -93,6 +93,7 @@ const QUESTION_TYPE_LABELS: Record<IntakeQuestionType, string> = {
 
 type Props = {
   services: AccountingService[]
+  isLoading: boolean
   onReload: () => void | Promise<void>
 }
 
@@ -100,7 +101,7 @@ function formatPrice(cents: number) {
   return (cents / 100).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })
 }
 
-export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
+export function AgendaServicesCatalogPanel({ services, isLoading, onReload }: Props) {
   const [filter, setFilter] = useState<FilterMode>('all')
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -137,7 +138,10 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
   }, [services, filter, search])
 
   const ensureCatalog = useCallback(async () => {
-    if (services.length > 0) return
+    // `services` nasce `[]` a cada montagem, antes do fetch do pai resolver —
+    // sem esperar por `isLoading`, isto confundia "ainda a carregar" com
+    // "catálogo genuinamente vazio" e reseedava (+ toast) em toda navegação.
+    if (isLoading || services.length > 0) return
     setBusy(true)
     try {
       await contabilAccountingServicesApi.seedCatalog()
@@ -148,7 +152,7 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
     } finally {
       setBusy(false)
     }
-  }, [services.length, onReload])
+  }, [isLoading, services.length, onReload])
 
   useEffect(() => {
     void ensureCatalog()
