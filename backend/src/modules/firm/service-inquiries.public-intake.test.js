@@ -132,6 +132,9 @@ test('submitPublicIntake: identidade nova (Lead), documentos pendentes -> status
   assert.equal(created.clientId, null);
   assert.equal(created.status, 'DOCS_REQUESTED');
   assert.equal(created.accessToken.length, 64);
+  assert.ok(created.accessTokenExpiresAt, 'devia definir um tecto de expiração já na criação');
+  const daysUntilExpiry = (new Date(created.accessTokenExpiresAt).getTime() - Date.now()) / (24 * 60 * 60 * 1000);
+  assert.ok(daysUntilExpiry > 170 && daysUntilExpiry <= 180, 'tecto inicial devia ser ~180 dias');
   assert.equal(requiredDocuments.length, 1);
   assert.equal(inquiry.id, 'inquiry-1');
 });
@@ -458,6 +461,84 @@ test('recordDocumentDelivery: última entrega completa a checklist e avança DOC
 
   assert.equal(result.allComplete, true);
   assert.equal(updatedPatch.status, 'IN_PROGRESS');
+});
+
+test('recordDocumentDelivery: audita a entrega mesmo numa entrega parcial (não só quando completa)', async () => {
+  resetMocks();
+  const auditCalls = [];
+  mock.method(auditRepository, 'writeAuditLog', async (args) => {
+    auditCalls.push(args.action);
+  });
+  mock.method(firmUsersRepository, 'findFirmOwnerEmail', async () => null);
+  mock.method(contabilNotifications, 'notifyFirmIntakeDocumentReceived', async () => ({ ok: true }));
+  mock.method(serviceInquiriesRepository, 'findByAccessToken', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM.id,
+    serviceId: SERVICE.id,
+    status: 'DOCS_REQUESTED',
+    answers: {},
+    leadId: 'lead-1',
+    clientId: null,
+  }));
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
+    ...SERVICE,
+    documentRequirements: [
+      { tag: 'cc', title: 'Cartão de Cidadão' },
+      { tag: 'iban', title: 'Comprovativo de IBAN' },
+    ],
+  }));
+  mock.method(contabilStorage, 'uploadServiceInquiryDocument', async () => ({ provider: 'supabase', path: 'p/1' }));
+  mock.method(serviceInquiryDocumentsRepository, 'createRow', async () => ({ id: 'doc-1' }));
+  mock.method(serviceInquiryDocumentsRepository, 'listByInquiry', async () => [{ tag: 'cc' }]);
+  mock.method(serviceInquiriesRepository, 'updateRow', async () => ({}));
+  mock.method(firmsRepository, 'findFirmById', async () => FIRM);
+  mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana' }));
+
+  await serviceInquiriesService.recordDocumentDelivery({
+    token: 'x',
+    tag: 'cc',
+    file: { buffer: Buffer.from('x'), mimetype: 'application/pdf', size: 10 },
+  });
+
+  assert.ok(auditCalls.includes('service_inquiry.document_delivered'));
+  assert.ok(
+    !auditCalls.includes('service_inquiry.status_changed'),
+    'entrega parcial não avança estado, não devia auditar transição',
+  );
+});
+
+test('recordDocumentDelivery: entrega que completa a checklist audita entrega E transição de estado', async () => {
+  resetMocks();
+  const auditCalls = [];
+  mock.method(auditRepository, 'writeAuditLog', async (args) => {
+    auditCalls.push(args.action);
+  });
+  mock.method(firmUsersRepository, 'findFirmOwnerEmail', async () => null);
+  mock.method(contabilNotifications, 'notifyFirmIntakeDocumentReceived', async () => ({ ok: true }));
+  mock.method(serviceInquiriesRepository, 'findByAccessToken', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM.id,
+    serviceId: SERVICE.id,
+    status: 'DOCS_REQUESTED',
+    answers: {},
+    leadId: 'lead-1',
+    clientId: null,
+  }));
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
+  mock.method(contabilStorage, 'uploadServiceInquiryDocument', async () => ({ provider: 'supabase', path: 'p/1' }));
+  mock.method(serviceInquiryDocumentsRepository, 'createRow', async () => ({ id: 'doc-1' }));
+  mock.method(serviceInquiryDocumentsRepository, 'listByInquiry', async () => [{ tag: 'cc' }]);
+  mock.method(serviceInquiriesRepository, 'updateRow', async () => ({}));
+  mock.method(firmsRepository, 'findFirmById', async () => FIRM);
+  mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana' }));
+
+  await serviceInquiriesService.recordDocumentDelivery({
+    token: 'x',
+    tag: 'cc',
+    file: { buffer: Buffer.from('x'), mimetype: 'application/pdf', size: 10 },
+  });
+
+  assert.deepEqual(auditCalls, ['service_inquiry.document_delivered', 'service_inquiry.status_changed']);
 });
 
 resetMocks();

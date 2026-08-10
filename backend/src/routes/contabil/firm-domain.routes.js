@@ -382,5 +382,10 @@ router.patch(
   [body('status').optional().isString().trim(), body('notes').optional().isString().trim().isLength({ max: 4000 })],
   serviceInquiriesController.patch,
 );
+router.post(
+  '/service-inquiries/:id/revoke-token',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  serviceInquiriesController.revokeToken,
+);
 
 module.exports = router;

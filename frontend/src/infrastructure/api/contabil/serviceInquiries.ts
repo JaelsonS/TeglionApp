@@ -11,6 +11,8 @@ export type ServiceInquiryListItem = {
   notes: string | null
   answers: Record<string, string | string[]> | null
   submittedAt: string | null
+  accessTokenExpiresAt?: string | null
+  accessTokenRevokedAt?: string | null
   createdAt: string
 }
 
@@ -43,6 +45,9 @@ export function createContabilServiceInquiriesApi(api: AxiosInstance) {
       api
         .get(`/contabil/service-inquiries/${encodeURIComponent(id)}/documents/${encodeURIComponent(documentId)}/download`)
         .then((r) => r.data as { url: string; title: string; mimeType: string | null }),
+
+    revokeToken: (id: string) =>
+      api.post(`/contabil/service-inquiries/${encodeURIComponent(id)}/revoke-token`).then((r) => r.data),
   }
 }
 

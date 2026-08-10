@@ -73,6 +73,20 @@ export function ServiceInquiriesWorkspace() {
     }
   }
 
+  const revokeToken = async () => {
+    if (!selectedId) return
+    if (!window.confirm('Revogar o link do cliente? Esta ação não pode ser desfeita — o cliente deixa de conseguir aceder à solicitação por esse link.')) {
+      return
+    }
+    try {
+      await contabilServiceInquiriesApi.revokeToken(selectedId)
+      toast.success('Link revogado')
+      await qc.invalidateQueries({ queryKey: ['service-inquiry-detail', selectedId] })
+    } catch (err) {
+      toast.error('Erro ao revogar link', { description: getErrorMessage(err) })
+    }
+  }
+
   const downloadDocument = async (documentId: string) => {
     if (!selectedId) return
     try {
@@ -186,6 +200,14 @@ export function ServiceInquiriesWorkspace() {
                   ))}
                 </select>
               </label>
+
+              {detailQuery.data.inquiry.accessTokenRevokedAt ? (
+                <p className="text-xs text-muted-foreground">Link do cliente já revogado.</p>
+              ) : (
+                <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={() => void revokeToken()}>
+                  Revogar link do cliente
+                </Button>
+              )}
 
               {questions.length > 0 ? (
                 <div className="space-y-2">

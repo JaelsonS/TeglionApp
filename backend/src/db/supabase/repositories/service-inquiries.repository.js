@@ -15,6 +15,8 @@ function map(row) {
     answers: row.answers || null,
     submittedAt: row.submitted_at || null,
     accessToken: row.access_token || null,
+    accessTokenExpiresAt: row.access_token_expires_at || null,
+    accessTokenRevokedAt: row.access_token_revoked_at || null,
     createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -59,6 +61,7 @@ async function createRow({
   answers,
   submittedAt,
   accessToken,
+  accessTokenExpiresAt,
   status,
 }) {
   const sb = getSupabaseAdmin();
@@ -73,6 +76,7 @@ async function createRow({
     answers: answers || null,
     submitted_at: submittedAt || null,
     access_token: accessToken || null,
+    access_token_expires_at: accessTokenExpiresAt || null,
   };
   if (status) insertRow.status = status;
   const { data, error } = await sb.from('service_inquiries').insert(insertRow).select().single();
@@ -80,8 +84,19 @@ async function createRow({
   return map(data);
 }
 
+/** Pura, testável directamente: um token revogado ou expirado nunca é válido,
+ * independentemente de quem o chama. Sem accessTokenExpiresAt, nunca expira por si só. */
+function isAccessTokenActive(inquiry) {
+  if (!inquiry) return false;
+  if (inquiry.accessTokenRevokedAt) return false;
+  if (inquiry.accessTokenExpiresAt && new Date(inquiry.accessTokenExpiresAt).getTime() < Date.now()) return false;
+  return true;
+}
+
 /** Lookup público pelo token opaco do mini-portal — não faz .eq('firm_id', ...) porque
- * o token É a credencial (o chamador ainda não sabe a que firm pertence). */
+ * o token É a credencial (o chamador ainda não sabe a que firm pertence). Devolve null
+ * (mesma resposta genérica de "não encontrado") se o token foi revogado ou expirou —
+ * nunca distingue esse caso de "nunca existiu", evita dar pistas a quem tenta adivinhar. */
 async function findByAccessToken(token) {
   const value = String(token || '').trim();
   if (!value) return null;
@@ -92,7 +107,8 @@ async function findByAccessToken(token) {
     .eq('access_token', value)
     .maybeSingle();
   if (error) throw error;
-  return map(data);
+  const inquiry = map(data);
+  return isAccessTokenActive(inquiry) ? inquiry : null;
 }
 
 async function updateRow(id, firmId, patch) {
@@ -102,6 +118,8 @@ async function updateRow(id, firmId, patch) {
   if (patch.notes !== undefined) row.notes = patch.notes ? String(patch.notes).trim() : null;
   if (patch.assignedStaffId !== undefined) row.assigned_staff_id = patch.assignedStaffId || null;
   if (patch.consultationId !== undefined) row.consultation_id = patch.consultationId || null;
+  if (patch.accessTokenExpiresAt !== undefined) row.access_token_expires_at = patch.accessTokenExpiresAt || null;
+  if (patch.accessTokenRevokedAt !== undefined) row.access_token_revoked_at = patch.accessTokenRevokedAt || null;
 
   const { data, error } = await sb
     .from('service_inquiries')
@@ -131,6 +149,7 @@ module.exports = {
   listByFirm,
   findByIdForFirm,
   findByAccessToken,
+  isAccessTokenActive,
   createRow,
   updateRow,
   reassignLeadToClient,

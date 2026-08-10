@@ -17,6 +17,12 @@ const auditRepository = require('../../db/supabase/repositories/contabil/audit.r
 const VALID_STATUSES = ['NEW', 'CONTACTED', 'DOCS_REQUESTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
 const TERMINAL_STATUSES = new Set(['COMPLETED', 'CANCELLED']);
 
+// Ciclo de vida do access_token do mini-portal (ver especificação da sessão, v8):
+// tecto generoso desde a submissão (cobre um processo lento sem expirar por engano),
+// apertado para uma janela curta assim que a ServiceInquiry fica concluída/cancelada.
+const ACCESS_TOKEN_TTL_MS = 180 * 24 * 60 * 60 * 1000;
+const ACCESS_TOKEN_GRACE_MS = 30 * 24 * 60 * 60 * 1000;
+
 async function enrichForList(firmId, inquiries) {
   const serviceIds = [...new Set(inquiries.map((i) => i.serviceId).filter(Boolean))];
   const services = await accountingServicesRepository.findByIdsForFirm(serviceIds, firmId);
@@ -135,6 +141,11 @@ async function update({ firmId, id, actor, payload }) {
   if (payload?.status !== undefined) {
     assertValidTransition(existing.status, payload.status);
     patch.status = payload.status;
+    if (TERMINAL_STATUSES.has(payload.status)) {
+      // Aperta a janela do access_token assim que o pedido fecha — deixa de valer
+      // indefinidamente, mas dá tempo ao cliente de rever a confirmação.
+      patch.accessTokenExpiresAt = new Date(Date.now() + ACCESS_TOKEN_GRACE_MS).toISOString();
+    }
   }
 
   const inquiry = await serviceInquiriesRepository.updateRow(id, firmId, patch);
@@ -150,6 +161,29 @@ async function update({ firmId, id, actor, payload }) {
       metadata: { from: existing.status, to: patch.status },
     });
   }
+
+  return { inquiry };
+}
+
+/** Revogação manual do access_token pela equipa (ex.: suspeita de link vazado). */
+async function revokeAccessToken({ firmId, id, actor }) {
+  const existing = await serviceInquiriesRepository.findByIdForFirm(id, firmId);
+  if (!existing) throw new AppError('Solicitação não encontrada', 404);
+  if (existing.accessTokenRevokedAt) return { inquiry: existing };
+
+  const inquiry = await serviceInquiriesRepository.updateRow(id, firmId, {
+    accessTokenRevokedAt: new Date().toISOString(),
+  });
+
+  await auditRepository.writeAuditLog({
+    firmId,
+    actorRole: 'FIRM',
+    actorId: actor?.id,
+    action: 'service_inquiry.token_revoked',
+    entityType: 'service_inquiry',
+    entityId: id,
+    metadata: {},
+  });
 
   return { inquiry };
 }
@@ -250,6 +284,7 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
     answers,
     submittedAt,
     accessToken,
+    accessTokenExpiresAt: new Date(Date.now() + ACCESS_TOKEN_TTL_MS).toISOString(),
     status: initialStatus,
   });
 
@@ -332,7 +367,7 @@ async function recordDocumentDelivery({ token, tag, file }) {
     file,
   });
 
-  await serviceInquiryDocumentsRepository.createRow({
+  const deliveredDoc = await serviceInquiryDocumentsRepository.createRow({
     firmId: inquiry.firmId,
     serviceInquiryId: inquiry.id,
     tag: requirement.tag,
@@ -343,12 +378,31 @@ async function recordDocumentDelivery({ token, tag, file }) {
     sizeBytes: file.size || null,
   });
 
+  await auditRepository.writeAuditLog({
+    firmId: inquiry.firmId,
+    actorRole: 'PUBLIC',
+    actorId: null,
+    action: 'service_inquiry.document_delivered',
+    entityType: 'service_inquiry',
+    entityId: inquiry.id,
+    metadata: { tag: requirement.tag, documentId: deliveredDoc.id },
+  });
+
   const received = await serviceInquiryDocumentsRepository.listByInquiry(inquiry.id, inquiry.firmId);
   const receivedTags = new Set(received.map((d) => d.tag));
   const allComplete = requiredDocuments.every((d) => receivedTags.has(d.tag));
 
   if (allComplete && inquiry.status === 'DOCS_REQUESTED') {
     await serviceInquiriesRepository.updateRow(inquiry.id, inquiry.firmId, { status: 'IN_PROGRESS' });
+    await auditRepository.writeAuditLog({
+      firmId: inquiry.firmId,
+      actorRole: 'PUBLIC',
+      actorId: null,
+      action: 'service_inquiry.status_changed',
+      entityType: 'service_inquiry',
+      entityId: inquiry.id,
+      metadata: { from: 'DOCS_REQUESTED', to: 'IN_PROGRESS', reason: 'all_documents_received' },
+    });
   }
 
   const firm = await firmsRepository.findFirmById(inquiry.firmId).catch(() => null);
@@ -375,6 +429,7 @@ module.exports = {
   getById,
   create,
   update,
+  revokeAccessToken,
   submitPublicIntake,
   getByAccessToken,
   recordDocumentDelivery,

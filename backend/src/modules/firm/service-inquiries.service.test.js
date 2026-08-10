@@ -119,3 +119,101 @@ test('update: CANCELLED é aceite a partir de qualquer estado não-terminal', as
   });
   assert.equal(inquiry.status, 'CANCELLED');
 });
+
+test('update: transição para estado terminal aperta access_token_expires_at (não fica indefinido)', async () => {
+  resetMocks();
+  mockAudit();
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({ id: 'inquiry-1', status: 'IN_PROGRESS' }));
+  let patchSent = null;
+  mock.method(serviceInquiriesRepository, 'updateRow', async (id, firmId, patch) => {
+    patchSent = patch;
+    return { id, status: patch.status };
+  });
+
+  await serviceInquiriesService.update({
+    firmId: FIRM_ID,
+    id: 'inquiry-1',
+    actor: { id: 'staff-1' },
+    payload: { status: 'COMPLETED' },
+  });
+
+  assert.ok(patchSent.accessTokenExpiresAt, 'devia apertar a expiração ao concluir');
+  const daysUntilExpiry = (new Date(patchSent.accessTokenExpiresAt).getTime() - Date.now()) / (24 * 60 * 60 * 1000);
+  assert.ok(daysUntilExpiry <= 31 && daysUntilExpiry >= 29, 'janela de graça devia ser ~30 dias, não o tecto de 180');
+});
+
+test('update: transição não-terminal não mexe em access_token_expires_at', async () => {
+  resetMocks();
+  mockAudit();
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({ id: 'inquiry-1', status: 'NEW' }));
+  let patchSent = null;
+  mock.method(serviceInquiriesRepository, 'updateRow', async (id, firmId, patch) => {
+    patchSent = patch;
+    return { id, status: patch.status };
+  });
+
+  await serviceInquiriesService.update({
+    firmId: FIRM_ID,
+    id: 'inquiry-1',
+    actor: { id: 'staff-1' },
+    payload: { status: 'CONTACTED' },
+  });
+
+  assert.equal(patchSent.accessTokenExpiresAt, undefined);
+});
+
+test('revokeAccessToken: marca revogado e audita', async () => {
+  resetMocks();
+  let auditAction = null;
+  mock.method(auditRepository, 'writeAuditLog', async (args) => {
+    auditAction = args.action;
+  });
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({ id: 'inquiry-1', accessTokenRevokedAt: null }));
+  let patchSent = null;
+  mock.method(serviceInquiriesRepository, 'updateRow', async (id, firmId, patch) => {
+    patchSent = patch;
+    return { id, accessTokenRevokedAt: patch.accessTokenRevokedAt };
+  });
+
+  const { inquiry } = await serviceInquiriesService.revokeAccessToken({
+    firmId: FIRM_ID,
+    id: 'inquiry-1',
+    actor: { id: 'staff-1' },
+  });
+
+  assert.ok(inquiry.accessTokenRevokedAt);
+  assert.ok(patchSent.accessTokenRevokedAt);
+  assert.equal(auditAction, 'service_inquiry.token_revoked');
+});
+
+test('revokeAccessToken: já revogado é idempotente (não chama updateRow de novo)', async () => {
+  resetMocks();
+  mockAudit();
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
+    id: 'inquiry-1',
+    accessTokenRevokedAt: '2026-01-01T00:00:00.000Z',
+  }));
+  mock.method(serviceInquiriesRepository, 'updateRow', async () => {
+    throw new Error('não devia chamar updateRow para um token já revogado');
+  });
+
+  const { inquiry } = await serviceInquiriesService.revokeAccessToken({
+    firmId: FIRM_ID,
+    id: 'inquiry-1',
+    actor: { id: 'staff-1' },
+  });
+  assert.equal(inquiry.accessTokenRevokedAt, '2026-01-01T00:00:00.000Z');
+});
+
+test('revokeAccessToken: solicitação inexistente devolve 404', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => null);
+
+  await assert.rejects(
+    () => serviceInquiriesService.revokeAccessToken({ firmId: FIRM_ID, id: 'inquiry-x', actor: {} }),
+    (err) => {
+      assert.equal(err.statusCode, 404);
+      return true;
+    },
+  );
+});
