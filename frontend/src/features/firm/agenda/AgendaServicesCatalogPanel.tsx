@@ -3,6 +3,7 @@ import type { FormChangeEvent } from '@/shared/types/react-events'
 import {
   CalendarClock,
   Check,
+  CheckCircle2,
   ChevronDown,
   Copy,
   ExternalLink,
@@ -115,6 +116,9 @@ export function AgendaServicesCatalogPanel({ services, isLoading, onReload }: Pr
   const [advancedDraft, setAdvancedDraft] = useState<Record<string, Partial<AccountingService>>>({})
   const [duplicating, setDuplicating] = useState<string | null>(null)
   const [previewId, setPreviewId] = useState<string | null>(null)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [createDraft, setCreateDraft] = useState({ name: '', description: '', durationMinutes: 60, priceEuros: 0 })
   const { user } = useAuth()
   const firmSlug = user?.tenant?.slug
 
@@ -244,6 +248,35 @@ export function AgendaServicesCatalogPanel({ services, isLoading, onReload }: Pr
       toast.error('Erro ao activar', { description: getErrorMessage(err) })
     } finally {
       setBusy(false)
+    }
+  }
+
+  const createService = async () => {
+    const name = createDraft.name.trim()
+    if (!name) {
+      toast.error('Dê um nome ao serviço')
+      return
+    }
+    if (!createDraft.durationMinutes || createDraft.durationMinutes < 15) {
+      toast.error('Duração mínima é 15 minutos')
+      return
+    }
+    setCreating(true)
+    try {
+      await contabilAccountingServicesApi.create({
+        name,
+        description: createDraft.description.trim() || undefined,
+        durationMinutes: createDraft.durationMinutes,
+        priceEuros: createDraft.priceEuros,
+      })
+      toast.success(`"${name}" criado — active as definições avançadas para publicar`)
+      setCreateOpen(false)
+      setCreateDraft({ name: '', description: '', durationMinutes: 60, priceEuros: 0 })
+      await onReload()
+    } catch (err) {
+      toast.error('Erro ao criar serviço', { description: getErrorMessage(err) })
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -469,8 +502,8 @@ export function AgendaServicesCatalogPanel({ services, isLoading, onReload }: Pr
   return (
     <>
     <ProfileSectionCard
-      title="Catálogo de consultorias"
-      description="Active apenas o que o escritório presta. O cliente vê só serviços activos ao agendar no portal."
+      title="Os seus serviços"
+      description="Active, edite e publique — cada serviço (IRS, consultoria ou outro) pode ter o seu próprio formulário, documentos exigidos e agendamento."
       className="lg:col-span-2"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
@@ -504,6 +537,10 @@ export function AgendaServicesCatalogPanel({ services, isLoading, onReload }: Pr
             </button>
           ))}
         </div>
+        <Button type="button" className="cb-btn-primary rounded-full" onClick={() => setCreateOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Criar serviço
+        </Button>
         <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
           <PopoverTrigger asChild>
             <Button type="button" variant="outline" className="rounded-full">
@@ -749,6 +786,13 @@ export function AgendaServicesCatalogPanel({ services, isLoading, onReload }: Pr
 
                   {isExpanded && adv ? (
                     <div className="space-y-4 border-t border-border/40 bg-muted/10 px-4 py-4">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">Publicação e agendamento</p>
+                        <p className="cb-text-caption">
+                          O que o cliente vê e preenche na página pública deste serviço — link, formulário,
+                          documentos exigidos e horários.
+                        </p>
+                      </div>
                       <div className="grid gap-3 sm:grid-cols-2">
                         <label className="space-y-1">
                           <span className="text-caption font-medium text-muted-foreground">
@@ -784,14 +828,48 @@ export function AgendaServicesCatalogPanel({ services, isLoading, onReload }: Pr
                       </div>
 
                       {s.isPubliclyListed && s.slug && firmSlug ? (
-                        <a
-                          href={`/${firmSlug}/servicos/${s.slug}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
-                        >
-                          Ver página pública <ExternalLink className="h-3 w-3" />
-                        </a>
+                        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-emerald-200 bg-emerald-50/60 px-3 py-2.5">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-emerald-800">Publicado</p>
+                              <p className="truncate text-xs text-emerald-700">
+                                {typeof window !== 'undefined' ? window.location.origin : ''}/{firmSlug}/servicos/{s.slug}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex shrink-0 gap-1.5">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="h-8 rounded-full border-emerald-300 bg-white text-xs"
+                              onClick={() => {
+                                void navigator.clipboard.writeText(
+                                  `${window.location.origin}/${firmSlug}/servicos/${s.slug}`,
+                                )
+                                toast.success('Link copiado')
+                              }}
+                            >
+                              <Copy className="mr-1 h-3 w-3" /> Copiar
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="h-8 rounded-full text-xs"
+                              onClick={() =>
+                                window.open(`/${firmSlug}/servicos/${s.slug}`, '_blank', 'noopener,noreferrer')
+                              }
+                            >
+                              Abrir <ExternalLink className="ml-1 h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ) : adv.isPubliclyListed ? (
+                        <p className="cb-text-caption">
+                          Defina o endereço público (slug) acima e grave para gerar o link que pode partilhar
+                          com os clientes.
+                        </p>
                       ) : null}
 
                       {adv.requiresBooking ? (
@@ -1025,6 +1103,69 @@ export function AgendaServicesCatalogPanel({ services, isLoading, onReload }: Pr
       <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
         <SheetHiddenTitle>Pré-visualização do formulário</SheetHiddenTitle>
         {previewService ? <ServiceFormPreview {...previewDataFor(previewService)} /> : null}
+      </SheetContent>
+    </Sheet>
+
+    <Sheet open={createOpen} onOpenChange={setCreateOpen}>
+      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
+        <SheetHiddenTitle>Criar serviço</SheetHiddenTitle>
+        <div className="space-y-5 py-2">
+          <div>
+            <h2 className="text-lg font-bold">Criar serviço</h2>
+            <p className="cb-text-caption">
+              Nome, duração e preço iniciais — pode ajustar tudo depois, incluindo IRS, formulário e
+              agendamento, nas definições avançadas.
+            </p>
+          </div>
+          <label className="block space-y-1">
+            <span className="text-caption font-medium text-muted-foreground">Nome *</span>
+            <Input
+              className="rounded-lg"
+              placeholder="Ex.: Declaração de IRS 2026"
+              value={createDraft.name}
+              onChange={(e: FormChangeEvent) => setCreateDraft((d) => ({ ...d, name: e.target.value }))}
+            />
+          </label>
+          <label className="block space-y-1">
+            <span className="text-caption font-medium text-muted-foreground">Descrição (opcional)</span>
+            <Input
+              className="rounded-lg"
+              placeholder="Breve explicação para o cliente"
+              value={createDraft.description}
+              onChange={(e: FormChangeEvent) => setCreateDraft((d) => ({ ...d, description: e.target.value }))}
+            />
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block space-y-1">
+              <span className="text-caption font-medium text-muted-foreground">Duração (min) *</span>
+              <Input
+                type="number"
+                min={15}
+                max={480}
+                className="rounded-lg"
+                value={createDraft.durationMinutes}
+                onChange={(e: FormChangeEvent) =>
+                  setCreateDraft((d) => ({ ...d, durationMinutes: Number(e.target.value) || 15 }))
+                }
+              />
+            </label>
+            <label className="block space-y-1">
+              <span className="text-caption font-medium text-muted-foreground">Preço (€)</span>
+              <EuroInput
+                value={createDraft.priceEuros}
+                onChange={(v) => setCreateDraft((d) => ({ ...d, priceEuros: v }))}
+              />
+            </label>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setCreateOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="button" disabled={creating} onClick={() => void createService()}>
+              {creating ? 'A criar…' : 'Criar serviço'}
+            </Button>
+          </div>
+        </div>
       </SheetContent>
     </Sheet>
     </>

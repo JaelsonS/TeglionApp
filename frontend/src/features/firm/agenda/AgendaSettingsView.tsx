@@ -1,8 +1,9 @@
-import { CalendarClock, Layers, Plug } from 'lucide-react'
+import { ArrowRight, CalendarClock, CalendarDays, Layers } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 import { AgendaAvailabilityPanel } from '@/features/firm/agenda/AgendaAvailabilityPanel'
-import { AgendaServicesCatalogPanel } from '@/features/firm/agenda/AgendaServicesCatalogPanel'
 import { GoogleCalendarIntegrationPanel } from '@/features/firm/agenda/GoogleCalendarIntegrationPanel'
+import { Button } from '@/shared/components/ui/button'
 import type { AccountingService, FirmBookingSettings } from '@/shared/types/contabil'
 
 type Props = {
@@ -31,8 +32,8 @@ export function AgendaSettingsView(props: Props) {
       <div className="cb-agenda-settings-intro">
         <h2 className="cb-agenda-settings-intro-title">Definições da agenda</h2>
         <p className="cb-agenda-settings-intro-sub">
-          Defina dias de atendimento (incluindo fins de semana, se aplicável), horários e catálogo de
-          serviços para marcações no portal do cliente.
+          Configure aqui os serviços que o escritório presta — IRS, consultorias e outros —, os dias e
+          horários em que aceita marcações, e a ligação ao Google Calendar.
         </p>
       </div>
 
@@ -70,25 +71,35 @@ export function AgendaSettingsView(props: Props) {
             <Layers className="h-4 w-4" aria-hidden />
           </span>
           <div>
-            <h3 className="cb-agenda-settings-block-title">Catálogo de serviços</h3>
-            <p className="cb-agenda-settings-block-sub">Tipos de consulta visíveis ao cliente no portal</p>
+            <h3 className="cb-agenda-settings-block-title">Serviços do escritório</h3>
+            <p className="cb-agenda-settings-block-sub">
+              IRS, consultorias e outros — crie, configure e publique cada um na página pública
+            </p>
           </div>
         </div>
-        <AgendaServicesCatalogPanel
-          services={props.services}
-          isLoading={props.servicesLoading}
-          onReload={props.onReload}
-        />
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/40 bg-muted/10 p-4">
+          <p className="text-sm text-muted-foreground">
+            {props.services.length > 0
+              ? `${props.services.filter((s) => s.isActive !== false).length} de ${props.services.length} serviço(s) activo(s).`
+              : 'Ainda não tem nenhum serviço configurado.'}{' '}
+            Crie, edite e publique em Serviços → Catálogo.
+          </p>
+          <Link to="/app/firm/services">
+            <Button type="button" size="sm" className="rounded-full">
+              Ir para Serviços <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+            </Button>
+          </Link>
+        </div>
       </section>
 
       <section className="cb-agenda-settings-block">
         <div className="cb-agenda-settings-block-hd">
           <span className="cb-agenda-settings-block-icon">
-            <Plug className="h-4 w-4" aria-hidden />
+            <CalendarDays className="h-4 w-4" aria-hidden />
           </span>
           <div>
-            <h3 className="cb-agenda-settings-block-title">Integrações</h3>
-            <p className="cb-agenda-settings-block-sub">Ligações a serviços externos</p>
+            <h3 className="cb-agenda-settings-block-title">Google Calendar</h3>
+            <p className="cb-agenda-settings-block-sub">Sincronize as suas marcações com a sua conta Google</p>
           </div>
         </div>
         <GoogleCalendarIntegrationPanel />
