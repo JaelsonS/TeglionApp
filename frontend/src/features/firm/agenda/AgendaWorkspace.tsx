@@ -99,8 +99,9 @@ export function AgendaWorkspace() {
   }, [load])
 
   const clientName = useCallback(
-    (id: string) => {
-      const c = clients.find((x) => x._id === id)
+    (item: Consultation) => {
+      if (item.holderName) return item.holderName
+      const c = clients.find((x) => x._id === item.clientId)
       return c?.fullName || c?.displayName || c?.name || 'Cliente'
     },
     [clients],

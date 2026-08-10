@@ -1,14 +1,33 @@
 const { AppError } = require('../../middlewares/error.middleware');
 const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
+const leadsRepository = require('../../db/supabase/repositories/leads.repository');
+
+/** Nome do titular (Client ou Lead) — mesmo padrão de requesterNameForInquiry em service-inquiries.service.js. */
+async function holderNameForConsultation(firmId, consultation) {
+  if (consultation.leadId) {
+    const lead = await leadsRepository.findByIdForFirm(consultation.leadId, firmId);
+    return lead?.name || null;
+  }
+  if (consultation.clientId) {
+    const client = await clientsRepository.findClientById(firmId, consultation.clientId);
+    return client?.displayName || client?.name || null;
+  }
+  return null;
+}
 
 async function listConsultations({ firmId, clientId, from, to }) {
-  return consultationsRepository.listConsultations({
+  const items = await consultationsRepository.listConsultations({
     firmId,
     clientId,
     from,
     to,
   });
+  const enriched = [];
+  for (const item of items) {
+    enriched.push({ ...item, holderName: await holderNameForConsultation(firmId, item) });
+  }
+  return enriched;
 }
 
 async function createConsultation({ firmId, clientId, staffId, title, scheduledAt, durationMinutes, notes }) {

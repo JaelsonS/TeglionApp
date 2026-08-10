@@ -14,6 +14,8 @@ export type ServiceInquiryListItem = {
   accessTokenExpiresAt?: string | null
   accessTokenRevokedAt?: string | null
   createdAt: string
+  /** Consulta agendada (Fase 3a) — só devolvida por getById(), null se não houver booking. */
+  consultation?: { id: string; scheduledAt: string; status: string } | null
 }
 
 export type ServiceInquiryRequestKind = 'document' | 'question'

@@ -209,6 +209,19 @@ export function ServiceInquiriesWorkspace() {
                 <h2 className="text-lg font-bold">{detailQuery.data.inquiry.requesterName || 'Sem nome'}</h2>
               </div>
 
+              {detailQuery.data.inquiry.consultation ? (
+                <div className="rounded-lg border border-brand/30 bg-brand/5 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-brand">Consulta agendada</p>
+                  <p className="text-sm font-medium">
+                    {new Date(detailQuery.data.inquiry.consultation.scheduledAt).toLocaleString('pt-PT', {
+                      dateStyle: 'full',
+                      timeStyle: 'short',
+                      timeZone: 'Europe/Lisbon',
+                    })}
+                  </p>
+                </div>
+              ) : null}
+
               <label className="block space-y-1 text-sm">
                 <span className="font-medium text-muted-foreground">Estado</span>
                 <select

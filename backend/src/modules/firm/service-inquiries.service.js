@@ -5,6 +5,7 @@ const serviceInquiryDocumentsRepository = require('../../db/supabase/repositorie
 const serviceInquiryRequestsRepository = require('../../db/supabase/repositories/service-inquiry-requests.repository');
 const leadsRepository = require('../../db/supabase/repositories/leads.repository');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
+const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
@@ -70,9 +71,19 @@ async function getById({ firmId, id }) {
   const service = await accountingServicesRepository.findByIdForFirm(inquiry.serviceId, firmId);
   const requesterName = await requesterNameForInquiry(inquiry);
   const requests = await serviceInquiryRequestsRepository.listByInquiry(inquiry.id, firmId);
+  const consultation = inquiry.consultationId
+    ? await consultationsRepository.findByIdForFirm(inquiry.consultationId, firmId)
+    : null;
 
   return {
-    inquiry: { ...inquiry, serviceName: service?.name || null, requesterName },
+    inquiry: {
+      ...inquiry,
+      serviceName: service?.name || null,
+      requesterName,
+      consultation: consultation
+        ? { id: consultation.id, scheduledAt: consultation.scheduledAt, status: consultation.status }
+        : null,
+    },
     checklist: requests.map(toChecklistItem),
   };
 }
@@ -325,32 +336,20 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
   });
 
   // Agendamento — reaproveita bookingService.bookAsClient() tal e qual (o mesmo usado
-  // pelo portal do cliente autenticado). Só é possível reservar de imediato quando a
-  // identidade já é um Client: consultations.client_id não é opcional, não há como criar
-  // uma consulta real para um Lead novo sem alterar esse schema (fora do escopo desta fase).
-  // Para um Lead, o horário pretendido fica registado como nota — a equipa agenda pela
-  // agenda normal depois de converter o Lead (ver especificação da sessão, Fase D).
+  // pelo portal do cliente autenticado). Desde a Fase 3a, um Lead novo também reserva
+  // uma consultation real (consultations.lead_id) — bloqueia o horário para todos,
+  // sem converter automaticamente o Lead em Client (conversão continua manual, ver
+  // leads.service.js#convertToClient, que agora repontoa a consultation também).
   let bookedConsultation = null;
-  let bookingNote = null;
   if (service.requiresBooking && payload?.scheduledAt) {
-    if (identity.type === 'CLIENT') {
-      const booked = await bookingService.bookAsClient({
-        firmId: firm.id,
-        clientId: identity.id,
-        serviceId: service.id,
-        scheduledAt: payload.scheduledAt,
-      });
-      bookedConsultation = booked.consultation;
-    } else {
-      const when = new Date(payload.scheduledAt);
-      if (Number.isFinite(when.getTime())) {
-        bookingNote = `Horário pretendido: ${when.toLocaleString('pt-PT', {
-          dateStyle: 'full',
-          timeStyle: 'short',
-          timeZone: 'Europe/Lisbon',
-        })}`;
-      }
-    }
+    const booked = await bookingService.bookAsClient({
+      firmId: firm.id,
+      clientId: identity.type === 'CLIENT' ? identity.id : undefined,
+      leadId: identity.type === 'LEAD' ? identity.id : undefined,
+      serviceId: service.id,
+      scheduledAt: payload.scheduledAt,
+    });
+    bookedConsultation = booked.consultation;
   }
 
   const requiredDocuments = accountingServicesService.resolveRequiredDocuments(service, answers);
@@ -364,7 +363,7 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
     serviceId: service.id,
     leadId: identity.type === 'LEAD' ? identity.id : null,
     clientId: identity.type === 'CLIENT' ? identity.id : null,
-    notes: bookingNote,
+    notes: null,
     answers,
     submittedAt,
     accessToken,

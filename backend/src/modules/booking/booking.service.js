@@ -151,7 +151,17 @@ async function listSlotsForBooking({ firmId, serviceId, fromIso, toIso }) {
   return { slots, service, booking };
 }
 
-async function bookAsClient({ firmId, clientId, serviceId, scheduledAt }) {
+/**
+ * Reserva uma consultation real, para um Client já existente OU um Lead
+ * (nunca os dois) — ver plan file da sessão, v8, secção 3. Um Lead novo
+ * reserva um horário de verdade (bloqueia o slot para todos), sem ser
+ * automaticamente convertido em Client — a conversão continua manual
+ * (leads.service.js#convertToClient, que repontoa a consultation depois).
+ */
+async function bookAsClient({ firmId, clientId, leadId, serviceId, scheduledAt }) {
+  if (Boolean(clientId) === Boolean(leadId)) {
+    throw new AppError('Indique exactamente um titular (cliente ou lead)', 400);
+  }
   const service = await accountingServicesRepository.findByIdForFirm(serviceId, firmId);
   if (!service || !service.isActive) throw new AppError('Serviço não encontrado', 404);
 
@@ -170,7 +180,8 @@ async function bookAsClient({ firmId, clientId, serviceId, scheduledAt }) {
 
   const consultation = await consultationsRepository.createConsultation({
     firmId,
-    clientId,
+    clientId: clientId || null,
+    leadId: leadId || null,
     staffId: null,
     title: service.name,
     scheduledAt: new Date(startMs).toISOString(),

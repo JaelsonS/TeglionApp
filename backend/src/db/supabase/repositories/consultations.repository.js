@@ -7,6 +7,7 @@ function mapConsultation(row) {
     _id: row.id,
     firmId: row.firm_id,
     clientId: row.client_id,
+    leadId: row.lead_id,
     staffId: row.staff_id,
     title: row.title,
     scheduledAt: row.scheduled_at,
@@ -44,7 +45,8 @@ async function createConsultation(data) {
     .from('consultations')
     .insert({
       firm_id: data.firmId,
-      client_id: data.clientId,
+      client_id: data.clientId || null,
+      lead_id: data.leadId || null,
       staff_id: data.staffId || null,
       title: data.title,
       scheduled_at: data.scheduledAt,
@@ -65,6 +67,7 @@ async function createConsultation(data) {
 async function findRecentDuplicateConsultation({
   firmId,
   clientId,
+  leadId,
   staffId,
   title,
   scheduledAt,
@@ -76,16 +79,41 @@ async function findRecentDuplicateConsultation({
     .from('consultations')
     .select('*')
     .eq('firm_id', firmId)
-    .eq('client_id', clientId)
     .eq('scheduled_at', scheduledAt)
     .eq('title', title)
     .gte('created_at', after)
     .order('created_at', { ascending: false })
     .limit(1);
+  q = clientId ? q.eq('client_id', clientId) : q.eq('lead_id', leadId);
   if (staffId) q = q.eq('staff_id', staffId);
   const { data, error } = await q;
   if (error) throw error;
   return mapConsultation(data?.[0] || null);
+}
+
+async function findByIdForFirm(id, firmId) {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from('consultations')
+    .select('*')
+    .eq('id', id)
+    .eq('firm_id', firmId)
+    .maybeSingle();
+  if (error) throw error;
+  return mapConsultation(data);
+}
+
+/** Repontar todas as consultations de um Lead para o Client resultante da conversão (mesmo padrão de service-inquiries.repository.js). */
+async function reassignLeadToClient(firmId, leadId, clientId) {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from('consultations')
+    .update({ client_id: clientId, lead_id: null })
+    .eq('firm_id', firmId)
+    .eq('lead_id', leadId)
+    .select();
+  if (error) throw error;
+  return (data || []).map(mapConsultation);
 }
 
 async function updateConsultation(id, firmId, patch) {
@@ -110,5 +138,7 @@ module.exports = {
   listConsultations,
   createConsultation,
   findRecentDuplicateConsultation,
+  findByIdForFirm,
+  reassignLeadToClient,
   updateConsultation,
 };

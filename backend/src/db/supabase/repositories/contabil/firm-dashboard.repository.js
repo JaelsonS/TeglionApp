@@ -142,7 +142,7 @@ async function loadFirmDashboardStats(firmId) {
       .or(`last_login_at.is.null,last_login_at.lt.${inactiveSince}`),
     sb
       .from('consultations')
-      .select('id, client_id, title, scheduled_at, duration_minutes, status')
+      .select('id, client_id, lead_id, title, scheduled_at, duration_minutes, status')
       .eq('firm_id', firmId)
       .eq('status', 'SCHEDULED')
       .gte('scheduled_at', now.toISOString())
@@ -179,6 +179,16 @@ async function loadFirmDashboardStats(firmId) {
 
   const messagesRepo = require('../messages.repository');
   const avgResponseHours = await messagesRepo.getAvgFirmResponseHours(firmId);
+
+  // Consultas de Leads (Fase 3a — booking real para Leads, sem conversão automática):
+  // clientNameById não cobre lead_id, precisa de um lookup próprio, mesmo padrão.
+  const leadIds = [...new Set((consultFutureRes.data || []).map((r) => r.lead_id).filter(Boolean))];
+  let leadNameById = new Map();
+  if (leadIds.length > 0) {
+    const { data: leadsData, error: leadsError } = await sb.from('leads').select('id, name').in('id', leadIds);
+    if (leadsError) throw leadsError;
+    leadNameById = new Map((leadsData || []).map((l) => [l.id, l.name]));
+  }
 
   return {
     period,
@@ -218,7 +228,8 @@ async function loadFirmDashboardStats(firmId) {
     upcomingConsultations: (consultFutureRes.data || []).map((r) => ({
       _id: r.id,
       clientId: r.client_id,
-      clientName: clientNameById.get(r.client_id) || 'Cliente',
+      leadId: r.lead_id,
+      clientName: r.lead_id ? leadNameById.get(r.lead_id) || 'Lead' : clientNameById.get(r.client_id) || 'Cliente',
       title: r.title,
       scheduledAt: r.scheduled_at,
       durationMinutes: r.duration_minutes,

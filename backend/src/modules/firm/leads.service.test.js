@@ -4,6 +4,8 @@ const { mock } = require('node:test');
 
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const leadsRepository = require('../../db/supabase/repositories/leads.repository');
+const serviceInquiriesRepository = require('../../db/supabase/repositories/service-inquiries.repository');
+const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
 const auditRepository = require('../../db/supabase/repositories/contabil/audit.repository');
 const leadsService = require('./leads.service');
 
@@ -134,6 +136,33 @@ test('update: salto directo NEW -> CONVERTED é permitido (não é linear obriga
     payload: { status: 'CONVERTED' },
   });
   assert.equal(lead.status, 'CONVERTED');
+});
+
+test('convertToClient: repoints service_inquiries e consultations do Lead para o Client novo (Fase 3a)', async () => {
+  resetMocks();
+  mockAudit();
+  mock.method(leadsRepository, 'findByIdForFirm', async () => ({
+    id: 'lead-1',
+    status: 'NEW',
+    name: 'Hugo',
+    email: 'hugo@x.com',
+    phone: null,
+    taxId: null,
+  }));
+  mock.method(clientsRepository, 'createClient', async (args) => ({ id: 'client-novo', ...args }));
+  mock.method(leadsRepository, 'markConverted', async (id, firmId, clientId) => ({ id, status: 'CONVERTED', convertedClientId: clientId }));
+  mock.method(serviceInquiriesRepository, 'reassignLeadToClient', async () => [{ id: 'inquiry-1' }]);
+  let consultationsReassignArgs = null;
+  mock.method(consultationsRepository, 'reassignLeadToClient', async (firmId, leadId, clientId) => {
+    consultationsReassignArgs = { firmId, leadId, clientId };
+    return [{ id: 'consultation-1' }];
+  });
+
+  const result = await leadsService.convertToClient({ firmId: FIRM_ID, id: 'lead-1', actor: { id: 'staff-1' } });
+
+  assert.deepEqual(consultationsReassignArgs, { firmId: FIRM_ID, leadId: 'lead-1', clientId: 'client-novo' });
+  assert.equal(result.consultationsReassigned, 1);
+  assert.equal(result.serviceInquiriesReassigned, 1);
 });
 
 resetMocks();

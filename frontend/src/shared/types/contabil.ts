@@ -174,7 +174,10 @@ export type ContabilMessage = {
 
 export type Consultation = {
   _id: string
-  clientId: string
+  clientId: string | null
+  leadId?: string | null
+  /** Nome do titular (Client ou Lead) já resolvido pelo servidor. */
+  holderName?: string | null
   staffId?: string | null
   title: string
   scheduledAt: string
@@ -262,7 +265,8 @@ export type FirmContabilDashboard = {
   /** Próximas consultas agendadas (todas os clientes) */
   upcomingConsultations?: Array<{
     _id: string
-    clientId: string
+    clientId: string | null
+    leadId?: string | null
     clientName?: string
     title: string
     scheduledAt: string

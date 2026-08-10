@@ -2,6 +2,7 @@ const { AppError } = require('../../middlewares/error.middleware');
 const leadsRepository = require('../../db/supabase/repositories/leads.repository');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const serviceInquiriesRepository = require('../../db/supabase/repositories/service-inquiries.repository');
+const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
 const auditRepository = require('../../db/supabase/repositories/contabil/audit.repository');
 
 const VALID_STATUSES = ['NEW', 'CONTACTED', 'QUALIFIED', 'CONVERTED', 'DISMISSED'];
@@ -184,6 +185,7 @@ async function convertToClient({ firmId, id, actor }) {
 
   const converted = await leadsRepository.markConverted(id, firmId, client.id);
   const reassigned = await serviceInquiriesRepository.reassignLeadToClient(firmId, id, client.id);
+  const consultationsReassigned = await consultationsRepository.reassignLeadToClient(firmId, id, client.id);
 
   await auditRepository.writeAuditLog({
     firmId,
@@ -192,10 +194,19 @@ async function convertToClient({ firmId, id, actor }) {
     action: 'lead.converted',
     entityType: 'lead',
     entityId: id,
-    metadata: { clientId: client.id, serviceInquiriesReassigned: reassigned.length },
+    metadata: {
+      clientId: client.id,
+      serviceInquiriesReassigned: reassigned.length,
+      consultationsReassigned: consultationsReassigned.length,
+    },
   });
 
-  return { lead: converted, client, serviceInquiriesReassigned: reassigned.length };
+  return {
+    lead: converted,
+    client,
+    serviceInquiriesReassigned: reassigned.length,
+    consultationsReassigned: consultationsReassigned.length,
+  };
 }
 
 module.exports = {

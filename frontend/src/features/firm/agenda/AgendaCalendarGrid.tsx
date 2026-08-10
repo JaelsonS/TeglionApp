@@ -14,7 +14,7 @@ type Props = {
   days: Date[]
   items: Consultation[]
   staffName: (staffId?: string | null) => string
-  clientName: (clientId: string) => string
+  clientName: (item: Consultation) => string
   onSelectEvent?: (c: Consultation) => void
 }
 
@@ -53,7 +53,7 @@ export function AgendaCalendarGrid({ days, items, staffName, clientName, onSelec
                 ))}
                 {dayEvents.map((ev, i) => {
                   const layout = eventLayout(ev.scheduledAt, ev.durationMinutes || 60)
-                  const assignee = staffName(ev.staffId) || clientName(ev.clientId)
+                  const assignee = staffName(ev.staffId) || clientName(ev)
                   return (
                     <button
                       key={ev._id}
