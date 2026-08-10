@@ -11,3 +11,15 @@ export function isAuthenticatedAppRoute(pathname: string): boolean {
   if (pathname === '/recover-password' || pathname.startsWith('/reset-password')) return true
   return false
 }
+
+/**
+ * Páginas públicas de captação (ServiceIntakePublicPage, ServiceIntakePortalPage)
+ * — sem login, mas usam useQuery. Nem "lightweight" (precisam de QueryClientProvider)
+ * nem "authenticated" (nunca têm sessão) — categoria própria para não caírem sem
+ * nenhum provider (useQuery sem QueryClientProvider, useAuth sem AuthProvider).
+ */
+export function isPublicIntakeRoute(pathname: string): boolean {
+  if (pathname.startsWith('/pedidos/')) return true
+  if (/^\/[^/]+\/servicos\/[^/]+\/?$/.test(pathname)) return true
+  return false
+}

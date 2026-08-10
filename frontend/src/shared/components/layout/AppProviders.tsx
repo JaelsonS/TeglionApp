@@ -1,11 +1,15 @@
 import { lazy, Suspense, useEffect, type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 
-import { isAuthenticatedAppRoute, isLightweightPublicRoute } from '@/shared/utils/publicRoutes'
+import { isAuthenticatedAppRoute, isLightweightPublicRoute, isPublicIntakeRoute } from '@/shared/utils/publicRoutes'
 import { ensureContabilStyles } from '@/shared/styles/loadContabilStyles'
 
 const AuthenticatedAppShell = lazy(() =>
   import('@/shared/components/layout/AuthenticatedAppShell').then((m) => ({ default: m.AuthenticatedAppShell })),
+)
+
+const QueryProvider = lazy(() =>
+  import('@/shared/providers/QueryProvider').then((m) => ({ default: m.QueryProvider })),
 )
 
 const MarketingCookieBanner = lazy(() =>
@@ -28,6 +32,16 @@ export function AppProviders({ children }: { children: ReactNode }) {
     return <>{children}</>
   }
 
+  if (isPublicIntakeRoute(pathname)) {
+    // Sem login, mas usam useQuery — só o QueryClientProvider, sem AuthProvider
+    // nem FirmBrandingProvider (nenhuma das duas páginas precisa).
+    return (
+      <Suspense fallback={null}>
+        <QueryProvider>{children}</QueryProvider>
+      </Suspense>
+    )
+  }
+
   if (!isAuthenticatedAppRoute(pathname)) {
     return <>{children}</>
   }
@@ -41,7 +55,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
 export function RouteCookieBanner() {
   const { pathname } = useLocation()
-  const marketing = isLightweightPublicRoute(pathname)
+  const marketing = isLightweightPublicRoute(pathname) || isPublicIntakeRoute(pathname)
 
   return (
     <Suspense fallback={null}>
