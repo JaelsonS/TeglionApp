@@ -7,7 +7,9 @@ const accountingServicesRepository = require('../../db/supabase/repositories/acc
 const serviceInquiryRequestsRepository = require('../../db/supabase/repositories/service-inquiry-requests.repository');
 const leadsRepository = require('../../db/supabase/repositories/leads.repository');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
+const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const auditRepository = require('../../db/supabase/repositories/contabil/audit.repository');
+const contabilNotifications = require('../../services/notifications/contabil-notifications.service');
 const serviceInquiriesService = require('./service-inquiries.service');
 
 const FIRM_ID = 'firm-x';
@@ -266,4 +268,155 @@ test('getById: monta o checklist a partir de service_inquiry_requests (não reca
   assert.equal(checklist[0].kind, 'document');
   assert.equal(checklist[1].received, false);
   assert.equal(checklist[1].kind, 'question');
+});
+
+test('addServiceInquiryRequest: solicitação inexistente devolve 404', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => null);
+
+  await assert.rejects(
+    () =>
+      serviceInquiriesService.addServiceInquiryRequest({
+        firmId: FIRM_ID,
+        inquiryId: 'inquiry-x',
+        actor: {},
+        payload: { kind: 'question', title: 'Tem dependentes?' },
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 404);
+      return true;
+    },
+  );
+});
+
+test('addServiceInquiryRequest: rejeita em estado terminal com 409', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({ id: 'inquiry-1', status: 'COMPLETED' }));
+
+  await assert.rejects(
+    () =>
+      serviceInquiriesService.addServiceInquiryRequest({
+        firmId: FIRM_ID,
+        inquiryId: 'inquiry-1',
+        actor: {},
+        payload: { kind: 'question', title: 'Mais uma coisa' },
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 409);
+      return true;
+    },
+  );
+});
+
+test('addServiceInquiryRequest: rejeita kind inválido', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({ id: 'inquiry-1', status: 'IN_PROGRESS' }));
+
+  await assert.rejects(
+    () =>
+      serviceInquiriesService.addServiceInquiryRequest({
+        firmId: FIRM_ID,
+        inquiryId: 'inquiry-1',
+        actor: {},
+        payload: { kind: 'chat', title: 'X' },
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      return true;
+    },
+  );
+});
+
+test('addServiceInquiryRequest: rejeita sem title', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({ id: 'inquiry-1', status: 'IN_PROGRESS' }));
+
+  await assert.rejects(
+    () =>
+      serviceInquiriesService.addServiceInquiryRequest({
+        firmId: FIRM_ID,
+        inquiryId: 'inquiry-1',
+        actor: {},
+        payload: { kind: 'question' },
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      return true;
+    },
+  );
+});
+
+test('addServiceInquiryRequest: kind document gera tag automática; kind question fica sem tag', async () => {
+  resetMocks();
+  mockAudit();
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
+    id: 'inquiry-1',
+    status: 'IN_PROGRESS',
+    leadId: 'lead-1',
+    clientId: null,
+    accessToken: 'a'.repeat(64),
+  }));
+  mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana', email: null }));
+  let created = null;
+  mock.method(serviceInquiryRequestsRepository, 'createRow', async (args) => {
+    created = args;
+    return { id: 'req-1', ...args, status: 'PENDING' };
+  });
+
+  await serviceInquiriesService.addServiceInquiryRequest({
+    firmId: FIRM_ID,
+    inquiryId: 'inquiry-1',
+    actor: { id: 'staff-1' },
+    payload: { kind: 'document', title: 'Comprovativo de morada actualizado' },
+  });
+
+  assert.ok(created.tag && created.tag.startsWith('pend_'), 'documento devia ganhar tag automática');
+
+  mock.method(serviceInquiryRequestsRepository, 'createRow', async (args) => {
+    created = args;
+    return { id: 'req-2', ...args, status: 'PENDING' };
+  });
+  await serviceInquiriesService.addServiceInquiryRequest({
+    firmId: FIRM_ID,
+    inquiryId: 'inquiry-1',
+    actor: { id: 'staff-1' },
+    payload: { kind: 'question', title: 'Tem dependentes a cargo?' },
+  });
+  assert.equal(created.tag, null);
+});
+
+test('addServiceInquiryRequest: audita e notifica o submissor quando há email, reaproveitando o mesmo token', async () => {
+  resetMocks();
+  mock.method(auditRepository, 'writeAuditLog', async () => {});
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM_ID,
+    serviceId: 'service-1',
+    status: 'IN_PROGRESS',
+    leadId: 'lead-1',
+    clientId: null,
+    accessToken: 'b'.repeat(64),
+  }));
+  mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana', email: 'ana@x.com' }));
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({ id: 'service-1', name: 'IRS 2026' }));
+  mock.method(firmsRepository, 'findFirmById', async () => ({ id: FIRM_ID, name: 'Escritório X' }));
+  mock.method(serviceInquiryRequestsRepository, 'createRow', async (args) => ({ id: 'req-1', ...args, status: 'PENDING' }));
+
+  let notifyArgs = null;
+  mock.method(contabilNotifications, 'notifyLeadNewRequest', async (args) => {
+    notifyArgs = args;
+    return { ok: true };
+  });
+
+  await serviceInquiriesService.addServiceInquiryRequest({
+    firmId: FIRM_ID,
+    inquiryId: 'inquiry-1',
+    actor: { id: 'staff-1' },
+    payload: { kind: 'question', title: 'Tem dependentes a cargo?' },
+  });
+
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(notifyArgs.toEmail, 'ana@x.com');
+  assert.equal(notifyArgs.accessToken, 'b'.repeat(64));
+  assert.equal(notifyArgs.requestTitle, 'Tem dependentes a cargo?');
 });

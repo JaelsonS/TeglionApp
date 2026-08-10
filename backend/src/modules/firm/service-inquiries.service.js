@@ -194,6 +194,71 @@ async function revokeAccessToken({ firmId, id, actor }) {
   return { inquiry };
 }
 
+const REQUEST_KINDS = new Set(['document', 'question']);
+
+/**
+ * A equipa pede mais uma coisa a uma ServiceInquiry já submetida — documento
+ * extra ou pergunta em texto (ver especificação da sessão, v8, secção 2).
+ * Reaproveita o mesmo access_token de sempre — não gera link novo.
+ */
+async function addServiceInquiryRequest({ firmId, inquiryId, actor, payload }) {
+  const inquiry = await serviceInquiriesRepository.findByIdForFirm(inquiryId, firmId);
+  if (!inquiry) throw new AppError('Solicitação não encontrada', 404);
+  if (TERMINAL_STATUSES.has(inquiry.status)) {
+    throw new AppError(`Solicitação em estado terminal (${inquiry.status}) não pode receber novos pedidos`, 409);
+  }
+
+  const kind = String(payload?.kind || '');
+  if (!REQUEST_KINDS.has(kind)) throw new AppError('kind deve ser "document" ou "question"', 400);
+  const title = String(payload?.title || '').trim();
+  if (!title) throw new AppError('title é obrigatório', 400);
+  const instructions = payload?.instructions ? String(payload.instructions).trim().slice(0, 2000) : null;
+  // Tag gerada automaticamente para pedidos de documento — a contabilista nunca a vê nem
+  // gere isto, é só o identificador interno que o upload do mini-portal já sabe usar
+  // (mesmo caminho da Fase 2a, tag-based, sem alterações).
+  const tag = kind === 'document' ? `pend_${crypto.randomUUID()}` : null;
+
+  const request = await serviceInquiryRequestsRepository.createRow({
+    firmId,
+    serviceInquiryId: inquiry.id,
+    kind,
+    tag,
+    title,
+    instructions,
+    createdBy: actor?.id || null,
+  });
+
+  await auditRepository.writeAuditLog({
+    firmId,
+    actorRole: 'FIRM',
+    actorId: actor?.id,
+    action: 'service_inquiry.request_added',
+    entityType: 'service_inquiry',
+    entityId: inquiry.id,
+    metadata: { requestId: request.id, kind, title },
+  });
+
+  const { name: requesterName, email: requesterEmail } = await requesterContactForInquiry(inquiry);
+  if (requesterEmail && inquiry.accessToken) {
+    const [service, firm] = await Promise.all([
+      accountingServicesRepository.findByIdForFirm(inquiry.serviceId, firmId),
+      firmsRepository.findFirmById(firmId).catch(() => null),
+    ]);
+    void contabilNotifications
+      .notifyLeadNewRequest({
+        toEmail: requesterEmail,
+        toName: requesterName,
+        firmName: firm?.name,
+        serviceName: service?.name,
+        accessToken: inquiry.accessToken,
+        requestTitle: title,
+      })
+      .catch(() => {});
+  }
+
+  return { request };
+}
+
 async function resolveStaffNotifyEmail(firmId, firm) {
   const ownerEmail = await firmUsersRepository.findFirmOwnerEmail(firmId).catch(() => null);
   return ownerEmail || firm?.settings?.contactEmail || firm?.settings?.notificationEmail || null;
@@ -209,6 +274,19 @@ async function requesterNameForInquiry(inquiry) {
     return client?.displayName || client?.name || null;
   }
   return null;
+}
+
+/** Nome + email de contacto — usado para notificar o submissor de um pedido novo. */
+async function requesterContactForInquiry(inquiry) {
+  if (inquiry.leadId) {
+    const lead = await leadsRepository.findByIdForFirm(inquiry.leadId, inquiry.firmId);
+    return { name: lead?.name || null, email: lead?.email || null };
+  }
+  if (inquiry.clientId) {
+    const client = await clientsRepository.findClientById(inquiry.firmId, inquiry.clientId);
+    return { name: client?.displayName || client?.name || null, email: client?.email || null };
+  }
+  return { name: null, email: null };
 }
 
 /**
@@ -454,6 +532,7 @@ module.exports = {
   create,
   update,
   revokeAccessToken,
+  addServiceInquiryRequest,
   submitPublicIntake,
   getByAccessToken,
   recordDocumentDelivery,

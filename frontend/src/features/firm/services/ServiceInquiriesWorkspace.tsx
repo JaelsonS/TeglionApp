@@ -1,16 +1,18 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { FileText, Inbox, Loader2 } from 'lucide-react'
+import { FileText, Inbox, Loader2, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/shared/components/ui/button'
+import { Input } from '@/shared/components/ui/input'
 import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
 import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
 import { contabilAccountingServicesApi, contabilServiceInquiriesApi } from '@/infrastructure/api'
-import type { ServiceInquiryChecklistItem } from '@/infrastructure/api/contabil/serviceInquiries'
+import type { ServiceInquiryChecklistItem, ServiceInquiryRequestKind } from '@/infrastructure/api/contabil/serviceInquiries'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 import type { AccountingService, IntakeQuestion } from '@/shared/types/contabil'
+import type { FormChangeEvent } from '@/shared/types/react-events'
 
 const STATUS_LABELS: Record<string, string> = {
   NEW: 'Novo',
@@ -34,6 +36,9 @@ export function ServiceInquiriesWorkspace() {
   const qc = useQueryClient()
   const [serviceFilter, setServiceFilter] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [newRequestKind, setNewRequestKind] = useState<ServiceInquiryRequestKind>('question')
+  const [newRequestTitle, setNewRequestTitle] = useState('')
+  const [addingRequest, setAddingRequest] = useState(false)
 
   const servicesQuery = useQuery({
     queryKey: ['contabil-accounting-services', 'all'],
@@ -84,6 +89,24 @@ export function ServiceInquiriesWorkspace() {
       await qc.invalidateQueries({ queryKey: ['service-inquiry-detail', selectedId] })
     } catch (err) {
       toast.error('Erro ao revogar link', { description: getErrorMessage(err) })
+    }
+  }
+
+  const addRequest = async () => {
+    if (!selectedId || !newRequestTitle.trim()) return
+    setAddingRequest(true)
+    try {
+      await contabilServiceInquiriesApi.addRequest(selectedId, {
+        kind: newRequestKind,
+        title: newRequestTitle.trim(),
+      })
+      toast.success('Pendência adicionada — o cliente foi notificado')
+      setNewRequestTitle('')
+      await qc.invalidateQueries({ queryKey: ['service-inquiry-detail', selectedId] })
+    } catch (err) {
+      toast.error('Erro ao adicionar pendência', { description: getErrorMessage(err) })
+    } finally {
+      setAddingRequest(false)
     }
   }
 
@@ -228,34 +251,70 @@ export function ServiceInquiriesWorkspace() {
               ) : null}
 
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Documentos</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pendências</p>
                 {detailQuery.data.checklist.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Sem documentos pedidos para este serviço.</p>
+                  <p className="text-sm text-muted-foreground">Sem pendências para esta solicitação.</p>
                 ) : (
                   <ul className="space-y-2">
-                    {detailQuery.data.checklist.map((doc: ServiceInquiryChecklistItem) => (
-                      <li
-                        key={doc.tag}
-                        className="flex items-center justify-between gap-2 rounded-lg border border-border/40 p-2"
-                      >
-                        <span className="min-w-0 truncate text-sm">{doc.title}</span>
-                        {doc.received && doc.documentId ? (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            className="shrink-0 rounded-full"
-                            onClick={() => void downloadDocument(doc.documentId!)}
-                          >
-                            <FileText className="mr-1.5 h-3.5 w-3.5" /> Ver
-                          </Button>
-                        ) : (
-                          <span className="shrink-0 text-xs text-muted-foreground">Pendente</span>
-                        )}
+                    {detailQuery.data.checklist.map((item: ServiceInquiryChecklistItem) => (
+                      <li key={item.id} className="space-y-1 rounded-lg border border-border/40 p-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="min-w-0 truncate text-sm">{item.title}</span>
+                          {item.kind === 'document' ? (
+                            item.received && item.documentId ? (
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="shrink-0 rounded-full"
+                                onClick={() => void downloadDocument(item.documentId!)}
+                              >
+                                <FileText className="mr-1.5 h-3.5 w-3.5" /> Ver
+                              </Button>
+                            ) : (
+                              <span className="shrink-0 text-xs text-muted-foreground">Pendente</span>
+                            )
+                          ) : item.received ? (
+                            <span className="shrink-0 text-xs font-semibold text-emerald-700">Respondido</span>
+                          ) : (
+                            <span className="shrink-0 text-xs text-muted-foreground">Aguarda resposta</span>
+                          )}
+                        </div>
+                        {item.kind === 'question' && item.textReply ? (
+                          <p className="rounded-md bg-muted/30 p-2 text-xs text-muted-foreground">{item.textReply}</p>
+                        ) : null}
                       </li>
                     ))}
                   </ul>
                 )}
+
+                {!TERMINAL_STATUSES.has(detailQuery.data.inquiry.status) ? (
+                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border/50 p-2">
+                    <select
+                      className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                      value={newRequestKind}
+                      onChange={(e) => setNewRequestKind(e.target.value as ServiceInquiryRequestKind)}
+                    >
+                      <option value="question">Pergunta</option>
+                      <option value="document">Documento</option>
+                    </select>
+                    <Input
+                      className="h-9 min-w-[160px] flex-1 rounded-md text-sm"
+                      placeholder="Ex.: Comprovativo de morada actualizado"
+                      value={newRequestTitle}
+                      onChange={(e: FormChangeEvent) => setNewRequestTitle(e.target.value)}
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="shrink-0 rounded-full"
+                      disabled={addingRequest || !newRequestTitle.trim()}
+                      onClick={() => void addRequest()}
+                    >
+                      <Plus className="mr-1.5 h-3.5 w-3.5" /> Pedir
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             </div>
           )}

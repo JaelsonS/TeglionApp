@@ -16,14 +16,19 @@ export type ServiceInquiryListItem = {
   createdAt: string
 }
 
+export type ServiceInquiryRequestKind = 'document' | 'question'
+
 export type ServiceInquiryChecklistItem = {
-  tag: string
+  id: string
+  kind: ServiceInquiryRequestKind
+  tag: string | null
   title: string
   instructions?: string | null
   received: boolean
   documentId: string | null
-  mimeType: string | null
+  textReply: string | null
   createdAt: string | null
+  answeredAt: string | null
 }
 
 export function createContabilServiceInquiriesApi(api: AxiosInstance) {
@@ -48,6 +53,11 @@ export function createContabilServiceInquiriesApi(api: AxiosInstance) {
 
     revokeToken: (id: string) =>
       api.post(`/contabil/service-inquiries/${encodeURIComponent(id)}/revoke-token`).then((r) => r.data),
+
+    addRequest: (id: string, payload: { kind: ServiceInquiryRequestKind; title: string; instructions?: string }) =>
+      api
+        .post(`/contabil/service-inquiries/${encodeURIComponent(id)}/requests`, payload)
+        .then((r) => r.data as { request: ServiceInquiryChecklistItem }),
   }
 }
 

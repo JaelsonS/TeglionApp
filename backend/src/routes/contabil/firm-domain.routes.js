@@ -387,5 +387,15 @@ router.post(
   requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
   serviceInquiriesController.revokeToken,
 );
+router.post(
+  '/service-inquiries/:id/requests',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  [
+    body('kind').isString().isIn(['document', 'question']),
+    body('title').isString().trim().isLength({ min: 1, max: 300 }),
+    body('instructions').optional({ nullable: true }).isString().trim().isLength({ max: 2000 }),
+  ],
+  serviceInquiriesController.addRequest,
+);
 
 module.exports = router;

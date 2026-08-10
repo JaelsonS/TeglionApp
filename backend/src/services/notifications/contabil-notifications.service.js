@@ -253,6 +253,38 @@ async function notifyFirmIntakeDocumentReceived({ staffEmail, firmName, requeste
   });
 }
 
+/** Enviado ao submissor quando a equipa pede mais uma coisa depois da submissão inicial
+ * (documento extra ou pergunta em texto) — mesmo access_token de sempre, sem link novo. */
+async function notifyLeadNewRequest({ toEmail, toName, firmName, serviceName, accessToken, requestTitle }) {
+  if (!toEmail || !accessToken) return { skipped: true, reason: 'no_email_or_token' };
+  const firm = firmName || 'o escritório';
+  const link = serviceIntakeAccessUrl(accessToken);
+  return sendEmail({
+    to: toEmail,
+    subject: `Precisamos de mais uma informação — ${serviceName || 'o seu pedido'} (${firm})`,
+    tags: ['transactional', 'service-intake'],
+    html: renderTransactionalEmail({
+      preheader: `Novo pedido: ${requestTitle || ''}`,
+      title: 'Precisamos de mais uma informação',
+      greeting: `Olá${toName ? ` ${toName}` : ''},`,
+      bodyHtml: `<p style="margin:0 0 12px">Para continuar o seu pedido de <strong>${escapeHtml(serviceName || 'serviço')}</strong> junto de <strong>${escapeHtml(firm)}</strong>, precisamos que responda a mais isto:</p><p style="margin:0 0 12px"><strong>${escapeHtml(requestTitle || '')}</strong></p>`,
+      ctaLabel: 'Responder agora',
+      ctaUrl: link,
+      footerNote: 'Use o mesmo link que já tinha recebido para acompanhar o pedido.',
+    }),
+    text: [
+      `Olá${toName ? ` ${toName}` : ''},`,
+      '',
+      `Para continuar o seu pedido de ${serviceName || 'serviço'} junto de ${firm}, precisamos que responda a mais isto:`,
+      requestTitle || '',
+      '',
+      `Responder: ${link}`,
+      '',
+      'Teglion',
+    ].filter(Boolean).join('\n'),
+  });
+}
+
 async function notifyClientSms({ phone, message }) {
   if (!phone || !message) return { skipped: true };
   return sendSms({ to: phone, message });
@@ -490,6 +522,7 @@ module.exports = {
   notifyLeadIntakeChecklist,
   notifyFirmIntakeSubmitted,
   notifyFirmIntakeDocumentReceived,
+  notifyLeadNewRequest,
   notifyClientSms,
   notifyPasswordReset,
   notifyFirmStaffWelcome,
