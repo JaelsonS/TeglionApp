@@ -135,6 +135,20 @@ async function uploadByToken(req, res, next) {
   }
 }
 
+async function submitReply(req, res, next) {
+  try {
+    assertValid(req);
+    const result = await serviceInquiriesService.recordTextReply({
+      token: String(req.params.token || '').trim(),
+      requestId: String(req.params.requestId || '').trim(),
+      textReply: req.body?.textReply,
+    });
+    return res.status(201).json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
 const getServiceValidators = [
   param('firmSlug').isString().trim().isLength({ min: 2, max: 64 }),
   param('serviceSlug').isString().trim().isLength({ min: 1, max: 80 }),
@@ -159,14 +173,22 @@ const slotsValidators = [
 
 const tokenValidators = [param('token').isString().trim().isLength({ min: 64, max: 128 })];
 
+const replyValidators = [
+  param('token').isString().trim().isLength({ min: 64, max: 128 }),
+  param('requestId').isUUID(),
+  body('textReply').isString().trim().isLength({ min: 1, max: 4000 }),
+];
+
 module.exports = {
   getPublicService,
   getPublicSlots,
   submitIntake,
   getByToken,
   uploadByToken,
+  submitReply,
   getServiceValidators,
   submitValidators,
   slotsValidators,
   tokenValidators,
+  replyValidators,
 };

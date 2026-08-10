@@ -135,5 +135,11 @@ router.post(
   serviceIntakeController.tokenValidators,
   serviceIntakeController.uploadByToken,
 );
+router.post(
+  '/service-inquiries/:token/requests/:requestId/reply',
+  intakeUploadLimiter,
+  serviceIntakeController.replyValidators,
+  serviceIntakeController.submitReply,
+);
 
 module.exports = router;

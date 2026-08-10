@@ -526,6 +526,54 @@ async function recordDocumentDelivery({ token, tag, file }) {
   return { allComplete, checklist: allRequests.map(toChecklistItem) };
 }
 
+/** Resposta em texto a uma pendência do tipo "question", via o mini-portal por token (sem login). */
+async function recordTextReply({ token, requestId, textReply }) {
+  const inquiry = await serviceInquiriesRepository.findByAccessToken(token);
+  if (!inquiry) throw new AppError('Pedido não encontrado', 404, { code: 'NOT_FOUND' });
+  if (TERMINAL_STATUSES.has(inquiry.status)) {
+    throw new AppError('Este pedido já foi encerrado', 409);
+  }
+
+  const request = await serviceInquiryRequestsRepository.findByIdForInquiry(requestId, inquiry.id, inquiry.firmId);
+  if (!request || request.kind !== 'question' || request.status !== 'PENDING') {
+    throw new AppError('Pergunta não reconhecida para este pedido', 400);
+  }
+
+  const reply = String(textReply || '').trim();
+  if (!reply) throw new AppError('Resposta é obrigatória', 400);
+
+  await serviceInquiryRequestsRepository.markAnswered(request.id, inquiry.firmId, { textReply: reply });
+
+  await auditRepository.writeAuditLog({
+    firmId: inquiry.firmId,
+    actorRole: 'PUBLIC',
+    actorId: null,
+    action: 'service_inquiry.request_answered',
+    entityType: 'service_inquiry',
+    entityId: inquiry.id,
+    metadata: { requestId: request.id },
+  });
+
+  const service = await accountingServicesRepository.findByIdForFirm(inquiry.serviceId, inquiry.firmId);
+  const firm = await firmsRepository.findFirmById(inquiry.firmId).catch(() => null);
+  const staffEmail = firm ? await resolveStaffNotifyEmail(inquiry.firmId, firm) : null;
+  if (staffEmail) {
+    const requesterName = await requesterNameForInquiry(inquiry);
+    void contabilNotifications
+      .notifyFirmIntakeReplyReceived({
+        staffEmail,
+        firmName: firm?.name,
+        requesterName,
+        serviceName: service?.name,
+        requestTitle: request.title,
+      })
+      .catch(() => {});
+  }
+
+  const allRequests = await serviceInquiryRequestsRepository.listByInquiry(inquiry.id, inquiry.firmId);
+  return { checklist: allRequests.map(toChecklistItem) };
+}
+
 module.exports = {
   list,
   getById,
@@ -536,6 +584,7 @@ module.exports = {
   submitPublicIntake,
   getByAccessToken,
   recordDocumentDelivery,
+  recordTextReply,
   getDocumentDownloadUrl,
   VALID_STATUSES,
 };

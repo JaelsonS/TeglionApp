@@ -253,6 +253,24 @@ async function notifyFirmIntakeDocumentReceived({ staffEmail, firmName, requeste
   });
 }
 
+/** Enviado à equipa quando o cliente responde em texto a uma pendência via mini-portal. */
+async function notifyFirmIntakeReplyReceived({ staffEmail, firmName, requesterName, serviceName, requestTitle }) {
+  if (!staffEmail) return { skipped: true };
+  return sendEmail({
+    to: staffEmail,
+    subject: `Resposta recebida — ${requesterName || 'Cliente'}`,
+    tags: ['transactional', 'service-intake'],
+    html: renderTransactionalEmail({
+      preheader: `${requesterName || 'Alguém'} respondeu a "${requestTitle || ''}"`,
+      title: 'Nova resposta recebida',
+      bodyHtml: `<p style="margin:0"><strong>${escapeHtml(requesterName || 'Cliente')}</strong> respondeu a <strong>${escapeHtml(requestTitle || '')}</strong> — pedido de ${escapeHtml(serviceName || 'serviço')} (${escapeHtml(firmName || 'escritório')}).</p>`,
+      ctaLabel: 'Ver solicitação',
+      ctaUrl: `${APP_URL}/app/firm/services`,
+    }),
+    text: `Resposta recebida de ${requesterName} a "${requestTitle}".`,
+  });
+}
+
 /** Enviado ao submissor quando a equipa pede mais uma coisa depois da submissão inicial
  * (documento extra ou pergunta em texto) — mesmo access_token de sempre, sem link novo. */
 async function notifyLeadNewRequest({ toEmail, toName, firmName, serviceName, accessToken, requestTitle }) {
@@ -523,6 +541,7 @@ module.exports = {
   notifyFirmIntakeSubmitted,
   notifyFirmIntakeDocumentReceived,
   notifyLeadNewRequest,
+  notifyFirmIntakeReplyReceived,
   notifyClientSms,
   notifyPasswordReset,
   notifyFirmStaffWelcome,

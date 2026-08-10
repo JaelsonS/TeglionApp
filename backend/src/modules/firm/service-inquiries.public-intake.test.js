@@ -588,4 +588,153 @@ test('recordDocumentDelivery: entrega que completa a checklist audita entrega E 
   assert.deepEqual(auditCalls, ['service_inquiry.document_delivered', 'service_inquiry.status_changed']);
 });
 
+test('recordTextReply: token inexistente devolve 404', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByAccessToken', async () => null);
+
+  await assert.rejects(
+    () => serviceInquiriesService.recordTextReply({ token: 'x', requestId: 'req-1', textReply: 'Sim' }),
+    (err) => {
+      assert.equal(err.statusCode, 404);
+      return true;
+    },
+  );
+});
+
+test('recordTextReply: pedido já encerrado rejeita com 409', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByAccessToken', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM.id,
+    status: 'CANCELLED',
+  }));
+
+  await assert.rejects(
+    () => serviceInquiriesService.recordTextReply({ token: 'x', requestId: 'req-1', textReply: 'Sim' }),
+    (err) => {
+      assert.equal(err.statusCode, 409);
+      return true;
+    },
+  );
+});
+
+test('recordTextReply: requestId inexistente ou de kind errado rejeita com 400', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByAccessToken', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM.id,
+    status: 'IN_PROGRESS',
+  }));
+  mock.method(serviceInquiryRequestsRepository, 'findByIdForInquiry', async () => ({
+    id: 'req-cc',
+    kind: 'document',
+    status: 'PENDING',
+  }));
+
+  await assert.rejects(
+    () => serviceInquiriesService.recordTextReply({ token: 'x', requestId: 'req-cc', textReply: 'Sim' }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      return true;
+    },
+  );
+});
+
+test('recordTextReply: já respondida (ANSWERED) rejeita com 400 — não deixa sobrescrever', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByAccessToken', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM.id,
+    status: 'IN_PROGRESS',
+  }));
+  mock.method(serviceInquiryRequestsRepository, 'findByIdForInquiry', async () => ({
+    id: 'req-q1',
+    kind: 'question',
+    status: 'ANSWERED',
+  }));
+
+  await assert.rejects(
+    () => serviceInquiriesService.recordTextReply({ token: 'x', requestId: 'req-q1', textReply: 'Outra resposta' }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      return true;
+    },
+  );
+});
+
+test('recordTextReply: rejeita resposta vazia', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByAccessToken', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM.id,
+    status: 'IN_PROGRESS',
+  }));
+  mock.method(serviceInquiryRequestsRepository, 'findByIdForInquiry', async () => ({
+    id: 'req-q1',
+    kind: 'question',
+    status: 'PENDING',
+  }));
+
+  await assert.rejects(
+    () => serviceInquiriesService.recordTextReply({ token: 'x', requestId: 'req-q1', textReply: '   ' }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      return true;
+    },
+  );
+});
+
+test('recordTextReply: marca ANSWERED, audita e notifica a equipa', async () => {
+  resetMocks();
+  const auditCalls = [];
+  mock.method(auditRepository, 'writeAuditLog', async (args) => {
+    auditCalls.push(args.action);
+  });
+  mock.method(firmUsersRepository, 'findFirmOwnerEmail', async () => 'staff@x.com');
+  let notifyArgs = null;
+  mock.method(contabilNotifications, 'notifyFirmIntakeReplyReceived', async (args) => {
+    notifyArgs = args;
+    return { ok: true };
+  });
+  mock.method(serviceInquiriesRepository, 'findByAccessToken', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM.id,
+    serviceId: SERVICE.id,
+    status: 'IN_PROGRESS',
+    leadId: 'lead-1',
+    clientId: null,
+  }));
+  mock.method(serviceInquiryRequestsRepository, 'findByIdForInquiry', async () => ({
+    id: 'req-q1',
+    kind: 'question',
+    title: 'Tem dependentes a cargo?',
+    status: 'PENDING',
+  }));
+  let markAnsweredArgs = null;
+  mock.method(serviceInquiryRequestsRepository, 'markAnswered', async (id, firmId, patch) => {
+    markAnsweredArgs = { id, firmId, patch };
+    return {};
+  });
+  mock.method(serviceInquiryRequestsRepository, 'listByInquiry', async () => [
+    { id: 'req-q1', kind: 'question', title: 'Tem dependentes a cargo?', status: 'ANSWERED', textReply: 'Sim, um.' },
+  ]);
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
+  mock.method(firmsRepository, 'findFirmById', async () => FIRM);
+  mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana' }));
+
+  const result = await serviceInquiriesService.recordTextReply({
+    token: 'x',
+    requestId: 'req-q1',
+    textReply: 'Sim, um.',
+  });
+
+  assert.equal(markAnsweredArgs.id, 'req-q1');
+  assert.equal(markAnsweredArgs.patch.textReply, 'Sim, um.');
+  assert.deepEqual(auditCalls, ['service_inquiry.request_answered']);
+  assert.equal(result.checklist[0].textReply, 'Sim, um.');
+
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(notifyArgs.requestTitle, 'Tem dependentes a cargo?');
+});
+
 resetMocks();

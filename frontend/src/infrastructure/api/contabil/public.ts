@@ -29,10 +29,13 @@ export type PublicIntakeSubmitResult = {
 }
 
 export type IntakeChecklistItem = {
-  tag: string
+  id: string
+  kind: 'document' | 'question'
+  tag: string | null
   title: string
   instructions?: string | null
   received: boolean
+  textReply?: string | null
 }
 
 export type PublicIntakeChecklist = {
@@ -118,6 +121,13 @@ export function createContabilPublicApi(api: AxiosInstance) {
         .post(`/public/service-inquiries/${encodeURIComponent(token)}/documents`, form)
         .then((r) => r.data as { allComplete: boolean; checklist: IntakeChecklistItem[] })
     },
+
+    submitIntakeReply: (token: string, requestId: string, textReply: string) =>
+      api
+        .post(`/public/service-inquiries/${encodeURIComponent(token)}/requests/${encodeURIComponent(requestId)}/reply`, {
+          textReply,
+        })
+        .then((r) => r.data as { checklist: IntakeChecklistItem[] }),
   }
 }
 
