@@ -1,7 +1,13 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { mock } = require('node:test');
 
+const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const accountingServicesService = require('./accounting-services.service');
+
+function resetMocks() {
+  mock.restoreAll();
+}
 
 test('normalizeIntakeForm: undefined passa por undefined (não altera o patch)', () => {
   assert.equal(accountingServicesService.normalizeIntakeForm(undefined), undefined);
@@ -165,4 +171,109 @@ test('resolveRequiredDocuments: multiple_choice com várias respostas activa vá
   const result = accountingServicesService.resolveRequiredDocuments(service, { rendimentos: ['predial', 'trabalho'] });
   const tags = result.map((d) => d.tag).sort();
   assert.deepEqual(tags, ['caderneta_predial', 'recibos_vencimento']);
+});
+
+test('seedCatalog: propaga documentRequirements/intakeForm do template quando presentes', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'listCatalogKeys', async () => new Set());
+  const created = [];
+  mock.method(accountingServicesRepository, 'createRow', async (args) => {
+    created.push(args);
+    return { id: `svc-${created.length}`, ...args };
+  });
+  mock.method(accountingServicesRepository, 'listByFirm', async () => created);
+
+  await accountingServicesService.seedCatalog({ firmId: 'firm-x' });
+
+  const withForm = created.find((c) => c.catalogKey === 'entrega-irs-orcamento');
+  assert.ok(withForm, 'entrada entrega-irs-orcamento devia ter sido criada');
+  assert.equal(withForm.slug, undefined);
+  assert.deepEqual(
+    withForm.documentRequirements.map((d) => d.tag),
+    ['cartao_cidadao'],
+  );
+  assert.equal(withForm.intakeForm.questions.length, 2);
+  assert.ok(withForm.intakeForm.questions[0].id, 'pergunta propagada deve ganhar um id estável ao ser semeada');
+
+  const withoutForm = created.find((c) => c.catalogKey === 'iuc');
+  assert.ok(withoutForm, 'entrada sem intakeForm/documentRequirements continua a ser criada normalmente');
+  assert.deepEqual(withoutForm.documentRequirements, []);
+  assert.equal(withoutForm.intakeForm, null);
+});
+
+test('seedCatalog: não recria entradas já activadas pelo escritório (catalogKey já existente)', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'listCatalogKeys', async () => new Set(['entrega-irs-orcamento']));
+  const created = [];
+  mock.method(accountingServicesRepository, 'createRow', async (args) => {
+    created.push(args);
+    return { id: `svc-${created.length}`, ...args };
+  });
+  mock.method(accountingServicesRepository, 'listByFirm', async () => created);
+
+  await accountingServicesService.seedCatalog({ firmId: 'firm-x' });
+
+  assert.ok(!created.some((c) => c.catalogKey === 'entrega-irs-orcamento'));
+});
+
+test('seedCatalog: regressão — reexecutar depois do escritório editar o serviço não altera nada já configurado', async () => {
+  resetMocks();
+
+  // 1) primeira execução: cria a partir do catálogo
+  mock.method(accountingServicesRepository, 'listCatalogKeys', async () => new Set());
+  const createCalls = [];
+  mock.method(accountingServicesRepository, 'createRow', async (args) => {
+    createCalls.push(args);
+    return { id: 'svc-1', ...args };
+  });
+  mock.method(accountingServicesRepository, 'listByFirm', async () => []);
+  await accountingServicesService.seedCatalog({ firmId: 'firm-x' });
+  assert.equal(createCalls.filter((c) => c.catalogKey === 'entrega-irs-orcamento').length, 1);
+
+  // 2) simula o escritório a editar tudo manualmente depois (fora do seedCatalog)
+  const firmEditedRow = {
+    id: 'svc-1',
+    catalogKey: 'entrega-irs-orcamento',
+    name: 'IRS Premium (nome alterado pela contabilista)',
+    description: 'Descrição totalmente reescrita',
+    priceCents: 999999,
+    durationMinutes: 15,
+    requiresBooking: false,
+    slug: 'irs-premium-2026',
+    isPubliclyListed: true,
+    documentRequirements: [{ tag: 'outro_doc', title: 'Documento que a contabilista adicionou' }],
+    intakeForm: { questions: [{ id: 'q_manual', label: 'Pergunta que a contabilista criou', type: 'text', required: true }] },
+  };
+
+  // 3) reexecuta seedCatalog — simula que o escritório já tem TODO o catálogo semeado
+  //    (senão as outras 20 entradas, não relacionadas, tentariam ser criadas normalmente
+  //    e mascarariam o que este teste quer provar). accountingServicesRepository.createRow
+  //    fica mockado para rebentar se for chamado — prova mais forte do que só contar chamadas.
+  const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-catalog');
+  mock.method(
+    accountingServicesRepository,
+    'listCatalogKeys',
+    async () => new Set(CONSULTING_SERVICES_CATALOG.map((e) => e.catalogKey)),
+  );
+  mock.method(accountingServicesRepository, 'createRow', async () => {
+    throw new Error('seedCatalog não devia tentar recriar uma entrada já existente');
+  });
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [firmEditedRow]);
+
+  await accountingServicesService.seedCatalog({ firmId: 'firm-x' });
+
+  // 4) confirma que as alterações manuais permanecem exactamente como estavam
+  assert.deepEqual(firmEditedRow, {
+    id: 'svc-1',
+    catalogKey: 'entrega-irs-orcamento',
+    name: 'IRS Premium (nome alterado pela contabilista)',
+    description: 'Descrição totalmente reescrita',
+    priceCents: 999999,
+    durationMinutes: 15,
+    requiresBooking: false,
+    slug: 'irs-premium-2026',
+    isPubliclyListed: true,
+    documentRequirements: [{ tag: 'outro_doc', title: 'Documento que a contabilista adicionou' }],
+    intakeForm: { questions: [{ id: 'q_manual', label: 'Pergunta que a contabilista criou', type: 'text', required: true }] },
+  });
 });

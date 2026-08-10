@@ -286,6 +286,17 @@ async function seedCatalog({ firmId }) {
       priceCents: entry.priceCents,
       sortOrder: order++,
       isActive: false,
+      // requiresBooking/documentRequirements/intakeForm são conteúdo/configuração —
+      // copiados do template como ponto de partida editável, igual a name/price/duration
+      // (sempre copiados). slug/isPubliclyListed são ESTADO DE PUBLICAÇÃO — nunca
+      // herdados (nascem sempre null/false), porque publicar tem de ser uma decisão
+      // consciente do escritório, feita depois de rever o que copiou. Mesma regra do
+      // duplicate(). Em ambos os casos, isto só corre nesta criação única — não há
+      // nenhum caminho de update() dentro de seedCatalog(), logo uma segunda execução
+      // nunca toca numa linha já existente (guarda na condição `existingKeys.has`, 2 linhas acima).
+      requiresBooking: entry.requiresBooking !== false,
+      documentRequirements: normalizeDocumentRequirements(entry.documentRequirements) || [],
+      intakeForm: normalizeIntakeForm(entry.intakeForm) || null,
     });
     created += 1;
   }
