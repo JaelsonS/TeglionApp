@@ -23,6 +23,9 @@ export type PublicIntakeSubmitResult = {
   ok: true
   accessToken: string
   documentsRequired: number
+  /** false quando o submissor é um Lead novo — o horário fica só como preferência, não é uma reserva real. */
+  bookingConfirmed: boolean
+  scheduledAt: string | null
 }
 
 export type IntakeChecklistItem = {

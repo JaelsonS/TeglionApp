@@ -10,7 +10,19 @@ import { Input } from '@/shared/components/ui/input'
 import { contabilPublicApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
 import type { IntakeQuestion } from '@/shared/types/contabil'
+import type { PublicIntakeSubmitResult } from '@/infrastructure/api/contabil/public'
 import type { FormChangeEvent, FormSubmitEvent } from '@/shared/types/react-events'
+
+function formatScheduledAt(iso: string) {
+  return new Date(iso).toLocaleString('pt-PT', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Europe/Lisbon',
+  })
+}
 
 type Answers = Record<string, string | string[]>
 
@@ -89,7 +101,7 @@ export function ServiceIntakePublicPage() {
   const [answers, setAnswers] = useState<Answers>({})
   const [scheduledAt, setScheduledAt] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [result, setResult] = useState<{ accessToken: string; documentsRequired: number } | null>(null)
+  const [result, setResult] = useState<PublicIntakeSubmitResult | null>(null)
 
   const query = useQuery({
     queryKey: ['public-service-intake', firmSlug, serviceSlug],
@@ -176,6 +188,19 @@ export function ServiceIntakePublicPage() {
             Enviámos um email de confirmação
             {result.documentsRequired > 0 ? ' com a lista de documentos necessários.' : '.'}
           </p>
+          {result.scheduledAt ? (
+            <p
+              className={
+                result.bookingConfirmed
+                  ? 'rounded-lg bg-emerald-50 p-3 text-sm font-medium text-emerald-800'
+                  : 'rounded-lg bg-amber-50 p-3 text-sm font-medium text-amber-800'
+              }
+            >
+              {result.bookingConfirmed
+                ? `O seu horário foi confirmado: ${formatScheduledAt(result.scheduledAt)}.`
+                : `Preferência de horário registada: ${formatScheduledAt(result.scheduledAt)}. Este horário será analisado e confirmado pela contabilista.`}
+            </p>
+          ) : null}
           {result.documentsRequired > 0 ? (
             <Button asChild className="w-full rounded-full">
               <Link to={`/pedidos/${result.accessToken}`}>Enviar documentos agora</Link>

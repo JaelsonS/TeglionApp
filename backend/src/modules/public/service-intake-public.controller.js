@@ -88,7 +88,7 @@ async function submitIntake(req, res, next) {
     if (req.body?.website) {
       return res.status(201).json({ ok: true });
     }
-    const { inquiry, requiredDocuments } = await serviceInquiriesService.submitPublicIntake({
+    const { inquiry, requiredDocuments, consultation } = await serviceInquiriesService.submitPublicIntake({
       firmSlug: String(req.params.firmSlug || '').trim(),
       serviceSlug: String(req.params.serviceSlug || '').trim(),
       payload: req.body || {},
@@ -97,6 +97,11 @@ async function submitIntake(req, res, next) {
       ok: true,
       accessToken: inquiry.accessToken,
       documentsRequired: requiredDocuments.length,
+      // Um Lead novo nunca gera consultation (ver submitPublicIntake) — bookingConfirmed=false
+      // nesse caso não é um erro, é a distinção real entre "reservado" e "preferência registada"
+      // que a interface pública precisa comunicar sem ambiguidade.
+      bookingConfirmed: Boolean(consultation),
+      scheduledAt: consultation?.scheduledAt || null,
     });
   } catch (err) {
     return next(err);
