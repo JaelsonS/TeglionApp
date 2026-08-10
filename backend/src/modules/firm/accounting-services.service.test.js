@@ -21,12 +21,36 @@ test('normalizeIntakeForm: rejeita tipo de pergunta inválido', () => {
   );
 });
 
-test('normalizeIntakeForm: gera id a partir do label quando não indicado', () => {
+test('normalizeIntakeForm: id fornecido é preservado mesmo que o label mude entre chamadas', () => {
+  const first = accountingServicesService.normalizeIntakeForm({
+    questions: [{ id: 'q_estavel', label: 'Qual foi o seu rendimento anual?', type: 'text' }],
+  });
+  const second = accountingServicesService.normalizeIntakeForm({
+    questions: [{ id: 'q_estavel', label: 'Qual foi o seu rendimento anual de 2026?', type: 'text' }],
+  });
+  assert.equal(first.questions[0].id, 'q_estavel');
+  assert.equal(second.questions[0].id, 'q_estavel');
+  assert.notEqual(first.questions[0].label, second.questions[0].label);
+});
+
+test('normalizeIntakeForm: sem id fornecido, gera um fallback não-vazio (rede de segurança)', () => {
   const form = accountingServicesService.normalizeIntakeForm({
     questions: [{ label: 'Tem rendimentos prediais?', type: 'yes_no' }],
   });
   assert.equal(form.questions.length, 1);
-  assert.equal(form.questions[0].id, 'tem_rendimentos_prediais');
+  assert.equal(typeof form.questions[0].id, 'string');
+  assert.ok(form.questions[0].id.length > 0);
+  assert.ok(form.questions[0].id.startsWith('q_'));
+});
+
+test('normalizeIntakeForm: fallback de id nunca é derivado do label (duas perguntas iguais recebem ids diferentes)', () => {
+  const form = accountingServicesService.normalizeIntakeForm({
+    questions: [
+      { label: 'Tem dependentes?', type: 'yes_no' },
+      { label: 'Tem dependentes?', type: 'yes_no' },
+    ],
+  });
+  assert.notEqual(form.questions[0].id, form.questions[1].id);
 });
 
 test('normalizeIntakeForm: yes_no sem opções ganha Sim/Não por omissão', () => {

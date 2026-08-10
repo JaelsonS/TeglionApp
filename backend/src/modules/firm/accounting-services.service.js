@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { AppError } = require('../../middlewares/error.middleware');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-catalog');
@@ -29,22 +30,24 @@ const INTAKE_QUESTION_TYPES = new Set([
 ]);
 const CHOICE_TYPES = new Set(['single_choice', 'multiple_choice', 'yes_no']);
 
-function slugifyId(label, index) {
-  const base = String(label || '')
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '');
-  return base || `pergunta_${index + 1}`;
+/**
+ * ID estável de pergunta/opção — gerado uma única vez na criação, nunca
+ * re-derivado de `label` (ver secção E1 da especificação da sessão: o `id`
+ * antigo mudava sempre que o texto da pergunta era editado, desalinhando
+ * `service_inquiries.answers` já submetidas). Usado só como rede de
+ * segurança quando o chamador não fornece um `id` (ex.: chamada directa à
+ * API); o caminho normal é o frontend gerar o `id` no momento da criação.
+ */
+function generateStableId(prefix) {
+  return `${prefix}${crypto.randomUUID()}`;
 }
 
 function normalizeIntakeFormOptions(options) {
   if (!Array.isArray(options)) return [];
   return options
     .slice(0, 20)
-    .map((opt, i) => ({
-      id: String(opt?.id || slugifyId(opt?.label, i)).slice(0, 60),
+    .map((opt) => ({
+      id: String(opt?.id || generateStableId('o_')).trim().slice(0, 100),
       label: String(opt?.label || '').trim().slice(0, 200),
       documentTags: Array.isArray(opt?.documentTags)
         ? opt.documentTags.slice(0, 10).map((t) => String(t).trim().slice(0, 60)).filter(Boolean)
@@ -66,7 +69,7 @@ function normalizeIntakeForm(value) {
   }
   const questions = value.questions
     .slice(0, 30)
-    .map((q, index) => {
+    .map((q) => {
       const type = String(q?.type || 'text');
       if (!INTAKE_QUESTION_TYPES.has(type)) {
         throw new AppError(`Tipo de pergunta inválido: ${type}`, 400);
@@ -74,7 +77,7 @@ function normalizeIntakeForm(value) {
       const label = String(q?.label || '').trim().slice(0, 300);
       if (!label) return null;
       const question = {
-        id: String(q?.id || slugifyId(label, index)).slice(0, 60),
+        id: String(q?.id || generateStableId('q_')).trim().slice(0, 100),
         label,
         type,
         required: q?.required === true,

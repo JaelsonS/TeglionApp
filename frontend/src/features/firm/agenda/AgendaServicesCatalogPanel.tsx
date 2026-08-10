@@ -43,6 +43,20 @@ import { cn } from '@/shared/lib/utils'
 
 type FilterMode = 'all' | 'active' | 'inactive'
 
+/**
+ * ID estável — gerado uma única vez na criação da pergunta/opção, nunca
+ * recalculado a partir do label. Editar o texto depois de guardado não pode
+ * desalinhar `service_inquiries.answers` já submetidas (ver especificação
+ * da sessão, secção E1).
+ */
+function generateStableId(prefix: string): string {
+  const random =
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  return `${prefix}${random}`
+}
+
 const CHOICE_TYPES: IntakeQuestionType[] = ['single_choice', 'multiple_choice', 'yes_no']
 
 const QUESTION_TYPE_LABELS: Record<IntakeQuestionType, string> = {
@@ -307,7 +321,10 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
 
   const addQuestion = (id: string) => {
     const current = advancedDraft[id]?.intakeForm?.questions ?? []
-    const next: IntakeQuestion[] = [...current, { label: '', type: 'text', required: false }]
+    const next: IntakeQuestion[] = [
+      ...current,
+      { id: generateStableId('q_'), label: '', type: 'text', required: false },
+    ]
     patchAdvanced(id, { intakeForm: { questions: next } })
   }
 
@@ -321,12 +338,12 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
           merged.options =
             patch.type === 'yes_no'
               ? [
-                  { label: 'Sim', documentTags: [] },
-                  { label: 'Não', documentTags: [] },
+                  { id: 'sim', label: 'Sim', documentTags: [] },
+                  { id: 'nao', label: 'Não', documentTags: [] },
                 ]
               : q.options && q.options.length
                 ? q.options
-                : [{ label: '', documentTags: [] }]
+                : [{ id: generateStableId('o_'), label: '', documentTags: [] }]
         } else {
           delete merged.options
         }
@@ -344,7 +361,9 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
   const addOption = (id: string, qIndex: number) => {
     const current = advancedDraft[id]?.intakeForm?.questions ?? []
     const next = current.map((q, i) =>
-      i !== qIndex ? q : { ...q, options: [...(q.options ?? []), { label: '', documentTags: [] }] },
+      i !== qIndex
+        ? q
+        : { ...q, options: [...(q.options ?? []), { id: generateStableId('o_'), label: '', documentTags: [] }] },
     )
     patchAdvanced(id, { intakeForm: { questions: next } })
   }
