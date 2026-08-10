@@ -5,6 +5,7 @@ const { mock } = require('node:test');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
+const googleCalendarAvailabilityService = require('../integrations/google-calendar/google-calendar-availability.service');
 const bookingService = require('./booking.service');
 
 const FIRM_ID = 'firm-x';
@@ -26,6 +27,7 @@ function mockAvailability() {
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
   mock.method(firmsRepository, 'findFirmById', async () => FIRM);
   mock.method(consultationsRepository, 'listConsultations', async () => []);
+  mock.method(googleCalendarAvailabilityService, 'getBusyRangesForFirm', async () => []);
 }
 
 /** Próximo dia útil ao meio-dia UTC — dentro da janela default (seg-sex 09-17 Lisboa), com
@@ -124,6 +126,7 @@ test('listSlotsForBooking: bookingOverrides do Service restringe os dias, sem af
   }));
   mock.method(firmsRepository, 'findFirmById', async () => FIRM); // escritório: seg-sex (default)
   mock.method(consultationsRepository, 'listConsultations', async () => []);
+  mock.method(googleCalendarAvailabilityService, 'getBusyRangesForFirm', async () => []);
 
   const now = new Date();
   const from = now.toISOString();
@@ -159,4 +162,31 @@ test('listSlotsForBooking: sem bookingOverrides, usa as regras do escritório ta
   });
 
   assert.deepEqual(booking.weekdays, [1, 2, 3, 4, 5]);
+});
+
+test('listSlotsForBooking: horário ocupado no Google Calendar ligado não aparece como slot livre (Fase Hc)', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
+  mock.method(firmsRepository, 'findFirmById', async () => FIRM);
+  mock.method(consultationsRepository, 'listConsultations', async () => []);
+
+  const target = nextWeekdayNoonUtc();
+  const targetMs = new Date(target).getTime();
+  mock.method(googleCalendarAvailabilityService, 'getBusyRangesForFirm', async () => [
+    { start: targetMs, end: targetMs + SERVICE.durationMinutes * 60 * 1000 },
+  ]);
+
+  const now = new Date();
+  const from = now.toISOString();
+  const to = new Date(now.getTime() + 13 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { slots } = await bookingService.listSlotsForBooking({
+    firmId: FIRM_ID,
+    serviceId: SERVICE.id,
+    fromIso: from,
+    toIso: to,
+  });
+
+  const blocked = slots.some((iso) => Math.abs(new Date(iso).getTime() - targetMs) < 60 * 1000);
+  assert.equal(blocked, false, 'o slot coberto pelo evento do Google não devia aparecer como livre');
 });

@@ -9,6 +9,7 @@ const { AppError } = require('../../middlewares/error.middleware');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
+const googleCalendarAvailabilityService = require('../integrations/google-calendar/google-calendar-availability.service');
 
 const BOOKING_TIMEZONES = ['Europe/Lisbon', 'Europe/Madrid', 'Atlantic/Azores', 'UTC'];
 const TZ_SET = new Set(BOOKING_TIMEZONES);
@@ -142,6 +143,12 @@ async function listSlotsForBooking({ firmId, serviceId, fromIso, toIso }) {
   const busyRanges = items
     .filter((c) => c.status !== 'CANCELLED')
     .map(consultationBusyRange);
+
+  // Junta os horários ocupados dos calendários Google pessoais ligados pela
+  // equipa (Fase Hc) — falha aberta (getBusyRangesForFirm nunca lança), uma
+  // integração externa opcional nunca pode derrubar a página de agendamento.
+  const googleBusyRanges = await googleCalendarAvailabilityService.getBusyRangesForFirm({ firmId, fromMs, toMs });
+  busyRanges.push(...googleBusyRanges);
 
   const slots = computeAvailableSlotsTz({
     fromMs,

@@ -143,6 +143,30 @@ async function deleteCalendarEvent({ accessToken, calendarId, eventId }) {
   }
 }
 
+/**
+ * Lista eventos no intervalo — usado para puxar os horários ocupados do
+ * calendário pessoal do staff (Fase Hc). singleEvents=true expande eventos
+ * recorrentes em ocorrências individuais (sem isto, um evento recorrente
+ * semanal viria como 1 linha só, sem start/end úteis para bloquear slots).
+ */
+async function listCalendarEvents({ accessToken, calendarId, timeMinIso, timeMaxIso }) {
+  const params = new URLSearchParams({
+    timeMin: timeMinIso,
+    timeMax: timeMaxIso,
+    singleEvents: 'true',
+    maxResults: '250',
+  });
+  const res = await fetch(`${CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Google Calendar list events failed (${res.status}): ${text.slice(0, 200)}`);
+  }
+  const data = await res.json();
+  return data.items || [];
+}
+
 module.exports = {
   isGoogleCalendarConfigured,
   generateOAuthState,
@@ -153,5 +177,6 @@ module.exports = {
   createCalendarEvent,
   updateCalendarEvent,
   deleteCalendarEvent,
+  listCalendarEvents,
   CALENDAR_SCOPE,
 };

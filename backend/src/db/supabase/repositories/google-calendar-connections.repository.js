@@ -29,6 +29,14 @@ async function findByStaffUser(firmId, staffUserId) {
   return map(data);
 }
 
+/** Todas as ligações activas do escritório — usado para juntar os horários ocupados de toda a equipa (Fase Hc). */
+async function listByFirm(firmId) {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb.from('firm_google_calendar_connections').select('*').eq('firm_id', firmId);
+  if (error) throw error;
+  return (data || []).map(map);
+}
+
 /** Upsert — reconectar substitui a ligação anterior do mesmo staff (mesma UNIQUE (firm_id, staff_user_id)). */
 async function upsertConnection({ firmId, staffUserId, googleEmail, accessToken, refreshToken, tokenExpiresAt, calendarId }) {
   const sb = getSupabaseAdmin();
@@ -82,6 +90,7 @@ async function deleteConnection(firmId, staffUserId) {
 
 module.exports = {
   findByStaffUser,
+  listByFirm,
   upsertConnection,
   updateAccessToken,
   deleteConnection,
