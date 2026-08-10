@@ -47,6 +47,13 @@ const CookiesPage = lazy(() => import('@/features/cookies/CookiesPage').then((m)
 const DpaPage = lazy(() => import('@/features/dpa/DpaPage').then((m) => ({ default: m.DpaPage })))
 const AvisoLegalPage = lazy(() => import('@/features/aviso-legal/AvisoLegalPage').then((m) => ({ default: m.AvisoLegalPage })))
 
+const ServiceIntakePublicPage = lazy(() =>
+  import('@/features/public-intake/ServiceIntakePublicPage').then((m) => ({ default: m.ServiceIntakePublicPage })),
+)
+const ServiceIntakePortalPage = lazy(() =>
+  import('@/features/public-intake/ServiceIntakePortalPage').then((m) => ({ default: m.ServiceIntakePortalPage })),
+)
+
 const PricingPage = lazy(() =>
   import('@/features/marketing/PricingPage').then((m) => ({ default: m.PricingPage })),
 )
@@ -182,6 +189,9 @@ export function ContabilAppRouter() {
         <Route path="/cookies" element={<CookiesPage />} />
         <Route path="/dpa" element={<DpaPage />} />
         <Route path="/aviso-legal" element={<AvisoLegalPage />} />
+
+        <Route path="/pedidos/:token" element={<ServiceIntakePortalPage />} />
+        <Route path="/:firmSlug/servicos/:serviceSlug" element={<ServiceIntakePublicPage />} />
 
         <Route
           path="/app"

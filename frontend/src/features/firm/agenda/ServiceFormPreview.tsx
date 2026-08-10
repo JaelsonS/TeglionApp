@@ -1,0 +1,75 @@
+import type { IntakeForm, IntakeQuestionType } from '@/shared/types/contabil'
+
+const QUESTION_TYPE_LABELS: Record<IntakeQuestionType, string> = {
+  text: 'Texto livre',
+  email: 'Email',
+  phone: 'Telefone',
+  tax_id: 'NIF',
+  date: 'Data',
+  single_choice: 'Escolha única',
+  multiple_choice: 'Escolha múltipla',
+  yes_no: 'Sim / Não',
+}
+
+type Props = {
+  serviceName?: string | null
+  description?: string | null
+  requiresBooking: boolean
+  intakeForm: IntakeForm
+}
+
+/**
+ * Pré-visualização estática do que a página pública vai mostrar — sem
+ * chamada de rede, sem submissão, alimentada só pelo estado local já
+ * editado (Fase 5, ver plan file da sessão). Não reaproveita o componente
+ * real (ServiceIntakePublicPage) de propósito: aqui não há reserva de
+ * horário nem envio possível, só uma leitura fiel da estrutura configurada.
+ */
+export function ServiceFormPreview({ serviceName, description, requiresBooking, intakeForm }: Props) {
+  return (
+    <div className="space-y-4">
+      <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+        Pré-visualização — é assim que o cliente vai ver a página pública. Nada aqui é enviado.
+      </p>
+      <header className="space-y-1">
+        <h2 className="text-lg font-bold">{serviceName || 'Nome do serviço'}</h2>
+        {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+      </header>
+
+      <div className="space-y-3 rounded-2xl border border-border/50 bg-card p-4">
+        <div className="grid gap-1.5 text-sm text-muted-foreground sm:grid-cols-2">
+          <p>Nome *</p>
+          <p>NIF</p>
+          <p>Email</p>
+          <p>Telefone</p>
+        </div>
+
+        {requiresBooking ? (
+          <p className="border-t border-border/40 pt-3 text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">Horário *</span> — o cliente escolhe entre os horários
+            disponíveis do escritório (ou deste serviço, se personalizados)
+          </p>
+        ) : null}
+
+        {intakeForm.questions.length === 0 ? (
+          <p className="border-t border-border/40 pt-3 text-sm text-muted-foreground">
+            Sem perguntas adicionais — a página pede só nome e contacto.
+          </p>
+        ) : (
+          intakeForm.questions.map((q, index) => (
+            <div key={q.id ?? index} className="space-y-0.5 border-t border-border/40 pt-3">
+              <p className="text-sm font-medium">
+                {q.label || '(pergunta sem texto)'}
+                {q.required ? ' *' : ''}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {QUESTION_TYPE_LABELS[q.type]}
+                {q.options?.length ? ` — ${q.options.map((o) => o.label).join(', ')}` : ''}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}

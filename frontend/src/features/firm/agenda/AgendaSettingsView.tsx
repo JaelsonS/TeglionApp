@@ -1,7 +1,8 @@
-import { CalendarClock, Layers } from 'lucide-react'
+import { CalendarClock, Layers, Plug } from 'lucide-react'
 
 import { AgendaAvailabilityPanel } from '@/features/firm/agenda/AgendaAvailabilityPanel'
 import { AgendaServicesCatalogPanel } from '@/features/firm/agenda/AgendaServicesCatalogPanel'
+import { GoogleCalendarIntegrationPanel } from '@/features/firm/agenda/GoogleCalendarIntegrationPanel'
 import type { AccountingService, FirmBookingSettings } from '@/shared/types/contabil'
 
 type Props = {
@@ -73,6 +74,19 @@ export function AgendaSettingsView(props: Props) {
           </div>
         </div>
         <AgendaServicesCatalogPanel services={props.services} onReload={props.onReload} />
+      </section>
+
+      <section className="cb-agenda-settings-block">
+        <div className="cb-agenda-settings-block-hd">
+          <span className="cb-agenda-settings-block-icon">
+            <Plug className="h-4 w-4" aria-hidden />
+          </span>
+          <div>
+            <h3 className="cb-agenda-settings-block-title">Integrações</h3>
+            <p className="cb-agenda-settings-block-sub">Ligações a serviços externos</p>
+          </div>
+        </div>
+        <GoogleCalendarIntegrationPanel />
       </section>
     </div>
   )

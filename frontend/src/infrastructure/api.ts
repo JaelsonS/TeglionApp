@@ -10,10 +10,13 @@ import { createContabilClientsApi } from '@/infrastructure/api/contabil/clients'
 import { createContabilConsultationsApi } from '@/infrastructure/api/contabil/consultations'
 import { createContabilDocumentsApi } from '@/infrastructure/api/contabil/documents'
 import { createContabilFirmApi } from '@/infrastructure/api/contabil/firm'
+import { createContabilGoogleCalendarApi } from '@/infrastructure/api/contabil/googleCalendar'
+import { createContabilGoogleDriveApi } from '@/infrastructure/api/contabil/googleDrive'
 import { createContabilMessagesApi } from '@/infrastructure/api/contabil/messages'
 import { createContabilNewsApi } from '@/infrastructure/api/contabil/news'
 import { createContabilObligationsApi } from '@/infrastructure/api/contabil/obligations'
 import { createContabilPublicApi } from '@/infrastructure/api/contabil/public'
+import { createContabilServiceInquiriesApi } from '@/infrastructure/api/contabil/serviceInquiries'
 
 import { api, refreshApi } from '@/infrastructure/http/apiClient'
 import { prefetchAuthCsrf as prefetchAuthCsrfInternal, warmupAuthApi as warmupAuthApiInternal } from '@/infrastructure/http/csrf'
@@ -28,6 +31,7 @@ export {
   getApiBaseUrlResolved,
   getApiUploadsRoot,
   getGoogleAuthStartUrl,
+  getGoogleCalendarConnectUrl,
   normalizeApiBase,
   refreshAccessToken,
   refreshApi,
@@ -67,6 +71,9 @@ export const contabilNewsApi = createContabilNewsApi(api)
 export const contabilBroadcastsApi = createContabilBroadcastsApi(api)
 export const contabilBillingApi = createContabilBillingApi(api)
 export const contabilPublicApi = createContabilPublicApi(api)
+export const contabilServiceInquiriesApi = createContabilServiceInquiriesApi(api)
+export const contabilGoogleCalendarApi = createContabilGoogleCalendarApi(api)
+export const contabilGoogleDriveApi = createContabilGoogleDriveApi(api)
 export const clientPortalContabilApi = createClientPortalContabilApi(api)
 
 export type { BillingStatus }

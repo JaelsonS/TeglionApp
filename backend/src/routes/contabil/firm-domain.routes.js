@@ -24,6 +24,8 @@ const automationController = require('../../modules/automations/automation.contr
 const fiscalCalendarController = require('../../modules/fiscal/fiscal-calendar.controller');
 const fiscalCalendarNotesController = require('../../modules/fiscal/fiscal-calendar-notes.controller');
 const atController = require('../../modules/integrations/at/at.controller');
+const googleCalendarController = require('../../modules/integrations/google-calendar/google-calendar.controller');
+const googleDriveController = require('../../modules/integrations/google-drive/google-drive.controller');
 const caeHistoryController = require('../../modules/firm/cae-history.controller');
 const caeCatalogController = require('../../modules/firm/cae-catalog.controller');
 
@@ -42,6 +44,38 @@ router.patch(
   fiscalCalendarNotesController.patchNote,
 );
 router.get('/integrations/at/status', requirePermission(PERMISSIONS.FIRM_CLIENTS_VIEW), atController.getIntegrationStatus);
+
+router.get(
+  '/integrations/google-calendar/status',
+  requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE),
+  googleCalendarController.getStatus,
+);
+router.get(
+  '/integrations/google-calendar/connect',
+  requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE),
+  googleCalendarController.startConnect,
+);
+router.get(
+  '/integrations/google-calendar/callback',
+  requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE),
+  googleCalendarController.callback,
+);
+router.post(
+  '/integrations/google-calendar/disconnect',
+  requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE),
+  googleCalendarController.disconnect,
+);
+
+router.get(
+  '/integrations/google-drive/config',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  googleDriveController.getConfig,
+);
+router.post(
+  '/documents/import-from-drive',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  googleDriveController.importFromDrive,
+);
 
 router.get('/firm', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.getFirm);
 router.get('/firm/cae-history', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), caeHistoryController.list);
@@ -360,6 +394,11 @@ router.post('/leads/:id/convert-to-client', requirePermission(PERMISSIONS.FIRM_L
 
 router.get('/service-inquiries', requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE), serviceInquiriesController.list);
 router.get('/service-inquiries/:id', requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE), serviceInquiriesController.getDetail);
+router.get(
+  '/service-inquiries/:id/documents/:documentId/download',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  serviceInquiriesController.downloadDocument,
+);
 router.post(
   '/service-inquiries',
   requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
@@ -376,6 +415,21 @@ router.patch(
   requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
   [body('status').optional().isString().trim(), body('notes').optional().isString().trim().isLength({ max: 4000 })],
   serviceInquiriesController.patch,
+);
+router.post(
+  '/service-inquiries/:id/revoke-token',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  serviceInquiriesController.revokeToken,
+);
+router.post(
+  '/service-inquiries/:id/requests',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  [
+    body('kind').isString().isIn(['document', 'question']),
+    body('title').isString().trim().isLength({ min: 1, max: 300 }),
+    body('instructions').optional({ nullable: true }).isString().trim().isLength({ max: 2000 }),
+  ],
+  serviceInquiriesController.addRequest,
 );
 
 module.exports = router;

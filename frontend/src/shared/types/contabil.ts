@@ -174,7 +174,10 @@ export type ContabilMessage = {
 
 export type Consultation = {
   _id: string
-  clientId: string
+  clientId: string | null
+  leadId?: string | null
+  /** Nome do titular (Client ou Lead) já resolvido pelo servidor. */
+  holderName?: string | null
   staffId?: string | null
   title: string
   scheduledAt: string
@@ -262,7 +265,8 @@ export type FirmContabilDashboard = {
   /** Próximas consultas agendadas (todas os clientes) */
   upcomingConsultations?: Array<{
     _id: string
-    clientId: string
+    clientId: string | null
+    leadId?: string | null
     clientName?: string
     title: string
     scheduledAt: string
@@ -286,6 +290,34 @@ export type DocumentRequirement = {
   instructions?: string | null
 }
 
+export type IntakeQuestionType =
+  | 'text'
+  | 'email'
+  | 'phone'
+  | 'tax_id'
+  | 'date'
+  | 'single_choice'
+  | 'multiple_choice'
+  | 'yes_no'
+
+export type IntakeQuestionOption = {
+  id?: string
+  label: string
+  documentTags: string[]
+}
+
+export type IntakeQuestion = {
+  id?: string
+  label: string
+  type: IntakeQuestionType
+  required: boolean
+  options?: IntakeQuestionOption[]
+}
+
+export type IntakeForm = {
+  questions: IntakeQuestion[]
+}
+
 export type AccountingService = {
   id: string
   catalogKey?: string | null
@@ -300,6 +332,9 @@ export type AccountingService = {
   isPubliclyListed?: boolean
   requiresBooking?: boolean
   documentRequirements?: DocumentRequirement[]
+  intakeForm?: IntakeForm | null
+  /** Substitui, campo a campo, as regras gerais do escritório (firm.settings.booking) só para este serviço. null/undefined = usa as regras gerais. */
+  bookingOverrides?: Partial<FirmBookingSettings> | null
 }
 
 export type ConsultingCatalogEntry = {

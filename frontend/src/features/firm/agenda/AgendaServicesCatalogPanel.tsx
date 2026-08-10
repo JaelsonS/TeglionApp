@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import {
+  CalendarClock,
   Check,
   ChevronDown,
   Copy,
+  ExternalLink,
+  Eye,
+  FileQuestion,
   Globe,
   Layers,
   Pencil,
@@ -16,8 +20,13 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { AgendaAvailabilityPanel } from '@/features/firm/agenda/AgendaAvailabilityPanel'
+import { ServiceFormPreview } from '@/features/firm/agenda/ServiceFormPreview'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
+import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
+import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
+import { useAuth } from '@/shared/hooks/useAuth'
 import {
   Command,
   CommandEmpty,
@@ -31,10 +40,56 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/
 import { EuroInput, ProfileSectionCard } from '@/shared/design-system'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
-import type { AccountingService, DocumentRequirement } from '@/shared/types/contabil'
+import type {
+  AccountingService,
+  DocumentRequirement,
+  FirmBookingSettings,
+  IntakeQuestion,
+  IntakeQuestionOption,
+  IntakeQuestionType,
+} from '@/shared/types/contabil'
 import { cn } from '@/shared/lib/utils'
 
 type FilterMode = 'all' | 'active' | 'inactive'
+
+/**
+ * ID estável — gerado uma única vez na criação da pergunta/opção, nunca
+ * recalculado a partir do label. Editar o texto depois de guardado não pode
+ * desalinhar `service_inquiries.answers` já submetidas (ver especificação
+ * da sessão, secção E1).
+ */
+function generateStableId(prefix: string): string {
+  const random =
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  return `${prefix}${random}`
+}
+
+const CHOICE_TYPES: IntakeQuestionType[] = ['single_choice', 'multiple_choice', 'yes_no']
+
+/** Valores iniciais quando o escritório liga "Personalizar horários deste serviço" pela
+ * primeira vez — independentes das regras gerais (o painel não recebe a config do escritório). */
+const DEFAULT_BOOKING_OVERRIDE: FirmBookingSettings = {
+  slotMinutes: 30,
+  horizonDays: 14,
+  leadTimeHours: 2,
+  weekdays: [1, 2, 3, 4, 5],
+  dayStart: '09:00',
+  dayEnd: '17:00',
+  timezone: 'Europe/Lisbon',
+}
+
+const QUESTION_TYPE_LABELS: Record<IntakeQuestionType, string> = {
+  text: 'Texto livre',
+  email: 'Email',
+  phone: 'Telefone',
+  tax_id: 'NIF',
+  date: 'Data',
+  single_choice: 'Escolha única',
+  multiple_choice: 'Escolha múltipla',
+  yes_no: 'Sim / Não',
+}
 
 type Props = {
   services: AccountingService[]
@@ -58,6 +113,9 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [advancedDraft, setAdvancedDraft] = useState<Record<string, Partial<AccountingService>>>({})
   const [duplicating, setDuplicating] = useState<string | null>(null)
+  const [previewId, setPreviewId] = useState<string | null>(null)
+  const { user } = useAuth()
+  const firmSlug = user?.tenant?.slug
 
   const inactiveCatalog = useMemo(
     () => services.filter((s) => s.isActive === false),
@@ -199,6 +257,40 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
     }))
   }
 
+  const toggleBookingOverride = (id: string, enabled: boolean) => {
+    patchAdvanced(id, { bookingOverrides: enabled ? { ...DEFAULT_BOOKING_OVERRIDE } : null })
+  }
+
+  const patchBookingOverride = (id: string, patch: Partial<FirmBookingSettings>) => {
+    setAdvancedDraft((prev) => {
+      const current = { ...DEFAULT_BOOKING_OVERRIDE, ...prev[id]?.bookingOverrides }
+      return { ...prev, [id]: { ...prev[id], bookingOverrides: { ...current, ...patch } } }
+    })
+  }
+
+  const toggleBookingOverrideWeekday = (id: string, day: number) => {
+    setAdvancedDraft((prev) => {
+      const current = { ...DEFAULT_BOOKING_OVERRIDE, ...prev[id]?.bookingOverrides }
+      const weekdays = current.weekdays.includes(day)
+        ? current.weekdays.filter((d) => d !== day)
+        : [...current.weekdays, day].sort((a, b) => a - b)
+      return { ...prev, [id]: { ...prev[id], bookingOverrides: { ...current, weekdays } } }
+    })
+  }
+
+  /** Dados para a pré-visualização — usa o que já está a ser editado (mesmo sem
+   * ter guardado ainda), com fallback para o que está gravado no serviço. */
+  const previewDataFor = (s: AccountingService) => {
+    const draft = editing[s.id]
+    const adv = advancedDraft[s.id]
+    return {
+      serviceName: draft?.name ?? s.name,
+      description: draft?.description ?? s.description,
+      requiresBooking: adv?.requiresBooking ?? s.requiresBooking ?? true,
+      intakeForm: adv?.intakeForm ?? s.intakeForm ?? { questions: [] },
+    }
+  }
+
   const toggleExpanded = (s: AccountingService) => {
     setExpandedId((prev) => {
       if (prev === s.id) return null
@@ -209,6 +301,8 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
           isPubliclyListed: s.isPubliclyListed ?? false,
           requiresBooking: s.requiresBooking ?? true,
           documentRequirements: s.documentRequirements ?? [],
+          intakeForm: s.intakeForm ?? { questions: [] },
+          bookingOverrides: s.bookingOverrides ?? null,
         },
       }))
       return s.id
@@ -225,6 +319,8 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
         isPubliclyListed: draft.isPubliclyListed,
         requiresBooking: draft.requiresBooking,
         documentRequirements: draft.documentRequirements,
+        intakeForm: draft.intakeForm,
+        bookingOverrides: draft.bookingOverrides,
       })
       toast.success('Serviço actualizado')
       await onReload()
@@ -283,7 +379,91 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
     patchAdvanced(id, { documentRequirements: current.filter((_, i) => i !== index) })
   }
 
+  const addQuestion = (id: string) => {
+    const current = advancedDraft[id]?.intakeForm?.questions ?? []
+    const next: IntakeQuestion[] = [
+      ...current,
+      { id: generateStableId('q_'), label: '', type: 'text', required: false },
+    ]
+    patchAdvanced(id, { intakeForm: { questions: next } })
+  }
+
+  const updateQuestion = (id: string, index: number, patch: Partial<IntakeQuestion>) => {
+    const current = advancedDraft[id]?.intakeForm?.questions ?? []
+    const next = current.map((q, i) => {
+      if (i !== index) return q
+      const merged: IntakeQuestion = { ...q, ...patch }
+      if (patch.type !== undefined) {
+        if (CHOICE_TYPES.includes(patch.type)) {
+          merged.options =
+            patch.type === 'yes_no'
+              ? [
+                  { id: 'sim', label: 'Sim', documentTags: [] },
+                  { id: 'nao', label: 'Não', documentTags: [] },
+                ]
+              : q.options && q.options.length
+                ? q.options
+                : [{ id: generateStableId('o_'), label: '', documentTags: [] }]
+        } else {
+          delete merged.options
+        }
+      }
+      return merged
+    })
+    patchAdvanced(id, { intakeForm: { questions: next } })
+  }
+
+  const removeQuestion = (id: string, index: number) => {
+    const current = advancedDraft[id]?.intakeForm?.questions ?? []
+    patchAdvanced(id, { intakeForm: { questions: current.filter((_, i) => i !== index) } })
+  }
+
+  const addOption = (id: string, qIndex: number) => {
+    const current = advancedDraft[id]?.intakeForm?.questions ?? []
+    const next = current.map((q, i) =>
+      i !== qIndex
+        ? q
+        : { ...q, options: [...(q.options ?? []), { id: generateStableId('o_'), label: '', documentTags: [] }] },
+    )
+    patchAdvanced(id, { intakeForm: { questions: next } })
+  }
+
+  const updateOption = (id: string, qIndex: number, oIndex: number, patch: Partial<IntakeQuestionOption>) => {
+    const current = advancedDraft[id]?.intakeForm?.questions ?? []
+    const next = current.map((q, i) => {
+      if (i !== qIndex) return q
+      const options = (q.options ?? []).map((o, oi) => (oi === oIndex ? { ...o, ...patch } : o))
+      return { ...q, options }
+    })
+    patchAdvanced(id, { intakeForm: { questions: next } })
+  }
+
+  const removeOption = (id: string, qIndex: number, oIndex: number) => {
+    const current = advancedDraft[id]?.intakeForm?.questions ?? []
+    const next = current.map((q, i) =>
+      i !== qIndex ? q : { ...q, options: (q.options ?? []).filter((_, oi) => oi !== oIndex) },
+    )
+    patchAdvanced(id, { intakeForm: { questions: next } })
+  }
+
+  const toggleOptionDocumentTag = (id: string, qIndex: number, oIndex: number, tag: string) => {
+    const current = advancedDraft[id]?.intakeForm?.questions ?? []
+    const next = current.map((q, i) => {
+      if (i !== qIndex) return q
+      const options = (q.options ?? []).map((o, oi) => {
+        if (oi !== oIndex) return o
+        const has = o.documentTags.includes(tag)
+        return { ...o, documentTags: has ? o.documentTags.filter((t) => t !== tag) : [...o.documentTags, tag] }
+      })
+      return { ...q, options }
+    })
+    patchAdvanced(id, { intakeForm: { questions: next } })
+  }
+
+  const previewService = services.find((s) => s.id === previewId)
+
   return (
+    <>
     <ProfileSectionCard
       title="Catálogo de consultorias"
       description="Active apenas o que o escritório presta. O cliente vê só serviços activos ao agendar no portal."
@@ -465,6 +645,7 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
               const adv = advancedDraft[s.id]
               const advDirty = Boolean(adv)
               const requirements = adv?.documentRequirements ?? s.documentRequirements ?? []
+              const questions = adv?.intakeForm?.questions ?? s.intakeForm?.questions ?? []
 
               return (
                 <li key={s.id}>
@@ -518,6 +699,16 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
                       {active ? 'Activo' : 'Inactivo'}
                     </button>
                     <div className="flex shrink-0 items-center gap-1">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-9 w-9 rounded-full"
+                        title="Pré-visualizar formulário público"
+                        onClick={() => setPreviewId(s.id)}
+                      >
+                        <Eye className="h-4 w-4 opacity-60" />
+                      </Button>
                       <Button
                         type="button"
                         size="icon"
@@ -588,6 +779,53 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
                         </div>
                       </div>
 
+                      {s.isPubliclyListed && s.slug && firmSlug ? (
+                        <a
+                          href={`/${firmSlug}/servicos/${s.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+                        >
+                          Ver página pública <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ) : null}
+
+                      {adv.requiresBooking ? (
+                        <div className="space-y-2 rounded-lg border border-border/40 p-3">
+                          <label className="flex items-center gap-2 text-sm font-medium">
+                            <Checkbox
+                              checked={Boolean(adv.bookingOverrides)}
+                              onCheckedChange={(checked: boolean | 'indeterminate') =>
+                                toggleBookingOverride(s.id, Boolean(checked))
+                              }
+                            />
+                            <CalendarClock className="h-3.5 w-3.5 opacity-60" />
+                            Personalizar horários deste serviço
+                          </label>
+                          {adv.bookingOverrides ? (
+                            <AgendaAvailabilityPanel
+                              booking={null}
+                              hideSaveButton
+                              wd={adv.bookingOverrides.weekdays ?? DEFAULT_BOOKING_OVERRIDE.weekdays}
+                              slotMin={adv.bookingOverrides.slotMinutes ?? DEFAULT_BOOKING_OVERRIDE.slotMinutes}
+                              horizon={adv.bookingOverrides.horizonDays ?? DEFAULT_BOOKING_OVERRIDE.horizonDays}
+                              bookingTz={adv.bookingOverrides.timezone || DEFAULT_BOOKING_OVERRIDE.timezone || 'Europe/Lisbon'}
+                              dayStart={adv.bookingOverrides.dayStart ?? DEFAULT_BOOKING_OVERRIDE.dayStart}
+                              dayEnd={adv.bookingOverrides.dayEnd ?? DEFAULT_BOOKING_OVERRIDE.dayEnd}
+                              onToggleWeekday={(n) => toggleBookingOverrideWeekday(s.id, n)}
+                              onSlotMin={(n) => patchBookingOverride(s.id, { slotMinutes: n })}
+                              onHorizon={(n) => patchBookingOverride(s.id, { horizonDays: n })}
+                              onBookingTz={(tz) => patchBookingOverride(s.id, { timezone: tz })}
+                              onDayStart={(v) => patchBookingOverride(s.id, { dayStart: v })}
+                              onDayEnd={(v) => patchBookingOverride(s.id, { dayEnd: v })}
+                              onSaveAvailability={() => {}}
+                            />
+                          ) : (
+                            <p className="cb-text-caption">Usa os horários gerais do escritório (Definições da agenda).</p>
+                          )}
+                        </div>
+                      ) : null}
+
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-caption font-medium text-muted-foreground">
@@ -634,6 +872,131 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
                         )}
                       </div>
 
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-1.5 text-caption font-medium text-muted-foreground">
+                            <FileQuestion className="h-3.5 w-3.5" /> Formulário de captação
+                          </span>
+                          <Button type="button" size="sm" variant="outline" onClick={() => addQuestion(s.id)}>
+                            <Plus className="mr-1 h-3.5 w-3.5" /> Adicionar pergunta
+                          </Button>
+                        </div>
+                        {questions.length === 0 ? (
+                          <p className="cb-text-caption">
+                            Sem perguntas — a página pública pede só nome e email/telefone.
+                          </p>
+                        ) : (
+                          <div className="space-y-3">
+                            {questions.map((q, qIndex) => (
+                              <div key={qIndex} className="space-y-2 rounded-lg border border-border/40 p-3">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <Input
+                                    placeholder="Pergunta"
+                                    className="h-8 min-w-[180px] flex-1 rounded-md text-sm"
+                                    value={q.label}
+                                    onChange={(e: FormChangeEvent) =>
+                                      updateQuestion(s.id, qIndex, { label: e.target.value })
+                                    }
+                                  />
+                                  <select
+                                    className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+                                    value={q.type}
+                                    onChange={(e) =>
+                                      updateQuestion(s.id, qIndex, {
+                                        type: e.target.value as IntakeQuestionType,
+                                      })
+                                    }
+                                  >
+                                    {Object.entries(QUESTION_TYPE_LABELS).map(([value, label]) => (
+                                      <option key={value} value={value}>
+                                        {label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                    <Checkbox
+                                      checked={q.required}
+                                      onCheckedChange={(checked: boolean | 'indeterminate') =>
+                                        updateQuestion(s.id, qIndex, { required: Boolean(checked) })
+                                      }
+                                    />
+                                    Obrigatória
+                                  </label>
+                                  <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-8 w-8 shrink-0 rounded-full"
+                                    onClick={() => removeQuestion(s.id, qIndex)}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 opacity-60" />
+                                  </Button>
+                                </div>
+
+                                {q.options ? (
+                                  <div className="ml-2 space-y-2 border-l-2 border-border/30 pl-3">
+                                    {q.options.map((opt, oIndex) => (
+                                      <div key={oIndex} className="space-y-1.5">
+                                        <div className="flex items-center gap-2">
+                                          <Input
+                                            placeholder="Opção"
+                                            className="h-7 min-w-[140px] flex-1 rounded-md text-xs"
+                                            value={opt.label}
+                                            onChange={(e: FormChangeEvent) =>
+                                              updateOption(s.id, qIndex, oIndex, { label: e.target.value })
+                                            }
+                                          />
+                                          {q.type !== 'yes_no' ? (
+                                            <Button
+                                              type="button"
+                                              size="icon"
+                                              variant="ghost"
+                                              className="h-7 w-7 shrink-0 rounded-full"
+                                              onClick={() => removeOption(s.id, qIndex, oIndex)}
+                                            >
+                                              <Trash2 className="h-3 w-3 opacity-50" />
+                                            </Button>
+                                          ) : null}
+                                        </div>
+                                        {requirements.length > 0 ? (
+                                          <div className="flex flex-wrap gap-2 pl-1">
+                                            {requirements.map((req) => (
+                                              <label
+                                                key={req.tag}
+                                                className="flex items-center gap-1 text-[11px] text-muted-foreground"
+                                              >
+                                                <Checkbox
+                                                  checked={opt.documentTags.includes(req.tag)}
+                                                  onCheckedChange={() =>
+                                                    toggleOptionDocumentTag(s.id, qIndex, oIndex, req.tag)
+                                                  }
+                                                />
+                                                {req.title || req.tag}
+                                              </label>
+                                            ))}
+                                          </div>
+                                        ) : null}
+                                      </div>
+                                    ))}
+                                    {q.type !== 'yes_no' ? (
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 rounded-full text-xs"
+                                        onClick={() => addOption(s.id, qIndex)}
+                                      >
+                                        <Plus className="mr-1 h-3 w-3" /> Adicionar opção
+                                      </Button>
+                                    ) : null}
+                                  </div>
+                                ) : null}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
                       <div className="flex justify-end">
                         <Button
                           type="button"
@@ -653,5 +1016,13 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
         </div>
       )}
     </ProfileSectionCard>
+
+    <Sheet open={Boolean(previewId)} onOpenChange={(open: boolean) => !open && setPreviewId(null)}>
+      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
+        <SheetHiddenTitle>Pré-visualização do formulário</SheetHiddenTitle>
+        {previewService ? <ServiceFormPreview {...previewDataFor(previewService)} /> : null}
+      </SheetContent>
+    </Sheet>
+    </>
   )
 }

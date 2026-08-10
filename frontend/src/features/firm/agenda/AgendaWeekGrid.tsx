@@ -6,7 +6,7 @@ type Props = {
   anchor: Date
   items: Consultation[]
   staffName: (staffId?: string | null) => string
-  clientName: (clientId: string) => string
+  clientName: (item: Consultation) => string
   onSelectEvent?: (c: Consultation) => void
 }
 

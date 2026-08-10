@@ -26,6 +26,30 @@ const CONSULTING_SERVICES_CATALOG = [
     durationMinutes: 90,
     priceCents: 0,
     category: 'IRS',
+    // Exemplo ilustrativo — prova que o catálogo propaga documentRequirements/intakeForm
+    // para a cópia do escritório (ver Fase A da sessão). Não é um template exaustivo:
+    // o escritório continua livre para editar/duplicar/remover tudo isto depois de activar.
+    documentRequirements: [{ tag: 'cartao_cidadao', title: 'Cartão de Cidadão ou Passaporte' }],
+    intakeForm: {
+      questions: [
+        {
+          label: 'Tem rendimentos prediais (arrendamento)?',
+          type: 'yes_no',
+          options: [
+            { label: 'Sim', documentTags: ['Caderneta predial'] },
+            { label: 'Não', documentTags: [] },
+          ],
+        },
+        {
+          label: 'Tem dependentes a cargo?',
+          type: 'yes_no',
+          options: [
+            { label: 'Sim', documentTags: ['Comprovativos dos dependentes'] },
+            { label: 'Não', documentTags: [] },
+          ],
+        },
+      ],
+    },
   },
   {
     catalogKey: 'abertura-atividade',

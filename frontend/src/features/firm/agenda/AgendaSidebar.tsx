@@ -15,7 +15,7 @@ type Props = {
   anchor: Date
   items: Consultation[]
   staff: StaffMember[]
-  clientName: (id: string) => string
+  clientName: (item: Consultation) => string
   onPickDay: (day: Date) => void
   onSelectEvent?: (c: Consultation) => void
   onViewAllUpcoming?: () => void
@@ -116,7 +116,7 @@ export function AgendaSidebar({
                     </span>
                     <span className="block truncate text-xs font-medium">{ev.title}</span>
                     <span className="block truncate cb-text-caption">
-                      {clientName(ev.clientId)}
+                      {clientName(ev)}
                     </span>
                   </span>
                 </button>

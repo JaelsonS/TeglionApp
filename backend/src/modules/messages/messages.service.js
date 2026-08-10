@@ -56,16 +56,21 @@ async function sendFirmMessage({
   periodMonth,
   quickReplyKey,
   file,
+  // Anexo já resolvido (upload já feito por fora) — usado pela importação do
+  // Google Drive (Fase I): o ficheiro já foi transferido/validado/guardado
+  // antes de chegar aqui, não faz sentido subir de novo. `file` continua a
+  // funcionar tal e qual para o caminho normal (multipart local).
+  attachment: providedAttachment,
 }) {
   const client = await clientsRepository.findClientById(firmId, clientId);
   if (!client) throw new AppError('Cliente não encontrado', 404);
   const text = quickReplyKey ? QUICK_REPLIES[quickReplyKey] || body : body;
-  if ((!text || !String(text).trim()) && !file) throw new AppError('Mensagem vazia', 400);
+  if ((!text || !String(text).trim()) && !file && !providedAttachment) throw new AppError('Mensagem vazia', 400);
 
   const conversation = await conversationsRepository.getOrCreate({ firmId, clientId });
 
-  let attachment = null;
-  if (file) {
+  let attachment = providedAttachment || null;
+  if (!attachment && file) {
     const uploaded = await contabilStorage.uploadClientDocument({ firmId, clientId, file });
     attachment = {
       storageKey: uploaded.path,
@@ -81,7 +86,7 @@ async function sendFirmMessage({
     conversationId: conversation.id,
     senderRole: 'FIRM',
     senderId,
-    body: String(text || file?.originalname || 'Anexo').trim(),
+    body: String(text || file?.originalname || attachment?.name || 'Anexo').trim(),
     quickReplyKey: quickReplyKey || null,
     attachmentStorageKey: attachment?.storageKey,
     attachmentName: attachment?.name,
@@ -122,7 +127,7 @@ async function sendFirmMessage({
     entityType: 'MESSAGE',
     entityId: message.id,
     title: 'Mensagem enviada ao cliente',
-    metadata: { preview: String(text).trim().slice(0, 120) },
+    metadata: { preview: String(text || file?.originalname || attachment?.name || 'Anexo').trim().slice(0, 120) },
   });
 
   return { message, documentRequest };

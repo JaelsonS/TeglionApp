@@ -9,6 +9,7 @@ const { AppError } = require('../../middlewares/error.middleware');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
+const googleCalendarAvailabilityService = require('../integrations/google-calendar/google-calendar-availability.service');
 
 const BOOKING_TIMEZONES = ['Europe/Lisbon', 'Europe/Madrid', 'Atlantic/Azores', 'UTC'];
 const TZ_SET = new Set(BOOKING_TIMEZONES);
@@ -118,7 +119,10 @@ async function listSlotsForBooking({ firmId, serviceId, fromIso, toIso }) {
 
   const firm = await firmsRepository.findFirmById(firmId);
   if (!firm) throw new AppError('Escritório não encontrado', 404);
-  const booking = normalizeBooking(firm.settings?.booking);
+  // Overrides do Service sobrepõem, campo a campo, as regras gerais do escritório
+  // (ver plan file da sessão, v8, secção 4) — null/ausente em qualquer campo cai
+  // de volta para a regra do escritório, sem regressão para serviços sem overrides.
+  const booking = normalizeBooking({ ...(firm.settings?.booking || {}), ...(service.bookingOverrides || {}) });
 
   const now = Date.now();
   const fromMs = Math.max(now + booking.leadTimeHours * 60 * 60 * 1000, new Date(fromIso).getTime());
@@ -140,6 +144,12 @@ async function listSlotsForBooking({ firmId, serviceId, fromIso, toIso }) {
     .filter((c) => c.status !== 'CANCELLED')
     .map(consultationBusyRange);
 
+  // Junta os horários ocupados dos calendários Google pessoais ligados pela
+  // equipa (Fase Hc) — falha aberta (getBusyRangesForFirm nunca lança), uma
+  // integração externa opcional nunca pode derrubar a página de agendamento.
+  const googleBusyRanges = await googleCalendarAvailabilityService.getBusyRangesForFirm({ firmId, fromMs, toMs });
+  busyRanges.push(...googleBusyRanges);
+
   const slots = computeAvailableSlotsTz({
     fromMs,
     toMs,
@@ -151,7 +161,17 @@ async function listSlotsForBooking({ firmId, serviceId, fromIso, toIso }) {
   return { slots, service, booking };
 }
 
-async function bookAsClient({ firmId, clientId, serviceId, scheduledAt }) {
+/**
+ * Reserva uma consultation real, para um Client já existente OU um Lead
+ * (nunca os dois) — ver plan file da sessão, v8, secção 3. Um Lead novo
+ * reserva um horário de verdade (bloqueia o slot para todos), sem ser
+ * automaticamente convertido em Client — a conversão continua manual
+ * (leads.service.js#convertToClient, que repontoa a consultation depois).
+ */
+async function bookAsClient({ firmId, clientId, leadId, serviceId, scheduledAt }) {
+  if (Boolean(clientId) === Boolean(leadId)) {
+    throw new AppError('Indique exactamente um titular (cliente ou lead)', 400);
+  }
   const service = await accountingServicesRepository.findByIdForFirm(serviceId, firmId);
   if (!service || !service.isActive) throw new AppError('Serviço não encontrado', 404);
 
@@ -170,7 +190,8 @@ async function bookAsClient({ firmId, clientId, serviceId, scheduledAt }) {
 
   const consultation = await consultationsRepository.createConsultation({
     firmId,
-    clientId,
+    clientId: clientId || null,
+    leadId: leadId || null,
     staffId: null,
     title: service.name,
     scheduledAt: new Date(startMs).toISOString(),

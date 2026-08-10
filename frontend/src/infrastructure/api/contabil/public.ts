@@ -1,4 +1,48 @@
 import type { AxiosInstance } from 'axios'
+import type { IntakeForm } from '@/shared/types/contabil'
+
+export type PublicServiceIntake = {
+  firmName: string
+  serviceName: string
+  description?: string | null
+  intakeForm: IntakeForm
+  requiresBooking: boolean
+}
+
+export type PublicIntakeSubmitPayload = {
+  name: string
+  email?: string
+  phone?: string
+  taxId?: string
+  answers: Record<string, string | string[]>
+  website?: string
+  scheduledAt?: string
+}
+
+export type PublicIntakeSubmitResult = {
+  ok: true
+  accessToken: string
+  documentsRequired: number
+  /** false quando o submissor é um Lead novo — o horário fica só como preferência, não é uma reserva real. */
+  bookingConfirmed: boolean
+  scheduledAt: string | null
+}
+
+export type IntakeChecklistItem = {
+  id: string
+  kind: 'document' | 'question'
+  tag: string | null
+  title: string
+  instructions?: string | null
+  received: boolean
+  textReply?: string | null
+}
+
+export type PublicIntakeChecklist = {
+  serviceName: string | null
+  status: string
+  checklist: IntakeChecklistItem[]
+}
 
 export type PublicPricingPlans = {
   currency: string
@@ -47,6 +91,43 @@ export function createContabilPublicApi(api: AxiosInstance) {
       api
         .get('/public/firm-branding', { params: { slug } })
         .then((r) => r.data as { slug: string; name: string; logoUrl?: string | null }),
+
+    getPublicService: (firmSlug: string, serviceSlug: string) =>
+      api
+        .get(`/public/firms/${encodeURIComponent(firmSlug)}/services/${encodeURIComponent(serviceSlug)}`)
+        .then((r) => r.data as PublicServiceIntake),
+
+    getPublicSlots: (firmSlug: string, serviceSlug: string) =>
+      api
+        .get(`/public/firms/${encodeURIComponent(firmSlug)}/services/${encodeURIComponent(serviceSlug)}/slots`)
+        .then((r) => r.data as { slots: string[] }),
+
+    submitServiceIntake: (firmSlug: string, serviceSlug: string, payload: PublicIntakeSubmitPayload) =>
+      api
+        .post(
+          `/public/firms/${encodeURIComponent(firmSlug)}/services/${encodeURIComponent(serviceSlug)}/submit`,
+          payload,
+        )
+        .then((r) => r.data as PublicIntakeSubmitResult),
+
+    getIntakeByToken: (token: string) =>
+      api.get(`/public/service-inquiries/${encodeURIComponent(token)}`).then((r) => r.data as PublicIntakeChecklist),
+
+    uploadIntakeDocument: (token: string, tag: string, file: File) => {
+      const form = new FormData()
+      form.append('tag', tag)
+      form.append('file', file)
+      return api
+        .post(`/public/service-inquiries/${encodeURIComponent(token)}/documents`, form)
+        .then((r) => r.data as { allComplete: boolean; checklist: IntakeChecklistItem[] })
+    },
+
+    submitIntakeReply: (token: string, requestId: string, textReply: string) =>
+      api
+        .post(`/public/service-inquiries/${encodeURIComponent(token)}/requests/${encodeURIComponent(requestId)}/reply`, {
+          textReply,
+        })
+        .then((r) => r.data as { checklist: IntakeChecklistItem[] }),
   }
 }
 

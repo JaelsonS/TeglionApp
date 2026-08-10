@@ -29,6 +29,9 @@ type Props = {
   onDayStart: (v: string) => void
   onDayEnd: (v: string) => void
   onSaveAvailability: () => void
+  /** Omite o botão "Guardar disponibilidade" e o resumo — para quando o painel está embutido
+   * noutro formulário que já tem o seu próprio botão de guardar (ex.: overrides por serviço). */
+  hideSaveButton?: boolean
 }
 
 export function AgendaAvailabilityPanel(props: Props) {
@@ -47,6 +50,7 @@ export function AgendaAvailabilityPanel(props: Props) {
     onDayStart,
     onDayEnd,
     onSaveAvailability,
+    hideSaveButton,
   } = props
 
   const selectedLabels = BOOKING_WEEKDAYS.filter((w) => wd.includes(w.bit)).map((w) => w.full)
@@ -137,11 +141,13 @@ export function AgendaAvailabilityPanel(props: Props) {
         </label>
       </div>
 
-      <Button className="cb-agenda-save-btn" type="button" onClick={onSaveAvailability} disabled={wd.length === 0}>
-        Guardar disponibilidade
-      </Button>
+      {hideSaveButton ? null : (
+        <Button className="cb-agenda-save-btn" type="button" onClick={onSaveAvailability} disabled={wd.length === 0}>
+          Guardar disponibilidade
+        </Button>
+      )}
 
-      {booking ? (
+      {!hideSaveButton && booking ? (
         <p className="cb-agenda-availability-summary">
           <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden />
           <span>

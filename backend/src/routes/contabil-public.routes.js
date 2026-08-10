@@ -14,7 +14,9 @@ const integrationsHealthController = require('../modules/public/integrations-hea
 const countriesController = require('../modules/public/countries.controller');
 const pricingController = require('../modules/public/pricing.controller');
 const supportController = require('../modules/public/support.controller');
+const serviceIntakeController = require('../modules/public/service-intake-public.controller');
 const { createRateLimitStore } = require('../utils/rate-limit-store');
+const { uploadSingle } = require('../middlewares/upload.middleware');
 
 const router = express.Router();
 
@@ -44,6 +46,40 @@ const invitePreviewLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+const serviceViewLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  store: createRateLimitStore('rl:service-view:'),
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const serviceSubmitLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 8,
+  store: createRateLimitStore('rl:service-submit:'),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { code: 'RATE_LIMIT', message: 'Demasiados pedidos. Tente novamente mais tarde.' },
+});
+
+const intakePortalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  store: createRateLimitStore('rl:intake-portal:'),
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const intakeUploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 30,
+  store: createRateLimitStore('rl:intake-upload:'),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { code: 'RATE_LIMIT', message: 'Demasiados envios. Tente novamente mais tarde.' },
+});
+
 router.get('/health', (_req, res) => res.json({ ok: true, service: 'contabil-public' }));
 
 router.get('/health/integrations', (req, res, next) => {
@@ -67,5 +103,43 @@ router.get('/team/email-confirm/:token', invitePreviewLimiter, teamInvitesContro
 router.get('/firm-branding', firmBrandingPublic.validators, firmBrandingPublic.getBySlug);
 router.post('/blog/newsletter', newsletterLimiter, blogNewsletterController.subscribe);
 router.post('/support', supportLimiter, supportController.submit);
+
+router.get(
+  '/firms/:firmSlug/services/:serviceSlug',
+  serviceViewLimiter,
+  serviceIntakeController.getServiceValidators,
+  serviceIntakeController.getPublicService,
+);
+router.get(
+  '/firms/:firmSlug/services/:serviceSlug/slots',
+  serviceViewLimiter,
+  serviceIntakeController.slotsValidators,
+  serviceIntakeController.getPublicSlots,
+);
+router.post(
+  '/firms/:firmSlug/services/:serviceSlug/submit',
+  serviceSubmitLimiter,
+  serviceIntakeController.submitValidators,
+  serviceIntakeController.submitIntake,
+);
+router.get(
+  '/service-inquiries/:token',
+  intakePortalLimiter,
+  serviceIntakeController.tokenValidators,
+  serviceIntakeController.getByToken,
+);
+router.post(
+  '/service-inquiries/:token/documents',
+  intakeUploadLimiter,
+  uploadSingle('file'),
+  serviceIntakeController.tokenValidators,
+  serviceIntakeController.uploadByToken,
+);
+router.post(
+  '/service-inquiries/:token/requests/:requestId/reply',
+  intakeUploadLimiter,
+  serviceIntakeController.replyValidators,
+  serviceIntakeController.submitReply,
+);
 
 module.exports = router;

@@ -58,6 +58,16 @@ export function getGoogleAuthStartUrl(options?: { intent?: 'login' | 'register';
   return `${base}/auth/google${qs ? `?${qs}` : ''}`
 }
 
+/** URL de navegação de página inteira (não XHR) para ligar o Google Calendar — mesma
+ * resolução de origem que getGoogleAuthStartUrl(), rota autenticada (Fase Ha). */
+export function getGoogleCalendarConnectUrl(): string {
+  const isBrowser = typeof window !== 'undefined'
+  const host = isBrowser ? String(window.location.hostname || '').toLowerCase() : ''
+  const useSameOrigin = SAME_ORIGIN_HOSTS.includes(host)
+  const base = (useSameOrigin ? `${window.location.origin}/api` : getApiBaseUrlResolved()).replace(/\/$/, '')
+  return `${base}/contabil/integrations/google-calendar/connect`
+}
+
 export function toPublicAssetUrl(path?: string | null): string | null {
   if (!path) return null
   if (/^https?:\/\//i.test(path)) return path

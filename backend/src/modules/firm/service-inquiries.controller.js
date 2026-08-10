@@ -44,3 +44,42 @@ exports.patch = async (req, res, next) => {
     return next(err);
   }
 };
+
+exports.revokeToken = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const id = parseEntityId(req.params.id, 'id');
+    const result = await serviceInquiriesService.revokeAccessToken({ firmId, id, actor: req.user });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.addRequest = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const inquiryId = parseEntityId(req.params.id, 'id');
+    const result = await serviceInquiriesService.addServiceInquiryRequest({
+      firmId,
+      inquiryId,
+      actor: req.user,
+      payload: req.body || {},
+    });
+    return res.status(201).json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.downloadDocument = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const inquiryId = parseEntityId(req.params.id, 'id');
+    const documentId = parseEntityId(req.params.documentId, 'documentId');
+    const result = await serviceInquiriesService.getDocumentDownloadUrl({ firmId, inquiryId, documentId });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+};

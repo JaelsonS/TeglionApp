@@ -1,6 +1,8 @@
+const crypto = require('crypto');
 const { AppError } = require('../../middlewares/error.middleware');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-catalog');
+const { BOOKING_TIMEZONES } = require('../booking/booking.service');
 
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -22,6 +24,178 @@ function normalizeDocumentRequirements(value) {
     title: String(item?.title || '').trim().slice(0, 200),
     instructions: item?.instructions != null ? String(item.instructions).trim().slice(0, 2000) : null,
   })).filter((item) => item.tag && item.title);
+}
+
+const TIME_RE = /^\d{1,2}:\d{2}$/;
+const BOOKING_TZ_SET = new Set(BOOKING_TIMEZONES);
+
+/**
+ * Overrides de agendamento por Service (ver plan file da sessão, v8, secção 4)
+ * — mesma forma de FirmBookingSettings, mas cada campo é opcional: um campo
+ * ausente significa "usa a regra geral do escritório" para esse campo
+ * especificamente, não um valor por omissão embutido aqui. `null`/ausente no
+ * objecto inteiro significa "sem overrides, usa tudo do escritório" (o
+ * comportamento de sempre, sem regressão — ver booking.service.js#listSlotsForBooking).
+ */
+function normalizeBookingOverrides(value) {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    throw new AppError('booking_overrides deve ser um objeto', 400);
+  }
+  const out = {};
+  if (value.slotMinutes != null) {
+    const n = Number(value.slotMinutes);
+    if (!Number.isFinite(n) || n < 15 || n > 120) throw new AppError('slotMinutes inválido', 400);
+    out.slotMinutes = n;
+  }
+  if (value.horizonDays != null) {
+    const n = Number(value.horizonDays);
+    if (!Number.isFinite(n) || n < 1 || n > 60) throw new AppError('horizonDays inválido', 400);
+    out.horizonDays = n;
+  }
+  if (value.leadTimeHours != null) {
+    const n = Number(value.leadTimeHours);
+    if (!Number.isFinite(n) || n < 0 || n > 168) throw new AppError('leadTimeHours inválido', 400);
+    out.leadTimeHours = n;
+  }
+  if (value.weekdays != null) {
+    if (!Array.isArray(value.weekdays)) throw new AppError('weekdays deve ser uma lista', 400);
+    const weekdays = [...new Set(value.weekdays.map(Number))].filter((d) => Number.isInteger(d) && d >= 0 && d <= 6);
+    if (!weekdays.length) throw new AppError('Seleccione pelo menos um dia', 400);
+    out.weekdays = weekdays;
+  }
+  if (value.dayStart != null) {
+    if (!TIME_RE.test(value.dayStart)) throw new AppError('dayStart inválido', 400);
+    out.dayStart = value.dayStart;
+  }
+  if (value.dayEnd != null) {
+    if (!TIME_RE.test(value.dayEnd)) throw new AppError('dayEnd inválido', 400);
+    out.dayEnd = value.dayEnd;
+  }
+  if (value.timezone != null) {
+    if (!BOOKING_TZ_SET.has(value.timezone)) throw new AppError('timezone inválido', 400);
+    out.timezone = value.timezone;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+const INTAKE_QUESTION_TYPES = new Set([
+  'text', 'email', 'phone', 'tax_id', 'date', 'single_choice', 'multiple_choice', 'yes_no',
+]);
+const CHOICE_TYPES = new Set(['single_choice', 'multiple_choice', 'yes_no']);
+
+/**
+ * ID estável de pergunta/opção — gerado uma única vez na criação, nunca
+ * re-derivado de `label` (ver secção E1 da especificação da sessão: o `id`
+ * antigo mudava sempre que o texto da pergunta era editado, desalinhando
+ * `service_inquiries.answers` já submetidas). Usado só como rede de
+ * segurança quando o chamador não fornece um `id` (ex.: chamada directa à
+ * API); o caminho normal é o frontend gerar o `id` no momento da criação.
+ */
+function generateStableId(prefix) {
+  return `${prefix}${crypto.randomUUID()}`;
+}
+
+function normalizeIntakeFormOptions(options) {
+  if (!Array.isArray(options)) return [];
+  return options
+    .slice(0, 20)
+    .map((opt) => ({
+      id: String(opt?.id || generateStableId('o_')).trim().slice(0, 100),
+      label: String(opt?.label || '').trim().slice(0, 200),
+      documentTags: Array.isArray(opt?.documentTags)
+        ? opt.documentTags.slice(0, 10).map((t) => String(t).trim().slice(0, 60)).filter(Boolean)
+        : [],
+    }))
+    .filter((opt) => opt.label);
+}
+
+/**
+ * Formulário de captação de um Service — perguntas + opções, cada opção pode
+ * activar tags de documento (condicional resposta→documento; ver decisão nº1
+ * da especificação da sessão: não é ramificação pergunta→pergunta).
+ */
+function normalizeIntakeForm(value) {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  if (typeof value !== 'object' || !Array.isArray(value.questions)) {
+    throw new AppError('intake_form deve ter uma lista de perguntas', 400);
+  }
+  const questions = value.questions
+    .slice(0, 30)
+    .map((q) => {
+      const type = String(q?.type || 'text');
+      if (!INTAKE_QUESTION_TYPES.has(type)) {
+        throw new AppError(`Tipo de pergunta inválido: ${type}`, 400);
+      }
+      const label = String(q?.label || '').trim().slice(0, 300);
+      if (!label) return null;
+      const question = {
+        id: String(q?.id || generateStableId('q_')).trim().slice(0, 100),
+        label,
+        type,
+        required: q?.required === true,
+      };
+      if (CHOICE_TYPES.has(type)) {
+        const options = normalizeIntakeFormOptions(q?.options);
+        question.options = options.length
+          ? options
+          : type === 'yes_no'
+            ? [
+                { id: 'sim', label: 'Sim', documentTags: [] },
+                { id: 'nao', label: 'Não', documentTags: [] },
+              ]
+            : [];
+      }
+      return question;
+    })
+    .filter(Boolean);
+  return { questions };
+}
+
+/**
+ * Junta os documentos base do Service (sempre exigidos) com os documentos
+ * condicionais activados pelas respostas (resposta→tag, via intake_form).
+ * Base tem sempre prioridade sobre título/instruções em caso de tag repetida.
+ */
+function resolveRequiredDocuments(service, answers) {
+  const answersMap = answers && typeof answers === 'object' ? answers : {};
+  const conditionalByTag = new Map();
+  for (const question of service?.intakeForm?.questions || []) {
+    if (!Array.isArray(question.options) || !question.options.length) continue;
+    const answer = answersMap[question.id];
+    const chosenIds = Array.isArray(answer) ? answer.map(String) : answer != null ? [String(answer)] : [];
+    if (!chosenIds.length) continue;
+    for (const option of question.options) {
+      if (!chosenIds.includes(option.id)) continue;
+      for (const tag of option.documentTags || []) {
+        if (!conditionalByTag.has(tag)) conditionalByTag.set(tag, { tag, title: tag, instructions: null });
+      }
+    }
+  }
+
+  const merged = new Map(conditionalByTag);
+  for (const req of service?.documentRequirements || []) {
+    if (req?.tag) merged.set(req.tag, { tag: req.tag, title: req.title, instructions: req.instructions || null });
+  }
+  return Array.from(merged.values());
+}
+
+/**
+ * Validação de completude antes de publicar (Fase 5 — ver plan file da sessão,
+ * v5/v7: "validação bloqueando publicação incompleta"). Só bloqueia o que
+ * quebraria a página pública de facto — uma pergunta de escolha única/múltipla
+ * sem nenhuma opção renderiza um campo vazio e inutilizável. yes_no nunca cai
+ * aqui porque normalizeIntakeForm() já lhe dá Sim/Não por omissão.
+ */
+function assertFormReadyForPublish(intakeForm) {
+  const questions = intakeForm?.questions || [];
+  for (const q of questions) {
+    if ((q.type === 'single_choice' || q.type === 'multiple_choice') && (!q.options || q.options.length === 0)) {
+      throw new AppError(`A pergunta "${q.label}" precisa de pelo menos uma opção antes de publicar`, 400);
+    }
+  }
 }
 
 function parsePriceEuros(payload) {
@@ -53,8 +227,10 @@ async function create({ firmId, payload }) {
   const priceCents = parsePriceEuros(payload) ?? 0;
   const slug = normalizeSlug(payload?.slug) ?? null;
   const isPubliclyListed = payload?.isPubliclyListed === true;
-  if (isPubliclyListed && !slug) {
-    throw new AppError('Defina um slug antes de tornar o serviço público', 400);
+  const intakeForm = normalizeIntakeForm(payload?.intakeForm) || null;
+  if (isPubliclyListed) {
+    if (!slug) throw new AppError('Defina um slug antes de tornar o serviço público', 400);
+    assertFormReadyForPublish(intakeForm);
   }
   const item = await accountingServicesRepository.createRow({
     firmId,
@@ -70,6 +246,8 @@ async function create({ firmId, payload }) {
     isPubliclyListed,
     requiresBooking: payload?.requiresBooking !== false,
     documentRequirements: normalizeDocumentRequirements(payload?.documentRequirements) || [],
+    intakeForm,
+    bookingOverrides: normalizeBookingOverrides(payload?.bookingOverrides) || null,
   });
   return { item };
 }
@@ -100,10 +278,18 @@ async function update({ firmId, id, payload }) {
   if (payload?.documentRequirements !== undefined) {
     patch.documentRequirements = normalizeDocumentRequirements(payload.documentRequirements);
   }
+  if (payload?.intakeForm !== undefined) {
+    patch.intakeForm = normalizeIntakeForm(payload.intakeForm);
+  }
+  if (payload?.bookingOverrides !== undefined) {
+    patch.bookingOverrides = normalizeBookingOverrides(payload.bookingOverrides);
+  }
   if (payload?.isPubliclyListed !== undefined) {
     const nextSlug = patch.slug !== undefined ? patch.slug : existing.slug;
-    if (payload.isPubliclyListed === true && !nextSlug) {
-      throw new AppError('Defina um slug antes de tornar o serviço público', 400);
+    if (payload.isPubliclyListed === true) {
+      if (!nextSlug) throw new AppError('Defina um slug antes de tornar o serviço público', 400);
+      const nextIntakeForm = patch.intakeForm !== undefined ? patch.intakeForm : existing.intakeForm;
+      assertFormReadyForPublish(nextIntakeForm);
     }
     patch.isPubliclyListed = Boolean(payload.isPubliclyListed);
   }
@@ -136,6 +322,8 @@ async function duplicate({ firmId, id }) {
     isPubliclyListed: false,
     requiresBooking: existing.requiresBooking,
     documentRequirements: existing.documentRequirements,
+    intakeForm: existing.intakeForm,
+    bookingOverrides: existing.bookingOverrides,
   });
   return { item };
 }
@@ -178,6 +366,17 @@ async function seedCatalog({ firmId }) {
       priceCents: entry.priceCents,
       sortOrder: order++,
       isActive: false,
+      // requiresBooking/documentRequirements/intakeForm são conteúdo/configuração —
+      // copiados do template como ponto de partida editável, igual a name/price/duration
+      // (sempre copiados). slug/isPubliclyListed são ESTADO DE PUBLICAÇÃO — nunca
+      // herdados (nascem sempre null/false), porque publicar tem de ser uma decisão
+      // consciente do escritório, feita depois de rever o que copiou. Mesma regra do
+      // duplicate(). Em ambos os casos, isto só corre nesta criação única — não há
+      // nenhum caminho de update() dentro de seedCatalog(), logo uma segunda execução
+      // nunca toca numa linha já existente (guarda na condição `existingKeys.has`, 2 linhas acima).
+      requiresBooking: entry.requiresBooking !== false,
+      documentRequirements: normalizeDocumentRequirements(entry.documentRequirements) || [],
+      intakeForm: normalizeIntakeForm(entry.intakeForm) || null,
     });
     created += 1;
   }
@@ -210,4 +409,8 @@ module.exports = {
   seedCatalog,
   activateFromCatalog,
   getCatalogTemplate: () => CONSULTING_SERVICES_CATALOG,
+  normalizeIntakeForm,
+  normalizeBookingOverrides,
+  resolveRequiredDocuments,
+  assertFormReadyForPublish,
 };

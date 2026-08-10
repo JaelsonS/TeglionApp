@@ -50,6 +50,24 @@ function resolveGoogleOAuthRedirectUri() {
   return `${resolvePublicApiUrl()}/api/auth/google/callback`;
 }
 
+/** Redirect URI da ligação Google Calendar — rota diferente da SSO (login),
+ * mesmo Client ID/Secret (ver plan file da sessão, Fase Ha). Precisa de ser
+ * adicionada à parte em "Authorized redirect URIs" no Google Cloud Console. */
+function resolveGoogleCalendarRedirectUri() {
+  if (process.env.GOOGLE_CALENDAR_REDIRECT_URI) {
+    return String(process.env.GOOGLE_CALENDAR_REDIRECT_URI).trim().replace(/\/+$/, '');
+  }
+  const publicApi = String(process.env.PUBLIC_API_URL || '').trim().replace(/\/+$/, '');
+  if (publicApi) {
+    return `${publicApi}/api/contabil/integrations/google-calendar/callback`;
+  }
+  const frontend = String(process.env.FRONTEND_URL || '').trim().replace(/\/+$/, '');
+  if (frontend) {
+    return `${frontend}/api/contabil/integrations/google-calendar/callback`;
+  }
+  return `${resolvePublicApiUrl()}/api/contabil/integrations/google-calendar/callback`;
+}
+
 function isRenderInternalRedisUrl(url) {
   const host = String(url || '')
     .replace(/^rediss?:\/\//i, '')
@@ -212,6 +230,13 @@ const env = {
   GOOGLE_OAUTH_CLIENT_ID: process.env.GOOGLE_OAUTH_CLIENT_ID || null,
   GOOGLE_OAUTH_CLIENT_SECRET: process.env.GOOGLE_OAUTH_CLIENT_SECRET || null,
   GOOGLE_OAUTH_REDIRECT_URI: resolveGoogleOAuthRedirectUri(),
+  GOOGLE_CALENDAR_REDIRECT_URI: resolveGoogleCalendarRedirectUri(),
+  // Chave de API do Google Picker/Drive (Fase I) — não é secreta como o OAuth
+  // Client Secret (é restringida por HTTP referrer no Google Cloud Console, não
+  // por sigilo), mas fica no backend e é servida via endpoint de config em vez
+  // de embutida directamente no bundle do frontend, mesmo princípio já seguido
+  // para GOOGLE_OAUTH_CLIENT_ID (também não-secreto, também servido assim).
+  GOOGLE_PICKER_API_KEY: process.env.GOOGLE_PICKER_API_KEY || null,
   PUBLIC_API_URL: process.env.PUBLIC_API_URL || resolvePublicApiUrl(),
 
   EMAIL_FROM_SUPPORT: process.env.EMAIL_FROM_SUPPORT || `"${BRAND.name} Suporte" <${BRAND.emails.support}>`,

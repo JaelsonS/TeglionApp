@@ -28,6 +28,10 @@ function staffEmailConfirmUrl(token) {
   return `${APP_URL}/auth/firm/confirm-email/${token}`;
 }
 
+function serviceIntakeAccessUrl(token) {
+  return `${APP_URL}/pedidos/${token}`;
+}
+
 async function notifyClientInvite({ clientEmail, clientName, firmName, inviteUrl: url, expiresAt }) {
   if (!clientEmail) return { skipped: true, reason: 'no_email' };
   const link = url || portalUrl();
@@ -173,6 +177,129 @@ async function notifyFirmDocumentReceived({ staffEmail, clientName, documentTitl
       ctaUrl: `${APP_URL}/app/firm/documents`,
     }),
     text: `Documento recebido: ${documentTitle}`,
+  });
+}
+
+/** Enviado ao submissor de um formulário público de captação (Lead ou Client) com a checklist de documentos e o link do mini-portal por token. */
+async function notifyLeadIntakeChecklist({ toEmail, toName, firmName, serviceName, accessToken, documents }) {
+  if (!toEmail || !accessToken) return { skipped: true, reason: 'no_email_or_token' };
+  const firm = firmName || 'o escritório';
+  const link = serviceIntakeAccessUrl(accessToken);
+  const list = Array.isArray(documents) ? documents : [];
+  const listHtml = list.length
+    ? `<ul style="margin:0 0 12px;padding-left:20px">${list.map((d) => `<li>${escapeHtml(d.title || d.tag)}</li>`).join('')}</ul>`
+    : '<p style="margin:0 0 12px">Sem documentos adicionais pedidos por agora.</p>';
+  return sendEmail({
+    to: toEmail,
+    subject: `Pedido recebido — ${serviceName || 'o seu pedido'} (${firm})`,
+    tags: ['transactional', 'service-intake'],
+    html: renderTransactionalEmail({
+      preheader: `Confirmação do seu pedido de ${serviceName || 'serviço'}`,
+      title: 'Recebemos o seu pedido',
+      greeting: `Olá${toName ? ` ${toName}` : ''},`,
+      bodyHtml: `<p style="margin:0 0 12px">O escritório <strong>${escapeHtml(firm)}</strong> recebeu o seu pedido de <strong>${escapeHtml(serviceName || 'serviço')}</strong>. Para continuar, precisamos que envie:</p>${listHtml}`,
+      ctaLabel: 'Enviar documentos',
+      ctaUrl: link,
+      footerNote: 'Guarde este link — é o único acesso ao acompanhamento do seu pedido.',
+    }),
+    text: [
+      `Olá${toName ? ` ${toName}` : ''},`,
+      '',
+      `O escritório ${firm} recebeu o seu pedido de ${serviceName || 'serviço'}.`,
+      list.length ? `Documentos pedidos: ${list.map((d) => d.title || d.tag).join(', ')}` : '',
+      '',
+      `Enviar documentos: ${link}`,
+      '',
+      'Teglion',
+    ].filter(Boolean).join('\n'),
+  });
+}
+
+/** Enviado à equipa quando uma submissão pública cria uma nova ServiceInquiry. */
+async function notifyFirmIntakeSubmitted({ staffEmail, firmName, requesterName, serviceName, documentsCount }) {
+  if (!staffEmail) return { skipped: true };
+  const pending = Number(documentsCount) || 0;
+  return sendEmail({
+    to: staffEmail,
+    subject: `Nova solicitação — ${serviceName || 'serviço'} (${requesterName || 'sem nome'})`,
+    tags: ['transactional', 'service-intake'],
+    html: renderTransactionalEmail({
+      preheader: `${requesterName || 'Alguém'} pediu ${serviceName || 'um serviço'}`,
+      title: 'Nova solicitação recebida',
+      bodyHtml: `<p style="margin:0 0 12px"><strong>${escapeHtml(requesterName || 'Sem nome')}</strong> submeteu um pedido de <strong>${escapeHtml(serviceName || 'serviço')}</strong>${pending ? ` — a aguardar ${pending} documento(s).` : '.'}</p>`,
+      ctaLabel: 'Ver solicitação',
+      ctaUrl: `${APP_URL}/app/firm/services`,
+      footerNote: firmName || undefined,
+    }),
+    text: `Nova solicitação: ${serviceName} — ${requesterName}. Ver: ${APP_URL}/app/firm/services`,
+  });
+}
+
+/** Enviado à equipa quando um documento pedido é entregue pelo mini-portal por token. */
+async function notifyFirmIntakeDocumentReceived({ staffEmail, firmName, requesterName, serviceName, documentTitle, allComplete }) {
+  if (!staffEmail) return { skipped: true };
+  return sendEmail({
+    to: staffEmail,
+    subject: `Documento recebido — ${requesterName || 'Cliente'}`,
+    tags: ['transactional', 'service-intake'],
+    html: renderTransactionalEmail({
+      preheader: `${documentTitle || 'Documento'} de ${requesterName || 'cliente'}`,
+      title: allComplete ? 'Todos os documentos foram recebidos' : 'Novo documento recebido',
+      bodyHtml: `<p style="margin:0"><strong>${escapeHtml(documentTitle || '')}</strong> de ${escapeHtml(requesterName || 'cliente')} — pedido de ${escapeHtml(serviceName || 'serviço')} (${escapeHtml(firmName || 'escritório')}).${allComplete ? ' Está pronto para análise.' : ''}</p>`,
+      ctaLabel: 'Ver solicitação',
+      ctaUrl: `${APP_URL}/app/firm/services`,
+    }),
+    text: `Documento recebido: ${documentTitle} de ${requesterName}${allComplete ? ' — todos os documentos completos' : ''}.`,
+  });
+}
+
+/** Enviado à equipa quando o cliente responde em texto a uma pendência via mini-portal. */
+async function notifyFirmIntakeReplyReceived({ staffEmail, firmName, requesterName, serviceName, requestTitle }) {
+  if (!staffEmail) return { skipped: true };
+  return sendEmail({
+    to: staffEmail,
+    subject: `Resposta recebida — ${requesterName || 'Cliente'}`,
+    tags: ['transactional', 'service-intake'],
+    html: renderTransactionalEmail({
+      preheader: `${requesterName || 'Alguém'} respondeu a "${requestTitle || ''}"`,
+      title: 'Nova resposta recebida',
+      bodyHtml: `<p style="margin:0"><strong>${escapeHtml(requesterName || 'Cliente')}</strong> respondeu a <strong>${escapeHtml(requestTitle || '')}</strong> — pedido de ${escapeHtml(serviceName || 'serviço')} (${escapeHtml(firmName || 'escritório')}).</p>`,
+      ctaLabel: 'Ver solicitação',
+      ctaUrl: `${APP_URL}/app/firm/services`,
+    }),
+    text: `Resposta recebida de ${requesterName} a "${requestTitle}".`,
+  });
+}
+
+/** Enviado ao submissor quando a equipa pede mais uma coisa depois da submissão inicial
+ * (documento extra ou pergunta em texto) — mesmo access_token de sempre, sem link novo. */
+async function notifyLeadNewRequest({ toEmail, toName, firmName, serviceName, accessToken, requestTitle }) {
+  if (!toEmail || !accessToken) return { skipped: true, reason: 'no_email_or_token' };
+  const firm = firmName || 'o escritório';
+  const link = serviceIntakeAccessUrl(accessToken);
+  return sendEmail({
+    to: toEmail,
+    subject: `Precisamos de mais uma informação — ${serviceName || 'o seu pedido'} (${firm})`,
+    tags: ['transactional', 'service-intake'],
+    html: renderTransactionalEmail({
+      preheader: `Novo pedido: ${requestTitle || ''}`,
+      title: 'Precisamos de mais uma informação',
+      greeting: `Olá${toName ? ` ${toName}` : ''},`,
+      bodyHtml: `<p style="margin:0 0 12px">Para continuar o seu pedido de <strong>${escapeHtml(serviceName || 'serviço')}</strong> junto de <strong>${escapeHtml(firm)}</strong>, precisamos que responda a mais isto:</p><p style="margin:0 0 12px"><strong>${escapeHtml(requestTitle || '')}</strong></p>`,
+      ctaLabel: 'Responder agora',
+      ctaUrl: link,
+      footerNote: 'Use o mesmo link que já tinha recebido para acompanhar o pedido.',
+    }),
+    text: [
+      `Olá${toName ? ` ${toName}` : ''},`,
+      '',
+      `Para continuar o seu pedido de ${serviceName || 'serviço'} junto de ${firm}, precisamos que responda a mais isto:`,
+      requestTitle || '',
+      '',
+      `Responder: ${link}`,
+      '',
+      'Teglion',
+    ].filter(Boolean).join('\n'),
   });
 }
 
@@ -410,6 +537,11 @@ module.exports = {
   notifyClientObligationReminder,
   notifyFirmDocumentReceived,
   notifyFirmConsultationBooked,
+  notifyLeadIntakeChecklist,
+  notifyFirmIntakeSubmitted,
+  notifyFirmIntakeDocumentReceived,
+  notifyLeadNewRequest,
+  notifyFirmIntakeReplyReceived,
   notifyClientSms,
   notifyPasswordReset,
   notifyFirmStaffWelcome,
