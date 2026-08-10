@@ -24,6 +24,7 @@ const automationController = require('../../modules/automations/automation.contr
 const fiscalCalendarController = require('../../modules/fiscal/fiscal-calendar.controller');
 const fiscalCalendarNotesController = require('../../modules/fiscal/fiscal-calendar-notes.controller');
 const atController = require('../../modules/integrations/at/at.controller');
+const googleCalendarController = require('../../modules/integrations/google-calendar/google-calendar.controller');
 const caeHistoryController = require('../../modules/firm/cae-history.controller');
 const caeCatalogController = require('../../modules/firm/cae-catalog.controller');
 
@@ -42,6 +43,27 @@ router.patch(
   fiscalCalendarNotesController.patchNote,
 );
 router.get('/integrations/at/status', requirePermission(PERMISSIONS.FIRM_CLIENTS_VIEW), atController.getIntegrationStatus);
+
+router.get(
+  '/integrations/google-calendar/status',
+  requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE),
+  googleCalendarController.getStatus,
+);
+router.get(
+  '/integrations/google-calendar/connect',
+  requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE),
+  googleCalendarController.startConnect,
+);
+router.get(
+  '/integrations/google-calendar/callback',
+  requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE),
+  googleCalendarController.callback,
+);
+router.post(
+  '/integrations/google-calendar/disconnect',
+  requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE),
+  googleCalendarController.disconnect,
+);
 
 router.get('/firm', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.getFirm);
 router.get('/firm/cae-history', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), caeHistoryController.list);
