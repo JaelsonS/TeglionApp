@@ -139,6 +139,101 @@ test('normalizeBookingOverrides: dayStart/dayEnd válidos são preservados', () 
   assert.deepEqual(out, { dayStart: '09:00', dayEnd: '13:00' });
 });
 
+test('assertFormReadyForPublish: sem intake_form, não bloqueia (formulário mínimo é válido)', () => {
+  accountingServicesService.assertFormReadyForPublish(null);
+  accountingServicesService.assertFormReadyForPublish({ questions: [] });
+});
+
+test('assertFormReadyForPublish: yes_no nunca bloqueia (normalizeIntakeForm já garante Sim/Não)', () => {
+  accountingServicesService.assertFormReadyForPublish({
+    questions: [{ id: 'q1', label: 'Tem imóveis?', type: 'yes_no', options: [] }],
+  });
+});
+
+test('assertFormReadyForPublish: rejeita single_choice sem nenhuma opção', () => {
+  assert.throws(
+    () =>
+      accountingServicesService.assertFormReadyForPublish({
+        questions: [{ id: 'q1', label: 'Estado civil', type: 'single_choice', options: [] }],
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      assert.match(err.message, /Estado civil/);
+      return true;
+    },
+  );
+});
+
+test('assertFormReadyForPublish: rejeita multiple_choice sem opções', () => {
+  assert.throws(
+    () =>
+      accountingServicesService.assertFormReadyForPublish({
+        questions: [{ id: 'q1', label: 'Rendimentos', type: 'multiple_choice', options: [] }],
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      return true;
+    },
+  );
+});
+
+test('assertFormReadyForPublish: single_choice com pelo menos 1 opção passa', () => {
+  accountingServicesService.assertFormReadyForPublish({
+    questions: [{ id: 'q1', label: 'Estado civil', type: 'single_choice', options: [{ id: 'a', label: 'Solteiro' }] }],
+  });
+});
+
+test('create: publicar com pergunta de escolha sem opções é rejeitado antes de gravar', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'createRow', async () => {
+    throw new Error('não devia chegar a gravar — validação de publicação devia ter bloqueado antes');
+  });
+
+  await assert.rejects(
+    () =>
+      accountingServicesService.create({
+        firmId: 'firm-x',
+        payload: {
+          name: 'IRS 2027',
+          durationMinutes: 60,
+          slug: 'irs-2027',
+          isPubliclyListed: true,
+          intakeForm: { questions: [{ label: 'Estado civil', type: 'single_choice', options: [] }] },
+        },
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      return true;
+    },
+  );
+});
+
+test('update: publicar um serviço já existente com intake_form inalterado, mas com pergunta sem opções, é rejeitado', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
+    id: 'service-1',
+    slug: 'consultoria',
+    intakeForm: { questions: [{ id: 'q1', label: 'Área', type: 'single_choice', options: [] }] },
+  }));
+  mock.method(accountingServicesRepository, 'updateRow', async () => {
+    throw new Error('não devia chegar a gravar — validação de publicação devia ter bloqueado antes');
+  });
+
+  await assert.rejects(
+    () =>
+      accountingServicesService.update({
+        firmId: 'firm-x',
+        id: 'service-1',
+        payload: { isPubliclyListed: true },
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      assert.match(err.message, /Área/);
+      return true;
+    },
+  );
+});
+
 test('resolveRequiredDocuments: sem intake_form, devolve só a base do serviço', () => {
   const service = { documentRequirements: [{ tag: 'cc', title: 'Cartão de Cidadão' }] };
   const result = accountingServicesService.resolveRequiredDocuments(service, {});

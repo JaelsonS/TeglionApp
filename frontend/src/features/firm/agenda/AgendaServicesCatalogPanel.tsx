@@ -5,6 +5,8 @@ import {
   Check,
   ChevronDown,
   Copy,
+  ExternalLink,
+  Eye,
   FileQuestion,
   Globe,
   Layers,
@@ -19,8 +21,12 @@ import {
 import { toast } from 'sonner'
 
 import { AgendaAvailabilityPanel } from '@/features/firm/agenda/AgendaAvailabilityPanel'
+import { ServiceFormPreview } from '@/features/firm/agenda/ServiceFormPreview'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
+import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
+import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
+import { useAuth } from '@/shared/hooks/useAuth'
 import {
   Command,
   CommandEmpty,
@@ -107,6 +113,9 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [advancedDraft, setAdvancedDraft] = useState<Record<string, Partial<AccountingService>>>({})
   const [duplicating, setDuplicating] = useState<string | null>(null)
+  const [previewId, setPreviewId] = useState<string | null>(null)
+  const { user } = useAuth()
+  const firmSlug = user?.tenant?.slug
 
   const inactiveCatalog = useMemo(
     () => services.filter((s) => s.isActive === false),
@@ -267,6 +276,19 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
         : [...current.weekdays, day].sort((a, b) => a - b)
       return { ...prev, [id]: { ...prev[id], bookingOverrides: { ...current, weekdays } } }
     })
+  }
+
+  /** Dados para a pré-visualização — usa o que já está a ser editado (mesmo sem
+   * ter guardado ainda), com fallback para o que está gravado no serviço. */
+  const previewDataFor = (s: AccountingService) => {
+    const draft = editing[s.id]
+    const adv = advancedDraft[s.id]
+    return {
+      serviceName: draft?.name ?? s.name,
+      description: draft?.description ?? s.description,
+      requiresBooking: adv?.requiresBooking ?? s.requiresBooking ?? true,
+      intakeForm: adv?.intakeForm ?? s.intakeForm ?? { questions: [] },
+    }
   }
 
   const toggleExpanded = (s: AccountingService) => {
@@ -438,7 +460,10 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
     patchAdvanced(id, { intakeForm: { questions: next } })
   }
 
+  const previewService = services.find((s) => s.id === previewId)
+
   return (
+    <>
     <ProfileSectionCard
       title="Catálogo de consultorias"
       description="Active apenas o que o escritório presta. O cliente vê só serviços activos ao agendar no portal."
@@ -679,6 +704,16 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
                         size="icon"
                         variant="ghost"
                         className="h-9 w-9 rounded-full"
+                        title="Pré-visualizar formulário público"
+                        onClick={() => setPreviewId(s.id)}
+                      >
+                        <Eye className="h-4 w-4 opacity-60" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className="h-9 w-9 rounded-full"
                         disabled={duplicating === s.id}
                         title="Duplicar serviço"
                         onClick={() => void duplicateService(s)}
@@ -743,6 +778,17 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
                           </label>
                         </div>
                       </div>
+
+                      {s.isPubliclyListed && s.slug && firmSlug ? (
+                        <a
+                          href={`/${firmSlug}/servicos/${s.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+                        >
+                          Ver página pública <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ) : null}
 
                       {adv.requiresBooking ? (
                         <div className="space-y-2 rounded-lg border border-border/40 p-3">
@@ -970,5 +1016,13 @@ export function AgendaServicesCatalogPanel({ services, onReload }: Props) {
         </div>
       )}
     </ProfileSectionCard>
+
+    <Sheet open={Boolean(previewId)} onOpenChange={(open: boolean) => !open && setPreviewId(null)}>
+      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
+        <SheetHiddenTitle>Pré-visualização do formulário</SheetHiddenTitle>
+        {previewService ? <ServiceFormPreview {...previewDataFor(previewService)} /> : null}
+      </SheetContent>
+    </Sheet>
+    </>
   )
 }

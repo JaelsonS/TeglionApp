@@ -182,6 +182,22 @@ function resolveRequiredDocuments(service, answers) {
   return Array.from(merged.values());
 }
 
+/**
+ * Validação de completude antes de publicar (Fase 5 — ver plan file da sessão,
+ * v5/v7: "validação bloqueando publicação incompleta"). Só bloqueia o que
+ * quebraria a página pública de facto — uma pergunta de escolha única/múltipla
+ * sem nenhuma opção renderiza um campo vazio e inutilizável. yes_no nunca cai
+ * aqui porque normalizeIntakeForm() já lhe dá Sim/Não por omissão.
+ */
+function assertFormReadyForPublish(intakeForm) {
+  const questions = intakeForm?.questions || [];
+  for (const q of questions) {
+    if ((q.type === 'single_choice' || q.type === 'multiple_choice') && (!q.options || q.options.length === 0)) {
+      throw new AppError(`A pergunta "${q.label}" precisa de pelo menos uma opção antes de publicar`, 400);
+    }
+  }
+}
+
 function parsePriceEuros(payload) {
   if (payload?.priceEuros != null) {
     const priceEuros = Number(payload.priceEuros);
@@ -211,8 +227,10 @@ async function create({ firmId, payload }) {
   const priceCents = parsePriceEuros(payload) ?? 0;
   const slug = normalizeSlug(payload?.slug) ?? null;
   const isPubliclyListed = payload?.isPubliclyListed === true;
-  if (isPubliclyListed && !slug) {
-    throw new AppError('Defina um slug antes de tornar o serviço público', 400);
+  const intakeForm = normalizeIntakeForm(payload?.intakeForm) || null;
+  if (isPubliclyListed) {
+    if (!slug) throw new AppError('Defina um slug antes de tornar o serviço público', 400);
+    assertFormReadyForPublish(intakeForm);
   }
   const item = await accountingServicesRepository.createRow({
     firmId,
@@ -228,7 +246,7 @@ async function create({ firmId, payload }) {
     isPubliclyListed,
     requiresBooking: payload?.requiresBooking !== false,
     documentRequirements: normalizeDocumentRequirements(payload?.documentRequirements) || [],
-    intakeForm: normalizeIntakeForm(payload?.intakeForm) || null,
+    intakeForm,
     bookingOverrides: normalizeBookingOverrides(payload?.bookingOverrides) || null,
   });
   return { item };
@@ -268,8 +286,10 @@ async function update({ firmId, id, payload }) {
   }
   if (payload?.isPubliclyListed !== undefined) {
     const nextSlug = patch.slug !== undefined ? patch.slug : existing.slug;
-    if (payload.isPubliclyListed === true && !nextSlug) {
-      throw new AppError('Defina um slug antes de tornar o serviço público', 400);
+    if (payload.isPubliclyListed === true) {
+      if (!nextSlug) throw new AppError('Defina um slug antes de tornar o serviço público', 400);
+      const nextIntakeForm = patch.intakeForm !== undefined ? patch.intakeForm : existing.intakeForm;
+      assertFormReadyForPublish(nextIntakeForm);
     }
     patch.isPubliclyListed = Boolean(payload.isPubliclyListed);
   }
@@ -392,4 +412,5 @@ module.exports = {
   normalizeIntakeForm,
   normalizeBookingOverrides,
   resolveRequiredDocuments,
+  assertFormReadyForPublish,
 };
