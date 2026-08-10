@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { MessageSquare, MoreVertical, Paperclip, Pin, Search, Send } from 'lucide-react'
+import { HardDrive, MessageSquare, MoreVertical, Paperclip, Pin, Search, Send } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -16,6 +16,7 @@ import {
   chatAvatarPalette,
   chatClientInitials,
 } from '@/features/firm/chat/chatUi'
+import { openGoogleDrivePicker } from '@/features/firm/chat/googleDrivePicker'
 import { formatNifDisplay } from '@/features/firm/clients/clientCompanyAvatar'
 import { FirmSplitView } from '@/shared/design-system'
 import { useAuth } from '@/shared/hooks/useAuth'
@@ -28,7 +29,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
-import { contabilMessagesApi } from '@/infrastructure/api'
+import { contabilGoogleDriveApi, contabilMessagesApi } from '@/infrastructure/api'
 import { emitAppDataChanged, onAppDataChanged } from '@/shared/utils/appEvents'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { logger } from '@/shared/utils/logger'
@@ -86,8 +87,15 @@ export function FirmMessagesModule({ embeddedClientId }: { embeddedClientId?: st
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null)
   const [editingBody, setEditingBody] = useState('')
   const [savingEdit, setSavingEdit] = useState(false)
+  const [importingDrive, setImportingDrive] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const driveConfigQuery = useQuery({
+    queryKey: ['google-drive-picker-config'],
+    queryFn: () => contabilGoogleDriveApi.getConfig(),
+    staleTime: 10 * 60_000,
+  })
 
   useEffect(() => {
     setPinnedIds(getPinnedClientIds(tenantSlug))
@@ -152,6 +160,36 @@ export function FirmMessagesModule({ embeddedClientId }: { embeddedClientId?: st
       toast.error('Não foi possível enviar', { description: getErrorMessage(err) })
     } finally {
       setSending(false)
+    }
+  }
+
+  const importFromDrive = async () => {
+    if (!selectedClientId) return
+    const config = driveConfigQuery.data
+    if (!config?.configured || !config.apiKey || !config.clientId) {
+      toast.error('Importação do Google Drive não está configurada')
+      return
+    }
+    setImportingDrive(true)
+    try {
+      const picked = await openGoogleDrivePicker({ apiKey: config.apiKey, clientId: config.clientId })
+      if (!picked) return
+      await contabilGoogleDriveApi.importFromDrive({
+        clientId: selectedClientId,
+        fileId: picked.fileId,
+        accessToken: picked.accessToken,
+        body: picked.fileName,
+      })
+      await Promise.all([
+        inboxQuery.refetch(),
+        qc.invalidateQueries({ queryKey: ['firm-messages', selectedClientId] }),
+      ])
+      emitAppDataChanged({ scope: 'messages' })
+      toast.success(`"${picked.fileName}" importado do Google Drive`)
+    } catch (err) {
+      toast.error('Não foi possível importar do Google Drive', { description: getErrorMessage(err) })
+    } finally {
+      setImportingDrive(false)
     }
   }
 
@@ -447,6 +485,18 @@ export function FirmMessagesModule({ embeddedClientId }: { embeddedClientId?: st
               className="sr-only"
               onChange={(e) => setAttachFile(e.target.files?.[0] || null)}
             />
+            {driveConfigQuery.data?.configured ? (
+              <button
+                type="button"
+                className="cb-chat-compose-icon-btn"
+                aria-label="Importar do Google Drive"
+                title="Importar do Google Drive"
+                disabled={importingDrive}
+                onClick={() => void importFromDrive()}
+              >
+                <HardDrive className="h-4 w-4" />
+              </button>
+            ) : null}
           </div>
         </div>
         <Button

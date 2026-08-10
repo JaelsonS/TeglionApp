@@ -11,6 +11,7 @@ import { createContabilConsultationsApi } from '@/infrastructure/api/contabil/co
 import { createContabilDocumentsApi } from '@/infrastructure/api/contabil/documents'
 import { createContabilFirmApi } from '@/infrastructure/api/contabil/firm'
 import { createContabilGoogleCalendarApi } from '@/infrastructure/api/contabil/googleCalendar'
+import { createContabilGoogleDriveApi } from '@/infrastructure/api/contabil/googleDrive'
 import { createContabilMessagesApi } from '@/infrastructure/api/contabil/messages'
 import { createContabilNewsApi } from '@/infrastructure/api/contabil/news'
 import { createContabilObligationsApi } from '@/infrastructure/api/contabil/obligations'
@@ -72,6 +73,7 @@ export const contabilBillingApi = createContabilBillingApi(api)
 export const contabilPublicApi = createContabilPublicApi(api)
 export const contabilServiceInquiriesApi = createContabilServiceInquiriesApi(api)
 export const contabilGoogleCalendarApi = createContabilGoogleCalendarApi(api)
+export const contabilGoogleDriveApi = createContabilGoogleDriveApi(api)
 export const clientPortalContabilApi = createClientPortalContabilApi(api)
 
 export type { BillingStatus }

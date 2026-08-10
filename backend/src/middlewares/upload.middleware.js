@@ -195,4 +195,9 @@ module.exports = {
   assertUploadedFileMagic,
   maxFileSizeBytes,
   maxFileSizeMb: () => Number(env.MAX_FILE_SIZE) || 25,
+  // Exportados para validar ficheiros que não passam pelo multer (ex.: importação
+  // do Google Drive, Fase I — mesma whitelist/validação, fonte de bytes diferente).
+  validateMimeAndExt,
+  validateMagicBytes,
+  ALLOWED_MIMES,
 };

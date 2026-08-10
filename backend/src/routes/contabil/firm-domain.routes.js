@@ -25,6 +25,7 @@ const fiscalCalendarController = require('../../modules/fiscal/fiscal-calendar.c
 const fiscalCalendarNotesController = require('../../modules/fiscal/fiscal-calendar-notes.controller');
 const atController = require('../../modules/integrations/at/at.controller');
 const googleCalendarController = require('../../modules/integrations/google-calendar/google-calendar.controller');
+const googleDriveController = require('../../modules/integrations/google-drive/google-drive.controller');
 const caeHistoryController = require('../../modules/firm/cae-history.controller');
 const caeCatalogController = require('../../modules/firm/cae-catalog.controller');
 
@@ -63,6 +64,17 @@ router.post(
   '/integrations/google-calendar/disconnect',
   requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE),
   googleCalendarController.disconnect,
+);
+
+router.get(
+  '/integrations/google-drive/config',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  googleDriveController.getConfig,
+);
+router.post(
+  '/documents/import-from-drive',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  googleDriveController.importFromDrive,
 );
 
 router.get('/firm', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.getFirm);
