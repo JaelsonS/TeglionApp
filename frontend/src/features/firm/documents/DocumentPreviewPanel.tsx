@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
+import { useQuery } from '@tanstack/react-query'
 import {
   Check,
   Download,
   FileStack,
+  HardDrive,
   History,
   Loader2,
   MessageSquare,
@@ -13,9 +15,10 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { openGoogleDrivePicker } from '@/features/firm/chat/googleDrivePicker'
 import { Badge, Button, Input, SkeletonCard } from '@/shared/design-system'
 import { cn } from '@/shared/lib/utils'
-import { contabilDocumentsApi, contabilMessagesApi, fetchDocumentBlobUrl } from '@/infrastructure/api'
+import { contabilDocumentsApi, contabilGoogleDriveApi, contabilMessagesApi, fetchDocumentBlobUrl } from '@/infrastructure/api'
 import { formatDateTime } from '@/shared/utils/date'
 import { emitAppDataChanged } from '@/shared/utils/appEvents'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -60,6 +63,13 @@ export function DocumentPreviewPanel({
   const [actionLoading, setActionLoading] = useState(false)
   const [comment, setComment] = useState('')
   const [sendingComment, setSendingComment] = useState(false)
+  const [importingDrive, setImportingDrive] = useState(false)
+
+  const driveConfigQuery = useQuery({
+    queryKey: ['google-drive-config'],
+    queryFn: () => contabilGoogleDriveApi.getConfig(),
+    staleTime: 5 * 60_000,
+  })
 
   const loadPreview = useCallback(async () => {
     if (!doc?._id) {
@@ -144,6 +154,32 @@ export function DocumentPreviewPanel({
       toast.error('Não foi possível enviar', { description: getErrorMessage(err) })
     } finally {
       setSendingComment(false)
+    }
+  }
+
+  const importFromDrive = async () => {
+    if (!doc?.clientId) return
+    const config = driveConfigQuery.data
+    if (!config?.configured || !config.pickerApiKey || !config.clientId) {
+      toast.error('Importação do Google Drive não está configurada')
+      return
+    }
+    setImportingDrive(true)
+    try {
+      const picked = await openGoogleDrivePicker({ apiKey: config.pickerApiKey, clientId: config.clientId })
+      if (!picked) return
+      await contabilGoogleDriveApi.importFromDrive({
+        clientId: doc.clientId,
+        fileId: picked.fileId,
+        accessToken: picked.accessToken,
+        body: picked.fileName,
+      })
+      toast.success(`"${picked.fileName}" importado do Google Drive e enviado ao cliente`)
+      await onRefresh()
+    } catch (err) {
+      toast.error('Não foi possível importar do Google Drive', { description: getErrorMessage(err) })
+    } finally {
+      setImportingDrive(false)
     }
   }
 
@@ -312,6 +348,19 @@ export function DocumentPreviewPanel({
                 placeholder="Comentário ou instrução…"
                 className="rounded-full text-sm"
               />
+              {driveConfigQuery.data?.configured ? (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  className="shrink-0 rounded-full"
+                  title="Importar ficheiro do Google Drive"
+                  disabled={importingDrive}
+                  onClick={() => void importFromDrive()}
+                >
+                  {importingDrive ? <Loader2 className="h-4 w-4 animate-spin" /> : <HardDrive className="h-4 w-4" />}
+                </Button>
+              ) : null}
               <Button
                 type="button"
                 size="icon"
@@ -323,7 +372,8 @@ export function DocumentPreviewPanel({
               </Button>
             </div>
             <p className="mt-1.5 cb-text-caption">
-              O pedido de reenvio usa a caixa acima se estiver preenchida.
+              O pedido de reenvio usa a caixa acima se estiver preenchida. Pode também importar um ficheiro
+              directamente do seu Google Drive.
             </p>
           </section>
           ) : null}
