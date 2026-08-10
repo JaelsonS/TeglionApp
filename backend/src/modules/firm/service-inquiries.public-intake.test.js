@@ -7,6 +7,7 @@ const firmUsersRepository = require('../../db/supabase/repositories/firm-users.r
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const serviceInquiriesRepository = require('../../db/supabase/repositories/service-inquiries.repository');
 const serviceInquiryDocumentsRepository = require('../../db/supabase/repositories/service-inquiry-documents.repository');
+const serviceInquiryRequestsRepository = require('../../db/supabase/repositories/service-inquiry-requests.repository');
 const leadsRepository = require('../../db/supabase/repositories/leads.repository');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const auditRepository = require('../../db/supabase/repositories/contabil/audit.repository');
@@ -36,6 +37,9 @@ function mockNoise() {
   mock.method(contabilNotifications, 'notifyLeadIntakeChecklist', async () => ({ ok: true }));
   mock.method(contabilNotifications, 'notifyFirmIntakeSubmitted', async () => ({ ok: true }));
   mock.method(contabilNotifications, 'notifyFirmIntakeDocumentReceived', async () => ({ ok: true }));
+  mock.method(serviceInquiryRequestsRepository, 'createMany', async (rows) =>
+    rows.map((r, i) => ({ id: `req-${i}`, ...r, status: 'PENDING' })),
+  );
 }
 
 test('submitPublicIntake: firm inexistente devolve 404', async () => {
@@ -322,14 +326,31 @@ test('getByAccessToken: devolve checklist com received=true só para tags já en
     status: 'DOCS_REQUESTED',
     answers: {},
   }));
-  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
-    ...SERVICE,
-    documentRequirements: [
-      { tag: 'cc', title: 'Cartão de Cidadão' },
-      { tag: 'iban', title: 'Comprovativo de IBAN' },
-    ],
-  }));
-  mock.method(serviceInquiryDocumentsRepository, 'listByInquiry', async () => [{ tag: 'cc' }]);
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
+  mock.method(serviceInquiryRequestsRepository, 'listByInquiry', async () => [
+    {
+      id: 'req-cc',
+      kind: 'document',
+      tag: 'cc',
+      title: 'Cartão de Cidadão',
+      status: 'ANSWERED',
+      documentId: 'doc-1',
+      textReply: null,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      answeredAt: '2026-01-02T00:00:00.000Z',
+    },
+    {
+      id: 'req-iban',
+      kind: 'document',
+      tag: 'iban',
+      title: 'Comprovativo de IBAN',
+      status: 'PENDING',
+      documentId: null,
+      textReply: null,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      answeredAt: null,
+    },
+  ]);
 
   const result = await serviceInquiriesService.getByAccessToken('token-valido');
   assert.equal(result.serviceName, 'IRS 2026');
@@ -378,7 +399,7 @@ test('recordDocumentDelivery: tag não reconhecida para o pedido rejeita com 400
     status: 'DOCS_REQUESTED',
     answers: {},
   }));
-  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
+  mock.method(serviceInquiryRequestsRepository, 'findPendingDocumentByTag', async () => null);
 
   await assert.rejects(
     () => serviceInquiriesService.recordDocumentDelivery({ token: 'x', tag: 'tag-fantasma', file: { buffer: Buffer.from('x') } }),
@@ -401,16 +422,20 @@ test('recordDocumentDelivery: entrega parcial não avança o estado', async () =
     leadId: 'lead-1',
     clientId: null,
   }));
-  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
-    ...SERVICE,
-    documentRequirements: [
-      { tag: 'cc', title: 'Cartão de Cidadão' },
-      { tag: 'iban', title: 'Comprovativo de IBAN' },
-    ],
+  mock.method(serviceInquiryRequestsRepository, 'findPendingDocumentByTag', async () => ({
+    id: 'req-cc',
+    tag: 'cc',
+    title: 'Cartão de Cidadão',
+    status: 'PENDING',
   }));
   mock.method(contabilStorage, 'uploadServiceInquiryDocument', async () => ({ provider: 'supabase', path: 'p/1' }));
   mock.method(serviceInquiryDocumentsRepository, 'createRow', async () => ({ id: 'doc-1' }));
-  mock.method(serviceInquiryDocumentsRepository, 'listByInquiry', async () => [{ tag: 'cc' }]);
+  mock.method(serviceInquiryRequestsRepository, 'markAnswered', async () => ({}));
+  mock.method(serviceInquiryRequestsRepository, 'listByInquiry', async () => [
+    { id: 'req-cc', kind: 'document', tag: 'cc', title: 'Cartão de Cidadão', status: 'ANSWERED', createdBy: null },
+    { id: 'req-iban', kind: 'document', tag: 'iban', title: 'Comprovativo de IBAN', status: 'PENDING', createdBy: null },
+  ]);
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
   let updateCalled = false;
   mock.method(serviceInquiriesRepository, 'updateRow', async () => {
     updateCalled = true;
@@ -441,10 +466,19 @@ test('recordDocumentDelivery: última entrega completa a checklist e avança DOC
     leadId: 'lead-1',
     clientId: null,
   }));
-  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
+  mock.method(serviceInquiryRequestsRepository, 'findPendingDocumentByTag', async () => ({
+    id: 'req-cc',
+    tag: 'cc',
+    title: 'Cartão de Cidadão',
+    status: 'PENDING',
+  }));
   mock.method(contabilStorage, 'uploadServiceInquiryDocument', async () => ({ provider: 'supabase', path: 'p/1' }));
   mock.method(serviceInquiryDocumentsRepository, 'createRow', async () => ({ id: 'doc-1' }));
-  mock.method(serviceInquiryDocumentsRepository, 'listByInquiry', async () => [{ tag: 'cc' }]);
+  mock.method(serviceInquiryRequestsRepository, 'markAnswered', async () => ({}));
+  mock.method(serviceInquiryRequestsRepository, 'listByInquiry', async () => [
+    { id: 'req-cc', kind: 'document', tag: 'cc', title: 'Cartão de Cidadão', status: 'ANSWERED', createdBy: null },
+  ]);
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
   let updatedPatch = null;
   mock.method(serviceInquiriesRepository, 'updateRow', async (id, firmId, patch) => {
     updatedPatch = patch;
@@ -480,16 +514,20 @@ test('recordDocumentDelivery: audita a entrega mesmo numa entrega parcial (não 
     leadId: 'lead-1',
     clientId: null,
   }));
-  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
-    ...SERVICE,
-    documentRequirements: [
-      { tag: 'cc', title: 'Cartão de Cidadão' },
-      { tag: 'iban', title: 'Comprovativo de IBAN' },
-    ],
+  mock.method(serviceInquiryRequestsRepository, 'findPendingDocumentByTag', async () => ({
+    id: 'req-cc',
+    tag: 'cc',
+    title: 'Cartão de Cidadão',
+    status: 'PENDING',
   }));
   mock.method(contabilStorage, 'uploadServiceInquiryDocument', async () => ({ provider: 'supabase', path: 'p/1' }));
   mock.method(serviceInquiryDocumentsRepository, 'createRow', async () => ({ id: 'doc-1' }));
-  mock.method(serviceInquiryDocumentsRepository, 'listByInquiry', async () => [{ tag: 'cc' }]);
+  mock.method(serviceInquiryRequestsRepository, 'markAnswered', async () => ({}));
+  mock.method(serviceInquiryRequestsRepository, 'listByInquiry', async () => [
+    { id: 'req-cc', kind: 'document', tag: 'cc', title: 'Cartão de Cidadão', status: 'ANSWERED', createdBy: null },
+    { id: 'req-iban', kind: 'document', tag: 'iban', title: 'Comprovativo de IBAN', status: 'PENDING', createdBy: null },
+  ]);
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
   mock.method(serviceInquiriesRepository, 'updateRow', async () => ({}));
   mock.method(firmsRepository, 'findFirmById', async () => FIRM);
   mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana' }));
@@ -524,10 +562,19 @@ test('recordDocumentDelivery: entrega que completa a checklist audita entrega E 
     leadId: 'lead-1',
     clientId: null,
   }));
-  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
+  mock.method(serviceInquiryRequestsRepository, 'findPendingDocumentByTag', async () => ({
+    id: 'req-cc',
+    tag: 'cc',
+    title: 'Cartão de Cidadão',
+    status: 'PENDING',
+  }));
   mock.method(contabilStorage, 'uploadServiceInquiryDocument', async () => ({ provider: 'supabase', path: 'p/1' }));
   mock.method(serviceInquiryDocumentsRepository, 'createRow', async () => ({ id: 'doc-1' }));
-  mock.method(serviceInquiryDocumentsRepository, 'listByInquiry', async () => [{ tag: 'cc' }]);
+  mock.method(serviceInquiryRequestsRepository, 'markAnswered', async () => ({}));
+  mock.method(serviceInquiryRequestsRepository, 'listByInquiry', async () => [
+    { id: 'req-cc', kind: 'document', tag: 'cc', title: 'Cartão de Cidadão', status: 'ANSWERED', createdBy: null },
+  ]);
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
   mock.method(serviceInquiriesRepository, 'updateRow', async () => ({}));
   mock.method(firmsRepository, 'findFirmById', async () => FIRM);
   mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana' }));

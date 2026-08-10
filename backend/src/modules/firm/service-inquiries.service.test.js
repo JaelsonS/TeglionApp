@@ -4,6 +4,7 @@ const { mock } = require('node:test');
 
 const serviceInquiriesRepository = require('../../db/supabase/repositories/service-inquiries.repository');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
+const serviceInquiryRequestsRepository = require('../../db/supabase/repositories/service-inquiry-requests.repository');
 const leadsRepository = require('../../db/supabase/repositories/leads.repository');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const auditRepository = require('../../db/supabase/repositories/contabil/audit.repository');
@@ -216,4 +217,53 @@ test('revokeAccessToken: solicitação inexistente devolve 404', async () => {
       return true;
     },
   );
+});
+
+test('getById: monta o checklist a partir de service_inquiry_requests (não recalcula do zero)', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM_ID,
+    serviceId: 'service-1',
+    leadId: 'lead-1',
+    clientId: null,
+    status: 'DOCS_REQUESTED',
+    answers: { q1: 'sim' },
+  }));
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({ id: 'service-1', name: 'IRS 2026' }));
+  mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana' }));
+  mock.method(serviceInquiryRequestsRepository, 'listByInquiry', async () => [
+    {
+      id: 'req-cc',
+      kind: 'document',
+      tag: 'cc',
+      title: 'Cartão de Cidadão',
+      status: 'ANSWERED',
+      documentId: 'doc-1',
+      textReply: null,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      answeredAt: '2026-01-02T00:00:00.000Z',
+    },
+    {
+      id: 'req-extra',
+      kind: 'question',
+      tag: null,
+      title: 'Tem dependentes a cargo?',
+      status: 'PENDING',
+      documentId: null,
+      textReply: null,
+      createdAt: '2026-01-03T00:00:00.000Z',
+      answeredAt: null,
+    },
+  ]);
+
+  const { inquiry, checklist } = await serviceInquiriesService.getById({ firmId: FIRM_ID, id: 'inquiry-1' });
+
+  assert.equal(inquiry.serviceName, 'IRS 2026');
+  assert.equal(inquiry.requesterName, 'Ana');
+  assert.equal(checklist.length, 2);
+  assert.equal(checklist[0].received, true);
+  assert.equal(checklist[0].kind, 'document');
+  assert.equal(checklist[1].received, false);
+  assert.equal(checklist[1].kind, 'question');
 });

@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const { AppError } = require('../../middlewares/error.middleware');
 const serviceInquiriesRepository = require('../../db/supabase/repositories/service-inquiries.repository');
 const serviceInquiryDocumentsRepository = require('../../db/supabase/repositories/service-inquiry-documents.repository');
+const serviceInquiryRequestsRepository = require('../../db/supabase/repositories/service-inquiry-requests.repository');
 const leadsRepository = require('../../db/supabase/repositories/leads.repository');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
@@ -45,29 +46,34 @@ async function list({ firmId, status, serviceId }) {
   return { items: await enrichForList(firmId, items) };
 }
 
+/** Forma comum do item de checklist devolvida ao staff e ao mini-portal — um
+ * pedido (documento ou pergunta em texto), da tabela service_inquiry_requests. */
+function toChecklistItem(request) {
+  return {
+    id: request.id,
+    kind: request.kind,
+    tag: request.tag,
+    title: request.title,
+    instructions: request.instructions,
+    received: request.status === 'ANSWERED',
+    documentId: request.documentId,
+    textReply: request.textReply,
+    createdAt: request.createdAt,
+    answeredAt: request.answeredAt,
+  };
+}
+
 async function getById({ firmId, id }) {
   const inquiry = await serviceInquiriesRepository.findByIdForFirm(id, firmId);
   if (!inquiry) throw new AppError('Solicitação não encontrada', 404);
 
   const service = await accountingServicesRepository.findByIdForFirm(inquiry.serviceId, firmId);
   const requesterName = await requesterNameForInquiry(inquiry);
-  const requiredDocuments = accountingServicesService.resolveRequiredDocuments(service, inquiry.answers);
-  const receivedDocs = await serviceInquiryDocumentsRepository.listByInquiry(inquiry.id, firmId);
-  const receivedByTag = new Map(receivedDocs.map((d) => [d.tag, d]));
-  const checklist = requiredDocuments.map((d) => {
-    const doc = receivedByTag.get(d.tag);
-    return {
-      ...d,
-      received: Boolean(doc),
-      documentId: doc?.id || null,
-      mimeType: doc?.mimeType || null,
-      createdAt: doc?.createdAt || null,
-    };
-  });
+  const requests = await serviceInquiryRequestsRepository.listByInquiry(inquiry.id, firmId);
 
   return {
     inquiry: { ...inquiry, serviceName: service?.name || null, requesterName },
-    checklist,
+    checklist: requests.map(toChecklistItem),
   };
 }
 
@@ -293,6 +299,22 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
     inquiry.consultationId = bookedConsultation.id;
   }
 
+  // Materializa o checklist inicial (ver especificação da sessão, v8, secção 2) — deixa
+  // de ser recalculado a cada leitura, fica numa tabela real que a equipa pode estender
+  // depois com pedidos adicionais (Fase 2b), sem misturar as duas fontes.
+  if (requiredDocuments.length > 0) {
+    await serviceInquiryRequestsRepository.createMany(
+      requiredDocuments.map((d) => ({
+        firmId: firm.id,
+        serviceInquiryId: inquiry.id,
+        kind: 'document',
+        tag: d.tag,
+        title: d.title,
+        instructions: d.instructions,
+      })),
+    );
+  }
+
   await auditRepository.writeAuditLog({
     firmId: firm.id,
     actorRole: 'PUBLIC',
@@ -337,14 +359,12 @@ async function getByAccessToken(token) {
   if (!inquiry) throw new AppError('Pedido não encontrado', 404, { code: 'NOT_FOUND' });
 
   const service = await accountingServicesRepository.findByIdForFirm(inquiry.serviceId, inquiry.firmId);
-  const requiredDocuments = accountingServicesService.resolveRequiredDocuments(service, inquiry.answers);
-  const received = await serviceInquiryDocumentsRepository.listByInquiry(inquiry.id, inquiry.firmId);
-  const receivedTags = new Set(received.map((d) => d.tag));
+  const requests = await serviceInquiryRequestsRepository.listByInquiry(inquiry.id, inquiry.firmId);
 
   return {
     serviceName: service?.name || null,
     status: inquiry.status,
-    checklist: requiredDocuments.map((d) => ({ ...d, received: receivedTags.has(d.tag) })),
+    checklist: requests.map(toChecklistItem),
   };
 }
 
@@ -356,10 +376,8 @@ async function recordDocumentDelivery({ token, tag, file }) {
     throw new AppError('Este pedido já foi encerrado', 409);
   }
 
-  const service = await accountingServicesRepository.findByIdForFirm(inquiry.serviceId, inquiry.firmId);
-  const requiredDocuments = accountingServicesService.resolveRequiredDocuments(service, inquiry.answers);
-  const requirement = requiredDocuments.find((d) => d.tag === tag);
-  if (!requirement) throw new AppError('Documento não reconhecido para este pedido', 400);
+  const request = await serviceInquiryRequestsRepository.findPendingDocumentByTag(inquiry.id, inquiry.firmId, tag);
+  if (!request) throw new AppError('Documento não reconhecido para este pedido', 400);
 
   const uploaded = await contabilStorage.uploadServiceInquiryDocument({
     firmId: inquiry.firmId,
@@ -370,13 +388,15 @@ async function recordDocumentDelivery({ token, tag, file }) {
   const deliveredDoc = await serviceInquiryDocumentsRepository.createRow({
     firmId: inquiry.firmId,
     serviceInquiryId: inquiry.id,
-    tag: requirement.tag,
-    title: requirement.title,
+    tag: request.tag,
+    title: request.title,
     storageProvider: uploaded.provider,
     storageKey: uploaded.path,
     mimeType: file.mimetype || null,
     sizeBytes: file.size || null,
   });
+
+  await serviceInquiryRequestsRepository.markAnswered(request.id, inquiry.firmId, { documentId: deliveredDoc.id });
 
   await auditRepository.writeAuditLog({
     firmId: inquiry.firmId,
@@ -385,12 +405,15 @@ async function recordDocumentDelivery({ token, tag, file }) {
     action: 'service_inquiry.document_delivered',
     entityType: 'service_inquiry',
     entityId: inquiry.id,
-    metadata: { tag: requirement.tag, documentId: deliveredDoc.id },
+    metadata: { tag: request.tag, documentId: deliveredDoc.id },
   });
 
-  const received = await serviceInquiryDocumentsRepository.listByInquiry(inquiry.id, inquiry.firmId);
-  const receivedTags = new Set(received.map((d) => d.tag));
-  const allComplete = requiredDocuments.every((d) => receivedTags.has(d.tag));
+  const allRequests = await serviceInquiryRequestsRepository.listByInquiry(inquiry.id, inquiry.firmId);
+  // A transição automática só olha para o checklist original (materializado na
+  // submissão, createdBy nulo) — pedidos adicionados depois pela equipa (Fase 2b)
+  // não fazem o estado avançar sozinho, isso fica sempre a critério da equipa.
+  const originalDocuments = allRequests.filter((r) => r.kind === 'document' && !r.createdBy);
+  const allComplete = originalDocuments.length > 0 && originalDocuments.every((r) => r.status === 'ANSWERED');
 
   if (allComplete && inquiry.status === 'DOCS_REQUESTED') {
     await serviceInquiriesRepository.updateRow(inquiry.id, inquiry.firmId, { status: 'IN_PROGRESS' });
@@ -405,6 +428,7 @@ async function recordDocumentDelivery({ token, tag, file }) {
     });
   }
 
+  const service = await accountingServicesRepository.findByIdForFirm(inquiry.serviceId, inquiry.firmId);
   const firm = await firmsRepository.findFirmById(inquiry.firmId).catch(() => null);
   const staffEmail = firm ? await resolveStaffNotifyEmail(inquiry.firmId, firm) : null;
   if (staffEmail) {
@@ -415,13 +439,13 @@ async function recordDocumentDelivery({ token, tag, file }) {
         firmName: firm?.name,
         requesterName,
         serviceName: service?.name,
-        documentTitle: requirement.title,
+        documentTitle: request.title,
         allComplete,
       })
       .catch(() => {});
   }
 
-  return { allComplete, checklist: requiredDocuments.map((d) => ({ ...d, received: receivedTags.has(d.tag) })) };
+  return { allComplete, checklist: allRequests.map(toChecklistItem) };
 }
 
 module.exports = {
