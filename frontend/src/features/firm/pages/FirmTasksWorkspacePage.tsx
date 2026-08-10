@@ -159,10 +159,13 @@ export function FirmTasksWorkspacePage() {
   const qc = useQueryClient()
 
   const allItems = data?.items ?? []
-  const manualItems = useMemo(
-    () => allItems.filter((t) => (t.taskType || 'internal_task') === 'internal_task'),
-    [allItems],
-  )
+  /** `/client-tasks/workspace` só devolve tarefas manuais (obrigações vêm de
+   * `useObligationsHub` à parte), mas `taskType` tem 2 valores históricos para
+   * "não é obrigação" (`internal_task` e `manual_task`, dependendo de qual
+   * mapper leu a linha — ver `tasks.repository.js` vs `contabil/mappers.js`).
+   * Filtrar por `=== 'internal_task'` escondia qualquer tarefa gravada com o
+   * outro valor; o que importa aqui é só "não é uma obrigação fiscal". */
+  const manualItems = useMemo(() => allItems.filter((t) => t.taskType !== 'recurring_obligation'), [allItems])
   const [localItems, setLocalItems] = useState<WorkspaceTask[] | null>(null)
   const displayItems = localItems ?? manualItems
 
