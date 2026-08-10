@@ -1,4 +1,20 @@
 const { getSupabaseAdmin } = require('../client');
+const { encryptField, decryptField } = require('../../../utils/crypto-fields');
+
+/**
+ * Encripta o blob inteiro de respostas (enc:v1), não campo a campo — as
+ * perguntas são configuradas livremente pela contabilista, o Teglion não sabe
+ * de antemão quais são sensíveis (ver especificação da sessão, v8, secção 1E).
+ */
+function encryptAnswers(answers) {
+  if (!answers) return null;
+  return encryptField(JSON.stringify(answers));
+}
+
+function decryptAnswers(value) {
+  if (!value) return null;
+  return JSON.parse(decryptField(value));
+}
 
 function map(row) {
   if (!row) return null;
@@ -12,7 +28,9 @@ function map(row) {
     status: row.status,
     assignedStaffId: row.assigned_staff_id,
     notes: row.notes,
-    answers: row.answers || null,
+    // answers_enc é a forma actual; answers (JSONB em texto plano) é lida como
+    // fallback só para linhas antigas que possam existir de antes desta migration.
+    answers: row.answers_enc ? decryptAnswers(row.answers_enc) : row.answers || null,
     submittedAt: row.submitted_at || null,
     accessToken: row.access_token || null,
     accessTokenExpiresAt: row.access_token_expires_at || null,
@@ -73,7 +91,7 @@ async function createRow({
     notes: notes ? String(notes).trim() : null,
     assigned_staff_id: assignedStaffId || null,
     created_by: createdBy || null,
-    answers: answers || null,
+    answers_enc: encryptAnswers(answers),
     submitted_at: submittedAt || null,
     access_token: accessToken || null,
     access_token_expires_at: accessTokenExpiresAt || null,
@@ -150,6 +168,8 @@ module.exports = {
   findByIdForFirm,
   findByAccessToken,
   isAccessTokenActive,
+  encryptAnswers,
+  decryptAnswers,
   createRow,
   updateRow,
   reassignLeadToClient,
