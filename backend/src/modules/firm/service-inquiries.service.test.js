@@ -258,8 +258,13 @@ test('getById: monta o checklist a partir de service_inquiry_requests (não reca
       answeredAt: null,
     },
   ]);
+  let historyArgs = null;
+  mock.method(auditRepository, 'listByEntity', async (args) => {
+    historyArgs = args;
+    return [{ id: 'log-1', action: 'service_inquiry.submitted', actorRole: 'PUBLIC', metadata: {}, createdAt: '2026-01-01T00:00:00.000Z' }];
+  });
 
-  const { inquiry, checklist } = await serviceInquiriesService.getById({ firmId: FIRM_ID, id: 'inquiry-1' });
+  const { inquiry, checklist, history } = await serviceInquiriesService.getById({ firmId: FIRM_ID, id: 'inquiry-1' });
 
   assert.equal(inquiry.serviceName, 'IRS 2026');
   assert.equal(inquiry.requesterName, 'Ana');
@@ -268,6 +273,9 @@ test('getById: monta o checklist a partir de service_inquiry_requests (não reca
   assert.equal(checklist[0].kind, 'document');
   assert.equal(checklist[1].received, false);
   assert.equal(checklist[1].kind, 'question');
+  assert.deepEqual(historyArgs, { firmId: FIRM_ID, entityType: 'service_inquiry', entityId: 'inquiry-1' });
+  assert.equal(history.length, 1);
+  assert.equal(history[0].action, 'service_inquiry.submitted');
 });
 
 test('addServiceInquiryRequest: solicitação inexistente devolve 404', async () => {

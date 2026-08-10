@@ -8,7 +8,11 @@ import { Input } from '@/shared/components/ui/input'
 import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
 import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
 import { contabilAccountingServicesApi, contabilServiceInquiriesApi } from '@/infrastructure/api'
-import type { ServiceInquiryChecklistItem, ServiceInquiryRequestKind } from '@/infrastructure/api/contabil/serviceInquiries'
+import type {
+  ServiceInquiryChecklistItem,
+  ServiceInquiryHistoryItem,
+  ServiceInquiryRequestKind,
+} from '@/infrastructure/api/contabil/serviceInquiries'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 import type { AccountingService, IntakeQuestion } from '@/shared/types/contabil'
@@ -25,6 +29,33 @@ const STATUS_LABELS: Record<string, string> = {
 
 const STATUS_ORDER = ['NEW', 'CONTACTED', 'DOCS_REQUESTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']
 const TERMINAL_STATUSES = new Set(['COMPLETED', 'CANCELLED'])
+
+/** Histórico (Fase 4) — reaproveita os eventos já escritos em audit_logs em cada
+ * fase (1a/2a/2b/2c/3a), sem duplicar em nenhuma tabela nova. Só formatação. */
+const HISTORY_ACTION_LABELS: Record<string, string> = {
+  'service_inquiry.created': 'Solicitação criada',
+  'service_inquiry.submitted': 'Formulário submetido pelo cliente',
+  'service_inquiry.status_changed': 'Estado alterado',
+  'service_inquiry.token_revoked': 'Link do cliente revogado',
+  'service_inquiry.request_added': 'Pendência adicionada pela equipa',
+  'service_inquiry.document_delivered': 'Documento recebido',
+  'service_inquiry.request_answered': 'Resposta recebida do cliente',
+}
+
+function historyItemLabel(item: ServiceInquiryHistoryItem): string {
+  const base = HISTORY_ACTION_LABELS[item.action] || item.action
+  if (item.action === 'service_inquiry.status_changed') {
+    const from = String(item.metadata?.from ?? '')
+    const to = String(item.metadata?.to ?? '')
+    const fromLabel = STATUS_LABELS[from] || from
+    const toLabel = STATUS_LABELS[to] || to
+    return `${base}: ${fromLabel} → ${toLabel}`
+  }
+  if (item.action === 'service_inquiry.request_added' && item.metadata?.title) {
+    return `${base} — "${String(item.metadata.title)}"`
+  }
+  return base
+}
 
 function answerDisplay(question: IntakeQuestion | undefined, value: string | string[]) {
   if (!question?.options) return Array.isArray(value) ? value.join(', ') : String(value)
@@ -328,6 +359,26 @@ export function ServiceInquiriesWorkspace() {
                     </Button>
                   </div>
                 ) : null}
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Histórico</p>
+                {detailQuery.data.history.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Sem eventos registados ainda.</p>
+                ) : (
+                  <ul className="space-y-2 border-l-2 border-border/40 pl-3">
+                    {detailQuery.data.history.map((item: ServiceInquiryHistoryItem) => (
+                      <li key={item.id} className="text-sm">
+                        <p>{historyItemLabel(item)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(item.createdAt).toLocaleString('pt-PT', { dateStyle: 'short', timeStyle: 'short' })}
+                          {' · '}
+                          {item.actorRole === 'PUBLIC' ? 'Cliente' : 'Equipa'}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
           )}

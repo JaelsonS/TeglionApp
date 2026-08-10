@@ -33,6 +33,16 @@ export type ServiceInquiryChecklistItem = {
   answeredAt: string | null
 }
 
+/** Evento de histórico (Fase 4) — reaproveita audit_logs, já escrito em todo o
+ * ciclo de vida da solicitação, sem duplicar em nenhuma tabela nova. */
+export type ServiceInquiryHistoryItem = {
+  id: string
+  action: string
+  actorRole: string
+  metadata: Record<string, unknown>
+  createdAt: string
+}
+
 export function createContabilServiceInquiriesApi(api: AxiosInstance) {
   return {
     list: (params?: { status?: string; serviceId?: string }) =>
@@ -41,9 +51,14 @@ export function createContabilServiceInquiriesApi(api: AxiosInstance) {
         .then((r) => r.data as { items: ServiceInquiryListItem[] }),
 
     getById: (id: string) =>
-      api
-        .get(`/contabil/service-inquiries/${encodeURIComponent(id)}`)
-        .then((r) => r.data as { inquiry: ServiceInquiryListItem; checklist: ServiceInquiryChecklistItem[] }),
+      api.get(`/contabil/service-inquiries/${encodeURIComponent(id)}`).then(
+        (r) =>
+          r.data as {
+            inquiry: ServiceInquiryListItem
+            checklist: ServiceInquiryChecklistItem[]
+            history: ServiceInquiryHistoryItem[]
+          },
+      ),
 
     patch: (id: string, payload: Record<string, unknown>) =>
       api.patch(`/contabil/service-inquiries/${encodeURIComponent(id)}`, payload).then((r) => r.data),

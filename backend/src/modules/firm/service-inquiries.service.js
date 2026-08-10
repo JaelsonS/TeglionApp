@@ -74,6 +74,7 @@ async function getById({ firmId, id }) {
   const consultation = inquiry.consultationId
     ? await consultationsRepository.findByIdForFirm(inquiry.consultationId, firmId)
     : null;
+  const history = await auditRepository.listByEntity({ firmId, entityType: 'service_inquiry', entityId: inquiry.id });
 
   return {
     inquiry: {
@@ -85,6 +86,7 @@ async function getById({ firmId, id }) {
         : null,
     },
     checklist: requests.map(toChecklistItem),
+    history,
   };
 }
 
