@@ -49,4 +49,23 @@ async function disconnect({ firmId, staffUserId }) {
   return { disconnected: true };
 }
 
-module.exports = { getStatus, completeConnection, disconnect };
+// Renova com uma folga de 2 minutos antes do vencimento real — evita usar um
+// access_token que expira a meio da chamada seguinte (Fase Hb).
+const TOKEN_EXPIRY_SKEW_MS = 2 * 60 * 1000;
+
+/** Devolve um access_token válido para a ligação, renovando junto do Google se necessário (Fase Hb). */
+async function getValidAccessToken(connection) {
+  const expiresAt = new Date(connection.tokenExpiresAt).getTime();
+  if (Number.isFinite(expiresAt) && expiresAt - TOKEN_EXPIRY_SKEW_MS > Date.now()) {
+    return connection.accessToken;
+  }
+  const tokens = await googleCalendarService.refreshAccessToken(connection.refreshToken);
+  const tokenExpiresAt = new Date(Date.now() + tokens.expires_in * 1000).toISOString();
+  await googleCalendarConnectionsRepository.updateAccessToken(connection.id, {
+    accessToken: tokens.access_token,
+    tokenExpiresAt,
+  });
+  return tokens.access_token;
+}
+
+module.exports = { getStatus, completeConnection, disconnect, getValidAccessToken };

@@ -109,3 +109,42 @@ test('disconnect: com ligação existente, revoga o token e apaga a linha', asyn
   assert.equal(revokedToken, 'refresh-abc');
   assert.deepEqual(deleteArgs, { firmId: FIRM_ID, staffUserId: STAFF_ID });
 });
+
+test('getValidAccessToken: token ainda válido, devolve tal e qual sem chamar o Google (Fase Hb)', async () => {
+  resetMocks();
+  mock.method(googleCalendarService, 'refreshAccessToken', async () => {
+    throw new Error('não devia renovar um token ainda válido');
+  });
+
+  const token = await connectionsService.getValidAccessToken({
+    id: 'conn-1',
+    accessToken: 'access-still-valid',
+    refreshToken: 'refresh-abc',
+    tokenExpiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+  });
+
+  assert.equal(token, 'access-still-valid');
+});
+
+test('getValidAccessToken: token expirado (ou dentro da folga), renova e grava o novo access_token', async () => {
+  resetMocks();
+  mock.method(googleCalendarService, 'refreshAccessToken', async (refreshToken) => {
+    assert.equal(refreshToken, 'refresh-abc');
+    return { access_token: 'access-novo', expires_in: 3600 };
+  });
+  let updateArgs = null;
+  mock.method(googleCalendarConnectionsRepository, 'updateAccessToken', async (id, patch) => {
+    updateArgs = { id, patch };
+  });
+
+  const token = await connectionsService.getValidAccessToken({
+    id: 'conn-1',
+    accessToken: 'access-velho',
+    refreshToken: 'refresh-abc',
+    tokenExpiresAt: new Date(Date.now() - 60 * 1000).toISOString(),
+  });
+
+  assert.equal(token, 'access-novo');
+  assert.equal(updateArgs.id, 'conn-1');
+  assert.equal(updateArgs.patch.accessToken, 'access-novo');
+});

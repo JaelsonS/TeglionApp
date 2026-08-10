@@ -18,6 +18,7 @@ function mapConsultation(row) {
     priceCents: row.price_cents,
     currency: row.currency,
     source: row.source,
+    googleEventId: row.google_event_id || null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -123,6 +124,7 @@ async function updateConsultation(id, firmId, patch) {
   if (patch.notes !== undefined) row.notes = patch.notes;
   if (patch.scheduledAt !== undefined) row.scheduled_at = patch.scheduledAt;
   if (patch.title !== undefined) row.title = patch.title;
+  if (patch.googleEventId !== undefined) row.google_event_id = patch.googleEventId;
   const { data, error } = await sb
     .from('consultations')
     .update(row)

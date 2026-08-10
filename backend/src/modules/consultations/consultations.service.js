@@ -2,6 +2,7 @@ const { AppError } = require('../../middlewares/error.middleware');
 const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const leadsRepository = require('../../db/supabase/repositories/leads.repository');
+const googleCalendarSyncService = require('../integrations/google-calendar/google-calendar-sync.service');
 
 /** Nome do titular (Client ou Lead) — mesmo padrão de requesterNameForInquiry em service-inquiries.service.js. */
 async function holderNameForConsultation(firmId, consultation) {
@@ -54,12 +55,18 @@ async function createConsultation({ firmId, clientId, staffId, title, scheduledA
     durationMinutes,
     notes,
   });
+  void googleCalendarSyncService
+    .syncConsultationToGoogle({ firmId, consultation, requesterName: client.displayName || client.name })
+    .catch(() => {});
   return { consultation };
 }
 
 async function updateConsultation({ firmId, id, patch }) {
   const consultation = await consultationsRepository.updateConsultation(id, firmId, patch);
   if (!consultation) throw new AppError('Consulta não encontrada', 404);
+  void googleCalendarSyncService
+    .syncConsultationToGoogle({ firmId, consultation, requesterName: await holderNameForConsultation(firmId, consultation) })
+    .catch(() => {});
   return { consultation };
 }
 

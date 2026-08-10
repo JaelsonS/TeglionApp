@@ -14,6 +14,7 @@ const { env } = require('../../../config/env');
 const GOOGLE_AUTH = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN = 'https://oauth2.googleapis.com/token';
 const GOOGLE_REVOKE = 'https://oauth2.googleapis.com/revoke';
+const CALENDAR_API = 'https://www.googleapis.com/calendar/v3';
 const CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 
 function isGoogleCalendarConfigured() {
@@ -72,11 +73,85 @@ async function revokeGoogleToken(token) {
   }
 }
 
+/** Troca o refresh_token por um access_token novo — chamado quando o access_token guardado expirou (Fase Hb). */
+async function refreshAccessToken(refreshToken) {
+  const body = new URLSearchParams({
+    refresh_token: refreshToken,
+    client_id: env.GOOGLE_OAUTH_CLIENT_ID,
+    client_secret: env.GOOGLE_OAUTH_CLIENT_SECRET,
+    grant_type: 'refresh_token',
+  });
+  const res = await fetch(GOOGLE_TOKEN, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Google Calendar token refresh failed: ${text.slice(0, 200)}`);
+  }
+  return res.json();
+}
+
+/**
+ * Cria um evento no Google Calendar (Fase Hb — push de consultations para o
+ * Calendar). Sempre com reminders desligados por omissão — o Google já
+ * aplica os lembretes por defeito do calendário do utilizador, não
+ * precisamos de duplicar.
+ */
+async function createCalendarEvent({ accessToken, calendarId, event }) {
+  const res = await fetch(`${CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(event),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Google Calendar create event failed (${res.status}): ${text.slice(0, 200)}`);
+  }
+  return res.json();
+}
+
+async function updateCalendarEvent({ accessToken, calendarId, eventId, event }) {
+  const res = await fetch(
+    `${CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
+    {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(event),
+    },
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Google Calendar update event failed (${res.status}): ${text.slice(0, 200)}`);
+  }
+  return res.json();
+}
+
+/** 404/410 conta como sucesso — o evento já não existe do lado do Google, exactamente o estado que queríamos. */
+async function deleteCalendarEvent({ accessToken, calendarId, eventId }) {
+  const res = await fetch(
+    `${CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
+    {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    },
+  );
+  if (!res.ok && res.status !== 404 && res.status !== 410) {
+    const text = await res.text();
+    throw new Error(`Google Calendar delete event failed (${res.status}): ${text.slice(0, 200)}`);
+  }
+}
+
 module.exports = {
   isGoogleCalendarConfigured,
   generateOAuthState,
   buildCalendarAuthUrl,
   exchangeCalendarCode,
   revokeGoogleToken,
+  refreshAccessToken,
+  createCalendarEvent,
+  updateCalendarEvent,
+  deleteCalendarEvent,
   CALENDAR_SCOPE,
 };
