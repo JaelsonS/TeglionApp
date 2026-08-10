@@ -2,7 +2,7 @@ import type { AxiosInstance } from 'axios'
 
 export type GoogleDrivePickerConfig = {
   configured: boolean
-  apiKey: string | null
+  pickerApiKey: string | null
   clientId: string | null
 }
 

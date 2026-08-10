@@ -16,11 +16,15 @@ function isGoogleDriveConfigured() {
 
 /** Config pública para o Picker no frontend — nenhum destes valores é secreto
  * (o Client ID já é público na SSO; a API key é restringida por HTTP referrer
- * no Google Cloud Console, não por sigilo). */
+ * no Google Cloud Console, não por sigilo).
+ * Campo chama-se `pickerApiKey`, não `apiKey` — o `responseSanitizeMiddleware`
+ * (defesa em profundidade) remove qualquer campo chamado `apiKey`/`api_key`
+ * de toda resposta JSON da API; este valor precisa mesmo de chegar ao
+ * frontend, por isso usa um nome que não colide com esse filtro. */
 function getPickerConfig() {
   return {
     configured: isGoogleDriveConfigured(),
-    apiKey: env.GOOGLE_PICKER_API_KEY,
+    pickerApiKey: env.GOOGLE_PICKER_API_KEY,
     clientId: env.GOOGLE_OAUTH_CLIENT_ID,
   };
 }
