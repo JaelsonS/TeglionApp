@@ -141,6 +141,13 @@ router.post(
   requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
   firmPublicSiteController.regeneratePreviewToken,
 );
+router.post(
+  '/firm/public-site/images',
+  requireFirmOwner,
+  requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
+  uploadAvatarSingle('image'),
+  firmPublicSiteController.uploadImage,
+);
 router.patch(
   '/firm/profile',
   requirePermission(PERMISSIONS.FIRM_READ),

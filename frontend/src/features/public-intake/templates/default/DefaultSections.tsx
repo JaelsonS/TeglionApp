@@ -13,6 +13,7 @@ import {
 
 import type {
   PublicSiteAboutContent,
+  PublicSiteConfig,
   PublicSiteContactContent,
   PublicSiteFaqContent,
   PublicSiteFeaturesContent,
@@ -21,6 +22,13 @@ import type {
   PublicSiteServicesContent,
   PublicSiteSocialLinks,
 } from '@/shared/types/firmPublicSite'
+
+function resolveFirstImageUrl(imageIds: string[], images: PublicSiteConfig['images']): string | null {
+  const id = imageIds[0]
+  if (!id) return null
+  const found = [...images.hero, ...images.institutional].find((img) => img.id === id)
+  return found?.url || null
+}
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
 
 /**
@@ -73,9 +81,23 @@ export function HeaderSection({ ctx }: { ctx: PublicSiteRenderContext }) {
   )
 }
 
-export function HeroSection({ content, ctx, socialLinks }: { content: PublicSiteHeroContent; ctx: PublicSiteRenderContext; socialLinks: PublicSiteSocialLinks }) {
+export function HeroSection({
+  content,
+  ctx,
+  socialLinks,
+  images,
+}: {
+  content: PublicSiteHeroContent
+  ctx: PublicSiteRenderContext
+  socialLinks: PublicSiteSocialLinks
+  images: PublicSiteConfig['images']
+}) {
+  const heroPhotoUrl = resolveFirstImageUrl(content.imageIds, images)
   return (
     <section className="border-b border-border/40 bg-card/40">
+      {heroPhotoUrl ? (
+        <img src={heroPhotoUrl} alt={ctx.firmName} className="h-48 w-full object-cover sm:h-64" />
+      ) : null}
       <div className="mx-auto max-w-2xl px-4 py-10 text-center">
         {ctx.logoUrl ? (
           <img
@@ -111,10 +133,12 @@ export function HeroSection({ content, ctx, socialLinks }: { content: PublicSite
   )
 }
 
-export function AboutSection({ content }: { content: PublicSiteAboutContent }) {
+export function AboutSection({ content, images }: { content: PublicSiteAboutContent; images: PublicSiteConfig['images'] }) {
   if (!content.heading && !content.body) return null
+  const photoUrl = resolveFirstImageUrl(content.imageIds, images)
   return (
-    <section className="mx-auto max-w-2xl space-y-2 px-4 py-6">
+    <section className="mx-auto max-w-2xl space-y-3 px-4 py-6">
+      {photoUrl ? <img src={photoUrl} alt="" className="w-full rounded-xl object-cover" /> : null}
       {content.heading ? <h2 className="text-lg font-semibold">{content.heading}</h2> : null}
       {content.body ? <p className="whitespace-pre-line text-sm text-muted-foreground">{content.body}</p> : null}
     </section>
