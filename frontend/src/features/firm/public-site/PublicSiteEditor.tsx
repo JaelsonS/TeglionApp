@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronDown, ChevronUp, ExternalLink, Eye, Globe, Loader2, Save, Upload } from 'lucide-react'
+import { ChevronDown, ChevronUp, ExternalLink, Eye, Facebook, Globe, Instagram, Linkedin, Loader2, MessageCircle, Save, Upload } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { toast } from 'sonner'
 
@@ -295,6 +296,7 @@ export function PublicSiteEditor({ bundle }: Props) {
                   <SectionEditorSwitch
                     section={section}
                     onChange={(content) => patchSectionContent(section.key, content)}
+                    services={previewServices}
                     imageUrl={
                       section.type === 'hero'
                         ? resolveSectionImageUrl(section, 'hero')
@@ -372,6 +374,7 @@ function SectionEditorSwitch({
   uploadingImage,
   onUploadImage,
   onRemoveImage,
+  services,
 }: {
   section: PublicSiteSection
   onChange: (content: PublicSiteSection['content']) => void
@@ -379,6 +382,7 @@ function SectionEditorSwitch({
   uploadingImage: boolean
   onUploadImage: (file: File) => void
   onRemoveImage: () => void
+  services: PublicFirmServiceSummary[]
 }) {
   switch (section.type) {
     case 'hero':
@@ -390,6 +394,7 @@ function SectionEditorSwitch({
           uploadingImage={uploadingImage}
           onUploadImage={onUploadImage}
           onRemoveImage={onRemoveImage}
+          services={services}
         />
       )
     case 'about':
@@ -479,27 +484,32 @@ function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <SocialLinkField
           label="Instagram"
+          icon={Instagram}
           value={draft.socialLinks.instagram || ''}
           onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, instagram: v || null } })}
         />
         <SocialLinkField
           label="Facebook"
+          icon={Facebook}
           value={draft.socialLinks.facebook || ''}
           onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, facebook: v || null } })}
         />
         <SocialLinkField
           label="LinkedIn"
+          icon={Linkedin}
           value={draft.socialLinks.linkedin || ''}
           onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, linkedin: v || null } })}
         />
         <SocialLinkField
           label="WhatsApp"
+          icon={MessageCircle}
           value={draft.socialLinks.whatsapp || ''}
           onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, whatsapp: v || null } })}
           placeholder="https://wa.me/351…"
         />
         <SocialLinkField
           label="Outro site"
+          icon={Globe}
           value={draft.socialLinks.website || ''}
           onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, website: v || null } })}
         />
@@ -508,11 +518,23 @@ function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (
   )
 }
 
-function SocialLinkField({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+function SocialLinkField({
+  label,
+  icon: Icon,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string
+  icon: LucideIcon
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+}) {
   return (
     <div className="space-y-2">
       <Label className="flex items-center gap-1.5 text-xs">
-        <Globe className="h-3 w-3" /> {label}
+        <Icon className="h-3 w-3" /> {label}
       </Label>
       <Input value={value} onChange={(e: FormChangeEvent) => onChange(e.target.value)} placeholder={placeholder || 'https://…'} />
     </div>

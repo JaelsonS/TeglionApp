@@ -17,6 +17,15 @@ import type {
   PublicSiteProcessContent,
   PublicSiteServicesContent,
 } from '@/shared/types/firmPublicSite'
+import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
+
+const CTA_TARGET_OPTIONS: { value: PublicSiteCta['target']['type']; label: string }[] = [
+  { value: 'external-url', label: 'Link externo' },
+  { value: 'booking', label: 'Ver serviços' },
+  { value: 'service-detail', label: 'Um serviço específico' },
+  { value: 'contact-form', label: 'Secção de contactos' },
+  { value: 'whatsapp', label: 'WhatsApp' },
+]
 
 function generateStableId(prefix: string): string {
   const random =
@@ -87,6 +96,7 @@ export function HeroEditor({
   uploadingImage,
   onUploadImage,
   onRemoveImage,
+  services,
 }: {
   content: PublicSiteHeroContent
   onChange: (next: PublicSiteHeroContent) => void
@@ -94,9 +104,13 @@ export function HeroEditor({
   uploadingImage: boolean
   onUploadImage: (file: File) => void
   onRemoveImage: () => void
+  services: PublicFirmServiceSummary[]
 }) {
   const addCta = () => {
-    onChange({ ...content, ctas: [...content.ctas, { id: generateStableId('cta_'), label: '', style: 'primary', target: { type: 'whatsapp' } } as PublicSiteCta] })
+    onChange({
+      ...content,
+      ctas: [...content.ctas, { id: generateStableId('cta_'), label: '', style: 'primary', target: { type: 'external-url', url: '' } } as PublicSiteCta],
+    })
   }
   const patchCta = (id: string, patch: Partial<PublicSiteCta>) => {
     onChange({ ...content, ctas: content.ctas.map((c) => (c.id === id ? { ...c, ...patch } : c)) })
@@ -137,22 +151,33 @@ export function HeroEditor({
           ) : null}
         </div>
         {content.ctas.map((cta) => (
-          <div key={cta.id} className="flex items-center gap-2 rounded-lg border border-border/50 p-3">
+          <div key={cta.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-border/50 p-3">
             <Input
               value={cta.label}
               onChange={(e: FormChangeEvent) => patchCta(cta.id, { label: e.target.value })}
               placeholder="Texto do botão"
-              className="flex-1"
+              className="flex-1 basis-40"
               maxLength={80}
             />
             <select
               className="h-9 rounded-md border border-input bg-background px-2 text-sm"
               value={cta.target.type}
-              onChange={(e) => patchCta(cta.id, { target: { type: e.target.value as PublicSiteCta['target']['type'] } })}
+              onChange={(e) =>
+                patchCta(cta.id, {
+                  target:
+                    e.target.value === 'external-url'
+                      ? { type: 'external-url', url: '' }
+                      : e.target.value === 'service-detail'
+                        ? { type: 'service-detail', serviceId: services[0]?.slug }
+                        : { type: e.target.value as PublicSiteCta['target']['type'] },
+                })
+              }
             >
-              <option value="whatsapp">WhatsApp</option>
-              <option value="booking">Ver serviços</option>
-              <option value="external-url">Link externo</option>
+              {CTA_TARGET_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
             </select>
             {cta.target.type === 'external-url' ? (
               <Input
@@ -161,6 +186,23 @@ export function HeroEditor({
                 placeholder="https://…"
                 className="w-40"
               />
+            ) : null}
+            {cta.target.type === 'service-detail' ? (
+              services.length > 0 ? (
+                <select
+                  className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                  value={cta.target.serviceId || ''}
+                  onChange={(e) => patchCta(cta.id, { target: { type: 'service-detail', serviceId: e.target.value } })}
+                >
+                  {services.map((s) => (
+                    <option key={s.slug} value={s.slug}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span className="text-caption text-muted-foreground">Sem serviços públicos ainda</span>
+              )
             ) : null}
             <Button type="button" variant="ghost" size="icon" onClick={() => removeCta(cta.id)} aria-label="Remover botão">
               <Trash2 className="h-4 w-4" />
