@@ -161,6 +161,17 @@ function isIrsService(s: AccountingService): boolean {
   return IRS_KEYWORDS.some((k) => lower.includes(k))
 }
 
+const YEAR_TOKEN_PATTERN = /\{\{\s*(ano_fiscal|ano)\s*\}\}/i
+
+/** Espelha `interpolateServiceTemplate` do backend só para pré-visualização —
+ * o valor gravado continua o token cru, isto é puramente cosmético no ecrã. */
+function previewYearTokens(text: string): string {
+  const year = new Date().getFullYear()
+  return text
+    .replace(/\{\{\s*ano_fiscal\s*\}\}/gi, String(year - 1))
+    .replace(/\{\{\s*ano\s*\}\}/gi, String(year))
+}
+
 /** Botão de acção com um tooltip visível ao passar o rato — o `title` nativo
  * do browser tem demora e é pouco visível. Reaproveitado por todas as acções
  * de linha do serviço (pré-visualizar, duplicar, definições, apagar). */
@@ -879,6 +890,18 @@ export function AgendaServicesCatalogPanel({
                             IRS
                           </span>
                         ) : null}
+                        <div className="group/tip relative shrink-0">
+                          <span className="cursor-help text-[11px] font-semibold text-muted-foreground/70 underline decoration-dotted underline-offset-2">
+                            {'{{ano}}'}
+                          </span>
+                          <span
+                            role="tooltip"
+                            className="pointer-events-none absolute left-1/2 top-full z-20 mt-1.5 w-max max-w-[260px] -translate-x-1/2 rounded-md bg-foreground px-2 py-1 text-center text-[11px] font-medium leading-tight text-background opacity-0 shadow-md transition-opacity duration-150 group-hover/tip:opacity-100"
+                          >
+                            Escreva {'{{ano}}'} ou {'{{ano_fiscal}}'} no nome/descrição — o ano actualiza-se sozinho
+                            todos os anos, sem nunca ter de recriar o serviço.
+                          </span>
+                        </div>
                         {s.catalogKey ? (
                           <div className="group/tip relative shrink-0">
                             <span className="cursor-help rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-800">
@@ -901,6 +924,12 @@ export function AgendaServicesCatalogPanel({
                         value={description}
                         onChange={(e: FormChangeEvent) => patchEditing(s.id, { description: e.target.value })}
                       />
+                      {YEAR_TOKEN_PATTERN.test(name) || YEAR_TOKEN_PATTERN.test(description) ? (
+                        <p className="text-caption text-muted-foreground/70">
+                          O cliente vê: <span className="font-medium">{previewYearTokens(name)}</span>
+                          {description ? ` — ${previewYearTokens(description)}` : ''}
+                        </p>
+                      ) : null}
                       {s.isPubliclyListed ? (
                         <span className="inline-flex items-center gap-1 text-caption text-emerald-700">
                           <Globe className="h-3 w-3" /> Público

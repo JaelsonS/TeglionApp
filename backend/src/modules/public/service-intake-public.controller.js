@@ -13,6 +13,7 @@ const firmsRepository = require('../../db/supabase/repositories/firms.repository
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const bookingService = require('../booking/booking.service');
 const serviceInquiriesService = require('../firm/service-inquiries.service');
+const { interpolateServiceTemplate } = require('../../utils/service-text-template');
 
 /** Resolve Firm + Service publicado pelo par (firmSlug, serviceSlug) — nunca aceita ids crus. */
 async function resolvePublicService(firmSlug, serviceSlug) {
@@ -49,8 +50,8 @@ async function getPublicFirmServices(req, res, next) {
       .filter((s) => s.isPubliclyListed && s.slug)
       .map((s) => ({
         slug: s.slug,
-        name: s.name,
-        description: s.description || null,
+        name: interpolateServiceTemplate(s.name),
+        description: interpolateServiceTemplate(s.description) || null,
         durationMinutes: s.durationMinutes,
         priceCents: s.priceCents,
         requiresBooking: s.requiresBooking !== false,
@@ -72,8 +73,8 @@ async function getPublicService(req, res, next) {
 
     return res.json({
       firmName: firm.name,
-      serviceName: service.name,
-      description: service.description || null,
+      serviceName: interpolateServiceTemplate(service.name),
+      description: interpolateServiceTemplate(service.description) || null,
       intakeForm: service.intakeForm || { questions: [] },
       requiresBooking: service.requiresBooking !== false,
     });
