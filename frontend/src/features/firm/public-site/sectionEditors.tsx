@@ -1,4 +1,5 @@
-import { Plus, Trash2 } from 'lucide-react'
+import { useRef } from 'react'
+import { ImageIcon, Loader2, Plus, Trash2, X } from 'lucide-react'
 
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -25,7 +26,75 @@ function generateStableId(prefix: string): string {
   return `${prefix}${random}`
 }
 
-export function HeroEditor({ content, onChange }: { content: PublicSiteHeroContent; onChange: (next: PublicSiteHeroContent) => void }) {
+/** Reaproveitado pelo Hero e pelo Sobre — um slot de imagem simples (v1: uma
+ * foto por secção; o esquema já suporta várias, a UI não precisa disso já). */
+export function ImagePickerField({
+  label,
+  imageUrl,
+  uploading,
+  onUpload,
+  onRemove,
+}: {
+  label: string
+  imageUrl: string | null
+  uploading: boolean
+  onUpload: (file: File) => void
+  onRemove: () => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) onUpload(file)
+          e.target.value = ''
+        }}
+      />
+      {imageUrl ? (
+        <div className="relative w-full max-w-xs overflow-hidden rounded-lg border border-border/50">
+          <img src={imageUrl} alt="" className="h-32 w-full object-cover" />
+          <Button
+            type="button"
+            variant="destructive"
+            size="icon"
+            className="absolute right-1.5 top-1.5 h-6 w-6"
+            onClick={onRemove}
+            aria-label="Remover imagem"
+          >
+            <X className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      ) : (
+        <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => inputRef.current?.click()}>
+          {uploading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="mr-1.5 h-3.5 w-3.5" />}
+          Adicionar foto
+        </Button>
+      )}
+    </div>
+  )
+}
+
+export function HeroEditor({
+  content,
+  onChange,
+  imageUrl,
+  uploadingImage,
+  onUploadImage,
+  onRemoveImage,
+}: {
+  content: PublicSiteHeroContent
+  onChange: (next: PublicSiteHeroContent) => void
+  imageUrl: string | null
+  uploadingImage: boolean
+  onUploadImage: (file: File) => void
+  onRemoveImage: () => void
+}) {
   const addCta = () => {
     onChange({ ...content, ctas: [...content.ctas, { id: generateStableId('cta_'), label: '', style: 'primary', target: { type: 'whatsapp' } } as PublicSiteCta] })
   }
@@ -38,6 +107,7 @@ export function HeroEditor({ content, onChange }: { content: PublicSiteHeroConte
 
   return (
     <div className="space-y-4">
+      <ImagePickerField label="Foto de capa" imageUrl={imageUrl} uploading={uploadingImage} onUpload={onUploadImage} onRemove={onRemoveImage} />
       <div className="space-y-2">
         <Label>Frase de destaque</Label>
         <Input
@@ -102,9 +172,24 @@ export function HeroEditor({ content, onChange }: { content: PublicSiteHeroConte
   )
 }
 
-export function AboutEditor({ content, onChange }: { content: PublicSiteAboutContent; onChange: (next: PublicSiteAboutContent) => void }) {
+export function AboutEditor({
+  content,
+  onChange,
+  imageUrl,
+  uploadingImage,
+  onUploadImage,
+  onRemoveImage,
+}: {
+  content: PublicSiteAboutContent
+  onChange: (next: PublicSiteAboutContent) => void
+  imageUrl: string | null
+  uploadingImage: boolean
+  onUploadImage: (file: File) => void
+  onRemoveImage: () => void
+}) {
   return (
     <div className="space-y-4">
+      <ImagePickerField label="Foto" imageUrl={imageUrl} uploading={uploadingImage} onUpload={onUploadImage} onRemove={onRemoveImage} />
       <div className="space-y-2">
         <Label>Título</Label>
         <Input

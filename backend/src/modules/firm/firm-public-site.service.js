@@ -3,6 +3,7 @@ const { AppError } = require('../../middlewares/error.middleware');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
 const firmPublicSitesRepository = require('../../db/supabase/repositories/firm-public-sites.repository');
+const contabilStorage = require('../../services/storage/contabil-storage.service');
 
 const SECTION_TYPES = new Set([
   'header', 'hero', 'about', 'services', 'bookingServices', 'features', 'process', 'faq', 'contact', 'footer',
@@ -14,6 +15,8 @@ const MAX_ITEMS = 30;
 const MAX_IMAGES_PER_SLOT = 10;
 const HEX_RE = /^#[0-9a-f]{6}$/i;
 const PREVIEW_TOKEN_TTL_HOURS = 24;
+const PUBLIC_SITE_IMAGE_SIGNED_TTL = 86400; // 24h, mesmo padrão do logótipo/capa de notícia
+const IMAGE_SLOTS = new Set(['hero', 'institutional']);
 
 /** Mesmo padrão de `generateStableId()` já usado no intake_form (Fase B/C) e
  * nas FAQs da página pública (v8/hoje): o id nasce no cliente e nunca é
@@ -267,9 +270,42 @@ async function assertOwner(firmId, actorUserId, message) {
   }
 }
 
+/** As imagens só guardam `storageKey` (URLs assinadas expiram, nunca devem
+ * ser persistidas) — resolve-se um `url` fresco em cada leitura, mesmo
+ * padrão já usado no logótipo (`firm-branding.service.js`). Uma imagem cujo
+ * ficheiro tenha sido removido do storage não deve rebentar a leitura do
+ * resto da página — cai só essa, com `url: null`. */
+async function resolveConfigImages(config) {
+  if (!config) return config;
+  const resolveList = async (list) =>
+    Promise.all(
+      (list || []).map(async (img) => {
+        try {
+          const url = await contabilStorage.createSignedDownloadUrl(img.storageKey, PUBLIC_SITE_IMAGE_SIGNED_TTL);
+          return { ...img, url };
+        } catch {
+          return { ...img, url: null };
+        }
+      }),
+    );
+  return {
+    ...config,
+    images: {
+      hero: await resolveList(config.images?.hero),
+      institutional: await resolveList(config.images?.institutional),
+    },
+  };
+}
+
 async function getSite(firmId) {
   const existing = await firmPublicSitesRepository.findByFirmId(firmId);
-  if (existing) return existing;
+  if (existing) {
+    return {
+      ...existing,
+      draft: await resolveConfigImages(existing.draft),
+      published: existing.published ? await resolveConfigImages(existing.published) : null,
+    };
+  }
   const firm = await firmsRepository.findFirmById(firmId);
   if (!firm) throw new AppError('Escritório não encontrado', 404);
   return {
@@ -283,6 +319,14 @@ async function getSite(firmId) {
     previewTokenExpiresAt: null,
     draftUpdatedAt: null,
   };
+}
+
+async function uploadImage(firmId, actorUserId, { slot, file }) {
+  await assertOwner(firmId, actorUserId, 'Apenas o dono do escritório pode adicionar imagens.');
+  const safeSlot = IMAGE_SLOTS.has(slot) ? slot : 'hero';
+  const uploaded = await contabilStorage.uploadPublicSiteImage({ firmId, slot: safeSlot, file });
+  const url = await contabilStorage.createSignedDownloadUrl(uploaded.path, PUBLIC_SITE_IMAGE_SIGNED_TTL);
+  return { id: generateStableId('img_'), storageKey: uploaded.path, alt: '', url };
 }
 
 async function saveDraft(firmId, actorUserId, rawConfig) {
@@ -339,8 +383,10 @@ module.exports = {
   saveDraft,
   publishSite,
   regeneratePreviewToken,
+  uploadImage,
   normalizeSiteConfig,
   defaultSiteConfig,
   buildConfigFromLegacySettings,
   isPreviewTokenValid,
+  resolveConfigImages,
 };

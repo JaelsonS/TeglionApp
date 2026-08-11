@@ -5,6 +5,7 @@ const { mock } = require('node:test');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
 const firmPublicSitesRepository = require('../../db/supabase/repositories/firm-public-sites.repository');
+const contabilStorage = require('../../services/storage/contabil-storage.service');
 const firmPublicSiteService = require('./firm-public-site.service');
 
 const OWNER = { id: 'user-1', firm_id: 'firm-1', role: 'FIRM_OWNER' };
@@ -150,13 +151,15 @@ test('buildConfigFromLegacySettings: escritório sem nenhuma configuração anti
   assert.equal(config.sections.find((s) => s.type === 'faq').content.items.length, 0);
 });
 
-test('getSite: devolve a linha existente tal e qual quando já há firm_public_sites', async () => {
+test('getSite: devolve a linha existente (imagens resolvidas à parte) quando já há firm_public_sites', async () => {
   resetMocks();
   const stored = { firmId: 'firm-1', draft: { schemaVersion: 1 }, published: null };
   mock.method(firmPublicSitesRepository, 'findByFirmId', async () => stored);
 
   const result = await firmPublicSiteService.getSite('firm-1');
-  assert.equal(result, stored);
+  assert.equal(result.firmId, 'firm-1');
+  assert.equal(result.draft.schemaVersion, 1);
+  assert.equal(result.published, null);
 });
 
 test('getSite: sem linha ainda, cai para a tradução do settings legado (nunca uma página em branco)', async () => {
@@ -306,4 +309,69 @@ test('regeneratePreviewToken: gera um token com validade de ~24h', async () => {
   assert.ok(savedToken.length >= 32, 'token deve ter entropia suficiente');
   const hoursUntilExpiry = (new Date(savedExpiry).getTime() - Date.now()) / (60 * 60 * 1000);
   assert.ok(hoursUntilExpiry > 23 && hoursUntilExpiry <= 24, 'expiração deve rondar as 24h');
+});
+
+test('uploadImage: rejeita quem não é FIRM_OWNER', async () => {
+  resetMocks();
+  mock.method(firmUsersRepository, 'findFirmUserById', async () => STAFF);
+
+  await assert.rejects(
+    () => firmPublicSiteService.uploadImage('firm-1', 'user-2', { slot: 'hero', file: {} }),
+    (err) => {
+      assert.equal(err.statusCode, 403);
+      return true;
+    },
+  );
+});
+
+test('uploadImage: escreve no storage, devolve um url assinado e cai para o slot "hero" quando desconhecido', async () => {
+  resetMocks();
+  mock.method(firmUsersRepository, 'findFirmUserById', async () => OWNER);
+  let uploadedSlot = null;
+  mock.method(contabilStorage, 'uploadPublicSiteImage', async ({ slot }) => {
+    uploadedSlot = slot;
+    return { bucket: 'contabil-documents', path: 'firm/firm-1/public-site/hero/123-foto.jpg', provider: 'supabase' };
+  });
+  mock.method(contabilStorage, 'createSignedDownloadUrl', async (path) => `https://signed/${path}`);
+
+  const result = await firmPublicSiteService.uploadImage('firm-1', 'user-1', { slot: 'nao-existe', file: { buffer: Buffer.from('x') } });
+
+  assert.equal(uploadedSlot, 'hero');
+  assert.equal(result.storageKey, 'firm/firm-1/public-site/hero/123-foto.jpg');
+  assert.equal(result.url, 'https://signed/firm/firm-1/public-site/hero/123-foto.jpg');
+  assert.ok(result.id, 'imagem devolvida deve ter um id estável');
+});
+
+test('getSite: resolve URLs assinadas para cada imagem do draft e do published', async () => {
+  resetMocks();
+  const stored = {
+    firmId: 'firm-1',
+    draft: { images: { hero: [{ id: 'img_1', storageKey: 'firm/firm-1/public-site/hero/a.jpg', alt: '' }], institutional: [] } },
+    published: { images: { hero: [], institutional: [{ id: 'img_2', storageKey: 'firm/firm-1/public-site/institutional/b.jpg', alt: '' }] } },
+  };
+  mock.method(firmPublicSitesRepository, 'findByFirmId', async () => stored);
+  mock.method(contabilStorage, 'createSignedDownloadUrl', async (path) => `https://signed/${path}`);
+
+  const result = await firmPublicSiteService.getSite('firm-1');
+
+  assert.equal(result.draft.images.hero[0].url, 'https://signed/firm/firm-1/public-site/hero/a.jpg');
+  assert.equal(result.published.images.institutional[0].url, 'https://signed/firm/firm-1/public-site/institutional/b.jpg');
+});
+
+test('getSite: uma imagem cujo ficheiro já não existe no storage não rebenta a leitura — só essa fica com url null', async () => {
+  resetMocks();
+  const stored = {
+    firmId: 'firm-1',
+    draft: { images: { hero: [{ id: 'img_1', storageKey: 'firm/firm-1/public-site/hero/apagada.jpg', alt: '' }], institutional: [] } },
+    published: null,
+  };
+  mock.method(firmPublicSitesRepository, 'findByFirmId', async () => stored);
+  mock.method(contabilStorage, 'createSignedDownloadUrl', async () => {
+    throw new Error('objecto não encontrado');
+  });
+
+  const result = await firmPublicSiteService.getSite('firm-1');
+
+  assert.equal(result.draft.images.hero[0].url, null);
+  assert.equal(result.draft.images.hero[0].id, 'img_1', 'o resto da referência da imagem mantém-se intacto');
 });

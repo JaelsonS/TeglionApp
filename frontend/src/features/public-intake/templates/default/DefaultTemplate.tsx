@@ -34,9 +34,11 @@ export function DefaultTemplate({ config, ctx }: Props) {
           case 'header':
             return <HeaderSection key={section.key} ctx={ctx} />
           case 'hero':
-            return <HeroSection key={section.key} content={section.content} ctx={ctx} socialLinks={config.socialLinks} />
+            return (
+              <HeroSection key={section.key} content={section.content} ctx={ctx} socialLinks={config.socialLinks} images={config.images} />
+            )
           case 'about':
-            return <AboutSection key={section.key} content={section.content} />
+            return <AboutSection key={section.key} content={section.content} images={config.images} />
           case 'services':
             return <ServicesSection key={section.key} content={section.content} ctx={ctx} />
           case 'bookingServices':

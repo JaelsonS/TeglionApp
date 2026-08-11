@@ -100,6 +100,53 @@ export function PublicSiteEditor({ bundle }: Props) {
     setDraft({ ...draft, sections: draft.sections.map((s) => (s.key === key ? { ...s, enabled } : s)) })
   }
 
+  const [uploadingImageKey, setUploadingImageKey] = useState<string | null>(null)
+
+  const uploadSectionImage = async (sectionKey: string, slot: 'hero' | 'institutional', file: File) => {
+    setUploadingImageKey(sectionKey)
+    try {
+      const image = await firmPublicSiteApi.uploadImage(slot, file)
+      setDraft((prev) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          images: { ...prev.images, [slot]: [...prev.images[slot], image] },
+          sections: prev.sections.map((s) =>
+            s.key === sectionKey && 'imageIds' in s.content
+              ? ({ ...s, content: { ...s.content, imageIds: [image.id] } } as PublicSiteSection)
+              : s,
+          ),
+        }
+      })
+    } catch (err) {
+      toast.error('Não foi possível enviar a imagem', { description: getErrorMessage(err) })
+    } finally {
+      setUploadingImageKey(null)
+    }
+  }
+
+  const removeSectionImage = (sectionKey: string, slot: 'hero' | 'institutional') => {
+    setDraft((prev) => {
+      if (!prev) return prev
+      const section = prev.sections.find((s) => s.key === sectionKey)
+      const imageId = section && 'imageIds' in section.content ? section.content.imageIds[0] : undefined
+      return {
+        ...prev,
+        images: { ...prev.images, [slot]: prev.images[slot].filter((img) => img.id !== imageId) },
+        sections: prev.sections.map((s) =>
+          s.key === sectionKey && 'imageIds' in s.content ? ({ ...s, content: { ...s.content, imageIds: [] } } as PublicSiteSection) : s,
+        ),
+      }
+    })
+  }
+
+  function resolveSectionImageUrl(section: PublicSiteSection, slot: 'hero' | 'institutional'): string | null {
+    if (!draft || !('imageIds' in section.content)) return null
+    const id = section.content.imageIds[0]
+    if (!id) return null
+    return draft.images[slot].find((img) => img.id === id)?.url || null
+  }
+
   const onSaveDraft = async () => {
     if (!draft) return
     setSaving(true)
@@ -200,7 +247,22 @@ export function PublicSiteEditor({ bundle }: Props) {
                   </Label>
                 </div>
                 {section.enabled ? (
-                  <SectionEditorSwitch section={section} onChange={(content) => patchSectionContent(section.key, content)} />
+                  <SectionEditorSwitch
+                    section={section}
+                    onChange={(content) => patchSectionContent(section.key, content)}
+                    imageUrl={
+                      section.type === 'hero'
+                        ? resolveSectionImageUrl(section, 'hero')
+                        : section.type === 'about'
+                          ? resolveSectionImageUrl(section, 'institutional')
+                          : null
+                    }
+                    uploadingImage={uploadingImageKey === section.key}
+                    onUploadImage={(file: File) =>
+                      void uploadSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero', file)
+                    }
+                    onRemoveImage={() => removeSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero')}
+                  />
                 ) : null}
               </div>
             ))}
@@ -258,12 +320,44 @@ export function PublicSiteEditor({ bundle }: Props) {
   )
 }
 
-function SectionEditorSwitch({ section, onChange }: { section: PublicSiteSection; onChange: (content: PublicSiteSection['content']) => void }) {
+function SectionEditorSwitch({
+  section,
+  onChange,
+  imageUrl,
+  uploadingImage,
+  onUploadImage,
+  onRemoveImage,
+}: {
+  section: PublicSiteSection
+  onChange: (content: PublicSiteSection['content']) => void
+  imageUrl: string | null
+  uploadingImage: boolean
+  onUploadImage: (file: File) => void
+  onRemoveImage: () => void
+}) {
   switch (section.type) {
     case 'hero':
-      return <HeroEditor content={section.content} onChange={onChange} />
+      return (
+        <HeroEditor
+          content={section.content}
+          onChange={onChange}
+          imageUrl={imageUrl}
+          uploadingImage={uploadingImage}
+          onUploadImage={onUploadImage}
+          onRemoveImage={onRemoveImage}
+        />
+      )
     case 'about':
-      return <AboutEditor content={section.content} onChange={onChange} />
+      return (
+        <AboutEditor
+          content={section.content}
+          onChange={onChange}
+          imageUrl={imageUrl}
+          uploadingImage={uploadingImage}
+          onUploadImage={onUploadImage}
+          onRemoveImage={onRemoveImage}
+        />
+      )
     case 'services':
       return <ServicesHeadingEditor content={section.content} onChange={onChange} placeholder="Consultorias com agendamento" />
     case 'bookingServices':

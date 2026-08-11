@@ -36,6 +36,12 @@ function buildServiceInquiryDocumentPath(firmId, serviceInquiryId, filename) {
   return `firm/${firmId}/service-inquiries/${serviceInquiryId}/${Date.now()}-${safe}`;
 }
 
+function buildPublicSiteImagePath(firmId, slot, filename) {
+  const safe = sanitizeFilename(filename);
+  const safeSlot = slot === 'institutional' ? 'institutional' : 'hero';
+  return `firm/${firmId}/public-site/${safeSlot}/${Date.now()}-${safe}`;
+}
+
 function ensureStorage() {
   if (!isSupabaseConfigured()) {
     throw new AppError('Armazenamento não configurado (Supabase).', 503, { code: 'STORAGE_NOT_CONFIGURED' });
@@ -148,14 +154,37 @@ async function uploadServiceInquiryDocument({ firmId, serviceInquiryId, file }) 
   return { bucket: BUCKET, path, provider: 'supabase' };
 }
 
+/** v9 — imagens da página pública (Hero/institucionais). Ao contrário do
+ * logótipo (`upsert: true`, uma única imagem), um escritório pode ter várias
+ * — cada upload é sempre um objecto novo (`upsert: false`). */
+async function uploadPublicSiteImage({ firmId, slot, file }) {
+  if (!file?.buffer?.length) throw new AppError('Selecione uma imagem (JPG, PNG ou WebP).', 400);
+  const mime = String(file.mimetype || '').toLowerCase();
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(mime)) {
+    throw new AppError('Use JPG, PNG ou WebP para a imagem.', 400, { code: 'INVALID_IMAGE_TYPE' });
+  }
+  const sb = ensureStorage();
+  const path = buildPublicSiteImagePath(firmId, slot, file.originalname);
+  const { error } = await sb.storage.from(BUCKET).upload(path, file.buffer, {
+    contentType: mime,
+    upsert: false,
+  });
+  if (error) {
+    throw new AppError(error.message || 'Falha ao guardar imagem', 500, { code: 'STORAGE_UPLOAD_FAILED' });
+  }
+  return { bucket: BUCKET, path, provider: 'supabase' };
+}
+
 module.exports = {
   BUCKET,
   buildStoragePath,
   buildFirmLogoPath,
   buildNewsCoverPath,
   buildServiceInquiryDocumentPath,
+  buildPublicSiteImagePath,
   uploadClientDocument,
   uploadServiceInquiryDocument,
+  uploadPublicSiteImage,
   deleteObject,
   uploadFirmLogo,
   uploadNewsCover,

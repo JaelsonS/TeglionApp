@@ -33,6 +33,8 @@ export type PublicSiteImageRef = {
   id: string
   storageKey: string
   alt: string
+  /** Resolvido pelo backend em cada leitura (URL assinada, nunca persistida) — ausente antes da primeira leitura. */
+  url?: string | null
 }
 
 export type PublicSiteFaqItem = {
