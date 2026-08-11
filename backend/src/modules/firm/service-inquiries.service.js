@@ -76,6 +76,19 @@ async function getById({ firmId, id }) {
     : null;
   const history = await auditRepository.listByEntity({ firmId, entityType: 'service_inquiry', entityId: inquiry.id });
 
+  // Documentos 'manual' que as respostas activaram mas que a contabilista ainda
+  // não pediu — recalculado a cada leitura (não materializado, ver
+  // normalizeDocumentRequirements) e filtrado contra o que já existe no checklist,
+  // para nunca sugerir de novo algo que ela já pediu (ou que o cliente já enviou).
+  let suggestedDocuments = [];
+  if (service) {
+    const alreadyRequestedTags = new Set(requests.filter((r) => r.tag).map((r) => r.tag));
+    const { manual } = accountingServicesService.splitDocumentsByTiming(
+      accountingServicesService.resolveRequiredDocuments(service, inquiry.answers),
+    );
+    suggestedDocuments = manual.filter((d) => !alreadyRequestedTags.has(d.tag));
+  }
+
   return {
     inquiry: {
       ...inquiry,
@@ -86,6 +99,7 @@ async function getById({ firmId, id }) {
         : null,
     },
     checklist: requests.map(toChecklistItem),
+    suggestedDocuments,
     history,
   };
 }
@@ -254,8 +268,12 @@ async function addServiceInquiryRequest({ firmId, inquiryId, actor, payload }) {
   const instructions = payload?.instructions ? String(payload.instructions).trim().slice(0, 2000) : null;
   // Tag gerada automaticamente para pedidos de documento — a contabilista nunca a vê nem
   // gere isto, é só o identificador interno que o upload do mini-portal já sabe usar
-  // (mesmo caminho da Fase 2a, tag-based, sem alterações).
-  const tag = kind === 'document' ? `pend_${crypto.randomUUID()}` : null;
+  // (mesmo caminho da Fase 2a, tag-based, sem alterações). Excepção: aceitar uma sugestão
+  // de documento 'manual' (ver getById#suggestedDocuments) precisa de reaproveitar a MESMA
+  // tag configurada no serviço — senão o pedido criado não corresponde à sugestão original
+  // e esta continuaria a aparecer como "por pedir" mesmo depois de já pedida.
+  const explicitTag = payload?.tag ? String(payload.tag).trim().slice(0, 60) : null;
+  const tag = kind === 'document' ? explicitTag || `pend_${crypto.randomUUID()}` : null;
 
   const request = await serviceInquiryRequestsRepository.createRow({
     firmId,
@@ -381,10 +399,13 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
   }
 
   const requiredDocuments = accountingServicesService.resolveRequiredDocuments(service, answers);
+  // 'manual' — a contabilista decide depois se pede, não é enviado ao cliente agora
+  // (ver normalizeDocumentRequirements). Só os 'immediate' entram no checklist inicial.
+  const { immediate: immediateDocuments } = accountingServicesService.splitDocumentsByTiming(requiredDocuments);
   const accessToken = crypto.randomBytes(32).toString('hex');
   const submittedAt = new Date().toISOString();
   // Nada a aguardar -> pronta para a equipa trabalhar já; documentos pendentes -> aguarda entrega.
-  const initialStatus = requiredDocuments.length > 0 ? 'DOCS_REQUESTED' : 'IN_PROGRESS';
+  const initialStatus = immediateDocuments.length > 0 ? 'DOCS_REQUESTED' : 'IN_PROGRESS';
 
   const inquiry = await serviceInquiriesRepository.createRow({
     firmId: firm.id,
@@ -407,9 +428,9 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
   // Materializa o checklist inicial (ver especificação da sessão, v8, secção 2) — deixa
   // de ser recalculado a cada leitura, fica numa tabela real que a equipa pode estender
   // depois com pedidos adicionais (Fase 2b), sem misturar as duas fontes.
-  if (requiredDocuments.length > 0) {
+  if (immediateDocuments.length > 0) {
     await serviceInquiryRequestsRepository.createMany(
-      requiredDocuments.map((d) => ({
+      immediateDocuments.map((d) => ({
         firmId: firm.id,
         serviceInquiryId: inquiry.id,
         kind: 'document',

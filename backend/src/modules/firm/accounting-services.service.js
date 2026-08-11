@@ -17,6 +17,18 @@ function normalizeSlug(value) {
   return slug;
 }
 
+const DOCUMENT_TIMINGS = new Set(['immediate', 'manual']);
+
+/**
+ * `timing` decide QUANDO um documento condicional chega ao cliente (ver
+ * especificação da sessão sobre "pedir já vs sugerir depois"):
+ * - 'immediate' (omissão, compatível com dados já existentes): entra no
+ *   checklist inicial assim que o cliente submete o formulário — igual ao
+ *   comportamento de sempre.
+ * - 'manual': não é enviado automaticamente; fica como sugestão na vista
+ *   da solicitação, e só é pedido ao cliente quando a contabilista decidir
+ *   (reaproveita o mesmo mecanismo de "pendência" já existente).
+ */
 function normalizeDocumentRequirements(value) {
   if (value === undefined) return undefined;
   if (!Array.isArray(value)) throw new AppError('document_requirements deve ser uma lista', 400);
@@ -24,6 +36,7 @@ function normalizeDocumentRequirements(value) {
     tag: String(item?.tag || '').trim().slice(0, 60),
     title: String(item?.title || '').trim().slice(0, 200),
     instructions: item?.instructions != null ? String(item.instructions).trim().slice(0, 2000) : null,
+    timing: DOCUMENT_TIMINGS.has(item?.timing) ? item.timing : 'immediate',
   })).filter((item) => item.tag && item.title);
 }
 
@@ -171,16 +184,34 @@ function resolveRequiredDocuments(service, answers) {
     for (const option of question.options) {
       if (!chosenIds.includes(option.id)) continue;
       for (const tag of option.documentTags || []) {
-        if (!conditionalByTag.has(tag)) conditionalByTag.set(tag, { tag, title: tag, instructions: null });
+        if (!conditionalByTag.has(tag)) {
+          conditionalByTag.set(tag, { tag, title: tag, instructions: null, timing: 'immediate' });
+        }
       }
     }
   }
 
   const merged = new Map(conditionalByTag);
   for (const req of service?.documentRequirements || []) {
-    if (req?.tag) merged.set(req.tag, { tag: req.tag, title: req.title, instructions: req.instructions || null });
+    if (req?.tag) {
+      merged.set(req.tag, {
+        tag: req.tag,
+        title: req.title,
+        instructions: req.instructions || null,
+        timing: req.timing === 'manual' ? 'manual' : 'immediate',
+      });
+    }
   }
   return Array.from(merged.values());
+}
+
+/** Separa o resultado de resolveRequiredDocuments() pelo momento em que
+ * cada documento deve chegar ao cliente — ver normalizeDocumentRequirements
+ * para o racional de 'immediate' vs 'manual'. */
+function splitDocumentsByTiming(requiredDocuments) {
+  const immediate = requiredDocuments.filter((d) => d.timing !== 'manual');
+  const manual = requiredDocuments.filter((d) => d.timing === 'manual');
+  return { immediate, manual };
 }
 
 /**
@@ -459,5 +490,6 @@ module.exports = {
   normalizeIntakeForm,
   normalizeBookingOverrides,
   resolveRequiredDocuments,
+  splitDocumentsByTiming,
   assertFormReadyForPublish,
 };

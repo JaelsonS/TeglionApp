@@ -57,6 +57,7 @@ import { getErrorMessage } from '@/shared/utils/errors'
 import type {
   AccountingService,
   DocumentRequirement,
+  DocumentTiming,
   FirmBookingSettings,
   IntakeQuestion,
   IntakeQuestionOption,
@@ -103,6 +104,28 @@ const QUESTION_TYPE_LABELS: Record<IntakeQuestionType, string> = {
   single_choice: 'Escolha única',
   multiple_choice: 'Escolha múltipla',
   yes_no: 'Sim / Não',
+}
+
+/** Nome/Email/Telefone/NIF já são pedidos automaticamente no topo da página
+ * pública (necessários para identificar o Lead/Client, ver resolveIdentity()
+ * no backend) — repeti-los aqui como pergunta duplica o campo para o
+ * cliente. Comparação normalizada (sem acentos/maiúsculas) para apanhar
+ * variações como "Telemóvel"/"Telefone" ou "N.I.F.". */
+const RESERVED_QUESTION_LABELS = new Set([
+  'nome', 'email', 'e-mail', 'telefone', 'telemovel', 'contacto', 'nif', 'contribuinte',
+])
+
+function normalizeLabelForComparison(label: string) {
+  return label
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]/g, '')
+}
+
+function isReservedQuestionLabel(label: string) {
+  return RESERVED_QUESTION_LABELS.has(normalizeLabelForComparison(label))
 }
 
 type Props = {
@@ -436,6 +459,15 @@ export function AgendaServicesCatalogPanel({
   const saveAdvanced = async (s: AccountingService) => {
     const draft = advancedDraft[s.id]
     if (!draft) return
+    const duplicated = (draft.intakeForm?.questions ?? [])
+      .map((q) => q.label)
+      .filter(isReservedQuestionLabel)
+    if (duplicated.length > 0) {
+      toast.error('Perguntas duplicadas no formulário', {
+        description: `"${duplicated.join('", "')}" já ${duplicated.length > 1 ? 'são pedidos' : 'é pedido'} automaticamente no topo da página — apague ou renomeie antes de guardar.`,
+      })
+      return
+    }
     setBusy(true)
     try {
       await contabilAccountingServicesApi.patch(s.id, {
@@ -1095,6 +1127,27 @@ export function AgendaServicesCatalogPanel({
                                     updateRequirement(s.id, index, { instructions: e.target.value })
                                   }
                                 />
+                                <div className="group/tip relative shrink-0">
+                                  <select
+                                    className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+                                    value={req.timing ?? 'immediate'}
+                                    onChange={(e) =>
+                                      updateRequirement(s.id, index, {
+                                        timing: e.target.value as DocumentTiming,
+                                      })
+                                    }
+                                  >
+                                    <option value="immediate">Pedir logo</option>
+                                    <option value="manual">Só sugerir depois</option>
+                                  </select>
+                                  <span
+                                    role="tooltip"
+                                    className="pointer-events-none absolute right-0 top-full z-20 mt-1.5 w-max max-w-[220px] rounded-md bg-foreground px-2 py-1 text-center text-[11px] font-medium leading-tight text-background opacity-0 shadow-md transition-opacity duration-150 group-hover/tip:opacity-100"
+                                  >
+                                    "Pedir logo" envia ao cliente assim que responde. "Só sugerir depois" fica à
+                                    espera de si — aparece como sugestão na solicitação, só pede quando clicar.
+                                  </span>
+                                </div>
                                 <Button
                                   type="button"
                                   size="icon"
@@ -1114,11 +1167,11 @@ export function AgendaServicesCatalogPanel({
                         <span className="flex items-center gap-1.5 text-caption font-medium text-muted-foreground">
                           <FileQuestion className="h-3.5 w-3.5" /> Formulário de captação
                         </span>
-                        {questions.length === 0 ? (
-                          <p className="cb-text-caption">
-                            Sem perguntas — a página pública pede só nome e email/telefone.
-                          </p>
-                        ) : (
+                        <p className="cb-text-caption">
+                          Nome, email, telefone e NIF já são pedidos automaticamente no topo da página pública —
+                          use este formulário só para perguntas próprias deste serviço (ex.: "É casado(a)?").
+                        </p>
+                        {questions.length === 0 ? null : (
                           <div className="space-y-3">
                             {questions.map((q, qIndex) => (
                               <div key={qIndex} className="space-y-2 rounded-lg border border-border/40 p-3">
@@ -1165,6 +1218,13 @@ export function AgendaServicesCatalogPanel({
                                     <Trash2 className="h-3.5 w-3.5 opacity-60" />
                                   </Button>
                                 </div>
+
+                                {isReservedQuestionLabel(q.label) ? (
+                                  <p className="text-[11px] font-medium text-amber-700">
+                                    "{q.label}" já é pedido automaticamente no topo da página — vai aparecer
+                                    duplicado ao cliente. Apague esta pergunta ou mude o nome.
+                                  </p>
+                                ) : null}
 
                                 {q.options ? (
                                   <div className="ml-2 space-y-2 border-l-2 border-border/30 pl-3">

@@ -43,6 +43,15 @@ export type ServiceInquiryHistoryItem = {
   createdAt: string
 }
 
+/** Documento condicional com timing "manual" — activado pelas respostas do
+ * cliente, mas ainda não pedido porque a contabilista escolheu "só sugerir
+ * depois" ao configurar o formulário. Ver DocumentTiming em shared/types. */
+export type ServiceInquirySuggestedDocument = {
+  tag: string
+  title: string
+  instructions?: string | null
+}
+
 export function createContabilServiceInquiriesApi(api: AxiosInstance) {
   return {
     list: (params?: { status?: string; serviceId?: string }) =>
@@ -56,6 +65,7 @@ export function createContabilServiceInquiriesApi(api: AxiosInstance) {
           r.data as {
             inquiry: ServiceInquiryListItem
             checklist: ServiceInquiryChecklistItem[]
+            suggestedDocuments: ServiceInquirySuggestedDocument[]
             history: ServiceInquiryHistoryItem[]
           },
       ),
@@ -74,7 +84,10 @@ export function createContabilServiceInquiriesApi(api: AxiosInstance) {
     remove: (id: string) =>
       api.delete(`/contabil/service-inquiries/${encodeURIComponent(id)}`).then((r) => r.data),
 
-    addRequest: (id: string, payload: { kind: ServiceInquiryRequestKind; title: string; instructions?: string }) =>
+    addRequest: (
+      id: string,
+      payload: { kind: ServiceInquiryRequestKind; title: string; instructions?: string; tag?: string },
+    ) =>
       api
         .post(`/contabil/service-inquiries/${encodeURIComponent(id)}/requests`, payload)
         .then((r) => r.data as { request: ServiceInquiryChecklistItem }),

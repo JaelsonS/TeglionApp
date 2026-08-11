@@ -70,6 +70,7 @@ export function ServiceInquiriesWorkspace() {
   const [newRequestKind, setNewRequestKind] = useState<ServiceInquiryRequestKind>('question')
   const [newRequestTitle, setNewRequestTitle] = useState('')
   const [addingRequest, setAddingRequest] = useState(false)
+  const [acceptingTag, setAcceptingTag] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
 
   const servicesQuery = useQuery({
@@ -191,6 +192,25 @@ export function ServiceInquiriesWorkspace() {
       toast.error('Erro ao adicionar pendência', { description: getErrorMessage(err) })
     } finally {
       setAddingRequest(false)
+    }
+  }
+
+  const acceptSuggestion = async (doc: { tag: string; title: string; instructions?: string | null }) => {
+    if (!selectedId) return
+    setAcceptingTag(doc.tag)
+    try {
+      await contabilServiceInquiriesApi.addRequest(selectedId, {
+        kind: 'document',
+        title: doc.title,
+        instructions: doc.instructions || undefined,
+        tag: doc.tag,
+      })
+      toast.success('Documento pedido — o cliente foi notificado')
+      await qc.invalidateQueries({ queryKey: ['service-inquiry-detail', selectedId] })
+    } catch (err) {
+      toast.error('Erro ao pedir documento', { description: getErrorMessage(err) })
+    } finally {
+      setAcceptingTag(null)
     }
   }
 
@@ -377,6 +397,36 @@ export function ServiceInquiriesWorkspace() {
                       )
                     })}
                   </div>
+                </div>
+              ) : null}
+
+              {detailQuery.data.suggestedDocuments.length > 0 ? (
+                <div className="space-y-2 rounded-lg border border-amber-300/60 bg-amber-50/40 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">
+                    Sugestões baseadas nas respostas
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Configurou estes documentos como "só sugerir depois" — ainda não foram pedidos ao cliente.
+                  </p>
+                  <ul className="space-y-2">
+                    {detailQuery.data.suggestedDocuments.map((doc) => (
+                      <li
+                        key={doc.tag}
+                        className="flex items-center justify-between gap-2 rounded-md border border-amber-300/50 bg-card p-2"
+                      >
+                        <span className="min-w-0 truncate text-sm">{doc.title}</span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="shrink-0 rounded-full"
+                          disabled={acceptingTag === doc.tag}
+                          onClick={() => void acceptSuggestion(doc)}
+                        >
+                          {acceptingTag === doc.tag ? 'A pedir…' : 'Pedir este documento'}
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ) : null}
 

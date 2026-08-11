@@ -164,6 +164,60 @@ test('submitPublicIntake: sem documentos exigidos -> status IN_PROGRESS logo à 
   assert.equal(created.status, 'IN_PROGRESS');
 });
 
+test('submitPublicIntake: documento com timing "manual" não é materializado no checklist inicial, só o "immediate"', async () => {
+  resetMocks();
+  mockNoise();
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [
+    {
+      ...SERVICE,
+      documentRequirements: [
+        { tag: 'cc', title: 'Cartão de Cidadão', timing: 'immediate' },
+        { tag: 'certidao_casamento', title: 'Certidão de casamento', timing: 'manual' },
+      ],
+    },
+  ]);
+  mock.method(leadsService, 'resolveIdentity', async () => ({ type: 'LEAD', id: 'lead-novo' }));
+  mock.method(serviceInquiriesRepository, 'createRow', async (args) => ({ id: 'inquiry-3', ...args }));
+  let materialized = null;
+  mock.method(serviceInquiryRequestsRepository, 'createMany', async (rows) => {
+    materialized = rows;
+    return rows.map((r, i) => ({ id: `req-${i}`, ...r, status: 'PENDING' }));
+  });
+
+  await serviceInquiriesService.submitPublicIntake({
+    firmSlug: 'x',
+    serviceSlug: 'irs-2026',
+    payload: { name: 'Carla', email: 'carla@x.com' },
+  });
+
+  assert.equal(materialized.length, 1, 'só o documento immediate devia ser materializado');
+  assert.equal(materialized[0].tag, 'cc');
+});
+
+test('submitPublicIntake: só documentos "manual" pendentes -> status IN_PROGRESS (nada foi realmente pedido ainda)', async () => {
+  resetMocks();
+  mockNoise();
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [
+    { ...SERVICE, documentRequirements: [{ tag: 'certidao_casamento', title: 'Certidão de casamento', timing: 'manual' }] },
+  ]);
+  mock.method(leadsService, 'resolveIdentity', async () => ({ type: 'LEAD', id: 'lead-novo' }));
+  let created = null;
+  mock.method(serviceInquiriesRepository, 'createRow', async (args) => {
+    created = args;
+    return { id: 'inquiry-4', ...args };
+  });
+
+  await serviceInquiriesService.submitPublicIntake({
+    firmSlug: 'x',
+    serviceSlug: 'irs-2026',
+    payload: { name: 'Diana', email: 'diana@x.com' },
+  });
+
+  assert.equal(created.status, 'IN_PROGRESS');
+});
+
 test('submitPublicIntake: identidade batida em Client existente -> clientId (não cria Lead)', async () => {
   resetMocks();
   mockNoise();
