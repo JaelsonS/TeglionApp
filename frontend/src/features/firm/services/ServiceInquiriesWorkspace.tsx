@@ -70,6 +70,7 @@ export function ServiceInquiriesWorkspace() {
   const [newRequestKind, setNewRequestKind] = useState<ServiceInquiryRequestKind>('question')
   const [newRequestTitle, setNewRequestTitle] = useState('')
   const [addingRequest, setAddingRequest] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const servicesQuery = useQuery({
     queryKey: ['contabil-accounting-services', 'all'],
@@ -150,6 +151,28 @@ export function ServiceInquiriesWorkspace() {
       await qc.invalidateQueries({ queryKey: ['service-inquiry-detail', selectedId] })
     } catch (err) {
       toast.error('Erro ao revogar link', { description: getErrorMessage(err) })
+    }
+  }
+
+  const deleteInquiry = async () => {
+    if (!selectedId) return
+    if (
+      !window.confirm(
+        'Apagar esta solicitação? Esta ação não pode ser desfeita — o histórico, respostas e documentos entregues são todos removidos.',
+      )
+    ) {
+      return
+    }
+    setDeleting(true)
+    try {
+      await contabilServiceInquiriesApi.remove(selectedId)
+      toast.success('Solicitação apagada')
+      setSelectedId(null)
+      await qc.invalidateQueries({ queryKey: ['service-inquiries'] })
+    } catch (err) {
+      toast.error('Não foi possível apagar', { description: getErrorMessage(err) })
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -319,13 +342,25 @@ export function ServiceInquiriesWorkspace() {
                 </select>
               </label>
 
-              {detailQuery.data.inquiry.accessTokenRevokedAt ? (
-                <p className="text-xs text-muted-foreground">Link do cliente já revogado.</p>
-              ) : (
-                <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={() => void revokeToken()}>
-                  Revogar link do cliente
+              <div className="flex flex-wrap items-center gap-2">
+                {detailQuery.data.inquiry.accessTokenRevokedAt ? (
+                  <p className="text-xs text-muted-foreground">Link do cliente já revogado.</p>
+                ) : (
+                  <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={() => void revokeToken()}>
+                    Revogar link do cliente
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  disabled={deleting}
+                  onClick={() => void deleteInquiry()}
+                >
+                  {deleting ? 'A apagar…' : 'Apagar solicitação'}
                 </Button>
-              )}
+              </div>
 
               {questions.length > 0 ? (
                 <div className="space-y-2">

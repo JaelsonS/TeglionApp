@@ -180,3 +180,76 @@ test('importFileFromDrive: caminho feliz — transfere, valida, guarda e anexa c
   assert.equal(sendArgs.senderId, 'staff-1');
   assert.deepEqual(result, { message: { id: 'msg-1' } });
 });
+
+// PDF real (assinatura mágica válida: %PDF-).
+const PDF_BUFFER = Buffer.from('255044462d312e340a', 'hex');
+
+test('importFileFromDrive: Google Doc nativo é exportado como PDF em vez de descarregado directamente', async () => {
+  resetMocks();
+  mockClient();
+  mock.method(googleDriveService, 'fetchDriveFileMetadata', async () => ({
+    name: 'IRS 2026 - respostas',
+    mimeType: 'application/vnd.google-apps.document',
+    size: undefined,
+  }));
+  mock.method(googleDriveService, 'downloadDriveFile', async () => {
+    throw new Error('não devia usar alt=media para um ficheiro nativo do Google');
+  });
+  let exportArgs = null;
+  mock.method(googleDriveService, 'exportDriveFile', async (args) => {
+    exportArgs = args;
+    return PDF_BUFFER;
+  });
+  let uploadArgs = null;
+  mock.method(contabilStorage, 'uploadClientDocument', async (args) => {
+    uploadArgs = args;
+    return { path: 'firm/x/clients/1/documents/123-irs.pdf', provider: 'supabase' };
+  });
+  let sendArgs = null;
+  mock.method(messagesService, 'sendFirmMessage', async (args) => {
+    sendArgs = args;
+    return { message: { id: 'msg-2' } };
+  });
+
+  await importService.importFileFromDrive({
+    firmId: FIRM_ID,
+    clientId: CLIENT_ID,
+    senderId: 'staff-1',
+    fileId: 'file-doc-1',
+    accessToken: 'token-1',
+  });
+
+  assert.equal(exportArgs.fileId, 'file-doc-1');
+  assert.equal(exportArgs.exportMimeType, 'application/pdf');
+  assert.equal(uploadArgs.file.mimetype, 'application/pdf');
+  assert.equal(uploadArgs.file.originalname, 'IRS 2026 - respostas.pdf');
+  assert.equal(sendArgs.attachment.mime, 'application/pdf');
+});
+
+test('importFileFromDrive: tipo nativo do Google sem export mapeado (ex: Formulários) devolve erro claro, não 500', async () => {
+  resetMocks();
+  mockClient();
+  mock.method(googleDriveService, 'fetchDriveFileMetadata', async () => ({
+    name: 'Formulário IRS',
+    mimeType: 'application/vnd.google-apps.form',
+    size: undefined,
+  }));
+  mock.method(googleDriveService, 'downloadDriveFile', async () => {
+    throw new Error('não devia tentar descarregar um tipo nativo sem export mapeado');
+  });
+
+  await assert.rejects(
+    () =>
+      importService.importFileFromDrive({
+        firmId: FIRM_ID,
+        clientId: CLIENT_ID,
+        senderId: 's1',
+        fileId: 'file-form-1',
+        accessToken: 'token-1',
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      return true;
+    },
+  );
+});

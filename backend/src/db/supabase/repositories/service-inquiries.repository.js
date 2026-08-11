@@ -150,6 +150,12 @@ async function updateRow(id, firmId, patch) {
   return map(data);
 }
 
+async function deleteRow(id, firmId) {
+  const sb = getSupabaseAdmin();
+  const { error } = await sb.from('service_inquiries').delete().eq('id', id).eq('firm_id', firmId);
+  if (error) throw error;
+}
+
 /** Repontar todas as ServiceInquiries de um Lead para o Client resultante da conversão (secção 3.2 da spec). */
 async function reassignLeadToClient(firmId, leadId, clientId) {
   const sb = getSupabaseAdmin();
@@ -172,6 +178,7 @@ module.exports = {
   decryptAnswers,
   createRow,
   updateRow,
+  deleteRow,
   reassignLeadToClient,
   map,
 };

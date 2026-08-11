@@ -22,6 +22,9 @@ export function createContabilAccountingServicesApi(api: AxiosInstance) {
     duplicate: (id: string) =>
       api.post(`/contabil/accounting-services/${encodeURIComponent(id)}/duplicate`).then((r) => r.data),
 
+    remove: (id: string) =>
+      api.delete(`/contabil/accounting-services/${encodeURIComponent(id)}`).then((r) => r.data),
+
     bulkPatch: (payload: { ids: string[]; patch: Record<string, unknown> }) =>
       api.post('/contabil/accounting-services/bulk', payload).then((r) => r.data),
   }

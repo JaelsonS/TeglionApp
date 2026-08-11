@@ -4,8 +4,10 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
 import {
+  FIRM_NAV_DRAWER_ITEMS,
   FIRM_NAV_MOBILE_MORE,
   FIRM_NAV_MOBILE_PRIMARY,
+  isFirmNavItemActive,
   type FirmNavItemConfig,
 } from '@/features/firm/firmNavConfig'
 import { useFirmMessagesUnread } from '@/features/firm/FirmSidebar'
@@ -28,6 +30,8 @@ function MobileNavItem({
   onNavigate?: () => void
 }) {
   const Icon = item.icon
+  const location = useLocation()
+  const isActive = isFirmNavItemActive(item, location.pathname, location.search, FIRM_NAV_DRAWER_ITEMS)
   return (
     <NavLink
       to={item.to}
@@ -35,9 +39,7 @@ function MobileNavItem({
       data-testid={navTestId(item.to)}
       aria-label={label}
       onClick={onNavigate}
-      className={({ isActive }) =>
-        cn('cb-firm-mobile-nav-item', isActive && 'cb-firm-mobile-nav-item-active')
-      }
+      className={cn('cb-firm-mobile-nav-item', isActive && 'cb-firm-mobile-nav-item-active')}
     >
       <span className="cb-firm-mobile-nav-icon-wrap">
         <Icon className="cb-firm-mobile-nav-icon" strokeWidth={1.75} aria-hidden />
@@ -62,6 +64,8 @@ function MoreGridItem({
   onNavigate?: () => void
 }) {
   const Icon = item.icon
+  const location = useLocation()
+  const isActive = isFirmNavItemActive(item, location.pathname, location.search, FIRM_NAV_DRAWER_ITEMS)
   return (
     <NavLink
       to={item.to}
@@ -69,9 +73,7 @@ function MoreGridItem({
       data-testid={navTestId(item.to)}
       aria-label={label}
       onClick={onNavigate}
-      className={({ isActive }) =>
-        cn('cb-firm-mobile-more-item', isActive && 'cb-firm-mobile-more-item-active')
-      }
+      className={cn('cb-firm-mobile-more-item', isActive && 'cb-firm-mobile-more-item-active')}
     >
       <span className="relative">
         <Icon className="cb-firm-mobile-more-icon" strokeWidth={1.65} aria-hidden />
@@ -96,11 +98,9 @@ export function FirmMobileNavBar() {
   const badgeFor = (item: FirmNavItemConfig) =>
     item.badgeKey === 'messages' ? messagesUnread : undefined
 
-  const moreActive = FIRM_NAV_MOBILE_MORE.some((item) => {
-    if (location.pathname === item.to) return true
-    if (item.end === false) return location.pathname.startsWith(`${item.to}/`)
-    return false
-  })
+  const moreActive = FIRM_NAV_MOBILE_MORE.some((item) =>
+    isFirmNavItemActive(item, location.pathname, location.search, FIRM_NAV_DRAWER_ITEMS),
+  )
 
   return (
     <>

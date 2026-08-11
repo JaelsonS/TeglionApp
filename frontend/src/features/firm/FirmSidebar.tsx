@@ -1,11 +1,13 @@
 import { useEffect } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { isAxiosError } from 'axios'
 
 import {
+  FIRM_NAV_FLAT,
   FIRM_NAV_GROUPS,
+  isFirmNavItemActive,
   type FirmNavGroupConfig,
   type FirmNavItemConfig,
 } from '@/features/firm/firmNavConfig'
@@ -78,15 +80,15 @@ function NavItem({
   onClick?: () => void
 }) {
   const Icon = item.icon
+  const location = useLocation()
+  const isActive = isFirmNavItemActive(item, location.pathname, location.search, FIRM_NAV_FLAT)
   return (
     <NavLink
       data-testid={navTestId(item.to)}
       to={item.to}
       end={item.end}
       onClick={onClick}
-      className={({ isActive }) =>
-        cn('cb-firm-nav-item', isActive ? 'cb-firm-nav-item-active' : 'cb-firm-nav-item-inactive')
-      }
+      className={cn('cb-firm-nav-item', isActive ? 'cb-firm-nav-item-active' : 'cb-firm-nav-item-inactive')}
     >
       <span className="cb-firm-nav-item-icon" aria-hidden>
         <Icon className="h-[1.125rem] w-[1.125rem]" strokeWidth={1.75} />

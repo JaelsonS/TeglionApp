@@ -428,3 +428,44 @@ test('addServiceInquiryRequest: audita e notifica o submissor quando há email, 
   assert.equal(notifyArgs.accessToken, 'b'.repeat(64));
   assert.equal(notifyArgs.requestTitle, 'Tem dependentes a cargo?');
 });
+
+test('remove: solicitação inexistente devolve 404, nunca chega a chamar deleteRow', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => null);
+  mock.method(serviceInquiriesRepository, 'deleteRow', async () => {
+    throw new Error('não devia tentar apagar uma solicitação que não foi encontrada');
+  });
+
+  await assert.rejects(
+    () => serviceInquiriesService.remove({ firmId: FIRM_ID, id: 'inquiry-1', actor: { id: 'staff-1' } }),
+    (err) => {
+      assert.equal(err.statusCode, 404);
+      return true;
+    },
+  );
+});
+
+test('remove: caminho feliz — apaga e regista auditoria', async () => {
+  resetMocks();
+  mockAudit();
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
+    id: 'inquiry-1',
+    status: 'NEW',
+    serviceId: 'service-1',
+  }));
+  let deletedArgs = null;
+  mock.method(serviceInquiriesRepository, 'deleteRow', async (id, firmId) => {
+    deletedArgs = { id, firmId };
+  });
+  let auditArgs = null;
+  mock.method(auditRepository, 'writeAuditLog', async (args) => {
+    auditArgs = args;
+  });
+
+  const result = await serviceInquiriesService.remove({ firmId: FIRM_ID, id: 'inquiry-1', actor: { id: 'staff-1' } });
+
+  assert.deepEqual(result, { ok: true });
+  assert.deepEqual(deletedArgs, { id: 'inquiry-1', firmId: FIRM_ID });
+  assert.equal(auditArgs.action, 'service_inquiry.deleted');
+  assert.equal(auditArgs.entityId, 'inquiry-1');
+});

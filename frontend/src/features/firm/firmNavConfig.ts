@@ -4,6 +4,7 @@ import {
   CalendarDays,
   ClipboardList,
   Inbox,
+  Landmark,
   LayoutGrid,
   ListChecks,
   Megaphone,
@@ -122,6 +123,12 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         icon: Newspaper,
       },
       {
+        to: '/app/firm/services?tab=irs',
+        labelKey: 'contabil.firm.nav.irs',
+        labelDefault: 'IRS',
+        icon: Landmark,
+      },
+      {
         to: '/app/firm/services',
         labelKey: 'contabil.firm.nav.services',
         labelDefault: 'Serviços',
@@ -145,6 +152,36 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
 ]
 
 export const FIRM_NAV_FLAT = FIRM_NAV_GROUPS.flatMap((g) => g.items)
+
+function parseNavTarget(to: string): { pathname: string; search: string } {
+  const queryIndex = to.indexOf('?')
+  if (queryIndex === -1) return { pathname: to, search: '' }
+  return { pathname: to.slice(0, queryIndex), search: to.slice(queryIndex) }
+}
+
+/** Diferente do `isActive` nativo do `NavLink` (que ignora a query string por
+ * completo), permite dois itens apontarem para o mesmo pathname com queries
+ * diferentes — ex.: "Serviços" e "IRS" apontam ambos para
+ * `/app/firm/services`, só o segundo fixa `?tab=irs`. Sem isto os dois
+ * apareceriam activos ao mesmo tempo, o que é confuso no menu. */
+export function isFirmNavItemActive(
+  item: FirmNavItemConfig,
+  pathname: string,
+  search: string,
+  allItems: FirmNavItemConfig[],
+): boolean {
+  const target = parseNavTarget(item.to)
+  const pathMatches =
+    pathname === target.pathname || (item.end !== true && pathname.startsWith(`${target.pathname}/`))
+  if (!pathMatches) return false
+  if (target.search) return search === target.search
+  const shadowedByMoreSpecificSibling = allItems.some((other) => {
+    if (other === item) return false
+    const otherTarget = parseNavTarget(other.to)
+    return Boolean(otherTarget.search) && otherTarget.pathname === target.pathname && search === otherTarget.search
+  })
+  return !shadowedByMoreSpecificSibling
+}
 
 /** Ordem do rail desktop (IMG-03): ícones principais + definições no fundo. */
 export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
@@ -198,6 +235,12 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     labelKey: 'contabil.firm.nav.alerts',
     labelDefault: 'Alertas',
     icon: Megaphone,
+  },
+  {
+    to: '/app/firm/services?tab=irs',
+    labelKey: 'contabil.firm.nav.irs',
+    labelDefault: 'IRS',
+    icon: Landmark,
   },
   {
     to: '/app/firm/services',

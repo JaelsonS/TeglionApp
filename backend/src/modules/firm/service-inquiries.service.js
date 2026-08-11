@@ -184,6 +184,32 @@ async function update({ firmId, id, actor, payload }) {
   return { inquiry };
 }
 
+/**
+ * Apaga uma solicitação. `service_inquiry_documents`/`service_inquiry_requests`
+ * têm `ON DELETE CASCADE` (migrations 20260906000000/20260911000000) — os
+ * registos filhos (checklist, documentos entregues) são removidos junto. Os
+ * ficheiros já enviados para o Storage não são apagados aqui (fora de âmbito;
+ * ficam órfãos, mesmo compromisso já aceite noutras remoções do sistema).
+ */
+async function remove({ firmId, id, actor }) {
+  const existing = await serviceInquiriesRepository.findByIdForFirm(id, firmId);
+  if (!existing) throw new AppError('Solicitação não encontrada', 404);
+
+  await serviceInquiriesRepository.deleteRow(id, firmId);
+
+  await auditRepository.writeAuditLog({
+    firmId,
+    actorRole: 'FIRM',
+    actorId: actor?.id,
+    action: 'service_inquiry.deleted',
+    entityType: 'service_inquiry',
+    entityId: id,
+    metadata: { status: existing.status, serviceId: existing.serviceId },
+  });
+
+  return { ok: true };
+}
+
 /** Revogação manual do access_token pela equipa (ex.: suspeita de link vazado). */
 async function revokeAccessToken({ firmId, id, actor }) {
   const existing = await serviceInquiriesRepository.findByIdForFirm(id, firmId);
@@ -580,6 +606,7 @@ module.exports = {
   getById,
   create,
   update,
+  remove,
   revokeAccessToken,
   addServiceInquiryRequest,
   submitPublicIntake,

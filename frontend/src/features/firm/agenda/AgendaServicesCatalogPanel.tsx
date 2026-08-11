@@ -11,6 +11,7 @@ import {
   FileQuestion,
   Globe,
   Layers,
+  type LucideIcon,
   Pencil,
   Plus,
   Power,
@@ -23,6 +24,16 @@ import { toast } from 'sonner'
 
 import { AgendaAvailabilityPanel } from '@/features/firm/agenda/AgendaAvailabilityPanel'
 import { ServiceFormPreview } from '@/features/firm/agenda/ServiceFormPreview'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/shared/components/ui/alert-dialog'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
@@ -108,15 +119,65 @@ function formatPrice(cents: number) {
   return (cents / 100).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })
 }
 
-const IRS_KEYWORDS = ['irs', 'e-fatura', 'efatura']
+const IRS_WORD_PATTERN = /\birs\b/i
+const IRS_KEYWORDS = ['e-fatura', 'efatura']
 
-/** Serviço "de IRS" — pelo nome, descrição ou chave do catálogo nacional
- * (que já classifica `simulacao-irs`, `entrega-irs-orcamento`,
- * `classificacao-efatura` como categoria IRS). Heurística de texto, não um
- * campo próprio — evita migração de esquema só para isto. */
+/** Serviço "de IRS" — pelo nome ou chave do catálogo nacional (que já
+ * classifica `simulacao-irs`, `entrega-irs-orcamento`, `classificacao-efatura`
+ * como categoria IRS). Heurística de texto, não um campo próprio — evita
+ * migração de esquema só para isto. Deliberadamente NÃO olha para a
+ * descrição: um serviço genérico pode mencionar "IRS" na descrição como um
+ * dos vários temas que cobre (ex.: "Consultoria Individual") sem ser, ele
+ * próprio, um serviço de IRS — isso produzia falsos positivos. */
 function isIrsService(s: AccountingService): boolean {
-  const haystack = `${s.name} ${s.description || ''} ${s.catalogKey || ''}`.toLowerCase()
-  return IRS_KEYWORDS.some((k) => haystack.includes(k))
+  const nameAndKey = `${s.name} ${s.catalogKey || ''}`
+  if (IRS_WORD_PATTERN.test(nameAndKey)) return true
+  const lower = nameAndKey.toLowerCase()
+  return IRS_KEYWORDS.some((k) => lower.includes(k))
+}
+
+/** Botão de acção com um tooltip visível ao passar o rato — o `title` nativo
+ * do browser tem demora e é pouco visível. Reaproveitado por todas as acções
+ * de linha do serviço (pré-visualizar, duplicar, definições, apagar). */
+function IconActionButton({
+  icon: Icon,
+  label,
+  onClick,
+  disabled,
+  active,
+  destructive,
+}: {
+  icon: LucideIcon
+  label: string
+  onClick: () => void
+  disabled?: boolean
+  active?: boolean
+  destructive?: boolean
+}) {
+  return (
+    <div className="group/tip relative">
+      <Button
+        type="button"
+        size="icon"
+        variant={active ? 'default' : 'ghost'}
+        className={cn(
+          'h-9 w-9 rounded-full',
+          destructive && !active && 'text-destructive hover:bg-destructive/10 hover:text-destructive',
+        )}
+        disabled={disabled}
+        aria-label={label}
+        onClick={onClick}
+      >
+        <Icon className={cn('h-4 w-4', !active && 'opacity-60')} />
+      </Button>
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute left-1/2 top-full z-20 mt-1.5 w-max max-w-[220px] -translate-x-1/2 rounded-md bg-foreground px-2 py-1 text-center text-[11px] font-medium leading-tight text-background opacity-0 shadow-md transition-opacity duration-150 group-hover/tip:opacity-100"
+      >
+        {label}
+      </span>
+    </div>
+  )
 }
 
 export function AgendaServicesCatalogPanel({
@@ -139,6 +200,8 @@ export function AgendaServicesCatalogPanel({
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [advancedDraft, setAdvancedDraft] = useState<Record<string, Partial<AccountingService>>>({})
   const [duplicating, setDuplicating] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<AccountingService | null>(null)
   const [previewId, setPreviewId] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -402,6 +465,20 @@ export function AgendaServicesCatalogPanel({
       toast.error('Erro ao duplicar', { description: getErrorMessage(err) })
     } finally {
       setDuplicating(null)
+    }
+  }
+
+  const deleteService = async (s: AccountingService) => {
+    setDeleting(s.id)
+    try {
+      await contabilAccountingServicesApi.remove(s.id)
+      toast.success(`"${s.name}" apagado`)
+      setDeleteTarget(null)
+      await onReload()
+    } catch (err) {
+      toast.error('Não foi possível apagar', { description: getErrorMessage(err) })
+    } finally {
+      setDeleting(null)
     }
   }
 
@@ -774,37 +851,30 @@ export function AgendaServicesCatalogPanel({
                       {active ? 'Activo' : 'Inactivo'}
                     </button>
                     <div className="flex shrink-0 items-center gap-1">
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        className="h-9 w-9 rounded-full"
-                        title="Pré-visualizar formulário público"
+                      <IconActionButton
+                        icon={Eye}
+                        label="Pré-visualizar formulário público"
                         onClick={() => setPreviewId(s.id)}
-                      >
-                        <Eye className="h-4 w-4 opacity-60" />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        className="h-9 w-9 rounded-full"
+                      />
+                      <IconActionButton
+                        icon={Copy}
+                        label="Duplicar serviço"
                         disabled={duplicating === s.id}
-                        title="Duplicar serviço"
                         onClick={() => void duplicateService(s)}
-                      >
-                        <Copy className="h-4 w-4 opacity-60" />
-                      </Button>
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant={isExpanded ? 'default' : 'ghost'}
-                        className="h-9 w-9 rounded-full"
-                        title="Definições avançadas (link público, agendamento, documentos)"
+                      />
+                      <IconActionButton
+                        icon={Settings2}
+                        label="Definições avançadas (link público, agendamento, documentos)"
+                        active={isExpanded}
                         onClick={() => toggleExpanded(s)}
-                      >
-                        <Settings2 className="h-4 w-4" />
-                      </Button>
+                      />
+                      <IconActionButton
+                        icon={Trash2}
+                        label="Apagar serviço"
+                        destructive
+                        disabled={deleting === s.id}
+                        onClick={() => setDeleteTarget(s)}
+                      />
                     </div>
                     <Button
                       type="button"
@@ -1202,6 +1272,31 @@ export function AgendaServicesCatalogPanel({
         </div>
       </SheetContent>
     </Sheet>
+
+    <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(open: boolean) => !open && setDeleteTarget(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Apagar "{deleteTarget?.name}"?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esta acção não pode ser desfeita. Se o serviço já tiver solicitações associadas, não será possível
+            apagar — desactive-o em vez disso.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={Boolean(deleting)}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            disabled={Boolean(deleting)}
+            onClick={(e: { preventDefault: () => void }) => {
+              e.preventDefault()
+              if (deleteTarget) void deleteService(deleteTarget)
+            }}
+          >
+            {deleting ? 'A apagar…' : 'Apagar definitivamente'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </>
   )
 }
