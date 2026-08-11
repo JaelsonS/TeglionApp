@@ -13,6 +13,7 @@ const firmsRepository = require('../../db/supabase/repositories/firms.repository
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const bookingService = require('../booking/booking.service');
 const serviceInquiriesService = require('../firm/service-inquiries.service');
+const firmBrandingService = require('../firm/firm-branding.service');
 const { interpolateServiceTemplate } = require('../../utils/service-text-template');
 
 /** Resolve Firm + Service publicado pelo par (firmSlug, serviceSlug) — nunca aceita ids crus. */
@@ -57,7 +58,32 @@ async function getPublicFirmServices(req, res, next) {
         requiresBooking: s.requiresBooking !== false,
       }));
 
-    return res.json({ firmName: firm.name, items });
+    let logoUrl = null;
+    try {
+      logoUrl = await firmBrandingService.resolveLogoUrl(firm);
+    } catch {
+      logoUrl = firm.settings?.branding?.logoUrl || null;
+    }
+    const branding = firm.settings?.branding || {};
+    const publicProfile = firm.settings?.publicProfile || {};
+    const contact = firm.settings?.contact || {};
+
+    return res.json({
+      firmName: firm.name,
+      logoUrl,
+      primaryColor: branding.primaryColor || null,
+      secondaryColor: branding.secondaryColor || null,
+      tagline: publicProfile.tagline || null,
+      bio: publicProfile.bio || null,
+      socialLinks: publicProfile.socialLinks || {},
+      faqs: publicProfile.faqs || [],
+      contact: {
+        email: contact.email || null,
+        phone: contact.phone || null,
+        address: contact.address || null,
+      },
+      items,
+    });
   } catch (err) {
     return next(err);
   }

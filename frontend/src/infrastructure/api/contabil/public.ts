@@ -18,8 +18,36 @@ export type PublicFirmServiceSummary = {
   requiresBooking: boolean
 }
 
+export type PublicFirmFaq = {
+  id: string
+  question: string
+  answer: string
+}
+
+export type PublicFirmSocialLinks = {
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  whatsapp?: string | null
+  website?: string | null
+}
+
+export type PublicFirmContact = {
+  email: string | null
+  phone: string | null
+  address: string | null
+}
+
 export type PublicFirmServices = {
   firmName: string
+  logoUrl: string | null
+  primaryColor: string | null
+  secondaryColor: string | null
+  tagline: string | null
+  bio: string | null
+  socialLinks: PublicFirmSocialLinks
+  faqs: PublicFirmFaq[]
+  contact: PublicFirmContact
   items: PublicFirmServiceSummary[]
 }
 
