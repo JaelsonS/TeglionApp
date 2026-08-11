@@ -16,7 +16,7 @@ import { FirmScrollPage } from '@/features/firm/FirmPageLayout'
 import { firmSettingsApi } from '@/infrastructure/api/contabil/firmSettings'
 import { FirmSettingsDangerZone } from '@/features/firm/settings/FirmSettingsDangerZone'
 import { FirmSettingsFirmSection } from '@/features/firm/settings/FirmSettingsFirmSection'
-import { FirmSettingsPublicPageSection } from '@/features/firm/settings/FirmSettingsPublicPageSection'
+import { PublicSiteEditor } from '@/features/firm/public-site/PublicSiteEditor'
 import { FirmSettingsProfileSection } from '@/features/firm/settings/FirmSettingsProfileSection'
 import { FirmSettingsTeamSection } from '@/features/firm/settings/FirmSettingsTeamSection'
 import { FirmSettingsNotificationsSection } from '@/features/firm/settings/FirmSettingsNotificationsSection'
@@ -181,9 +181,7 @@ export function FirmSettingsPage() {
                 </section>
               ) : null}
 
-              {activeTab === 'pagina-publica' ? (
-                <FirmSettingsPublicPageSection bundle={bundle} onUpdated={onUpdated} />
-              ) : null}
+              {activeTab === 'pagina-publica' ? <PublicSiteEditor bundle={bundle} /> : null}
 
               {activeTab === 'escritorio' ? (
                 <FirmSettingsFirmSection bundle={bundle} onUpdated={onUpdated} />
