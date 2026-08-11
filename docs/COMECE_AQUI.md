@@ -30,7 +30,7 @@ Isto não é pouco para um projecto a solo em infra gratuita. É uma base tecnic
 
 ---
 
-## O que já está sólido (não precisa de te preocupar agora)
+## O que já está sólido 
 
 - Autenticação em cookies `httpOnly` + `Secure`, nunca tokens em `localStorage`.
 - CSRF, CORS com lista de origens (nunca wildcard), rate limiting dedicado em login/registo/recuperação de password.
