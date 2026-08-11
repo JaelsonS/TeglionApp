@@ -26,7 +26,7 @@ function ServiceCard({ firmSlug, service }: { firmSlug: string; service: PublicF
   return (
     <Link
       to={`/${encodeURIComponent(firmSlug)}/servicos/${encodeURIComponent(service.slug)}`}
-      className="block rounded-2xl border border-border/50 bg-card p-5 shadow-sm transition hover:border-brand/40 hover:shadow-md"
+      className="block rounded-2xl border border-border/50 bg-card p-5 shadow-sm transition hover:border-primary/40 hover:shadow-md"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -36,7 +36,7 @@ function ServiceCard({ firmSlug, service }: { firmSlug: string; service: PublicF
           ) : null}
         </div>
         {service.priceCents > 0 ? (
-          <span className="shrink-0 text-sm font-semibold text-brand">{formatPrice(service.priceCents)}</span>
+          <span className="shrink-0 text-sm font-semibold text-primary">{formatPrice(service.priceCents)}</span>
         ) : null}
       </div>
       {service.requiresBooking ? (
@@ -115,7 +115,7 @@ export function FirmPublicServicesPage() {
             />
           ) : null}
           <h1 className="text-2xl font-bold">{firmName}</h1>
-          {tagline ? <p className="mt-2 text-base text-brand">{tagline}</p> : null}
+          {tagline ? <p className="mt-2 text-base text-primary">{tagline}</p> : null}
           {bio ? <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">{bio}</p> : null}
         </div>
       </header>
@@ -190,7 +190,7 @@ export function FirmPublicServicesPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={label}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition hover:border-brand/40 hover:text-brand"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition hover:border-primary/40 hover:text-primary"
                   >
                     <Icon className="h-4 w-4" />
                   </a>
