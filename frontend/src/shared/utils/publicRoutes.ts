@@ -13,13 +13,21 @@ export function isAuthenticatedAppRoute(pathname: string): boolean {
 }
 
 /**
- * Páginas públicas de captação (ServiceIntakePublicPage, ServiceIntakePortalPage)
- * — sem login, mas usam useQuery. Nem "lightweight" (precisam de QueryClientProvider)
- * nem "authenticated" (nunca têm sessão) — categoria própria para não caírem sem
- * nenhum provider (useQuery sem QueryClientProvider, useAuth sem AuthProvider).
+ * Páginas públicas de captação (ServiceIntakePublicPage, ServiceIntakePortalPage,
+ * FirmPublicServicesPage) — sem login, mas usam useQuery. Nem "lightweight"
+ * (precisam de QueryClientProvider) nem "authenticated" (nunca têm sessão) —
+ * categoria própria para não caírem sem nenhum provider (useQuery sem
+ * QueryClientProvider, useAuth sem AuthProvider).
  */
 export function isPublicIntakeRoute(pathname: string): boolean {
   if (pathname.startsWith('/pedidos/')) return true
   if (/^\/[^/]+\/servicos\/[^/]+\/?$/.test(pathname)) return true
+  // Página pública unificada de um escritório (`/:firmSlug`) — um único
+  // segmento que não bateu em nenhuma rota fixa (marketing/auth/legal, já
+  // filtradas acima por isLightweightPublicRoute/isAuthenticatedAppRoute) só
+  // pode ser o slug de um escritório, nunca uma rota da aplicação.
+  if (/^\/[^/]+\/?$/.test(pathname) && !isLightweightPublicRoute(pathname) && !isAuthenticatedAppRoute(pathname)) {
+    return true
+  }
   return false
 }
