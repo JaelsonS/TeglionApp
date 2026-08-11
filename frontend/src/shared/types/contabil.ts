@@ -284,10 +284,16 @@ export type MessageThread = {
   unreadCount?: number
 }
 
+export type DocumentTiming = 'immediate' | 'manual'
+
 export type DocumentRequirement = {
   tag: string
   title: string
   instructions?: string | null
+  /** 'immediate' (omissão): entra no checklist assim que o cliente submete.
+   * 'manual': fica como sugestão na solicitação, só é pedido quando a
+   * contabilista decidir. */
+  timing?: DocumentTiming
 }
 
 export type IntakeQuestionType =

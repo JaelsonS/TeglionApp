@@ -237,7 +237,7 @@ test('update: publicar um serviço já existente com intake_form inalterado, mas
 test('resolveRequiredDocuments: sem intake_form, devolve só a base do serviço', () => {
   const service = { documentRequirements: [{ tag: 'cc', title: 'Cartão de Cidadão' }] };
   const result = accountingServicesService.resolveRequiredDocuments(service, {});
-  assert.deepEqual(result, [{ tag: 'cc', title: 'Cartão de Cidadão', instructions: null }]);
+  assert.deepEqual(result, [{ tag: 'cc', title: 'Cartão de Cidadão', instructions: null, timing: 'immediate' }]);
 });
 
 test('resolveRequiredDocuments: opção escolhida activa tags condicionais', () => {
@@ -318,6 +318,60 @@ test('resolveRequiredDocuments: multiple_choice com várias respostas activa vá
   const result = accountingServicesService.resolveRequiredDocuments(service, { rendimentos: ['predial', 'trabalho'] });
   const tags = result.map((d) => d.tag).sort();
   assert.deepEqual(tags, ['caderneta_predial', 'recibos_vencimento']);
+});
+
+test('normalizeDocumentRequirements (via create): timing "manual" é preservado; omitido ou inválido cai para "immediate"', async () => {
+  resetMocks();
+  let created = null;
+  mock.method(accountingServicesRepository, 'createRow', async (args) => {
+    created = args;
+    return { id: 'svc-1', ...args };
+  });
+
+  await accountingServicesService.create({
+    firmId: 'firm-x',
+    payload: {
+      name: 'IRS',
+      durationMinutes: 60,
+      documentRequirements: [
+        { tag: 'a', title: 'A', timing: 'manual' },
+        { tag: 'b', title: 'B' },
+        { tag: 'c', title: 'C', timing: 'algo-invalido' },
+      ],
+    },
+  });
+
+  assert.equal(created.documentRequirements.find((d) => d.tag === 'a').timing, 'manual');
+  assert.equal(created.documentRequirements.find((d) => d.tag === 'b').timing, 'immediate');
+  assert.equal(created.documentRequirements.find((d) => d.tag === 'c').timing, 'immediate');
+});
+
+test('resolveRequiredDocuments: propaga timing "manual" definido em documentRequirements', () => {
+  const service = {
+    documentRequirements: [{ tag: 'certidao_casamento', title: 'Certidão de casamento', timing: 'manual' }],
+    intakeForm: {
+      questions: [
+        {
+          id: 'casado',
+          type: 'yes_no',
+          options: [{ id: 'sim', documentTags: ['certidao_casamento'] }, { id: 'nao', documentTags: [] }],
+        },
+      ],
+    },
+  };
+  const result = accountingServicesService.resolveRequiredDocuments(service, { casado: 'sim' });
+  assert.equal(result.length, 1);
+  assert.equal(result[0].timing, 'manual');
+});
+
+test('splitDocumentsByTiming: separa immediate de manual; documento sem timing definido conta como immediate', () => {
+  const result = accountingServicesService.splitDocumentsByTiming([
+    { tag: 'a', title: 'A', timing: 'immediate' },
+    { tag: 'b', title: 'B', timing: 'manual' },
+    { tag: 'c', title: 'C' },
+  ]);
+  assert.deepEqual(result.immediate.map((d) => d.tag), ['a', 'c']);
+  assert.deepEqual(result.manual.map((d) => d.tag), ['b']);
 });
 
 test('seedCatalog: propaga documentRequirements/intakeForm do template quando presentes', async () => {

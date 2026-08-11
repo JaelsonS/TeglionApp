@@ -278,6 +278,66 @@ test('getById: monta o checklist a partir de service_inquiry_requests (não reca
   assert.equal(history[0].action, 'service_inquiry.submitted');
 });
 
+test('getById: sugere documentos "manual" activados pelas respostas mas ainda não pedidos', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
+    id: 'inquiry-2',
+    firmId: FIRM_ID,
+    serviceId: 'service-1',
+    leadId: 'lead-1',
+    clientId: null,
+    status: 'IN_PROGRESS',
+    answers: { casado: 'sim' },
+  }));
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
+    id: 'service-1',
+    name: 'IRS 2026',
+    documentRequirements: [
+      { tag: 'certidao_casamento', title: 'Certidão de casamento', timing: 'manual' },
+      { tag: 'cc', title: 'Cartão de Cidadão', timing: 'immediate' },
+    ],
+    intakeForm: { questions: [] },
+  }));
+  mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana' }));
+  mock.method(serviceInquiryRequestsRepository, 'listByInquiry', async () => [
+    { id: 'req-cc', kind: 'document', tag: 'cc', title: 'Cartão de Cidadão', status: 'PENDING', documentId: null, textReply: null, createdAt: null, answeredAt: null },
+  ]);
+  mock.method(auditRepository, 'listByEntity', async () => []);
+
+  const { suggestedDocuments } = await serviceInquiriesService.getById({ firmId: FIRM_ID, id: 'inquiry-2' });
+
+  assert.equal(suggestedDocuments.length, 1);
+  assert.equal(suggestedDocuments[0].tag, 'certidao_casamento');
+});
+
+test('getById: documento "manual" já pedido (existe no checklist) deixa de ser sugerido', async () => {
+  resetMocks();
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
+    id: 'inquiry-3',
+    firmId: FIRM_ID,
+    serviceId: 'service-1',
+    leadId: 'lead-1',
+    clientId: null,
+    status: 'IN_PROGRESS',
+    answers: { casado: 'sim' },
+  }));
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
+    id: 'service-1',
+    name: 'IRS 2026',
+    documentRequirements: [{ tag: 'certidao_casamento', title: 'Certidão de casamento', timing: 'manual' }],
+    intakeForm: { questions: [] },
+  }));
+  mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana' }));
+  mock.method(serviceInquiryRequestsRepository, 'listByInquiry', async () => [
+    { id: 'req-1', kind: 'document', tag: 'certidao_casamento', title: 'Certidão de casamento', status: 'PENDING', documentId: null, textReply: null, createdAt: null, answeredAt: null },
+  ]);
+  mock.method(auditRepository, 'listByEntity', async () => []);
+
+  const { suggestedDocuments } = await serviceInquiriesService.getById({ firmId: FIRM_ID, id: 'inquiry-3' });
+
+  assert.deepEqual(suggestedDocuments, []);
+});
+
 test('addServiceInquiryRequest: solicitação inexistente devolve 404', async () => {
   resetMocks();
   mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => null);
@@ -391,6 +451,33 @@ test('addServiceInquiryRequest: kind document gera tag automática; kind questio
     payload: { kind: 'question', title: 'Tem dependentes a cargo?' },
   });
   assert.equal(created.tag, null);
+});
+
+test('addServiceInquiryRequest: tag explícita (aceitar sugestão) é preservada em vez de gerar uma aleatória', async () => {
+  resetMocks();
+  mockAudit();
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
+    id: 'inquiry-1',
+    status: 'IN_PROGRESS',
+    leadId: 'lead-1',
+    clientId: null,
+    accessToken: 'a'.repeat(64),
+  }));
+  mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana', email: null }));
+  let created = null;
+  mock.method(serviceInquiryRequestsRepository, 'createRow', async (args) => {
+    created = args;
+    return { id: 'req-3', ...args, status: 'PENDING' };
+  });
+
+  await serviceInquiriesService.addServiceInquiryRequest({
+    firmId: FIRM_ID,
+    inquiryId: 'inquiry-1',
+    actor: { id: 'staff-1' },
+    payload: { kind: 'document', title: 'Certidão de casamento', tag: 'certidao_casamento' },
+  });
+
+  assert.equal(created.tag, 'certidao_casamento');
 });
 
 test('addServiceInquiryRequest: audita e notifica o submissor quando há email, reaproveitando o mesmo token', async () => {
