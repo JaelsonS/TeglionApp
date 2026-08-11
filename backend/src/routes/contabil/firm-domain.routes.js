@@ -283,6 +283,7 @@ router.post('/accounting-services/bulk', requirePermission(PERMISSIONS.FIRM_ACCO
 router.post('/accounting-services', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.create);
 router.patch('/accounting-services/:id', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.patch);
 router.post('/accounting-services/:id/duplicate', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.duplicate);
+router.delete('/accounting-services/:id', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.remove);
 
 router.get('/booking-settings', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), bookingSettingsController.get);
 router.patch('/booking-settings', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), bookingSettingsController.patch);
@@ -420,6 +421,11 @@ router.post(
   '/service-inquiries/:id/revoke-token',
   requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
   serviceInquiriesController.revokeToken,
+);
+router.delete(
+  '/service-inquiries/:id',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  serviceInquiriesController.remove,
 );
 router.post(
   '/service-inquiries/:id/requests',

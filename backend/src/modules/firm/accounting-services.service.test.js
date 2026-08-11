@@ -424,3 +424,52 @@ test('seedCatalog: regressão — reexecutar depois do escritório editar o serv
     intakeForm: { questions: [{ id: 'q_manual', label: 'Pergunta que a contabilista criou', type: 'text', required: true }] },
   });
 });
+
+test('remove: serviço inexistente devolve 404, nunca chega a chamar deleteRow', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => null);
+  mock.method(accountingServicesRepository, 'deleteRow', async () => {
+    throw new Error('não devia tentar apagar um serviço que não foi encontrado');
+  });
+
+  await assert.rejects(
+    () => accountingServicesService.remove({ firmId: 'firm-x', id: 'service-1' }),
+    (err) => {
+      assert.equal(err.statusCode, 404);
+      return true;
+    },
+  );
+});
+
+test('remove: caminho feliz — apaga e devolve ok', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({ id: 'service-1', name: 'IRS' }));
+  let deletedArgs = null;
+  mock.method(accountingServicesRepository, 'deleteRow', async (id, firmId) => {
+    deletedArgs = { id, firmId };
+  });
+
+  const result = await accountingServicesService.remove({ firmId: 'firm-x', id: 'service-1' });
+
+  assert.deepEqual(result, { ok: true });
+  assert.deepEqual(deletedArgs, { id: 'service-1', firmId: 'firm-x' });
+});
+
+test('remove: serviço com solicitações associadas (FK RESTRICT) devolve erro claro em vez de propagar o erro do Postgres', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({ id: 'service-1', name: 'IRS' }));
+  mock.method(accountingServicesRepository, 'deleteRow', async () => {
+    const err = new Error('update or delete on table "accounting_services" violates foreign key constraint');
+    err.code = '23503';
+    throw err;
+  });
+
+  await assert.rejects(
+    () => accountingServicesService.remove({ firmId: 'firm-x', id: 'service-1' }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      assert.match(err.message, /Desactive/);
+      return true;
+    },
+  );
+});

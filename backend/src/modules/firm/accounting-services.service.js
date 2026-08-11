@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const { AppError } = require('../../middlewares/error.middleware');
+const { mapDbError } = require('../../utils/db-error');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-catalog');
 const { BOOKING_TIMEZONES } = require('../booking/booking.service');
@@ -328,6 +329,27 @@ async function duplicate({ firmId, id }) {
   return { item };
 }
 
+/**
+ * Apaga um serviço. `service_inquiries.service_id` tem `ON DELETE RESTRICT`
+ * (ver migration 20260903000000) — a base de dados rejeita a operação se
+ * existir alguma solicitação associada, o que é o comportamento certo aqui:
+ * apagar apagaria também o histórico de captação dessa solicitação. Nesse
+ * caso devolvemos uma mensagem clara a sugerir desactivar em vez de apagar.
+ */
+async function remove({ firmId, id }) {
+  const existing = await accountingServicesRepository.findByIdForFirm(id, firmId);
+  if (!existing) throw new AppError('Serviço não encontrado', 404);
+  try {
+    await accountingServicesRepository.deleteRow(id, firmId);
+  } catch (err) {
+    throw mapDbError(
+      err,
+      'Este serviço tem solicitações associadas e não pode ser apagado. Desactive-o em vez disso.',
+    );
+  }
+  return { ok: true };
+}
+
 async function bulkPatch({ firmId, ids, patch }) {
   const list = Array.isArray(ids) ? ids.filter(Boolean) : [];
   if (!list.length) throw new AppError('Seleccione pelo menos um serviço', 400);
@@ -404,6 +426,7 @@ module.exports = {
   list,
   create,
   update,
+  remove,
   duplicate,
   bulkPatch,
   seedCatalog,

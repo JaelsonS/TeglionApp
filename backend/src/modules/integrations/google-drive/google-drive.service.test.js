@@ -18,6 +18,25 @@ test('isGoogleDriveConfigured/getPickerConfig: false quando faltam credenciais',
   }
 });
 
+test('isGoogleNativeFile: identifica mimetypes application/vnd.google-apps.* e rejeita os restantes', () => {
+  assert.equal(googleDriveService.isGoogleNativeFile('application/vnd.google-apps.document'), true);
+  assert.equal(googleDriveService.isGoogleNativeFile('application/pdf'), false);
+  assert.equal(googleDriveService.isGoogleNativeFile(undefined), false);
+});
+
+test('getExportTarget: mapeia Docs/Sheets/Slides/Drawings para formatos já na whitelist de upload; devolve null para o resto', () => {
+  assert.deepEqual(googleDriveService.getExportTarget('application/vnd.google-apps.document'), {
+    mimeType: 'application/pdf',
+    extension: '.pdf',
+  });
+  assert.deepEqual(googleDriveService.getExportTarget('application/vnd.google-apps.spreadsheet'), {
+    mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    extension: '.xlsx',
+  });
+  assert.equal(googleDriveService.getExportTarget('application/vnd.google-apps.form'), null);
+  assert.equal(googleDriveService.getExportTarget('application/pdf'), null);
+});
+
 test('isGoogleDriveConfigured/getPickerConfig: true e devolve client_id/pickerApiKey quando ambos presentes', () => {
   const prevId = env.GOOGLE_OAUTH_CLIENT_ID;
   const prevKey = env.GOOGLE_PICKER_API_KEY;

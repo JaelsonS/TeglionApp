@@ -45,6 +45,17 @@ exports.patch = async (req, res, next) => {
   }
 };
 
+exports.remove = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const id = parseEntityId(req.params.id, 'id');
+    const result = await serviceInquiriesService.remove({ firmId, id, actor: req.user });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.revokeToken = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);

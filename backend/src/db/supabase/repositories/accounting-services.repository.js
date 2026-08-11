@@ -155,6 +155,12 @@ async function bulkUpdate(ids, firmId, patch) {
   return (data || []).map(map);
 }
 
+async function deleteRow(id, firmId) {
+  const sb = getSupabaseAdmin();
+  const { error } = await sb.from('accounting_services').delete().eq('id', id).eq('firm_id', firmId);
+  if (error) throw error;
+}
+
 async function listCatalogKeys(firmId) {
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
@@ -172,6 +178,7 @@ module.exports = {
   findByIdsForFirm,
   createRow,
   updateRow,
+  deleteRow,
   bulkUpdate,
   listCatalogKeys,
   map,

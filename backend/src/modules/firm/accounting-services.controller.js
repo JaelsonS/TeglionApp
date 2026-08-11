@@ -64,6 +64,17 @@ exports.patch = async (req, res, next) => {
   }
 };
 
+exports.remove = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const id = parseEntityId(req.params.id, 'id');
+    const result = await accountingServicesService.remove({ firmId, id });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.duplicate = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);

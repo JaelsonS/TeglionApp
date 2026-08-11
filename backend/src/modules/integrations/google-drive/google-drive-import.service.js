@@ -26,11 +26,30 @@ async function importFileFromDrive({ firmId, clientId, senderId, fileId, accessT
     throw new AppError(`Ficheiro excede o limite de ${maxFileSizeMb()}MB`, 400);
   }
 
-  const buffer = await googleDriveService.downloadDriveFile({ accessToken, fileId });
+  // Ficheiros nativos do Google (Docs/Sheets/Slides/Drawings) não têm bytes
+  // próprios — precisam de ser exportados para um formato real (PDF/XLSX)
+  // em vez de descarregados directamente.
+  const exportTarget = googleDriveService.getExportTarget(metadata.mimeType);
+  if (googleDriveService.isGoogleNativeFile(metadata.mimeType) && !exportTarget) {
+    throw new AppError(
+      'Este tipo de ficheiro do Google (ex: Formulários, Apps Script) não pode ser importado directamente. Abra-o no Google Drive, exporte para PDF e tente novamente.',
+      400,
+    );
+  }
+
+  const buffer = exportTarget
+    ? await googleDriveService.exportDriveFile({ accessToken, fileId, exportMimeType: exportTarget.mimeType })
+    : await googleDriveService.downloadDriveFile({ accessToken, fileId });
+
+  const hasExtension = /\.[a-z0-9]{2,5}$/i.test(metadata.name || '');
+  const originalname = exportTarget && !hasExtension
+    ? `${metadata.name || 'documento'}${exportTarget.extension}`
+    : metadata.name || 'documento';
+
   const file = {
     buffer,
-    mimetype: metadata.mimeType || 'application/octet-stream',
-    originalname: metadata.name || 'documento',
+    mimetype: exportTarget ? exportTarget.mimeType : metadata.mimeType || 'application/octet-stream',
+    originalname,
     size: buffer.length,
   };
 

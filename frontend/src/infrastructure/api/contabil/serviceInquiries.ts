@@ -71,6 +71,9 @@ export function createContabilServiceInquiriesApi(api: AxiosInstance) {
     revokeToken: (id: string) =>
       api.post(`/contabil/service-inquiries/${encodeURIComponent(id)}/revoke-token`).then((r) => r.data),
 
+    remove: (id: string) =>
+      api.delete(`/contabil/service-inquiries/${encodeURIComponent(id)}`).then((r) => r.data),
+
     addRequest: (id: string, payload: { kind: ServiceInquiryRequestKind; title: string; instructions?: string }) =>
       api
         .post(`/contabil/service-inquiries/${encodeURIComponent(id)}/requests`, payload)

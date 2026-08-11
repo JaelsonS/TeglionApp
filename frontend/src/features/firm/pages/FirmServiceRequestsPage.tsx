@@ -46,7 +46,7 @@ export function FirmServiceRequestsPage() {
           </button>
         ))}
       </div>
-      <div className="cb-firm-operational-panel flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="cb-firm-operational-panel flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden">
         {activeTab === 'catalog' || activeTab === 'irs' ? (
           <AgendaServicesCatalogPanel
             key={activeTab}
