@@ -14,7 +14,7 @@ export function isAuthenticatedAppRoute(pathname: string): boolean {
 
 /**
  * Páginas públicas de captação (ServiceIntakePublicPage, ServiceIntakePortalPage,
- * FirmPublicServicesPage) — sem login, mas usam useQuery. Nem "lightweight"
+ * FirmPublicSitePage) — sem login, mas usam useQuery. Nem "lightweight"
  * (precisam de QueryClientProvider) nem "authenticated" (nunca têm sessão) —
  * categoria própria para não caírem sem nenhum provider (useQuery sem
  * QueryClientProvider, useAuth sem AuthProvider).

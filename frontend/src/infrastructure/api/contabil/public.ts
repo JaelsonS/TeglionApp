@@ -1,5 +1,6 @@
 import type { AxiosInstance } from 'axios'
 import type { IntakeForm } from '@/shared/types/contabil'
+import type { PublicSiteConfig } from '@/shared/types/firmPublicSite'
 
 export type PublicServiceIntake = {
   firmName: string
@@ -49,6 +50,24 @@ export type PublicFirmServices = {
   faqs: PublicFirmFaq[]
   contact: PublicFirmContact
   items: PublicFirmServiceSummary[]
+}
+
+/** v9 — resposta de `GET /public/firms/:firmSlug/site` (ver plan file da
+ * sessão). Substitui `PublicFirmServices` acima como fonte da página
+ * pública a partir da Fase 4 — aquele endpoint fica só para consumidores
+ * antigos durante a transição. */
+export type PublicFirmSite = {
+  firmName: string
+  logoUrl: string | null
+  isPreview: boolean
+  templateKey: string
+  seo: PublicSiteConfig['seo']
+  theme: PublicSiteConfig['theme']
+  images: PublicSiteConfig['images']
+  socialLinks: PublicSiteConfig['socialLinks']
+  sections: PublicSiteConfig['sections']
+  contact: PublicFirmContact
+  services: PublicFirmServiceSummary[]
 }
 
 export type PublicIntakeSubmitPayload = {
@@ -138,6 +157,13 @@ export function createContabilPublicApi(api: AxiosInstance) {
       api
         .get(`/public/firms/${encodeURIComponent(firmSlug)}/services`)
         .then((r) => r.data as PublicFirmServices),
+
+    getPublicFirmSite: (firmSlug: string, previewToken?: string) =>
+      api
+        .get(`/public/firms/${encodeURIComponent(firmSlug)}/site`, {
+          params: previewToken ? { preview: previewToken } : undefined,
+        })
+        .then((r) => r.data as PublicFirmSite),
 
     getPublicService: (firmSlug: string, serviceSlug: string) =>
       api
