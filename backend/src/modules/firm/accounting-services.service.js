@@ -407,18 +407,42 @@ async function seedCatalog({ firmId }) {
   return { created, items };
 }
 
+/**
+ * Activa serviços escolhidos do catálogo nacional — cria SÓ os que o
+ * escritório seleccionou, já activos. Não chama seedCatalog(): esse insere
+ * as 21 entradas todas de uma vez (usado só uma vez, no registo do
+ * escritório) e, se chamado aqui, faria os restantes 20 templates
+ * reaparecerem sempre que o escritório activasse 1 serviço — inclusive
+ * depois de os ter apagado deliberadamente. Idempotente por catalogKey já
+ * existente (activo ou inactivo), como o resto do módulo.
+ */
 async function activateFromCatalog({ firmId, catalogKeys }) {
   const keys = Array.isArray(catalogKeys) ? catalogKeys.filter(Boolean) : [];
   if (!keys.length) throw new AppError('Seleccione serviços do catálogo', 400);
 
-  await seedCatalog({ firmId });
+  const existingKeys = await accountingServicesRepository.listCatalogKeys(firmId);
+  const toCreate = CONSULTING_SERVICES_CATALOG.filter(
+    (entry) => keys.includes(entry.catalogKey) && !existingKeys.has(entry.catalogKey),
+  );
 
-  const all = await accountingServicesRepository.listByFirm(firmId, { activeOnly: false });
-  const toActivate = all.filter((s) => s.catalogKey && keys.includes(s.catalogKey));
-  const ids = toActivate.map((s) => s.id);
-  if (!ids.length) return { items: [], activated: 0 };
-
-  const items = await accountingServicesRepository.bulkUpdate(ids, firmId, { isActive: true });
+  const items = [];
+  for (const entry of toCreate) {
+    const { item } = await create({
+      firmId,
+      payload: {
+        catalogKey: entry.catalogKey,
+        name: entry.name,
+        description: entry.description || null,
+        durationMinutes: entry.durationMinutes,
+        priceCents: entry.priceCents,
+        isActive: true,
+        requiresBooking: entry.requiresBooking !== false,
+        documentRequirements: entry.documentRequirements,
+        intakeForm: entry.intakeForm,
+      },
+    });
+    items.push(item);
+  }
   return { items, activated: items.length };
 }
 

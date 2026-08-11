@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import {
   CalendarClock,
@@ -200,6 +201,7 @@ export function AgendaServicesCatalogPanel({
   const [editing, setEditing] = useState<Record<string, Partial<AccountingService>>>({})
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [advancedDraft, setAdvancedDraft] = useState<Record<string, Partial<AccountingService>>>({})
+  const [newDocDraft, setNewDocDraft] = useState<Record<string, string>>({})
   const [duplicating, setDuplicating] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<AccountingService | null>(null)
@@ -210,9 +212,23 @@ export function AgendaServicesCatalogPanel({
   const { user } = useAuth()
   const firmSlug = user?.tenant?.slug
 
-  const inactiveCatalog = useMemo(
-    () => services.filter((s) => s.isActive === false),
+  const catalogTemplateQuery = useQuery({
+    queryKey: ['contabil-accounting-services', 'catalog-template'],
+    queryFn: () => contabilAccountingServicesApi.getCatalogTemplate(),
+    staleTime: 10 * 60_000,
+  })
+
+  /** Templates do catálogo nacional que o escritório ainda não tem (activo ou
+   * inactivo). Vem sempre da lista estática — nunca de linhas pré-seedadas —
+   * para nunca reaparecer sozinho depois de o escritório apagar um serviço
+   * de propósito (ver `activateFromCatalog` no backend). */
+  const existingCatalogKeys = useMemo(
+    () => new Set(services.map((s) => s.catalogKey).filter((k): k is string => Boolean(k))),
     [services],
+  )
+  const inactiveCatalog = useMemo(
+    () => (catalogTemplateQuery.data?.items ?? []).filter((s) => !existingCatalogKeys.has(s.catalogKey)),
+    [catalogTemplateQuery.data, existingCatalogKeys],
   )
 
   const filtered = useMemo(() => {
@@ -232,27 +248,6 @@ export function AgendaServicesCatalogPanel({
         (s.catalogKey || '').toLowerCase().includes(q),
     )
   }, [services, filter, search, focusFilter])
-
-  const ensureCatalog = useCallback(async () => {
-    // `services` nasce `[]` a cada montagem, antes do fetch do pai resolver —
-    // sem esperar por `isLoading`, isto confundia "ainda a carregar" com
-    // "catálogo genuinamente vazio" e reseedava (+ toast) em toda navegação.
-    if (isLoading || services.length > 0) return
-    setBusy(true)
-    try {
-      await contabilAccountingServicesApi.seedCatalog()
-      await onReload()
-      toast.success('Catálogo de consultorias carregado — active os serviços que o escritório presta')
-    } catch (err) {
-      toast.error('Erro ao carregar catálogo', { description: getErrorMessage(err) })
-    } finally {
-      setBusy(false)
-    }
-  }, [isLoading, services.length, onReload])
-
-  useEffect(() => {
-    void ensureCatalog()
-  }, [ensureCatalog])
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
@@ -603,6 +598,39 @@ export function AgendaServicesCatalogPanel({
     patchAdvanced(id, { intakeForm: { questions: next } })
   }
 
+  const newDocKey = (id: string, qIndex: number, oIndex: number) => `${id}:${qIndex}:${oIndex}`
+
+  /**
+   * Cria um documento exigido directamente a partir de uma opção do
+   * formulário (ex.: clicar em "Sim" e escrever "Comprovativo de morada" ali
+   * mesmo) — em vez de obrigar a ir primeiro a "Documentos necessários"
+   * declarar o documento para só depois voltar aqui e marcar a opção. Cria
+   * o requisito E já liga essa opção a ele, num único passo.
+   */
+  const addRequirementFromOption = (id: string, qIndex: number, oIndex: number, rawTitle: string) => {
+    const title = rawTitle.trim()
+    if (!title) return
+    const currentReqs = advancedDraft[id]?.documentRequirements ?? []
+    const tag = slugifyTag(title, currentReqs.length)
+    const nextReqs = [...currentReqs, { tag, title, instructions: '' }]
+
+    const currentQuestions = advancedDraft[id]?.intakeForm?.questions ?? []
+    const nextQuestions = currentQuestions.map((q, i) => {
+      if (i !== qIndex) return q
+      const options = (q.options ?? []).map((o, oi) =>
+        oi !== oIndex ? o : { ...o, documentTags: [...o.documentTags, tag] },
+      )
+      return { ...q, options }
+    })
+
+    patchAdvanced(id, { documentRequirements: nextReqs, intakeForm: { questions: nextQuestions } })
+    setNewDocDraft((prev) => {
+      const next = { ...prev }
+      delete next[newDocKey(id, qIndex, oIndex)]
+      return next
+    })
+  }
+
   const previewService = services.find((s) => s.id === previewId)
 
   return (
@@ -666,7 +694,7 @@ export function AgendaServicesCatalogPanel({
                 <CommandGroup heading="Disponíveis para activar">
                   {inactiveCatalog.map((s) => (
                     <CommandItem
-                      key={s.id}
+                      key={s.catalogKey}
                       value={`${s.name} ${s.description || ''}`}
                       onSelect={() => {
                         if (!s.catalogKey) return
@@ -818,6 +846,20 @@ export function AgendaServicesCatalogPanel({
                           <span className="shrink-0 rounded-full bg-blue-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-800">
                             IRS
                           </span>
+                        ) : null}
+                        {s.catalogKey ? (
+                          <div className="group/tip relative shrink-0">
+                            <span className="cursor-help rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-800">
+                              Sugestão
+                            </span>
+                            <span
+                              role="tooltip"
+                              className="pointer-events-none absolute left-1/2 top-full z-20 mt-1.5 w-max max-w-[240px] -translate-x-1/2 rounded-md bg-foreground px-2 py-1 text-center text-[11px] font-medium leading-tight text-background opacity-0 shadow-md transition-opacity duration-150 group-hover/tip:opacity-100"
+                            >
+                              Nome, duração e preço vieram do catálogo nacional como ponto de partida — edite à
+                              vontade, o cliente nunca vê isso como "oficial".
+                            </span>
+                          </div>
                         ) : null}
                       </div>
                       <Textarea
@@ -1069,14 +1111,9 @@ export function AgendaServicesCatalogPanel({
                       </div>
 
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="flex items-center gap-1.5 text-caption font-medium text-muted-foreground">
-                            <FileQuestion className="h-3.5 w-3.5" /> Formulário de captação
-                          </span>
-                          <Button type="button" size="sm" variant="outline" onClick={() => addQuestion(s.id)}>
-                            <Plus className="mr-1 h-3.5 w-3.5" /> Adicionar pergunta
-                          </Button>
-                        </div>
+                        <span className="flex items-center gap-1.5 text-caption font-medium text-muted-foreground">
+                          <FileQuestion className="h-3.5 w-3.5" /> Formulário de captação
+                        </span>
                         {questions.length === 0 ? (
                           <p className="cb-text-caption">
                             Sem perguntas — a página pública pede só nome e email/telefone.
@@ -1154,24 +1191,37 @@ export function AgendaServicesCatalogPanel({
                                             </Button>
                                           ) : null}
                                         </div>
-                                        {requirements.length > 0 ? (
-                                          <div className="flex flex-wrap gap-2 pl-1">
-                                            {requirements.map((req) => (
-                                              <label
-                                                key={req.tag}
-                                                className="flex items-center gap-1 text-[11px] text-muted-foreground"
-                                              >
-                                                <Checkbox
-                                                  checked={opt.documentTags.includes(req.tag)}
-                                                  onCheckedChange={() =>
-                                                    toggleOptionDocumentTag(s.id, qIndex, oIndex, req.tag)
-                                                  }
-                                                />
-                                                {req.title || req.tag}
-                                              </label>
-                                            ))}
-                                          </div>
-                                        ) : null}
+                                        <div className="flex flex-wrap items-center gap-2 pl-1">
+                                          {requirements.map((req) => (
+                                            <label
+                                              key={req.tag}
+                                              className="flex items-center gap-1 text-[11px] text-muted-foreground"
+                                            >
+                                              <Checkbox
+                                                checked={opt.documentTags.includes(req.tag)}
+                                                onCheckedChange={() =>
+                                                  toggleOptionDocumentTag(s.id, qIndex, oIndex, req.tag)
+                                                }
+                                              />
+                                              {req.title || req.tag}
+                                            </label>
+                                          ))}
+                                          <Input
+                                            placeholder="+ Pedir documento se escolher esta opção…"
+                                            className="h-6 w-56 rounded-md border-dashed text-[11px]"
+                                            value={newDocDraft[newDocKey(s.id, qIndex, oIndex)] ?? ''}
+                                            onChange={(e: FormChangeEvent) =>
+                                              setNewDocDraft((prev) => ({
+                                                ...prev,
+                                                [newDocKey(s.id, qIndex, oIndex)]: e.target.value,
+                                              }))
+                                            }
+                                            onKeyDown={(e: { key: string; currentTarget: { value: string } }) => {
+                                              if (e.key !== 'Enter') return
+                                              addRequirementFromOption(s.id, qIndex, oIndex, e.currentTarget.value)
+                                            }}
+                                          />
+                                        </div>
                                       </div>
                                     ))}
                                     {q.type !== 'yes_no' ? (
@@ -1193,7 +1243,10 @@ export function AgendaServicesCatalogPanel({
                         )}
                       </div>
 
-                      <div className="flex justify-end">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button type="button" size="sm" variant="outline" onClick={() => addQuestion(s.id)}>
+                          <Plus className="mr-1 h-3.5 w-3.5" /> Adicionar pergunta
+                        </Button>
                         <Button
                           type="button"
                           size="sm"

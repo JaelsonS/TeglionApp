@@ -31,6 +31,37 @@ function assertValid(req) {
   }
 }
 
+/**
+ * Página pública unificada — lista todos os serviços publicados do
+ * escritório num único link partilhável (`/:firmSlug`), em vez de um link
+ * por serviço. Não substitui `/:firmSlug/servicos/:serviceSlug` — os dois
+ * convivem: o escritório escolhe qual partilhar, ou os dois.
+ */
+async function getPublicFirmServices(req, res, next) {
+  try {
+    assertValid(req);
+    const firmSlug = String(req.params.firmSlug || '').trim();
+    const firm = await firmsRepository.findFirmBySlugOrLabel(firmSlug);
+    if (!firm) throw new AppError('Escritório não encontrado', 404, { code: 'NOT_FOUND' });
+
+    const services = await accountingServicesRepository.listByFirm(firm.id, { activeOnly: true });
+    const items = services
+      .filter((s) => s.isPubliclyListed && s.slug)
+      .map((s) => ({
+        slug: s.slug,
+        name: s.name,
+        description: s.description || null,
+        durationMinutes: s.durationMinutes,
+        priceCents: s.priceCents,
+        requiresBooking: s.requiresBooking !== false,
+      }));
+
+    return res.json({ firmName: firm.name, items });
+  } catch (err) {
+    return next(err);
+  }
+}
+
 async function getPublicService(req, res, next) {
   try {
     assertValid(req);
@@ -154,6 +185,8 @@ const getServiceValidators = [
   param('serviceSlug').isString().trim().isLength({ min: 1, max: 80 }),
 ];
 
+const getFirmServicesValidators = [param('firmSlug').isString().trim().isLength({ min: 2, max: 64 })];
+
 const submitValidators = [
   param('firmSlug').isString().trim().isLength({ min: 2, max: 64 }),
   param('serviceSlug').isString().trim().isLength({ min: 1, max: 80 }),
@@ -180,12 +213,14 @@ const replyValidators = [
 ];
 
 module.exports = {
+  getPublicFirmServices,
   getPublicService,
   getPublicSlots,
   submitIntake,
   getByToken,
   uploadByToken,
   submitReply,
+  getFirmServicesValidators,
   getServiceValidators,
   submitValidators,
   slotsValidators,
