@@ -22,6 +22,16 @@ describe('isPublicIntakeRoute', () => {
     expect(isPublicIntakeRoute('/auth/firm/login')).toBe(false)
   })
 
+  it('reconhece a página pública unificada de um escritório (/:firmSlug) — regressão: caía sem nenhum provider e a useQuery rebentava com "No QueryClient set"', () => {
+    expect(isPublicIntakeRoute('/jaelson')).toBe(true)
+    expect(isPublicIntakeRoute('/llcnunes')).toBe(true)
+    expect(isPublicIntakeRoute('/llcnunes/')).toBe(true)
+  })
+
+  it('não reconhece a raiz nem caminhos vazios como slug de escritório', () => {
+    expect(isPublicIntakeRoute('/')).toBe(false)
+  })
+
   it('nunca colide com isLightweightPublicRoute nem isAuthenticatedAppRoute (categorias mutuamente exclusivas)', () => {
     const samples = [
       '/', '/blog', '/blog/algum-post', '/pricing', '/case-studies', '/suporte',
