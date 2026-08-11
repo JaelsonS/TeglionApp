@@ -14,6 +14,7 @@ const accountingServicesRepository = require('../../db/supabase/repositories/acc
 const bookingService = require('../booking/booking.service');
 const serviceInquiriesService = require('../firm/service-inquiries.service');
 const firmBrandingService = require('../firm/firm-branding.service');
+const firmPublicSiteService = require('../firm/firm-public-site.service');
 const { interpolateServiceTemplate } = require('../../utils/service-text-template');
 
 /** Resolve Firm + Service publicado pelo par (firmSlug, serviceSlug) — nunca aceita ids crus. */
@@ -83,6 +84,76 @@ async function getPublicFirmServices(req, res, next) {
         address: contact.address || null,
       },
       items,
+    });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+/**
+ * v9 — Website + Booking Builder (ver plan file da sessão). Página pública
+ * completa (secções configuráveis + serviços reais + booking), a substituir
+ * `getPublicFirmServices` acima na Fase 4. Serve sempre `published`, excepto
+ * quando um `?preview=<token>` válido e não expirado é apresentado — nesse
+ * caso serve `draft`, nunca indexável (o frontend aplica noindex). Sem
+ * `firm_public_sites.published` ainda (escritório nunca publicou, ou linha
+ * nem existe), cai para a tradução ao vivo do settings antigo — nunca uma
+ * página em branco.
+ */
+async function getPublicFirmSite(req, res, next) {
+  try {
+    assertValid(req);
+    const firmSlug = String(req.params.firmSlug || '').trim();
+    const firm = await firmsRepository.findFirmBySlugOrLabel(firmSlug);
+    if (!firm) throw new AppError('Escritório não encontrado', 404, { code: 'NOT_FOUND' });
+
+    const site = await firmPublicSiteService.getSite(firm.id);
+    const previewToken = req.query.preview ? String(req.query.preview).trim() : null;
+    const previewValid = firmPublicSiteService.isPreviewTokenValid(site, previewToken);
+    const config = previewValid
+      ? site.draft
+      : site.published || firmPublicSiteService.buildConfigFromLegacySettings(firm);
+
+    const services = await accountingServicesRepository.listByFirm(firm.id, { activeOnly: true });
+    const items = services
+      .filter((s) => s.isPubliclyListed && s.slug)
+      .map((s) => ({
+        slug: s.slug,
+        name: interpolateServiceTemplate(s.name),
+        description: interpolateServiceTemplate(s.description) || null,
+        durationMinutes: s.durationMinutes,
+        priceCents: s.priceCents,
+        requiresBooking: s.requiresBooking !== false,
+      }));
+
+    let logoUrl = null;
+    try {
+      logoUrl = await firmBrandingService.resolveLogoUrl(firm);
+    } catch {
+      logoUrl = firm.settings?.branding?.logoUrl || null;
+    }
+    const contact = firm.settings?.contact || {};
+
+    if (previewValid) {
+      res.set('X-Robots-Tag', 'noindex');
+    }
+
+    return res.json({
+      firmName: firm.name,
+      logoUrl,
+      isPreview: previewValid,
+      templateKey: site.templateKey || 'default',
+      seo: config.seo,
+      theme: config.theme,
+      images: config.images,
+      socialLinks: config.socialLinks,
+      sections: config.sections,
+      contact: {
+        email: contact.email || null,
+        phone: contact.phone || null,
+        address: contact.address || null,
+      },
+      services: items,
     });
   } catch (err) {
     return next(err);
@@ -214,6 +285,11 @@ const getServiceValidators = [
 
 const getFirmServicesValidators = [param('firmSlug').isString().trim().isLength({ min: 2, max: 64 })];
 
+const getFirmSiteValidators = [
+  param('firmSlug').isString().trim().isLength({ min: 2, max: 64 }),
+  query('preview').optional().isString().trim().isLength({ min: 1, max: 128 }),
+];
+
 const submitValidators = [
   param('firmSlug').isString().trim().isLength({ min: 2, max: 64 }),
   param('serviceSlug').isString().trim().isLength({ min: 1, max: 80 }),
@@ -241,6 +317,7 @@ const replyValidators = [
 
 module.exports = {
   getPublicFirmServices,
+  getPublicFirmSite,
   getPublicService,
   getPublicSlots,
   submitIntake,
@@ -248,6 +325,7 @@ module.exports = {
   uploadByToken,
   submitReply,
   getFirmServicesValidators,
+  getFirmSiteValidators,
   getServiceValidators,
   submitValidators,
   slotsValidators,

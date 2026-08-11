@@ -262,6 +262,33 @@ test('regeneratePreviewToken: rejeita quem não é FIRM_OWNER', async () => {
   );
 });
 
+test('isPreviewTokenValid: token errado ou ausente nunca é válido', () => {
+  const site = {
+    previewToken: 'abc123',
+    previewTokenExpiresAt: new Date(Date.now() + 60_000).toISOString(),
+  };
+  assert.equal(firmPublicSiteService.isPreviewTokenValid(site, 'errado'), false);
+  assert.equal(firmPublicSiteService.isPreviewTokenValid(site, null), false);
+  assert.equal(firmPublicSiteService.isPreviewTokenValid(site, undefined), false);
+  assert.equal(firmPublicSiteService.isPreviewTokenValid(null, 'abc123'), false, 'sem site (nunca configurado) nunca é válido');
+});
+
+test('isPreviewTokenValid: token certo mas expirado não é válido — nunca serve draft a um link antigo', () => {
+  const site = {
+    previewToken: 'abc123',
+    previewTokenExpiresAt: new Date(Date.now() - 60_000).toISOString(),
+  };
+  assert.equal(firmPublicSiteService.isPreviewTokenValid(site, 'abc123'), false);
+});
+
+test('isPreviewTokenValid: token certo e ainda dentro da validade é válido', () => {
+  const site = {
+    previewToken: 'abc123',
+    previewTokenExpiresAt: new Date(Date.now() + 60_000).toISOString(),
+  };
+  assert.equal(firmPublicSiteService.isPreviewTokenValid(site, 'abc123'), true);
+});
+
 test('regeneratePreviewToken: gera um token com validade de ~24h', async () => {
   resetMocks();
   mock.method(firmUsersRepository, 'findFirmUserById', async () => OWNER);

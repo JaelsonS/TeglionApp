@@ -320,6 +320,20 @@ async function regeneratePreviewToken(firmId, actorUserId) {
   return { previewToken: updated.previewToken, previewTokenExpiresAt: updated.previewTokenExpiresAt };
 }
 
+/**
+ * Um `?preview=<token>` só é válido quando bate exactamente no token gravado
+ * E ainda não expirou — qualquer outro caso (sem token, token errado, token
+ * expirado) deve cair para `published`, nunca servir `draft` por engano.
+ * Extraído do controller público para ficar testável ao nível do serviço,
+ * mesma disciplina de todo o resto deste ficheiro (controllers finos, lógica
+ * de negócio testada aqui).
+ */
+function isPreviewTokenValid(site, token) {
+  if (!token || !site?.previewToken || !site?.previewTokenExpiresAt) return false;
+  if (token !== site.previewToken) return false;
+  return new Date(site.previewTokenExpiresAt) > new Date();
+}
+
 module.exports = {
   getSite,
   saveDraft,
@@ -328,4 +342,5 @@ module.exports = {
   normalizeSiteConfig,
   defaultSiteConfig,
   buildConfigFromLegacySettings,
+  isPreviewTokenValid,
 };

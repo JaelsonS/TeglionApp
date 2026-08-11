@@ -111,6 +111,12 @@ router.get(
   serviceIntakeController.getPublicFirmServices,
 );
 router.get(
+  '/firms/:firmSlug/site',
+  serviceViewLimiter,
+  serviceIntakeController.getFirmSiteValidators,
+  serviceIntakeController.getPublicFirmSite,
+);
+router.get(
   '/firms/:firmSlug/services/:serviceSlug',
   serviceViewLimiter,
   serviceIntakeController.getServiceValidators,
