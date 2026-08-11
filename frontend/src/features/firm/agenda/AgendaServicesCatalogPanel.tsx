@@ -96,15 +96,39 @@ type Props = {
   services: AccountingService[]
   isLoading: boolean
   onReload: () => void | Promise<void>
+  /** Quando definido, a lista arranca já filtrada por este termo (ex.: "irs")
+   * — usado pela aba "IRS" dentro de Serviços, sem duplicar a lógica de
+   * filtragem já existente, só a pré-preenche. */
+  focusFilter?: string
+  title?: string
+  description?: string
 }
 
 function formatPrice(cents: number) {
   return (cents / 100).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })
 }
 
-export function AgendaServicesCatalogPanel({ services, isLoading, onReload }: Props) {
+const IRS_KEYWORDS = ['irs', 'e-fatura', 'efatura']
+
+/** Serviço "de IRS" — pelo nome, descrição ou chave do catálogo nacional
+ * (que já classifica `simulacao-irs`, `entrega-irs-orcamento`,
+ * `classificacao-efatura` como categoria IRS). Heurística de texto, não um
+ * campo próprio — evita migração de esquema só para isto. */
+function isIrsService(s: AccountingService): boolean {
+  const haystack = `${s.name} ${s.description || ''} ${s.catalogKey || ''}`.toLowerCase()
+  return IRS_KEYWORDS.some((k) => haystack.includes(k))
+}
+
+export function AgendaServicesCatalogPanel({
+  services,
+  isLoading,
+  onReload,
+  focusFilter,
+  title,
+  description,
+}: Props) {
   const [filter, setFilter] = useState<FilterMode>('all')
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(focusFilter ?? '')
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [bulkPrice, setBulkPrice] = useState<number | ''>('')
   const [bulkDuration, setBulkDuration] = useState<number | ''>('')
@@ -502,8 +526,11 @@ export function AgendaServicesCatalogPanel({ services, isLoading, onReload }: Pr
   return (
     <>
     <ProfileSectionCard
-      title="Os seus serviços"
-      description="Active, edite e publique — cada serviço (IRS, consultoria ou outro) pode ter o seu próprio formulário, documentos exigidos e agendamento."
+      title={title ?? 'Os seus serviços'}
+      description={
+        description ??
+        'Active, edite e publique — cada serviço (IRS, consultoria ou outro) pode ter o seu próprio formulário, documentos exigidos e agendamento.'
+      }
       className="lg:col-span-2"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
@@ -698,11 +725,18 @@ export function AgendaServicesCatalogPanel({ services, isLoading, onReload }: Pr
                   >
                     <Checkbox checked={selected.has(s.id)} onCheckedChange={() => toggleSelect(s.id)} />
                     <div className="min-w-0 space-y-1">
-                      <Input
-                        className="h-9 rounded-lg text-sm font-medium"
-                        value={name}
-                        onChange={(e: FormChangeEvent) => patchEditing(s.id, { name: e.target.value })}
-                      />
+                      <div className="flex items-center gap-2">
+                        <Input
+                          className="h-9 flex-1 rounded-lg text-sm font-medium"
+                          value={name}
+                          onChange={(e: FormChangeEvent) => patchEditing(s.id, { name: e.target.value })}
+                        />
+                        {isIrsService(s) ? (
+                          <span className="shrink-0 rounded-full bg-blue-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-blue-800">
+                            IRS
+                          </span>
+                        ) : null}
+                      </div>
                       {s.description ? (
                         <p className="line-clamp-2 cb-text-caption">{s.description}</p>
                       ) : null}
