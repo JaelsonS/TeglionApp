@@ -189,7 +189,7 @@ export function AgendaServicesCatalogPanel({
   description,
 }: Props) {
   const [filter, setFilter] = useState<FilterMode>('all')
-  const [search, setSearch] = useState(focusFilter ?? '')
+  const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [bulkPrice, setBulkPrice] = useState<number | ''>('')
   const [bulkDuration, setBulkDuration] = useState<number | ''>('')
@@ -218,6 +218,10 @@ export function AgendaServicesCatalogPanel({
     let list = services
     if (filter === 'active') list = list.filter((s) => s.isActive !== false)
     if (filter === 'inactive') list = list.filter((s) => s.isActive === false)
+    // A aba "IRS" restringe pelo mesmo predicado do badge (nome/catalogKey),
+    // não por texto livre — texto livre casaria também com serviços genéricos
+    // cuja descrição só menciona IRS de passagem (ex.: "Consultoria Individual").
+    if (focusFilter === 'irs') list = list.filter(isIrsService)
     const q = search.trim().toLowerCase()
     if (!q) return list
     return list.filter(
@@ -226,7 +230,7 @@ export function AgendaServicesCatalogPanel({
         (s.description || '').toLowerCase().includes(q) ||
         (s.catalogKey || '').toLowerCase().includes(q),
     )
-  }, [services, filter, search])
+  }, [services, filter, search, focusFilter])
 
   const ensureCatalog = useCallback(async () => {
     // `services` nasce `[]` a cada montagem, antes do fetch do pai resolver —
