@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ExternalLink, Eye, Globe, Loader2, Save, Upload } from 'lucide-react'
+import { ChevronDown, ChevronUp, ExternalLink, Eye, Globe, Loader2, Save, Upload } from 'lucide-react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { toast } from 'sonner'
 
@@ -98,6 +98,27 @@ export function PublicSiteEditor({ bundle }: Props) {
   const toggleSection = (key: string, enabled: boolean) => {
     if (!draft) return
     setDraft({ ...draft, sections: draft.sections.map((s) => (s.key === key ? { ...s, enabled } : s)) })
+  }
+
+  /** Troca a `order` com o vizinho na direcção pedida — reordena dentro da
+   * lista completa (não só as secções activas), para uma secção desligada
+   * já ficar na posição certa se for religada mais tarde. */
+  const moveSection = (key: string, direction: 'up' | 'down') => {
+    if (!draft) return
+    const sorted = [...draft.sections].sort((a, b) => a.order - b.order)
+    const index = sorted.findIndex((s) => s.key === key)
+    const targetIndex = direction === 'up' ? index - 1 : index + 1
+    if (index === -1 || targetIndex < 0 || targetIndex >= sorted.length) return
+    const current = sorted[index]
+    const neighbor = sorted[targetIndex]
+    setDraft({
+      ...draft,
+      sections: draft.sections.map((s) => {
+        if (s.key === current.key) return { ...s, order: neighbor.order }
+        if (s.key === neighbor.key) return { ...s, order: current.order }
+        return s
+      }),
+    })
   }
 
   const [uploadingImageKey, setUploadingImageKey] = useState<string | null>(null)
@@ -235,7 +256,7 @@ export function PublicSiteEditor({ bundle }: Props) {
           {draft.sections
             .slice()
             .sort((a, b) => a.order - b.order)
-            .map((section) => (
+            .map((section, index, sorted) => (
               <div key={section.key} className="rounded-xl border border-border/50 p-4">
                 <div className="mb-3 flex items-center justify-between">
                   <Label className="flex items-center gap-2 text-sm font-semibold">
@@ -245,6 +266,30 @@ export function PublicSiteEditor({ bundle }: Props) {
                     />
                     {SECTION_LABELS[section.type]}
                   </Label>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      disabled={index === 0}
+                      onClick={() => moveSection(section.key, 'up')}
+                      aria-label="Mover para cima"
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      disabled={index === sorted.length - 1}
+                      onClick={() => moveSection(section.key, 'down')}
+                      aria-label="Mover para baixo"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 {section.enabled ? (
                   <SectionEditorSwitch
