@@ -10,6 +10,7 @@ import { cn } from '@/shared/lib/utils'
 
 const TABS = [
   { id: 'catalog', label: 'Catálogo' },
+  { id: 'irs', label: 'IRS' },
   { id: 'central', label: 'Central de Serviços' },
   { id: 'inquiries', label: 'Solicitações' },
 ] as const
@@ -19,7 +20,8 @@ type TabId = (typeof TABS)[number]['id']
 export function FirmServiceRequestsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const rawTab = searchParams.get('tab')
-  const activeTab: TabId = rawTab === 'central' || rawTab === 'inquiries' ? rawTab : 'catalog'
+  const activeTab: TabId =
+    rawTab === 'irs' || rawTab === 'central' || rawTab === 'inquiries' ? rawTab : 'catalog'
 
   const qc = useQueryClient()
   const servicesQuery = useQuery({
@@ -45,11 +47,19 @@ export function FirmServiceRequestsPage() {
         ))}
       </div>
       <div className="cb-firm-operational-panel flex min-h-0 flex-1 flex-col overflow-hidden">
-        {activeTab === 'catalog' ? (
+        {activeTab === 'catalog' || activeTab === 'irs' ? (
           <AgendaServicesCatalogPanel
+            key={activeTab}
             services={servicesQuery.data?.items ?? []}
             isLoading={servicesQuery.isLoading}
             onReload={() => qc.invalidateQueries({ queryKey: ['contabil-accounting-services', 'catalog-tab'] })}
+            focusFilter={activeTab === 'irs' ? 'irs' : undefined}
+            title={activeTab === 'irs' ? 'Serviços de IRS' : undefined}
+            description={
+              activeTab === 'irs'
+                ? 'Simulação, entrega e outros serviços de IRS activos no escritório. Active mais a partir do catálogo nacional ou crie um novo.'
+                : undefined
+            }
           />
         ) : activeTab === 'central' ? (
           <ServicesWorkspace />
