@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
   AlertTriangle,
   Building2,
+  Globe,
   ImageIcon,
   Shield,
   User,
@@ -15,6 +16,7 @@ import { FirmScrollPage } from '@/features/firm/FirmPageLayout'
 import { firmSettingsApi } from '@/infrastructure/api/contabil/firmSettings'
 import { FirmSettingsDangerZone } from '@/features/firm/settings/FirmSettingsDangerZone'
 import { FirmSettingsFirmSection } from '@/features/firm/settings/FirmSettingsFirmSection'
+import { FirmSettingsPublicPageSection } from '@/features/firm/settings/FirmSettingsPublicPageSection'
 import { FirmSettingsProfileSection } from '@/features/firm/settings/FirmSettingsProfileSection'
 import { FirmSettingsTeamSection } from '@/features/firm/settings/FirmSettingsTeamSection'
 import { FirmSettingsNotificationsSection } from '@/features/firm/settings/FirmSettingsNotificationsSection'
@@ -22,6 +24,7 @@ import { cn } from '@/shared/lib/utils'
 
 const TABS = [
   { id: 'identidade', label: 'Identidade', shortLabel: 'Logo', icon: ImageIcon, danger: false },
+  { id: 'pagina-publica', label: 'Página pública', shortLabel: 'Página', icon: Globe, danger: false },
   { id: 'escritorio', label: 'Escritório', shortLabel: 'Escritório', icon: Building2, danger: false },
   { id: 'perfil', label: 'O seu perfil', shortLabel: 'Perfil', icon: User, danger: false },
   { id: 'equipa', label: 'Equipa', shortLabel: 'Equipa', icon: Users, danger: false },
@@ -154,6 +157,7 @@ export function FirmSettingsPage() {
                 <h2 className="cb-settings-hub-panel-title">{activeMeta.label}</h2>
                 <p className="cb-settings-hub-panel-sub">
                   {activeTab === 'identidade' && 'Logótipo no menu, portal do cliente e comunicações.'}
+                  {activeTab === 'pagina-publica' && 'O que aparece na sua página pública partilhável.'}
                   {activeTab === 'escritorio' && 'Nome e contactos do escritório.'}
                   {activeTab === 'perfil' && 'Os seus dados de acesso e segurança.'}
                   {activeTab === 'equipa' && 'Colaboradores, cargos e departamentos.'}
@@ -175,6 +179,10 @@ export function FirmSettingsPage() {
                   </div>
                   <FirmLogoSettingsCard readOnly={!canEditLogo} showContextPreview />
                 </section>
+              ) : null}
+
+              {activeTab === 'pagina-publica' ? (
+                <FirmSettingsPublicPageSection bundle={bundle} onUpdated={onUpdated} />
               ) : null}
 
               {activeTab === 'escritorio' ? (

@@ -166,6 +166,32 @@ async function updateFirmBranding(firmId, brandingPatch) {
   return mapFirm(data);
 }
 
+/**
+ * Página pública (`/:firmSlug`) — conteúdo editorial (tagline, bio, FAQ,
+ * redes sociais), separado de `branding` (cor/logo, identidade visual) para
+ * não misturar "o que a página diz" com "a cara que a página tem".
+ */
+async function updateFirmPublicProfile(firmId, publicProfilePatch) {
+  const current = await findFirmById(firmId);
+  if (!current) return null;
+  const settings = {
+    ...(current.settings || {}),
+    publicProfile: {
+      ...((current.settings || {}).publicProfile || {}),
+      ...publicProfilePatch,
+    },
+  };
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from('firms')
+    .update({ settings, updated_at: new Date().toISOString() })
+    .eq('id', firmId)
+    .select()
+    .single();
+  if (error) throw error;
+  return mapFirm(data);
+}
+
 async function clearFirmLogoBranding(firmId) {
   const current = await findFirmById(firmId);
   if (!current) return null;
@@ -201,5 +227,6 @@ module.exports = {
   findFirmByStripeCustomerId,
   updateStripeIds,
   updateFirmBranding,
+  updateFirmPublicProfile,
   clearFirmLogoBranding,
 };

@@ -1,7 +1,9 @@
 import { api } from '@/infrastructure/api'
 import type {
   FirmSettingsBundle,
+  PatchFirmBrandingPayload,
   PatchFirmProfilePayload,
+  PatchFirmPublicProfilePayload,
   PatchFirmSettingsPayload,
 } from '@/shared/types/firmSettings'
 
@@ -10,6 +12,16 @@ export const firmSettingsApi = {
 
   patchFirm: (payload: PatchFirmSettingsPayload) =>
     api.patch('/contabil/firm/settings', payload).then((r) => r.data),
+
+  patchPublicProfile: (payload: PatchFirmPublicProfilePayload) =>
+    api
+      .patch('/contabil/firm/public-profile', payload)
+      .then((r) => r.data as { publicProfile: FirmSettingsBundle['publicProfile'] }),
+
+  patchBranding: (payload: PatchFirmBrandingPayload) =>
+    api
+      .patch('/contabil/firm/branding', payload)
+      .then((r) => r.data as { branding: FirmSettingsBundle['branding'] & { logoUrl?: string | null } }),
 
   patchProfile: (payload: PatchFirmProfilePayload) =>
     api.patch('/contabil/firm/profile', payload).then((r) => r.data as { profile: { id: string; email: string; fullName: string; firmRole: string } }),

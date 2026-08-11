@@ -96,6 +96,28 @@ router.patch(
   firmSettingsController.patchFirm,
 );
 router.patch(
+  '/firm/public-profile',
+  requireFirmOwner,
+  requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
+  [
+    body('tagline').optional({ values: 'null' }).isString().trim().isLength({ max: 160 }),
+    body('bio').optional({ values: 'null' }).isString().trim().isLength({ max: 2000 }),
+    body('socialLinks').optional({ values: 'null' }).isObject(),
+    body('faqs').optional({ values: 'null' }).isArray({ max: 20 }),
+  ],
+  firmSettingsController.patchPublicProfile,
+);
+router.patch(
+  '/firm/branding',
+  requireFirmOwner,
+  requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
+  [
+    body('primaryColor').optional({ values: 'null' }).isString().trim().isLength({ max: 7 }),
+    body('secondaryColor').optional({ values: 'null' }).isString().trim().isLength({ max: 7 }),
+  ],
+  firmSettingsController.patchBranding,
+);
+router.patch(
   '/firm/profile',
   requirePermission(PERMISSIONS.FIRM_READ),
   [

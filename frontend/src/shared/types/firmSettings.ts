@@ -28,6 +28,20 @@ export type FirmSettingsCapabilities = {
   canEditOwnProfile: boolean
 }
 
+export type FirmPublicProfileFaq = {
+  id: string
+  question: string
+  answer: string
+}
+
+export type FirmPublicProfileSocialLinks = {
+  instagram?: string | null
+  facebook?: string | null
+  linkedin?: string | null
+  whatsapp?: string | null
+  website?: string | null
+}
+
 export type FirmSettingsBundle = {
   firm: {
     id: string
@@ -40,6 +54,16 @@ export type FirmSettingsBundle = {
   }
   logoUrl?: string | null
   contact: FirmSettingsContact
+  branding: {
+    primaryColor: string | null
+    secondaryColor: string | null
+  }
+  publicProfile: {
+    tagline: string | null
+    bio: string | null
+    socialLinks: FirmPublicProfileSocialLinks
+    faqs: FirmPublicProfileFaq[]
+  }
   actor: {
     id: string
     email: string
@@ -69,4 +93,16 @@ export type PatchFirmSettingsPayload = {
 export type PatchFirmProfilePayload = {
   fullName?: string
   email?: string
+}
+
+export type PatchFirmPublicProfilePayload = {
+  tagline?: string | null
+  bio?: string | null
+  socialLinks?: FirmPublicProfileSocialLinks | null
+  faqs?: Array<{ id?: string; question: string; answer: string }> | null
+}
+
+export type PatchFirmBrandingPayload = {
+  primaryColor?: string | null
+  secondaryColor?: string | null
 }

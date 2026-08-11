@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { AppError } = require('../../middlewares/error.middleware');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
@@ -74,6 +75,16 @@ async function getSettingsBundle(firmId, actorUserId) {
       phone: contact.phone || null,
       taxId: contact.taxId || null,
       address: contact.address || null,
+    },
+    branding: {
+      primaryColor: settings.branding?.primaryColor || null,
+      secondaryColor: settings.branding?.secondaryColor || null,
+    },
+    publicProfile: {
+      tagline: settings.publicProfile?.tagline || null,
+      bio: settings.publicProfile?.bio || null,
+      socialLinks: settings.publicProfile?.socialLinks || {},
+      faqs: settings.publicProfile?.faqs || [],
     },
     actor: {
       id: actor.id,
@@ -249,9 +260,108 @@ async function closeFirmAccount(firmId, actorUserId, { confirmName, npsScore, np
   return { closed: true, message: 'Conta do escritório encerrada. Todas as sessões foram terminadas.' };
 }
 
+const SOCIAL_LINK_KEYS = ['instagram', 'facebook', 'linkedin', 'whatsapp', 'website'];
+const MAX_FAQS = 20;
+
+/** Mesmo padrão de `generateStableId()` do intake_form (Fase B/C): o id nasce
+ * no cliente e nunca é re-derivado do texto; isto só cobre o caso de uma
+ * chamada directa à API sem passar pelo editor. */
+function generateStableFaqId() {
+  return `faq_${crypto.randomUUID()}`;
+}
+
+function normalizeSocialLinks(input) {
+  if (input === undefined) return undefined;
+  if (input === null) return {};
+  if (typeof input !== 'object') throw new AppError('socialLinks inválido', 400);
+  const out = {};
+  for (const key of SOCIAL_LINK_KEYS) {
+    const raw = input[key];
+    if (raw == null) {
+      out[key] = null;
+      continue;
+    }
+    const value = String(raw).trim();
+    out[key] = value ? value.slice(0, 300) : null;
+  }
+  return out;
+}
+
+function normalizeFaqs(input) {
+  if (input === undefined) return undefined;
+  if (input === null) return [];
+  if (!Array.isArray(input)) throw new AppError('faqs deve ser uma lista', 400);
+  return input
+    .slice(0, MAX_FAQS)
+    .map((item) => ({
+      id: String(item?.id || generateStableFaqId()).trim().slice(0, 80),
+      question: String(item?.question || '').trim().slice(0, 200),
+      answer: String(item?.answer || '').trim().slice(0, 2000),
+    }))
+    .filter((f) => f.question && f.answer);
+}
+
+/**
+ * Conteúdo editorial da página pública (`/:firmSlug`) — separado de
+ * `branding` (cor/logo) porque é "o que a página diz", não "a cara que tem".
+ * Reaproveita `contact` (settings.contact, já preenchido em "Escritório")
+ * para o rodapé de contactos — não duplica email/telefone aqui.
+ */
+async function updatePublicProfile(firmId, actorUserId, payload) {
+  const actor = await firmUsersRepository.findFirmUserById(actorUserId);
+  if (!actor || String(actor.firm_id) !== String(firmId) || actor.role !== 'FIRM_OWNER') {
+    throw new AppError('Apenas o dono do escritório pode alterar a página pública.', 403);
+  }
+
+  const patch = {};
+  if (payload.tagline !== undefined) {
+    patch.tagline = payload.tagline == null ? null : String(payload.tagline).trim().slice(0, 160) || null;
+  }
+  if (payload.bio !== undefined) {
+    patch.bio = payload.bio == null ? null : String(payload.bio).trim().slice(0, 2000) || null;
+  }
+  const socialLinks = normalizeSocialLinks(payload.socialLinks);
+  if (socialLinks !== undefined) patch.socialLinks = socialLinks;
+  const faqs = normalizeFaqs(payload.faqs);
+  if (faqs !== undefined) patch.faqs = faqs;
+
+  const updated = await firmsRepository.updateFirmPublicProfile(firmId, patch);
+  return { publicProfile: updated.settings?.publicProfile || {} };
+}
+
+/** Cor de marca da página pública (logo já tem o seu próprio upload/remove). */
+async function updateBranding(firmId, actorUserId, payload) {
+  const actor = await firmUsersRepository.findFirmUserById(actorUserId);
+  if (!actor || String(actor.firm_id) !== String(firmId) || actor.role !== 'FIRM_OWNER') {
+    throw new AppError('Apenas o dono do escritório pode alterar a identidade visual.', 403);
+  }
+
+  const HEX_RE = /^#[0-9a-f]{6}$/i;
+  const patch = {};
+  if (payload.primaryColor !== undefined) {
+    if (payload.primaryColor != null && !HEX_RE.test(String(payload.primaryColor).trim())) {
+      throw new AppError('primaryColor deve ser uma cor hex válida (#rrggbb).', 400);
+    }
+    patch.primaryColor = payload.primaryColor == null ? null : String(payload.primaryColor).trim();
+  }
+  if (payload.secondaryColor !== undefined) {
+    if (payload.secondaryColor != null && !HEX_RE.test(String(payload.secondaryColor).trim())) {
+      throw new AppError('secondaryColor deve ser uma cor hex válida (#rrggbb).', 400);
+    }
+    patch.secondaryColor = payload.secondaryColor == null ? null : String(payload.secondaryColor).trim();
+  }
+
+  const updated = await firmsRepository.updateFirmBranding(firmId, patch);
+  const branding = { ...(updated.settings?.branding || {}) };
+  delete branding.logoStorageKey;
+  return { branding };
+}
+
 module.exports = {
   getSettingsBundle,
   updateFirmDetails,
+  updatePublicProfile,
+  updateBranding,
   updateMyProfile,
   changeMyPassword,
   closeFirmAccount,
