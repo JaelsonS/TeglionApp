@@ -138,7 +138,7 @@ export function AboutSection({ content, images }: { content: PublicSiteAboutCont
   const photoUrl = resolveFirstImageUrl(content.imageIds, images)
   return (
     <section className="mx-auto max-w-2xl space-y-3 px-4 py-6">
-      {photoUrl ? <img src={photoUrl} alt="" className="w-full rounded-xl object-cover" /> : null}
+      {photoUrl ? <img src={photoUrl} alt="" loading="lazy" className="w-full rounded-xl object-cover" /> : null}
       {content.heading ? <h2 className="text-lg font-semibold">{content.heading}</h2> : null}
       {content.body ? <p className="whitespace-pre-line text-sm text-muted-foreground">{content.body}</p> : null}
     </section>
