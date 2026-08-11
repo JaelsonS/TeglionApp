@@ -8,6 +8,7 @@ const clientTasksController = require('../../modules/tasks/client-tasks.controll
 const accountingServicesController = require('../../modules/firm/accounting-services.controller');
 const bookingSettingsController = require('../../modules/firm/booking-settings.controller');
 const firmSettingsController = require('../../modules/firm/firm-settings.controller');
+const firmPublicSiteController = require('../../modules/firm/firm-public-site.controller');
 const { requireFirmOwner } = require('../../middlewares/firm-owner.middleware');
 const consultationsController = require('../../modules/consultations/consultations.controller');
 const invitesController = require('../../modules/firm/invites.controller');
@@ -116,6 +117,29 @@ router.patch(
     body('secondaryColor').optional({ values: 'null' }).isString().trim().isLength({ max: 7 }),
   ],
   firmSettingsController.patchBranding,
+);
+router.get(
+  '/firm/public-site',
+  requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
+  firmPublicSiteController.getSite,
+);
+router.patch(
+  '/firm/public-site/draft',
+  requireFirmOwner,
+  requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
+  firmPublicSiteController.saveDraft,
+);
+router.post(
+  '/firm/public-site/publish',
+  requireFirmOwner,
+  requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
+  firmPublicSiteController.publish,
+);
+router.post(
+  '/firm/public-site/preview-token',
+  requireFirmOwner,
+  requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
+  firmPublicSiteController.regeneratePreviewToken,
 );
 router.patch(
   '/firm/profile',
