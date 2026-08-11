@@ -1,4 +1,5 @@
 import type { AxiosInstance } from 'axios'
+import type { ConsultingCatalogEntry } from '@/shared/types/contabil'
 
 export function createContabilAccountingServicesApi(api: AxiosInstance) {
   return {
@@ -6,9 +7,9 @@ export function createContabilAccountingServicesApi(api: AxiosInstance) {
       api.get('/contabil/accounting-services', { params }).then((r) => r.data),
 
     getCatalogTemplate: () =>
-      api.get('/contabil/accounting-services/catalog-template').then((r) => r.data),
-
-    seedCatalog: () => api.post('/contabil/accounting-services/seed-catalog').then((r) => r.data),
+      api
+        .get('/contabil/accounting-services/catalog-template')
+        .then((r) => r.data as { items: ConsultingCatalogEntry[] }),
 
     activateCatalog: (catalogKeys: string[]) =>
       api.post('/contabil/accounting-services/activate-catalog', { catalogKeys }).then((r) => r.data),

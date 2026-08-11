@@ -9,6 +9,20 @@ export type PublicServiceIntake = {
   requiresBooking: boolean
 }
 
+export type PublicFirmServiceSummary = {
+  slug: string
+  name: string
+  description?: string | null
+  durationMinutes: number
+  priceCents: number
+  requiresBooking: boolean
+}
+
+export type PublicFirmServices = {
+  firmName: string
+  items: PublicFirmServiceSummary[]
+}
+
 export type PublicIntakeSubmitPayload = {
   name: string
   email?: string
@@ -91,6 +105,11 @@ export function createContabilPublicApi(api: AxiosInstance) {
       api
         .get('/public/firm-branding', { params: { slug } })
         .then((r) => r.data as { slug: string; name: string; logoUrl?: string | null }),
+
+    getPublicFirmServices: (firmSlug: string) =>
+      api
+        .get(`/public/firms/${encodeURIComponent(firmSlug)}/services`)
+        .then((r) => r.data as PublicFirmServices),
 
     getPublicService: (firmSlug: string, serviceSlug: string) =>
       api

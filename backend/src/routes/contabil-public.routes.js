@@ -105,6 +105,12 @@ router.post('/blog/newsletter', newsletterLimiter, blogNewsletterController.subs
 router.post('/support', supportLimiter, supportController.submit);
 
 router.get(
+  '/firms/:firmSlug/services',
+  serviceViewLimiter,
+  serviceIntakeController.getFirmServicesValidators,
+  serviceIntakeController.getPublicFirmServices,
+);
+router.get(
   '/firms/:firmSlug/services/:serviceSlug',
   serviceViewLimiter,
   serviceIntakeController.getServiceValidators,

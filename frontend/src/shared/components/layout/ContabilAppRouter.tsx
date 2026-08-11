@@ -53,6 +53,9 @@ const ServiceIntakePublicPage = lazy(() =>
 const ServiceIntakePortalPage = lazy(() =>
   import('@/features/public-intake/ServiceIntakePortalPage').then((m) => ({ default: m.ServiceIntakePortalPage })),
 )
+const FirmPublicServicesPage = lazy(() =>
+  import('@/features/public-intake/FirmPublicServicesPage').then((m) => ({ default: m.FirmPublicServicesPage })),
+)
 
 const PricingPage = lazy(() =>
   import('@/features/marketing/PricingPage').then((m) => ({ default: m.PricingPage })),
@@ -192,6 +195,7 @@ export function ContabilAppRouter() {
 
         <Route path="/pedidos/:token" element={<ServiceIntakePortalPage />} />
         <Route path="/:firmSlug/servicos/:serviceSlug" element={<ServiceIntakePublicPage />} />
+        <Route path="/:firmSlug" element={<FirmPublicServicesPage />} />
 
         <Route
           path="/app"

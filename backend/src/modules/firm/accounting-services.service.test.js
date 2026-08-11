@@ -473,3 +473,71 @@ test('remove: serviço com solicitações associadas (FK RESTRICT) devolve erro 
     },
   );
 });
+
+test('activateFromCatalog: cria só as chaves seleccionadas, activas — não recria as outras 20 entradas do catálogo', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'listCatalogKeys', async () => new Set());
+  const created = [];
+  mock.method(accountingServicesRepository, 'createRow', async (args) => {
+    created.push(args);
+    return { id: `svc-${created.length}`, ...args };
+  });
+
+  const { items, activated } = await accountingServicesService.activateFromCatalog({
+    firmId: 'firm-x',
+    catalogKeys: ['simulacao-irs'],
+  });
+
+  assert.equal(activated, 1);
+  assert.equal(items.length, 1);
+  assert.equal(created.length, 1, 'só devia criar a entrada seleccionada, nenhuma outra do catálogo');
+  assert.equal(created[0].catalogKey, 'simulacao-irs');
+  assert.equal(created[0].isActive, true);
+});
+
+test('activateFromCatalog: catalogKey já apagado deliberadamente pelo escritório é recriado ao ser escolhido de novo (não reaparece sozinho)', async () => {
+  resetMocks();
+  // O escritório apagou tudo — listCatalogKeys devolve vazio, tal como listByFirm devolveria [].
+  mock.method(accountingServicesRepository, 'listCatalogKeys', async () => new Set());
+  const created = [];
+  mock.method(accountingServicesRepository, 'createRow', async (args) => {
+    created.push(args);
+    return { id: `svc-${created.length}`, ...args };
+  });
+
+  const { activated } = await accountingServicesService.activateFromCatalog({
+    firmId: 'firm-x',
+    catalogKeys: ['iuc'],
+  });
+
+  assert.equal(activated, 1);
+  assert.equal(created.length, 1);
+  assert.equal(created[0].catalogKey, 'iuc');
+});
+
+test('activateFromCatalog: catalogKey já existente (activo ou inactivo) não é duplicado', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'listCatalogKeys', async () => new Set(['simulacao-irs']));
+  mock.method(accountingServicesRepository, 'createRow', async () => {
+    throw new Error('não devia tentar criar uma entrada já existente');
+  });
+
+  const { items, activated } = await accountingServicesService.activateFromCatalog({
+    firmId: 'firm-x',
+    catalogKeys: ['simulacao-irs'],
+  });
+
+  assert.equal(activated, 0);
+  assert.deepEqual(items, []);
+});
+
+test('activateFromCatalog: rejeita sem catalogKeys seleccionadas', async () => {
+  resetMocks();
+  await assert.rejects(
+    () => accountingServicesService.activateFromCatalog({ firmId: 'firm-x', catalogKeys: [] }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      return true;
+    },
+  );
+});
