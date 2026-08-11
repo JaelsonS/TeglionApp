@@ -218,6 +218,39 @@ test('submitPublicIntake: só documentos "manual" pendentes -> status IN_PROGRES
   assert.equal(created.status, 'IN_PROGRESS');
 });
 
+test('submitPublicIntake: nome do serviço com {{ano_fiscal}} chega interpolado ao email do cliente e da equipa', async () => {
+  resetMocks();
+  mockNoise();
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [
+    { ...SERVICE, name: 'Declaração de IRS {{ano_fiscal}}' },
+  ]);
+  mock.method(leadsService, 'resolveIdentity', async () => ({ type: 'LEAD', id: 'lead-novo' }));
+  mock.method(serviceInquiriesRepository, 'createRow', async (args) => ({ id: 'inquiry-5', ...args }));
+  mock.method(firmUsersRepository, 'findFirmOwnerEmail', async () => 'dona@x.com');
+  let leadEmailArgs = null;
+  mock.method(contabilNotifications, 'notifyLeadIntakeChecklist', async (args) => {
+    leadEmailArgs = args;
+    return { ok: true };
+  });
+  let staffEmailArgs = null;
+  mock.method(contabilNotifications, 'notifyFirmIntakeSubmitted', async (args) => {
+    staffEmailArgs = args;
+    return { ok: true };
+  });
+
+  await serviceInquiriesService.submitPublicIntake({
+    firmSlug: 'x',
+    serviceSlug: 'irs-2026',
+    payload: { name: 'Elsa', email: 'elsa@x.com' },
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+
+  const expectedYear = new Date().getFullYear() - 1;
+  assert.equal(leadEmailArgs.serviceName, `Declaração de IRS ${expectedYear}`);
+  assert.equal(staffEmailArgs.serviceName, `Declaração de IRS ${expectedYear}`);
+});
+
 test('submitPublicIntake: identidade batida em Client existente -> clientId (não cria Lead)', async () => {
   resetMocks();
   mockNoise();

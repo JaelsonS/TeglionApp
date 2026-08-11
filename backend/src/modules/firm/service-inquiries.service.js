@@ -15,6 +15,7 @@ const bookingService = require('../booking/booking.service');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
 const contabilNotifications = require('../../services/notifications/contabil-notifications.service');
 const auditRepository = require('../../db/supabase/repositories/contabil/audit.repository');
+const { interpolateServiceTemplate } = require('../../utils/service-text-template');
 
 const VALID_STATUSES = ['NEW', 'CONTACTED', 'DOCS_REQUESTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
 const TERMINAL_STATUSES = new Set(['COMPLETED', 'CANCELLED']);
@@ -306,7 +307,7 @@ async function addServiceInquiryRequest({ firmId, inquiryId, actor, payload }) {
         toEmail: requesterEmail,
         toName: requesterName,
         firmName: firm?.name,
-        serviceName: service?.name,
+        serviceName: interpolateServiceTemplate(service?.name),
         accessToken: inquiry.accessToken,
         requestTitle: title,
       })
@@ -457,7 +458,7 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
         toEmail: email,
         toName: name,
         firmName: firm.name,
-        serviceName: service.name,
+        serviceName: interpolateServiceTemplate(service.name),
         accessToken,
         documents: requiredDocuments,
       })
@@ -470,7 +471,7 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
         staffEmail,
         firmName: firm.name,
         requesterName: name,
-        serviceName: service.name,
+        serviceName: interpolateServiceTemplate(service.name),
         documentsCount: requiredDocuments.length,
       })
       .catch(() => {});
@@ -488,7 +489,7 @@ async function getByAccessToken(token) {
   const requests = await serviceInquiryRequestsRepository.listByInquiry(inquiry.id, inquiry.firmId);
 
   return {
-    serviceName: service?.name || null,
+    serviceName: interpolateServiceTemplate(service?.name) || null,
     status: inquiry.status,
     checklist: requests.map(toChecklistItem),
   };
@@ -564,7 +565,7 @@ async function recordDocumentDelivery({ token, tag, file }) {
         staffEmail,
         firmName: firm?.name,
         requesterName,
-        serviceName: service?.name,
+        serviceName: interpolateServiceTemplate(service?.name),
         documentTitle: request.title,
         allComplete,
       })
@@ -612,7 +613,7 @@ async function recordTextReply({ token, requestId, textReply }) {
         staffEmail,
         firmName: firm?.name,
         requesterName,
-        serviceName: service?.name,
+        serviceName: interpolateServiceTemplate(service?.name),
         requestTitle: request.title,
       })
       .catch(() => {});
