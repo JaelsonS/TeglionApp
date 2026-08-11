@@ -11,6 +11,7 @@ import {
   type ServiceRequestDetail,
 } from '@/features/firm/services/ServiceRequestDetailPanel'
 import { ServiceQuoteDialog } from '@/features/firm/services/ServiceQuoteDialog'
+import { QuotePdfSettingsSheet } from '@/features/firm/services/QuotePdfSettingsSheet'
 import {
   SERVICE_STATUS_LABEL,
   servicePriorityClass,
@@ -72,6 +73,7 @@ export function ServicesWorkspace() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [quoteTarget, setQuoteTarget] = useState<ServiceRequest | null>(null)
+  const [pdfSettingsOpen, setPdfSettingsOpen] = useState(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['service-requests'],
@@ -163,10 +165,25 @@ export function ServicesWorkspace() {
       const w = window.open('', '_blank')
       if (!w) return
       const q = res.data.quote
-      w.document.write(`<!DOCTYPE html><html><head><title>${escapeHtml(q.title)}</title></head><body style="font-family:system-ui;padding:40px">
-        <h1>${escapeHtml(q.title)}</h1><p><strong>Cliente:</strong> ${escapeHtml(q.clientName)}</p>
-        <p><strong>Valor:</strong> ${escapeHtml(q.amount)}</p><p>${escapeHtml(q.description || '')}</p>
-        <p style="color:#666;font-size:12px">Gerado ${escapeHtml(new Date(q.generatedAt).toLocaleString('pt-PT'))}</p>
+      const section = (label: string, text?: string | null) =>
+        text
+          ? `<div style="margin-top:20px"><p style="margin:0 0 4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#888">${escapeHtml(label)}</p><p style="margin:0;white-space:pre-wrap">${escapeHtml(text)}</p></div>`
+          : ''
+      w.document.write(`<!DOCTYPE html><html><head><title>${escapeHtml(q.title)}</title></head>
+        <body style="font-family:system-ui,-apple-system,sans-serif;padding:48px;max-width:640px;margin:0 auto;color:#1a1a1a">
+          <div style="border-bottom:2px solid #1a1a1a;padding-bottom:16px;margin-bottom:24px">
+            ${q.firmName ? `<p style="margin:0 0 8px;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:#555">${escapeHtml(q.firmName)}</p>` : ''}
+            <h1 style="margin:0;font-size:22px">${escapeHtml(q.title)}</h1>
+          </div>
+          <p style="margin:0 0 4px"><strong>Cliente:</strong> ${escapeHtml(q.clientName)}</p>
+          <p style="margin:0 0 16px"><strong>Valor:</strong> ${escapeHtml(q.amount)}</p>
+          ${section('Sobre este orçamento', q.introText)}
+          ${section('Descrição', q.description)}
+          ${section('Condições e prazos', q.termsText)}
+          <div style="margin-top:32px;padding-top:16px;border-top:1px solid #ddd">
+            ${q.footerText ? `<p style="margin:0 0 8px;white-space:pre-wrap;font-size:12px;color:#555">${escapeHtml(q.footerText)}</p>` : ''}
+            <p style="margin:0;color:#999;font-size:11px">Gerado ${escapeHtml(new Date(q.generatedAt).toLocaleString('pt-PT'))}</p>
+          </div>
         </body></html>`)
       w.document.close()
       w.print()
@@ -215,17 +232,29 @@ export function ServicesWorkspace() {
           <div>
             <h1 className="cb-services-page-title">Central de Serviços</h1>
             <p className="cb-services-page-sub">
-              Pedidos, orçamentos e entregas — pipeline comercial do escritório
+              Pedidos e orçamentos dos seus clientes já activos — do primeiro contacto à entrega. Para pedidos
+              de novos contactos vindos da página pública, veja "Solicitações" em Serviços.
             </p>
           </div>
-          <Button
-            type="button"
-            className="cb-services-btn-primary shrink-0"
-            onClick={() => setShowForm((v) => !v)}
-          >
-            {showForm ? <X className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
-            {showForm ? 'Fechar' : 'Novo pedido'}
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-full"
+              onClick={() => setPdfSettingsOpen(true)}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Personalizar PDF
+            </Button>
+            <Button
+              type="button"
+              className="cb-services-btn-primary"
+              onClick={() => setShowForm((v) => !v)}
+            >
+              {showForm ? <X className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
+              {showForm ? 'Fechar' : 'Novo pedido'}
+            </Button>
+          </div>
         </div>
 
         <div className="cb-services-toolbar">
@@ -340,7 +369,17 @@ export function ServicesWorkspace() {
           ) : filtered.length === 0 ? (
             <div className="cb-services-empty">
               <ClipboardList className="mb-2 h-8 w-8 opacity-30" />
-              <p className="text-sm font-medium">Nenhum pedido neste filtro</p>
+              {items.length === 0 ? (
+                <>
+                  <p className="text-sm font-medium">Ainda sem pedidos de clientes</p>
+                  <p className="mt-1 max-w-sm text-center text-sm text-muted-foreground">
+                    Um pedido aparece aqui quando um cliente já activo pede um serviço pelo portal dele, ou
+                    quando você cria um pedido manualmente com "Novo pedido".
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm font-medium">Nenhum pedido neste filtro</p>
+              )}
             </div>
           ) : (
             <div className="cb-services-board">
@@ -423,11 +462,12 @@ export function ServicesWorkspace() {
         open={Boolean(quoteTarget)}
         onOpenChange={(o) => !o && setQuoteTarget(null)}
         requestTitle={quoteTarget?.title}
+        initialDescription={quoteTarget?.description}
         loading={patchMut.isPending}
-        onConfirm={(cents) => {
+        onConfirm={(cents, description) => {
           if (!quoteTarget) return
           patchMut.mutate(
-            { id: quoteTarget.id, patch: { status: 'QUOTED', quotedAmountCents: cents } },
+            { id: quoteTarget.id, patch: { status: 'QUOTED', quotedAmountCents: cents, description } },
             {
               onSuccess: () => {
                 toast.success('Orçamento guardado')
@@ -439,6 +479,8 @@ export function ServicesWorkspace() {
           )
         }}
       />
+
+      <QuotePdfSettingsSheet open={pdfSettingsOpen} onOpenChange={setPdfSettingsOpen} />
 
       <p className="cb-services-foot shrink-0">Teglion — Serviços</p>
     </div>

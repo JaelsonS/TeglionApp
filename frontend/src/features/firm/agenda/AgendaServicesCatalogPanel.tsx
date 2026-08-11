@@ -49,6 +49,7 @@ import {
 } from '@/shared/components/ui/command'
 import { Input } from '@/shared/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
+import { Textarea } from '@/shared/components/ui/textarea'
 import { EuroInput, ProfileSectionCard } from '@/shared/design-system'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -787,6 +788,7 @@ export function AgendaServicesCatalogPanel({
               const draft = editing[s.id]
               const active = draft?.isActive ?? s.isActive !== false
               const name = draft?.name ?? s.name
+              const description = draft?.description ?? s.description ?? ''
               const duration = draft?.durationMinutes ?? s.durationMinutes
               const priceCents = draft?.priceCents ?? s.priceCents
               const isDirty = Boolean(draft)
@@ -818,9 +820,13 @@ export function AgendaServicesCatalogPanel({
                           </span>
                         ) : null}
                       </div>
-                      {s.description ? (
-                        <p className="line-clamp-2 cb-text-caption">{s.description}</p>
-                      ) : null}
+                      <Textarea
+                        className="min-h-[2.25rem] resize-none rounded-lg py-1.5 text-sm text-muted-foreground"
+                        rows={2}
+                        placeholder="Descrição que o cliente vê na página pública…"
+                        value={description}
+                        onChange={(e: FormChangeEvent) => patchEditing(s.id, { description: e.target.value })}
+                      />
                       {s.isPubliclyListed ? (
                         <span className="inline-flex items-center gap-1 text-caption text-emerald-700">
                           <Globe className="h-3 w-3" /> Público

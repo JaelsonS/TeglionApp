@@ -359,6 +359,10 @@ router.get('/service-requests/:id/quote', requirePermission(PERMISSIONS.FIRM_CLI
 router.patch('/service-requests/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), serviceRequestsController.patch);
 router.post('/service-requests/:id/comments', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), serviceRequestsController.addComment);
 
+const quotePdfSettingsController = require('../../modules/firm/quote-pdf-settings.controller');
+router.get('/quote-pdf-settings', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), quotePdfSettingsController.get);
+router.patch('/quote-pdf-settings', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), quotePdfSettingsController.patch);
+
 // ============================================================
 // Fase 1 — Service Domain Foundation: Leads + Service Inquiries
 // (distintos de /service-requests acima, que é a Central de Serviços

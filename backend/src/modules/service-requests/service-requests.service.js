@@ -1,8 +1,10 @@
 const { AppError } = require('../../middlewares/error.middleware');
 const serviceRequestsRepo = require('../../db/supabase/repositories/service-requests.repository');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
+const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const tasksWorkspace = require('../tasks/tasks-workspace.service');
 const activityService = require('../../services/activity/activity.service');
+const { normalizeQuotePdfSettings } = require('../firm/quote-pdf-settings.service');
 
 async function enrichWithClientNames(firmId, items) {
   const ids = [...new Set(items.map((i) => i.clientId))];
@@ -154,27 +156,35 @@ async function approveQuote({ actor, id }) {
   });
 }
 
-function buildQuoteDocument(request, client) {
+function buildQuoteDocument(request, client, firm) {
   const amount =
     request.quotedAmountCents != null
       ? `${(request.quotedAmountCents / 100).toFixed(2)} ${request.currency || 'EUR'}`
       : 'A definir';
+  const pdfSettings = normalizeQuotePdfSettings(firm?.settings?.quotePdf);
   return {
     title: `Orçamento — ${request.title}`,
+    firmName: firm?.name || null,
     clientName: client?.displayName || client?.name || 'Cliente',
     amount,
     description: request.description,
     status: request.status,
     quotedAt: request.quotedAt,
     generatedAt: new Date().toISOString(),
+    introText: pdfSettings.introText || null,
+    termsText: pdfSettings.termsText || null,
+    footerText: pdfSettings.footerText || null,
   };
 }
 
 async function getQuotePdfPayload(firmId, id, clientId) {
   const request = await serviceRequestsRepo.findById(firmId, id, clientId);
   if (!request) throw new AppError('Pedido não encontrado', 404);
-  const client = await clientsRepository.findClientById(firmId, request.clientId);
-  return { quote: buildQuoteDocument(request, client), request };
+  const [client, firm] = await Promise.all([
+    clientsRepository.findClientById(firmId, request.clientId),
+    firmsRepository.findFirmById(firmId),
+  ]);
+  return { quote: buildQuoteDocument(request, client, firm), request };
 }
 
 module.exports = {
