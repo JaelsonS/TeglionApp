@@ -7,6 +7,7 @@ import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
 import { IrsModelo3EditorSheet, isModelo3Service } from '@/features/firm/services/IrsModelo3EditorSheet'
 import { ServiceFullEditorSheet } from '@/features/firm/services/ServiceFullEditorSheet'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
+import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
@@ -130,6 +131,48 @@ export function FirmIrsPage() {
         className="cb-firm-operational-panel min-h-0 flex-1 overflow-hidden"
         title="IRS"
         subtitle="Campanha IRS — modelos prontos e serviços do escritório"
+        headerRight={
+          <div className="flex flex-wrap items-center gap-2">
+            <ModuleHelpDialog
+              title="IRS"
+              intro="Campanha IRS: active ou crie serviços, configure banner, formulário, anexos e pagamento, e publique no site. A equipa recebe pedidos em Solicitações."
+              triggerLabel="Guia"
+              steps={[
+                {
+                  title: 'Modelos prontos',
+                  description: 'Active um modelo Teglion à esquerda — Modelo 3 abre o assistente de anexos.',
+                },
+                {
+                  title: 'Os vossos serviços',
+                  description: 'Edite, publique no site e acompanhe anos fiscais em cada serviço IRS.',
+                },
+                {
+                  title: 'Criar do zero',
+                  description: 'Use «Criar serviço» ou «Modelo 3 + Anexos» para começar rapidamente.',
+                },
+              ]}
+            />
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-8 rounded-md"
+              onClick={() => openFull(null, { name: 'Serviço IRS', catalogKey: undefined })}
+            >
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              Criar serviço
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="h-8 rounded-md bg-brand"
+              onClick={() => openModelo3(null)}
+            >
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              Modelo 3 + Anexos
+            </Button>
+          </div>
+        }
         bodyClassName="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4"
       >
         <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -166,30 +209,6 @@ export function FirmIrsPage() {
               </p>
             </div>
           ))}
-        </div>
-
-        <div className="mb-3 flex flex-wrap items-start justify-between gap-3 rounded-xl border border-sky-200/90 bg-gradient-to-r from-sky-50 via-sky-50/80 to-brand/[0.06] px-4 py-3 text-sm text-sky-950">
-          <p className="min-w-0 flex-1">
-            <span className="font-semibold text-brand">Como funciona:</span> active ou crie → edite banner,
-            formulário, anexos e pagamento → publique no site. A equipa recebe em{' '}
-            <span className="font-semibold">Solicitações</span>. O ano fiscal define-se em cada serviço.
-          </p>
-          <div className="flex shrink-0 flex-wrap gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="rounded-full border-brand/30"
-              onClick={() => openFull(null, { name: 'Serviço IRS', catalogKey: undefined })}
-            >
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
-              Criar serviço
-            </Button>
-            <Button type="button" size="sm" className="rounded-full bg-brand" onClick={() => openModelo3(null)}>
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
-              Modelo 3 + Anexos
-            </Button>
-          </div>
         </div>
 
         <div className="grid min-h-[28rem] gap-3 lg:grid-cols-2">

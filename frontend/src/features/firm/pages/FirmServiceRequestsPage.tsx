@@ -6,6 +6,7 @@ import { ServiceInquiriesWorkspace } from '@/features/firm/services/ServiceInqui
 import { ServicesCatalogWorkspace } from '@/features/firm/services/ServicesCatalogWorkspace'
 import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
+import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { cn } from '@/shared/lib/utils'
 
@@ -32,6 +33,70 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id']
 
+const HELP_BY_TAB: Record<
+  TabId,
+  { title: string; intro: string; steps: { title: string; description: string }[] }
+> = {
+  catalog: {
+    title: 'Catálogo de serviços',
+    intro:
+      'Aqui gere o que o escritório oferece: serviços activos à esquerda e modelos Teglion à direita. O IRS tem ecrã próprio no menu lateral.',
+    steps: [
+      {
+        title: 'Os vossos serviços',
+        description:
+          'À esquerda: filtre e abra o editor completo (caneta) — banner, formulário, logótipo, publicação, pré-visualização e apagar.',
+      },
+      {
+        title: 'Modelos Teglion',
+        description: 'À direita: «Activar e editar» cria o serviço a partir do modelo e abre o editor para personalizar.',
+      },
+      {
+        title: 'Criar do zero',
+        description: 'Use «Criar serviço» para um serviço novo sem modelo, com o mesmo editor completo.',
+      },
+    ],
+  },
+  inquiries: {
+    title: 'Solicitações',
+    intro:
+      'Pedidos que chegam da página pública (captação). A equipa contacta, pede documentos e avança o estado até concluir.',
+    steps: [
+      {
+        title: 'Abrir um pedido',
+        description: 'Seleccione na lista para ver contacto, respostas do formulário e histórico.',
+      },
+      {
+        title: 'Actualizar o estado',
+        description: 'Marque contactado, peça documentos ou conclua — o cliente acompanha o progresso quando aplicável.',
+      },
+      {
+        title: 'Etiquetas e follow-up',
+        description: 'Organize com etiquetas e use as acções do painel para não perder leads.',
+      },
+    ],
+  },
+  central: {
+    title: 'Central de Serviços',
+    intro:
+      'Só para clientes com acesso à app Teglion. Pedem e agendam serviços que o escritório activou. Captação pública fica em Solicitações.',
+    steps: [
+      {
+        title: 'Ver pedidos internos',
+        description: 'Acompanhe pedidos feitos por clientes já na carteira, dentro da app.',
+      },
+      {
+        title: 'Agendamentos e confirmações',
+        description: 'Confirme ou trate o pedido conforme o fluxo do serviço (com ou sem pagamento online).',
+      },
+      {
+        title: 'Catálogo activo',
+        description: 'Só aparecem serviços que o escritório activou e publicou para esses clientes.',
+      },
+    ],
+  },
+}
+
 export function FirmServiceRequestsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const rawTab = searchParams.get('tab')
@@ -39,6 +104,7 @@ export function FirmServiceRequestsPage() {
 
   const activeTab: TabId = rawTab === 'central' || rawTab === 'inquiries' ? rawTab : 'catalog'
   const activeMeta = TABS.find((t) => t.id === activeTab) ?? TABS[0]
+  const help = HELP_BY_TAB[activeTab]
 
   const qc = useQueryClient()
   const servicesQuery = useQuery({
@@ -52,6 +118,9 @@ export function FirmServiceRequestsPage() {
         className="cb-firm-operational-panel min-h-0 flex-1 overflow-hidden"
         title={activeMeta.title}
         subtitle={activeMeta.subtitle}
+        headerRight={
+          <ModuleHelpDialog title={help.title} intro={help.intro} triggerLabel="Guia" steps={help.steps} />
+        }
         bodyClassName="flex min-h-0 flex-1 flex-col overflow-hidden"
       >
         <div className="shrink-0 border-b border-border/60 px-4 sm:px-5">
@@ -72,29 +141,14 @@ export function FirmServiceRequestsPage() {
 
         <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 sm:p-4">
           {activeTab === 'catalog' ? (
-            <>
-              <div className="shrink-0 rounded-xl border border-sky-200/80 bg-gradient-to-r from-sky-50 to-brand/[0.05] px-4 py-3 text-sm text-sky-950">
-                <span className="font-semibold text-brand">Catálogo</span>
-                {' — '}à esquerda os serviços do escritório (caneta = editor completo: banner, formulário,
-                logótipo, publicação, pré-visualização e apagar). À direita, modelos Teglion: «Activar e editar».
-                O <span className="font-semibold">IRS</span> tem ecrã próprio no menu lateral.
-              </div>
-              <ServicesCatalogWorkspace
-                services={servicesQuery.data?.items ?? []}
-                isLoading={servicesQuery.isLoading}
-                onReload={() => qc.invalidateQueries({ queryKey: ['contabil-accounting-services'] })}
-                excludeIrs
-              />
-            </>
+            <ServicesCatalogWorkspace
+              services={servicesQuery.data?.items ?? []}
+              isLoading={servicesQuery.isLoading}
+              onReload={() => qc.invalidateQueries({ queryKey: ['contabil-accounting-services'] })}
+              excludeIrs
+            />
           ) : activeTab === 'central' ? (
-            <>
-              <div className="shrink-0 rounded-xl border border-border/50 bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">Central de Serviços</span>
-                {' — '}apenas clientes com acesso à <span className="font-semibold text-foreground">app Teglion</span>.
-                Pedem e agendam serviços que o escritório activou. Captação pública fica em Solicitações.
-              </div>
-              <ServicesWorkspace />
-            </>
+            <ServicesWorkspace />
           ) : (
             <ServiceInquiriesWorkspace />
           )}
