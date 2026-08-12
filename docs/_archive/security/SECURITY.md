@@ -154,9 +154,10 @@ JWT.clinicId (= firmId) → contabil-scope → repository.eq('firm_id', firmId)
 
 ### CSP (frontend — Vercel)
 
-- Scripts restritos
+- Scripts restritos (sem hash de inline gtag; consent em `/gtag-consent.js`)
 - `unsafe-inline` em styles (Tailwind) — risco aceite
-- WAF Cloudflare recomendado (Fase 7)
+- `challenges.cloudflare.com` em script/connect/frame-src
+- Se Bot Fight Mode injectar inline `__CF$cv$params`, ou desactivar JavaScript Detections no Cloudflare, ou o script é bloqueado (a app Vite continua a carregar)
 
 ### Cookies
 
