@@ -179,7 +179,7 @@ export function FiscalCalendarConfigDialog({
                     <input
                       type="checkbox"
                       checked={showInternal}
-                      onChange={(e) => setShowInternal(e.target.checked)}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setShowInternal(e.target.checked)}
                     />
                     Mostrar eventos internos
                   </label>
