@@ -26,7 +26,12 @@ import type { PublicSiteConfig, PublicSiteSection } from '@/shared/types/firmPub
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
 import type { FirmBookingSettings } from '@/shared/types/contabil'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { resolveFirmBrandingCssVars } from '@/shared/utils/firmBranding'
 import { DefaultTemplate } from '@/features/public-intake/templates/default/DefaultTemplate'
+import {
+  DEFAULT_PRIVACY_TEMPLATE,
+  DEFAULT_TERMS_TEMPLATE,
+} from '@/features/firm/public-site/publicSiteLegalTemplates'
 import {
   AboutEditor,
   ContactEditor,
@@ -327,11 +332,97 @@ export function PublicSiteEditor({ bundle }: Props) {
           </div>
 
           <ThemeEditor draft={draft} onChange={setDraft} />
+
+          <div className="rounded-xl border border-border/50 p-4">
+            <Label className="text-sm font-semibold">Preços na página pública</Label>
+            <label className="mt-3 flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="mt-0.5 rounded border-border"
+                checked={draft.showPrices !== false}
+                onChange={(e) => setDraft({ ...draft, showPrices: e.target.checked })}
+              />
+              <span>
+                Mostrar preços dos serviços
+                <span className="mt-0.5 block text-caption text-muted-foreground">
+                  Quando desligado, os cartões e a página do serviço omitem o valor.
+                </span>
+              </span>
+            </label>
+          </div>
+
+          <div className="rounded-xl border border-border/50 p-4 space-y-4">
+            <div>
+              <Label className="text-sm font-semibold">Termos, privacidade e reclamações</Label>
+              <p className="mt-1 text-caption text-muted-foreground">
+                Aplicam-se a toda a página pública (não por serviço). Os modelos são referência para adaptar —
+                a Teglion não presta aconselhamento jurídico e não se responsabiliza pelo conteúdo.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  setDraft({
+                    ...draft,
+                    termsText: DEFAULT_TERMS_TEMPLATE,
+                    privacyText: DEFAULT_PRIVACY_TEMPLATE,
+                  })
+                }
+              >
+                Usar modelo padrão
+              </Button>
+            </div>
+            <label className="block space-y-1 text-sm">
+              <span className="font-medium">Termos de Utilização</span>
+              <textarea
+                className="min-h-[100px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                value={draft.termsText || ''}
+                onChange={(e: FormChangeEvent) => setDraft({ ...draft, termsText: e.target.value || null })}
+              />
+            </label>
+            <label className="block space-y-1 text-sm">
+              <span className="font-medium">Política de Privacidade</span>
+              <textarea
+                className="min-h-[100px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                value={draft.privacyText || ''}
+                onChange={(e: FormChangeEvent) => setDraft({ ...draft, privacyText: e.target.value || null })}
+              />
+            </label>
+            <p className="text-caption text-muted-foreground">
+              Modelo de referência para o escritório adaptar; a Teglion não presta aconselhamento jurídico e não se
+              responsabiliza pelo conteúdo.
+            </p>
+            <label className="block space-y-1 text-sm">
+              <span className="font-medium">Livro de Reclamações (URL)</span>
+              <Input
+                placeholder="https://www.livroreclamacoes.pt/..."
+                value={draft.complaintsBookUrl || ''}
+                onChange={(e: FormChangeEvent) => setDraft({ ...draft, complaintsBookUrl: e.target.value || null })}
+              />
+            </label>
+            <label className="block space-y-1 text-sm">
+              <span className="font-medium">Livro de elogios (contacto opcional)</span>
+              <Input
+                placeholder="email ou telefone"
+                value={draft.praiseContact || ''}
+                onChange={(e: FormChangeEvent) => setDraft({ ...draft, praiseContact: e.target.value || null })}
+              />
+            </label>
+          </div>
         </div>
 
         <div className="lg:sticky lg:top-4 lg:self-start">
           <p className="mb-2 text-caption font-semibold uppercase tracking-wide text-muted-foreground">Pré-visualização</p>
-          <div className="max-h-[80vh] overflow-y-auto rounded-xl border border-border/50">
+          <div
+            className="max-h-[80vh] overflow-y-auto rounded-xl border border-border/50"
+            style={resolveFirmBrandingCssVars({
+              primaryColor: draft.theme.primaryColor,
+              secondaryColor: draft.theme.secondaryColor,
+            })}
+          >
             <DefaultTemplate
               config={draft}
               ctx={{
@@ -340,6 +431,9 @@ export function PublicSiteEditor({ bundle }: Props) {
                 logoUrl: bundle.logoUrl || null,
                 services: previewServices,
                 contact: bundle.contact,
+                showPrices: draft.showPrices !== false,
+                complaintsBookUrl: draft.complaintsBookUrl,
+                praiseContact: draft.praiseContact,
               }}
             />
           </div>

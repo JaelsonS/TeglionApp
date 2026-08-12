@@ -30,6 +30,7 @@ function resolveFirstImageUrl(imageIds: string[], images: PublicSiteConfig['imag
   return found?.url || null
 }
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
+import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
 
 /**
  * Contexto partilhado por todas as secções — dados que não vivem no
@@ -44,6 +45,9 @@ export type PublicSiteRenderContext = {
   logoUrl: string | null
   services: PublicFirmServiceSummary[]
   contact: { email: string | null; phone: string | null; address: string | null }
+  showPrices?: boolean
+  complaintsBookUrl?: string | null
+  praiseContact?: string | null
 }
 
 function formatPrice(cents: number) {
@@ -72,9 +76,6 @@ export function HeaderSection({ ctx }: { ctx: PublicSiteRenderContext }) {
   return (
     <header className="border-b border-border/40 bg-card/40">
       <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-4">
-        {ctx.logoUrl ? (
-          <img src={ctx.logoUrl} alt={ctx.firmName} className="h-9 w-9 rounded-full border border-border/50 object-cover" />
-        ) : null}
         <span className="font-semibold">{ctx.firmName}</span>
       </div>
     </header>
@@ -145,26 +146,41 @@ export function AboutSection({ content, images }: { content: PublicSiteAboutCont
   )
 }
 
-function ServiceCard({ firmSlug, service }: { firmSlug: string; service: PublicFirmServiceSummary }) {
+function ServiceCard({
+  firmSlug,
+  service,
+  showPrices = true,
+}: {
+  firmSlug: string
+  service: PublicFirmServiceSummary
+  showPrices?: boolean
+}) {
   return (
     <Link
       to={`/${encodeURIComponent(firmSlug)}/servicos/${encodeURIComponent(service.slug)}`}
-      className="block rounded-2xl border border-border/50 bg-card p-5 shadow-sm transition hover:border-primary/40 hover:shadow-md"
+      className="block overflow-hidden rounded-2xl border border-border/50 bg-card shadow-sm transition hover:border-primary/40 hover:shadow-md"
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="font-semibold">{service.name}</h3>
-          {service.description ? <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{service.description}</p> : null}
+      {service.imageUrl ? (
+        <img src={service.imageUrl} alt="" className="h-36 w-full object-cover" loading="lazy" />
+      ) : null}
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="font-semibold">{service.name}</h3>
+            {service.description ? (
+              <SanitizedServiceHtml html={service.description} className="mt-1 line-clamp-2 text-sm" />
+            ) : null}
+          </div>
+          {showPrices && service.priceCents > 0 ? (
+            <span className="shrink-0 text-sm font-semibold text-primary">{formatPrice(service.priceCents)}</span>
+          ) : null}
         </div>
-        {service.priceCents > 0 ? (
-          <span className="shrink-0 text-sm font-semibold text-primary">{formatPrice(service.priceCents)}</span>
+        {service.requiresBooking ? (
+          <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <CalendarClock className="h-3.5 w-3.5" /> {service.durationMinutes} min · com agendamento
+          </p>
         ) : null}
       </div>
-      {service.requiresBooking ? (
-        <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-          <CalendarClock className="h-3.5 w-3.5" /> {service.durationMinutes} min · com agendamento
-        </p>
-      ) : null}
     </Link>
   )
 }
@@ -178,7 +194,7 @@ export function ServicesSection({ content, ctx }: { content: PublicSiteServicesC
       <ul className="space-y-3">
         {items.map((s) => (
           <li key={s.slug}>
-            <ServiceCard firmSlug={ctx.firmSlug} service={s} />
+            <ServiceCard firmSlug={ctx.firmSlug} service={s} showPrices={ctx.showPrices !== false} />
           </li>
         ))}
       </ul>
@@ -195,7 +211,7 @@ export function BookingServicesSection({ content, ctx }: { content: PublicSiteSe
       <ul className="space-y-3">
         {items.map((s) => (
           <li key={s.slug}>
-            <ServiceCard firmSlug={ctx.firmSlug} service={s} />
+            <ServiceCard firmSlug={ctx.firmSlug} service={s} showPrices={ctx.showPrices !== false} />
           </li>
         ))}
       </ul>
@@ -289,24 +305,40 @@ export function FooterSection({ ctx, socialLinks }: { ctx: PublicSiteRenderConte
     { key: 'whatsapp', href: socialLinks.whatsapp, label: 'WhatsApp', Icon: MessageCircle },
     { key: 'website', href: socialLinks.website, label: 'Site', Icon: Globe },
   ].filter((s): s is typeof s & { href: string } => Boolean(s.href))
-  if (entries.length === 0) return null
   return (
     <footer className="border-t border-border/40 bg-card/40">
-      <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-center gap-3 px-4 py-8">
-        {entries.map(({ key, href, label, Icon }) => (
+      {entries.length > 0 ? (
+        <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-center gap-3 px-4 py-8">
+          {entries.map(({ key, href, label, Icon }) => (
+            <a
+              key={key}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={label}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition hover:border-primary/40 hover:text-primary"
+            >
+              <Icon className="h-4 w-4" />
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div className="pt-6" />
+      )}
+      <div className="mx-auto flex max-w-2xl flex-col items-center gap-2 px-4 pb-6 text-center text-xs text-muted-foreground/80">
+        {ctx.complaintsBookUrl ? (
           <a
-            key={key}
-            href={href}
+            href={ctx.complaintsBookUrl}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={label}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition hover:border-primary/40 hover:text-primary"
+            className="underline underline-offset-2 hover:text-foreground"
           >
-            <Icon className="h-4 w-4" />
+            Livro de Reclamações
           </a>
-        ))}
+        ) : null}
+        {ctx.praiseContact ? <p>Livro de elogios: {ctx.praiseContact}</p> : null}
+        <p className="text-muted-foreground/70">{ctx.firmName}</p>
       </div>
-      <p className="pb-6 text-center text-xs text-muted-foreground/70">{ctx.firmName}</p>
     </footer>
   )
 }

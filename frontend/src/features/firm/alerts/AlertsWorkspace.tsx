@@ -13,11 +13,11 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/shared/components/ui/sheet'
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog'
 import { FirmSplitView } from '@/shared/design-system'
 import type { FirmBroadcast } from '@/infrastructure/api/contabil/broadcasts'
 import { useBroadcastMutations, useBroadcastsMeta, useFirmBroadcasts } from '@/shared/hooks/queries/useBroadcasts'
@@ -347,49 +347,41 @@ export function AlertsWorkspace() {
         />
       </div>
 
-      <Sheet open={Boolean(editing)} onOpenChange={(o: { id?: string; value?: string; label?: string; [key: string]: unknown }) => !o && setEditing(null)}>
-        <SheetContent side="right" className="w-full p-0 sm:max-w-xl">
-          <div className="cb-sheet-body">
-            <SheetHeader className="shrink-0 border-b border-border/60 px-6 pb-4 pt-6 text-left">
-              <SheetTitle className="font-display">
-                {editing?.id || editing?._id ? 'Editar comunicado' : 'Novo comunicado'}
-              </SheetTitle>
-            </SheetHeader>
-            {editing ? (
-              <div className="cb-sheet-scroll px-6">
-                <AlertComposer
-                  draft={editing}
-                  onChange={setEditing}
-                  clients={clients}
-                  categories={meta?.categories || []}
-                  onSaveDraft={() => void save(false)}
-                  onPublish={() => void save(true)}
-                  saving={saving}
-                />
-              </div>
-            ) : null}
-          </div>
-        </SheetContent>
-      </Sheet>
+      <Dialog open={Boolean(editing)} onOpenChange={(open: boolean) => !open && setEditing(null)}>
+        <DialogContent className="sm:max-w-2xl" aria-describedby={undefined}>
+          <DialogHeader>
+            <DialogTitle className="font-display">
+              {editing?.id || editing?._id ? 'Editar comunicado' : 'Novo comunicado'}
+            </DialogTitle>
+          </DialogHeader>
+          {editing ? (
+            <AlertComposer
+              draft={editing}
+              onChange={setEditing}
+              clients={clients}
+              categories={meta?.categories || []}
+              onSaveDraft={() => void save(false)}
+              onPublish={() => void save(true)}
+              saving={saving}
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
-      <Sheet open={Boolean(analyticsId)} onOpenChange={(o: { id?: string; value?: string; label?: string; [key: string]: unknown }) => !o && setAnalyticsId(null)}>
-        <SheetContent side="right" className="w-full p-0 sm:max-w-md">
-          <div className="cb-sheet-body">
-            <SheetHeader className="shrink-0 border-b border-border/60 px-6 pt-6 text-left">
-              <SheetTitle className="font-display">Envolvimento</SheetTitle>
-            </SheetHeader>
-            <div className="cb-sheet-scroll px-6 pb-6">
-              {loadingAnalytics ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : (
-                <AlertAnalyticsPanel loading={loadingAnalytics} analytics={analytics} />
-              )}
+      <Dialog open={Boolean(analyticsId)} onOpenChange={(open: boolean) => !open && setAnalyticsId(null)}>
+        <DialogContent className="sm:max-w-lg" aria-describedby={undefined}>
+          <DialogHeader>
+            <DialogTitle className="font-display">Envolvimento</DialogTitle>
+          </DialogHeader>
+          {loadingAnalytics ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
-          </div>
-        </SheetContent>
-      </Sheet>
+          ) : (
+            <AlertAnalyticsPanel loading={loadingAnalytics} analytics={analytics} />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={Boolean(deleteTarget)}

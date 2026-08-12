@@ -50,7 +50,8 @@ import {
 } from '@/shared/components/ui/command'
 import { Input } from '@/shared/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
-import { Textarea } from '@/shared/components/ui/textarea'
+import { RichTextEditor, UploadDropzone } from '@/shared/design-system'
+import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
 import { EuroInput, ProfileSectionCard } from '@/shared/design-system'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -93,6 +94,13 @@ const DEFAULT_BOOKING_OVERRIDE: FirmBookingSettings = {
   dayStart: '09:00',
   dayEnd: '17:00',
   timezone: 'Europe/Lisbon',
+  schedule: {
+    1: [{ start: '09:00', end: '17:00' }],
+    2: [{ start: '09:00', end: '17:00' }],
+    3: [{ start: '09:00', end: '17:00' }],
+    4: [{ start: '09:00', end: '17:00' }],
+    5: [{ start: '09:00', end: '17:00' }],
+  },
 }
 
 const QUESTION_TYPE_LABELS: Record<IntakeQuestionType, string> = {
@@ -164,12 +172,16 @@ function isIrsService(s: AccountingService): boolean {
 const YEAR_TOKEN_PATTERN = /\{\{\s*(ano_fiscal|ano)\s*\}\}/i
 
 /** Espelha `interpolateServiceTemplate` do backend só para pré-visualização —
- * o valor gravado continua o token cru, isto é puramente cosmético no ecrã. */
+ * o valor gravado continua o token cru, isto é puramente cosmético no ecrã.
+ * Em HTML, só substitui nos nós de texto (fora de tags). */
 function previewYearTokens(text: string): string {
   const year = new Date().getFullYear()
-  return text
-    .replace(/\{\{\s*ano_fiscal\s*\}\}/gi, String(year - 1))
-    .replace(/\{\{\s*ano\s*\}\}/gi, String(year))
+  const replace = (segment: string) =>
+    segment
+      .replace(/\{\{\s*ano_fiscal\s*\}\}/gi, String(year - 1))
+      .replace(/\{\{\s*ano\s*\}\}/gi, String(year))
+  if (!text.includes('<')) return replace(text)
+  return text.replace(/(<[^>]*>)|([^<]+)/g, (_m, tag: string, node: string) => (tag ? tag : replace(node)))
 }
 
 /** Botão de acção com um tooltip visível ao passar o rato — o `title` nativo
@@ -337,6 +349,11 @@ export function AgendaServicesCatalogPanel({
         durationMinutes: draft.durationMinutes ?? s.durationMinutes,
         priceEuros: (draft.priceCents ?? s.priceCents) / 100,
         isActive: draft.isActive ?? s.isActive,
+        ...(draft.imageStorageKey !== undefined
+          ? { imageStorageKey: draft.imageStorageKey }
+          : draft.imageUrl !== undefined
+            ? { imageUrl: draft.imageUrl }
+            : {}),
       })
       setEditing((prev) => {
         const next = { ...prev }
@@ -426,14 +443,14 @@ export function AgendaServicesCatalogPanel({
     })
   }
 
-  const toggleBookingOverrideWeekday = (id: string, day: number) => {
-    setAdvancedDraft((prev) => {
-      const current = { ...DEFAULT_BOOKING_OVERRIDE, ...prev[id]?.bookingOverrides }
-      const weekdays = current.weekdays.includes(day)
-        ? current.weekdays.filter((d) => d !== day)
-        : [...current.weekdays, day].sort((a, b) => a - b)
-      return { ...prev, [id]: { ...prev[id], bookingOverrides: { ...current, weekdays } } }
-    })
+  const resolveOverrideSchedule = (overrides: Partial<FirmBookingSettings> | null | undefined) => {
+    const current = { ...DEFAULT_BOOKING_OVERRIDE, ...overrides }
+    if (current.schedule && Object.keys(current.schedule).length) return current.schedule
+    const next: FirmBookingSettings['schedule'] = {}
+    for (const d of current.weekdays || []) {
+      next[d] = [{ start: current.dayStart || '09:00', end: current.dayEnd || '17:00' }]
+    }
+    return next
   }
 
   /** Dados para a pré-visualização — usa o que já está a ser editado (mesmo sem
@@ -444,8 +461,10 @@ export function AgendaServicesCatalogPanel({
     return {
       serviceName: draft?.name ?? s.name,
       description: draft?.description ?? s.description,
+      onDescriptionChange: (html: string) => patchEditing(s.id, { description: html }),
       requiresBooking: adv?.requiresBooking ?? s.requiresBooking ?? true,
       intakeForm: adv?.intakeForm ?? s.intakeForm ?? { questions: [] },
+      imageUrl: draft?.imageUrl ?? s.imageUrl,
     }
   }
 
@@ -917,18 +936,25 @@ export function AgendaServicesCatalogPanel({
                           </div>
                         ) : null}
                       </div>
-                      <Textarea
-                        className="min-h-[2.25rem] resize-none rounded-lg py-1.5 text-sm text-muted-foreground"
-                        rows={2}
-                        placeholder="Descrição que o cliente vê na página pública…"
+                      <RichTextEditor
                         value={description}
-                        onChange={(e: FormChangeEvent) => patchEditing(s.id, { description: e.target.value })}
+                        onChange={(html) => patchEditing(s.id, { description: html })}
+                        placeholder="Descrição que o cliente vê na página pública…"
+                        className="text-sm"
                       />
                       {YEAR_TOKEN_PATTERN.test(name) || YEAR_TOKEN_PATTERN.test(description) ? (
-                        <p className="text-caption text-muted-foreground/70">
+                        <div className="text-caption text-muted-foreground/70">
                           O cliente vê: <span className="font-medium">{previewYearTokens(name)}</span>
-                          {description ? ` — ${previewYearTokens(description)}` : ''}
-                        </p>
+                          {description ? (
+                            <>
+                              {' — '}
+                              <SanitizedServiceHtml
+                                html={previewYearTokens(description)}
+                                className="inline text-caption [&_p]:inline [&_p]:m-0"
+                              />
+                            </>
+                          ) : null}
+                        </div>
                       ) : null}
                       {s.isPubliclyListed ? (
                         <span className="inline-flex items-center gap-1 text-caption text-emerald-700">
@@ -1009,6 +1035,51 @@ export function AgendaServicesCatalogPanel({
                           O que o cliente vê e preenche na página pública deste serviço — link, formulário,
                           documentos exigidos e horários.
                         </p>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-caption font-medium text-muted-foreground">Imagem / banner (opcional)</p>
+                        {(draft?.imageUrl ?? s.imageUrl) ? (
+                          <div className="relative mb-2 overflow-hidden rounded-xl border border-border">
+                            <img
+                              src={draft?.imageUrl ?? s.imageUrl ?? ''}
+                              alt=""
+                              className="max-h-36 w-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              className="absolute right-2 top-2 rounded-full bg-card/90 px-2 py-1 text-xs font-medium"
+                              onClick={() =>
+                                patchEditing(s.id, { imageUrl: null, imageStorageKey: null })
+                              }
+                            >
+                              Remover
+                            </button>
+                          </div>
+                        ) : null}
+                        <UploadDropzone
+                          multiple={false}
+                          accept="image/*"
+                          label="Arrastar imagem ou clicar"
+                          hint="JPG, PNG ou WebP — aparece no cartão e na página do serviço"
+                          onFiles={(files) => {
+                            const file = files[0]
+                            if (!file) return
+                            void (async () => {
+                              try {
+                                const res = await contabilAccountingServicesApi.uploadImage(file)
+                                patchEditing(s.id, {
+                                  imageStorageKey: res.storageKey,
+                                  imageUrl: res.previewUrl,
+                                })
+                                toast.success('Imagem carregada — guarde o serviço para aplicar')
+                              } catch (err) {
+                                toast.error('Não foi possível carregar a imagem', {
+                                  description: getErrorMessage(err),
+                                })
+                              }
+                            })()
+                          }}
+                        />
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2">
                         <label className="space-y-1">
@@ -1105,18 +1176,22 @@ export function AgendaServicesCatalogPanel({
                             <AgendaAvailabilityPanel
                               booking={null}
                               hideSaveButton
-                              wd={adv.bookingOverrides.weekdays ?? DEFAULT_BOOKING_OVERRIDE.weekdays}
+                              schedule={resolveOverrideSchedule(adv.bookingOverrides)}
+                              onScheduleChange={(next) => {
+                                const weekdays = Object.keys(next)
+                                  .map(Number)
+                                  .filter((d) => (next[d] || []).length > 0)
+                                  .sort((a, b) => a - b)
+                                patchBookingOverride(s.id, { schedule: next, weekdays })
+                              }}
                               slotMin={adv.bookingOverrides.slotMinutes ?? DEFAULT_BOOKING_OVERRIDE.slotMinutes}
                               horizon={adv.bookingOverrides.horizonDays ?? DEFAULT_BOOKING_OVERRIDE.horizonDays}
-                              bookingTz={adv.bookingOverrides.timezone || DEFAULT_BOOKING_OVERRIDE.timezone || 'Europe/Lisbon'}
-                              dayStart={adv.bookingOverrides.dayStart ?? DEFAULT_BOOKING_OVERRIDE.dayStart}
-                              dayEnd={adv.bookingOverrides.dayEnd ?? DEFAULT_BOOKING_OVERRIDE.dayEnd}
-                              onToggleWeekday={(n) => toggleBookingOverrideWeekday(s.id, n)}
+                              bookingTz={
+                                adv.bookingOverrides.timezone || DEFAULT_BOOKING_OVERRIDE.timezone || 'Europe/Lisbon'
+                              }
                               onSlotMin={(n) => patchBookingOverride(s.id, { slotMinutes: n })}
                               onHorizon={(n) => patchBookingOverride(s.id, { horizonDays: n })}
                               onBookingTz={(tz) => patchBookingOverride(s.id, { timezone: tz })}
-                              onDayStart={(v) => patchBookingOverride(s.id, { dayStart: v })}
-                              onDayEnd={(v) => patchBookingOverride(s.id, { dayEnd: v })}
                               onSaveAvailability={() => {}}
                             />
                           ) : (

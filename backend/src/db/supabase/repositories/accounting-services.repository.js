@@ -8,6 +8,8 @@ function map(row) {
     catalogKey: row.catalog_key || null,
     name: row.name,
     description: row.description,
+    imageUrl: row.image_url || null,
+    imageStorageKey: row.image_url && String(row.image_url).startsWith('firm/') ? row.image_url : null,
     durationMinutes: row.duration_minutes,
     priceCents: row.price_cents,
     currency: row.currency || 'EUR',
@@ -54,6 +56,7 @@ async function createRow({
   firmId,
   name,
   description,
+  imageUrl,
   durationMinutes,
   priceCents,
   currency,
@@ -75,6 +78,7 @@ async function createRow({
       catalog_key: catalogKey || null,
       name: String(name).trim(),
       description: description != null ? String(description).trim() : null,
+      image_url: imageUrl || null,
       duration_minutes: durationMinutes ?? 60,
       price_cents: priceCents ?? 0,
       currency: currency || 'EUR',
@@ -112,6 +116,9 @@ async function updateRow(id, firmId, patch) {
   if (patch.name !== undefined) row.name = String(patch.name).trim();
   if (patch.description !== undefined) {
     row.description = patch.description != null ? String(patch.description).trim() : null;
+  }
+  if (patch.imageUrl !== undefined) {
+    row.image_url = patch.imageUrl || null;
   }
   if (patch.durationMinutes !== undefined) row.duration_minutes = patch.durationMinutes;
   if (patch.priceCents !== undefined) row.price_cents = patch.priceCents;

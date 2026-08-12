@@ -17,7 +17,7 @@ const contabilNotifications = require('../../services/notifications/contabil-not
 const auditRepository = require('../../db/supabase/repositories/contabil/audit.repository');
 const { interpolateServiceTemplate } = require('../../utils/service-text-template');
 
-const VALID_STATUSES = ['NEW', 'CONTACTED', 'DOCS_REQUESTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
+const VALID_STATUSES = ['LEAD_CAPTURED', 'NEW', 'CONTACTED', 'DOCS_REQUESTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
 const TERMINAL_STATUSES = new Set(['COMPLETED', 'CANCELLED']);
 
 // Ciclo de vida do access_token do mini-portal (ver especificação da sessão, v8):
@@ -362,25 +362,46 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
   const service = services.find((s) => s.slug === serviceSlug && s.isPubliclyListed);
   if (!service) throw new AppError('Pedido não encontrado', 404, { code: 'NOT_FOUND' });
 
+  let existingInquiry = null;
+  let identity = null;
+  const leadToken = payload?.leadAccessToken ? String(payload.leadAccessToken).trim() : '';
+  if (leadToken) {
+    existingInquiry = await serviceInquiriesRepository.findByAccessToken(leadToken);
+    if (
+      !existingInquiry ||
+      String(existingInquiry.firmId) !== String(firm.id) ||
+      String(existingInquiry.serviceId) !== String(service.id) ||
+      existingInquiry.status !== 'LEAD_CAPTURED'
+    ) {
+      throw new AppError('Sessão de formulário inválida ou já concluída', 410);
+    }
+    identity = {
+      type: existingInquiry.clientId ? 'CLIENT' : 'LEAD',
+      id: existingInquiry.clientId || existingInquiry.leadId,
+    };
+  }
+
   const name = String(payload?.name || '').trim();
   if (!name) throw new AppError('Nome é obrigatório', 400);
   const email = payload?.email ? String(payload.email).trim() : null;
   const phone = payload?.phone ? String(payload.phone).trim() : null;
   const taxId = payload?.taxId ? String(payload.taxId).trim() : null;
-  if (!email && !phone) throw new AppError('Indique pelo menos email ou telefone', 400);
+  if (!email) throw new AppError('Email é obrigatório', 400);
 
   const answers = payload?.answers && typeof payload.answers === 'object' && !Array.isArray(payload.answers)
     ? payload.answers
     : {};
 
-  const identity = await leadsService.resolveIdentity(firm.id, {
-    name,
-    email,
-    phone,
-    taxId,
-    source: 'PUBLIC_FORM',
-    createdBy: null,
-  });
+  if (!identity) {
+    identity = await leadsService.resolveIdentity(firm.id, {
+      name,
+      email,
+      phone,
+      taxId,
+      source: 'PUBLIC_FORM',
+      createdBy: null,
+    });
+  }
 
   // Agendamento — reaproveita bookingService.bookAsClient() tal e qual (o mesmo usado
   // pelo portal do cliente autenticado). Desde a Fase 3a, um Lead novo também reserva
@@ -403,24 +424,32 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
   // 'manual' — a contabilista decide depois se pede, não é enviado ao cliente agora
   // (ver normalizeDocumentRequirements). Só os 'immediate' entram no checklist inicial.
   const { immediate: immediateDocuments } = accountingServicesService.splitDocumentsByTiming(requiredDocuments);
-  const accessToken = crypto.randomBytes(32).toString('hex');
   const submittedAt = new Date().toISOString();
   // Nada a aguardar -> pronta para a equipa trabalhar já; documentos pendentes -> aguarda entrega.
   const initialStatus = immediateDocuments.length > 0 ? 'DOCS_REQUESTED' : 'IN_PROGRESS';
 
-  const inquiry = await serviceInquiriesRepository.createRow({
-    firmId: firm.id,
-    serviceId: service.id,
-    leadId: identity.type === 'LEAD' ? identity.id : null,
-    clientId: identity.type === 'CLIENT' ? identity.id : null,
-    notes: null,
-    answers,
-    submittedAt,
-    accessToken,
-    accessTokenExpiresAt: new Date(Date.now() + ACCESS_TOKEN_TTL_MS).toISOString(),
-    status: initialStatus,
-  });
-
+  let inquiry;
+  if (existingInquiry) {
+    inquiry = await serviceInquiriesRepository.updateRow(existingInquiry.id, firm.id, {
+      answers,
+      submittedAt,
+      status: initialStatus,
+    });
+  } else {
+    const accessToken = crypto.randomBytes(32).toString('hex');
+    inquiry = await serviceInquiriesRepository.createRow({
+      firmId: firm.id,
+      serviceId: service.id,
+      leadId: identity.type === 'LEAD' ? identity.id : null,
+      clientId: identity.type === 'CLIENT' ? identity.id : null,
+      notes: null,
+      answers,
+      submittedAt,
+      accessToken,
+      accessTokenExpiresAt: new Date(Date.now() + ACCESS_TOKEN_TTL_MS).toISOString(),
+      status: initialStatus,
+    });
+  }
   if (bookedConsultation) {
     await serviceInquiriesRepository.updateRow(inquiry.id, firm.id, { consultationId: bookedConsultation.id });
     inquiry.consultationId = bookedConsultation.id;
@@ -459,7 +488,7 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
         toName: name,
         firmName: firm.name,
         serviceName: interpolateServiceTemplate(service.name),
-        accessToken,
+        accessToken: inquiry.accessToken,
         documents: requiredDocuments,
       })
       .catch(() => {});
@@ -623,6 +652,61 @@ async function recordTextReply({ token, requestId, textReply }) {
   return { checklist: allRequests.map(toChecklistItem) };
 }
 
+/**
+ * Etapa 1 do formulário público — cria Lead + ServiceInquiry incompleta
+ * (LEAD_CAPTURED) para não perder contacto se o visitante abandonar a meio.
+ */
+async function capturePublicLead({ firmSlug, serviceSlug, payload }) {
+  const firm = await firmsRepository.findFirmBySlugOrLabel(firmSlug);
+  if (!firm) throw new AppError('Pedido não encontrado', 404, { code: 'NOT_FOUND' });
+
+  const services = await accountingServicesRepository.listByFirm(firm.id, { activeOnly: true });
+  const service = services.find((s) => s.slug === serviceSlug && s.isPubliclyListed);
+  if (!service) throw new AppError('Pedido não encontrado', 404, { code: 'NOT_FOUND' });
+
+  const name = String(payload?.name || '').trim();
+  if (!name) throw new AppError('Nome é obrigatório', 400);
+  const email = payload?.email ? String(payload.email).trim() : null;
+  if (!email) throw new AppError('Email é obrigatório', 400);
+  const phone = payload?.phone ? String(payload.phone).trim() : null;
+  const taxId = payload?.taxId ? String(payload.taxId).trim() : null;
+
+  const identity = await leadsService.resolveIdentity(firm.id, {
+    name,
+    email,
+    phone,
+    taxId,
+    source: 'PUBLIC_FORM',
+    createdBy: null,
+  });
+
+  const accessToken = crypto.randomBytes(32).toString('hex');
+  const inquiry = await serviceInquiriesRepository.createRow({
+    firmId: firm.id,
+    serviceId: service.id,
+    leadId: identity.type === 'LEAD' ? identity.id : null,
+    clientId: identity.type === 'CLIENT' ? identity.id : null,
+    notes: null,
+    answers: {},
+    submittedAt: null,
+    accessToken,
+    accessTokenExpiresAt: new Date(Date.now() + ACCESS_TOKEN_TTL_MS).toISOString(),
+    status: 'LEAD_CAPTURED',
+  });
+
+  await auditRepository.writeAuditLog({
+    firmId: firm.id,
+    actorRole: 'PUBLIC',
+    actorId: null,
+    action: 'service_inquiry.lead_captured',
+    entityType: 'service_inquiry',
+    entityId: inquiry.id,
+    metadata: { serviceId: service.id, identityType: identity.type },
+  });
+
+  return { inquiry, accessToken: inquiry.accessToken };
+}
+
 module.exports = {
   list,
   getById,
@@ -631,6 +715,7 @@ module.exports = {
   remove,
   revokeAccessToken,
   addServiceInquiryRequest,
+  capturePublicLead,
   submitPublicIntake,
   getByAccessToken,
   recordDocumentDelivery,

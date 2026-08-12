@@ -88,7 +88,7 @@ test('submitPublicIntake: rejeita sem nome', async () => {
   );
 });
 
-test('submitPublicIntake: rejeita sem email nem telefone', async () => {
+test('submitPublicIntake: rejeita sem email', async () => {
   resetMocks();
   mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
   mock.method(accountingServicesRepository, 'listByFirm', async () => [SERVICE]);
@@ -98,7 +98,7 @@ test('submitPublicIntake: rejeita sem email nem telefone', async () => {
       serviceInquiriesService.submitPublicIntake({
         firmSlug: 'x',
         serviceSlug: 'irs-2026',
-        payload: { name: 'Ana' },
+        payload: { name: 'Ana', phone: '912345678' },
       }),
     (err) => {
       assert.equal(err.statusCode, 400);
@@ -158,7 +158,7 @@ test('submitPublicIntake: sem documentos exigidos -> status IN_PROGRESS logo à 
   await serviceInquiriesService.submitPublicIntake({
     firmSlug: 'x',
     serviceSlug: 'irs-2026',
-    payload: { name: 'Bruno', phone: '900000000' },
+    payload: { name: 'Bruno', email: 'bruno@x.com', phone: '900000000' },
   });
 
   assert.equal(created.status, 'IN_PROGRESS');

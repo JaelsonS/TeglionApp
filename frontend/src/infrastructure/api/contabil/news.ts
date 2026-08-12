@@ -14,6 +14,14 @@ export function createContabilNewsApi(api: AxiosInstance) {
         .then((r) => r.data as { storageKey: string; previewUrl: string })
     },
 
+    uploadBodyImage: (file: File) => {
+      const fd = new FormData()
+      fd.append('image', file)
+      return api
+        .post('/contabil/news/body-image', fd)
+        .then((r) => r.data as { storageKey: string; previewUrl: string })
+    },
+
     create: (payload: Record<string, unknown>) => api.post('/contabil/news', payload).then((r) => r.data),
 
     update: (id: string, payload: Record<string, unknown>) =>

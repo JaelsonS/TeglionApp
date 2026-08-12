@@ -35,3 +35,18 @@ test('interpolateServiceTemplate: null/undefined/vazio passam por undefined-safe
   assert.equal(interpolateServiceTemplate(undefined), undefined);
   assert.equal(interpolateServiceTemplate(''), '');
 });
+
+test('interpolateServiceTemplate: em HTML só substitui nós de texto, não atributos', () => {
+  const result = interpolateServiceTemplate(
+    '<p>IRS {{ano}}</p><ul data-year="{{ano}}"><li>{{ano_fiscal}}</li></ul>',
+    { now: new Date('2026-08-11') },
+  );
+  assert.equal(result, '<p>IRS 2026</p><ul data-year="{{ano}}"><li>2025</li></ul>');
+});
+
+test('interpolateServiceTemplate: negrito com token no meio', () => {
+  const result = interpolateServiceTemplate('<p>Declaração <strong>IRS {{ano}}</strong></p>', {
+    now: new Date('2026-08-11'),
+  });
+  assert.equal(result, '<p>Declaração <strong>IRS 2026</strong></p>');
+});

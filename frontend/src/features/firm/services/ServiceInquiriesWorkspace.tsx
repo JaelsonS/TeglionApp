@@ -19,6 +19,7 @@ import type { AccountingService, IntakeQuestion } from '@/shared/types/contabil'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 
 const STATUS_LABELS: Record<string, string> = {
+  LEAD_CAPTURED: 'Lead parcial',
   NEW: 'Novo',
   CONTACTED: 'Contactado',
   DOCS_REQUESTED: 'Aguarda documentos',
@@ -27,7 +28,7 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELLED: 'Cancelado',
 }
 
-const STATUS_ORDER = ['NEW', 'CONTACTED', 'DOCS_REQUESTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']
+const STATUS_ORDER = ['LEAD_CAPTURED', 'NEW', 'CONTACTED', 'DOCS_REQUESTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']
 const TERMINAL_STATUSES = new Set(['COMPLETED', 'CANCELLED'])
 
 /** Histórico (Fase 4) — reaproveita os eventos já escritos em audit_logs em cada
@@ -283,9 +284,11 @@ export function ServiceInquiriesWorkspace() {
                   <span
                     className={cn(
                       'shrink-0 rounded-full px-2.5 py-1 text-caption font-bold uppercase',
-                      TERMINAL_STATUSES.has(item.status)
-                        ? 'bg-muted text-muted-foreground'
-                        : 'bg-emerald-100 text-emerald-800',
+                      item.status === 'LEAD_CAPTURED'
+                        ? 'bg-amber-100 text-amber-900'
+                        : TERMINAL_STATUSES.has(item.status)
+                          ? 'bg-muted text-muted-foreground'
+                          : 'bg-emerald-100 text-emerald-800',
                     )}
                   >
                     {STATUS_LABELS[item.status] || item.status}

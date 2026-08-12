@@ -139,6 +139,22 @@ test('normalizeBookingOverrides: dayStart/dayEnd válidos são preservados', () 
   assert.deepEqual(out, { dayStart: '09:00', dayEnd: '13:00' });
 });
 
+test('normalizeBookingOverrides: schedule com múltiplos intervalos', () => {
+  const out = accountingServicesService.normalizeBookingOverrides({
+    schedule: {
+      1: [
+        { start: '09:00', end: '12:00' },
+        { start: '14:00', end: '18:00' },
+      ],
+    },
+  });
+  assert.deepEqual(out.weekdays, [1]);
+  assert.deepEqual(out.schedule[1], [
+    { start: '09:00', end: '12:00' },
+    { start: '14:00', end: '18:00' },
+  ]);
+});
+
 test('assertFormReadyForPublish: sem intake_form, não bloqueia (formulário mínimo é válido)', () => {
   accountingServicesService.assertFormReadyForPublish(null);
   accountingServicesService.assertFormReadyForPublish({ questions: [] });

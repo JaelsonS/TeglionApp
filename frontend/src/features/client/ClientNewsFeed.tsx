@@ -16,6 +16,7 @@ import { cn } from '@/shared/lib/utils'
 import { Input } from '@/shared/components/ui/input'
 import { SkeletonCard } from '@/shared/design-system/Skeleton'
 import { Button } from '@/shared/components/ui/button'
+import { NewsBodyContent } from '@/features/firm/news/newsBody'
 
 type Props = {
   previewMode?: boolean
@@ -127,9 +128,10 @@ export function ClientNewsFeed({ previewMode }: Props) {
             {article.category ? (
               <span className="cb-chip mt-3 inline-flex">{article.category}</span>
             ) : null}
-            <div className="prose prose-sm mt-6 max-w-none whitespace-pre-wrap text-foreground leading-relaxed">
-              {article.body}
-            </div>
+            <NewsBodyContent
+              body={article.body}
+              className="prose prose-sm mt-6 max-w-none text-foreground leading-relaxed"
+            />
             {article.coverUrl ? (
               <a
                 href={article.coverUrl}

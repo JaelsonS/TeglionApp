@@ -1,4 +1,5 @@
 import type { IntakeForm, IntakeQuestionType } from '@/shared/types/contabil'
+import { RichTextEditor } from '@/shared/design-system/RichTextEditor'
 
 const QUESTION_TYPE_LABELS: Record<IntakeQuestionType, string> = {
   text: 'Texto livre',
@@ -14,26 +15,44 @@ const QUESTION_TYPE_LABELS: Record<IntakeQuestionType, string> = {
 type Props = {
   serviceName?: string | null
   description?: string | null
+  onDescriptionChange?: (html: string) => void
   requiresBooking: boolean
   intakeForm: IntakeForm
+  imageUrl?: string | null
 }
 
 /**
  * Pré-visualização estática do que a página pública vai mostrar — sem
  * chamada de rede, sem submissão, alimentada só pelo estado local já
- * editado (Fase 5, ver plan file da sessão). Não reaproveita o componente
- * real (ServiceIntakePublicPage) de propósito: aqui não há reserva de
- * horário nem envio possível, só uma leitura fiel da estrutura configurada.
+ * editado. A descrição usa o mesmo RichTextEditor controlado da edição.
  */
-export function ServiceFormPreview({ serviceName, description, requiresBooking, intakeForm }: Props) {
+export function ServiceFormPreview({
+  serviceName,
+  description,
+  onDescriptionChange,
+  requiresBooking,
+  intakeForm,
+  imageUrl,
+}: Props) {
   return (
     <div className="space-y-4">
       <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
         Pré-visualização — é assim que o cliente vai ver a página pública. Nada aqui é enviado.
       </p>
-      <header className="space-y-1">
+      {imageUrl ? (
+        <img src={imageUrl} alt="" className="max-h-40 w-full rounded-xl object-cover" />
+      ) : null}
+      <header className="space-y-2">
         <h2 className="text-lg font-bold">{serviceName || 'Nome do serviço'}</h2>
-        {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+        {onDescriptionChange ? (
+          <RichTextEditor
+            value={description || ''}
+            onChange={onDescriptionChange}
+            placeholder="Descrição que o cliente vê…"
+          />
+        ) : description ? (
+          <RichTextEditor value={description} onChange={() => undefined} readOnly />
+        ) : null}
       </header>
 
       <div className="space-y-3 rounded-2xl border border-border/50 bg-card p-4">

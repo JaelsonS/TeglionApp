@@ -164,6 +164,107 @@ test('listSlotsForBooking: sem bookingOverrides, usa as regras do escritório ta
   assert.deepEqual(booking.weekdays, [1, 2, 3, 4, 5]);
 });
 
+test('normalizeBooking: config antiga sem schedule gera schedule a partir de weekdays+dayStart/dayEnd', () => {
+  const booking = bookingService.normalizeBooking({
+    weekdays: [1, 3, 5],
+    dayStart: '10:00',
+    dayEnd: '14:00',
+  });
+  assert.deepEqual(booking.weekdays, [1, 3, 5]);
+  assert.deepEqual(booking.schedule[1], [{ start: '10:00', end: '14:00' }]);
+  assert.deepEqual(booking.schedule[3], [{ start: '10:00', end: '14:00' }]);
+  assert.deepEqual(booking.schedule[5], [{ start: '10:00', end: '14:00' }]);
+  assert.equal(booking.schedule[2], undefined);
+});
+
+test('normalizeBooking: schedule com múltiplos intervalos no mesmo dia', () => {
+  const booking = bookingService.normalizeBooking({
+    schedule: {
+      1: [
+        { start: '09:00', end: '12:00' },
+        { start: '14:00', end: '17:00' },
+      ],
+    },
+  });
+  assert.deepEqual(booking.weekdays, [1]);
+  assert.deepEqual(booking.schedule[1], [
+    { start: '09:00', end: '12:00' },
+    { start: '14:00', end: '17:00' },
+  ]);
+  assert.equal(booking.dayStart, '09:00');
+  assert.equal(booking.dayEnd, '17:00');
+});
+
+test('computeAvailableSlotsTz: gera slots em ambos os intervalos do dia', () => {
+  const booking = bookingService.normalizeBooking({
+    slotMinutes: 60,
+    leadTimeHours: 0,
+    horizonDays: 7,
+    timezone: 'UTC',
+    schedule: {
+      // Usa um dia fixo: calculamos a partir de uma segunda-feira conhecida
+      1: [
+        { start: '09:00', end: '11:00' },
+        { start: '15:00', end: '17:00' },
+      ],
+    },
+  });
+  // 2026-08-10 é segunda-feira
+  const fromMs = Date.parse('2026-08-10T00:00:00.000Z');
+  const toMs = Date.parse('2026-08-10T23:59:59.000Z');
+  const slots = bookingService.computeAvailableSlotsTz({
+    fromMs,
+    toMs,
+    booking,
+    durationMinutes: 60,
+    busyRanges: [],
+  });
+  const hours = slots.map((iso) => new Date(iso).getUTCHours());
+  assert.ok(hours.includes(9), `esperava slot às 09h, got ${slots.join(',')}`);
+  assert.ok(hours.includes(10), `esperava slot às 10h, got ${slots.join(',')}`);
+  assert.ok(hours.includes(15), `esperava slot às 15h, got ${slots.join(',')}`);
+  assert.ok(hours.includes(16), `esperava slot às 16h, got ${slots.join(',')}`);
+  assert.equal(hours.includes(12), false);
+  assert.equal(hours.includes(13), false);
+});
+
+test('computeAvailableSlotsTz: dateOverrides[] fecha o dia (prioridade sobre schedule)', () => {
+  const booking = bookingService.normalizeBooking({
+    slotMinutes: 60,
+    leadTimeHours: 0,
+    timezone: 'UTC',
+    schedule: { 1: [{ start: '09:00', end: '17:00' }] },
+    dateOverrides: { '2026-08-10': [] },
+  });
+  const slots = bookingService.computeAvailableSlotsTz({
+    fromMs: Date.parse('2026-08-10T00:00:00.000Z'),
+    toMs: Date.parse('2026-08-10T23:59:59.000Z'),
+    booking,
+    durationMinutes: 60,
+    busyRanges: [],
+  });
+  assert.equal(slots.length, 0);
+});
+
+test('computeAvailableSlotsTz: dateOverrides com horário especial substitui o schedule do weekday', () => {
+  const booking = bookingService.normalizeBooking({
+    slotMinutes: 60,
+    leadTimeHours: 0,
+    timezone: 'UTC',
+    schedule: { 1: [{ start: '09:00', end: '17:00' }] },
+    dateOverrides: { '2026-08-10': [{ start: '10:00', end: '12:00' }] },
+  });
+  const slots = bookingService.computeAvailableSlotsTz({
+    fromMs: Date.parse('2026-08-10T00:00:00.000Z'),
+    toMs: Date.parse('2026-08-10T23:59:59.000Z'),
+    booking,
+    durationMinutes: 60,
+    busyRanges: [],
+  });
+  const hours = slots.map((iso) => new Date(iso).getUTCHours());
+  assert.deepEqual(hours, [10, 11]);
+});
+
 test('listSlotsForBooking: horário ocupado no Google Calendar ligado não aparece como slot livre (Fase Hc)', async () => {
   resetMocks();
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);

@@ -33,6 +33,14 @@ function normalizeHexOrNull(value) {
   return trimmed;
 }
 
+function normalizeHttpsUrlOrNull(value) {
+  if (value == null) return null;
+  const trimmed = String(value).trim();
+  if (!trimmed) return null;
+  if (!/^https:\/\//i.test(trimmed)) return null;
+  return trimmed.slice(0, 500);
+}
+
 function normalizeImageRef(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const storageKey = raw.storageKey ? String(raw.storageKey).trim().slice(0, 300) : '';
@@ -196,6 +204,11 @@ function defaultSiteConfig() {
     images: { hero: [], institutional: [] },
     socialLinks: normalizeSocialLinks(null),
     sections: defaultSections(),
+    showPrices: true,
+    termsText: null,
+    privacyText: null,
+    complaintsBookUrl: null,
+    praiseContact: null,
   };
 }
 
@@ -226,6 +239,11 @@ function normalizeSiteConfig(raw) {
     },
     socialLinks: normalizeSocialLinks(input.socialLinks),
     sections: normalizeSections(input.sections),
+    showPrices: input.showPrices !== false,
+    termsText: input.termsText != null ? String(input.termsText).trim().slice(0, 50000) || null : null,
+    privacyText: input.privacyText != null ? String(input.privacyText).trim().slice(0, 50000) || null : null,
+    complaintsBookUrl: normalizeHttpsUrlOrNull(input.complaintsBookUrl),
+    praiseContact: input.praiseContact != null ? String(input.praiseContact).trim().slice(0, 300) || null : null,
   };
 }
 

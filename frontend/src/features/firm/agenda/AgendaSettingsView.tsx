@@ -4,24 +4,22 @@ import { Link } from 'react-router-dom'
 import { AgendaAvailabilityPanel } from '@/features/firm/agenda/AgendaAvailabilityPanel'
 import { GoogleCalendarIntegrationPanel } from '@/features/firm/agenda/GoogleCalendarIntegrationPanel'
 import { Button } from '@/shared/components/ui/button'
-import type { AccountingService, FirmBookingSettings } from '@/shared/types/contabil'
+import type { AccountingService, BookingDaySchedule, FirmBookingSettings } from '@/shared/types/contabil'
 
 type Props = {
   services: AccountingService[]
   servicesLoading: boolean
   booking: FirmBookingSettings | null
-  wd: number[]
+  schedule: BookingDaySchedule
+  dateOverrides: NonNullable<FirmBookingSettings['dateOverrides']>
   slotMin: number
   horizon: number
   bookingTz: string
-  dayStart: string
-  dayEnd: string
-  onToggleWeekday: (n: number) => void
+  onScheduleChange: (next: BookingDaySchedule) => void
+  onDateOverridesChange: (next: NonNullable<FirmBookingSettings['dateOverrides']>) => void
   onSlotMin: (n: number) => void
   onHorizon: (n: number) => void
   onBookingTz: (tz: string) => void
-  onDayStart: (v: string) => void
-  onDayEnd: (v: string) => void
   onSaveAvailability: () => void
   onReload: () => void | Promise<void>
 }
@@ -49,18 +47,16 @@ export function AgendaSettingsView(props: Props) {
         </div>
         <AgendaAvailabilityPanel
           booking={props.booking}
-          wd={props.wd}
+          schedule={props.schedule}
+          onScheduleChange={props.onScheduleChange}
+          dateOverrides={props.dateOverrides}
+          onDateOverridesChange={props.onDateOverridesChange}
           slotMin={props.slotMin}
           horizon={props.horizon}
           bookingTz={props.bookingTz}
-          dayStart={props.dayStart}
-          dayEnd={props.dayEnd}
-          onToggleWeekday={props.onToggleWeekday}
           onSlotMin={props.onSlotMin}
           onHorizon={props.onHorizon}
           onBookingTz={props.onBookingTz}
-          onDayStart={props.onDayStart}
-          onDayEnd={props.onDayEnd}
           onSaveAvailability={props.onSaveAvailability}
         />
       </section>

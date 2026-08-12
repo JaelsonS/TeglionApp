@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
+import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import { FiscalCalendarConfigDialog } from '@/features/firm/fiscal-calendar/FiscalCalendarConfigDialog'
 import { FiscalCalendarDetailSheet } from '@/features/firm/fiscal-calendar/FiscalCalendarDetailSheet'
@@ -339,7 +340,7 @@ export function FiscalCalendarWorkspace() {
           <select
             className="h-8 rounded-md border border-border/60 bg-card px-2 text-sm font-semibold"
             value={cursor.year}
-            onChange={(e) => setCursor((c) => ({ ...c, year: Number(e.target.value) }))}
+            onChange={(e: FormChangeEvent) => setCursor((c) => ({ ...c, year: Number(e.target.value) }))}
             aria-label="Ano"
           >
             {Array.from({ length: 11 }, (_, i) => now.getFullYear() - 2 + i).map((y) => (
@@ -357,7 +358,7 @@ export function FiscalCalendarWorkspace() {
               className="h-8 w-40 pl-8 text-sm sm:w-52"
               placeholder="Pesquisar…"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e: FormChangeEvent) => setSearch(e.target.value)}
               aria-label="Pesquisar eventos"
             />
           </div>
@@ -444,7 +445,7 @@ export function FiscalCalendarWorkspace() {
         <select
           className="h-7 rounded-full border-0 bg-muted/60 px-2 text-xs text-muted-foreground"
           value={statusFilter || ''}
-          onChange={(e) => setStatusFilter(e.target.value || null)}
+          onChange={(e: FormChangeEvent) => setStatusFilter(e.target.value || null)}
           aria-label="Filtrar por estado"
         >
           <option value="">Todos os estados</option>

@@ -68,6 +68,18 @@ exports.uploadCover = async (req, res, next) => {
   }
 };
 
+exports.uploadBodyImage = async (req, res, next) => {
+  try {
+    const result = await newsService.uploadBodyImage({
+      firmId: String(req.user.firmId),
+      file: req.file,
+    });
+    return res.status(200).json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.listClientFeed = async (req, res, next) => {
   try {
     const firmId = String(req.user.firmId);

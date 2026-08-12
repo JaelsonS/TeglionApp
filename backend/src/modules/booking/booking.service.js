@@ -24,6 +24,8 @@ const DEFAULT_BOOKING = Object.freeze({
   timezone: 'Europe/Lisbon',
 });
 
+const TIME_RE = /^\d{1,2}:\d{2}$/;
+
 function clamp(n, min, max) {
   return Math.min(max, Math.max(min, n));
 }
@@ -33,6 +35,82 @@ function normalizeTimezone(raw) {
   return TZ_SET.has(z) ? z : 'Europe/Lisbon';
 }
 
+function normalizeTimeHHMM(value, fallback) {
+  return typeof value === 'string' && TIME_RE.test(value) ? value : fallback;
+}
+
+function timeToMinutes(hhmm) {
+  const [h, m] = String(hhmm).split(':').map(Number);
+  return h * 60 + m;
+}
+
+/** Normaliza um intervalo {start,end}; descarta se inválido ou start >= end. */
+function normalizeInterval(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const start = normalizeTimeHHMM(raw.start, null);
+  const end = normalizeTimeHHMM(raw.end, null);
+  if (!start || !end) return null;
+  if (timeToMinutes(start) >= timeToMinutes(end)) return null;
+  return { start, end };
+}
+
+/**
+ * `schedule`: { [weekday 0-6]: Array<{start,end}> }.
+ * Compatibilidade: sem `schedule`, gera a partir de weekdays + dayStart/dayEnd.
+ * Se `schedule` e `weekdays` coexistirem, filtra o schedule aos dias em weekdays
+ * (permite overrides parciais `{ weekdays: [2] }` sobre um schedule do escritório).
+ */
+function normalizeSchedule(rawSchedule, weekdays, dayStart, dayEnd) {
+  const out = {};
+  if (rawSchedule && typeof rawSchedule === 'object' && !Array.isArray(rawSchedule)) {
+    for (let d = 0; d <= 6; d += 1) {
+      const intervals = rawSchedule[d] ?? rawSchedule[String(d)];
+      if (!Array.isArray(intervals)) continue;
+      const normalized = intervals.map(normalizeInterval).filter(Boolean).slice(0, 8);
+      if (normalized.length) out[d] = normalized;
+    }
+  }
+
+  if (Object.keys(out).length === 0) {
+    for (const wd of weekdays) {
+      out[wd] = [{ start: dayStart, end: dayEnd }];
+    }
+    return out;
+  }
+
+  if (Array.isArray(weekdays) && weekdays.length) {
+    const filtered = {};
+    for (const wd of weekdays) {
+      if (out[wd]) filtered[wd] = out[wd];
+    }
+    // Se o filtro esvaziou tudo (ex.: weekdays novo sem entradas no schedule),
+    // recria a partir de dayStart/dayEnd para esses dias.
+    if (Object.keys(filtered).length === 0) {
+      for (const wd of weekdays) {
+        filtered[wd] = [{ start: dayStart, end: dayEnd }];
+      }
+    }
+    return filtered;
+  }
+
+  return out;
+}
+
+function deriveDayBounds(schedule) {
+  let minStart = null;
+  let maxEnd = null;
+  for (const intervals of Object.values(schedule)) {
+    for (const iv of intervals || []) {
+      if (!minStart || timeToMinutes(iv.start) < timeToMinutes(minStart)) minStart = iv.start;
+      if (!maxEnd || timeToMinutes(iv.end) > timeToMinutes(maxEnd)) maxEnd = iv.end;
+    }
+  }
+  return {
+    dayStart: minStart || DEFAULT_BOOKING.dayStart,
+    dayEnd: maxEnd || DEFAULT_BOOKING.dayEnd,
+  };
+}
+
 function normalizeBooking(raw) {
   const b = raw && typeof raw === 'object' ? raw : {};
   const slotMinutes = clamp(Number(b.slotMinutes) || DEFAULT_BOOKING.slotMinutes, 15, 120);
@@ -40,11 +118,49 @@ function normalizeBooking(raw) {
   const leadTimeHours = clamp(Number(b.leadTimeHours) || DEFAULT_BOOKING.leadTimeHours, 0, 168);
   let weekdays = Array.isArray(b.weekdays) ? b.weekdays.map((x) => Number(x)) : [...DEFAULT_BOOKING.weekdays];
   weekdays = [...new Set(weekdays.filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))];
-  if (weekdays.length === 0) weekdays = [...DEFAULT_BOOKING.weekdays];
-  const dayStart = typeof b.dayStart === 'string' && /^\d{1,2}:\d{2}$/.test(b.dayStart) ? b.dayStart : DEFAULT_BOOKING.dayStart;
-  const dayEnd = typeof b.dayEnd === 'string' && /^\d{1,2}:\d{2}$/.test(b.dayEnd) ? b.dayEnd : DEFAULT_BOOKING.dayEnd;
+  if (weekdays.length === 0 && !(b.schedule && typeof b.schedule === 'object')) {
+    weekdays = [...DEFAULT_BOOKING.weekdays];
+  }
+  const dayStartLegacy = normalizeTimeHHMM(b.dayStart, DEFAULT_BOOKING.dayStart);
+  const dayEndLegacy = normalizeTimeHHMM(b.dayEnd, DEFAULT_BOOKING.dayEnd);
   const tz = normalizeTimezone(b.timezone);
-  return { slotMinutes, horizonDays, leadTimeHours, weekdays, dayStart, dayEnd, timezone: tz };
+
+  const schedule = normalizeSchedule(b.schedule, weekdays, dayStartLegacy, dayEndLegacy);
+  const derivedWeekdays = Object.keys(schedule)
+    .map(Number)
+    .filter((d) => Number.isInteger(d) && d >= 0 && d <= 6)
+    .sort((a, b) => a - b);
+  const { dayStart, dayEnd } = deriveDayBounds(schedule);
+
+  return {
+    slotMinutes,
+    horizonDays,
+    leadTimeHours,
+    weekdays: derivedWeekdays.length ? derivedWeekdays : weekdays,
+    dayStart,
+    dayEnd,
+    timezone: tz,
+    schedule,
+    dateOverrides: normalizeDateOverrides(b.dateOverrides),
+  };
+}
+
+/** dateOverrides: { 'YYYY-MM-DD': Array<{start,end}> | [] } — [] = fechado nesse dia. */
+function normalizeDateOverrides(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const out = {};
+  for (const [dateStr, intervals] of Object.entries(raw)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) continue;
+    if (!Array.isArray(intervals)) continue;
+    // Array vazio = fechado — preservar
+    if (intervals.length === 0) {
+      out[dateStr] = [];
+      continue;
+    }
+    const normalized = intervals.map(normalizeInterval).filter(Boolean).slice(0, 8);
+    out[dateStr] = normalized;
+  }
+  return out;
 }
 
 function overlaps(a0, a1, b0, b1) {
@@ -53,12 +169,14 @@ function overlaps(a0, a1, b0, b1) {
 
 /**
  * Slots em ISO UTC usando janelas no fuso configurado do escritório.
+ * Prioridade: dateOverrides[data] ?? schedule[weekday] ?? [].
+ * dateOverrides[data] === [] significa fechado nesse dia.
  */
 function computeAvailableSlotsTz({ fromMs, toMs, booking, durationMinutes, busyRanges }) {
-  const { slotMinutes, weekdays, dayStart, dayEnd } = booking;
+  const { slotMinutes, schedule, dateOverrides } = booking;
   const tz = booking.timezone || 'Europe/Lisbon';
-  const slotMs = slotMinutes * 60 * 1000;
   const durMs = durationMinutes * 60 * 1000;
+  const overrides = dateOverrides && typeof dateOverrides === 'object' ? dateOverrides : {};
 
   const busy = (busyRanges || [])
     .filter(Boolean)
@@ -71,25 +189,32 @@ function computeAvailableSlotsTz({ fromMs, toMs, booking, durationMinutes, busyR
 
   while (d.valueOf() <= lastDay.valueOf()) {
     const wd = d.day();
-    if (weekdays.includes(wd)) {
-      const dateStr = d.format('YYYY-MM-DD');
-      let t = dayjs.tz(`${dateStr} ${dayStart}`, 'YYYY-MM-DD HH:mm', tz);
-      const cap = dayjs.tz(`${dateStr} ${dayEnd}`, 'YYYY-MM-DD HH:mm', tz);
+    const dateStr = d.format('YYYY-MM-DD');
+    const intervals =
+      Object.prototype.hasOwnProperty.call(overrides, dateStr)
+        ? overrides[dateStr] || []
+        : (schedule && schedule[wd]) || [];
+    if (intervals.length) {
+      for (const { start: dayStart, end: dayEnd } of intervals) {
+        let t = dayjs.tz(`${dateStr} ${dayStart}`, 'YYYY-MM-DD HH:mm', tz);
+        const cap = dayjs.tz(`${dateStr} ${dayEnd}`, 'YYYY-MM-DD HH:mm', tz);
 
-      while (t.valueOf() + durMs <= cap.valueOf() && t.valueOf() <= toMs) {
-        const start = t.valueOf();
-        const endSlot = start + durMs;
-        if (start >= fromMs && endSlot <= cap.valueOf()) {
-          const clash = busy.some((b) => overlaps(start, endSlot, b.start, b.end));
-          if (!clash) out.push(new Date(start).toISOString());
+        while (t.valueOf() + durMs <= cap.valueOf() && t.valueOf() <= toMs) {
+          const start = t.valueOf();
+          const endSlot = start + durMs;
+          if (start >= fromMs && endSlot <= cap.valueOf()) {
+            const clash = busy.some((b) => overlaps(start, endSlot, b.start, b.end));
+            if (!clash) out.push(new Date(start).toISOString());
+          }
+          t = t.add(slotMinutes, 'minute');
         }
-        t = t.add(slotMinutes, 'minute');
       }
     }
     d = d.add(1, 'day');
   }
 
-  return out;
+  // Ordena e deduplica (intervalos sobrepostos no mesmo dia)
+  return [...new Set(out)].sort();
 }
 
 async function getBookingConfigForFirm(firmId) {
@@ -216,6 +341,7 @@ module.exports = {
   defaultBooking: () => ({ ...DEFAULT_BOOKING }),
   defaultBookingSeed,
   normalizeBooking,
+  computeAvailableSlotsTz,
   getBookingConfigForFirm,
   updateBookingSettings,
   listSlotsForBooking,

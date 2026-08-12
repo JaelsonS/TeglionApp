@@ -4,6 +4,7 @@ const { mapDbError } = require('../../utils/db-error');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-catalog');
 const { BOOKING_TIMEZONES } = require('../booking/booking.service');
+const contabilStorage = require('../../services/storage/contabil-storage.service');
 
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -86,6 +87,55 @@ function normalizeBookingOverrides(value) {
   if (value.dayEnd != null) {
     if (!TIME_RE.test(value.dayEnd)) throw new AppError('dayEnd inválido', 400);
     out.dayEnd = value.dayEnd;
+  }
+  if (value.schedule != null) {
+    if (typeof value.schedule !== 'object' || Array.isArray(value.schedule)) {
+      throw new AppError('schedule deve ser um objeto', 400);
+    }
+    const schedule = {};
+    for (let d = 0; d <= 6; d += 1) {
+      const intervals = value.schedule[d] ?? value.schedule[String(d)];
+      if (intervals === undefined) continue;
+      if (!Array.isArray(intervals)) throw new AppError('schedule[dia] deve ser uma lista', 400);
+      const normalized = intervals
+        .map((iv) => {
+          if (!iv || typeof iv !== 'object') return null;
+          if (!TIME_RE.test(iv.start) || !TIME_RE.test(iv.end)) return null;
+          return { start: iv.start, end: iv.end };
+        })
+        .filter(Boolean)
+        .slice(0, 8);
+      if (normalized.length) schedule[d] = normalized;
+    }
+    out.schedule = schedule;
+    // weekdays derivados do schedule quando não veio weekdays explícito
+    if (value.weekdays == null) {
+      out.weekdays = Object.keys(schedule).map(Number).sort((a, b) => a - b);
+      if (!out.weekdays.length) throw new AppError('Seleccione pelo menos um dia', 400);
+    }
+  }
+  if (value.dateOverrides != null) {
+    if (typeof value.dateOverrides !== 'object' || Array.isArray(value.dateOverrides)) {
+      throw new AppError('dateOverrides deve ser um objeto', 400);
+    }
+    const dateOverrides = {};
+    for (const [dateStr, intervals] of Object.entries(value.dateOverrides)) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) continue;
+      if (!Array.isArray(intervals)) throw new AppError('dateOverrides[data] deve ser uma lista', 400);
+      if (intervals.length === 0) {
+        dateOverrides[dateStr] = [];
+        continue;
+      }
+      dateOverrides[dateStr] = intervals
+        .map((iv) => {
+          if (!iv || typeof iv !== 'object') return null;
+          if (!TIME_RE.test(iv.start) || !TIME_RE.test(iv.end)) return null;
+          return { start: iv.start, end: iv.end };
+        })
+        .filter(Boolean)
+        .slice(0, 8);
+    }
+    out.dateOverrides = dateOverrides;
   }
   if (value.timezone != null) {
     if (!BOOKING_TZ_SET.has(value.timezone)) throw new AppError('timezone inválido', 400);
@@ -244,9 +294,32 @@ function parsePriceEuros(payload) {
   return undefined;
 }
 
+async function resolveServiceImageUrl(imageRef) {
+  if (!imageRef) return null;
+  const raw = String(imageRef).trim();
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('firm/')) {
+    try {
+      return await contabilStorage.createSignedDownloadUrl(raw, 86400);
+    } catch {
+      return null;
+    }
+  }
+  return raw;
+}
+
+async function enrichService(item) {
+  if (!item) return item;
+  const key = item.imageStorageKey || item.imageUrl;
+  const imageStorageKey = key && String(key).startsWith('firm/') ? key : item.imageStorageKey || null;
+  const imageUrl = await resolveServiceImageUrl(key);
+  return { ...item, imageUrl, imageStorageKey };
+}
+
 async function list({ firmId, activeOnly }) {
   const items = await accountingServicesRepository.listByFirm(firmId, { activeOnly: Boolean(activeOnly) });
-  return { items };
+  return { items: await Promise.all(items.map(enrichService)) };
 }
 
 async function create({ firmId, payload }) {
@@ -268,6 +341,7 @@ async function create({ firmId, payload }) {
     firmId,
     name,
     description: payload?.description,
+    imageUrl: payload?.imageStorageKey || payload?.imageUrl || null,
     durationMinutes: duration,
     priceCents,
     currency: String(payload?.currency || 'EUR').toUpperCase().slice(0, 3),
@@ -281,7 +355,7 @@ async function create({ firmId, payload }) {
     intakeForm,
     bookingOverrides: normalizeBookingOverrides(payload?.bookingOverrides) || null,
   });
-  return { item };
+  return { item: await enrichService(item) };
 }
 
 async function update({ firmId, id, payload }) {
@@ -295,6 +369,8 @@ async function update({ firmId, id, payload }) {
     patch.name = name;
   }
   if (payload?.description !== undefined) patch.description = payload.description;
+  if (payload?.imageStorageKey !== undefined) patch.imageUrl = payload.imageStorageKey;
+  else if (payload?.imageUrl !== undefined) patch.imageUrl = payload.imageUrl;
   if (payload?.durationMinutes !== undefined) {
     const duration = Number(payload.durationMinutes);
     if (!Number.isFinite(duration) || duration < 15 || duration > 480) {
@@ -327,7 +403,7 @@ async function update({ firmId, id, payload }) {
   }
 
   const item = await accountingServicesRepository.updateRow(id, firmId, patch);
-  return { item };
+  return { item: await enrichService(item) };
 }
 
 /**
@@ -344,6 +420,7 @@ async function duplicate({ firmId, id }) {
     firmId,
     name: `${existing.name} (cópia)`,
     description: existing.description,
+    imageUrl: existing.imageStorageKey || existing.imageUrl || null,
     durationMinutes: existing.durationMinutes,
     priceCents: existing.priceCents,
     currency: existing.currency,
@@ -357,7 +434,7 @@ async function duplicate({ firmId, id }) {
     intakeForm: existing.intakeForm,
     bookingOverrides: existing.bookingOverrides,
   });
-  return { item };
+  return { item: await enrichService(item) };
 }
 
 /**
@@ -477,6 +554,13 @@ async function activateFromCatalog({ firmId, catalogKeys }) {
   return { items, activated: items.length };
 }
 
+async function uploadServiceImage({ firmId, file }) {
+  if (!file?.buffer?.length) throw new AppError('Selecione uma imagem (JPG, PNG, WebP ou GIF).', 400);
+  const uploaded = await contabilStorage.uploadServiceImage({ firmId, file });
+  const previewUrl = await contabilStorage.createSignedDownloadUrl(uploaded.path, 86400);
+  return { storageKey: uploaded.path, previewUrl };
+}
+
 module.exports = {
   list,
   create,
@@ -486,6 +570,9 @@ module.exports = {
   bulkPatch,
   seedCatalog,
   activateFromCatalog,
+  uploadServiceImage,
+  enrichService,
+  resolveServiceImageUrl,
   getCatalogTemplate: () => CONSULTING_SERVICES_CATALOG,
   normalizeIntakeForm,
   normalizeBookingOverrides,

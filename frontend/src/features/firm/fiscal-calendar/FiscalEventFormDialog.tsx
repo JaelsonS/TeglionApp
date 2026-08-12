@@ -1,5 +1,6 @@
-import type { FormEvent } from 'react'
+import type { FormEvent, ChangeEvent } from 'react'
 import { useEffect, useState } from 'react'
+import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import {
   KIND_LABELS,
@@ -188,7 +189,7 @@ export function FiscalEventFormDialog({
                 <Input
                   id="fiscal-event-title"
                   value={values.title}
-                  onChange={(e) => setField('title', e.target.value)}
+                  onChange={(e: FormChangeEvent) => setField('title', e.target.value)}
                   placeholder="Ex.: Entrega IVA — Agosto"
                   required
                 />
@@ -198,7 +199,7 @@ export function FiscalEventFormDialog({
                 <Textarea
                   id="fiscal-event-desc"
                   value={values.description}
-                  onChange={(e) => setField('description', e.target.value)}
+                  onChange={(e: FormChangeEvent) => setField('description', e.target.value)}
                   rows={3}
                   placeholder="Detalhes do prazo ou obrigação…"
                 />
@@ -214,7 +215,7 @@ export function FiscalEventFormDialog({
                     id="fiscal-event-date"
                     type="date"
                     value={values.startDate}
-                    onChange={(e) => setField('startDate', e.target.value)}
+                    onChange={(e: FormChangeEvent) => setField('startDate', e.target.value)}
                     required
                   />
                 </div>
@@ -224,7 +225,7 @@ export function FiscalEventFormDialog({
                     id="fiscal-event-time"
                     type="time"
                     value={values.startTime}
-                    onChange={(e) => setField('startTime', e.target.value)}
+                    onChange={(e: FormChangeEvent) => setField('startTime', e.target.value)}
                   />
                 </div>
               </div>
@@ -239,7 +240,7 @@ export function FiscalEventFormDialog({
                     id="fiscal-event-category"
                     className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                     value={values.categoryId}
-                    onChange={(e) => setField('categoryId', e.target.value)}
+                    onChange={(e: FormChangeEvent) => setField('categoryId', e.target.value)}
                   >
                     <option value="">Sem categoria</option>
                     {categories.filter((c) => c.isActive).map((c) => (
@@ -255,7 +256,7 @@ export function FiscalEventFormDialog({
                     id="fiscal-event-kind"
                     className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                     value={values.eventKind}
-                    onChange={(e) => setField('eventKind', e.target.value as 'FISCAL' | 'INTERNAL')}
+                    onChange={(e: FormChangeEvent) => setField('eventKind', e.target.value as 'FISCAL' | 'INTERNAL')}
                   >
                     {Object.entries(KIND_LABELS).map(([k, label]) => (
                       <option key={k} value={k}>
@@ -270,7 +271,7 @@ export function FiscalEventFormDialog({
                     id="fiscal-event-status"
                     className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                     value={values.status}
-                    onChange={(e) => setField('status', e.target.value as FirmFiscalEvent['status'])}
+                    onChange={(e: FormChangeEvent) => setField('status', e.target.value as FirmFiscalEvent['status'])}
                   >
                     {Object.entries(STATUS_LABELS).map(([k, label]) => (
                       <option key={k} value={k}>
@@ -285,7 +286,7 @@ export function FiscalEventFormDialog({
                     id="fiscal-event-priority"
                     className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                     value={values.priority}
-                    onChange={(e) => setField('priority', e.target.value as FirmFiscalEvent['priority'])}
+                    onChange={(e: FormChangeEvent) => setField('priority', e.target.value as FirmFiscalEvent['priority'])}
                   >
                     <option value="LOW">Baixa</option>
                     <option value="NORMAL">Normal</option>
@@ -337,7 +338,7 @@ export function FiscalEventFormDialog({
                   <input
                     type="checkbox"
                     checked={values.recurrenceEnabled}
-                    onChange={(e) => setField('recurrenceEnabled', e.target.checked)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setField('recurrenceEnabled', e.target.checked)}
                   />
                   Evento recorrente
                 </label>
@@ -349,7 +350,7 @@ export function FiscalEventFormDialog({
                         id="fiscal-event-freq"
                         className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                         value={values.recurrenceFrequency}
-                        onChange={(e) =>
+                        onChange={(e: FormChangeEvent) =>
                           setField('recurrenceFrequency', e.target.value as FirmFiscalRecurrence['frequency'])
                         }
                       >
@@ -368,7 +369,7 @@ export function FiscalEventFormDialog({
                         min={1}
                         max={31}
                         value={values.recurrenceDayOfMonth}
-                        onChange={(e) => setField('recurrenceDayOfMonth', e.target.value)}
+                        onChange={(e: FormChangeEvent) => setField('recurrenceDayOfMonth', e.target.value)}
                         placeholder="Ex.: 20"
                       />
                     </div>
@@ -385,7 +386,7 @@ export function FiscalEventFormDialog({
                   <Input
                     id="fiscal-event-authority"
                     value={values.authority}
-                    onChange={(e) => setField('authority', e.target.value)}
+                    onChange={(e: FormChangeEvent) => setField('authority', e.target.value)}
                     placeholder="AT, Segurança Social…"
                   />
                 </div>
@@ -394,7 +395,7 @@ export function FiscalEventFormDialog({
                   <Input
                     id="fiscal-event-period"
                     value={values.periodLabel}
-                    onChange={(e) => setField('periodLabel', e.target.value)}
+                    onChange={(e: FormChangeEvent) => setField('periodLabel', e.target.value)}
                     placeholder="2026-08 / 2026-Q1"
                   />
                 </div>
@@ -404,7 +405,7 @@ export function FiscalEventFormDialog({
                 <Textarea
                   id="fiscal-event-notes"
                   value={values.notes}
-                  onChange={(e) => setField('notes', e.target.value)}
+                  onChange={(e: FormChangeEvent) => setField('notes', e.target.value)}
                   rows={2}
                 />
               </div>

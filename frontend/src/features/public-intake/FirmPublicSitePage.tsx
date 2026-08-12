@@ -87,6 +87,11 @@ export function FirmPublicSitePage() {
           images: data.images,
           socialLinks: data.socialLinks,
           sections: data.sections,
+          showPrices: data.showPrices !== false,
+          termsText: data.termsText,
+          privacyText: data.privacyText,
+          complaintsBookUrl: data.complaintsBookUrl,
+          praiseContact: data.praiseContact,
         }}
         ctx={{
           firmSlug,
@@ -94,6 +99,9 @@ export function FirmPublicSitePage() {
           logoUrl: data.logoUrl,
           services: data.services,
           contact: data.contact,
+          showPrices: data.showPrices !== false,
+          complaintsBookUrl: data.complaintsBookUrl,
+          praiseContact: data.praiseContact,
         }}
       />
     </div>

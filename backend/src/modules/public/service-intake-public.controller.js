@@ -15,6 +15,7 @@ const bookingService = require('../booking/booking.service');
 const serviceInquiriesService = require('../firm/service-inquiries.service');
 const firmBrandingService = require('../firm/firm-branding.service');
 const firmPublicSiteService = require('../firm/firm-public-site.service');
+const accountingServicesService = require('../firm/accounting-services.service');
 const { interpolateServiceTemplate } = require('../../utils/service-text-template');
 
 /** Resolve Firm + Service publicado pelo par (firmSlug, serviceSlug) — nunca aceita ids crus. */
@@ -25,6 +26,19 @@ async function resolvePublicService(firmSlug, serviceSlug) {
   const service = services.find((s) => s.slug === serviceSlug && s.isPubliclyListed);
   if (!service) throw new AppError('Serviço não encontrado', 404, { code: 'NOT_FOUND' });
   return { firm, service };
+}
+
+async function mapPublicServiceSummary(s) {
+  const enriched = await accountingServicesService.enrichService(s);
+  return {
+    slug: enriched.slug,
+    name: interpolateServiceTemplate(enriched.name),
+    description: interpolateServiceTemplate(enriched.description) || null,
+    durationMinutes: enriched.durationMinutes,
+    priceCents: enriched.priceCents,
+    requiresBooking: enriched.requiresBooking !== false,
+    imageUrl: enriched.imageUrl || null,
+  };
 }
 
 function assertValid(req) {
@@ -48,16 +62,9 @@ async function getPublicFirmServices(req, res, next) {
     if (!firm) throw new AppError('Escritório não encontrado', 404, { code: 'NOT_FOUND' });
 
     const services = await accountingServicesRepository.listByFirm(firm.id, { activeOnly: true });
-    const items = services
-      .filter((s) => s.isPubliclyListed && s.slug)
-      .map((s) => ({
-        slug: s.slug,
-        name: interpolateServiceTemplate(s.name),
-        description: interpolateServiceTemplate(s.description) || null,
-        durationMinutes: s.durationMinutes,
-        priceCents: s.priceCents,
-        requiresBooking: s.requiresBooking !== false,
-      }));
+    const items = await Promise.all(
+      services.filter((s) => s.isPubliclyListed && s.slug).map(mapPublicServiceSummary),
+    );
 
     let logoUrl = null;
     try {
@@ -115,16 +122,9 @@ async function getPublicFirmSite(req, res, next) {
       : site.published || firmPublicSiteService.buildConfigFromLegacySettings(firm);
 
     const services = await accountingServicesRepository.listByFirm(firm.id, { activeOnly: true });
-    const items = services
-      .filter((s) => s.isPubliclyListed && s.slug)
-      .map((s) => ({
-        slug: s.slug,
-        name: interpolateServiceTemplate(s.name),
-        description: interpolateServiceTemplate(s.description) || null,
-        durationMinutes: s.durationMinutes,
-        priceCents: s.priceCents,
-        requiresBooking: s.requiresBooking !== false,
-      }));
+    const items = await Promise.all(
+      services.filter((s) => s.isPubliclyListed && s.slug).map(mapPublicServiceSummary),
+    );
 
     let logoUrl = null;
     try {
@@ -148,6 +148,11 @@ async function getPublicFirmSite(req, res, next) {
       images: config.images,
       socialLinks: config.socialLinks,
       sections: config.sections,
+      showPrices: config.showPrices !== false,
+      termsText: config.termsText || null,
+      privacyText: config.privacyText || null,
+      complaintsBookUrl: config.complaintsBookUrl || null,
+      praiseContact: config.praiseContact || null,
       contact: {
         email: contact.email || null,
         phone: contact.phone || null,
@@ -168,12 +173,30 @@ async function getPublicService(req, res, next) {
       String(req.params.serviceSlug || '').trim(),
     );
 
+    let showPrices = true;
+    let termsText = null;
+    let privacyText = null;
+    try {
+      const site = await firmPublicSiteService.getSite(firm.id);
+      const config = site.published || site.draft;
+      showPrices = config?.showPrices !== false;
+      termsText = config?.termsText || null;
+      privacyText = config?.privacyText || null;
+    } catch {
+      showPrices = true;
+    }
+
     return res.json({
       firmName: firm.name,
       serviceName: interpolateServiceTemplate(service.name),
       description: interpolateServiceTemplate(service.description) || null,
+      imageUrl: (await accountingServicesService.resolveServiceImageUrl(service.imageStorageKey || service.imageUrl)) || null,
       intakeForm: service.intakeForm || { questions: [] },
       requiresBooking: service.requiresBooking !== false,
+      priceCents: service.priceCents,
+      showPrices,
+      termsText,
+      privacyText,
     });
   } catch (err) {
     return next(err);
@@ -209,6 +232,23 @@ async function getPublicSlots(req, res, next) {
   }
 }
 
+async function captureLead(req, res, next) {
+  try {
+    assertValid(req);
+    if (req.body?.website) {
+      return res.status(201).json({ ok: true, accessToken: 'honeypot' });
+    }
+    const { accessToken } = await serviceInquiriesService.capturePublicLead({
+      firmSlug: String(req.params.firmSlug || '').trim(),
+      serviceSlug: String(req.params.serviceSlug || '').trim(),
+      payload: req.body || {},
+    });
+    return res.status(201).json({ ok: true, accessToken });
+  } catch (err) {
+    return next(err);
+  }
+}
+
 async function submitIntake(req, res, next) {
   try {
     assertValid(req);
@@ -226,9 +266,6 @@ async function submitIntake(req, res, next) {
       ok: true,
       accessToken: inquiry.accessToken,
       documentsRequired: requiredDocuments.length,
-      // Um Lead novo nunca gera consultation (ver submitPublicIntake) — bookingConfirmed=false
-      // nesse caso não é um erro, é a distinção real entre "reservado" e "preferência registada"
-      // que a interface pública precisa comunicar sem ambiguidade.
       bookingConfirmed: Boolean(consultation),
       scheduledAt: consultation?.scheduledAt || null,
     });
@@ -294,10 +331,20 @@ const submitValidators = [
   param('firmSlug').isString().trim().isLength({ min: 2, max: 64 }),
   param('serviceSlug').isString().trim().isLength({ min: 1, max: 80 }),
   body('name').isString().trim().isLength({ min: 1, max: 200 }),
-  body('email').optional({ nullable: true }).isString().trim().isLength({ max: 200 }),
+  body('email').isString().trim().isLength({ min: 3, max: 200 }),
   body('phone').optional({ nullable: true }).isString().trim().isLength({ max: 40 }),
   body('taxId').optional({ nullable: true }).isString().trim().isLength({ max: 40 }),
   body('scheduledAt').optional({ nullable: true }).isISO8601(),
+  body('leadAccessToken').optional({ nullable: true }).isString().trim().isLength({ min: 32, max: 128 }),
+];
+
+const captureLeadValidators = [
+  param('firmSlug').isString().trim().isLength({ min: 2, max: 64 }),
+  param('serviceSlug').isString().trim().isLength({ min: 1, max: 80 }),
+  body('name').isString().trim().isLength({ min: 1, max: 200 }),
+  body('email').isString().trim().isLength({ min: 3, max: 200 }),
+  body('phone').optional({ nullable: true }).isString().trim().isLength({ max: 40 }),
+  body('taxId').optional({ nullable: true }).isString().trim().isLength({ max: 40 }),
 ];
 
 const slotsValidators = [
@@ -320,6 +367,7 @@ module.exports = {
   getPublicFirmSite,
   getPublicService,
   getPublicSlots,
+  captureLead,
   submitIntake,
   getByToken,
   uploadByToken,
@@ -327,6 +375,7 @@ module.exports = {
   getFirmServicesValidators,
   getFirmSiteValidators,
   getServiceValidators,
+  captureLeadValidators,
   submitValidators,
   slotsValidators,
   tokenValidators,

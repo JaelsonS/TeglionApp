@@ -1,6 +1,6 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
-import { Loader2, Send } from 'lucide-react'
+import { ImagePlus, Loader2, Send } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { FormField, UploadDropzone } from '@/shared/design-system'
@@ -10,6 +10,7 @@ import { contabilNewsApi } from '@/infrastructure/api'
 import type { NewsArticle } from '@/shared/types/contabil'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
+import { NewsBodyContent } from '@/features/firm/news/newsBody'
 
 export type NewsDraft = Partial<NewsArticle> & {
   coverStorageKey?: string | null
@@ -25,6 +26,9 @@ type Props = {
 
 export function NewsComposer({ draft, onChange, onSaveDraft, onPublish, saving }: Props) {
   const [uploading, setUploading] = useState(false)
+  const [uploadingBody, setUploadingBody] = useState(false)
+  const [bodySrcMap, setBodySrcMap] = useState<Record<string, string>>({})
+  const bodyRef = useRef<HTMLTextAreaElement>(null)
 
   const uploadCover = useCallback(
     async (file: File) => {
@@ -40,6 +44,44 @@ export function NewsComposer({ draft, onChange, onSaveDraft, onPublish, saving }
         toast.error('Não foi possível carregar a capa', { description: getErrorMessage(err) })
       } finally {
         setUploading(false)
+      }
+    },
+    [draft, onChange],
+  )
+
+  const insertBodyImage = useCallback(
+    async (file: File) => {
+      setUploadingBody(true)
+      try {
+        const res = await contabilNewsApi.uploadBodyImage(file)
+        const marker = `![](${res.storageKey})`
+        setBodySrcMap((prev) => ({ ...prev, [res.storageKey]: res.previewUrl }))
+        const el = bodyRef.current
+        const current = draft.body || ''
+        let next = current
+        if (el && typeof el.selectionStart === 'number') {
+          const start = el.selectionStart
+          const end = el.selectionEnd
+          const before = current.slice(0, start)
+          const after = current.slice(end)
+          const needsPadBefore = before.length > 0 && !/\n$/.test(before)
+          const needsPadAfter = after.length > 0 && !/^\n/.test(after)
+          next = `${before}${needsPadBefore ? '\n' : ''}${marker}${needsPadAfter ? '\n' : ''}${after}`
+          onChange({ ...draft, body: next })
+          requestAnimationFrame(() => {
+            const pos = (before + (needsPadBefore ? '\n' : '') + marker).length + (needsPadAfter ? 1 : 0)
+            el.focus()
+            el.setSelectionRange(pos, pos)
+          })
+        } else {
+          next = current ? `${current}\n${marker}\n` : `${marker}\n`
+          onChange({ ...draft, body: next })
+        }
+        toast.success('Imagem inserida no texto')
+      } catch (err) {
+        toast.error('Não foi possível inserir a imagem', { description: getErrorMessage(err) })
+      } finally {
+        setUploadingBody(false)
       }
     },
     [draft, onChange],
@@ -68,6 +110,7 @@ export function NewsComposer({ draft, onChange, onSaveDraft, onPublish, saving }
 
       <FormField label="Conteúdo">
         <textarea
+          ref={bodyRef}
           value={draft.body || ''}
           onChange={(e: FormChangeEvent) => onChange({ ...draft, body: e.target.value })}
           rows={12}
@@ -75,6 +118,33 @@ export function NewsComposer({ draft, onChange, onSaveDraft, onPublish, saving }
           placeholder="Texto completo da notícia…"
           required
         />
+        <div className="mt-2">
+          <p className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <ImagePlus className="h-3.5 w-3.5" />
+            Inserir imagem no texto
+          </p>
+          <UploadDropzone
+            loading={uploadingBody}
+            multiple={false}
+            onFiles={(files) => {
+              const file = files[0]
+              if (file) void insertBodyImage(file)
+            }}
+            accept="image/*"
+            label={uploadingBody ? 'A carregar…' : 'Arrastar imagem ou clicar'}
+            hint="Insere ![](…) na posição do cursor"
+          />
+        </div>
+        {draft.body?.includes('![](') ? (
+          <div className="mt-3 rounded-xl border border-border/60 bg-muted/30 p-3">
+            <p className="mb-2 text-xs font-medium text-muted-foreground">Pré-visualização</p>
+            <NewsBodyContent
+              body={draft.body}
+              className="text-sm leading-relaxed text-foreground"
+              srcMap={bodySrcMap}
+            />
+          </div>
+        ) : null}
       </FormField>
 
       <FormField label="Categoria">

@@ -329,6 +329,8 @@ export type AccountingService = {
   catalogKey?: string | null
   name: string
   description?: string | null
+  imageUrl?: string | null
+  imageStorageKey?: string | null
   durationMinutes: number
   priceCents: number
   currency?: string
@@ -352,6 +354,14 @@ export type ConsultingCatalogEntry = {
   category?: string
 }
 
+export type TimeInterval = { start: string; end: string }
+
+/** weekday 0=domingo … 6=sábado → intervalos nesse dia */
+export type BookingDaySchedule = Partial<Record<number, TimeInterval[]>>
+
+/** Data ISO YYYY-MM-DD → intervalos (ou [] = fechado) */
+export type BookingDateOverrides = Record<string, TimeInterval[]>
+
 export type FirmBookingSettings = {
   slotMinutes: number
   horizonDays: number
@@ -360,4 +370,8 @@ export type FirmBookingSettings = {
   dayStart: string
   dayEnd: string
   timezone?: string
+  /** Novo formato: múltiplos intervalos por dia. Sem isto, weekdays+dayStart/dayEnd aplicam-se. */
+  schedule?: BookingDaySchedule
+  /** Excepções por data (férias/feriados/horário especial). [] = fechado. */
+  dateOverrides?: BookingDateOverrides
 }

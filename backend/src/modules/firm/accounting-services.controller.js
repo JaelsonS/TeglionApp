@@ -99,3 +99,16 @@ exports.bulkPatch = async (req, res, next) => {
     return next(err);
   }
 };
+
+exports.uploadImage = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const result = await accountingServicesService.uploadServiceImage({
+      firmId,
+      file: req.file,
+    });
+    return res.status(200).json(result);
+  } catch (err) {
+    return next(err);
+  }
+};

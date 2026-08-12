@@ -28,6 +28,14 @@ export function createContabilAccountingServicesApi(api: AxiosInstance) {
 
     bulkPatch: (payload: { ids: string[]; patch: Record<string, unknown> }) =>
       api.post('/contabil/accounting-services/bulk', payload).then((r) => r.data),
+
+    uploadImage: (file: File) => {
+      const fd = new FormData()
+      fd.append('image', file)
+      return api
+        .post('/contabil/accounting-services/image', fd)
+        .then((r) => r.data as { storageKey: string; previewUrl: string })
+    },
   }
 }
 

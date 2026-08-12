@@ -67,7 +67,27 @@ async function enrichArticle(article) {
   const key = article.coverStorageKey || article.coverUrl;
   const coverStorageKey = key && String(key).startsWith('firm/') ? key : article.coverStorageKey || null;
   const coverUrl = await resolveCoverUrl(key);
-  return { ...article, coverUrl, coverStorageKey };
+  const body = await resolveBodyImageRefs(article.body);
+  return { ...article, coverUrl, coverStorageKey, body };
+}
+
+/** Substitui ![](firm/...) por URLs assinadas; deixa https:// intacto. */
+async function resolveBodyImageRefs(body) {
+  const text = String(body || '');
+  const re = /!\[\]\((firm\/[^)\s]+)\)/g;
+  const matches = [...text.matchAll(re)];
+  if (!matches.length) return text;
+  let out = text;
+  for (const m of matches) {
+    const storageKey = m[1];
+    try {
+      const url = await contabilStorage.createSignedDownloadUrl(storageKey, 86400);
+      out = out.split(`![](${storageKey})`).join(`![](${url})`);
+    } catch {
+      // mantém a chave se falhar a assinatura
+    }
+  }
+  return out;
 }
 
 function mapArticle(row) {
@@ -108,6 +128,13 @@ async function listForFirm({ firmId, status, limit = 50 }) {
 async function uploadCoverImage({ firmId, file }) {
   if (!file?.buffer?.length) throw new AppError('Selecione uma imagem (JPG, PNG, WebP ou GIF).', 400);
   const uploaded = await contabilStorage.uploadNewsCover({ firmId, file });
+  const previewUrl = await contabilStorage.createSignedDownloadUrl(uploaded.path, 86400);
+  return { storageKey: uploaded.path, previewUrl };
+}
+
+async function uploadBodyImage({ firmId, file }) {
+  if (!file?.buffer?.length) throw new AppError('Selecione uma imagem (JPG, PNG, WebP ou GIF).', 400);
+  const uploaded = await contabilStorage.uploadNewsBodyImage({ firmId, file });
   const previewUrl = await contabilStorage.createSignedDownloadUrl(uploaded.path, 86400);
   return { storageKey: uploaded.path, previewUrl };
 }
@@ -288,6 +315,7 @@ module.exports = {
   updateArticle,
   deleteArticle,
   uploadCoverImage,
+  uploadBodyImage,
   getEditorTemplates,
   slugify,
 };

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { Firm } from '@/shared/types/firm'
 
 type Branding = Firm['branding']
@@ -76,12 +77,22 @@ function captureDefaults() {
   }
 }
 
+export function resolveFirmBrandingCssVars(branding?: Branding | null): CSSProperties {
+  const primary = branding?.primaryColor ? hexToHsl(branding.primaryColor) : null
+  const secondary = branding?.secondaryColor ? hexToHsl(branding.secondaryColor) : null
+  const style: Record<string, string> = {}
+  if (primary) style['--primary'] = primary
+  if (secondary) style['--secondary'] = secondary
+  return style as CSSProperties
+}
+
 export function applyFirmBranding(branding?: Branding | null) {
   if (typeof window === 'undefined') return
   captureDefaults()
   const root = document.documentElement
-  const primary = branding?.primaryColor ? hexToHsl(branding.primaryColor) : null
-  const secondary = branding?.secondaryColor ? hexToHsl(branding.secondaryColor) : null
+  const vars = resolveFirmBrandingCssVars(branding)
+  const primary = (vars as Record<string, string>)['--primary']
+  const secondary = (vars as Record<string, string>)['--secondary']
   if (primary) root.style.setProperty('--primary', primary)
   else if (defaultPrimary) root.style.setProperty('--primary', defaultPrimary)
   if (secondary) root.style.setProperty('--secondary', secondary)

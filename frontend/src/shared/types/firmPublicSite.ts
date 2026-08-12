@@ -110,6 +110,14 @@ export type PublicSiteConfig = {
   images: { hero: PublicSiteImageRef[]; institutional: PublicSiteImageRef[] }
   socialLinks: PublicSiteSocialLinks
   sections: PublicSiteSection[]
+  /** Quando false, esconde preços na página pública. Default true. */
+  showPrices?: boolean
+  termsText?: string | null
+  privacyText?: string | null
+  /** Link oficial para o Livro de Reclamações Electrónico. */
+  complaintsBookUrl?: string | null
+  /** Contacto opcional para elogios (não é obrigação legal). */
+  praiseContact?: string | null
 }
 
 export type FirmPublicSiteBundle = {

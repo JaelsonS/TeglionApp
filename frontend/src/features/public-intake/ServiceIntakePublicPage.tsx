@@ -7,11 +7,18 @@ import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog'
 import { contabilPublicApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
 import type { IntakeQuestion } from '@/shared/types/contabil'
 import type { PublicIntakeSubmitResult } from '@/infrastructure/api/contabil/public'
 import type { FormChangeEvent, FormSubmitEvent } from '@/shared/types/react-events'
+import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
 
 function formatScheduledAt(iso: string) {
   return new Date(iso).toLocaleString('pt-PT', {
@@ -102,6 +109,10 @@ export function ServiceIntakePublicPage() {
   const [scheduledAt, setScheduledAt] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState<PublicIntakeSubmitResult | null>(null)
+  const [step, setStep] = useState<1 | 2>(1)
+  const [leadAccessToken, setLeadAccessToken] = useState('')
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
+  const [legalDialog, setLegalDialog] = useState<'terms' | 'privacy' | null>(null)
 
   const query = useQuery({
     queryKey: ['public-service-intake', firmSlug, serviceSlug],
@@ -113,7 +124,7 @@ export function ServiceIntakePublicPage() {
   const slotsQuery = useQuery({
     queryKey: ['public-service-slots', firmSlug, serviceSlug],
     queryFn: () => contabilPublicApi.getPublicSlots(firmSlug!, serviceSlug!),
-    enabled: Boolean(firmSlug && serviceSlug && query.data?.requiresBooking),
+    enabled: Boolean(firmSlug && serviceSlug && query.data?.requiresBooking && step === 2),
     retry: false,
   })
 
@@ -121,14 +132,44 @@ export function ServiceIntakePublicPage() {
     setAnswers((prev) => ({ ...prev, [questionId]: value }))
   }
 
-  async function onSubmit(e: FormSubmitEvent) {
+  const needsLegal = Boolean(query.data?.termsText || query.data?.privacyText)
+
+  async function onStep1(e: FormSubmitEvent) {
     e.preventDefault()
     if (!name.trim()) {
       toast.error('Indique o seu nome')
       return
     }
-    if (!email.trim() && !phone.trim()) {
-      toast.error('Indique pelo menos email ou telefone')
+    if (!email.trim()) {
+      toast.error('Indique o seu email')
+      return
+    }
+    if (needsLegal && !acceptedTerms) {
+      toast.error('Aceite os termos e a política de privacidade para continuar')
+      return
+    }
+    setSubmitting(true)
+    try {
+      const res = await contabilPublicApi.captureServiceLead(firmSlug!, serviceSlug!, {
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim() || undefined,
+        taxId: taxId.trim() || undefined,
+        website: website || undefined,
+      })
+      setLeadAccessToken(res.accessToken)
+      setStep(2)
+    } catch (err) {
+      toast.error('Não foi possível guardar o contacto', { description: getErrorMessage(err) })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function onSubmit(e: FormSubmitEvent) {
+    e.preventDefault()
+    if (!name.trim() || !email.trim()) {
+      toast.error('Nome e email são obrigatórios')
       return
     }
     if (query.data?.requiresBooking && !scheduledAt) {
@@ -139,12 +180,13 @@ export function ServiceIntakePublicPage() {
     try {
       const res = await contabilPublicApi.submitServiceIntake(firmSlug!, serviceSlug!, {
         name: name.trim(),
-        email: email.trim() || undefined,
+        email: email.trim(),
         phone: phone.trim() || undefined,
         taxId: taxId.trim() || undefined,
         answers,
         website: website || undefined,
         scheduledAt: scheduledAt || undefined,
+        leadAccessToken: leadAccessToken || undefined,
       })
       setResult(res)
     } catch (err) {
@@ -213,13 +255,24 @@ export function ServiceIntakePublicPage() {
 
   return (
     <div className="mx-auto min-h-screen max-w-xl px-4 py-10">
-      <header className="mb-6 space-y-1">
+      <header className="mb-6 space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{service.firmName}</p>
+        {service.imageUrl ? (
+          <img src={service.imageUrl} alt="" className="mb-3 max-h-48 w-full rounded-xl object-cover" />
+        ) : null}
         <h1 className="text-2xl font-bold">{service.serviceName}</h1>
-        {service.description ? <p className="text-sm text-muted-foreground">{service.description}</p> : null}
+        {service.description ? <SanitizedServiceHtml html={service.description} className="text-sm" /> : null}
+        {service.showPrices !== false && (service.priceCents ?? 0) > 0 ? (
+          <p className="text-sm font-semibold text-primary">
+            {((service.priceCents || 0) / 100).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
+          </p>
+        ) : null}
       </header>
 
-      <form onSubmit={onSubmit} className="space-y-5 rounded-2xl border border-border/50 bg-card p-6 shadow-sm">
+      <form
+        onSubmit={step === 1 ? onStep1 : onSubmit}
+        className="space-y-5 rounded-2xl border border-border/50 bg-card p-6 shadow-sm"
+      >
         <input
           type="text"
           name="website"
@@ -231,80 +284,130 @@ export function ServiceIntakePublicPage() {
           className="absolute -left-[9999px] h-0 w-0 opacity-0"
         />
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="space-y-1 text-sm">
-            <span className="font-medium">Nome *</span>
-            <Input className="h-10 rounded-lg" value={name} onChange={(e: FormChangeEvent) => setName(e.target.value)} />
-          </label>
-          <label className="space-y-1 text-sm">
-            <span className="font-medium">NIF</span>
-            <Input className="h-10 rounded-lg" value={taxId} onChange={(e: FormChangeEvent) => setTaxId(e.target.value)} />
-          </label>
-          <label className="space-y-1 text-sm">
-            <span className="font-medium">Email</span>
-            <Input
-              type="email"
-              className="h-10 rounded-lg"
-              value={email}
-              onChange={(e: FormChangeEvent) => setEmail(e.target.value)}
-            />
-          </label>
-          <label className="space-y-1 text-sm">
-            <span className="font-medium">Telefone</span>
-            <Input className="h-10 rounded-lg" value={phone} onChange={(e: FormChangeEvent) => setPhone(e.target.value)} />
-          </label>
-        </div>
+        <p className="text-xs font-medium text-muted-foreground">Etapa {step} de 2</p>
 
-        {service.requiresBooking ? (
-          <label className="block space-y-1 border-t border-border/40 pt-4 text-sm">
-            <span className="font-medium">Horário *</span>
-            {slotsQuery.isLoading ? (
-              <p className="text-sm text-muted-foreground">A carregar horários disponíveis…</p>
-            ) : (slotsQuery.data?.slots.length ?? 0) === 0 ? (
-              <p className="text-sm text-muted-foreground">Sem horários disponíveis de momento.</p>
-            ) : (
-              <select
-                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
-                value={scheduledAt}
-                onChange={(e) => setScheduledAt(e.target.value)}
-              >
-                <option value="">Escolha um horário…</option>
-                {slotsQuery.data?.slots.map((iso) => (
-                  <option key={iso} value={iso}>
-                    {new Date(iso).toLocaleString('pt-PT', {
-                      weekday: 'short',
-                      day: '2-digit',
-                      month: 'short',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      timeZone: 'Europe/Lisbon',
-                    })}
-                  </option>
-                ))}
-              </select>
-            )}
-          </label>
-        ) : null}
+        {step === 1 ? (
+          <>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="space-y-1 text-sm">
+                <span className="font-medium">Nome *</span>
+                <Input className="h-10 rounded-lg" value={name} onChange={(e: FormChangeEvent) => setName(e.target.value)} />
+              </label>
+              <label className="space-y-1 text-sm">
+                <span className="font-medium">NIF</span>
+                <Input className="h-10 rounded-lg" value={taxId} onChange={(e: FormChangeEvent) => setTaxId(e.target.value)} />
+              </label>
+              <label className="space-y-1 text-sm">
+                <span className="font-medium">Email *</span>
+                <Input
+                  type="email"
+                  className="h-10 rounded-lg"
+                  value={email}
+                  onChange={(e: FormChangeEvent) => setEmail(e.target.value)}
+                />
+              </label>
+              <label className="space-y-1 text-sm">
+                <span className="font-medium">Telefone</span>
+                <Input className="h-10 rounded-lg" value={phone} onChange={(e: FormChangeEvent) => setPhone(e.target.value)} />
+              </label>
+            </div>
 
-        {service.intakeForm.questions.map((q, index) => (
-          <div key={q.id ?? index} className="space-y-1.5 border-t border-border/40 pt-4">
-            <span className="text-sm font-medium">
-              {q.label}
-              {q.required ? ' *' : ''}
-            </span>
-            <QuestionField
-              question={q}
-              value={answers[q.id ?? String(index)]}
-              onChange={(value) => setAnswer(q.id ?? String(index), value)}
-            />
-          </div>
-        ))}
+            {needsLegal ? (
+              <label className="flex items-start gap-2 text-sm">
+                <Checkbox checked={acceptedTerms} onCheckedChange={(v: boolean | 'indeterminate') => setAcceptedTerms(v === true)} className="mt-0.5" />
+                <span>
+                  Li e aceito os{' '}
+                  {service.termsText ? (
+                    <button type="button" className="underline" onClick={() => setLegalDialog('terms')}>
+                      Termos de Utilização
+                    </button>
+                  ) : null}
+                  {service.termsText && service.privacyText ? ' e a ' : null}
+                  {service.privacyText ? (
+                    <button type="button" className="underline" onClick={() => setLegalDialog('privacy')}>
+                      Política de Privacidade
+                    </button>
+                  ) : null}
+                  .
+                </span>
+              </label>
+            ) : null}
 
-        <Button type="submit" className="w-full rounded-full" disabled={submitting}>
-          {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Enviar pedido
-        </Button>
+            <Button type="submit" className="w-full rounded-full" disabled={submitting}>
+              {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Continuar
+            </Button>
+          </>
+        ) : (
+          <>
+            {service.requiresBooking ? (
+              <label className="block space-y-1 text-sm">
+                <span className="font-medium">Horário *</span>
+                {slotsQuery.isLoading ? (
+                  <p className="text-sm text-muted-foreground">A carregar horários disponíveis…</p>
+                ) : (slotsQuery.data?.slots.length ?? 0) === 0 ? (
+                  <p className="text-sm text-muted-foreground">Sem horários disponíveis de momento.</p>
+                ) : (
+                  <select
+                    className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
+                    value={scheduledAt}
+                    onChange={(e) => setScheduledAt(e.target.value)}
+                  >
+                    <option value="">Escolha um horário…</option>
+                    {slotsQuery.data?.slots.map((iso) => (
+                      <option key={iso} value={iso}>
+                        {new Date(iso).toLocaleString('pt-PT', {
+                          weekday: 'short',
+                          day: '2-digit',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          timeZone: 'Europe/Lisbon',
+                        })}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </label>
+            ) : null}
+
+            {service.intakeForm.questions.map((q, index) => (
+              <div key={q.id ?? index} className="space-y-1.5 border-t border-border/40 pt-4">
+                <span className="text-sm font-medium">
+                  {q.label}
+                  {q.required ? ' *' : ''}
+                </span>
+                <QuestionField
+                  question={q}
+                  value={answers[q.id ?? String(index)]}
+                  onChange={(value) => setAnswer(q.id ?? String(index), value)}
+                />
+              </div>
+            ))}
+
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" className="rounded-full" onClick={() => setStep(1)}>
+                Voltar
+              </Button>
+              <Button type="submit" className="flex-1 rounded-full" disabled={submitting}>
+                {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Enviar pedido
+              </Button>
+            </div>
+          </>
+        )}
       </form>
+
+      <Dialog open={Boolean(legalDialog)} onOpenChange={(open: boolean) => !open && setLegalDialog(null)}>
+        <DialogContent className="sm:max-w-lg" aria-describedby={undefined}>
+          <DialogHeader>
+            <DialogTitle>{legalDialog === 'privacy' ? 'Política de Privacidade' : 'Termos de Utilização'}</DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] whitespace-pre-wrap text-sm text-muted-foreground">
+            {legalDialog === 'privacy' ? service.privacyText : service.termsText}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

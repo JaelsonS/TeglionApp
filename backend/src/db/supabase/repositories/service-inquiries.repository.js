@@ -138,6 +138,11 @@ async function updateRow(id, firmId, patch) {
   if (patch.consultationId !== undefined) row.consultation_id = patch.consultationId || null;
   if (patch.accessTokenExpiresAt !== undefined) row.access_token_expires_at = patch.accessTokenExpiresAt || null;
   if (patch.accessTokenRevokedAt !== undefined) row.access_token_revoked_at = patch.accessTokenRevokedAt || null;
+  if (patch.submittedAt !== undefined) row.submitted_at = patch.submittedAt || null;
+  if (patch.answers !== undefined) {
+    row.answers_enc = encryptAnswers(patch.answers);
+    row.answers = null;
+  }
 
   const { data, error } = await sb
     .from('service_inquiries')

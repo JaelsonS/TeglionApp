@@ -31,6 +31,16 @@ function buildNewsCoverPath(firmId, filename) {
   return `firm/${firmId}/news/covers/${Date.now()}-${safe}`;
 }
 
+function buildNewsBodyImagePath(firmId, filename) {
+  const safe = sanitizeFilename(filename);
+  return `firm/${firmId}/news/body/${Date.now()}-${safe}`;
+}
+
+function buildServiceImagePath(firmId, filename) {
+  const safe = sanitizeFilename(filename);
+  return `firm/${firmId}/services/images/${Date.now()}-${safe}`;
+}
+
 function buildServiceInquiryDocumentPath(firmId, serviceInquiryId, filename) {
   const safe = sanitizeFilename(filename);
   return `firm/${firmId}/service-inquiries/${serviceInquiryId}/${Date.now()}-${safe}`;
@@ -111,6 +121,46 @@ async function uploadNewsCover({ firmId, file }) {
   return { bucket: BUCKET, path, provider: 'supabase' };
 }
 
+async function uploadNewsBodyImage({ firmId, file }) {
+  if (!file?.buffer?.length) throw new AppError('Imagem vazia', 400);
+  const mime = String(file.mimetype || '').toLowerCase();
+  if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(mime)) {
+    throw new AppError('Use JPG, PNG, WebP ou GIF para a imagem do artigo.', 400, {
+      code: 'INVALID_BODY_IMAGE_TYPE',
+    });
+  }
+  const sb = ensureStorage();
+  const path = buildNewsBodyImagePath(firmId, file.originalname);
+  const { error } = await sb.storage.from(BUCKET).upload(path, file.buffer, {
+    contentType: mime,
+    upsert: false,
+  });
+  if (error) {
+    throw new AppError(error.message || 'Falha ao guardar imagem', 500, { code: 'STORAGE_UPLOAD_FAILED' });
+  }
+  return { bucket: BUCKET, path, provider: 'supabase' };
+}
+
+async function uploadServiceImage({ firmId, file }) {
+  if (!file?.buffer?.length) throw new AppError('Imagem vazia', 400);
+  const mime = String(file.mimetype || '').toLowerCase();
+  if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(mime)) {
+    throw new AppError('Use JPG, PNG, WebP ou GIF para a imagem do serviço.', 400, {
+      code: 'INVALID_SERVICE_IMAGE_TYPE',
+    });
+  }
+  const sb = ensureStorage();
+  const path = buildServiceImagePath(firmId, file.originalname);
+  const { error } = await sb.storage.from(BUCKET).upload(path, file.buffer, {
+    contentType: mime,
+    upsert: false,
+  });
+  if (error) {
+    throw new AppError(error.message || 'Falha ao guardar imagem', 500, { code: 'STORAGE_UPLOAD_FAILED' });
+  }
+  return { bucket: BUCKET, path, provider: 'supabase' };
+}
+
 async function deleteObject(path) {
   if (!path) return;
   const sb = ensureStorage();
@@ -180,6 +230,8 @@ module.exports = {
   buildStoragePath,
   buildFirmLogoPath,
   buildNewsCoverPath,
+  buildNewsBodyImagePath,
+  buildServiceImagePath,
   buildServiceInquiryDocumentPath,
   buildPublicSiteImagePath,
   uploadClientDocument,
@@ -188,6 +240,8 @@ module.exports = {
   deleteObject,
   uploadFirmLogo,
   uploadNewsCover,
+  uploadNewsBodyImage,
+  uploadServiceImage,
   createSignedDownloadUrl,
   downloadToBuffer,
 };

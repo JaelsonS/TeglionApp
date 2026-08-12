@@ -23,7 +23,7 @@ import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 import { contabilConsultationsApi, contabilClientsApi, contabilFirmApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
-import type { AccountingService, Consultation, FirmBookingSettings } from '@/shared/types/contabil'
+import type { AccountingService, BookingDaySchedule, Consultation, FirmBookingSettings } from '@/shared/types/contabil'
 import type { Client } from '@/shared/types/clients'
 
 type Tab = 'calendar' | 'settings'
@@ -53,9 +53,14 @@ export function AgendaWorkspace() {
   const [slotMin, setSlotMin] = useState(30)
   const [horizon, setHorizon] = useState(14)
   const [bookingTz, setBookingTz] = useState('Europe/Lisbon')
-  const [dayStart, setDayStart] = useState('09:00')
-  const [dayEnd, setDayEnd] = useState('17:00')
-  const [wd, setWd] = useState<number[]>([1, 2, 3, 4, 5])
+  const [schedule, setSchedule] = useState<BookingDaySchedule>({
+    1: [{ start: '09:00', end: '17:00' }],
+    2: [{ start: '09:00', end: '17:00' }],
+    3: [{ start: '09:00', end: '17:00' }],
+    4: [{ start: '09:00', end: '17:00' }],
+    5: [{ start: '09:00', end: '17:00' }],
+  })
+  const [dateOverrides, setDateOverrides] = useState<FirmBookingSettings['dateOverrides']>({})
 
   const range = useMemo(() => dateRangeForView(view, anchor), [view, anchor])
 
@@ -82,10 +87,16 @@ export function AgendaWorkspace() {
         setBooking(b)
         setSlotMin(b.slotMinutes)
         setHorizon(b.horizonDays)
-        setDayStart(b.dayStart)
-        setDayEnd(b.dayEnd)
-        setWd(b.weekdays?.length ? b.weekdays : [1, 2, 3, 4, 5])
         setBookingTz(b.timezone && typeof b.timezone === 'string' ? b.timezone : 'Europe/Lisbon')
+        if (b.schedule && Object.keys(b.schedule).length) {
+          setSchedule(b.schedule)
+        } else {
+          const days = b.weekdays?.length ? b.weekdays : [1, 2, 3, 4, 5]
+          const next: BookingDaySchedule = {}
+          for (const d of days) next[d] = [{ start: b.dayStart || '09:00', end: b.dayEnd || '17:00' }]
+          setSchedule(next)
+        }
+        setDateOverrides(b.dateOverrides || {})
       }
     } catch (err) {
       toast.error('Não foi possível carregar a agenda', { description: getErrorMessage(err) })
@@ -185,7 +196,10 @@ export function AgendaWorkspace() {
   }, [])
 
   const saveAvailability = async () => {
-    if (wd.length === 0) {
+    const openDays = Object.keys(schedule)
+      .map(Number)
+      .filter((d) => (schedule[d] || []).length > 0)
+    if (openDays.length === 0) {
       toast.error('Seleccione pelo menos um dia de atendimento')
       return
     }
@@ -193,9 +207,9 @@ export function AgendaWorkspace() {
       const res = (await contabilConsultationsApi.patchBookingSettings({
         slotMinutes: slotMin,
         horizonDays: horizon,
-        weekdays: wd,
-        dayStart,
-        dayEnd,
+        schedule,
+        dateOverrides: dateOverrides || {},
+        weekdays: openDays.sort((a, b) => a - b),
         leadTimeHours: booking?.leadTimeHours ?? 2,
         timezone: bookingTz,
       })) as { booking?: FirmBookingSettings }
@@ -275,20 +289,16 @@ export function AgendaWorkspace() {
           services={services}
           servicesLoading={loading}
           booking={booking}
-          wd={wd}
+          schedule={schedule}
+          dateOverrides={dateOverrides || {}}
           slotMin={slotMin}
           horizon={horizon}
           bookingTz={bookingTz}
-          dayStart={dayStart}
-          dayEnd={dayEnd}
-          onToggleWeekday={(n) =>
-            setWd((prev) => (prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n].sort((a, b) => a - b)))
-          }
+          onScheduleChange={setSchedule}
+          onDateOverridesChange={setDateOverrides}
           onSlotMin={setSlotMin}
           onHorizon={setHorizon}
           onBookingTz={setBookingTz}
-          onDayStart={setDayStart}
-          onDayEnd={setDayEnd}
           onSaveAvailability={() => void saveAvailability()}
           onReload={load}
         />

@@ -405,6 +405,12 @@ router.post('/accounting-services/seed-catalog', requirePermission(PERMISSIONS.F
 router.post('/accounting-services/activate-catalog', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.activateFromCatalog);
 router.post('/accounting-services/bulk', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.bulkPatch);
 router.post('/accounting-services', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.create);
+router.post(
+  '/accounting-services/image',
+  requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE),
+  uploadAvatarSingle('image'),
+  accountingServicesController.uploadImage
+);
 router.patch('/accounting-services/:id', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.patch);
 router.post('/accounting-services/:id/duplicate', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.duplicate);
 router.delete('/accounting-services/:id', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.remove);
@@ -431,6 +437,12 @@ router.post(
   requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
   uploadAvatarSingle('cover'),
   newsController.uploadCover
+);
+router.post(
+  '/news/body-image',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  uploadAvatarSingle('image'),
+  newsController.uploadBodyImage
 );
 router.post('/news', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), newsController.create);
 router.patch('/news/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), newsController.update);

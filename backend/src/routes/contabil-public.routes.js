@@ -129,6 +129,12 @@ router.get(
   serviceIntakeController.getPublicSlots,
 );
 router.post(
+  '/firms/:firmSlug/services/:serviceSlug/intake/lead',
+  serviceSubmitLimiter,
+  serviceIntakeController.captureLeadValidators,
+  serviceIntakeController.captureLead,
+);
+router.post(
   '/firms/:firmSlug/services/:serviceSlug/submit',
   serviceSubmitLimiter,
   serviceIntakeController.submitValidators,

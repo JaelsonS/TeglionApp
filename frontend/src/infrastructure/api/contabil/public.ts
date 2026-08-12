@@ -2,14 +2,6 @@ import type { AxiosInstance } from 'axios'
 import type { IntakeForm } from '@/shared/types/contabil'
 import type { PublicSiteConfig } from '@/shared/types/firmPublicSite'
 
-export type PublicServiceIntake = {
-  firmName: string
-  serviceName: string
-  description?: string | null
-  intakeForm: IntakeForm
-  requiresBooking: boolean
-}
-
 export type PublicFirmServiceSummary = {
   slug: string
   name: string
@@ -17,6 +9,20 @@ export type PublicFirmServiceSummary = {
   durationMinutes: number
   priceCents: number
   requiresBooking: boolean
+  imageUrl?: string | null
+}
+
+export type PublicServiceIntake = {
+  firmName: string
+  serviceName: string
+  description?: string | null
+  imageUrl?: string | null
+  intakeForm: IntakeForm
+  requiresBooking: boolean
+  priceCents?: number
+  showPrices?: boolean
+  termsText?: string | null
+  privacyText?: string | null
 }
 
 export type PublicFirmFaq = {
@@ -66,18 +72,24 @@ export type PublicFirmSite = {
   images: PublicSiteConfig['images']
   socialLinks: PublicSiteConfig['socialLinks']
   sections: PublicSiteConfig['sections']
+  showPrices?: boolean
+  termsText?: string | null
+  privacyText?: string | null
+  complaintsBookUrl?: string | null
+  praiseContact?: string | null
   contact: PublicFirmContact
   services: PublicFirmServiceSummary[]
 }
 
 export type PublicIntakeSubmitPayload = {
   name: string
-  email?: string
+  email: string
   phone?: string
   taxId?: string
   answers: Record<string, string | string[]>
   website?: string
   scheduledAt?: string
+  leadAccessToken?: string
 }
 
 export type PublicIntakeSubmitResult = {
@@ -182,6 +194,18 @@ export function createContabilPublicApi(api: AxiosInstance) {
           payload,
         )
         .then((r) => r.data as PublicIntakeSubmitResult),
+
+    captureServiceLead: (
+      firmSlug: string,
+      serviceSlug: string,
+      payload: { name: string; email: string; phone?: string; taxId?: string; website?: string },
+    ) =>
+      api
+        .post(
+          `/public/firms/${encodeURIComponent(firmSlug)}/services/${encodeURIComponent(serviceSlug)}/intake/lead`,
+          payload,
+        )
+        .then((r) => r.data as { ok: true; accessToken: string }),
 
     getIntakeByToken: (token: string) =>
       api.get(`/public/service-inquiries/${encodeURIComponent(token)}`).then((r) => r.data as PublicIntakeChecklist),
