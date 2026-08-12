@@ -22,6 +22,7 @@ function map(row) {
     intakeForm: row.intake_form || null,
     intakeTagRules: Array.isArray(row.intake_tag_rules) ? row.intake_tag_rules : [],
     paymentMethod: row.payment_method || 'bank_transfer',
+    paymentRequired: Boolean(row.payment_required),
     bookingOverrides: row.booking_overrides || null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -72,6 +73,7 @@ async function createRow({
   intakeForm,
   bookingOverrides,
   paymentMethod,
+  paymentRequired,
 }) {
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
@@ -94,6 +96,7 @@ async function createRow({
       intake_form: intakeForm || null,
       booking_overrides: bookingOverrides || null,
       payment_method: paymentMethod || 'bank_transfer',
+      payment_required: paymentRequired === true,
     })
     .select()
     .single();
@@ -138,6 +141,7 @@ async function updateRow(id, firmId, patch) {
   if (patch.intakeForm !== undefined) row.intake_form = patch.intakeForm || null;
   if (patch.bookingOverrides !== undefined) row.booking_overrides = patch.bookingOverrides || null;
   if (patch.paymentMethod !== undefined) row.payment_method = patch.paymentMethod;
+  if (patch.paymentRequired !== undefined) row.payment_required = Boolean(patch.paymentRequired);
 
   const { data, error } = await sb
     .from('accounting_services')

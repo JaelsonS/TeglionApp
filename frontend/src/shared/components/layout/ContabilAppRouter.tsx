@@ -50,6 +50,11 @@ const AvisoLegalPage = lazy(() => import('@/features/aviso-legal/AvisoLegalPage'
 const ServiceIntakePublicPage = lazy(() =>
   import('@/features/public-intake/ServiceIntakePublicPage').then((m) => ({ default: m.ServiceIntakePublicPage })),
 )
+const BookingPaymentReturnPage = lazy(() =>
+  import('@/features/public-intake/BookingPaymentReturnPage').then((m) => ({
+    default: m.BookingPaymentReturnPage,
+  })),
+)
 const ServiceIntakePortalPage = lazy(() =>
   import('@/features/public-intake/ServiceIntakePortalPage').then((m) => ({ default: m.ServiceIntakePortalPage })),
 )
@@ -197,6 +202,7 @@ export function ContabilAppRouter() {
         <Route path="/aviso-legal" element={<AvisoLegalPage />} />
 
         <Route path="/pedidos/:token" element={<ServiceIntakePortalPage />} />
+        <Route path="/:firmSlug/booking/return" element={<BookingPaymentReturnPage />} />
         <Route path="/:firmSlug/servicos/:serviceSlug" element={<ServiceIntakePublicPage />} />
         <Route path="/:firmSlug" element={<FirmPublicSitePage />} />
 

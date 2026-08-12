@@ -2,7 +2,7 @@ import { ChevronRight } from 'lucide-react'
 
 import { cn } from '@/shared/lib/utils'
 import type { Consultation } from '@/shared/types/contabil'
-import { formatEventTimeRange } from './agendaCalendarUtils'
+import { formatEventTimeRange, consultationStatusLabel } from './agendaCalendarUtils'
 
 type StaffMember = {
   id: string
@@ -56,7 +56,7 @@ export function AgendaSidebar({
 }: Props) {
   const now = new Date()
   const upcoming = [...items]
-    .filter((c) => new Date(c.scheduledAt) >= now)
+    .filter((c) => new Date(c.scheduledAt) >= now && c.status !== 'CANCELLED')
     .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
     .slice(0, 5)
 
@@ -116,7 +116,9 @@ export function AgendaSidebar({
                     </span>
                     <span className="block truncate text-xs font-medium">{ev.title}</span>
                     <span className="block truncate cb-text-caption">
-                      {clientName(ev)}
+                      {ev.status === 'PENDING_PAYMENT'
+                        ? consultationStatusLabel(ev.status)
+                        : clientName(ev)}
                     </span>
                   </span>
                 </button>

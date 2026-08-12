@@ -25,4 +25,17 @@ export const firmPublicSiteApi = {
     form.append('image', file)
     return api.post('/contabil/firm/public-site/images', form).then((r) => r.data as PublicSiteImageRef)
   },
+
+  /** Apaga página publicada/rascunho e devolve rascunho limpo (default). */
+  reset: () =>
+    api.post('/contabil/firm/public-site/reset').then(
+      (r) =>
+        r.data as {
+          draft: PublicSiteConfig
+          published: null
+          publishedAt: null
+          draftUpdatedAt: string
+          reset: true
+        },
+    ),
 }

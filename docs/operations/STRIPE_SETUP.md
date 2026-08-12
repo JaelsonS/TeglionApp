@@ -1,3 +1,5 @@
+Para **pagamentos dos clientes do escritório** (Stripe Connect), ver [STRIPE_CONNECT_SETUP.md](./STRIPE_CONNECT_SETUP.md). Não misturar com este guia de Billing.
+
 # Stripe — como configurar o Teglion (mensal + anual)
 
 Guia prático para ti, com a Stripe aberta ao lado.  

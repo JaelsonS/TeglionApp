@@ -2156,6 +2156,14 @@
     @apply border-brand/30 bg-brand text-primary-foreground;
   }
 
+  .cb-agenda-event-pending-pay {
+    @apply border-amber-300/90 bg-amber-50 text-amber-950 ring-1 ring-amber-200/80;
+  }
+
+  .cb-agenda-event-cancelled {
+    @apply border-border/40 bg-muted/50 text-muted-foreground line-through opacity-70;
+  }
+
   .cb-agenda-event-time {
     @apply text-caption font-semibold tabular-nums opacity-90;
   }

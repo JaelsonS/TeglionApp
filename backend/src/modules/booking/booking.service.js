@@ -277,7 +277,7 @@ async function listSlotsForBooking({ firmId, serviceId, fromIso, toIso }) {
     limit: 500,
   });
   const busyRanges = items
-    .filter((c) => c.status !== 'CANCELLED')
+    .filter((c) => c.status === 'PENDING_PAYMENT' || c.status === 'SCHEDULED')
     .map(consultationBusyRange);
 
   // Junta os horários ocupados dos calendários Google pessoais ligados pela

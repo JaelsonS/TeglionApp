@@ -9,6 +9,7 @@ export type PublicFirmServiceSummary = {
   durationMinutes: number
   priceCents: number
   requiresBooking: boolean
+  paymentRequired?: boolean
   imageUrl?: string | null
 }
 
@@ -21,6 +22,7 @@ export type PublicServiceIntake = {
   imageUrl?: string | null
   intakeForm: IntakeForm
   requiresBooking: boolean
+  paymentRequired?: boolean
   priceCents?: number
   showPrices?: boolean
   termsText?: string | null
@@ -102,9 +104,24 @@ export type PublicIntakeSubmitResult = {
   ok: true
   accessToken: string
   documentsRequired: number
-  /** false quando o submissor é um Lead novo — o horário fica só como preferência, não é uma reserva real. */
   bookingConfirmed: boolean
+  bookingPendingPayment?: boolean
   scheduledAt: string | null
+  checkoutUrl?: string | null
+  paymentPublicToken?: string | null
+  holdExpiresAt?: string | null
+  paymentRequired?: boolean
+  consultationId?: string | null
+}
+
+export type PublicBookingPaymentStatus = {
+  paymentStatus: string
+  bookingStatus: string | null
+  scheduledAt: string | null
+  amountCents: number
+  currency: string
+  holdExpiresAt?: string | null
+  confirmed: boolean
 }
 
 export type IntakeChecklistItem = {
@@ -200,6 +217,11 @@ export function createContabilPublicApi(api: AxiosInstance) {
           payload,
         )
         .then((r) => r.data as PublicIntakeSubmitResult),
+
+    getBookingPaymentStatus: (consultationId: string, token: string) =>
+      api
+        .get('/public/booking/payment-status', { params: { c: consultationId, t: token } })
+        .then((r) => r.data as PublicBookingPaymentStatus),
 
     captureServiceLead: (
       firmSlug: string,

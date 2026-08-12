@@ -374,6 +374,34 @@ async function create({ firmId, payload }) {
     paymentMethod = method;
   }
 
+  let paymentRequired = payload?.paymentRequired === true;
+  if (paymentRequired) {
+    if (payload?.requiresBooking !== true && payload?.requiresBooking !== undefined) {
+      // create uses requiresBooking below
+    }
+    const requiresBooking = payload?.requiresBooking === true;
+    if (!requiresBooking) {
+      throw new AppError('Pagamento obrigatório só é válido com agendamento activo', 400);
+    }
+    if (priceCents < 1) {
+      throw new AppError('Defina um preço antes de exigir pagamento online', 400);
+    }
+    const connectAccountsRepository = require('../../db/supabase/repositories/firm-stripe-connect-accounts.repository');
+    const { isStripeConnectConfigured } = require('../../services/stripe/stripe-client');
+    if (!isStripeConnectConfigured()) {
+      throw new AppError('Stripe Connect não está activo neste ambiente', 503);
+    }
+    const account = await connectAccountsRepository.findByFirmId(firmId);
+    if (!account?.chargesEnabled) {
+      throw new AppError(
+        'Ligue o Stripe Connect em Definições → Pagamentos antes de exigir pagamento online.',
+        409,
+        { code: 'CONNECT_NOT_READY' },
+      );
+    }
+    paymentMethod = 'stripe_connect';
+  }
+
   const item = await accountingServicesRepository.createRow({
     firmId,
     name,
@@ -392,6 +420,7 @@ async function create({ firmId, payload }) {
     intakeForm,
     bookingOverrides: normalizeBookingOverrides(payload?.bookingOverrides) || null,
     paymentMethod,
+    paymentRequired,
   });
   return { item: await enrichService(item) };
 }
@@ -436,6 +465,41 @@ async function update({ firmId, id, payload }) {
     if (!allowed.has(method)) throw new AppError('Meio de pagamento inválido', 400);
     patch.paymentMethod = method;
   }
+  if (payload?.paymentRequired !== undefined) {
+    patch.paymentRequired = Boolean(payload.paymentRequired);
+  }
+
+  const nextRequiresBooking =
+    patch.requiresBooking !== undefined ? patch.requiresBooking : existing.requiresBooking;
+  const nextPrice =
+    patch.priceCents !== undefined ? patch.priceCents : existing.priceCents;
+  const nextPaymentRequired =
+    patch.paymentRequired !== undefined ? patch.paymentRequired : existing.paymentRequired;
+
+  if (nextPaymentRequired) {
+    if (!nextRequiresBooking) {
+      throw new AppError('Pagamento obrigatório só é válido com agendamento activo', 400);
+    }
+    if (Number(nextPrice) < 1) {
+      throw new AppError('Defina um preço antes de exigir pagamento online', 400);
+    }
+    const connectAccountsRepository = require('../../db/supabase/repositories/firm-stripe-connect-accounts.repository');
+    const { isStripeConnectConfigured } = require('../../services/stripe/stripe-client');
+    if (!isStripeConnectConfigured()) {
+      throw new AppError('Stripe Connect não está activo neste ambiente', 503);
+    }
+    const account = await connectAccountsRepository.findByFirmId(firmId);
+    if (!account?.chargesEnabled) {
+      throw new AppError(
+        'Ligue o Stripe Connect em Definições → Pagamentos antes de exigir pagamento online.',
+        409,
+        { code: 'CONNECT_NOT_READY' },
+      );
+    }
+    patch.paymentMethod = 'stripe_connect';
+    patch.paymentRequired = true;
+  }
+
   if (payload?.isPubliclyListed !== undefined) {
     const nextSlug = patch.slug !== undefined ? patch.slug : existing.slug;
     if (payload.isPubliclyListed === true) {

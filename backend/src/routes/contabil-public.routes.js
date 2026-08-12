@@ -141,6 +141,12 @@ router.post(
   serviceIntakeController.submitIntake,
 );
 router.get(
+  '/booking/payment-status',
+  serviceViewLimiter,
+  serviceIntakeController.bookingPaymentStatusValidators,
+  serviceIntakeController.getBookingPaymentStatus,
+);
+router.get(
   '/service-inquiries/:token',
   intakePortalLimiter,
   serviceIntakeController.tokenValidators,

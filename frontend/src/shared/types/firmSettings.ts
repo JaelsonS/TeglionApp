@@ -84,6 +84,8 @@ export type FirmSettingsBundle = {
 
 export type PatchFirmSettingsPayload = {
   name?: string
+  /** Link público do escritório (ex.: teglion.com/{slug}). */
+  slug?: string
   contactEmail?: string | null
   contactPhone?: string | null
   taxId?: string | null

@@ -490,21 +490,40 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
     });
   }
 
-  // Agendamento — reaproveita bookingService.bookAsClient() tal e qual (o mesmo usado
-  // pelo portal do cliente autenticado). Desde a Fase 3a, um Lead novo também reserva
-  // uma consultation real (consultations.lead_id) — bloqueia o horário para todos,
-  // sem converter automaticamente o Lead em Client (conversão continua manual, ver
-  // leads.service.js#convertToClient, que agora repontoa a consultation também).
+  // Agendamento — gratuito: bookAsClient → SCHEDULED.
+  // Com payment_required: hold PENDING_PAYMENT + Checkout Connect (sem Calendar até paid).
   let bookedConsultation = null;
+  let checkoutUrl = null;
+  let paymentPublicToken = null;
+  let holdExpiresAt = null;
   if (service.requiresBooking && payload?.scheduledAt) {
-    const booked = await bookingService.bookAsClient({
-      firmId: firm.id,
-      clientId: identity.type === 'CLIENT' ? identity.id : undefined,
-      leadId: identity.type === 'LEAD' ? identity.id : undefined,
-      serviceId: service.id,
-      scheduledAt: payload.scheduledAt,
-    });
-    bookedConsultation = booked.consultation;
+    if (service.paymentRequired) {
+      const connectPaymentsService = require('../connect/connect-payments.service');
+      const paid = await connectPaymentsService.bookAndPayAsClient({
+        firmId: firm.id,
+        clientId: identity.type === 'CLIENT' ? identity.id : undefined,
+        leadId: identity.type === 'LEAD' ? identity.id : undefined,
+        serviceId: service.id,
+        scheduledAt: payload.scheduledAt,
+        firmSlug: firm.slug || firmSlug,
+        serviceSlug: service.slug || serviceSlug,
+        customerEmail: email,
+        customerName: name,
+      });
+      bookedConsultation = paid.consultation;
+      checkoutUrl = paid.checkoutUrl;
+      paymentPublicToken = paid.publicStatusToken;
+      holdExpiresAt = paid.holdExpiresAt;
+    } else {
+      const booked = await bookingService.bookAsClient({
+        firmId: firm.id,
+        clientId: identity.type === 'CLIENT' ? identity.id : undefined,
+        leadId: identity.type === 'LEAD' ? identity.id : undefined,
+        serviceId: service.id,
+        scheduledAt: payload.scheduledAt,
+      });
+      bookedConsultation = booked.consultation;
+    }
   }
 
   const requiredDocuments = accountingServicesService.resolveRequiredDocuments(service, answers);
@@ -563,11 +582,12 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
       identityType: identity.type,
       suggestedDocuments: requiredDocuments.length,
       booking: Boolean(bookedConsultation),
+      paymentRequired: Boolean(service.paymentRequired),
       tagsApplied: resolvedTagIds.length,
     },
   });
 
-  if (email) {
+  if (email && !checkoutUrl) {
     void contabilNotifications
       .notifyLeadIntakeReceived({
         toEmail: email,
@@ -578,7 +598,7 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
       .catch(() => {});
   }
   const staffEmail = await resolveStaffNotifyEmail(firm.id, firm);
-  if (staffEmail) {
+  if (staffEmail && !checkoutUrl) {
     void contabilNotifications
       .notifyFirmIntakeSubmitted({
         staffEmail,
@@ -589,7 +609,15 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
       .catch(() => {});
   }
 
-  return { inquiry, requiredDocuments, consultation: bookedConsultation };
+  return {
+    inquiry,
+    requiredDocuments,
+    consultation: bookedConsultation,
+    checkoutUrl,
+    paymentPublicToken,
+    holdExpiresAt,
+    paymentRequired: Boolean(service.paymentRequired && checkoutUrl),
+  };
 }
 
 /** Checklist pública pelo token do mini-portal — nunca devolve firm_id/lead_id/client_id. */

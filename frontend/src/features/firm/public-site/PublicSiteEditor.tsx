@@ -1,6 +1,6 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronDown, ChevronUp, ExternalLink, Eye, Facebook, Globe, Instagram, Linkedin, Loader2, MessageCircle, Save, Upload } from 'lucide-react'
+import { ChevronDown, ChevronUp, ExternalLink, Eye, Facebook, Globe, Instagram, Linkedin, Loader2, MessageCircle, Save, Trash2, Upload } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { toast } from 'sonner'
@@ -20,6 +20,7 @@ import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { firmPublicSiteApi } from '@/infrastructure/api/contabil/firmPublicSite'
+import { firmSettingsApi } from '@/infrastructure/api/contabil/firmSettings'
 import { contabilConsultationsApi, contabilPublicApi } from '@/infrastructure/api'
 import type { FirmSettingsBundle } from '@/shared/types/firmSettings'
 import type { PublicSiteConfig, PublicSiteSection } from '@/shared/types/firmPublicSite'
@@ -61,15 +62,25 @@ const HEX_RE = /^#[0-9a-f]{6}$/i
 
 type Props = {
   bundle: FirmSettingsBundle
+  onFirmUpdated?: () => void
 }
 
-export function PublicSiteEditor({ bundle }: Props) {
+export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const firmSlug = bundle.firm.slug || ''
+  const canEditLink = Boolean(bundle.capabilities?.canCloseAccount) // owner-only (same as close account)
   const [draft, setDraft] = useState<PublicSiteConfig | null>(null)
   const [saving, setSaving] = useState(false)
   const [publishing, setPublishing] = useState(false)
   const [previewing, setPreviewing] = useState(false)
   const [confirmPublishOpen, setConfirmPublishOpen] = useState(false)
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false)
+  const [resetting, setResetting] = useState(false)
+  const [slugDraft, setSlugDraft] = useState(firmSlug)
+  const [savingSlug, setSavingSlug] = useState(false)
+
+  useEffect(() => {
+    setSlugDraft(firmSlug)
+  }, [firmSlug])
 
   const siteQuery = useQuery({
     queryKey: ['firm-public-site'],
@@ -231,6 +242,36 @@ export function PublicSiteEditor({ bundle }: Props) {
     }
   }
 
+  const onSaveSlug = async () => {
+    const next = slugDraft.trim().toLowerCase()
+    if (!next || next === firmSlug) return
+    setSavingSlug(true)
+    try {
+      await firmSettingsApi.patchFirm({ slug: next })
+      toast.success('Link público actualizado.')
+      onFirmUpdated?.()
+    } catch (err) {
+      toast.error('Não foi possível alterar o link', { description: getErrorMessage(err) })
+    } finally {
+      setSavingSlug(false)
+    }
+  }
+
+  const onResetSite = async () => {
+    setResetting(true)
+    try {
+      const result = await firmPublicSiteApi.reset()
+      setDraft(result.draft)
+      setConfirmResetOpen(false)
+      toast.success('Página apagada. Pode configurar de novo do zero.')
+      void siteQuery.refetch()
+    } catch (err) {
+      toast.error('Não foi possível apagar a página', { description: getErrorMessage(err) })
+    } finally {
+      setResetting(false)
+    }
+  }
+
   if (siteQuery.isLoading || !draft) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -270,15 +311,65 @@ export function PublicSiteEditor({ bundle }: Props) {
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/50 bg-muted/20 p-4">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1 space-y-2">
           <p className="text-sm font-medium">
-            {siteQuery.data?.publishedAt ? `Publicado pela última vez em ${new Date(siteQuery.data.publishedAt).toLocaleString('pt-PT')}` : 'Ainda não publicado'}
+            {siteQuery.data?.publishedAt
+              ? `Publicado pela última vez em ${new Date(siteQuery.data.publishedAt).toLocaleString('pt-PT')}`
+              : 'Ainda não publicado'}
           </p>
-          {firmSlug ? (
-            <a href={`/${encodeURIComponent(firmSlug)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+          {canEditLink ? (
+            <div className="flex flex-wrap items-end gap-2">
+              <label className="min-w-[12rem] flex-1 space-y-1 text-xs">
+                <span className="font-medium text-muted-foreground">Link público</span>
+                <div className="flex items-center gap-1">
+                  <span className="shrink-0 text-muted-foreground">teglion.com/</span>
+                  <Input
+                    className="h-9 font-mono text-sm"
+                    value={slugDraft}
+                    onChange={(e: FormChangeEvent) =>
+                      setSlugDraft(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))
+                    }
+                    placeholder="o-seu-escritorio"
+                    maxLength={60}
+                  />
+                </div>
+              </label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9"
+                disabled={savingSlug || !slugDraft.trim() || slugDraft.trim() === firmSlug}
+                onClick={() => void onSaveSlug()}
+              >
+                {savingSlug ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+                Guardar link
+              </Button>
+              {firmSlug ? (
+                <a
+                  href={`/${encodeURIComponent(firmSlug)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-9 items-center gap-1 rounded-md border border-border/60 px-3 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Abrir <ExternalLink className="h-3 w-3" />
+                </a>
+              ) : null}
+            </div>
+          ) : firmSlug ? (
+            <a
+              href={`/${encodeURIComponent(firmSlug)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
               teglion.com/{firmSlug} <ExternalLink className="h-3 w-3" />
             </a>
           ) : null}
+          <p className="text-caption text-muted-foreground">
+            Ao alterar o link, o endereço antigo deixa de funcionar. Só o responsável do escritório pode
+            editar.
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" size="sm" disabled={saving || publishing} onClick={() => void onSaveDraft()}>
@@ -292,6 +383,19 @@ export function PublicSiteEditor({ bundle }: Props) {
           <Button type="button" className="cb-btn-primary" size="sm" disabled={publishing} onClick={() => setConfirmPublishOpen(true)}>
             <Upload className="mr-1.5 h-3.5 w-3.5" /> Publicar
           </Button>
+          {canEditLink ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:bg-destructive/10"
+              disabled={resetting}
+              onClick={() => setConfirmResetOpen(true)}
+            >
+              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+              Apagar e recomeçar
+            </Button>
+          ) : null}
         </div>
       </div>
 
@@ -530,6 +634,30 @@ export function PublicSiteEditor({ bundle }: Props) {
             <AlertDialogAction disabled={publishing} onClick={() => void onPublish()}>
               {publishing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
               Publicar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmResetOpen} onOpenChange={setConfirmResetOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Apagar a página e recomeçar?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isto remove o rascunho e a versão publicada. O link público fica sem conteúdo até configurar e
+              publicar de novo. Os serviços e o Stripe Connect não são afectados. Esta acção não se pode
+              desfazer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={resetting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={resetting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => void onResetSite()}
+            >
+              {resetting ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+              Apagar tudo e recomeçar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

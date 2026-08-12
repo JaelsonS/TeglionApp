@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
   AlertTriangle,
   Building2,
+  CreditCard,
   Globe,
   ImageIcon,
   Shield,
@@ -20,12 +21,14 @@ import { PublicSiteEditor } from '@/features/firm/public-site/PublicSiteEditor'
 import { FirmSettingsProfileSection } from '@/features/firm/settings/FirmSettingsProfileSection'
 import { FirmSettingsTeamSection } from '@/features/firm/settings/FirmSettingsTeamSection'
 import { FirmSettingsNotificationsSection } from '@/features/firm/settings/FirmSettingsNotificationsSection'
+import { FirmConnectPaymentsSection } from '@/features/firm/settings/FirmConnectPaymentsSection'
 import { cn } from '@/shared/lib/utils'
 
 const TABS = [
   { id: 'identidade', label: 'Identidade', shortLabel: 'Logo', icon: ImageIcon, danger: false },
   { id: 'pagina-publica', label: 'Página pública', shortLabel: 'Página', icon: Globe, danger: false },
   { id: 'escritorio', label: 'Escritório', shortLabel: 'Escritório', icon: Building2, danger: false },
+  { id: 'pagamentos', label: 'Pagamentos', shortLabel: 'Pagamentos', icon: CreditCard, danger: false },
   { id: 'perfil', label: 'O seu perfil', shortLabel: 'Perfil', icon: User, danger: false },
   { id: 'equipa', label: 'Equipa', shortLabel: 'Equipa', icon: Users, danger: false },
   { id: 'notificacoes', label: 'Notificações', shortLabel: 'Avisos', icon: Shield, danger: false },
@@ -159,6 +162,8 @@ export function FirmSettingsPage() {
                   {activeTab === 'identidade' && 'Logótipo no menu, portal do cliente e comunicações.'}
                   {activeTab === 'pagina-publica' && 'O que aparece na sua página pública partilhável.'}
                   {activeTab === 'escritorio' && 'Nome e contactos do escritório.'}
+                  {activeTab === 'pagamentos' &&
+                    'Stripe Connect — receber pagamentos dos clientes na conta do escritório.'}
                   {activeTab === 'perfil' && 'Os seus dados de acesso e segurança.'}
                   {activeTab === 'equipa' && 'Colaboradores, cargos e departamentos.'}
                   {activeTab === 'notificacoes' && 'Alertas push e preferências de aviso.'}
@@ -181,11 +186,15 @@ export function FirmSettingsPage() {
                 </section>
               ) : null}
 
-              {activeTab === 'pagina-publica' ? <PublicSiteEditor bundle={bundle} /> : null}
+              {activeTab === 'pagina-publica' ? (
+                <PublicSiteEditor bundle={bundle} onFirmUpdated={onUpdated} />
+              ) : null}
 
               {activeTab === 'escritorio' ? (
                 <FirmSettingsFirmSection bundle={bundle} onUpdated={onUpdated} />
               ) : null}
+
+              {activeTab === 'pagamentos' ? <FirmConnectPaymentsSection /> : null}
 
               {activeTab === 'perfil' ? (
                 <FirmSettingsProfileSection bundle={bundle} onUpdated={onUpdated} />

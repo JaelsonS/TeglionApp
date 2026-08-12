@@ -13,10 +13,14 @@ export const BRAND = {
     muted: '#4A5568',
   },
   emails: {
+    /** Caixa real (receber / mailto). */
     hello: 'jaelsonsilva345@gmail.com',
     support: 'jaelsonsilva345@gmail.com',
     commercial: 'jaelsonsilva345@gmail.com',
-    noreply: 'jaelsonsilva345@gmail.com',
+    /** Remetentes Brevo (só envio — sem inbox). */
+    sendContact: 'contato@teglion.com',
+    sendSupport: 'suporte@teglion.com',
+    sendCommercial: 'comercial@teglion.com',
   },
   phone: {
     display: '+351 916 447 990',

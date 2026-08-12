@@ -4,6 +4,7 @@
  */
 import { createContabilAccountingServicesApi } from '@/infrastructure/api/contabil/accountingServices'
 import { createContabilBillingApi, type BillingStatus } from '@/infrastructure/api/contabil/billing'
+import { createContabilConnectApi, type ConnectStatus } from '@/infrastructure/api/contabil/connect'
 import { createContabilBroadcastsApi } from '@/infrastructure/api/contabil/broadcastsApi'
 import { createClientPortalContabilApi } from '@/infrastructure/api/contabil/clientPortal'
 import { createContabilClientsApi } from '@/infrastructure/api/contabil/clients'
@@ -74,6 +75,7 @@ export const contabilNewsApi = createContabilNewsApi(api)
 export const contabilFiscalCalendarApi = createContabilFiscalCalendarApi(api)
 export const contabilBroadcastsApi = createContabilBroadcastsApi(api)
 export const contabilBillingApi = createContabilBillingApi(api)
+export const contabilConnectApi = createContabilConnectApi(api)
 export const contabilPublicApi = createContabilPublicApi(api)
 export const contabilServiceInquiriesApi = createContabilServiceInquiriesApi(api)
 export const contabilInquiryTagsApi = createContabilInquiryTagsApi(api)
@@ -82,6 +84,10 @@ export const contabilGoogleDriveApi = createContabilGoogleDriveApi(api)
 export const contabilLeadsApi = createContabilLeadsApi(api)
 export const clientPortalContabilApi = createClientPortalContabilApi(api)
 
-export type { BillingStatus }
+export type { BillingStatus, ConnectStatus }
+
+export {
+  CONNECT_STATUS_QUERY_KEY,
+} from '@/infrastructure/api/contabil/connect'
 
 export default api

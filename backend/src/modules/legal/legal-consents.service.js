@@ -86,7 +86,7 @@ function getPublicVersions() {
     operator: {
       name: env.LEGAL_OPERATOR_NAME || BRAND.name,
       nif: env.LEGAL_OPERATOR_NIF || null,
-      email: env.LEGAL_OPERATOR_EMAIL || env.FROM_EMAIL || BRAND.emails.hello,
+      email: env.LEGAL_OPERATOR_EMAIL || BRAND.emails.hello || env.FROM_EMAIL,
       phone: env.LEGAL_OPERATOR_PHONE || null,
       location: env.LEGAL_OPERATOR_LOCATION || null,
       cae: env.LEGAL_OPERATOR_CAE || null,

@@ -205,6 +205,10 @@ export function ServiceIntakePublicPage() {
         scheduledAt: scheduledAt || undefined,
         leadAccessToken: leadAccessToken || undefined,
       })
+      if (res.checkoutUrl) {
+        window.location.assign(res.checkoutUrl)
+        return
+      }
       setResult(res)
     } catch (err) {
       toast.error('Não foi possível enviar o pedido', { description: getErrorMessage(err) })
@@ -408,9 +412,14 @@ export function ServiceIntakePublicPage() {
               </Button>
               <Button type="submit" className="flex-1 rounded-full" disabled={submitting}>
                 {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Enviar pedido
+                {service.paymentRequired ? 'Continuar para pagamento' : 'Enviar pedido'}
               </Button>
             </div>
+            {service.paymentRequired ? (
+              <p className="text-center text-xs text-muted-foreground">
+                O horário fica reservado 30 minutos enquanto conclui o pagamento seguro na Stripe.
+              </p>
+            ) : null}
           </>
         )}
       </form>

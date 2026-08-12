@@ -38,4 +38,24 @@ function isStripeConfigured() {
   return Boolean(env.STRIPE_SECRET_KEY && resolveSubscriptionPriceId('PT', 'month'));
 }
 
-module.exports = { getStripe, isStripeConfigured, resolveSubscriptionPriceId };
+/**
+ * Connect (pagamentos cliente → escritório) é independente do Billing SaaS
+ * (não exige Price IDs de subscrição).
+ */
+function isStripeConnectConfigured() {
+  const flag = String(env.STRIPE_CONNECT_ENABLED || '').toLowerCase();
+  const enabled = flag === '1' || flag === 'true' || flag === 'yes';
+  return Boolean(enabled && env.STRIPE_SECRET_KEY);
+}
+
+function isStripeConnectWebhookConfigured() {
+  return Boolean(isStripeConnectConfigured() && env.STRIPE_CONNECT_WEBHOOK_SECRET);
+}
+
+module.exports = {
+  getStripe,
+  isStripeConfigured,
+  isStripeConnectConfigured,
+  isStripeConnectWebhookConfigured,
+  resolveSubscriptionPriceId,
+};

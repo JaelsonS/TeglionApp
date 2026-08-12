@@ -103,10 +103,18 @@ async function findByPreviewToken(token) {
   return map(data);
 }
 
+/** Apaga rascunho + publicado — escritório pode recomeçar do zero. */
+async function deleteByFirmId(firmId) {
+  const sb = getSupabaseAdmin();
+  const { error } = await sb.from('firm_public_sites').delete().eq('firm_id', firmId);
+  if (error) throw error;
+}
+
 module.exports = {
   findByFirmId,
   upsertDraft,
   publish,
   setPreviewToken,
   findByPreviewToken,
+  deleteByFirmId,
 };

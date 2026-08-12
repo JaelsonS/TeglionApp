@@ -20,7 +20,8 @@ Eu mantenho aqui o que preciso para preparar, lançar, monitorizar e recuperar p
 | [GOOGLE_SSO_SETUP.md](./GOOGLE_SSO_SETUP.md) | Login Google (não é Supabase Auth) |
 | [BREVO_DOMAIN_SETUP.md](./BREVO_DOMAIN_SETUP.md) | Domínio autenticado para e-mails (Primary inbox) |
 | [STORAGE.md](./STORAGE.md) | Ficheiros no Supabase Storage |
-| [STRIPE_SETUP.md](./STRIPE_SETUP.md) | Configurar pagamentos |
+| [STRIPE_SETUP.md](./STRIPE_SETUP.md) | Configurar pagamentos (Billing SaaS — escritório → Teglion) |
+| [STRIPE_CONNECT_SETUP.md](./STRIPE_CONNECT_SETUP.md) | Stripe Connect (clientes → escritório; separado do Billing) |
 
 ## Regra de operação que eu sigo
 

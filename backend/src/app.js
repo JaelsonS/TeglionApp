@@ -23,6 +23,7 @@ const { blockLegacyTeglionRoutes } = require('./middlewares/legacy-teglion.middl
 
 const { mountApiRoutes } = require('./routes/mount-api-routes');
 const billingController = require('./modules/billing/billing.controller');
+const connectController = require('./modules/connect/connect-accounts.controller');
 
 const APP_MESSAGES = {
   apiRunning: 'API ativa',
@@ -279,11 +280,18 @@ app.use(
 // 4) PARSING DE DADOS
 // ============================================
 
-// Stripe webhook — corpo raw (antes do express.json)
+// Stripe webhook — Billing SaaS (corpo raw, antes do express.json)
 app.post(
   '/api/public/stripe/webhook',
   express.raw({ type: 'application/json' }),
   billingController.handleWebhook,
+);
+
+// Stripe Connect webhook — pagamentos clientes → escritório (Connected accounts)
+app.post(
+  '/api/public/stripe/connect/webhook',
+  express.raw({ type: 'application/json' }),
+  connectController.handleWebhook,
 );
 
 app.use(express.json({ limit: '2mb' }));

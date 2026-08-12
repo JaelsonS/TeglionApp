@@ -172,6 +172,7 @@ router.patch(
   requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
   [
     body('name').optional().trim().isLength({ min: 2, max: 120 }),
+    body('slug').optional().trim().isLength({ min: 3, max: 60 }),
     body('contactEmail').optional({ values: 'null' }).isEmail(),
     body('contactPhone').optional().trim().isLength({ max: 32 }),
     body('taxId').optional().trim().isLength({ max: 32 }),
@@ -223,6 +224,12 @@ router.post(
   requireFirmOwner,
   requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
   firmPublicSiteController.regeneratePreviewToken,
+);
+router.post(
+  '/firm/public-site/reset',
+  requireFirmOwner,
+  requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
+  firmPublicSiteController.resetSite,
 );
 router.post(
   '/firm/public-site/images',

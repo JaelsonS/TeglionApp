@@ -131,8 +131,23 @@ async function updateFirmDetails(firmId, actorUserId, payload) {
   if (payload.taxId != null) contact.taxId = String(payload.taxId).trim() || null;
   if (payload.address != null) contact.address = String(payload.address).trim() || null;
 
+  let nextSlug;
+  if (payload.slug != null) {
+    nextSlug = normalizeFirmSlug(payload.slug);
+    if (!nextSlug) {
+      throw new AppError('Link inválido. Use letras minúsculas, números e hífens (3–60 caracteres).', 400);
+    }
+    if (nextSlug !== current.slug) {
+      const taken = await firmsRepository.slugExists(nextSlug);
+      if (taken) {
+        throw new AppError('Este link já está em uso. Escolha outro.', 409, { code: 'SLUG_TAKEN' });
+      }
+    }
+  }
+
   const updated = await firmsRepository.updateFirm(firmId, {
     name: name ?? undefined,
+    slug: nextSlug,
     settingsMerge: { contact },
   });
 
@@ -140,6 +155,20 @@ async function updateFirmDetails(firmId, actorUserId, payload) {
     firm: { ...p.firm, slug: updated.slug },
     logoUrl: p.logoUrl,
   }));
+}
+
+function normalizeFirmSlug(raw) {
+  const s = String(raw || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
+  if (s.length < 3) return null;
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(s)) return null;
+  return s;
 }
 
 async function updateMyProfile(firmId, userId, { fullName, email }) {
@@ -365,5 +394,6 @@ module.exports = {
   updateMyProfile,
   changeMyPassword,
   closeFirmAccount,
+  normalizeFirmSlug,
   FIRM_ROLE_LABELS,
 };

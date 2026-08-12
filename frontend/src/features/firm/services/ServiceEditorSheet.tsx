@@ -19,7 +19,7 @@ type PaymentMethod = 'bank_transfer' | 'multibanco' | 'stripe_connect'
 const PAYMENT_OPTIONS: { id: PaymentMethod; label: string; hint: string; soon?: boolean }[] = [
   { id: 'bank_transfer', label: 'Transferência bancária', hint: 'Dados no orçamento / PDF' },
   { id: 'multibanco', label: 'Multibanco', hint: 'Referência gerada automaticamente', soon: true },
-  { id: 'stripe_connect', label: 'Cartão (Stripe Connect)', hint: 'Pagamento online no link', soon: true },
+  { id: 'stripe_connect', label: 'Cartão (Stripe Connect)', hint: 'Pagamento online no link' },
 ]
 
 type Props = {

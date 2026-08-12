@@ -188,6 +188,8 @@ export type Consultation = {
   priceCents?: number | null
   currency?: string | null
   source?: string | null
+  holdExpiresAt?: string | null
+  cancelReason?: string | null
 }
 
 export type ContabilHubSummary = {
@@ -360,6 +362,8 @@ export type AccountingService = {
   bookingOverrides?: Partial<FirmBookingSettings> | null
   /** bank_transfer | multibanco | stripe_connect */
   paymentMethod?: 'bank_transfer' | 'multibanco' | 'stripe_connect'
+  /** Se true, agendamento público exige Checkout Stripe antes de confirmar. */
+  paymentRequired?: boolean
 }
 
 export type ConsultingCatalogEntry = {

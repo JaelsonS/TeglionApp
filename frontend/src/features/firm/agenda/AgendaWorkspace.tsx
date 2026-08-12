@@ -12,14 +12,22 @@ import { AgendaWeekGrid } from '@/features/firm/agenda/AgendaWeekGrid'
 import {
   addDays,
   addMonths,
+  consultationStatusLabel,
   dateRangeForView,
   formatNavLabel,
   normalizeAnchor,
   startOfDay,
   startOfWeekMonday,
+  visibleAgendaItems,
   type AgendaViewMode,
 } from '@/features/firm/agenda/agendaCalendarUtils'
 import { Button } from '@/shared/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog'
 import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
 import { cn } from '@/shared/lib/utils'
 import { contabilConsultationsApi, contabilClientsApi, contabilFirmApi } from '@/infrastructure/api'
@@ -43,6 +51,7 @@ export function AgendaWorkspace() {
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<Consultation | null>(null)
 
   const [clientId, setClientId] = useState('')
   const [title, setTitle] = useState('Consulta fiscal')
@@ -191,10 +200,13 @@ export function AgendaWorkspace() {
   }
 
   const openEvent = useCallback((ev: Consultation) => {
+    setSelectedEvent(ev)
     const when = new Date(ev.scheduledAt)
     setView('day')
     setAnchor(startOfDay(when))
   }, [])
+
+  const calendarItems = useMemo(() => visibleAgendaItems(items), [items])
 
   const saveAvailability = async () => {
     const openDays = Object.keys(schedule)
@@ -343,7 +355,7 @@ export function AgendaWorkspace() {
             ) : view === 'week' ? (
               <AgendaWeekGrid
                 anchor={anchor}
-                items={items}
+                items={calendarItems}
                 staffName={staffName}
                 clientName={clientName}
                 onSelectEvent={openEvent}
@@ -351,7 +363,7 @@ export function AgendaWorkspace() {
             ) : view === 'day' ? (
               <AgendaCalendarGrid
                 days={[dayAnchor]}
-                items={items}
+                items={calendarItems}
                 staffName={staffName}
                 clientName={clientName}
                 onSelectEvent={openEvent}
@@ -359,7 +371,7 @@ export function AgendaWorkspace() {
             ) : (
               <AgendaMonthGrid
                 anchor={anchor}
-                items={items}
+                items={calendarItems}
                 onSelectDay={pickDayFromMonth}
                 onSelectEvent={openEvent}
               />
@@ -369,7 +381,7 @@ export function AgendaWorkspace() {
           {view !== 'month' ? (
             <AgendaSidebar
               anchor={anchor}
-              items={items}
+              items={calendarItems}
               staff={staffForSidebar}
               clientName={clientName}
               onPickDay={(d) => {
@@ -386,6 +398,66 @@ export function AgendaWorkspace() {
           ) : null}
         </div>
       )}
+
+      <Dialog open={Boolean(selectedEvent)} onOpenChange={(open: boolean) => !open && setSelectedEvent(null)}>
+        <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
+          <DialogHeader>
+            <DialogTitle>{selectedEvent?.title || 'Evento'}</DialogTitle>
+          </DialogHeader>
+          {selectedEvent ? (
+            <div className="space-y-2 text-sm">
+              <p>
+                <span className="text-muted-foreground">Estado: </span>
+                <span className="font-medium">{consultationStatusLabel(selectedEvent.status)}</span>
+              </p>
+              <p>
+                <span className="text-muted-foreground">Quando: </span>
+                {new Date(selectedEvent.scheduledAt).toLocaleString('pt-PT', {
+                  weekday: 'long',
+                  day: '2-digit',
+                  month: 'long',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  timeZone: 'Europe/Lisbon',
+                })}
+              </p>
+              <p>
+                <span className="text-muted-foreground">Cliente: </span>
+                {clientName(selectedEvent)}
+              </p>
+              {selectedEvent.priceCents != null && selectedEvent.priceCents > 0 ? (
+                <p>
+                  <span className="text-muted-foreground">Valor: </span>
+                  {(selectedEvent.priceCents / 100).toLocaleString('pt-PT', {
+                    style: 'currency',
+                    currency: selectedEvent.currency || 'EUR',
+                  })}
+                </p>
+              ) : null}
+              {selectedEvent.status === 'PENDING_PAYMENT' && selectedEvent.holdExpiresAt ? (
+                <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-950">
+                  Reserva temporária até{' '}
+                  {new Date(selectedEvent.holdExpiresAt).toLocaleString('pt-PT', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    day: '2-digit',
+                    month: 'short',
+                    timeZone: 'Europe/Lisbon',
+                  })}
+                  . Se o pagamento não for concluído, o horário é libertado.
+                </p>
+              ) : null}
+              {selectedEvent.status === 'SCHEDULED' &&
+              selectedEvent.priceCents != null &&
+              selectedEvent.priceCents > 0 ? (
+                <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-950">
+                  Pagamento confirmado via Stripe (o dinheiro foi para a conta Connect do escritório).
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
       <p className="cb-agenda-foot">Teglion — Consultorias / Agenda</p>
     </div>

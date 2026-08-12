@@ -159,10 +159,38 @@ export function formatEventTimeRange(scheduledAt: string, durationMinutes = 60) 
 }
 
 export function eventTone(c: Consultation, index: number) {
+  if (c.status === 'PENDING_PAYMENT') return 'cb-agenda-event-pending-pay'
+  if (c.status === 'CANCELLED') return 'cb-agenda-event-cancelled'
+  if (c.status === 'NO_SHOW') return 'cb-agenda-event-cancelled'
   const t = (c.title || '').toLowerCase()
   if (t.includes('intern')) return 'cb-agenda-event-internal'
   const tones = ['cb-agenda-event-blue', 'cb-agenda-event-amber', 'cb-agenda-event-green']
   return tones[index % tones.length]
+}
+
+export function consultationStatusLabel(status: string | undefined | null) {
+  switch (status) {
+    case 'PENDING_PAYMENT':
+      return 'Aguarda pagamento'
+    case 'SCHEDULED':
+      return 'Confirmado'
+    case 'COMPLETED':
+      return 'Concluído'
+    case 'CANCELLED':
+      return 'Cancelado'
+    case 'NO_SHOW':
+      return 'Não compareceu'
+    default:
+      return status || '—'
+  }
+}
+
+/** Eventos visíveis no calendário: inclui holds; oculta cancelados por defeito. */
+export function visibleAgendaItems(items: Consultation[], { includeCancelled = false } = {}) {
+  return items.filter((c) => {
+    if (c.status === 'CANCELLED' || c.status === 'NO_SHOW') return includeCancelled
+    return true
+  })
 }
 
 /** Dias da semana (dayjs/day(): 0=Dom … 6=Sáb) — ordem Segunda a Domingo na UI. */

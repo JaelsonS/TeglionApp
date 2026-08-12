@@ -52,3 +52,13 @@ exports.uploadImage = async (req, res, next) => {
     return next(err);
   }
 };
+
+exports.resetSite = async (req, res, next) => {
+  try {
+    const firmId = String(req.user.firmId);
+    const data = await firmPublicSiteService.resetPublicSite(firmId, String(req.user.id));
+    return res.status(200).json(data);
+  } catch (err) {
+    return next(err);
+  }
+};

@@ -491,12 +491,46 @@ function isPreviewTokenValid(site, token) {
   return new Date(site.previewTokenExpiresAt) > new Date();
 }
 
+/**
+ * Apaga a página pública e limpa o perfil legado — o escritório recomeça do zero
+ * com um rascunho default (ainda não publicado).
+ */
+async function resetPublicSite(firmId, actorUserId) {
+  const firm = await firmsRepository.findFirmById(firmId);
+  if (!firm) throw new AppError('Escritório não encontrado', 404);
+
+  await firmPublicSitesRepository.deleteByFirmId(firmId);
+
+  // Limpa legado que alimentava a página antes do builder
+  await firmsRepository.updateFirm(firmId, {
+    settingsMerge: {
+      publicProfile: {
+        tagline: null,
+        bio: null,
+        socialLinks: {},
+        faqs: [],
+      },
+    },
+  });
+
+  const fresh = defaultSiteConfig();
+  const saved = await firmPublicSitesRepository.upsertDraft(firmId, fresh, actorUserId);
+  return {
+    draft: saved.draft,
+    published: null,
+    publishedAt: null,
+    draftUpdatedAt: saved.draftUpdatedAt,
+    reset: true,
+  };
+}
+
 module.exports = {
   getSite,
   saveDraft,
   publishSite,
   regeneratePreviewToken,
   uploadImage,
+  resetPublicSite,
   normalizeSiteConfig,
   defaultSiteConfig,
   buildConfigFromLegacySettings,

@@ -116,7 +116,7 @@ const DEFAULT_QUESTIONS: IntakeQuestion[] = [
 const PAYMENT_OPTIONS: { id: PaymentMethod; label: string; soon?: boolean }[] = [
   { id: 'multibanco', label: 'Referência Multibanco', soon: true },
   { id: 'bank_transfer', label: 'Transferência Bancária' },
-  { id: 'stripe_connect', label: 'Débito em Conta / Cartão', soon: true },
+  { id: 'stripe_connect', label: 'Débito em Conta / Cartão' },
 ]
 
 type EditorQuestion = {

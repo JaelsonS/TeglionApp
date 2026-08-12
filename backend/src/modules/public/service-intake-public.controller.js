@@ -37,6 +37,7 @@ async function mapPublicServiceSummary(s) {
     durationMinutes: enriched.durationMinutes,
     priceCents: enriched.priceCents,
     requiresBooking: enriched.requiresBooking === true,
+    paymentRequired: enriched.paymentRequired === true,
     imageUrl: enriched.imageUrl || null,
   };
 }
@@ -209,6 +210,7 @@ async function getPublicService(req, res, next) {
       imageUrl: (await accountingServicesService.resolveServiceImageUrl(service.imageStorageKey || service.imageUrl)) || null,
       intakeForm: service.intakeForm || { questions: [] },
       requiresBooking: service.requiresBooking === true,
+      paymentRequired: service.paymentRequired === true,
       priceCents: service.priceCents,
       showPrices,
       termsText,
@@ -274,7 +276,15 @@ async function submitIntake(req, res, next) {
     if (req.body?.website) {
       return res.status(201).json({ ok: true });
     }
-    const { inquiry, requiredDocuments, consultation } = await serviceInquiriesService.submitPublicIntake({
+    const {
+      inquiry,
+      requiredDocuments,
+      consultation,
+      checkoutUrl,
+      paymentPublicToken,
+      holdExpiresAt,
+      paymentRequired,
+    } = await serviceInquiriesService.submitPublicIntake({
       firmSlug: String(req.params.firmSlug || '').trim(),
       serviceSlug: String(req.params.serviceSlug || '').trim(),
       payload: req.body || {},
@@ -283,9 +293,29 @@ async function submitIntake(req, res, next) {
       ok: true,
       accessToken: inquiry.accessToken,
       documentsRequired: requiredDocuments.length,
-      bookingConfirmed: Boolean(consultation),
+      bookingConfirmed: Boolean(consultation) && consultation.status === 'SCHEDULED',
+      bookingPendingPayment: Boolean(consultation) && consultation.status === 'PENDING_PAYMENT',
       scheduledAt: consultation?.scheduledAt || null,
+      checkoutUrl: checkoutUrl || null,
+      paymentPublicToken: paymentPublicToken || null,
+      holdExpiresAt: holdExpiresAt || null,
+      paymentRequired: Boolean(paymentRequired),
+      consultationId: consultation?.id || null,
     });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+async function getBookingPaymentStatus(req, res, next) {
+  try {
+    assertValid(req);
+    const connectPaymentsService = require('../connect/connect-payments.service');
+    const data = await connectPaymentsService.getPublicPaymentStatus({
+      consultationId: String(req.query.c || '').trim(),
+      token: String(req.query.t || '').trim(),
+    });
+    return res.json(data);
   } catch (err) {
     return next(err);
   }
@@ -379,6 +409,11 @@ const replyValidators = [
   body('textReply').isString().trim().isLength({ min: 1, max: 4000 }),
 ];
 
+const bookingPaymentStatusValidators = [
+  query('c').isUUID(),
+  query('t').isString().trim().isLength({ min: 32, max: 128 }),
+];
+
 module.exports = {
   getPublicFirmServices,
   getPublicFirmSite,
@@ -386,6 +421,7 @@ module.exports = {
   getPublicSlots,
   captureLead,
   submitIntake,
+  getBookingPaymentStatus,
   getByToken,
   uploadByToken,
   submitReply,
@@ -397,4 +433,5 @@ module.exports = {
   slotsValidators,
   tokenValidators,
   replyValidators,
+  bookingPaymentStatusValidators,
 };

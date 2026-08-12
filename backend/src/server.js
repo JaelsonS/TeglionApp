@@ -4,6 +4,10 @@ const { env } = require('./config/env');
 const { connectDatabase } = require('./config/database');
 const { startContabilSchedulers, stopContabilSchedulers } = require('./modules/obligations/schedulers');
 const { startTaskSchedulers, stopTaskSchedulers } = require('./modules/tasks/schedulers');
+const {
+  startConnectPaymentSchedulers,
+  stopConnectPaymentSchedulers,
+} = require('./modules/connect/schedulers');
 const { initRateLimitRedis, closeRateLimitRedis } = require('./utils/rate-limit-store');
 const { startJobWorker, registerJobHandler } = require('./jobs/redis-queue');
 const { processFirm } = require('./modules/obligations/schedulers/obligation-reminders.scheduler');
@@ -113,6 +117,7 @@ async function bootstrap() {
 
     startContabilSchedulers();
     startTaskSchedulers();
+    startConnectPaymentSchedulers();
 
     registerJobHandler('obligation-reminders:firm', async ({ firmId }) => {
       await processFirm(firmId);
@@ -150,6 +155,7 @@ async function bootstrap() {
         try {
           stopContabilSchedulers();
           stopTaskSchedulers();
+          stopConnectPaymentSchedulers();
           stopJobWorker();
           await closeRateLimitRedis();
           logger.info(serverMessage('shutdownSuccess'));

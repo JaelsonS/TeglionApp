@@ -46,6 +46,7 @@ Guia: [REDIS_RENDER_SETUP.md](./REDIS_RENDER_SETUP.md)
 - [ ] Eu valido login cliente e upload de documento.
 - [ ] Eu valido mensagens escritório/cliente.
 - [ ] Eu valido rota de billing/Stripe.
+- [ ] Eu valido Stripe Connect live: `STRIPE_CONNECT_ENABLED=true`, webhook Connected accounts, onboarding Express do escritório, 1 pagamento real de serviço ([STRIPE_CONNECT_SETUP.md](./STRIPE_CONNECT_SETUP.md)).
 - [ ] Eu valido bloqueios de permissão para role sem acesso.
 
 RBAC por permissão já implementado e verificado (`requirePermission`/`requireRole`, ver [`docs/security/SECURITY.md`](../security/SECURITY.md)) — este bloco confirma que continua correcto, não é mais um plano em aberto.

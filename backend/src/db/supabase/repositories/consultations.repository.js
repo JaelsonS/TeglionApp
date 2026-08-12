@@ -22,6 +22,8 @@ function mapConsultation(row) {
     googleSyncStatus: row.google_sync_status || null,
     googleSyncError: row.google_sync_error || null,
     googleSyncedAt: row.google_synced_at || null,
+    holdExpiresAt: row.hold_expires_at || null,
+    cancelReason: row.cancel_reason || null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -61,6 +63,8 @@ async function createConsultation(data) {
       price_cents: data.priceCents ?? null,
       currency: data.currency ?? 'EUR',
       source: data.source || 'FIRM',
+      hold_expires_at: data.holdExpiresAt || null,
+      cancel_reason: data.cancelReason || null,
     })
     .select()
     .single();
@@ -132,6 +136,8 @@ async function updateConsultation(id, firmId, patch) {
   if (patch.googleSyncStatus !== undefined) row.google_sync_status = patch.googleSyncStatus;
   if (patch.googleSyncError !== undefined) row.google_sync_error = patch.googleSyncError;
   if (patch.googleSyncedAt !== undefined) row.google_synced_at = patch.googleSyncedAt;
+  if (patch.holdExpiresAt !== undefined) row.hold_expires_at = patch.holdExpiresAt;
+  if (patch.cancelReason !== undefined) row.cancel_reason = patch.cancelReason;
   const { data, error } = await sb
     .from('consultations')
     .update(row)
@@ -143,6 +149,19 @@ async function updateConsultation(id, firmId, patch) {
   return mapConsultation(data);
 }
 
+async function listExpiredPaymentHolds({ beforeIso, limit = 50 } = {}) {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from('consultations')
+    .select('*')
+    .eq('status', 'PENDING_PAYMENT')
+    .lt('hold_expires_at', beforeIso || new Date().toISOString())
+    .order('hold_expires_at', { ascending: true })
+    .limit(limit);
+  if (error) throw error;
+  return (data || []).map(mapConsultation);
+}
+
 module.exports = {
   listConsultations,
   createConsultation,
@@ -150,4 +169,5 @@ module.exports = {
   findByIdForFirm,
   reassignLeadToClient,
   updateConsultation,
+  listExpiredPaymentHolds,
 };

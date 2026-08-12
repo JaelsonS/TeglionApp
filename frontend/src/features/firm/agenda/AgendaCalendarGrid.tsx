@@ -66,7 +66,11 @@ export function AgendaCalendarGrid({ days, items, staffName, clientName, onSelec
                         {formatEventTimeRange(ev.scheduledAt, ev.durationMinutes)}
                       </span>
                       <span className="cb-agenda-event-title">{ev.title}</span>
-                      <span className="cb-agenda-event-meta">{assignee}</span>
+                      {ev.status === 'PENDING_PAYMENT' ? (
+                        <span className="cb-agenda-event-meta">Aguarda pagamento</span>
+                      ) : (
+                        <span className="cb-agenda-event-meta">{assignee}</span>
+                      )}
                     </button>
                   )
                 })}

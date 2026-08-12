@@ -4,6 +4,7 @@ const { requireActiveFirm } = require('../../middlewares/firm-access.middleware'
 const { contabilModeGuard } = require('./middleware');
 const cronRoutes = require('./cron.routes');
 const billingRoutes = require('./billing.routes');
+const connectRoutes = require('./connect.routes');
 const firmDomainRoutes = require('./firm-domain.routes');
 
 const router = express.Router();
@@ -13,6 +14,7 @@ router.use(cronRoutes);
 router.use(authMiddleware);
 router.use(billingRoutes);
 router.use(requireActiveFirm);
+router.use(connectRoutes);
 router.use(firmDomainRoutes);
 
 module.exports = router;

@@ -97,12 +97,13 @@ async function mergeSettingsKey(firmId, key, value) {
   return mapFirm(data);
 }
 
-async function updateFirm(firmId, { name, countryCode, settingsMerge }) {
+async function updateFirm(firmId, { name, countryCode, settingsMerge, slug }) {
   const current = await findFirmById(firmId);
   if (!current) return null;
   const row = { updated_at: new Date().toISOString() };
   if (name != null) row.name = String(name).trim();
   if (countryCode != null) row.country_code = String(countryCode).trim().toUpperCase().slice(0, 2);
+  if (slug != null) row.slug = String(slug).trim().toLowerCase();
   if (settingsMerge && typeof settingsMerge === 'object') {
     row.settings = { ...(current.settings || {}), ...settingsMerge };
   }

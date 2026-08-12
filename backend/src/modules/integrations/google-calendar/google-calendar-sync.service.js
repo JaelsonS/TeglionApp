@@ -48,6 +48,14 @@ async function markSync(firmId, consultationId, patch) {
 }
 
 async function syncOnce({ firmId, consultation, requesterName, timeZone }) {
+  if (consultation.status === 'PENDING_PAYMENT') {
+    await markSync(firmId, consultation.id, {
+      googleSyncStatus: 'skipped',
+      googleSyncError: 'pending_payment',
+    });
+    return { synced: false, reason: 'pending_payment' };
+  }
+
   if (!consultation.staffId) {
     await markSync(firmId, consultation.id, {
       googleSyncStatus: 'skipped',

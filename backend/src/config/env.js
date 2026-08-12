@@ -219,8 +219,8 @@ const env = {
   FROM_NAME: process.env.FROM_NAME,
   BREVO_API_KEY: process.env.BREVO_API_KEY,
   BREVO_SMS_SENDER: process.env.BREVO_SMS_SENDER || BRAND.name,
-  BLOG_NEWSLETTER_NOTIFY_EMAIL: process.env.BLOG_NEWSLETTER_NOTIFY_EMAIL || null,
-  SUPPORT_NOTIFY_EMAIL: process.env.SUPPORT_NOTIFY_EMAIL || null,
+  BLOG_NEWSLETTER_NOTIFY_EMAIL: process.env.BLOG_NEWSLETTER_NOTIFY_EMAIL || BRAND.emails.hello,
+  SUPPORT_NOTIFY_EMAIL: process.env.SUPPORT_NOTIFY_EMAIL || BRAND.emails.support,
 
   CRON_SECRET: process.env.CRON_SECRET || null,
   VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY || null,
@@ -239,14 +239,18 @@ const env = {
   GOOGLE_PICKER_API_KEY: process.env.GOOGLE_PICKER_API_KEY || null,
   PUBLIC_API_URL: process.env.PUBLIC_API_URL || resolvePublicApiUrl(),
 
-  EMAIL_FROM_SUPPORT: process.env.EMAIL_FROM_SUPPORT || `"${BRAND.name} Suporte" <${BRAND.emails.support}>`,
-  EMAIL_FROM_CONTACT: process.env.EMAIL_FROM_CONTACT || `"${BRAND.name}" <${BRAND.emails.hello}>`,
-  EMAIL_FROM_COMMERCIAL: process.env.EMAIL_FROM_COMMERCIAL || `"${BRAND.name}" <${BRAND.emails.commercial}>`,
+  // From: Brevo (senders verificados — só envio). Caixa real = BRAND.emails.hello/support.
+  EMAIL_FROM_SUPPORT:
+    process.env.EMAIL_FROM_SUPPORT || `"${BRAND.name} Suporte" <${BRAND.emails.sendSupport}>`,
+  EMAIL_FROM_CONTACT:
+    process.env.EMAIL_FROM_CONTACT || `"${BRAND.name}" <${BRAND.emails.sendContact}>`,
+  EMAIL_FROM_COMMERCIAL:
+    process.env.EMAIL_FROM_COMMERCIAL || `"${BRAND.name}" <${BRAND.emails.sendCommercial}>`,
   SMTP_FROM:
     process.env.SMTP_FROM ||
     (process.env.FROM_EMAIL ? `${process.env.FROM_NAME || BRAND.name} <${process.env.FROM_EMAIL}>` : null) ||
     process.env.EMAIL_FROM_CONTACT ||
-    `"${BRAND.name}" <${BRAND.emails.hello}>`,
+    `"${BRAND.name}" <${BRAND.emails.sendContact}>`,
 
   FRONTEND_URL: String(process.env.FRONTEND_URL || 'http://localhost:3000')
     .trim()
@@ -255,6 +259,10 @@ const env = {
 
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+  /** Feature flag Connect (pagamentos clientes → escritório). Default off. */
+  STRIPE_CONNECT_ENABLED: process.env.STRIPE_CONNECT_ENABLED,
+  /** Webhook secret do endpoint Connect (Connected accounts) — distinto do Billing. */
+  STRIPE_CONNECT_WEBHOOK_SECRET: process.env.STRIPE_CONNECT_WEBHOOK_SECRET,
   STRIPE_PRICE_ID: process.env.STRIPE_PRICE_ID,
   /** Mensal EUR — preferir STRIPE_PRICE_ID_EUR_MONTHLY; STRIPE_PRICE_ID_EUR fica como alias. */
   STRIPE_PRICE_ID_EUR: process.env.STRIPE_PRICE_ID_EUR,
