@@ -30,8 +30,7 @@ import {
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
-import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
-import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
+import { Dialog, DialogContent, DialogTitle } from '@/shared/components/ui/dialog'
 import { EuroInput, RichTextEditor, UploadDropzone } from '@/shared/design-system'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
@@ -523,14 +522,13 @@ export function ServiceFullEditorSheet({
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent
-          side="right"
-          className="flex w-full flex-col overflow-hidden border-l border-brand/20 p-0 sm:max-w-5xl"
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent
+          className="flex max-h-[min(92dvh,calc(100dvh-1.5rem))] w-[calc(100vw-1.5rem)] max-w-5xl flex-col gap-0 overflow-hidden rounded-2xl border border-brand/20 p-0 shadow-xl sm:max-w-5xl"
         >
-          <SheetHiddenTitle>{headerTitle}</SheetHiddenTitle>
+          <DialogTitle className="sr-only">{headerTitle}</DialogTitle>
 
-          <div className="shrink-0 border-b border-brand/15 bg-gradient-to-r from-brand/[0.08] via-sky-500/[0.06] to-transparent px-5 pt-4">
+          <div className="shrink-0 border-b border-brand/15 bg-gradient-to-r from-brand/[0.08] via-sky-500/[0.06] to-transparent px-5 pb-0 pr-12 pt-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-brand/80">
               Serviços › {isCreate ? 'Criar' : 'Editar'}
             </p>
@@ -1116,8 +1114,8 @@ export function ServiceFullEditorSheet({
               Guardar serviço
             </Button>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={deleteOpen} onOpenChange={(next: boolean) => !next && setDeleteOpen(false)}>
         <AlertDialogContent>
