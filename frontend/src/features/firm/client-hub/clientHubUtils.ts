@@ -36,7 +36,7 @@ export function deriveRiskReason(hub: ClientHubResponse): string {
     counts.unreadMessagesFromClient === 0 &&
     hub.summary.fiscalHealth === 'ok'
   ) {
-    return 'Empresa sem sinais de risco — operação estável'
+    return 'Cliente sem sinais de risco — operação estável'
   }
   return 'Operação estável — sem sinais críticos'
 }

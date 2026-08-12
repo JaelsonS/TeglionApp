@@ -175,9 +175,9 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
           className="cb-tasks-filter"
           value={clientFilter}
           onChange={(e) => setClientFilter(e.target.value)}
-          aria-label="Empresa"
+          aria-label="Cliente"
         >
-          <option value="todos">Empresa: Todas</option>
+          <option value="todos">Cliente: Todos</option>
           {hub.clients.map((c) => (
             <option key={c._id} value={c._id}>
               {c.fullName || c.name}
@@ -212,7 +212,7 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
               <thead className="cb-tasks-thead">
                 <tr>
                   <th>Obrigação</th>
-                  <th>Empresa</th>
+                  <th>Cliente</th>
                   <th className="w-28">NIF</th>
                   <th className="w-24">Periodicidade</th>
                   <th className="w-24">Vencimento</th>
@@ -245,7 +245,7 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
                         onClick={() => hub.selectObligation(ob._id)}
                       >
                         <td className="text-[13px] font-medium" data-label="Obrigação">{displayObligationTitle(ob)}</td>
-                        <td className="text-xs" data-label="Empresa">{safeDisplayText(ob.clientName, '—')}</td>
+                        <td className="text-xs" data-label="Cliente">{safeDisplayText(ob.clientName, '—')}</td>
                         <td className="text-xs tabular-nums text-muted-foreground" data-label="NIF">{formatNif(nif)}</td>
                         <td className="text-xs" data-label="Periodicidade">{periodicityLabel(ob)}</td>
                         <td className="text-xs tabular-nums" data-label="Vencimento">

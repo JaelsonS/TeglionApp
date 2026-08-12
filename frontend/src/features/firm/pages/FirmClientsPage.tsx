@@ -113,7 +113,7 @@ export function FirmClientsPage() {
       setItems(res.items || [])
       setTotal(res.total ?? res.items?.length ?? 0)
     } catch (err) {
-      toast.error('Não foi possível carregar empresas', { description: getErrorMessage(err) })
+      toast.error('Não foi possível carregar clientes', { description: getErrorMessage(err) })
     } finally {
       setLoading(false)
     }
@@ -212,17 +212,17 @@ export function FirmClientsPage() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h1 className="cb-clients-title" data-testid="firm-clients-header">
-                Empresas
+                Clientes
               </h1>
               <p className="cb-clients-sub">
                 {filtered.length === total
-                  ? `${activeCount} empresas activas`
-                  : `${filtered.length} de ${total} empresas`}
+                  ? `${activeCount} clientes activos`
+                  : `${filtered.length} de ${total} clientes`}
               </p>
             </div>
             <Button className="h-8 rounded-md px-3.5 text-xs" onClick={() => setOpenCreate(true)}>
               <Plus className="mr-1.5 h-3.5 w-3.5" />
-              Nova empresa
+              Novo cliente
             </Button>
           </div>
         </div>
@@ -298,11 +298,11 @@ export function FirmClientsPage() {
         </div>
 
         {loading ? (
-          <p className="cb-dash-empty">A carregar empresas…</p>
+          <p className="cb-dash-empty">A carregar clientes…</p>
         ) : effectiveView === 'grid' ? (
           <div className="cb-clients-grid">
             {pageItems.length === 0 ? (
-              <p className="col-span-full cb-dash-empty">Nenhuma empresa neste filtro.</p>
+              <p className="col-span-full cb-dash-empty">Nenhum cliente neste filtro.</p>
             ) : (
               pageItems.map((c) => (
                 <button
@@ -340,7 +340,7 @@ export function FirmClientsPage() {
                       aria-label="Seleccionar página"
                     />
                   </th>
-                  <th>Empresa</th>
+                  <th>Cliente</th>
                   <th className="w-20">Tipo</th>
                   <th className="w-28">Regime IVA</th>
                   <th className="w-32 text-center">Obrigações pendentes</th>
@@ -353,9 +353,9 @@ export function FirmClientsPage() {
                 {pageItems.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="cb-dash-empty">
-                      Nenhuma empresa neste filtro.
+                      Nenhum cliente neste filtro.
                       <Button className="mt-2 h-8" size="sm" onClick={() => setOpenCreate(true)}>
-                        Nova empresa
+                        Novo cliente
                       </Button>
                     </td>
                   </tr>
@@ -449,7 +449,7 @@ export function FirmClientsPage() {
         <div className="cb-clients-footer">
           <span>
             {filtered.length === 0
-              ? '0 empresas'
+              ? '0 clientes'
               : `${(page - 1) * PAGE_SIZE + 1}-${Math.min(page * PAGE_SIZE, filtered.length)} de ${filtered.length}`}
           </span>
           <div className="cb-clients-pagination">
@@ -501,7 +501,7 @@ export function FirmClientsPage() {
         onConfirm={async () => {
           if (!archiveTarget) return
           await contabilClientsApi.archive(archiveTarget._id)
-          toast.success('Empresa removida da carteira')
+          toast.success('Cliente removido da carteira')
           setArchiveTarget(null)
           await load()
         }}

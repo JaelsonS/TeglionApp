@@ -26,7 +26,7 @@ export function ClientHubHeader({ hub, displayName, clientId, onBack, onEdit }: 
       <div className="cb-client-hub-back-row">
         <button type="button" onClick={onBack} className="cb-client-hub-back">
           <ArrowLeft className="h-3.5 w-3.5" />
-          Empresas
+          Clientes
         </button>
       </div>
 

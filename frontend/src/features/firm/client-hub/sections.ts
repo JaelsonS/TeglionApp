@@ -17,7 +17,7 @@ export const CLIENT_HUB_SECTIONS: Array<{
   icon: LucideIcon
 }> = [
   { id: 'overview', label: 'Resumo', icon: LayoutDashboard },
-  { id: 'profile', label: 'Empresa', icon: Building2 },
+  { id: 'profile', label: 'Perfil', icon: Building2 },
   { id: 'timeline', label: 'Actividade', icon: Activity },
   { id: 'obligations', label: 'Obrigações', icon: ClipboardList },
   { id: 'documents', label: 'Documentos', icon: FileStack },

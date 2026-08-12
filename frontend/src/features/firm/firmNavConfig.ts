@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   CalendarCheck,
   CalendarDays,
+  ClipboardCheck,
   ClipboardList,
   Inbox,
   Landmark,
@@ -53,8 +54,53 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
       {
         to: '/app/firm/clients',
         labelKey: 'contabil.firm.nav.clientsList',
-        labelDefault: 'Empresas',
+        labelDefault: 'Clientes',
         icon: UserRound,
+      },
+      {
+        to: '/app/firm/tasks/obligations',
+        labelKey: 'contabil.firm.nav.obligations',
+        labelDefault: 'Obrigações dos Clientes',
+        icon: ClipboardCheck,
+        end: false,
+      },
+    ],
+  },
+  {
+    id: 'operations',
+    titleKey: 'contabil.firm.nav.operations',
+    titleDefault: 'Gestor de Operações',
+    items: [
+      {
+        to: '/app/firm/tasks',
+        labelKey: 'contabil.firm.nav.tasks',
+        labelDefault: 'Tarefas',
+        icon: ListChecks,
+        end: false,
+      },
+      {
+        to: '/app/firm/agenda',
+        labelKey: 'contabil.firm.nav.consultations',
+        labelDefault: 'Agendamentos',
+        icon: CalendarCheck,
+      },
+      {
+        to: '/app/firm/services?tab=irs',
+        labelKey: 'contabil.firm.nav.irs',
+        labelDefault: 'IRS',
+        icon: Landmark,
+      },
+      {
+        to: '/app/firm/services',
+        labelKey: 'contabil.firm.nav.services',
+        labelDefault: 'Serviços',
+        icon: ClipboardList,
+      },
+      {
+        to: '/app/firm/fiscal-calendar',
+        labelKey: 'contabil.firm.nav.fiscalCalendar',
+        labelDefault: 'Calendário fiscal',
+        icon: CalendarDays,
       },
     ],
   },
@@ -77,39 +123,6 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         icon: MessageSquare,
         badgeKey: 'messages',
       },
-    ],
-  },
-  {
-    id: 'operations',
-    titleKey: 'contabil.firm.nav.operations',
-    titleDefault: 'Operação',
-    items: [
-      {
-        to: '/app/firm/tasks',
-        labelKey: 'contabil.firm.nav.tasks',
-        labelDefault: 'Tarefas',
-        icon: ListChecks,
-        end: false,
-      },
-      {
-        to: '/app/firm/agenda',
-        labelKey: 'contabil.firm.nav.consultations',
-        labelDefault: 'Consultorias',
-        icon: CalendarCheck,
-      },
-      {
-        to: '/app/firm/fiscal-calendar',
-        labelKey: 'contabil.firm.nav.fiscalCalendar',
-        labelDefault: 'Calendário fiscal',
-        icon: CalendarDays,
-      },
-    ],
-  },
-  {
-    id: 'admin',
-    titleKey: 'contabil.firm.nav.admin',
-    titleDefault: 'Gestão',
-    items: [
       {
         to: '/app/firm/alerts',
         labelKey: 'contabil.firm.nav.alerts',
@@ -122,18 +135,13 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         labelDefault: 'Notícias',
         icon: Newspaper,
       },
-      {
-        to: '/app/firm/services?tab=irs',
-        labelKey: 'contabil.firm.nav.irs',
-        labelDefault: 'IRS',
-        icon: Landmark,
-      },
-      {
-        to: '/app/firm/services',
-        labelKey: 'contabil.firm.nav.services',
-        labelDefault: 'Serviços',
-        icon: ClipboardList,
-      },
+    ],
+  },
+  {
+    id: 'admin',
+    titleKey: 'contabil.firm.nav.admin',
+    titleDefault: 'Configurações',
+    items: [
       {
         to: '/app/firm/billing',
         labelKey: 'nav.billing',
@@ -178,7 +186,20 @@ export function isFirmNavItemActive(
   const shadowedByMoreSpecificSibling = allItems.some((other) => {
     if (other === item) return false
     const otherTarget = parseNavTarget(other.to)
-    return Boolean(otherTarget.search) && otherTarget.pathname === target.pathname && search === otherTarget.search
+    if (Boolean(otherTarget.search) && otherTarget.pathname === target.pathname && search === otherTarget.search) {
+      return true
+    }
+    // Um item cujo caminho é um sub-caminho deste (ex.: "Tarefas" vs "Obrigações
+    // dos Clientes" em /tasks/obligations) não deve ficar activo ao mesmo tempo
+    // que o item mais específico — o mais específico "ganha".
+    if (
+      otherTarget.pathname.length > target.pathname.length &&
+      otherTarget.pathname.startsWith(`${target.pathname}/`) &&
+      (pathname === otherTarget.pathname || (other.end !== true && pathname.startsWith(`${otherTarget.pathname}/`)))
+    ) {
+      return true
+    }
+    return false
   })
   return !shadowedByMoreSpecificSibling
 }
@@ -194,7 +215,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
   {
     to: '/app/firm/clients',
     labelKey: 'contabil.firm.nav.clientsList',
-    labelDefault: 'Empresas',
+    labelDefault: 'Clientes',
     icon: UserRound,
   },
   {
@@ -221,7 +242,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
   {
     to: '/app/firm/agenda',
     labelKey: 'contabil.firm.nav.consultations',
-    labelDefault: 'Consultorias',
+    labelDefault: 'Agendamentos',
     icon: CalendarCheck,
   },
   {
@@ -247,6 +268,13 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     labelKey: 'contabil.firm.nav.services',
     labelDefault: 'Serviços',
     icon: ClipboardList,
+  },
+  {
+    to: '/app/firm/tasks/obligations',
+    labelKey: 'contabil.firm.nav.obligations',
+    labelDefault: 'Obrigações dos Clientes',
+    icon: ClipboardCheck,
+    end: false,
   },
 ]
 

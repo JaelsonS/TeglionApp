@@ -121,7 +121,7 @@ export function TasksByClientTableView({
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="h-8 rounded-md border-border/80 bg-card pl-8 text-xs"
-            placeholder="Procurar empresa…"
+            placeholder="Procurar cliente…"
             value={search}
             onChange={(e: FormChangeEvent) => setSearch(e.target.value)}
           />
@@ -152,7 +152,7 @@ export function TasksByClientTableView({
         <table className="cb-tasks-table cb-table-mobile-cards">
           <thead className="cb-tasks-thead">
             <tr>
-              <th>Empresa</th>
+              <th>Cliente</th>
               <th className="w-28">NIF</th>
               <th className="w-20 text-center">Em atraso</th>
               <th className="w-20 text-center">Pendentes</th>
@@ -171,7 +171,7 @@ export function TasksByClientTableView({
             {pageItems.length === 0 ? (
               <tr>
                 <td colSpan={8} className="cb-dash-empty">
-                  Nenhuma empresa neste filtro.
+                  Nenhum cliente neste filtro.
                 </td>
               </tr>
             ) : (
@@ -188,7 +188,7 @@ export function TasksByClientTableView({
                     className="cb-tasks-row cursor-pointer"
                     onClick={() => onSelectClient(row.client._id)}
                   >
-                    <td data-label="Empresa">
+                    <td data-label="Cliente">
                       <Link
                         to={`/app/firm/clients/${encodeURIComponent(row.client._id)}`}
                         className="text-[13px] font-medium text-sky-600 hover:underline"
@@ -236,7 +236,7 @@ export function TasksByClientTableView({
       <div className="cb-tasks-footer shrink-0">
         <span>
           {filtered.length === 0
-            ? '0 empresas'
+            ? '0 clientes'
             : `${(page - 1) * PAGE_SIZE + 1}-${Math.min(page * PAGE_SIZE, filtered.length)} de ${filtered.length}`}
         </span>
         <div className="cb-tasks-pagination">
