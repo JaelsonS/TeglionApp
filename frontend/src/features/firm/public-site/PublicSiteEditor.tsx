@@ -89,7 +89,19 @@ export function PublicSiteEditor({ bundle }: Props) {
 
   useEffect(() => {
     if (siteQuery.data && !draft) {
-      setDraft(siteQuery.data.draft)
+      const incoming = siteQuery.data.draft
+      setDraft({
+        ...incoming,
+        theme: {
+          primaryColor: incoming.theme?.primaryColor ?? null,
+          secondaryColor: incoming.theme?.secondaryColor ?? null,
+          textColor: incoming.theme?.textColor ?? null,
+          backgroundColor: incoming.theme?.backgroundColor ?? null,
+          surfaceColor: incoming.theme?.surfaceColor ?? null,
+          mutedTextColor: incoming.theme?.mutedTextColor ?? null,
+          logoStorageKey: incoming.theme?.logoStorageKey ?? null,
+        },
+      })
     }
   }, [siteQuery.data, draft])
 
@@ -231,6 +243,31 @@ export function PublicSiteEditor({ bundle }: Props) {
 
   return (
     <div className="space-y-6">
+      <div className="rounded-xl border border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-950">
+        <p className="font-semibold">Como actualizar a página pública</p>
+        <ol className="mt-2 list-decimal space-y-1 pl-4 text-caption leading-relaxed text-sky-900/90">
+          <li>
+            Edite cores, textos e secções — a pré-visualização à direita mostra o rascunho na hora.
+          </li>
+          <li>
+            Clique em <strong>Guardar rascunho</strong> para não perder o trabalho.
+          </li>
+          <li>
+            Clique em <strong>Publicar</strong> para os clientes verem as alterações em{' '}
+            {firmSlug ? (
+              <span className="font-medium">teglion.com/{firmSlug}</span>
+            ) : (
+              'o link público'
+            )}
+            .
+          </li>
+        </ol>
+        <p className="mt-2 text-caption text-sky-900/80">
+          Sem publicar, o link público continua com a versão anterior. Use{' '}
+          <strong>Pré-visualizar</strong> para abrir o rascunho numa nova aba sem o tornar público.
+        </p>
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/50 bg-muted/20 p-4">
         <div className="min-w-0">
           <p className="text-sm font-medium">
@@ -451,6 +488,9 @@ export function PublicSiteEditor({ bundle }: Props) {
               primaryColor: draft.theme.primaryColor,
               secondaryColor: draft.theme.secondaryColor,
               textColor: draft.theme.textColor,
+              backgroundColor: draft.theme.backgroundColor,
+              surfaceColor: draft.theme.surfaceColor,
+              mutedTextColor: draft.theme.mutedTextColor,
             })}
           >
             <DefaultTemplate
@@ -480,6 +520,8 @@ export function PublicSiteEditor({ bundle }: Props) {
             <AlertDialogTitle>Publicar página pública?</AlertDialogTitle>
             <AlertDialogDescription>
               A partir de agora, teglion.com/{firmSlug} passa a mostrar esta versão a qualquer visitante.
+              Confirme só depois de ter guardado o que quer publicar (o botão Publicar também guarda o rascunho
+              actual automaticamente).
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -560,120 +602,260 @@ function isValidHex(value: string) {
   return HEX_RE.test(value.trim())
 }
 
+const THEME_DEFAULTS = {
+  primaryColor: '#12352a',
+  secondaryColor: '#c9a24b',
+  textColor: '#12352a',
+  backgroundColor: '#faf9f7',
+  surfaceColor: '#ffffff',
+  mutedTextColor: '#64748b',
+} as const
+
+type ThemeColorKey =
+  | 'primaryColor'
+  | 'secondaryColor'
+  | 'textColor'
+  | 'backgroundColor'
+  | 'surfaceColor'
+  | 'mutedTextColor'
+
+function ColorField({
+  id,
+  label,
+  hint,
+  value,
+  fallback,
+  placeholder,
+  onChange,
+}: {
+  id: string
+  label: string
+  hint: string
+  value: string
+  fallback: string
+  placeholder?: string
+  onChange: (value: string) => void
+}) {
+  const invalid = value.trim() !== '' && !isValidHex(value)
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id}>{label}</Label>
+      <p className="text-[11px] leading-snug text-muted-foreground">{hint}</p>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          aria-label={label}
+          value={isValidHex(value) ? value : fallback}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+          className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
+        />
+        <Input
+          id={id}
+          value={value}
+          onChange={(e: FormChangeEvent) => onChange(e.target.value)}
+          placeholder={placeholder || fallback}
+          className={invalid ? 'border-destructive' : undefined}
+        />
+      </div>
+    </div>
+  )
+}
+
 function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (next: PublicSiteConfig) => void }) {
-  const primary = draft.theme.primaryColor || ''
-  const secondary = draft.theme.secondaryColor || ''
-  const textColor = draft.theme.textColor || ''
-  const primaryInvalid = primary.trim() !== '' && !isValidHex(primary)
-  const secondaryInvalid = secondary.trim() !== '' && !isValidHex(secondary)
-  const textInvalid = textColor.trim() !== '' && !isValidHex(textColor)
+  const theme = draft.theme
+
+  const setColor = (key: ThemeColorKey, value: string) => {
+    onChange({ ...draft, theme: { ...draft.theme, [key]: value || null } })
+  }
+
+  const clearColors = () => {
+    onChange({
+      ...draft,
+      theme: {
+        ...draft.theme,
+        primaryColor: null,
+        secondaryColor: null,
+        textColor: null,
+        backgroundColor: null,
+        surfaceColor: null,
+        mutedTextColor: null,
+      },
+    })
+  }
 
   return (
-    <div className="rounded-xl border border-border/50 p-4">
-      <Label className="text-sm font-semibold">Cores</Label>
-      <p className="mt-1 text-caption text-muted-foreground">
-        A cor principal preenche botões e fundos de destaque. A secundária serve CTAs secundários. A cor de texto controla
-        títulos e taglines.
-      </p>
-      <div className="mt-3 grid gap-4 sm:grid-cols-3">
-        <div className="space-y-2">
-          <Label htmlFor="ps-primary">Cor principal</Label>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              aria-label="Escolher cor principal"
-              value={isValidHex(primary) ? primary : '#12352a'}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                onChange({ ...draft, theme: { ...draft.theme, primaryColor: e.target.value } })
-              }
-              className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
-            />
-            <Input
-              id="ps-primary"
-              value={primary}
-              onChange={(e: FormChangeEvent) => onChange({ ...draft, theme: { ...draft.theme, primaryColor: e.target.value } })}
-              placeholder="#12352a"
-              className={primaryInvalid ? 'border-destructive' : undefined}
-            />
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border/50 p-4">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <Label className="text-sm font-semibold">Identidade visual</Label>
+            <p className="mt-1 text-caption text-muted-foreground">
+              Estas cores actualizam a pré-visualização à direita na hora. Para os clientes verem no link público:
+              guarde o rascunho e depois publique.
+            </p>
           </div>
+          <Button type="button" variant="ghost" size="sm" className="h-8 text-xs" onClick={clearColors}>
+            Repor padrão
+          </Button>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="ps-secondary">Cor secundária</Label>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              aria-label="Escolher cor secundária"
-              value={isValidHex(secondary) ? secondary : '#c9a24b'}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                onChange({ ...draft, theme: { ...draft.theme, secondaryColor: e.target.value } })
-              }
-              className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
-            />
-            <Input
-              id="ps-secondary"
-              value={secondary}
-              onChange={(e: FormChangeEvent) =>
-                onChange({ ...draft, theme: { ...draft.theme, secondaryColor: e.target.value } })
-              }
-              placeholder="#c9a24b"
-              className={secondaryInvalid ? 'border-destructive' : undefined}
-            />
+
+        <div className="mt-4 space-y-4">
+          <div>
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Página</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <ColorField
+                id="ps-bg"
+                label="Fundo da página"
+                hint="Cor de fundo geral (atrás de tudo)."
+                value={theme.backgroundColor || ''}
+                fallback={THEME_DEFAULTS.backgroundColor}
+                onChange={(v) => setColor('backgroundColor', v)}
+              />
+              <ColorField
+                id="ps-surface"
+                label="Fundo dos cartões"
+                hint="Cartões de serviços, FAQ e painéis."
+                value={theme.surfaceColor || ''}
+                fallback={THEME_DEFAULTS.surfaceColor}
+                onChange={(v) => setColor('surfaceColor', v)}
+              />
+            </div>
           </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="ps-text">Cor dos textos</Label>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              aria-label="Escolher cor dos textos"
-              value={isValidHex(textColor) ? textColor : isValidHex(primary) ? primary : '#12352a'}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                onChange({ ...draft, theme: { ...draft.theme, textColor: e.target.value } })
-              }
-              className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
-            />
-            <Input
-              id="ps-text"
-              value={textColor}
-              onChange={(e: FormChangeEvent) => onChange({ ...draft, theme: { ...draft.theme, textColor: e.target.value } })}
-              placeholder="Igual à principal"
-              className={textInvalid ? 'border-destructive' : undefined}
-            />
+
+          <div>
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Botões e acentos</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <ColorField
+                id="ps-primary"
+                label="Cor principal"
+                hint="Botões primários e detalhes de destaque."
+                value={theme.primaryColor || ''}
+                fallback={THEME_DEFAULTS.primaryColor}
+                onChange={(v) => setColor('primaryColor', v)}
+              />
+              <ColorField
+                id="ps-secondary"
+                label="Cor secundária"
+                hint="Botões e CTAs secundários."
+                value={theme.secondaryColor || ''}
+                fallback={THEME_DEFAULTS.secondaryColor}
+                onChange={(v) => setColor('secondaryColor', v)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Textos</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <ColorField
+                id="ps-text"
+                label="Títulos e destaques"
+                hint="Nome do escritório, tagline e preços."
+                value={theme.textColor || ''}
+                fallback={
+                  isValidHex(theme.primaryColor || '') ? theme.primaryColor! : THEME_DEFAULTS.textColor
+                }
+                placeholder="Igual à principal"
+                onChange={(v) => setColor('textColor', v)}
+              />
+              <ColorField
+                id="ps-muted"
+                label="Texto secundário"
+                hint="Descrições, legendas e texto auxiliar."
+                value={theme.mutedTextColor || ''}
+                fallback={THEME_DEFAULTS.mutedTextColor}
+                onChange={(v) => setColor('mutedTextColor', v)}
+              />
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-3">
+            <p className="text-[11px] font-medium text-muted-foreground">Pré-visualização rápida</p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span
+                className="inline-flex h-8 items-center rounded-md px-3 text-xs font-semibold text-white"
+                style={{
+                  backgroundColor: isValidHex(theme.primaryColor || '')
+                    ? theme.primaryColor!
+                    : THEME_DEFAULTS.primaryColor,
+                }}
+              >
+                Botão
+              </span>
+              <span
+                className="inline-flex h-8 items-center rounded-md border px-3 text-xs font-medium"
+                style={{
+                  borderColor: isValidHex(theme.secondaryColor || '')
+                    ? theme.secondaryColor!
+                    : THEME_DEFAULTS.secondaryColor,
+                  color: isValidHex(theme.secondaryColor || '')
+                    ? theme.secondaryColor!
+                    : THEME_DEFAULTS.secondaryColor,
+                  backgroundColor: isValidHex(theme.surfaceColor || '')
+                    ? theme.surfaceColor!
+                    : THEME_DEFAULTS.surfaceColor,
+                }}
+              >
+                Secundário
+              </span>
+              <span
+                className="rounded-md px-3 py-1.5 text-xs"
+                style={{
+                  backgroundColor: isValidHex(theme.backgroundColor || '')
+                    ? theme.backgroundColor!
+                    : THEME_DEFAULTS.backgroundColor,
+                  color: isValidHex(theme.textColor || '')
+                    ? theme.textColor!
+                    : isValidHex(theme.primaryColor || '')
+                      ? theme.primaryColor!
+                      : THEME_DEFAULTS.textColor,
+                }}
+              >
+                Título no fundo
+              </span>
+            </div>
           </div>
         </div>
       </div>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <SocialLinkField
-          label="Instagram"
-          icon={Instagram}
-          value={draft.socialLinks.instagram || ''}
-          onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, instagram: v || null } })}
-        />
-        <SocialLinkField
-          label="Facebook"
-          icon={Facebook}
-          value={draft.socialLinks.facebook || ''}
-          onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, facebook: v || null } })}
-        />
-        <SocialLinkField
-          label="LinkedIn"
-          icon={Linkedin}
-          value={draft.socialLinks.linkedin || ''}
-          onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, linkedin: v || null } })}
-        />
-        <SocialLinkField
-          label="WhatsApp"
-          icon={MessageCircle}
-          value={draft.socialLinks.whatsapp || ''}
-          onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, whatsapp: v || null } })}
-          placeholder="https://wa.me/351…"
-        />
-        <SocialLinkField
-          label="Outro site"
-          icon={Globe}
-          value={draft.socialLinks.website || ''}
-          onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, website: v || null } })}
-        />
+
+      <div className="rounded-xl border border-border/50 p-4">
+        <Label className="text-sm font-semibold">Redes sociais</Label>
+        <p className="mt-1 text-caption text-muted-foreground">
+          Links públicos mostrados no destaque e no rodapé da página.
+        </p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <SocialLinkField
+            label="Instagram"
+            icon={Instagram}
+            value={draft.socialLinks.instagram || ''}
+            onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, instagram: v || null } })}
+          />
+          <SocialLinkField
+            label="Facebook"
+            icon={Facebook}
+            value={draft.socialLinks.facebook || ''}
+            onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, facebook: v || null } })}
+          />
+          <SocialLinkField
+            label="LinkedIn"
+            icon={Linkedin}
+            value={draft.socialLinks.linkedin || ''}
+            onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, linkedin: v || null } })}
+          />
+          <SocialLinkField
+            label="WhatsApp"
+            icon={MessageCircle}
+            value={draft.socialLinks.whatsapp || ''}
+            onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, whatsapp: v || null } })}
+            placeholder="https://wa.me/351…"
+          />
+          <SocialLinkField
+            label="Outro site"
+            icon={Globe}
+            value={draft.socialLinks.website || ''}
+            onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, website: v || null } })}
+          />
+        </div>
       </div>
     </div>
   )

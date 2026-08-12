@@ -10,6 +10,9 @@ export type FirmBranding = {
   primaryColor?: string | null
   secondaryColor?: string | null
   textColor?: string | null
+  backgroundColor?: string | null
+  surfaceColor?: string | null
+  mutedTextColor?: string | null
   logoUrl?: string | null
 }
 

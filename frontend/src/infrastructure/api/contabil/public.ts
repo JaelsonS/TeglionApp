@@ -23,6 +23,7 @@ export type PublicServiceIntake = {
   showPrices?: boolean
   termsText?: string | null
   privacyText?: string | null
+  theme?: PublicSiteConfig['theme'] | null
 }
 
 export type PublicFirmFaq = {

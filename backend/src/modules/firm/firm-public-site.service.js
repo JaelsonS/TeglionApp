@@ -200,7 +200,15 @@ function defaultSiteConfig() {
   return {
     schemaVersion: 1,
     seo: { title: null, description: null, ogImage: null },
-    theme: { primaryColor: null, secondaryColor: null, textColor: null, logoStorageKey: null },
+    theme: {
+      primaryColor: null,
+      secondaryColor: null,
+      textColor: null,
+      backgroundColor: null,
+      surfaceColor: null,
+      mutedTextColor: null,
+      logoStorageKey: null,
+    },
     images: { hero: [], institutional: [] },
     socialLinks: normalizeSocialLinks(null),
     sections: defaultSections(),
@@ -231,6 +239,9 @@ function normalizeSiteConfig(raw) {
       primaryColor: normalizeHexOrNull(input.theme?.primaryColor),
       secondaryColor: normalizeHexOrNull(input.theme?.secondaryColor),
       textColor: normalizeHexOrNull(input.theme?.textColor),
+      backgroundColor: normalizeHexOrNull(input.theme?.backgroundColor),
+      surfaceColor: normalizeHexOrNull(input.theme?.surfaceColor),
+      mutedTextColor: normalizeHexOrNull(input.theme?.mutedTextColor),
       logoStorageKey: input.theme?.logoStorageKey ? String(input.theme.logoStorageKey).trim().slice(0, 300) : null,
     },
     images: {
@@ -285,6 +296,9 @@ function buildConfigFromLegacySettings(firm) {
   config.theme.primaryColor = branding.primaryColor || null;
   config.theme.secondaryColor = branding.secondaryColor || null;
   config.theme.textColor = branding.textColor || null;
+  config.theme.backgroundColor = branding.backgroundColor || null;
+  config.theme.surfaceColor = branding.surfaceColor || null;
+  config.theme.mutedTextColor = branding.mutedTextColor || null;
   config.theme.logoStorageKey = branding.logoStorageKey || null;
   config.socialLinks = normalizeSocialLinks(publicProfile.socialLinks);
 
@@ -373,6 +387,8 @@ async function publishSite(firmId, actorUserId) {
   // — a mesma chave já lida hoje pelo login do cliente/chrome do portal, para
   // não precisar de um segundo consumidor: passa a actualizar-se atomicamente
   // com a publicação do site, em vez de ficar sempre instantânea como antes.
+  // Publicar espelha só a identidade (acentos) para firm.settings.branding —
+  // fundo/cartões ficam exclusivos da página pública para não recolorir a app.
   const theme = updated.published?.theme || {};
   if (theme.primaryColor !== undefined || theme.secondaryColor !== undefined || theme.textColor !== undefined) {
     await firmsRepository.updateFirmBranding(firmId, {

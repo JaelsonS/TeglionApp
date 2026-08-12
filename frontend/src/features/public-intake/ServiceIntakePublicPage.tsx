@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, Loader2 } from 'lucide-react'
@@ -15,6 +15,7 @@ import {
 } from '@/shared/components/ui/dialog'
 import { contabilPublicApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { applyFirmBranding } from '@/shared/utils/firmBranding'
 import type { IntakeQuestion } from '@/shared/types/contabil'
 import type { PublicIntakeSubmitResult } from '@/infrastructure/api/contabil/public'
 import type { FormChangeEvent, FormSubmitEvent } from '@/shared/types/react-events'
@@ -128,6 +129,22 @@ export function ServiceIntakePublicPage() {
     retry: false,
   })
 
+  useEffect(() => {
+    const theme = query.data?.theme
+    if (!theme) return
+    applyFirmBranding({
+      primaryColor: theme.primaryColor,
+      secondaryColor: theme.secondaryColor,
+      textColor: theme.textColor,
+      backgroundColor: theme.backgroundColor,
+      surfaceColor: theme.surfaceColor,
+      mutedTextColor: theme.mutedTextColor,
+    })
+    return () => {
+      applyFirmBranding(null)
+    }
+  }, [query.data?.theme])
+
   const setAnswer = (questionId: string, value: string | string[]) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }))
   }
@@ -222,10 +239,10 @@ export function ServiceIntakePublicPage() {
 
   if (result) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4 py-12">
+      <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
         <div className="w-full max-w-md space-y-4 rounded-2xl border border-border/50 bg-card p-8 text-center shadow-sm">
           <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />
-          <h1 className="text-lg font-semibold">Pedido recebido</h1>
+          <h1 className="text-lg font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">Pedido recebido</h1>
           <p className="text-sm text-muted-foreground">
             Enviámos um email de confirmação
             {result.documentsRequired > 0 ? ' com a lista de documentos necessários.' : '.'}
@@ -254,16 +271,16 @@ export function ServiceIntakePublicPage() {
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-xl px-4 py-10">
+    <div className="mx-auto min-h-screen max-w-xl bg-background px-4 py-10">
       <header className="mb-6 space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{service.firmName}</p>
         {service.imageUrl ? (
           <img src={service.imageUrl} alt="" className="mb-3 max-h-48 w-full rounded-xl object-cover" />
         ) : null}
-        <h1 className="text-2xl font-bold">{service.serviceName}</h1>
-        {service.description ? <SanitizedServiceHtml html={service.description} className="text-sm" /> : null}
+        <h1 className="text-2xl font-bold text-[hsl(var(--brand-text,var(--foreground)))]">{service.serviceName}</h1>
+        {service.description ? <SanitizedServiceHtml html={service.description} className="text-sm text-muted-foreground" /> : null}
         {service.showPrices !== false && (service.priceCents ?? 0) > 0 ? (
-          <p className="text-sm font-semibold text-primary">
+          <p className="text-sm font-semibold text-[hsl(var(--brand-text,var(--primary)))]">
             {((service.priceCents || 0) / 100).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
           </p>
         ) : null}

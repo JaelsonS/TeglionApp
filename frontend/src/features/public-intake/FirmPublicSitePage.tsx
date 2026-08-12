@@ -41,6 +41,9 @@ export function FirmPublicSitePage() {
       primaryColor: query.data.theme.primaryColor,
       secondaryColor: query.data.theme.secondaryColor,
       textColor: query.data.theme.textColor,
+      backgroundColor: query.data.theme.backgroundColor,
+      surfaceColor: query.data.theme.surfaceColor,
+      mutedTextColor: query.data.theme.mutedTextColor,
     })
     applyPageSeo({
       title: query.data.seo.title || query.data.firmName,

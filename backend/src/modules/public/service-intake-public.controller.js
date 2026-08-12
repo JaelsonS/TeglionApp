@@ -179,12 +179,14 @@ async function getPublicService(req, res, next) {
     let showPrices = true;
     let termsText = null;
     let privacyText = null;
+    let theme = null;
     try {
       const site = await firmPublicSiteService.getSite(firm.id);
       const config = site.published || site.draft;
       showPrices = config?.showPrices !== false;
       termsText = config?.termsText || null;
       privacyText = config?.privacyText || null;
+      theme = config?.theme || null;
     } catch {
       showPrices = true;
     }
@@ -200,6 +202,7 @@ async function getPublicService(req, res, next) {
       showPrices,
       termsText,
       privacyText,
+      theme,
     });
   } catch (err) {
     return next(err);

@@ -37,6 +37,21 @@ test('normalizeSiteConfig: descarta secções com type desconhecido, preserva as
   assert.equal(config.sections[0].content.tagline, 'Olá');
 });
 
+test('normalizeSiteConfig: aceita cores de fundo, cartão e texto secundário', () => {
+  const config = firmPublicSiteService.normalizeSiteConfig({
+    theme: {
+      primaryColor: '#12352a',
+      backgroundColor: '#f5f0e8',
+      surfaceColor: '#ffffff',
+      mutedTextColor: '#667788',
+    },
+  });
+  assert.equal(config.theme.primaryColor, '#12352a');
+  assert.equal(config.theme.backgroundColor, '#f5f0e8');
+  assert.equal(config.theme.surfaceColor, '#ffffff');
+  assert.equal(config.theme.mutedTextColor, '#667788');
+});
+
 test('normalizeSiteConfig: rejeita cor hex inválida', () => {
   assert.throws(
     () => firmPublicSiteService.normalizeSiteConfig({ theme: { primaryColor: 'not-a-color' } }),

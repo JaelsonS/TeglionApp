@@ -162,7 +162,9 @@ export function AboutSection({ content, images }: { content: PublicSiteAboutCont
   return (
     <section className="mx-auto max-w-2xl space-y-3 px-4 py-6">
       {photoUrl ? <img src={photoUrl} alt="" loading="lazy" className="w-full rounded-xl object-cover" /> : null}
-      {content.heading ? <h2 className="text-lg font-semibold">{content.heading}</h2> : null}
+      {content.heading ? (
+        <h2 className="text-lg font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">{content.heading}</h2>
+      ) : null}
       {content.body ? <p className="whitespace-pre-line text-sm text-muted-foreground">{content.body}</p> : null}
     </section>
   )
@@ -190,7 +192,7 @@ function ServiceCard({
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="font-semibold">{service.name}</h3>
+            <h3 className="font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">{service.name}</h3>
             {service.description ? (
               <SanitizedServiceHtml html={service.description} className="mt-1 line-clamp-2 text-sm" />
             ) : null}
@@ -230,7 +232,7 @@ export function ServicesSection({ content, ctx }: { content: PublicSiteServicesC
   if (items.length === 0) return null
   return (
     <section id="servicos" className="mx-auto max-w-2xl space-y-3 px-4 py-6">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{content.heading || 'Consultorias com agendamento'}</h2>
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-[hsl(var(--brand-text,var(--muted-foreground)))]">{content.heading || 'Consultorias com agendamento'}</h2>
       <ul className="space-y-3">
         {items.map((s) => (
           <li key={s.slug}>
@@ -252,7 +254,7 @@ export function BookingServicesSection({ content, ctx }: { content: PublicSiteSe
   if (items.length === 0) return null
   return (
     <section className="mx-auto max-w-2xl space-y-3 px-4 py-6">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{content.heading || 'Outros serviços'}</h2>
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-[hsl(var(--brand-text,var(--muted-foreground)))]">{content.heading || 'Outros serviços'}</h2>
       <ul className="space-y-3">
         {items.map((s) => (
           <li key={s.slug}>
@@ -276,7 +278,7 @@ export function FeaturesSection({ content }: { content: PublicSiteFeaturesConten
       <div className="grid gap-4 sm:grid-cols-2">
         {content.items.map((it) => (
           <div key={it.id} className="rounded-xl border border-border/50 bg-card p-4">
-            <h3 className="text-sm font-semibold">{it.title}</h3>
+            <h3 className="text-sm font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">{it.title}</h3>
             {it.description ? <p className="mt-1 text-sm text-muted-foreground">{it.description}</p> : null}
           </div>
         ))}
@@ -296,7 +298,7 @@ export function ProcessSection({ content }: { content: PublicSiteProcessContent 
               {index + 1}
             </span>
             <div>
-              <h3 className="text-sm font-semibold">{step.title}</h3>
+              <h3 className="text-sm font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">{step.title}</h3>
               {step.description ? <p className="mt-1 text-sm text-muted-foreground">{step.description}</p> : null}
             </div>
           </li>
@@ -310,11 +312,11 @@ export function FaqSection({ content }: { content: PublicSiteFaqContent }) {
   if (content.items.length === 0) return null
   return (
     <section className="mx-auto max-w-2xl space-y-3 px-4 py-6">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Perguntas frequentes</h2>
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-[hsl(var(--brand-text,var(--muted-foreground)))]">Perguntas frequentes</h2>
       <div className="space-y-2">
         {content.items.map((faq) => (
           <details key={faq.id} className="group rounded-xl border border-border/50 bg-card p-4">
-            <summary className="cursor-pointer list-none text-sm font-medium marker:content-none">{faq.question}</summary>
+            <summary className="cursor-pointer list-none text-sm font-medium text-[hsl(var(--brand-text,var(--foreground)))] marker:content-none">{faq.question}</summary>
             <p className="mt-2 text-sm text-muted-foreground">{faq.answer}</p>
           </details>
         ))}

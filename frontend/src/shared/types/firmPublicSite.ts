@@ -107,10 +107,18 @@ export type PublicSiteConfig = {
   schemaVersion: number
   seo: { title: string | null; description: string | null; ogImage: PublicSiteImageRef | null }
   theme: {
+    /** Botões e acentos principais. */
     primaryColor: string | null
+    /** CTAs secundários. */
     secondaryColor: string | null
-    /** Cor dos textos de destaque (tagline, preços). Se vazia, usa a principal. */
+    /** Títulos, taglines e preços. Se vazia, usa a principal. */
     textColor: string | null
+    /** Fundo geral da página. */
+    backgroundColor: string | null
+    /** Fundo de cartões e painéis. */
+    surfaceColor: string | null
+    /** Descrições e texto auxiliar. */
+    mutedTextColor: string | null
     logoStorageKey: string | null
   }
   images: { hero: PublicSiteImageRef[]; institutional: PublicSiteImageRef[] }

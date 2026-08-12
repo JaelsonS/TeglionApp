@@ -2,13 +2,29 @@ import type { CSSProperties } from 'react'
 import type { Firm } from '@/shared/types/firm'
 import { contrastForegroundHsl } from '@/shared/utils/colorContrast'
 
-type Branding = Firm['branding'] & { textColor?: string | null }
+export type FirmThemeBranding = Firm['branding'] & {
+  textColor?: string | null
+  backgroundColor?: string | null
+  surfaceColor?: string | null
+  mutedTextColor?: string | null
+}
 
-let defaultPrimary: string | null = null
-let defaultSecondary: string | null = null
-let defaultPrimaryForeground: string | null = null
-let defaultCbBrand: string | null = null
-let defaultBrandText: string | null = null
+type Branding = FirmThemeBranding
+
+const DEFAULT_PROP_KEYS = [
+  '--primary',
+  '--primary-foreground',
+  '--secondary',
+  '--secondary-foreground',
+  '--cb-brand',
+  '--brand-text',
+  '--background',
+  '--card',
+  '--popover',
+  '--muted-foreground',
+] as const
+
+const capturedDefaults: Partial<Record<(typeof DEFAULT_PROP_KEYS)[number], string>> = {}
 
 function normalizeHex(input: string): string | null {
   if (!input) return null
@@ -71,25 +87,11 @@ function captureDefaults() {
   if (typeof window === 'undefined') return
   const root = document.documentElement
   const styles = window.getComputedStyle(root)
-  if (!defaultPrimary) {
-    const value = styles.getPropertyValue('--primary').trim()
-    if (value) defaultPrimary = value
-  }
-  if (!defaultSecondary) {
-    const value = styles.getPropertyValue('--secondary').trim()
-    if (value) defaultSecondary = value
-  }
-  if (!defaultPrimaryForeground) {
-    const value = styles.getPropertyValue('--primary-foreground').trim()
-    if (value) defaultPrimaryForeground = value
-  }
-  if (!defaultCbBrand) {
-    const value = styles.getPropertyValue('--cb-brand').trim()
-    if (value) defaultCbBrand = value
-  }
-  if (!defaultBrandText) {
-    const value = styles.getPropertyValue('--brand-text').trim()
-    if (value) defaultBrandText = value
+  for (const key of DEFAULT_PROP_KEYS) {
+    if (!capturedDefaults[key]) {
+      const value = styles.getPropertyValue(key).trim()
+      if (value) capturedDefaults[key] = value
+    }
   }
 }
 
@@ -97,17 +99,34 @@ export function resolveFirmBrandingCssVars(branding?: Branding | null): CSSPrope
   const primaryHex = branding?.primaryColor ? normalizeHex(branding.primaryColor) : null
   const secondaryHex = branding?.secondaryColor ? normalizeHex(branding.secondaryColor) : null
   const textHex = branding?.textColor ? normalizeHex(branding.textColor) : null
+  const backgroundHex = branding?.backgroundColor ? normalizeHex(branding.backgroundColor) : null
+  const surfaceHex = branding?.surfaceColor ? normalizeHex(branding.surfaceColor) : null
+  const mutedHex = branding?.mutedTextColor ? normalizeHex(branding.mutedTextColor) : null
+
   const primary = primaryHex ? hexToHsl(primaryHex) : null
   const secondary = secondaryHex ? hexToHsl(secondaryHex) : null
   const brandText = textHex ? hexToHsl(textHex) : primary
+  const background = backgroundHex ? hexToHsl(backgroundHex) : null
+  const surface = surfaceHex ? hexToHsl(surfaceHex) : null
+  const muted = mutedHex ? hexToHsl(mutedHex) : null
+
   const style: Record<string, string> = {}
   if (primary && primaryHex) {
     style['--primary'] = primary
     style['--primary-foreground'] = contrastForegroundHsl(primaryHex)
     style['--cb-brand'] = primary
   }
-  if (secondary) style['--secondary'] = secondary
+  if (secondary && secondaryHex) {
+    style['--secondary'] = secondary
+    style['--secondary-foreground'] = contrastForegroundHsl(secondaryHex)
+  }
   if (brandText) style['--brand-text'] = brandText
+  if (background) style['--background'] = background
+  if (surface) {
+    style['--card'] = surface
+    style['--popover'] = surface
+  }
+  if (muted) style['--muted-foreground'] = muted
   return style as CSSProperties
 }
 
@@ -117,17 +136,13 @@ export function applyFirmBranding(branding?: Branding | null) {
   const root = document.documentElement
   const vars = resolveFirmBrandingCssVars(branding) as Record<string, string>
 
-  const setOrRestore = (prop: string, value: string | undefined, fallback: string | null) => {
-    if (value) root.style.setProperty(prop, value)
-    else if (fallback) root.style.setProperty(prop, fallback)
-    else root.style.removeProperty(prop)
+  for (const key of DEFAULT_PROP_KEYS) {
+    const value = vars[key]
+    const fallback = capturedDefaults[key] || null
+    if (value) root.style.setProperty(key, value)
+    else if (fallback) root.style.setProperty(key, fallback)
+    else root.style.removeProperty(key)
   }
-
-  setOrRestore('--primary', vars['--primary'], defaultPrimary)
-  setOrRestore('--primary-foreground', vars['--primary-foreground'], defaultPrimaryForeground)
-  setOrRestore('--secondary', vars['--secondary'], defaultSecondary)
-  setOrRestore('--cb-brand', vars['--cb-brand'], defaultCbBrand)
-  setOrRestore('--brand-text', vars['--brand-text'], defaultBrandText)
 }
 
 export function normalizeFirmBranding(input?: Branding | null) {
@@ -135,5 +150,8 @@ export function normalizeFirmBranding(input?: Branding | null) {
     primaryColor: input?.primaryColor ? normalizeHex(input.primaryColor) : null,
     secondaryColor: input?.secondaryColor ? normalizeHex(input.secondaryColor) : null,
     textColor: input?.textColor ? normalizeHex(input.textColor) : null,
+    backgroundColor: input?.backgroundColor ? normalizeHex(input.backgroundColor) : null,
+    surfaceColor: input?.surfaceColor ? normalizeHex(input.surfaceColor) : null,
+    mutedTextColor: input?.mutedTextColor ? normalizeHex(input.mutedTextColor) : null,
   }
 }
