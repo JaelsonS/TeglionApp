@@ -19,7 +19,12 @@ async function importFileFromDrive({ firmId, clientId, senderId, fileId, accessT
   const client = await clientsRepository.findClientById(firmId, clientId);
   if (!client) throw new AppError('Cliente não encontrado', 404);
 
-  const metadata = await googleDriveService.fetchDriveFileMetadata({ accessToken, fileId });
+  let metadata;
+  try {
+    metadata = await googleDriveService.fetchDriveFileMetadata({ accessToken, fileId });
+  } catch (err) {
+    throw googleDriveService.mapDriveErrorToAppError(err);
+  }
 
   const declaredSize = Number(metadata.size) || 0;
   if (declaredSize > maxFileSizeBytes()) {
@@ -37,9 +42,14 @@ async function importFileFromDrive({ firmId, clientId, senderId, fileId, accessT
     );
   }
 
-  const buffer = exportTarget
-    ? await googleDriveService.exportDriveFile({ accessToken, fileId, exportMimeType: exportTarget.mimeType })
-    : await googleDriveService.downloadDriveFile({ accessToken, fileId });
+  let buffer;
+  try {
+    buffer = exportTarget
+      ? await googleDriveService.exportDriveFile({ accessToken, fileId, exportMimeType: exportTarget.mimeType })
+      : await googleDriveService.downloadDriveFile({ accessToken, fileId });
+  } catch (err) {
+    throw googleDriveService.mapDriveErrorToAppError(err);
+  }
 
   const hasExtension = /\.[a-z0-9]{2,5}$/i.test(metadata.name || '');
   const originalname = exportTarget && !hasExtension

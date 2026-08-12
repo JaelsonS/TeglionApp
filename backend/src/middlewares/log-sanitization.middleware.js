@@ -93,28 +93,30 @@ const SANITIZATION_PATTERNS = [
   },
 ];
 
-const SENSITIVE_KEYS = new Set([
-  'password',
-  'passwordHash',
-  'refreshToken',
-  'refreshTokenHash',
-  'accessToken',
-  'token',
-  'secret',
-  'apiKey',
-  'authorization',
-  'email',
-  'phone',
-  'fullName',
-  'name',
-  'documentNumber',
-  'cpf',
-  'nif',
-  'taxId',
-  'medicalRecord',
-  'observations',
-  'description',
-]);
+const SENSITIVE_KEYS = new Set(
+  [
+    'password',
+    'passwordHash',
+    'refreshToken',
+    'refreshTokenHash',
+    'accessToken',
+    'token',
+    'secret',
+    'apiKey',
+    'authorization',
+    'email',
+    'phone',
+    'fullName',
+    'name',
+    'documentNumber',
+    'cpf',
+    'nif',
+    'taxId',
+    'medicalRecord',
+    'observations',
+    'description',
+  ].map((k) => k.toLowerCase()),
+);
 
 /**
  * Sanitiza string removendo dados sensíveis

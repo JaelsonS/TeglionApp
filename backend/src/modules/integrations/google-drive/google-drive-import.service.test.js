@@ -253,3 +253,27 @@ test('importFileFromDrive: tipo nativo do Google sem export mapeado (ex: Formul�
     },
   );
 });
+
+test('importFileFromDrive: erro 403 do Google vira AppError amigável (não 500)', async () => {
+  resetMocks();
+  mockClient();
+  mock.method(googleDriveService, 'fetchDriveFileMetadata', async () => {
+    throw googleDriveService.driveApiError('metadata', 403, 'forbidden');
+  });
+
+  await assert.rejects(
+    () =>
+      importService.importFileFromDrive({
+        firmId: FIRM_ID,
+        clientId: CLIENT_ID,
+        senderId: 's1',
+        fileId: 'file-1',
+        accessToken: 'token-1',
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 403);
+      assert.match(err.message, /autorizar|Google Drive/i);
+      return true;
+    },
+  );
+});

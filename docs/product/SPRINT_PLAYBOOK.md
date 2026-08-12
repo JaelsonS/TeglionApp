@@ -28,7 +28,7 @@ Pedido real da contadora piloto (2026-08-06): menu de captação para IRS anual 
 | 5 — Booking Integration | `ServiceInquiry.consultation_id` ligado ao motor de agendamento já existente | Não iniciada |
 | 6 — Public Service Page | Página pública por serviço (`/:firmSlug/servicos/:serviceSlug`), path-based (não subdomínio) | Não iniciada |
 | 7 — Google Calendar | Sync Teglion→Google (production-ready): OAuth, calendário escolhido, public booking, needs_reconnect, retry | Em curso (Fase 1) |
-| 8 — Google Drive | Picker + download server-side validado, staff-only | Não iniciada |
+| 8 — Google Drive | Picker efémero → import para conversa do cliente (estabilização production-ready) | Em curso (Fase 2) |
 
 **Achado importante da Fase 1:** já existia uma tabela/módulo `service_requests` em produção ("Central de Serviços" — pipeline de orçamento/pagamento `SUBMITTED→QUOTED→APPROVED→PAID→DONE→RATED` para clientes já existentes, com portal do cliente, comentários, PDF de orçamento). É uma ferramenta diferente e complementar — por isso o pivô novo desta iniciativa chama-se `service_inquiries` (fase de captação/Lead), não `service_requests`. Um Lead convertido pode, mais tarde, gerar um `service_requests` normal na Central de Serviços já existente para o pipeline de orçamento formal.
 

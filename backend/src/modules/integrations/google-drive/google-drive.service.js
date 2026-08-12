@@ -1,19 +1,12 @@
 /**
- * Google Drive — importar um ficheiro escolhido pelo staff no seu próprio
- * Drive (Fase I, ver plan file da sessão, v3 secção M). Cliente-side usa o
- * Google Picker + `drive.file` scope (acesso só ao ficheiro escolhido, nunca
- * ao Drive inteiro) — o access_token é efémero, obtido no browser, usado
- * uma única vez aqui e nunca persistido (ao contrário da ligação do
- * Calendar, Fase Ha, que é uma conexão duradoura com refresh_token).
+ * Google Drive — importar um ficheiro escolhido pelo staff no Picker.
+ * access_token é efémero (browser), nunca persistido.
  */
 const { env } = require('../../../config/env');
+const { AppError } = require('../../../middlewares/error.middleware');
 
 const DRIVE_API = 'https://www.googleapis.com/drive/v3';
 
-/** Ficheiros nativos do Google Workspace (Docs/Sheets/Slides/Drawings) não têm
- * bytes próprios — `?alt=media` falha sempre para eles no lado da Google.
- * Precisam do endpoint `/export` com um mimeType de destino. Mapeamos para
- * formatos já presentes na whitelist de upload (`ALLOWED_MIMES`). */
 const GOOGLE_NATIVE_EXPORT_TARGETS = {
   'application/vnd.google-apps.document': {
     mimeType: 'application/pdf',
@@ -45,13 +38,7 @@ function isGoogleDriveConfigured() {
   return Boolean(env.GOOGLE_OAUTH_CLIENT_ID && env.GOOGLE_PICKER_API_KEY);
 }
 
-/** Config pública para o Picker no frontend — nenhum destes valores é secreto
- * (o Client ID já é público na SSO; a API key é restringida por HTTP referrer
- * no Google Cloud Console, não por sigilo).
- * Campo chama-se `pickerApiKey`, não `apiKey` — o `responseSanitizeMiddleware`
- * (defesa em profundidade) remove qualquer campo chamado `apiKey`/`api_key`
- * de toda resposta JSON da API; este valor precisa mesmo de chegar ao
- * frontend, por isso usa um nome que não colide com esse filtro. */
+/** Config pública — `pickerApiKey` (não `apiKey`) para não ser removida pelo sanitize. */
 function getPickerConfig() {
   return {
     configured: isGoogleDriveConfigured(),
@@ -60,38 +47,77 @@ function getPickerConfig() {
   };
 }
 
+function driveApiError(operation, status, bodyText) {
+  const err = new Error(`Google Drive ${operation} failed (${status}): ${String(bodyText || '').slice(0, 200)}`);
+  err.status = status;
+  err.operation = operation;
+  return err;
+}
+
+/** Converte falhas da API Drive em AppError com mensagem PT utilizável. */
+function mapDriveErrorToAppError(err) {
+  if (err instanceof AppError) return err;
+  const status = Number(err?.status);
+  if (status === 401 || status === 403) {
+    return new AppError(
+      'Não foi possível aceder ao ficheiro no Google Drive. Autorize novamente e tente outra vez.',
+      403,
+    );
+  }
+  if (status === 404) {
+    return new AppError('Ficheiro não encontrado no Google Drive (pode ter sido apagado ou movido).', 404);
+  }
+  if (status === 429) {
+    return new AppError('Google Drive está temporariamente indisponível. Tente novamente dentro de momentos.', 429);
+  }
+  if (status >= 500) {
+    return new AppError('Google Drive está com problemas temporários. Tente novamente mais tarde.', 502);
+  }
+  return new AppError('Não foi possível importar o ficheiro do Google Drive.', 502);
+}
+
 async function fetchDriveFileMetadata({ accessToken, fileId }) {
-  const params = new URLSearchParams({ fields: 'name,mimeType,size' });
+  const params = new URLSearchParams({
+    fields: 'name,mimeType,size',
+    supportsAllDrives: 'true',
+  });
   const res = await fetch(`${DRIVE_API}/files/${encodeURIComponent(fileId)}?${params.toString()}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Google Drive metadata failed (${res.status}): ${text.slice(0, 200)}`);
+    throw driveApiError('metadata', res.status, text);
   }
   return res.json();
 }
 
 async function downloadDriveFile({ accessToken, fileId }) {
-  const res = await fetch(`${DRIVE_API}/files/${encodeURIComponent(fileId)}?alt=media`, {
+  const params = new URLSearchParams({
+    alt: 'media',
+    supportsAllDrives: 'true',
+  });
+  const res = await fetch(`${DRIVE_API}/files/${encodeURIComponent(fileId)}?${params.toString()}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Google Drive download failed (${res.status}): ${text.slice(0, 200)}`);
+    throw driveApiError('download', res.status, text);
   }
   const arrayBuffer = await res.arrayBuffer();
   return Buffer.from(arrayBuffer);
 }
 
 async function exportDriveFile({ accessToken, fileId, exportMimeType }) {
-  const params = new URLSearchParams({ mimeType: exportMimeType });
+  const params = new URLSearchParams({
+    mimeType: exportMimeType,
+    supportsAllDrives: 'true',
+  });
   const res = await fetch(`${DRIVE_API}/files/${encodeURIComponent(fileId)}/export?${params.toString()}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Google Drive export failed (${res.status}): ${text.slice(0, 200)}`);
+    throw driveApiError('export', res.status, text);
   }
   const arrayBuffer = await res.arrayBuffer();
   return Buffer.from(arrayBuffer);
@@ -105,4 +131,6 @@ module.exports = {
   exportDriveFile,
   isGoogleNativeFile,
   getExportTarget,
+  mapDriveErrorToAppError,
+  driveApiError,
 };

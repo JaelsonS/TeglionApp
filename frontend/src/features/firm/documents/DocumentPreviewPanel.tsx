@@ -174,7 +174,7 @@ export function DocumentPreviewPanel({
         accessToken: picked.accessToken,
         body: picked.fileName,
       })
-      toast.success(`"${picked.fileName}" importado do Google Drive e enviado ao cliente`)
+      toast.success(`"${picked.fileName}" enviado na conversa do cliente (via Google Drive)`)
       await onRefresh()
     } catch (err) {
       toast.error('Não foi possível importar do Google Drive', { description: getErrorMessage(err) })
@@ -354,7 +354,7 @@ export function DocumentPreviewPanel({
                   size="icon"
                   variant="outline"
                   className="shrink-0 rounded-full"
-                  title="Importar ficheiro do Google Drive"
+                  title="Enviar ficheiro do Google Drive para a conversa do cliente"
                   disabled={importingDrive}
                   onClick={() => void importFromDrive()}
                 >
@@ -372,8 +372,8 @@ export function DocumentPreviewPanel({
               </Button>
             </div>
             <p className="mt-1.5 cb-text-caption">
-              O pedido de reenvio usa a caixa acima se estiver preenchida. Pode também importar um ficheiro
-              directamente do seu Google Drive.
+              O pedido de reenvio usa a caixa acima se estiver preenchida. O botão do Drive envia o ficheiro
+              para a conversa do cliente (não cria um documento nesta lista).
             </p>
           </section>
           ) : null}

@@ -54,3 +54,16 @@ test('isGoogleDriveConfigured/getPickerConfig: true e devolve client_id/pickerAp
     env.GOOGLE_PICKER_API_KEY = prevKey;
   }
 });
+
+test('mapDriveErrorToAppError: 401/403 → mensagem PT e status 403', () => {
+  const err = googleDriveService.driveApiError('metadata', 401, 'unauthorized');
+  const mapped = googleDriveService.mapDriveErrorToAppError(err);
+  assert.equal(mapped.statusCode, 403);
+  assert.match(mapped.message, /Google Drive/i);
+});
+
+test('mapDriveErrorToAppError: 404 → ficheiro não encontrado', () => {
+  const err = googleDriveService.driveApiError('download', 404, 'not found');
+  const mapped = googleDriveService.mapDriveErrorToAppError(err);
+  assert.equal(mapped.statusCode, 404);
+});
