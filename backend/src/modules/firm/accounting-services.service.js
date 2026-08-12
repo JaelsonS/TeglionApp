@@ -350,7 +350,7 @@ async function create({ firmId, payload }) {
     isActive: payload?.isActive !== false,
     slug,
     isPubliclyListed,
-    requiresBooking: payload?.requiresBooking !== false,
+    requiresBooking: payload?.requiresBooking === true,
     documentRequirements: normalizeDocumentRequirements(payload?.documentRequirements) || [],
     intakeForm,
     bookingOverrides: normalizeBookingOverrides(payload?.bookingOverrides) || null,
@@ -504,7 +504,7 @@ async function seedCatalog({ firmId }) {
       // duplicate(). Em ambos os casos, isto só corre nesta criação única — não há
       // nenhum caminho de update() dentro de seedCatalog(), logo uma segunda execução
       // nunca toca numa linha já existente (guarda na condição `existingKeys.has`, 2 linhas acima).
-      requiresBooking: entry.requiresBooking !== false,
+      requiresBooking: entry.requiresBooking === true,
       documentRequirements: normalizeDocumentRequirements(entry.documentRequirements) || [],
       intakeForm: normalizeIntakeForm(entry.intakeForm) || null,
     });
@@ -544,7 +544,7 @@ async function activateFromCatalog({ firmId, catalogKeys }) {
         durationMinutes: entry.durationMinutes,
         priceCents: entry.priceCents,
         isActive: true,
-        requiresBooking: entry.requiresBooking !== false,
+        requiresBooking: entry.requiresBooking === true,
         documentRequirements: entry.documentRequirements,
         intakeForm: entry.intakeForm,
       },

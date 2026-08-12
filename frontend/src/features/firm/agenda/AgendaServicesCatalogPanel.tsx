@@ -462,7 +462,7 @@ export function AgendaServicesCatalogPanel({
       serviceName: draft?.name ?? s.name,
       description: draft?.description ?? s.description,
       onDescriptionChange: (html: string) => patchEditing(s.id, { description: html }),
-      requiresBooking: adv?.requiresBooking ?? s.requiresBooking ?? true,
+      requiresBooking: adv?.requiresBooking ?? s.requiresBooking ?? false,
       intakeForm: adv?.intakeForm ?? s.intakeForm ?? { questions: [] },
       imageUrl: draft?.imageUrl ?? s.imageUrl,
     }
@@ -476,7 +476,7 @@ export function AgendaServicesCatalogPanel({
         [s.id]: draft[s.id] ?? {
           slug: s.slug ?? '',
           isPubliclyListed: s.isPubliclyListed ?? false,
-          requiresBooking: s.requiresBooking ?? true,
+          requiresBooking: s.requiresBooking ?? false,
           documentRequirements: s.documentRequirements ?? [],
           intakeForm: s.intakeForm ?? { questions: [] },
           bookingOverrides: s.bookingOverrides ?? null,
@@ -1032,8 +1032,8 @@ export function AgendaServicesCatalogPanel({
                       <div>
                         <p className="text-sm font-semibold text-foreground">Publicação e agendamento</p>
                         <p className="cb-text-caption">
-                          O que o cliente vê e preenche na página pública deste serviço — link, formulário,
-                          documentos exigidos e horários.
+                          O que o cliente vê neste serviço: link público, formulário e documentos. Os horários
+                          só aparecem se activar o agendamento abaixo (ex.: consultorias).
                         </p>
                       </div>
                       <div className="space-y-2">
@@ -1105,12 +1105,12 @@ export function AgendaServicesCatalogPanel({
                           </label>
                           <label className="flex items-center gap-2 text-sm">
                             <Checkbox
-                              checked={adv.requiresBooking ?? true}
+                              checked={adv.requiresBooking ?? false}
                               onCheckedChange={(checked: boolean | 'indeterminate') =>
                                 patchAdvanced(s.id, { requiresBooking: Boolean(checked) })
                               }
                             />
-                            Precisa de agendamento
+                            Divulgar horários / agendamento na página pública
                           </label>
                         </div>
                       </div>

@@ -10,6 +10,7 @@ const CONSULTING_SERVICES_CATALOG = [
     durationMinutes: 60,
     priceCents: 4000,
     category: 'Consultoria',
+    requiresBooking: true,
   },
   {
     catalogKey: 'simulacao-irs',
@@ -18,6 +19,7 @@ const CONSULTING_SERVICES_CATALOG = [
     durationMinutes: 60,
     priceCents: 4000,
     category: 'IRS',
+    requiresBooking: true,
   },
   {
     catalogKey: 'entrega-irs-orcamento',
@@ -26,6 +28,7 @@ const CONSULTING_SERVICES_CATALOG = [
     durationMinutes: 90,
     priceCents: 0,
     category: 'IRS',
+    requiresBooking: false,
     // Exemplo ilustrativo — prova que o catálogo propaga documentRequirements/intakeForm
     // para a cópia do escritório (ver Fase A da sessão). Não é um template exaustivo:
     // o escritório continua livre para editar/duplicar/remover tudo isto depois de activar.

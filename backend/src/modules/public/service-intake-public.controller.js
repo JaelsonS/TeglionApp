@@ -36,7 +36,7 @@ async function mapPublicServiceSummary(s) {
     description: interpolateServiceTemplate(enriched.description) || null,
     durationMinutes: enriched.durationMinutes,
     priceCents: enriched.priceCents,
-    requiresBooking: enriched.requiresBooking !== false,
+    requiresBooking: enriched.requiresBooking === true,
     imageUrl: enriched.imageUrl || null,
   };
 }
@@ -195,7 +195,7 @@ async function getPublicService(req, res, next) {
       description: interpolateServiceTemplate(service.description) || null,
       imageUrl: (await accountingServicesService.resolveServiceImageUrl(service.imageStorageKey || service.imageUrl)) || null,
       intakeForm: service.intakeForm || { questions: [] },
-      requiresBooking: service.requiresBooking !== false,
+      requiresBooking: service.requiresBooking === true,
       priceCents: service.priceCents,
       showPrices,
       termsText,
