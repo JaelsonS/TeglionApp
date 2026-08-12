@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -241,29 +241,25 @@ export function ServiceIntakePublicPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
         <div className="w-full max-w-md space-y-4 rounded-2xl border border-border/50 bg-card p-8 text-center shadow-sm">
-          <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />
-          <h1 className="text-lg font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">Pedido recebido</h1>
+          <CheckCircle2 className="mx-auto h-10 w-10 text-primary" />
+          <h1 className="text-lg font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">
+            Obrigado, recebemos o seu pedido
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Enviámos um email de confirmação
-            {result.documentsRequired > 0 ? ' com a lista de documentos necessários.' : '.'}
+            A nossa equipa vai analisar e entrar em contacto consigo em breve.
           </p>
           {result.scheduledAt ? (
             <p
               className={
                 result.bookingConfirmed
-                  ? 'rounded-lg bg-emerald-50 p-3 text-sm font-medium text-emerald-800'
-                  : 'rounded-lg bg-amber-50 p-3 text-sm font-medium text-amber-800'
+                  ? 'rounded-lg border border-border/50 bg-muted/40 p-3 text-sm font-medium text-foreground'
+                  : 'rounded-lg border border-border/50 bg-muted/40 p-3 text-sm font-medium text-foreground'
               }
             >
               {result.bookingConfirmed
-                ? `O seu horário foi confirmado: ${formatScheduledAt(result.scheduledAt)}.`
-                : `Preferência de horário registada: ${formatScheduledAt(result.scheduledAt)}. Este horário será analisado e confirmado pela contabilista.`}
+                ? `Horário registado: ${formatScheduledAt(result.scheduledAt)}. A equipa confirmará o agendamento em breve.`
+                : `Preferência de horário registada: ${formatScheduledAt(result.scheduledAt)}. Este horário será analisado e confirmado pela equipa.`}
             </p>
-          ) : null}
-          {result.documentsRequired > 0 ? (
-            <Button asChild className="w-full rounded-full">
-              <Link to={`/pedidos/${result.accessToken}`}>Enviar documentos agora</Link>
-            </Button>
           ) : null}
         </div>
       </div>

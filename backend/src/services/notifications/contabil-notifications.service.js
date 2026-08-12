@@ -248,7 +248,33 @@ async function notifyFirmDocumentReceived({ staffEmail, clientName, documentTitl
   });
 }
 
-/** Enviado ao submissor de um formulário público de captação (Lead ou Client) com a checklist de documentos e o link do mini-portal por token. */
+/** Enviado ao submissor após formulário público — só agradecimento (sem pedir documentos). */
+async function notifyLeadIntakeReceived({ toEmail, toName, firmName, serviceName }) {
+  if (!toEmail) return { skipped: true, reason: 'no_email' };
+  const firm = firmName || 'o escritório';
+  return sendEmail({
+    to: toEmail,
+    subject: `Obrigado — recebemos o seu pedido (${firm})`,
+    tags: ['transactional', 'service-intake'],
+    html: renderTransactionalEmail({
+      preheader: `O escritório ${firm} recebeu o seu pedido`,
+      title: 'Obrigado, recebemos o seu pedido',
+      greeting: `Olá${toName ? ` ${toName}` : ''},`,
+      bodyHtml: `<p style="margin:0 0 12px">O escritório <strong>${escapeHtml(firm)}</strong> recebeu o seu pedido${serviceName ? ` de <strong>${escapeHtml(serviceName)}</strong>` : ''}.</p><p style="margin:0">A nossa equipa vai analisar e entrar em contacto consigo em breve.</p>`,
+      footerNote: 'Não é necessário responder a este email.',
+    }),
+    text: [
+      `Olá${toName ? ` ${toName}` : ''},`,
+      '',
+      `O escritório ${firm} recebeu o seu pedido${serviceName ? ` de ${serviceName}` : ''}.`,
+      'A nossa equipa vai analisar e entrar em contacto consigo em breve.',
+      '',
+      'Teglion',
+    ].join('\n'),
+  });
+}
+
+/** @deprecated Preferir notifyLeadIntakeReceived na submissão inicial. Mantido para pedidos posteriores da equipa (checklist). */
 async function notifyLeadIntakeChecklist({ toEmail, toName, firmName, serviceName, accessToken, documents }) {
   if (!toEmail || !accessToken) return { skipped: true, reason: 'no_email_or_token' };
   const firm = firmName || 'o escritório';
@@ -284,9 +310,8 @@ async function notifyLeadIntakeChecklist({ toEmail, toName, firmName, serviceNam
 }
 
 /** Enviado à equipa quando uma submissão pública cria uma nova ServiceInquiry. */
-async function notifyFirmIntakeSubmitted({ staffEmail, firmName, requesterName, serviceName, documentsCount }) {
+async function notifyFirmIntakeSubmitted({ staffEmail, firmName, requesterName, serviceName }) {
   if (!staffEmail) return { skipped: true };
-  const pending = Number(documentsCount) || 0;
   return sendEmail({
     to: staffEmail,
     subject: `Nova solicitação — ${serviceName || 'serviço'} (${requesterName || 'sem nome'})`,
@@ -294,12 +319,12 @@ async function notifyFirmIntakeSubmitted({ staffEmail, firmName, requesterName, 
     html: renderTransactionalEmail({
       preheader: `${requesterName || 'Alguém'} pediu ${serviceName || 'um serviço'}`,
       title: 'Nova solicitação recebida',
-      bodyHtml: `<p style="margin:0 0 12px"><strong>${escapeHtml(requesterName || 'Sem nome')}</strong> submeteu um pedido de <strong>${escapeHtml(serviceName || 'serviço')}</strong>${pending ? ` — a aguardar ${pending} documento(s).` : '.'}</p>`,
+      bodyHtml: `<p style="margin:0 0 12px"><strong>${escapeHtml(requesterName || 'Sem nome')}</strong> submeteu um pedido de <strong>${escapeHtml(serviceName || 'serviço')}</strong>. Revê as respostas em Solicitações.</p>`,
       ctaLabel: 'Ver solicitação',
-      ctaUrl: `${APP_URL}/app/firm/services`,
+      ctaUrl: `${APP_URL}/app/firm/services?tab=inquiries`,
       footerNote: firmName || undefined,
     }),
-    text: `Nova solicitação: ${serviceName} — ${requesterName}. Ver: ${APP_URL}/app/firm/services`,
+    text: `Nova solicitação: ${serviceName} — ${requesterName}. Ver: ${APP_URL}/app/firm/services?tab=inquiries`,
   });
 }
 
@@ -315,7 +340,7 @@ async function notifyFirmIntakeDocumentReceived({ staffEmail, firmName, requeste
       title: allComplete ? 'Todos os documentos foram recebidos' : 'Novo documento recebido',
       bodyHtml: `<p style="margin:0"><strong>${escapeHtml(documentTitle || '')}</strong> de ${escapeHtml(requesterName || 'cliente')} — pedido de ${escapeHtml(serviceName || 'serviço')} (${escapeHtml(firmName || 'escritório')}).${allComplete ? ' Está pronto para análise.' : ''}</p>`,
       ctaLabel: 'Ver solicitação',
-      ctaUrl: `${APP_URL}/app/firm/services`,
+      ctaUrl: `${APP_URL}/app/firm/services?tab=inquiries`,
     }),
     text: `Documento recebido: ${documentTitle} de ${requesterName}${allComplete ? ' — todos os documentos completos' : ''}.`,
   });
@@ -333,7 +358,7 @@ async function notifyFirmIntakeReplyReceived({ staffEmail, firmName, requesterNa
       title: 'Nova resposta recebida',
       bodyHtml: `<p style="margin:0"><strong>${escapeHtml(requesterName || 'Cliente')}</strong> respondeu a <strong>${escapeHtml(requestTitle || '')}</strong> — pedido de ${escapeHtml(serviceName || 'serviço')} (${escapeHtml(firmName || 'escritório')}).</p>`,
       ctaLabel: 'Ver solicitação',
-      ctaUrl: `${APP_URL}/app/firm/services`,
+      ctaUrl: `${APP_URL}/app/firm/services?tab=inquiries`,
     }),
     text: `Resposta recebida de ${requesterName} a "${requestTitle}".`,
   });
@@ -607,6 +632,7 @@ module.exports = {
   notifyFirmDocumentReceived,
   notifyFirmConsultationBooked,
   notifyLeadIntakeChecklist,
+  notifyLeadIntakeReceived,
   notifyFirmIntakeSubmitted,
   notifyFirmIntakeDocumentReceived,
   notifyLeadNewRequest,

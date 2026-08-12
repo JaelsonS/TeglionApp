@@ -421,12 +421,11 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
   }
 
   const requiredDocuments = accountingServicesService.resolveRequiredDocuments(service, answers);
-  // 'manual' — a contabilista decide depois se pede, não é enviado ao cliente agora
-  // (ver normalizeDocumentRequirements). Só os 'immediate' entram no checklist inicial.
-  const { immediate: immediateDocuments } = accountingServicesService.splitDocumentsByTiming(requiredDocuments);
+  // Documentos do serviço ficam como SUGESTÕES para a equipa em Solicitações.
+  // Não materializamos checklist nem pedimos documentos ao cliente na submissão —
+  // a contadora decide o que pedir depois (pedido multi-item + email com link).
   const submittedAt = new Date().toISOString();
-  // Nada a aguardar -> pronta para a equipa trabalhar já; documentos pendentes -> aguarda entrega.
-  const initialStatus = immediateDocuments.length > 0 ? 'DOCS_REQUESTED' : 'IN_PROGRESS';
+  const initialStatus = 'IN_PROGRESS';
 
   let inquiry;
   if (existingInquiry) {
@@ -455,22 +454,6 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
     inquiry.consultationId = bookedConsultation.id;
   }
 
-  // Materializa o checklist inicial (ver especificação da sessão, v8, secção 2) — deixa
-  // de ser recalculado a cada leitura, fica numa tabela real que a equipa pode estender
-  // depois com pedidos adicionais (Fase 2b), sem misturar as duas fontes.
-  if (immediateDocuments.length > 0) {
-    await serviceInquiryRequestsRepository.createMany(
-      immediateDocuments.map((d) => ({
-        firmId: firm.id,
-        serviceInquiryId: inquiry.id,
-        kind: 'document',
-        tag: d.tag,
-        title: d.title,
-        instructions: d.instructions,
-      })),
-    );
-  }
-
   await auditRepository.writeAuditLog({
     firmId: firm.id,
     actorRole: 'PUBLIC',
@@ -478,18 +461,21 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
     action: 'service_inquiry.submitted',
     entityType: 'service_inquiry',
     entityId: inquiry.id,
-    metadata: { serviceId: service.id, identityType: identity.type, documentsRequired: requiredDocuments.length },
+    metadata: {
+      serviceId: service.id,
+      identityType: identity.type,
+      suggestedDocuments: requiredDocuments.length,
+      booking: Boolean(bookedConsultation),
+    },
   });
 
   if (email) {
     void contabilNotifications
-      .notifyLeadIntakeChecklist({
+      .notifyLeadIntakeReceived({
         toEmail: email,
         toName: name,
         firmName: firm.name,
         serviceName: interpolateServiceTemplate(service.name),
-        accessToken: inquiry.accessToken,
-        documents: requiredDocuments,
       })
       .catch(() => {});
   }
@@ -501,7 +487,6 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
         firmName: firm.name,
         requesterName: name,
         serviceName: interpolateServiceTemplate(service.name),
-        documentsCount: requiredDocuments.length,
       })
       .catch(() => {});
   }
