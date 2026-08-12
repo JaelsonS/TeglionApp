@@ -1,13 +1,14 @@
 # Captação & Solicitações — Plano aprovado (ajustado)
 
-**Estado:** Fase A feita · Fase B/C em curso · UI/UX das 4 telas a seguir  
+**Estado:** Fases A–D feitas · Próximo: E (confirmar agendamento)  
 **Branding:** usar tokens do sistema (`--cb-brand`, `--primary`, componentes shadcn existentes). Não introduzir paletas azuis genéricas dos mockups — só a **organização** dos ecrãs.
 
 ## Produção
 
 - Google Calendar Fase 1 e Google Drive Fase 2 já em `main` (`7e0a0df`).
 - Fase A (obrigado + sem docs automáticos) em `main` (`d9164de`).
-- Fase B/C (shell Serviços + inbox + etiquetas) em branch `feat/captacao-fase-b-c-services-inbox`.
+- Fase B/C (shell Serviços + inbox + etiquetas) em `main` (`31e8c6c`).
+- Fase D (pedido multi-item) em branch `feat/captacao-fase-d-multi-item-pedido`.
 
 ## Esclarecimento de etiquetas (aprovado)
 
@@ -22,9 +23,9 @@ Não usar categorias fixas do sistema (“Atenção/Fácil”) como única opç�
 | Fase | Conteúdo | Estado |
 |------|----------|--------|
 | **A** | Email/ecrã de obrigado; sem checklist automática; sem CTA “enviar documentos” na submissão | Feito |
-| **B** | Reformular shell Serviços (tabs) com componentes/branding actuais | Em curso |
-| **C** | Inbox Solicitações + badges de etiquetas da contadora | Em curso |
-| **D** | Pedido multi-item (docs + perguntas) | Próximo |
+| **B** | Reformular shell Serviços (tabs) com componentes/branding actuais | Feito |
+| **C** | Inbox Solicitações + badges de etiquetas da contadora | Feito |
+| **D** | Pedido multi-item (docs + perguntas) | Feito |
 | **E** | Confirmar agendamento → email | Próximo |
 | **F** | Editor Catálogo auto-explicativo + regras de etiquetas | Próximo |
 | **G** | `visibleIf` completo (depois) | Depois |

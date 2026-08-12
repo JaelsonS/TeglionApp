@@ -5,6 +5,7 @@ const { mock } = require('node:test');
 const serviceInquiriesRepository = require('../../db/supabase/repositories/service-inquiries.repository');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const serviceInquiryRequestsRepository = require('../../db/supabase/repositories/service-inquiry-requests.repository');
+const firmInquiryTagsRepository = require('../../db/supabase/repositories/firm-inquiry-tags.repository');
 const leadsRepository = require('../../db/supabase/repositories/leads.repository');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
@@ -16,10 +17,19 @@ const FIRM_ID = 'firm-x';
 
 function resetMocks() {
   mock.restoreAll();
+  mock.method(firmInquiryTagsRepository, 'listLinksForInquiries', async () => []);
+  mock.method(firmInquiryTagsRepository, 'listByFirm', async () => []);
+  mock.method(firmInquiryTagsRepository, 'replaceLinksForInquiry', async () => []);
 }
 
 function mockAudit() {
   mock.method(auditRepository, 'writeAuditLog', async () => {});
+}
+
+function mockTags() {
+  mock.method(firmInquiryTagsRepository, 'listLinksForInquiries', async () => []);
+  mock.method(firmInquiryTagsRepository, 'listByFirm', async () => []);
+  mock.method(firmInquiryTagsRepository, 'replaceLinksForInquiry', async () => []);
 }
 
 test('create: rejeita quando nem leadId nem clientId são indicados', async () => {
@@ -424,11 +434,12 @@ test('addServiceInquiryRequest: kind document gera tag automática; kind questio
     clientId: null,
     accessToken: 'a'.repeat(64),
   }));
+  mock.method(serviceInquiriesRepository, 'updateRow', async (_id, _firmId, patch) => ({ id: 'inquiry-1', ...patch }));
   mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana', email: null }));
   let created = null;
-  mock.method(serviceInquiryRequestsRepository, 'createRow', async (args) => {
-    created = args;
-    return { id: 'req-1', ...args, status: 'PENDING' };
+  mock.method(serviceInquiryRequestsRepository, 'createMany', async (rows) => {
+    created = rows[0];
+    return rows.map((args, i) => ({ id: `req-${i + 1}`, ...args, status: 'PENDING' }));
   });
 
   await serviceInquiriesService.addServiceInquiryRequest({
@@ -440,10 +451,6 @@ test('addServiceInquiryRequest: kind document gera tag automática; kind questio
 
   assert.ok(created.tag && created.tag.startsWith('pend_'), 'documento devia ganhar tag automática');
 
-  mock.method(serviceInquiryRequestsRepository, 'createRow', async (args) => {
-    created = args;
-    return { id: 'req-2', ...args, status: 'PENDING' };
-  });
   await serviceInquiriesService.addServiceInquiryRequest({
     firmId: FIRM_ID,
     inquiryId: 'inquiry-1',
@@ -463,11 +470,12 @@ test('addServiceInquiryRequest: tag explícita (aceitar sugestão) é preservada
     clientId: null,
     accessToken: 'a'.repeat(64),
   }));
+  mock.method(serviceInquiriesRepository, 'updateRow', async (_id, _firmId, patch) => ({ id: 'inquiry-1', ...patch }));
   mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana', email: null }));
   let created = null;
-  mock.method(serviceInquiryRequestsRepository, 'createRow', async (args) => {
-    created = args;
-    return { id: 'req-3', ...args, status: 'PENDING' };
+  mock.method(serviceInquiryRequestsRepository, 'createMany', async (rows) => {
+    created = rows[0];
+    return rows.map((args, i) => ({ id: `req-${i + 1}`, ...args, status: 'PENDING' }));
   });
 
   await serviceInquiriesService.addServiceInquiryRequest({
@@ -495,7 +503,9 @@ test('addServiceInquiryRequest: audita e notifica o submissor quando há email, 
   mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana', email: 'ana@x.com' }));
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({ id: 'service-1', name: 'IRS 2026' }));
   mock.method(firmsRepository, 'findFirmById', async () => ({ id: FIRM_ID, name: 'Escritório X' }));
-  mock.method(serviceInquiryRequestsRepository, 'createRow', async (args) => ({ id: 'req-1', ...args, status: 'PENDING' }));
+  mock.method(serviceInquiryRequestsRepository, 'createMany', async (rows) =>
+    rows.map((args, i) => ({ id: `req-${i + 1}`, ...args, status: 'PENDING' })),
+  );
 
   let notifyArgs = null;
   mock.method(contabilNotifications, 'notifyLeadNewRequest', async (args) => {
@@ -513,7 +523,51 @@ test('addServiceInquiryRequest: audita e notifica o submissor quando há email, 
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(notifyArgs.toEmail, 'ana@x.com');
   assert.equal(notifyArgs.accessToken, 'b'.repeat(64));
-  assert.equal(notifyArgs.requestTitle, 'Tem dependentes a cargo?');
+  assert.equal(notifyArgs.items?.[0]?.title, 'Tem dependentes a cargo?');
+});
+
+test('addServiceInquiryRequestsBatch: cria vários itens e notifica uma vez', async () => {
+  resetMocks();
+  mockAudit();
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM_ID,
+    serviceId: 'service-1',
+    status: 'IN_PROGRESS',
+    leadId: 'lead-1',
+    clientId: null,
+    accessToken: 'c'.repeat(64),
+  }));
+  mock.method(serviceInquiriesRepository, 'updateRow', async (_id, _firmId, patch) => ({ id: 'inquiry-1', ...patch }));
+  mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana', email: 'ana@x.com' }));
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({ id: 'service-1', name: 'IRS 2026' }));
+  mock.method(firmsRepository, 'findFirmById', async () => ({ id: FIRM_ID, name: 'Escritório X' }));
+  mock.method(serviceInquiryRequestsRepository, 'createMany', async (rows) =>
+    rows.map((args, i) => ({ id: `req-${i + 1}`, ...args, status: 'PENDING' })),
+  );
+
+  let notifyArgs = null;
+  mock.method(contabilNotifications, 'notifyLeadNewRequest', async (args) => {
+    notifyArgs = args;
+    return { ok: true };
+  });
+
+  const result = await serviceInquiriesService.addServiceInquiryRequestsBatch({
+    firmId: FIRM_ID,
+    inquiryId: 'inquiry-1',
+    actor: { id: 'staff-1' },
+    payload: {
+      items: [
+        { kind: 'document', title: 'Certidão de casamento', tag: 'certidao' },
+        { kind: 'question', title: 'NIF do cônjuge?' },
+      ],
+    },
+  });
+
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(result.requests.length, 2);
+  assert.equal(notifyArgs.items.length, 2);
+  assert.equal(notifyArgs.items[0].title, 'Certidão de casamento');
 });
 
 test('remove: solicitação inexistente devolve 404, nunca chega a chamar deleteRow', async () => {

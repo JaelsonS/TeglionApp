@@ -317,35 +317,58 @@ const REQUEST_KINDS = new Set(['document', 'question']);
  * Reaproveita o mesmo access_token de sempre — não gera link novo.
  */
 async function addServiceInquiryRequest({ firmId, inquiryId, actor, payload }) {
+  const result = await addServiceInquiryRequestsBatch({
+    firmId,
+    inquiryId,
+    actor,
+    payload: { items: [payload] },
+  });
+  return { request: result.requests[0] };
+}
+
+/**
+ * Pedido multi-item (Fase D): vários documentos/perguntas num único envio
+ * e um único email ao cliente com a lista completa.
+ */
+async function addServiceInquiryRequestsBatch({ firmId, inquiryId, actor, payload }) {
   const inquiry = await serviceInquiriesRepository.findByIdForFirm(inquiryId, firmId);
   if (!inquiry) throw new AppError('Solicitação não encontrada', 404);
   if (TERMINAL_STATUSES.has(inquiry.status)) {
     throw new AppError(`Solicitação em estado terminal (${inquiry.status}) não pode receber novos pedidos`, 409);
   }
 
-  const kind = String(payload?.kind || '');
-  if (!REQUEST_KINDS.has(kind)) throw new AppError('kind deve ser "document" ou "question"', 400);
-  const title = String(payload?.title || '').trim();
-  if (!title) throw new AppError('title é obrigatório', 400);
-  const instructions = payload?.instructions ? String(payload.instructions).trim().slice(0, 2000) : null;
-  // Tag gerada automaticamente para pedidos de documento — a contabilista nunca a vê nem
-  // gere isto, é só o identificador interno que o upload do mini-portal já sabe usar
-  // (mesmo caminho da Fase 2a, tag-based, sem alterações). Excepção: aceitar uma sugestão
-  // de documento 'manual' (ver getById#suggestedDocuments) precisa de reaproveitar a MESMA
-  // tag configurada no serviço — senão o pedido criado não corresponde à sugestão original
-  // e esta continuaria a aparecer como "por pedir" mesmo depois de já pedida.
-  const explicitTag = payload?.tag ? String(payload.tag).trim().slice(0, 60) : null;
-  const tag = kind === 'document' ? explicitTag || `pend_${crypto.randomUUID()}` : null;
+  const rawItems = Array.isArray(payload?.items) ? payload.items : [];
+  if (!rawItems.length) throw new AppError('Adicione pelo menos um pedido', 400);
+  if (rawItems.length > 20) throw new AppError('Máximo 20 itens por envio', 400);
 
-  const request = await serviceInquiryRequestsRepository.createRow({
-    firmId,
-    serviceInquiryId: inquiry.id,
-    kind,
-    tag,
-    title,
-    instructions,
-    createdBy: actor?.id || null,
-  });
+  const normalized = [];
+  for (const item of rawItems) {
+    const kind = String(item?.kind || '');
+    if (!REQUEST_KINDS.has(kind)) throw new AppError('kind deve ser "document" ou "question"', 400);
+    const title = String(item?.title || '').trim();
+    if (!title) throw new AppError('Cada item precisa de um título', 400);
+    const instructions = item?.instructions ? String(item.instructions).trim().slice(0, 2000) : null;
+    const explicitTag = item?.tag ? String(item.tag).trim().slice(0, 60) : null;
+    const tag = kind === 'document' ? explicitTag || `pend_${crypto.randomUUID()}` : null;
+    normalized.push({ kind, title, instructions, tag });
+  }
+
+  const created = await serviceInquiryRequestsRepository.createMany(
+    normalized.map((item) => ({
+      firmId,
+      serviceInquiryId: inquiry.id,
+      kind: item.kind,
+      tag: item.tag,
+      title: item.title,
+      instructions: item.instructions,
+      createdBy: actor?.id || null,
+    })),
+  );
+
+  const hasDocument = normalized.some((i) => i.kind === 'document');
+  if (hasDocument && !TERMINAL_STATUSES.has(inquiry.status) && inquiry.status !== 'DOCS_REQUESTED') {
+    await serviceInquiriesRepository.updateRow(inquiry.id, firmId, { status: 'DOCS_REQUESTED' });
+  }
 
   await auditRepository.writeAuditLog({
     firmId,
@@ -354,7 +377,10 @@ async function addServiceInquiryRequest({ firmId, inquiryId, actor, payload }) {
     action: 'service_inquiry.request_added',
     entityType: 'service_inquiry',
     entityId: inquiry.id,
-    metadata: { requestId: request.id, kind, title },
+    metadata: {
+      count: created.length,
+      items: created.map((r) => ({ requestId: r.id, kind: r.kind, title: r.title })),
+    },
   });
 
   const { name: requesterName, email: requesterEmail } = await requesterContactForInquiry(inquiry);
@@ -370,12 +396,12 @@ async function addServiceInquiryRequest({ firmId, inquiryId, actor, payload }) {
         firmName: firm?.name,
         serviceName: interpolateServiceTemplate(service?.name),
         accessToken: inquiry.accessToken,
-        requestTitle: title,
+        items: created.map((r) => ({ title: r.title, kind: r.kind })),
       })
       .catch(() => {});
   }
 
-  return { request };
+  return { requests: created.map(toChecklistItem) };
 }
 
 async function resolveStaffNotifyEmail(firmId, firm) {
@@ -772,6 +798,7 @@ module.exports = {
   remove,
   revokeAccessToken,
   addServiceInquiryRequest,
+  addServiceInquiryRequestsBatch,
   capturePublicLead,
   submitPublicIntake,
   getByAccessToken,

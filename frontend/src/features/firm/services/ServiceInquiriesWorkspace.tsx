@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { FileText, Inbox, Loader2, Mail, Phone, Plus, Settings2, Tag } from 'lucide-react'
 import { toast } from 'sonner'
@@ -106,16 +106,24 @@ export function ServiceInquiriesWorkspace() {
   const [serviceFilter, setServiceFilter] = useState('')
   const [tagFilter, setTagFilter] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [newRequestKind, setNewRequestKind] = useState<ServiceInquiryRequestKind>('question')
-  const [newRequestTitle, setNewRequestTitle] = useState('')
-  const [addingRequest, setAddingRequest] = useState(false)
-  const [acceptingTag, setAcceptingTag] = useState<string | null>(null)
+  const [draftKind, setDraftKind] = useState<ServiceInquiryRequestKind>('document')
+  const [draftTitle, setDraftTitle] = useState('')
+  const [draftItems, setDraftItems] = useState<
+    Array<{ key: string; kind: ServiceInquiryRequestKind; title: string; tag?: string; instructions?: string }>
+  >([])
+  const [sendingBatch, setSendingBatch] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [tagsOpen, setTagsOpen] = useState(false)
   const [newTagName, setNewTagName] = useState('')
   const [newTagColor, setNewTagColor] = useState(SUGGESTED_TAG_COLORS[0])
   const [savingTag, setSavingTag] = useState(false)
   const [savingInquiryTags, setSavingInquiryTags] = useState(false)
+
+  useEffect(() => {
+    setDraftItems([])
+    setDraftTitle('')
+    setDraftKind('document')
+  }, [selectedId])
 
   const servicesQuery = useQuery({
     queryKey: ['contabil-accounting-services', 'all'],
@@ -230,40 +238,63 @@ export function ServiceInquiriesWorkspace() {
     }
   }
 
-  const addRequest = async () => {
-    if (!selectedId || !newRequestTitle.trim()) return
-    setAddingRequest(true)
-    try {
-      await contabilServiceInquiriesApi.addRequest(selectedId, {
-        kind: newRequestKind,
-        title: newRequestTitle.trim(),
-      })
-      setNewRequestTitle('')
-      toast.success('Pedido adicionado')
-      await invalidateLists()
-    } catch (err) {
-      toast.error('Erro ao pedir', { description: getErrorMessage(err) })
-    } finally {
-      setAddingRequest(false)
-    }
+  const addDraftItem = () => {
+    if (!draftTitle.trim()) return
+    setDraftItems((prev) => [
+      ...prev,
+      {
+        key: `draft-${Date.now()}-${prev.length}`,
+        kind: draftKind,
+        title: draftTitle.trim(),
+      },
+    ])
+    setDraftTitle('')
   }
 
-  const acceptSuggestion = async (doc: { tag: string; title: string; instructions?: string | null }) => {
-    if (!selectedId) return
-    setAcceptingTag(doc.tag)
+  const addSuggestionToDraft = (doc: { tag: string; title: string; instructions?: string | null }) => {
+    setDraftItems((prev) => {
+      if (prev.some((i) => i.tag === doc.tag)) return prev
+      return [
+        ...prev,
+        {
+          key: `sug-${doc.tag}`,
+          kind: 'document' as const,
+          title: doc.title,
+          tag: doc.tag,
+          instructions: doc.instructions || undefined,
+        },
+      ]
+    })
+    toast.success('Adicionado ao pedido')
+  }
+
+  const removeDraftItem = (key: string) => {
+    setDraftItems((prev) => prev.filter((i) => i.key !== key))
+  }
+
+  const sendDraftBatch = async () => {
+    if (!selectedId || draftItems.length === 0) return
+    setSendingBatch(true)
     try {
-      await contabilServiceInquiriesApi.addRequest(selectedId, {
-        kind: 'document',
-        title: doc.title,
-        tag: doc.tag,
-        instructions: doc.instructions || undefined,
+      await contabilServiceInquiriesApi.addRequestsBatch(selectedId, {
+        items: draftItems.map(({ kind, title, tag, instructions }) => ({
+          kind,
+          title,
+          tag,
+          instructions,
+        })),
       })
-      toast.success('Documento pedido ao cliente')
+      setDraftItems([])
+      toast.success(
+        draftItems.length > 1
+          ? `${draftItems.length} pedidos enviados ao cliente`
+          : 'Pedido enviado ao cliente',
+      )
       await invalidateLists()
     } catch (err) {
-      toast.error('Erro ao pedir documento', { description: getErrorMessage(err) })
+      toast.error('Erro ao enviar pedido', { description: getErrorMessage(err) })
     } finally {
-      setAcceptingTag(null)
+      setSendingBatch(false)
     }
   }
 
@@ -622,23 +653,30 @@ export function ServiceInquiriesWorkspace() {
                 <div className="space-y-2 rounded-lg border border-amber-300/60 bg-amber-50/40 p-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">Sugestões baseadas nas respostas</p>
                   <p className="text-xs text-muted-foreground">
-                    Configurou estes documentos como &quot;só sugerir depois&quot; — ainda não foram pedidos ao cliente.
+                    Adicione ao pedido abaixo e envie tudo de uma vez ao cliente.
                   </p>
                   <ul className="space-y-2">
-                    {detailQuery.data.suggestedDocuments.map((doc) => (
-                      <li key={doc.tag} className="flex items-center justify-between gap-2 rounded-md border border-amber-300/50 bg-card p-2">
-                        <span className="min-w-0 truncate text-sm">{doc.title}</span>
-                        <Button
-                          type="button"
-                          size="sm"
-                          className="shrink-0 rounded-full"
-                          disabled={acceptingTag === doc.tag}
-                          onClick={() => void acceptSuggestion(doc)}
+                    {detailQuery.data.suggestedDocuments.map((doc) => {
+                      const already = draftItems.some((i) => i.tag === doc.tag)
+                      return (
+                        <li
+                          key={doc.tag}
+                          className="flex items-center justify-between gap-2 rounded-md border border-amber-300/50 bg-card p-2"
                         >
-                          {acceptingTag === doc.tag ? 'A pedir…' : 'Pedir este documento'}
-                        </Button>
-                      </li>
-                    ))}
+                          <span className="min-w-0 truncate text-sm">{doc.title}</span>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant={already ? 'secondary' : 'outline'}
+                            className="shrink-0 rounded-full"
+                            disabled={already}
+                            onClick={() => addSuggestionToDraft(doc)}
+                          >
+                            {already ? 'No pedido' : 'Adicionar'}
+                          </Button>
+                        </li>
+                      )
+                    })}
                   </ul>
                 </div>
               ) : null}
@@ -646,13 +684,18 @@ export function ServiceInquiriesWorkspace() {
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Pendências</p>
                 {detailQuery.data.checklist.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Sem pendências para esta solicitação.</p>
+                  <p className="text-sm text-muted-foreground">Sem pendências enviadas ainda.</p>
                 ) : (
                   <ul className="space-y-2">
                     {detailQuery.data.checklist.map((item: ServiceInquiryChecklistItem) => (
                       <li key={item.id} className="space-y-1 rounded-lg border border-border/40 p-2">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="min-w-0 truncate text-sm">{item.title}</span>
+                          <span className="min-w-0 truncate text-sm">
+                            <span className="mr-1.5 text-caption font-semibold uppercase text-muted-foreground">
+                              {item.kind === 'document' ? 'Doc' : 'Pergunta'}
+                            </span>
+                            {item.title}
+                          </span>
                           {item.kind === 'document' ? (
                             item.received && item.documentId ? (
                               <Button
@@ -682,29 +725,87 @@ export function ServiceInquiriesWorkspace() {
                 )}
 
                 {!TERMINAL_STATUSES.has(detailQuery.data.inquiry.status) ? (
-                  <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed border-border/50 p-2">
-                    <select
-                      className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-                      value={newRequestKind}
-                      onChange={(e) => setNewRequestKind(e.target.value as ServiceInquiryRequestKind)}
-                    >
-                      <option value="question">Pergunta</option>
-                      <option value="document">Documento</option>
-                    </select>
-                    <Input
-                      className="h-9 min-w-[160px] flex-1 rounded-md text-sm"
-                      placeholder="Ex.: Comprovativo de morada actualizado"
-                      value={newRequestTitle}
-                      onChange={(e: FormChangeEvent) => setNewRequestTitle(e.target.value)}
-                    />
+                  <div className="space-y-3 rounded-lg border border-dashed border-border/50 p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Pedir ao cliente
+                    </p>
+                    {draftItems.length > 0 ? (
+                      <ul className="space-y-1.5">
+                        {draftItems.map((item) => (
+                          <li
+                            key={item.key}
+                            className="flex items-center justify-between gap-2 rounded-md border border-border/40 bg-muted/20 px-2.5 py-1.5"
+                          >
+                            <span className="min-w-0 truncate text-sm">
+                              <span className="mr-1.5 text-caption font-semibold uppercase text-muted-foreground">
+                                {item.kind === 'document' ? 'Doc' : 'Pergunta'}
+                              </span>
+                              {item.title}
+                            </span>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 shrink-0 px-2 text-xs text-muted-foreground"
+                              onClick={() => removeDraftItem(item.key)}
+                            >
+                              Remover
+                            </Button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        Adicione documentos e perguntas; o cliente recebe um único email com tudo.
+                      </p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <select
+                        className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                        value={draftKind}
+                        onChange={(e) => setDraftKind(e.target.value as ServiceInquiryRequestKind)}
+                      >
+                        <option value="document">Documento</option>
+                        <option value="question">Pergunta</option>
+                      </select>
+                      <Input
+                        className="h-9 min-w-[160px] flex-1 rounded-md text-sm"
+                        placeholder={
+                          draftKind === 'document'
+                            ? 'Ex.: Certidão de casamento'
+                            : 'Ex.: Qual o NIF do cônjuge?'
+                        }
+                        value={draftTitle}
+                        onChange={(e: FormChangeEvent) => setDraftTitle(e.target.value)}
+                        onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            addDraftItem()
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="shrink-0 rounded-full"
+                        disabled={!draftTitle.trim()}
+                        onClick={addDraftItem}
+                      >
+                        <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar
+                      </Button>
+                    </div>
                     <Button
                       type="button"
-                      size="sm"
-                      className="shrink-0 rounded-full"
-                      disabled={addingRequest || !newRequestTitle.trim()}
-                      onClick={() => void addRequest()}
+                      className="w-full rounded-full sm:w-auto"
+                      disabled={sendingBatch || draftItems.length === 0}
+                      onClick={() => void sendDraftBatch()}
                     >
-                      <Plus className="mr-1.5 h-3.5 w-3.5" /> Pedir
+                      {sendingBatch
+                        ? 'A enviar…'
+                        : draftItems.length > 1
+                          ? `Enviar pedido ao cliente (${draftItems.length})`
+                          : 'Enviar pedido ao cliente'}
                     </Button>
                   </div>
                 ) : null}

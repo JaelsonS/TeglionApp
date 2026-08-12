@@ -591,6 +591,18 @@ router.delete(
   serviceInquiriesController.remove,
 );
 router.post(
+  '/service-inquiries/:id/requests/batch',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  [
+    body('items').isArray({ min: 1, max: 20 }),
+    body('items.*.kind').isString().isIn(['document', 'question']),
+    body('items.*.title').isString().trim().isLength({ min: 1, max: 300 }),
+    body('items.*.instructions').optional({ nullable: true }).isString().trim().isLength({ max: 2000 }),
+    body('items.*.tag').optional({ nullable: true }).isString().trim().isLength({ max: 60 }),
+  ],
+  serviceInquiriesController.addRequestsBatch,
+);
+router.post(
   '/service-inquiries/:id/requests',
   requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
   [

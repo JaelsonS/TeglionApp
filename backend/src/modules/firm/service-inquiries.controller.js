@@ -84,6 +84,22 @@ exports.addRequest = async (req, res, next) => {
   }
 };
 
+exports.addRequestsBatch = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const inquiryId = parseEntityId(req.params.id, 'id');
+    const result = await serviceInquiriesService.addServiceInquiryRequestsBatch({
+      firmId,
+      inquiryId,
+      actor: req.user,
+      payload: req.body || {},
+    });
+    return res.status(201).json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.downloadDocument = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);

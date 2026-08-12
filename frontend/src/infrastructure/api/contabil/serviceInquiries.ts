@@ -98,6 +98,16 @@ export function createContabilServiceInquiriesApi(api: AxiosInstance) {
       api
         .post(`/contabil/service-inquiries/${encodeURIComponent(id)}/requests`, payload)
         .then((r) => r.data as { request: ServiceInquiryChecklistItem }),
+
+    addRequestsBatch: (
+      id: string,
+      payload: {
+        items: Array<{ kind: ServiceInquiryRequestKind; title: string; instructions?: string; tag?: string }>
+      },
+    ) =>
+      api
+        .post(`/contabil/service-inquiries/${encodeURIComponent(id)}/requests/batch`, payload)
+        .then((r) => r.data as { requests: ServiceInquiryChecklistItem[] }),
   }
 }
 

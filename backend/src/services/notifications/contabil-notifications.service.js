@@ -364,21 +364,44 @@ async function notifyFirmIntakeReplyReceived({ staffEmail, firmName, requesterNa
   });
 }
 
-/** Enviado ao submissor quando a equipa pede mais uma coisa depois da submissão inicial
- * (documento extra ou pergunta em texto) — mesmo access_token de sempre, sem link novo. */
-async function notifyLeadNewRequest({ toEmail, toName, firmName, serviceName, accessToken, requestTitle }) {
+/** Enviado ao submissor quando a equipa pede mais informação(ões) depois da
+ * submissão inicial — um ou vários itens, mesmo access_token de sempre. */
+async function notifyLeadNewRequest({ toEmail, toName, firmName, serviceName, accessToken, requestTitle, items }) {
   if (!toEmail || !accessToken) return { skipped: true, reason: 'no_email_or_token' };
   const firm = firmName || 'o escritório';
   const link = serviceIntakeAccessUrl(accessToken);
+  const list =
+    Array.isArray(items) && items.length
+      ? items.map((i) => ({
+          title: String(i?.title || '').trim(),
+          kind: i?.kind === 'document' ? 'document' : 'question',
+        })).filter((i) => i.title)
+      : requestTitle
+        ? [{ title: String(requestTitle).trim(), kind: 'question' }]
+        : [];
+  if (!list.length) return { skipped: true, reason: 'no_items' };
+
+  const listHtml = `<ul style="margin:0 0 12px;padding-left:18px">${list
+    .map(
+      (i) =>
+        `<li style="margin:0 0 6px"><strong>${i.kind === 'document' ? 'Documento' : 'Pergunta'}:</strong> ${escapeHtml(i.title)}</li>`,
+    )
+    .join('')}</ul>`;
+  const listText = list.map((i) => `- ${i.kind === 'document' ? 'Documento' : 'Pergunta'}: ${i.title}`).join('\n');
+  const plural = list.length > 1;
+  const subject = plural
+    ? `Precisamos de mais informações — ${serviceName || 'o seu pedido'} (${firm})`
+    : `Precisamos de mais uma informação — ${serviceName || 'o seu pedido'} (${firm})`;
+
   return sendEmail({
     to: toEmail,
-    subject: `Precisamos de mais uma informação — ${serviceName || 'o seu pedido'} (${firm})`,
+    subject,
     tags: ['transactional', 'service-intake'],
     html: renderTransactionalEmail({
-      preheader: `Novo pedido: ${requestTitle || ''}`,
-      title: 'Precisamos de mais uma informação',
+      preheader: plural ? `${list.length} pedidos do escritório` : `Novo pedido: ${list[0].title}`,
+      title: plural ? 'Precisamos de mais informações' : 'Precisamos de mais uma informação',
       greeting: `Olá${toName ? ` ${toName}` : ''},`,
-      bodyHtml: `<p style="margin:0 0 12px">Para continuar o seu pedido de <strong>${escapeHtml(serviceName || 'serviço')}</strong> junto de <strong>${escapeHtml(firm)}</strong>, precisamos que responda a mais isto:</p><p style="margin:0 0 12px"><strong>${escapeHtml(requestTitle || '')}</strong></p>`,
+      bodyHtml: `<p style="margin:0 0 12px">Para continuar o seu pedido de <strong>${escapeHtml(serviceName || 'serviço')}</strong> junto de <strong>${escapeHtml(firm)}</strong>, precisamos que responda a isto:</p>${listHtml}`,
       ctaLabel: 'Responder agora',
       ctaUrl: link,
       footerNote: 'Use o mesmo link que já tinha recebido para acompanhar o pedido.',
@@ -386,8 +409,8 @@ async function notifyLeadNewRequest({ toEmail, toName, firmName, serviceName, ac
     text: [
       `Olá${toName ? ` ${toName}` : ''},`,
       '',
-      `Para continuar o seu pedido de ${serviceName || 'serviço'} junto de ${firm}, precisamos que responda a mais isto:`,
-      requestTitle || '',
+      `Para continuar o seu pedido de ${serviceName || 'serviço'} junto de ${firm}, precisamos que responda a isto:`,
+      listText,
       '',
       `Responder: ${link}`,
       '',
