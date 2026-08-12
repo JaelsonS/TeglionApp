@@ -392,6 +392,12 @@ async function update({ firmId, id, payload }) {
   if (payload?.bookingOverrides !== undefined) {
     patch.bookingOverrides = normalizeBookingOverrides(payload.bookingOverrides);
   }
+  if (payload?.paymentMethod !== undefined) {
+    const allowed = new Set(['bank_transfer', 'multibanco', 'stripe_connect']);
+    const method = String(payload.paymentMethod);
+    if (!allowed.has(method)) throw new AppError('Meio de pagamento inválido', 400);
+    patch.paymentMethod = method;
+  }
   if (payload?.isPubliclyListed !== undefined) {
     const nextSlug = patch.slug !== undefined ? patch.slug : existing.slug;
     if (payload.isPubliclyListed === true) {

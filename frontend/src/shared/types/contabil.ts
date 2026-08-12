@@ -343,6 +343,8 @@ export type AccountingService = {
   intakeForm?: IntakeForm | null
   /** Substitui, campo a campo, as regras gerais do escritório (firm.settings.booking) só para este serviço. null/undefined = usa as regras gerais. */
   bookingOverrides?: Partial<FirmBookingSettings> | null
+  /** bank_transfer | multibanco | stripe_connect */
+  paymentMethod?: 'bank_transfer' | 'multibanco' | 'stripe_connect'
 }
 
 export type ConsultingCatalogEntry = {
@@ -352,6 +354,7 @@ export type ConsultingCatalogEntry = {
   durationMinutes: number
   priceCents: number
   category?: string
+  requiresBooking?: boolean
 }
 
 export type TimeInterval = { start: string; end: string }

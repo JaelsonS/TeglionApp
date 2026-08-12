@@ -85,7 +85,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         icon: CalendarCheck,
       },
       {
-        to: '/app/firm/services?tab=irs',
+        to: '/app/firm/irs',
         labelKey: 'contabil.firm.nav.irs',
         labelDefault: 'IRS',
         icon: Landmark,
@@ -258,7 +258,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     icon: Megaphone,
   },
   {
-    to: '/app/firm/services?tab=irs',
+    to: '/app/firm/irs',
     labelKey: 'contabil.firm.nav.irs',
     labelDefault: 'IRS',
     icon: Landmark,

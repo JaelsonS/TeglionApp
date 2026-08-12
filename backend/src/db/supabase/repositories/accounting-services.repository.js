@@ -21,6 +21,7 @@ function map(row) {
     documentRequirements: Array.isArray(row.document_requirements) ? row.document_requirements : [],
     intakeForm: row.intake_form || null,
     intakeTagRules: Array.isArray(row.intake_tag_rules) ? row.intake_tag_rules : [],
+    paymentMethod: row.payment_method || 'bank_transfer',
     bookingOverrides: row.booking_overrides || null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -134,6 +135,7 @@ async function updateRow(id, firmId, patch) {
   }
   if (patch.intakeForm !== undefined) row.intake_form = patch.intakeForm || null;
   if (patch.bookingOverrides !== undefined) row.booking_overrides = patch.bookingOverrides || null;
+  if (patch.paymentMethod !== undefined) row.payment_method = patch.paymentMethod;
 
   const { data, error } = await sb
     .from('accounting_services')
