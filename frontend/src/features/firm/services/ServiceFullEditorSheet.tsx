@@ -18,6 +18,10 @@ import { toast } from 'sonner'
 
 import { ServiceFormPreview } from '@/features/firm/agenda/ServiceFormPreview'
 import {
+  ServicePaymentMethodsPanel,
+  type ServicePaymentMethodId,
+} from '@/features/firm/services/ServicePaymentMethodsPanel'
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -48,17 +52,7 @@ import type {
 } from '@/shared/types/contabil'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 
-type PaymentMethod = 'bank_transfer' | 'multibanco' | 'stripe_connect'
-
-const PAYMENT_OPTIONS: { id: PaymentMethod; label: string; hint: string; soon?: boolean }[] = [
-  { id: 'bank_transfer', label: 'Transferência bancária', hint: 'Dados no orçamento / PDF' },
-  { id: 'multibanco', label: 'Referência Multibanco', hint: 'Referência gerada automaticamente', soon: true },
-  {
-    id: 'stripe_connect',
-    label: 'Cartão (Stripe Connect)',
-    hint: 'Checkout Stripe — dinheiro na conta do escritório',
-  },
-]
+type PaymentMethod = ServicePaymentMethodId
 
 const QUESTION_TYPE_LABELS: Record<IntakeQuestionType, string> = {
   text: 'Texto livre',
@@ -652,70 +646,14 @@ export function ServiceFullEditorSheet({
                   )}
                 </section>
 
-                <SectionCard title="Pagamento" description="Como o cliente paga este serviço.">
-                  <div className="space-y-3">
-                    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border/60 px-3 py-2.5">
-                      <input
-                        type="checkbox"
-                        className="mt-1 accent-[var(--cb-brand,#0F2942)]"
-                        checked={paymentRequired}
-                        disabled={!requiresBooking}
-                        onChange={(e) => {
-                          const on = e.target.checked
-                          setPaymentRequired(on)
-                          if (on) setPaymentMethod('stripe_connect')
-                        }}
-                      />
-                      <span className="min-w-0 text-sm">
-                        <span className="font-medium">Pagamento obrigatório no agendamento</span>
-                        <span className="mt-0.5 block text-xs text-muted-foreground">
-                          O cliente paga no Checkout Stripe antes do horário ficar confirmado. Requer
-                          Stripe Connect activo em Definições → Pagamentos. A Teglion retém a taxa de
-                          serviço da plataforma (ver política em Pagamentos); as taxas Stripe são à
-                          parte
-                          {!requiresBooking ? '. Também exige agendamento activo neste serviço.' : '.'}
-                        </span>
-                      </span>
-                    </label>
-                    {!paymentRequired
-                      ? PAYMENT_OPTIONS.filter((o) => o.id !== 'stripe_connect').map((opt) => (
-                          <label
-                            key={opt.id}
-                            className={cn(
-                              'flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 transition',
-                              paymentMethod === opt.id
-                                ? 'border-brand bg-brand/[0.06]'
-                                : 'border-border/60 hover:bg-muted/20',
-                              opt.soon && opt.id !== paymentMethod && 'opacity-70',
-                            )}
-                          >
-                            <input
-                              type="radio"
-                              name="service-payment-method"
-                              className="mt-1 accent-[var(--cb-brand,#0F2942)]"
-                              checked={paymentMethod === opt.id}
-                              onChange={() => setPaymentMethod(opt.id)}
-                            />
-                            <span className="min-w-0">
-                              <span className="flex flex-wrap items-center gap-2 text-sm font-medium">
-                                {opt.label}
-                                {opt.soon ? (
-                                  <span className="rounded-full bg-muted px-2 py-0.5 text-caption font-semibold text-muted-foreground">
-                                    em breve
-                                  </span>
-                                ) : null}
-                              </span>
-                              <span className="text-xs text-muted-foreground">{opt.hint}</span>
-                            </span>
-                          </label>
-                        ))
-                      : (
-                        <p className="rounded-lg bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-                          Meio de pagamento: Stripe Connect (cartão / métodos disponibilizados pela
-                          Stripe na conta do escritório). A Teglion não custodia o dinheiro.
-                        </p>
-                      )}
-                  </div>
+                <SectionCard title="Pagamento" description="Meios que o cliente pode usar neste serviço.">
+                  <ServicePaymentMethodsPanel
+                    paymentMethod={paymentMethod}
+                    paymentRequired={paymentRequired}
+                    requiresBooking={requiresBooking}
+                    onPaymentMethodChange={setPaymentMethod}
+                    onPaymentRequiredChange={setPaymentRequired}
+                  />
                 </SectionCard>
               </div>
             ) : null}
