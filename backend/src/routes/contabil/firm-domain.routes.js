@@ -24,6 +24,7 @@ const { optionalSingle, uploadSingle, uploadAvatarSingle } = require('../../midd
 const automationController = require('../../modules/automations/automation.controller');
 const fiscalCalendarController = require('../../modules/fiscal/fiscal-calendar.controller');
 const fiscalCalendarNotesController = require('../../modules/fiscal/fiscal-calendar-notes.controller');
+const firmFiscalCalendarController = require('../../modules/fiscal/firm-fiscal-calendar.controller');
 const atController = require('../../modules/integrations/at/at.controller');
 const googleCalendarController = require('../../modules/integrations/google-calendar/google-calendar.controller');
 const googleDriveController = require('../../modules/integrations/google-drive/google-drive.controller');
@@ -43,6 +44,73 @@ router.patch(
   '/fiscal-calendar/notes',
   requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
   fiscalCalendarNotesController.patchNote,
+);
+
+// Calendário Fiscal configurável do escritório
+router.get(
+  '/fiscal-calendar/workspace',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  firmFiscalCalendarController.getWorkspace,
+);
+router.patch(
+  '/fiscal-calendar/workspace',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  firmFiscalCalendarController.updateWorkspace,
+);
+router.post(
+  '/fiscal-calendar/import-template',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  firmFiscalCalendarController.importTemplate,
+);
+router.get(
+  '/fiscal-calendar/categories',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  firmFiscalCalendarController.listCategories,
+);
+router.post(
+  '/fiscal-calendar/categories',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  firmFiscalCalendarController.createCategory,
+);
+router.patch(
+  '/fiscal-calendar/categories/:id',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  firmFiscalCalendarController.updateCategory,
+);
+router.get(
+  '/fiscal-calendar/events/:id',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  firmFiscalCalendarController.getEvent,
+);
+router.post(
+  '/fiscal-calendar/events',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  firmFiscalCalendarController.createEvent,
+);
+router.patch(
+  '/fiscal-calendar/events/:id',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  firmFiscalCalendarController.updateEvent,
+);
+router.post(
+  '/fiscal-calendar/events/:id/duplicate',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  firmFiscalCalendarController.duplicateEvent,
+);
+router.post(
+  '/fiscal-calendar/events/:id/archive',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  firmFiscalCalendarController.archiveEvent,
+);
+router.post(
+  '/fiscal-calendar/events/:id/active',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  firmFiscalCalendarController.setEventActive,
+);
+router.post(
+  '/fiscal-calendar/events/:id/exceptions',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  firmFiscalCalendarController.createException,
 );
 router.get('/integrations/at/status', requirePermission(PERMISSIONS.FIRM_CLIENTS_VIEW), atController.getIntegrationStatus);
 

@@ -1,3 +1,17 @@
+import {
+  CALENDAR_COLOR_STYLES,
+  getCalendarColorStyle,
+  getCivilUrgency,
+  formatCivilDatePt,
+  MONTH_NAMES_PT,
+  WEEKDAY_LABELS_PT,
+  daysInMonth,
+  firstWeekdayMonday,
+  type CalendarColorStyle,
+  type CalendarUrgency,
+} from '@/shared/calendar'
+
+/** @deprecated Prefer FirmFiscalEvent — mantido para DetailSheet legado / notas */
 export type FiscalCalendarItem = {
   id: string
   title: string
@@ -9,105 +23,36 @@ export type FiscalCalendarItem = {
   regimes?: string[]
 }
 
-export type FiscalCategoryStyle = {
-  label: string
-  bg: string
-  border: string
-  text: string
-  dot: string
-  pill: string
-}
+export type FiscalCategoryStyle = CalendarColorStyle
+export type FiscalUrgency = CalendarUrgency
 
-const CATEGORY_STYLES: Record<string, FiscalCategoryStyle> = {
-  IVA: {
-    label: 'IVA',
-    bg: 'bg-violet-500/10',
-    border: 'border-violet-500/30',
-    text: 'text-violet-700 dark:text-violet-300',
-    dot: 'bg-violet-500',
-    pill: 'bg-violet-500/15 text-violet-800 dark:text-violet-200',
-  },
-  IRS: {
-    label: 'IRS',
-    bg: 'bg-emerald-500/10',
-    border: 'border-emerald-500/30',
-    text: 'text-emerald-700 dark:text-emerald-300',
-    dot: 'bg-emerald-500',
-    pill: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-200',
-  },
-  IRC: {
-    label: 'IRC',
-    bg: 'bg-teal-500/10',
-    border: 'border-teal-500/30',
-    text: 'text-teal-700 dark:text-teal-300',
-    dot: 'bg-teal-500',
-    pill: 'bg-teal-500/15 text-teal-800 dark:text-teal-200',
-  },
-  'Segurança Social': {
-    label: 'Seg. Social',
-    bg: 'bg-sky-500/10',
-    border: 'border-sky-500/30',
-    text: 'text-sky-700 dark:text-sky-300',
-    dot: 'bg-sky-500',
-    pill: 'bg-sky-500/15 text-sky-800 dark:text-sky-200',
-  },
-  'SAF-T': {
-    label: 'SAF-T',
-    bg: 'bg-amber-500/10',
-    border: 'border-amber-500/30',
-    text: 'text-amber-800 dark:text-amber-300',
-    dot: 'bg-amber-500',
-    pill: 'bg-amber-500/15 text-amber-900 dark:text-amber-200',
-  },
-  IES: {
-    label: 'IES',
-    bg: 'bg-rose-500/10',
-    border: 'border-rose-500/30',
-    text: 'text-rose-700 dark:text-rose-300',
-    dot: 'bg-rose-500',
-    pill: 'bg-rose-500/15 text-rose-800 dark:text-rose-200',
-  },
-}
-
-const FALLBACK_STYLE: FiscalCategoryStyle = {
-  label: 'Outro',
-  bg: 'bg-slate-500/10',
-  border: 'border-slate-500/30',
-  text: 'text-slate-700 dark:text-slate-300',
-  dot: 'bg-slate-500',
-  pill: 'bg-slate-500/15 text-slate-800 dark:text-slate-200',
+const CATEGORY_TOKEN: Record<string, string> = {
+  IVA: 'violet',
+  IRS: 'emerald',
+  IRC: 'teal',
+  'Segurança Social': 'sky',
+  'SAF-T': 'amber',
+  IES: 'rose',
+  Retenções: 'orange',
 }
 
 export function getFiscalCategoryStyle(category: string): FiscalCategoryStyle {
-  return CATEGORY_STYLES[category] ?? { ...FALLBACK_STYLE, label: category || 'Outro' }
+  const token = CATEGORY_TOKEN[category]
+  const style = getCalendarColorStyle(token)
+  return { ...style, label: category || style.label || 'Outro' }
 }
 
-export const FISCAL_CATEGORY_ORDER = ['IVA', 'IRS', 'IRC', 'Segurança Social', 'SAF-T', 'IES'] as const
+export function getCategoryStyleByToken(token?: string | null, label?: string): FiscalCategoryStyle {
+  const style = getCalendarColorStyle(token)
+  return label ? { ...style, label } : style
+}
 
-export const MONTH_NAMES_PT = [
-  'Janeiro',
-  'Fevereiro',
-  'Março',
-  'Abril',
-  'Maio',
-  'Junho',
-  'Julho',
-  'Agosto',
-  'Setembro',
-  'Outubro',
-  'Novembro',
-  'Dezembro',
-] as const
+export const FISCAL_CATEGORY_ORDER = ['IVA', 'IRS', 'IRC', 'Segurança Social', 'SAF-T', 'IES', 'Retenções'] as const
 
-export const WEEKDAY_LABELS_PT = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'] as const
+export { MONTH_NAMES_PT, WEEKDAY_LABELS_PT, daysInMonth, firstWeekdayMonday }
 
 export function formatFiscalDate(iso: string): string {
-  if (!iso) return '—'
-  const [y, m, d] = iso.split('-').map(Number)
-  if (!y || !m || !d) return iso
-  return new Intl.DateTimeFormat('pt-PT', { day: 'numeric', month: 'long', year: 'numeric' }).format(
-    new Date(y, m - 1, d),
-  )
+  return formatCivilDatePt(iso)
 }
 
 export function formatPeriodLabel(period: string): string {
@@ -123,18 +68,11 @@ export function formatPeriodLabel(period: string): string {
   return period
 }
 
-export type FiscalUrgency = 'overdue' | 'soon' | 'upcoming' | 'future'
-
 export function getFiscalUrgency(dueDate: string, today = new Date()): FiscalUrgency {
-  const due = new Date(dueDate)
-  if (Number.isNaN(due.getTime())) return 'future'
-  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-  const end = new Date(due.getFullYear(), due.getMonth(), due.getDate())
-  const diffDays = Math.round((end.getTime() - start.getTime()) / 86_400_000)
-  if (diffDays < 0) return 'overdue'
-  if (diffDays <= 7) return 'soon'
-  if (diffDays <= 30) return 'upcoming'
-  return 'future'
+  const y = today.getFullYear()
+  const m = String(today.getMonth() + 1).padStart(2, '0')
+  const d = String(today.getDate()).padStart(2, '0')
+  return getCivilUrgency(dueDate, `${y}-${m}-${d}`)
 }
 
 export const URGENCY_LABELS: Record<FiscalUrgency, string> = {
@@ -151,13 +89,25 @@ export const URGENCY_RING: Record<FiscalUrgency, string> = {
   future: 'ring-border/40',
 }
 
-export function daysInMonth(year: number, month: number) {
-  return new Date(year, month + 1, 0).getDate()
+export const STATUS_LABELS: Record<string, string> = {
+  SCHEDULED: 'Agendado',
+  PENDING: 'Pendente',
+  COMPLETED: 'Concluído',
+  CANCELLED: 'Cancelado',
+  ARCHIVED: 'Arquivado',
 }
 
-export function firstWeekdayMonday(year: number, month: number) {
-  const d = new Date(year, month, 1).getDay()
-  return d === 0 ? 6 : d - 1
+export const KIND_LABELS: Record<string, string> = {
+  FISCAL: 'Fiscal',
+  INTERNAL: 'Interno',
+}
+
+export const RECURRENCE_LABELS: Record<string, string> = {
+  WEEKLY: 'Semanal',
+  MONTHLY: 'Mensal',
+  QUARTERLY: 'Trimestral',
+  ANNUAL: 'Anual',
+  CUSTOM: 'Personalizado',
 }
 
 export function uniqueCategories(items: FiscalCalendarItem[]): string[] {
@@ -176,3 +126,5 @@ export const REGIME_LABELS: Record<string, string> = {
   empresa: 'Empresa',
   todos: 'Todos os contribuintes',
 }
+
+export { CALENDAR_COLOR_STYLES, getCalendarColorStyle }

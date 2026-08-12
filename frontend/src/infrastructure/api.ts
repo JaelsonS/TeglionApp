@@ -10,6 +10,7 @@ import { createContabilClientsApi } from '@/infrastructure/api/contabil/clients'
 import { createContabilConsultationsApi } from '@/infrastructure/api/contabil/consultations'
 import { createContabilDocumentsApi } from '@/infrastructure/api/contabil/documents'
 import { createContabilFirmApi } from '@/infrastructure/api/contabil/firm'
+import { createContabilFiscalCalendarApi } from '@/infrastructure/api/contabil/fiscalCalendar'
 import { createContabilGoogleCalendarApi } from '@/infrastructure/api/contabil/googleCalendar'
 import { createContabilGoogleDriveApi } from '@/infrastructure/api/contabil/googleDrive'
 import { createContabilLeadsApi } from '@/infrastructure/api/contabil/leads'
@@ -69,6 +70,7 @@ export const contabilObligationsApi = createContabilObligationsApi(api)
 export const contabilConsultationsApi = createContabilConsultationsApi(api)
 export const contabilAccountingServicesApi = createContabilAccountingServicesApi(api)
 export const contabilNewsApi = createContabilNewsApi(api)
+export const contabilFiscalCalendarApi = createContabilFiscalCalendarApi(api)
 export const contabilBroadcastsApi = createContabilBroadcastsApi(api)
 export const contabilBillingApi = createContabilBillingApi(api)
 export const contabilPublicApi = createContabilPublicApi(api)
