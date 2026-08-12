@@ -670,8 +670,10 @@ export function ServiceFullEditorSheet({
                         <span className="font-medium">Pagamento obrigatório no agendamento</span>
                         <span className="mt-0.5 block text-xs text-muted-foreground">
                           O cliente paga no Checkout Stripe antes do horário ficar confirmado. Requer
-                          Stripe Connect activo em Definições → Pagamentos
-                          {!requiresBooking ? ' e agendamento activo neste serviço.' : '.'}
+                          Stripe Connect activo em Definições → Pagamentos. A Teglion retém a taxa de
+                          serviço da plataforma (ver política em Pagamentos); as taxas Stripe são à
+                          parte
+                          {!requiresBooking ? '. Também exige agendamento activo neste serviço.' : '.'}
                         </span>
                       </span>
                     </label>

@@ -25,6 +25,8 @@ export type ConnectStatus = {
   configured: boolean
   paymentsOnlineAllowed: boolean
   canStartOnboarding: boolean
+  /** Percentagem da taxa Teglion (ex. "2") */
+  platformFeePercent?: string
   terms: ConnectTermsInfo
   account: ConnectAccountStatus | null
 }
@@ -37,7 +39,15 @@ export function createContabilConnectApi(api: AxiosInstance) {
     startOnboarding: (payload: { acceptedConnectTerms: true }) =>
       api
         .post('/contabil/connect/onboarding-link', payload)
-        .then((r) => r.data as { url: string; stripeAccountId: string; termsAcceptanceId: string }),
+        .then(
+          (r) =>
+            r.data as {
+              url: string | null
+              alreadyReady?: boolean
+              stripeAccountId: string
+              termsAcceptanceId: string
+            },
+        ),
     refreshOnboarding: () =>
       api
         .post('/contabil/connect/refresh-link')

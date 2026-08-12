@@ -9,6 +9,7 @@ const accountingServicesRepository = require('../../db/supabase/repositories/acc
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const bookingService = require('../booking/booking.service');
 const { logger } = require('../../utils/logger');
+const { computePlatformFeeCents, getPlatformFeePercentLabel } = require('./connect-fees');
 
 const HOLD_MINUTES = 30;
 
@@ -119,6 +120,7 @@ async function bookAndPayAsClient({
   });
 
   const publicStatusToken = firmPaymentsRepository.newPublicStatusToken();
+  const platformFeeCents = computePlatformFeeCents(amountCents);
   let payment = await firmPaymentsRepository.insertPayment({
     firmId,
     purpose: 'booking',
@@ -134,6 +136,8 @@ async function bookAndPayAsClient({
       serviceId: service.id,
       serviceName: service.name,
       scheduledAt: consultation.scheduledAt,
+      platformFeeCents,
+      platformFeePercent: getPlatformFeePercentLabel(),
     },
   });
 
@@ -187,13 +191,16 @@ async function bookAndPayAsClient({
           paymentId: String(payment.id),
           purpose: 'booking',
           platform: 'teglion',
+          platformFeeCents: String(platformFeeCents),
         },
         payment_intent_data: {
+          ...(platformFeeCents > 0 ? { application_fee_amount: platformFeeCents } : {}),
           metadata: {
             firmId: String(firmId),
             consultationId: String(consultation.id),
             paymentId: String(payment.id),
             purpose: 'booking',
+            platformFeeCents: String(platformFeeCents),
           },
         },
       },

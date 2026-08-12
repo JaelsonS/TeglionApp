@@ -6,9 +6,11 @@ Pagamentos dos **clientes do escritório** → Connected Account Express.
 | Fluxo | Quem paga | Quem recebe | Webhook |
 |-------|-----------|-------------|---------|
 | **Billing** | Escritório → Teglion | Teglion | `/api/public/stripe/webhook` |
-| **Connect** | Cliente → Escritório | Conta Stripe do escritório | `/api/public/stripe/connect/webhook` |
+| **Connect** | Cliente → Escritório | Conta Stripe do escritório (− taxa Teglion) | `/api/public/stripe/connect/webhook` |
 
-A Teglion **não custodia** dinheiro. Processamento: Stripe. O escritório aceita a política em Definições → Pagamentos (registo com IP, hora, hash do texto).
+A Teglion **não custodia** dinheiro. Processamento: Stripe (Direct Charges). Em cada pagamento Connect, a Teglion retém **taxa de serviço da plataforma** (`application_fee_amount`, default **2%** via `STRIPE_CONNECT_PLATFORM_FEE_BPS=200`). As **taxas Stripe** são cobradas pela Stripe à Connected Account, à parte. O escritório aceita a política em Definições → Pagamentos (IP, hora, versão + hash do texto).
+
+**Não uses** a “Ferramenta de preços da plataforma” do Dashboard para esta taxa — com Direct Charges o caminho correcto é `application_fee_amount` no Checkout.
 
 ---
 
@@ -38,6 +40,7 @@ O código usa a mesma `STRIPE_SECRET_KEY` da plataforma. Em produção deve ser 
 | `STRIPE_SECRET_KEY` | `sk_live_…` (plataforma) |
 | `STRIPE_CONNECT_ENABLED` | `true` |
 | `STRIPE_CONNECT_WEBHOOK_SECRET` | `whsec_…` do endpoint Connect **live** |
+| `STRIPE_CONNECT_PLATFORM_FEE_BPS` | `200` (= 2% taxa Teglion; opcional, default 200) |
 | `STRIPE_WEBHOOK_SECRET` | Continua o secret do webhook **Billing** live (outro endpoint) |
 | `STRIPE_PRICE_ID_EUR_MONTHLY` / `YEARLY` | Price IDs **live** do plano Teglion |
 | `FRONTEND_URL` | URL canónica da app (ex. `https://app.teglion.com`) |
@@ -76,10 +79,11 @@ Aplicar no Supabase **produção**:
 
 ## Fluxo produto (já no código)
 
-1. Hold `PENDING_PAYMENT` 30 min + Checkout Session (direct charge, fee Teglion = 0).
+1. Hold `PENDING_PAYMENT` 30 min + Checkout Session (direct charge + `application_fee_amount` Teglion).
 2. `checkout.session.completed` → `firm_payments.paid` + `SCHEDULED` → Calendar.
 3. Expiração / `checkout.session.expired` → liberta horário.
 4. Página `/:firmSlug/booking/return` = UX; **paid só via webhook**.
+5. Taxa Teglion e taxas Stripe descritas na política Connect (`connect_payment_responsibility_v2`).
 
 ---
 
@@ -89,7 +93,7 @@ Aplicar no Supabase **produção**:
 - Webhook: raw body + `constructEvent` + secret Connect.
 - Idempotência: `stripe_connect_webhook_events`.
 - Preço só no backend; isolamento `firm_id`.
-- Sem PAN no Teglion; sem `application_fee` nesta v1.
+- Sem PAN no Teglion; taxa plataforma via `application_fee_amount` (não via Dashboard Platform Pricing Tool em Direct Charges).
 
 ---
 

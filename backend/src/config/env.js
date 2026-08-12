@@ -263,6 +263,11 @@ const env = {
   STRIPE_CONNECT_ENABLED: process.env.STRIPE_CONNECT_ENABLED,
   /** Webhook secret do endpoint Connect (Connected accounts) — distinto do Billing. */
   STRIPE_CONNECT_WEBHOOK_SECRET: process.env.STRIPE_CONNECT_WEBHOOK_SECRET,
+  /**
+   * Taxa de serviço Teglion em basis points sobre pagamentos Connect (direct charge).
+   * 200 = 2%. Aplicada via application_fee_amount no Checkout.
+   */
+  STRIPE_CONNECT_PLATFORM_FEE_BPS: process.env.STRIPE_CONNECT_PLATFORM_FEE_BPS || '200',
   STRIPE_PRICE_ID: process.env.STRIPE_PRICE_ID,
   /** Mensal EUR — preferir STRIPE_PRICE_ID_EUR_MONTHLY; STRIPE_PRICE_ID_EUR fica como alias. */
   STRIPE_PRICE_ID_EUR: process.env.STRIPE_PRICE_ID_EUR,

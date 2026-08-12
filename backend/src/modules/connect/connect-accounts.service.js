@@ -16,6 +16,7 @@ const {
   hasCurrentTermsAccepted,
   mapStripeAccountPatch,
 } = require('./connect-access');
+const { getPlatformFeePercentLabel } = require('./connect-fees');
 const { logger } = require('../../utils/logger');
 
 function assertConnectEnabled() {
@@ -52,6 +53,7 @@ async function getConnectStatus(firmId, { isOwner = false } = {}) {
     configured,
     paymentsOnlineAllowed: entitlement.allowed,
     canStartOnboarding: Boolean(configured && entitlement.allowed && isOwner),
+    platformFeePercent: getPlatformFeePercentLabel(),
     terms: {
       version: terms.version,
       title: terms.title,
@@ -199,6 +201,32 @@ async function startOnboarding({
     latestTermsAcceptedByUserId: ownerUserId,
   });
 
+  const alreadyReady = Boolean(account.chargesEnabled);
+  if (alreadyReady) {
+    await auditRepository.writeAuditLog({
+      firmId,
+      actorRole: 'FIRM_OWNER',
+      actorId: ownerUserId,
+      action: 'stripe_connect.terms_accepted',
+      entityType: 'firm_stripe_connect_account',
+      entityId: account.id,
+      metadata: {
+        stripeAccountId: account.stripeAccountId,
+        termsVersion: CONNECT_TERMS_VERSION,
+        termsAcceptanceId: acceptance.id,
+        termsSha256: termsSha,
+        alreadyReady: true,
+      },
+      ipAddress,
+    });
+    return {
+      url: null,
+      alreadyReady: true,
+      stripeAccountId: account.stripeAccountId,
+      termsAcceptanceId: acceptance.id,
+    };
+  }
+
   const base = env.FRONTEND_URL.replace(/\/+$/, '');
   const returnUrl = `${base}/app/firm/settings?tab=pagamentos&connect=return`;
   const refreshUrl = `${base}/app/firm/settings?tab=pagamentos&connect=refresh`;
@@ -222,6 +250,7 @@ async function startOnboarding({
 
   return {
     url,
+    alreadyReady: false,
     stripeAccountId: account.stripeAccountId,
     termsAcceptanceId: acceptance.id,
   };

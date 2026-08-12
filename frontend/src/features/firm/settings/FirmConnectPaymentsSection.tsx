@@ -68,6 +68,8 @@ export function FirmConnectPaymentsSection() {
   const ready = Boolean(account?.readyForCharges || account?.chargesEnabled)
   const canStart = Boolean(data?.canStartOnboarding)
   const configured = Boolean(data?.configured)
+  const feePercent = data?.platformFeePercent || '2'
+  const termsOutdated = Boolean(account && data?.terms && !data.terms.accepted)
 
   const startWithTerms = async () => {
     if (!accepted) {
@@ -77,7 +79,15 @@ export function FirmConnectPaymentsSection() {
     setSubmitting(true)
     try {
       const res = await contabilConnectApi.startOnboarding({ acceptedConnectTerms: true })
-      if (!res?.url) throw new Error('URL de onboarding em falta')
+      if (res?.alreadyReady || !res?.url) {
+        toast.success('Política aceite', {
+          description: 'A taxa de serviço Teglion e as responsabilidades ficam registadas.',
+        })
+        setTermsOpen(false)
+        await qc.invalidateQueries({ queryKey: CONNECT_STATUS_QUERY_KEY })
+        setSubmitting(false)
+        return
+      }
       window.location.assign(res.url)
     } catch (err) {
       toast.error('Não foi possível iniciar a ligação Stripe', {
@@ -129,12 +139,16 @@ export function FirmConnectPaymentsSection() {
               {
                 title: 'Aceite registado',
                 description:
-                  'Antes, tem de ler e aceitar a política de responsabilidade — o aceite fica registado com data, IP e versão do texto.',
+                  'Antes, tem de ler e aceitar a política — inclui a taxa de serviço Teglion e a separação das taxas Stripe.',
               },
               {
                 title: 'Stripe processa',
                 description:
                   'A Stripe trata do KYC, do processamento e dos payouts na sua Connected Account.',
+              },
+              {
+                title: 'Taxa Teglion',
+                description: `Em cada pagamento online dos seus clientes, a Teglion retém ${feePercent}% como taxa de serviço da plataforma (integração, Checkout, hold e confirmação). As taxas Stripe são à parte.`,
               },
               {
                 title: 'Billing separado',
@@ -188,13 +202,38 @@ export function FirmConnectPaymentsSection() {
       <div className="rounded-xl border border-border/80 bg-background px-4 py-3 text-sm leading-relaxed text-muted-foreground">
         <p className="font-medium text-foreground">Importante</p>
         <p className="mt-1">
-          A Teglion vende o software. Os pagamentos dos seus clientes são processados pela{' '}
-          <strong className="font-medium text-foreground">Stripe</strong> na conta Connect do seu
-          escritório. A Teglion não recebe, não detém e não é responsável pelo dinheiro dos seus
-          clientes. Reembolsos e disputas gerem-se na Stripe (Express) e nas regras do seu
-          escritório.
+          A Teglion vende o software e a integração de pagamentos. Os pagamentos dos seus clientes
+          são processados pela <strong className="font-medium text-foreground">Stripe</strong> na
+          conta Connect do seu escritório. Em cada pagamento online, a Teglion retém{' '}
+          <strong className="font-medium text-foreground">{feePercent}%</strong> como{' '}
+          <strong className="font-medium text-foreground">taxa de serviço da plataforma</strong>{' '}
+          (página pública, agendamento, Checkout e confirmação automática). As taxas de processamento
+          da Stripe são cobradas pela Stripe à parte. A Teglion não custodia o dinheiro dos clientes.
         </p>
       </div>
+
+      {termsOutdated ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
+          <p className="font-medium">Política actualizada</p>
+          <p className="mt-1">
+            Há uma nova versão da política (inclui a taxa de serviço de {feePercent}%). Peça ao
+            responsável do escritório para a ler e aceitar.
+          </p>
+          {canStart ? (
+            <Button
+              type="button"
+              className="mt-3"
+              variant="outline"
+              onClick={() => {
+                setAccepted(false)
+                setTermsOpen(true)
+              }}
+            >
+              Ler e aceitar a nova política
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
 
       {query.isLoading ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -259,8 +298,9 @@ export function FirmConnectPaymentsSection() {
               onChange={(e) => setAccepted(e.target.checked)}
             />
             <span>
-              Li e aceito esta política. Compreendo que a Teglion não custodia o dinheiro dos
-              clientes e que a Stripe processa os pagamentos na conta do escritório.
+              Li e aceito esta política, incluindo a taxa de serviço Teglion de {feePercent}% por
+              pagamento online. Compreendo que as taxas Stripe são à parte e que a Teglion não
+              custodia o dinheiro dos clientes.
             </span>
           </label>
           <DialogFooter className="gap-2 sm:gap-0">

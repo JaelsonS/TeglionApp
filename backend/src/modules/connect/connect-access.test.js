@@ -19,6 +19,18 @@ describe('connect-terms', () => {
     assert.equal(payload.sha256, connectTermsTextSha256());
     assert.ok(CONNECT_TERMS_BODY.includes('não custodia'));
     assert.ok(CONNECT_TERMS_BODY.includes('Stripe'));
+    assert.ok(CONNECT_TERMS_BODY.includes('taxa de serviço'));
+    assert.ok(CONNECT_TERMS_BODY.includes('Taxas da Stripe'));
+  });
+});
+
+describe('connect-fees', () => {
+  it('calcula 2% por defeito', () => {
+    const { computePlatformFeeCents, getPlatformFeePercentLabel } = require('./connect-fees');
+    assert.equal(getPlatformFeePercentLabel(), '2');
+    assert.equal(computePlatformFeeCents(10000), 200);
+    assert.equal(computePlatformFeeCents(100), 2);
+    assert.equal(computePlatformFeeCents(1), 0);
   });
 });
 
