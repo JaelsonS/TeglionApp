@@ -4,13 +4,21 @@ import { authFirmRegisterUrl } from '@/shared/constants/authPaths'
 import { FadeInStagger, FadeInStaggerItem, FadeInView } from '@/shared/components/landing/FadeInView'
 
 const STEPS = [
-  { n: '01', title: 'Configura o escritório em 5 minutos', body: 'Crias a conta, o nome do escritório e estás pronto.' },
+  {
+    n: '01',
+    title: 'Cria o escritório',
+    body: 'Conta em minutos — equipa, clientes e operação prontos a usar.',
+  },
   {
     n: '02',
-    title: 'Convida os teus clientes',
-    body: 'Acedem ao portal no browser — no telemóvel ou no computador, sem instalar nada.',
+    title: 'Configura a oferta',
+    body: 'Página pública, catálogo de serviços, IRS e pagamentos no mesmo sítio.',
   },
-  { n: '03', title: 'Fecha obrigações com tudo no sítio', body: 'Documentos, prazos e mensagens no mesmo fluxo mensal.' },
+  {
+    n: '03',
+    title: 'Fecha o mês com tudo ligado',
+    body: 'Documentos, prazos, mensagens e cobranças no mesmo fluxo.',
+  },
 ] as const
 
 export function LandingHowItWorks() {
@@ -19,6 +27,7 @@ export function LandingHowItWorks() {
       <div className="landing-container">
         <FadeInView className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold sm:text-4xl">Como funciona</h2>
+          <p className="mt-3 text-[#4A5568]">Do registo à operação completa — sem montar cinco ferramentas.</p>
         </FadeInView>
         <FadeInStagger className="mt-14 grid gap-8 md:grid-cols-3">
           {STEPS.map((s) => (

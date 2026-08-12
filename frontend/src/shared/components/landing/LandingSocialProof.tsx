@@ -71,8 +71,8 @@ export function LandingSocialProof({ className, showStats = true }: LandingSocia
             Menos caos. Mais fechos a tempo.
           </h2>
           <p className="mt-4 text-[17px] leading-relaxed text-[#4A5568]">
-            O Teglion organiza clientes, documentos e prazos num só sítio — para a equipa trabalhar com
-            método e o cliente deixar de perguntar “já enviei?”.
+            Clientes, documentos, prazos, página pública e pagamentos no mesmo sistema — para a equipa
+            trabalhar com método e o cliente deixar de perguntar “já enviei?”.
           </p>
         </FadeInView>
 

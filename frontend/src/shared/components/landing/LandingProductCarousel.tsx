@@ -37,7 +37,9 @@ export function LandingProductCarousel() {
       <div className="landing-container">
         <FadeInView className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold sm:text-4xl">Vê o Teglion por dentro</h2>
-          <p className="mt-4 text-[#4A5568]">Capturas reais do produto — o dia-a-dia do teu escritório.</p>
+          <p className="mt-4 text-[#4A5568]">
+            Capturas reais — painel, clientes, documentos e prazos no mesmo produto.
+          </p>
         </FadeInView>
 
         <div className="relative mt-12">

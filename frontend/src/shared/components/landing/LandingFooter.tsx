@@ -35,24 +35,29 @@ export function LandingFooter() {
             <p className="text-xs font-semibold uppercase tracking-wide text-[#0F2942]">Produto</p>
             <ul className="mt-3 space-y-2 text-sm">
               <li>
-                <Link to="/blog" className="text-[#4A5568] hover:text-[#0F2942]">
-                  Blog
-                </Link>
+                <a href={LANDING_ANCHORS.funcionalidades} className="text-[#4A5568] hover:text-[#0F2942]">
+                  Funcionalidades
+                </a>
               </li>
               <li>
-                <Link to="/case-studies" className="text-[#4A5568] hover:text-[#0F2942]">
-                  Casos de sucesso
-                </Link>
+                <a href={LANDING_ANCHORS.paginaPublica} className="text-[#4A5568] hover:text-[#0F2942]">
+                  Página pública e pagamentos
+                </a>
               </li>
               <li>
                 <a href={LANDING_ANCHORS.produto} className="text-[#4A5568] hover:text-[#0F2942]">
-                  Ver demonstração
+                  Ver o produto
                 </a>
               </li>
               <li>
                 <a href={LANDING_ANCHORS.comoFunciona} className="text-[#4A5568] hover:text-[#0F2942]">
                   Como funciona
                 </a>
+              </li>
+              <li>
+                <Link to="/blog" className="text-[#4A5568] hover:text-[#0F2942]">
+                  Blog
+                </Link>
               </li>
             </ul>
           </div>

@@ -24,7 +24,11 @@ function buildPlans({
       price: '0 €',
       period: `/ ${trialDays} dias`,
       note: 'Sem cartão no registo',
-      features: ['Escritório + portal do cliente', 'Utilizadores ilimitados no trial', 'PWA no telemóvel e computador'],
+      features: [
+        'Escritório + portal + página pública',
+        'Serviços, IRS e pagamentos na plataforma',
+        'Utilizadores ilimitados no trial',
+      ],
       cta: `Começar os ${trialDays} dias`,
       primary: true,
       featured: false,
@@ -36,7 +40,11 @@ function buildPlans({
       price: monthlyLabel,
       period: '/ mês',
       note: 'Por escritório · IVA à parte se aplicável',
-      features: ['Flexível — cancela quando quiser', 'Mesmo produto do teste', 'Ideal para experimentar a sério'],
+      features: [
+        'Mesmo produto do teste',
+        'Documentos, prazos e mensagens',
+        'Cancela quando quiser — sem fidelização',
+      ],
       cta: 'Começar com teste grátis',
       primary: false,
       featured: false,
@@ -52,7 +60,11 @@ function buildPlans({
           Cobrado <strong className="text-[#0F2942]">{yearlyTotalLabel} / ano</strong> · por escritório
         </>
       ),
-      features: ['~2 meses grátis vs mensal', 'Melhor preço se já vai ficar', 'Mesmo produto, menos custo'],
+      features: [
+        '~2 meses grátis vs mensal',
+        'Página pública, serviços e pagamentos',
+        'Melhor preço se já vai ficar',
+      ],
       cta: 'Quero o melhor valor',
       primary: true,
       featured: true,
@@ -73,7 +85,8 @@ export function LandingPricing() {
             Comece grátis. Pague só se ficar.
           </h2>
           <p className="mt-3 text-[15px] leading-relaxed text-[#4A5568] sm:mt-4 sm:text-base">
-            14 dias com o escritório completo — sem cartão. Depois mensal ou anual, sem fidelização.
+            14 dias com operação, página pública, serviços e pagamentos — sem cartão. Depois mensal ou
+            anual, sem fidelização.
           </p>
         </FadeInView>
 

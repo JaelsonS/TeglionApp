@@ -9,11 +9,11 @@ export function LandingCtaFinal() {
       <FadeInView className="landing-container">
         <div className="landing-cta-panel rounded-[14px] bg-gradient-to-br from-[#0F2942] via-[#153552] to-[#1a3a5c] px-8 py-16 text-center sm:px-14 sm:py-20">
           <h2 className="text-3xl font-semibold text-white sm:text-4xl">
-            O próximo fecho de mês pode ser diferente
+            Junta operação, clientes e pagamentos num só sítio
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-white/75">
-            Crie a conta em minutos, convide um cliente e veja pedidos, entregas e prazos a funcionar —
-            14 dias, sem cartão. Se fizer sentido, fica. Se não, cancela.
+            Cria a conta, configura serviços e a página pública, convida um cliente — e vê documentos,
+            prazos e cobranças a funcionar. 14 dias, sem cartão.
           </p>
           <Link
             to={authFirmRegisterUrl()}

@@ -3,17 +3,17 @@ import { LandingScreenshot } from '@/shared/components/landing/LandingScreenshot
 import { LANDING_SCREENS } from '@/shared/components/landing/landingScreens'
 
 const FIRM_BULLETS = [
-  'Visão de todos os clientes num painel',
-  'Prazos automáticos e alertas antes de atrasar',
-  'Pedidos de documentos com um clique',
-  'Faturação integrada no fluxo mensal',
+  'Carteira, prazos e tarefas num painel',
+  'Pedidos de documentos com rasto claro',
+  'Página pública, serviços e IRS no mesmo produto',
+  'Pagamentos do cliente final na plataforma',
 ]
 
 const CLIENT_BULLETS = [
-  'Envia documentos de forma fácil e rápida',
-  'Vê o que está em dia e o que falta',
-  'Recebe lembretes sem te ligar outra vez',
-  'Fala com o contabilista no mesmo sítio através do chat interno.',
+  'Portal para enviar documentos e ver o que falta',
+  'Mensagens com o escritório sem WhatsApp perdido',
+  'Marcar e pagar serviços no site do escritório',
+  'Lembretes e estado sem ligar outra vez',
 ]
 
 export function LandingSolution() {
@@ -21,9 +21,9 @@ export function LandingSolution() {
     <section className="landing-section">
       <div className="landing-container">
         <FadeInView className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-semibold sm:text-4xl">Uma plataforma, dois espaços</h2>
+          <h2 className="text-3xl font-semibold sm:text-4xl">Uma plataforma. Três espaços ligados.</h2>
           <p className="mt-4 text-[#4A5568]">
-            O escritório gere a carteira. O cliente entrega sem confusão. Tudo ligado.
+            Escritório, portal do cliente e página pública — a mesma operação, sem links soltos.
           </p>
         </FadeInView>
 
@@ -39,10 +39,7 @@ export function LandingSolution() {
               ))}
             </ul>
             <div className="mt-6">
-              <LandingScreenshot
-                src={LANDING_SCREENS.dashboard}
-                alt="Painel operacional do Teglion"
-              />
+              <LandingScreenshot src={LANDING_SCREENS.dashboard} alt="Painel operacional do Teglion" />
             </div>
           </FadeInView>
 
@@ -51,7 +48,10 @@ export function LandingSolution() {
             <ul className="mt-4 space-y-2.5">
               {CLIENT_BULLETS.map((b) => (
                 <li key={b} className="flex gap-2 text-[15px] text-[#4A5568]">
-                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#E3F0FF] ring-1 ring-[#0F2942]/20" aria-hidden />
+                  <span
+                    className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#E3F0FF] ring-1 ring-[#0F2942]/20"
+                    aria-hidden
+                  />
                   {b}
                 </li>
               ))}

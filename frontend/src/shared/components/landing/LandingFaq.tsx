@@ -12,12 +12,24 @@ const FAQ = [
     a: `${PRICING_TEXT.monthlyLabel}/mês ou ${PRICING_TEXT.yearlyTotalLabel}/ano (equiv. ${PRICING_TEXT.yearlyMonthlyLabel}/mês), por escritório. Os ${PRICING_TEXT.trialDays} dias são grátis e sem cartão — só paga se decidir ficar.`,
   },
   {
-    q: 'Funciona no telemóvel?',
-    a: 'Sim. O portal e o escritório abrem no browser — e pode instalar como app (PWA) no telemóvel ou tablet, sem loja de apps. Disponível em iOS e Android em breve.',
+    q: 'O que está incluído?',
+    a: 'Painel do escritório, portal do cliente, página pública, catálogo de serviços, fluxos de IRS, pedidos de documentos, mensagens, prazos, Google Calendar/Drive e pagamentos do cliente final na plataforma.',
   },
   {
-    q: 'Os clientes recebem aviso quando eu envio uma obrigação?',
-    a: 'Sim. Quando cria ou envia uma obrigação, o cliente recebe um e-mail para entrar no Teglion e ver o prazo e os documentos. SMS fica para uma fase seguinte.',
+    q: 'Posso ter uma página pública do escritório?',
+    a: 'Sim. Configuras a página com a tua marca, serviços e marcação — o cliente acede sem precisares de montar um site à parte nem gerir vários links.',
+  },
+  {
+    q: 'Os clientes podem pagar serviços no Teglion?',
+    a: 'Sim. O pagamento do cliente final ao escritório fica na plataforma, ligado ao fluxo de serviços e marcações — sem saltar para outro sistema só para cobrar.',
+  },
+  {
+    q: 'Há inteligência artificial?',
+    a: 'Ainda não no produto. A IA no contexto do escritório (apoio a documentos e fecho do mês) está planeada e marcada como “em breve” — não vendemos como pronta.',
+  },
+  {
+    q: 'Funciona no telemóvel?',
+    a: 'Sim. O portal e o escritório abrem no browser — e podes instalar como app (PWA) no telemóvel ou tablet.',
   },
   {
     q: 'Funciona com a Autoridade Tributária?',
@@ -26,10 +38,6 @@ const FAQ = [
   {
     q: 'Os meus clientes precisam de instalar alguma coisa?',
     a: 'Não. Acedem pelo browser no telemóvel ou computador. Recebem um convite do escritório e entram no portal em minutos.',
-  },
-  {
-    q: 'Posso migrar dados de outro software?',
-    a: 'Podes começar com clientes novos no teste e importar a carteira com apoio da nossa equipa quando fizeres a transição.',
   },
   {
     q: 'Como cancelo?',

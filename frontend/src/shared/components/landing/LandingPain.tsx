@@ -2,16 +2,19 @@ import { FadeInStagger, FadeInStaggerItem, FadeInView } from '@/shared/component
 
 const CARDS = [
   {
-    pain: 'Documentos perdidos em e-mail e WhatsApp',
-    relief: 'Cada pedido fica registado. O cliente vê o que falta — e a equipa deixa de caçar ficheiros.',
+    pain: 'Tudo espalhado',
+    relief:
+      'Documentos no WhatsApp, prazos no email, IRS e consultorias em formulários e links soltos. A equipa perde tempo a caçar informação.',
   },
   {
-    pain: 'Prazos da AT que só se vêem em cima da hora',
-    relief: 'Sabe o que vence esta semana, por cliente, antes de virar multa ou noite em claro.',
+    pain: 'Cliente sem um sítio claro',
+    relief:
+      'Cada pedido vai por um canal diferente. O cliente não sabe o que falta — e o escritório responde ao mesmo “já enviei?” todos os dias.',
   },
   {
-    pain: 'O mesmo “já enviei?” todos os dias',
-    relief: 'O cliente consulta o estado no portal. Vocês respondem quando há mesmo uma dúvida.',
+    pain: 'Pagamentos e serviços à parte',
+    relief:
+      'Marcações, catálogo e cobranças fora da operação. O fecho do mês nunca está no mesmo ecrã que o dinheiro e os pedidos.',
   },
 ] as const
 
@@ -20,7 +23,10 @@ export function LandingPain() {
     <section className="landing-section bg-white">
       <div className="landing-container">
         <FadeInView className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-semibold sm:text-4xl">Reconhece o dia a dia?</h2>
+          <h2 className="text-3xl font-semibold sm:text-4xl">O escritório não precisa de viver assim</h2>
+          <p className="mt-3 text-[15px] text-[#4A5568] sm:text-base">
+            Se reconheces este caos, o Teglion existe exactamente para o acabar.
+          </p>
         </FadeInView>
         <FadeInStagger className="mt-12 grid gap-5 md:grid-cols-3">
           {CARDS.map((c) => (

@@ -9,8 +9,9 @@ import { BRAND } from '@/shared/config/brand'
 import { cn } from '@/shared/lib/utils'
 
 const NAV = [
+  { href: LANDING_ANCHORS.funcionalidades, label: 'Funcionalidades' },
   { href: LANDING_ANCHORS.produto, label: 'Produto' },
-  { href: '/pricing', label: 'Preços', route: true },
+  { href: LANDING_ANCHORS.precos, label: 'Preços' },
   { href: '/blog', label: 'Blog', route: true },
   { href: LANDING_ANCHORS.faq, label: 'FAQ' },
 ] as const

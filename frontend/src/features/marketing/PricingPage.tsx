@@ -14,11 +14,14 @@ const INCLUDED = [
   'Obrigações fiscais e tarefas',
   'Pedidos e validação de documentos',
   'Mensagens escritório ↔ cliente',
-  'Portal do cliente (web + mobile)',
+  'Portal do cliente',
+  'Página pública do escritório',
+  'Catálogo e personalização de serviços',
+  'Fluxos IRS e pedidos estruturados',
+  'Pagamentos do cliente na plataforma',
+  'Google Calendar e Drive',
   'Alertas e comunicados',
-  'Central de serviços e orçamentos',
   'Utilizadores ilimitados no trial',
-  
 ] as const
 
 export function PricingPage() {
@@ -58,7 +61,7 @@ export function PricingPage() {
               ))}
             </ul>
             <p className="mt-6 text-sm text-[#4A5568]">
-              Precisas de condições para o piloto?{' '}
+              Dúvidas sobre faturação?{' '}
               <a href={`mailto:${BRAND.emails.hello}`} className="font-medium text-[#0F2942] hover:underline">
                 Escreve-nos
               </a>
