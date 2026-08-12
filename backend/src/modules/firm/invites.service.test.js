@@ -66,6 +66,42 @@ test.afterEach(() => {
 // createClientInvite — não deve regredir o fluxo individual já em produção
 // ---------------------------------------------------------------------------
 
+test('createClientInvite: rejeita se o cliente não tem e-mail no cadastro', async () => {
+  stubHappyPathDeps();
+  mock.method(clientsRepository, 'findClientById', async () => ({
+    ...CLIENT_NO_ACCESS,
+    email: null,
+  }));
+  const createInvite = mock.method(invitesRepository, 'createInvite', async () => ({ id: 'inv-1' }));
+
+  await assert.rejects(
+    () => invitesService.createClientInvite({ firmId: 'firm-1', clientId: 'client-1', actor: null, req: null }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      assert.equal(err.code, 'CLIENT_EMAIL_REQUIRED');
+      return true;
+    },
+  );
+  assert.equal(createInvite.mock.callCount(), 0);
+});
+
+test('createClientInvite: rejeita e-mail inválido no cadastro', async () => {
+  stubHappyPathDeps();
+  mock.method(clientsRepository, 'findClientById', async () => ({
+    ...CLIENT_NO_ACCESS,
+    email: 'nao-e-email',
+  }));
+
+  await assert.rejects(
+    () => invitesService.createClientInvite({ firmId: 'firm-1', clientId: 'client-1', actor: null, req: null }),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      assert.equal(err.code, 'CLIENT_EMAIL_INVALID');
+      return true;
+    },
+  );
+});
+
 test('createClientInvite: com initialPassword activa o portal sem criar convite pendente', async () => {
   stubHappyPathDeps();
   mock.method(clientsRepository, 'findClientById', async () => CLIENT_NO_ACCESS);

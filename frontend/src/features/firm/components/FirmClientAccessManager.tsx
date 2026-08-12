@@ -1,5 +1,5 @@
 import { useState, type FocusEvent } from 'react'
-import { KeyRound, ShieldOff } from 'lucide-react'
+import { AlertTriangle, KeyRound, ShieldOff } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/shared/components/ui/button'
@@ -15,7 +15,9 @@ import {
 import { Input } from '@/shared/components/ui/input'
 import { contabilClientsApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { hasValidClientEmail } from '@/shared/utils/clientEmail'
 import { copyTextToClipboard } from '@/shared/utils/clipboard'
+import { contabilPt as t } from '@/shared/i18n/contabilPt'
 
 type PortalAccessStatus = 'NO_ACCESS' | 'PENDING_INVITE' | 'ACTIVE' | 'REVOKED'
 
@@ -31,19 +33,26 @@ type PortalAccessStatus = 'NO_ACCESS' | 'PENDING_INVITE' | 'ACTIVE' | 'REVOKED'
  */
 export function FirmClientAccessManager({
   clientId,
+  email,
   portalAccessStatus,
   onChanged,
+  onEditClient,
   size = 'sm',
 }: {
   clientId: string
+  email?: string | null
   portalAccessStatus?: PortalAccessStatus
   onChanged?: () => void
+  onEditClient?: () => void
   size?: 'sm' | 'default'
 }) {
   const [revokeOpen, setRevokeOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
   const [inviteUrl, setInviteUrl] = useState('')
+  const [missingEmailOpen, setMissingEmailOpen] = useState(false)
+
+  const emailOk = hasValidClientEmail(email)
 
   async function copyUrl(url: string) {
     const ok = await copyTextToClipboard(url)
@@ -66,6 +75,10 @@ export function FirmClientAccessManager({
   }
 
   const handleReissue = async () => {
+    if (!emailOk) {
+      setMissingEmailOpen(true)
+      return
+    }
     setLoading(true)
     try {
       const res = await contabilClientsApi.resendInvite(clientId)
@@ -120,6 +133,35 @@ export function FirmClientAccessManager({
           <KeyRound className="h-3.5 w-3.5" />
           {loading ? '…' : 'Gerar novo convite'}
         </Button>
+        <Dialog open={missingEmailOpen} onOpenChange={setMissingEmailOpen}>
+          <DialogContent className="rounded-2xl sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-600" />
+                {t.firm.inviteNeedsEmailTitle}
+              </DialogTitle>
+              <DialogDescription>
+                {!String(email || '').trim() ? t.firm.inviteNeedsEmailBody : t.firm.inviteInvalidEmailBody}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setMissingEmailOpen(false)}>
+                Fechar
+              </Button>
+              {onEditClient ? (
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setMissingEmailOpen(false)
+                    onEditClient()
+                  }}
+                >
+                  Completar e-mail na ficha
+                </Button>
+              ) : null}
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
         <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
           <DialogContent className="rounded-2xl sm:max-w-lg" aria-describedby={undefined}>
             <DialogHeader>

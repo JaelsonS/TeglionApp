@@ -87,6 +87,9 @@ export function FirmClientsPage() {
   )
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [selectedMeta, setSelectedMeta] = useState<
+    Record<string, { name: string; email?: string | null }>
+  >({})
   const [bulkInviteOpen, setBulkInviteOpen] = useState(false)
   const [openCreate, setOpenCreate] = useState(false)
   const [archiveTarget, setArchiveTarget] = useState<Client | null>(null)
@@ -190,10 +193,21 @@ export function FirmClientsPage() {
   }, [page, pageCount])
 
   const toggleSelect = (id: string) => {
+    const client = pageItems.find((c) => c._id === id)
+    const willSelect = !selected.has(id)
     setSelected((prev) => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      if (willSelect) next.add(id)
+      else next.delete(id)
+      return next
+    })
+    setSelectedMeta((prev) => {
+      const next = { ...prev }
+      if (!willSelect) {
+        delete next[id]
+      } else if (client) {
+        next[id] = { name: client.fullName || client.name || id, email: client.email }
+      }
       return next
     })
   }
@@ -201,9 +215,20 @@ export function FirmClientsPage() {
   const toggleSelectAll = () => {
     if (selected.size === pageItems.length) {
       setSelected(new Set())
+      setSelectedMeta({})
     } else {
       setSelected(new Set(pageItems.map((c) => c._id)))
+      setSelectedMeta(
+        Object.fromEntries(
+          pageItems.map((c) => [c._id, { name: c.fullName || c.name || c._id, email: c.email }]),
+        ),
+      )
     }
+  }
+
+  const clearSelection = () => {
+    setSelected(new Set())
+    setSelectedMeta({})
   }
 
   const openHub = (id: string) => {
@@ -326,7 +351,7 @@ export function FirmClientsPage() {
               size="sm"
               variant="ghost"
               className="h-8 gap-1.5 rounded-md text-xs text-muted-foreground"
-              onClick={() => setSelected(new Set())}
+              onClick={clearSelection}
             >
               <X className="h-3.5 w-3.5" />
               Limpar seleção
@@ -528,8 +553,13 @@ export function FirmClientsPage() {
         open={bulkInviteOpen}
         onOpenChange={setBulkInviteOpen}
         clientIds={[...selected]}
+        clients={[...selected].map((id) => ({
+          id,
+          name: selectedMeta[id]?.name || items.find((c) => c._id === id)?.fullName || items.find((c) => c._id === id)?.name || id,
+          email: selectedMeta[id]?.email ?? items.find((c) => c._id === id)?.email ?? null,
+        }))}
         onDone={() => {
-          setSelected(new Set())
+          clearSelection()
           void load()
         }}
       />

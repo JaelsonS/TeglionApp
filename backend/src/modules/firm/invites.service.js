@@ -8,7 +8,7 @@
  * de equipa interna (`team-invites.service.js` / `firm_member_invites`).
  */
 const { AppError } = require('../../middlewares/error.middleware');
-const { normalizeEmail } = require('../../utils/normalize');
+const { normalizeEmail, normalizeValidInviteEmail } = require('../../utils/normalize');
 const { hashPassword } = require('../../utils/password-crypto');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
@@ -58,6 +58,25 @@ async function resolveInviteBranding(firmId) {
   }
 }
 
+/**
+ * Convites de acesso ao portal exigem e-mail válido no cadastro do cliente —
+ * sem isso o escritório não deve conseguir «enviar» o convite (nem activar
+ * com palavra-passe, porque o login usa esse e-mail).
+ */
+function requireClientInviteEmail(rawEmail) {
+  const email = normalizeValidInviteEmail(rawEmail);
+  if (email) return email;
+  const hasAny = Boolean(String(rawEmail || '').trim());
+  throw new AppError(
+    hasAny
+      ? 'O e-mail no cadastro deste cliente não é válido. Corrija o e-mail na ficha da empresa antes de enviar o convite.'
+      : 'Este cliente não tem e-mail no cadastro. Adicione um e-mail válido na ficha da empresa antes de enviar o convite.',
+    400,
+    undefined,
+    hasAny ? 'CLIENT_EMAIL_INVALID' : 'CLIENT_EMAIL_REQUIRED',
+  );
+}
+
 async function sendInviteEmail({ firmId, email, displayName, inviteUrl, expiresAt, emailOverride }) {
   if (!email) return { emailSent: false, emailError: 'no_email' };
   const branding = await resolveInviteBranding(firmId);
@@ -105,7 +124,7 @@ async function createClientInvite({
   const firmId = String(firmIdRaw);
 
   let clientName = null;
-  let clientEmail = email ? normalizeEmail(email) : null;
+  let clientEmail = normalizeValidInviteEmail(email);
   if (clientId) {
     const client = await clientsRepository.findClientById(firmId, clientId);
     if (!client) throw new AppError('Cliente não encontrado', 404);
@@ -113,8 +132,11 @@ async function createClientInvite({
       throw new AppError('Este cliente já tem acesso ao portal. Use recuperação de palavra-passe.', 409);
     }
     clientName = client.displayName || null;
-    if (!clientEmail && client.email) clientEmail = normalizeEmail(client.email);
+    if (!clientEmail) clientEmail = normalizeValidInviteEmail(client.email);
+    clientEmail = requireClientInviteEmail(clientEmail || client.email || email);
     await invitesRepository.revokePendingInvitesForClient(firmId, clientId);
+  } else {
+    clientEmail = requireClientInviteEmail(clientEmail || email);
   }
 
   // Caminho A: escritório define palavra-passe → acesso ACTIVE imediato (login normal).
@@ -249,6 +271,7 @@ async function resendClientInvite({ firmId: firmIdRaw, clientId, actor, req }) {
   const firmId = String(firmIdRaw);
   const client = await clientsRepository.findClientById(firmId, clientId);
   if (!client) throw new AppError('Cliente não encontrado', 404);
+  const clientEmail = requireClientInviteEmail(client.email);
 
   await invitesRepository.revokePendingInvitesForClient(firmId, clientId);
 
@@ -257,7 +280,7 @@ async function resendClientInvite({ firmId: firmIdRaw, clientId, actor, req }) {
   const invite = await invitesRepository.createInvite({
     firmId,
     clientId,
-    email: client.email || null,
+    email: clientEmail,
     token: hashToken(rawToken),
     expiresAt,
     createdBy: actor?.id || null,
@@ -267,7 +290,7 @@ async function resendClientInvite({ firmId: firmIdRaw, clientId, actor, req }) {
   const inviteUrl = buildInviteUrl(rawToken);
   const delivery = await sendInviteEmail({
     firmId,
-    email: client.email,
+    email: clientEmail,
     displayName: client.displayName,
     inviteUrl,
     expiresAt,
@@ -309,7 +332,8 @@ async function createBulkClientInvites({ firmId: firmIdRaw, clientIds, actor, re
           results.alreadyActive += 1;
           continue;
         }
-        if (!client.email) {
+        const inviteEmail = normalizeValidInviteEmail(client.email);
+        if (!inviteEmail) {
           results.skippedNoEmail += 1;
           continue;
         }
@@ -320,7 +344,7 @@ async function createBulkClientInvites({ firmId: firmIdRaw, clientIds, actor, re
         await invitesRepository.createInvite({
           firmId,
           clientId: client.id,
-          email: client.email,
+          email: inviteEmail,
           token: hashToken(rawToken),
           expiresAt,
           createdBy: actor?.id || null,
@@ -331,7 +355,7 @@ async function createBulkClientInvites({ firmId: firmIdRaw, clientIds, actor, re
         const inviteUrl = buildInviteUrl(rawToken);
         const delivery = await sendInviteEmail({
           firmId,
-          email: client.email,
+          email: inviteEmail,
           displayName: client.displayName,
           inviteUrl,
           expiresAt,

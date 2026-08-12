@@ -1,5 +1,5 @@
-import { useEffect, useState, type ChangeEvent } from 'react'
-import { CheckCircle2, Eye, Loader2, Mail, XCircle } from 'lucide-react'
+import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
+import { AlertTriangle, CheckCircle2, Eye, Loader2, Mail, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/shared/components/ui/button'
@@ -16,6 +16,7 @@ import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { contabilClientsApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { hasValidClientEmail } from '@/shared/utils/clientEmail'
 
 type BulkInviteResult = {
   requested: number
@@ -28,6 +29,12 @@ type BulkInviteResult = {
 
 type Step = 'compose' | 'result'
 
+export type BulkInviteClientSummary = {
+  id: string
+  name: string
+  email?: string | null
+}
+
 /**
  * Convite em massa — modal com texto de modelo editável (sem HTML),
  * pré-visualização e envio de teste antes de disparar pela Brevo.
@@ -36,11 +43,14 @@ export function FirmClientBulkInviteDialog({
   open,
   onOpenChange,
   clientIds,
+  clients = [],
   onDone,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   clientIds: string[]
+  /** Dados dos seleccionados para avisar sem e-mail antes do envio. */
+  clients?: BulkInviteClientSummary[]
   onDone?: () => void
 }) {
   const [step, setStep] = useState<Step>('compose')
@@ -52,6 +62,21 @@ export function FirmClientBulkInviteDialog({
   const [bodyText, setBodyText] = useState('')
   const [showPreview, setShowPreview] = useState(true)
   const [testEmail, setTestEmail] = useState('')
+
+  const selectedClients = useMemo(() => {
+    if (clients.length) {
+      const byId = new Map(clients.map((c) => [c.id, c]))
+      return clientIds.map((id) => byId.get(id) || { id, name: id, email: null })
+    }
+    return clientIds.map((id) => ({ id, name: id, email: null as string | null }))
+  }, [clientIds, clients])
+
+  const withoutEmail = useMemo(
+    () => selectedClients.filter((c) => !hasValidClientEmail(c.email)),
+    [selectedClients],
+  )
+  const withEmailCount = selectedClients.length - withoutEmail.length
+  const canSend = withEmailCount > 0
 
   useEffect(() => {
     if (!open) return
@@ -85,13 +110,25 @@ export function FirmClientBulkInviteDialog({
   }
 
   const handleSend = async () => {
+    if (!canSend) {
+      toast.error('Nenhum cliente com e-mail válido', {
+        description: 'Complete o e-mail na ficha de cada empresa antes de enviar convites.',
+      })
+      return
+    }
     setSending(true)
     try {
-      const res = await contabilClientsApi.createBulkInvite(clientIds, {
+      const eligibleIds = selectedClients.filter((c) => hasValidClientEmail(c.email)).map((c) => c.id)
+      const res = await contabilClientsApi.createBulkInvite(eligibleIds, {
         subject: subject.trim() || undefined,
         bodyText: bodyText.trim() || undefined,
       })
-      setResult(res)
+      setResult({
+        ...res,
+        // Inclui os que já sabíamos que não tinham e-mail (não enviados ao API).
+        skippedNoEmail: (res.skippedNoEmail || 0) + withoutEmail.length,
+        requested: clientIds.length,
+      })
       setStep('result')
       if (res.sent > 0) onDone?.()
       else if (res.failed > 0) {
@@ -154,7 +191,7 @@ export function FirmClientBulkInviteDialog({
               {result.skippedNoEmail > 0 ? (
                 <li className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
                   <span className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-amber-600" /> Sem e-mail
+                    <Mail className="h-4 w-4 text-amber-600" /> Sem e-mail válido
                   </span>
                   <span className="font-semibold">{result.skippedNoEmail}</span>
                 </li>
@@ -179,13 +216,41 @@ export function FirmClientBulkInviteDialog({
             <DialogHeader className="border-b border-border/60 px-5 py-4 text-left">
               <DialogTitle>Enviar convites</DialogTitle>
               <DialogDescription>
-                Está prestes a enviar convites para <strong>{clientIds.length}</strong> cliente
-                {clientIds.length === 1 ? '' : 's'}. O texto abaixo é o modelo do Teglion — pode
-                editar se quiser; o e-mail é formatado automaticamente (sem código HTML).
+                Está prestes a enviar convites para <strong>{withEmailCount}</strong> cliente
+                {withEmailCount === 1 ? '' : 's'} com e-mail válido
+                {withoutEmail.length > 0 ? (
+                  <>
+                    {' '}
+                    (<strong>{withoutEmail.length}</strong> sem e-mail serão ignorados).
+                  </>
+                ) : (
+                  '.'
+                )}{' '}
+                O texto abaixo é o modelo do Teglion — pode editar se quiser; o e-mail é formatado automaticamente
+                (sem código HTML).
               </DialogDescription>
             </DialogHeader>
 
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
+              {withoutEmail.length > 0 ? (
+                <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 text-sm text-amber-950">
+                  <p className="flex items-start gap-2 font-medium">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+                    Empresas sem e-mail válido no cadastro
+                  </p>
+                  <p className="mt-1 text-caption text-amber-900/90">
+                    Complete o e-mail na ficha destas empresas antes de as incluir no envio. Não receberão
+                    convite neste lote:
+                  </p>
+                  <ul className="mt-2 max-h-28 list-disc space-y-0.5 overflow-y-auto pl-5 text-caption">
+                    {withoutEmail.slice(0, 20).map((c) => (
+                      <li key={c.id}>{c.name}</li>
+                    ))}
+                    {withoutEmail.length > 20 ? <li>… e mais {withoutEmail.length - 20}</li> : null}
+                  </ul>
+                </div>
+              ) : null}
+
               {loadingPreview ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" /> A preparar mensagem…
@@ -198,6 +263,7 @@ export function FirmClientBulkInviteDialog({
                       id="bulk-invite-subject"
                       value={subject}
                       onChange={(e: ChangeEvent<HTMLInputElement>) => setSubject(e.target.value)}
+                      disabled={!canSend}
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -208,6 +274,7 @@ export function FirmClientBulkInviteDialog({
                       value={bodyText}
                       onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setBodyText(e.target.value)}
                       className="text-sm leading-relaxed"
+                      disabled={!canSend}
                     />
                     <p className="text-caption text-muted-foreground">
                       Texto simples — saudação, botão do convite e rodapé são acrescentados
@@ -253,13 +320,19 @@ export function FirmClientBulkInviteDialog({
               <Button type="button" variant="ghost" onClick={() => handleOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button type="button" disabled={sending || loadingPreview || clientIds.length === 0} onClick={() => void handleSend()}>
+              <Button
+                type="button"
+                disabled={sending || loadingPreview || !canSend}
+                onClick={() => void handleSend()}
+              >
                 {sending ? (
                   <>
                     <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> A enviar…
                   </>
+                ) : canSend ? (
+                  `Enviar convites (${withEmailCount})`
                 ) : (
-                  `Enviar convites (${clientIds.length})`
+                  'Sem e-mails válidos'
                 )}
               </Button>
             </DialogFooter>

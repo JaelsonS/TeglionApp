@@ -44,7 +44,11 @@ export function ClientHubHeader({ hub, displayName, clientId, onBack, onEdit, on
             </div>
             <p className="cb-client-hub-meta">
               {client.taxId ? `NIF ${formatNifDisplay(client.taxId)}` : 'NIF —'}
-              {client.email ? ` · ${client.email}` : ''}
+              {client.email ? (
+                ` · ${client.email}`
+              ) : (
+                <span className="text-amber-700"> · sem e-mail no cadastro</span>
+              )}
               {client.phone ? ` · ${client.phone}` : ''}
             </p>
             {hub.client.fiscalProfile?.legalForm ? (
@@ -57,11 +61,17 @@ export function ClientHubHeader({ hub, displayName, clientId, onBack, onEdit, on
           {client.portalAccessStatus === 'ACTIVE' || client.portalAccessStatus === 'REVOKED' ? (
             <FirmClientAccessManager
               clientId={clientId}
+              email={client.email}
               portalAccessStatus={client.portalAccessStatus}
               onChanged={onAccessChanged}
+              onEditClient={onEdit}
             />
           ) : (
-            <FirmClientInviteButton clientId={clientId} email={client.email || undefined} />
+            <FirmClientInviteButton
+              clientId={clientId}
+              email={client.email || undefined}
+              onEditClient={onEdit}
+            />
           )}
           <Button asChild variant="outline" size="sm" className="h-8 rounded-md text-xs">
             <Link to={`/app/firm/messages?client=${clientId}`}>

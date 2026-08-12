@@ -127,6 +127,12 @@ export function getErrorMessage(err: unknown): string {
     if (code === 'PASSWORD_NOT_SET') {
       return 'Ainda não definiu a palavra-passe. Abra o email/link de convite do escritório, crie a senha e só depois use Entrar. Se não tiver o link, peça um novo convite ao contabilista.'
     }
+    if (code === 'CLIENT_EMAIL_REQUIRED') {
+      return 'Este cliente não tem e-mail no cadastro. Adicione um e-mail válido na ficha da empresa antes de enviar o convite.'
+    }
+    if (code === 'CLIENT_EMAIL_INVALID') {
+      return 'O e-mail no cadastro deste cliente não é válido. Corrija o e-mail na ficha da empresa antes de enviar o convite.'
+    }
     if (code === 'MULTIPLE_FIRMS') {
       return 'Este e-mail está em mais do que um escritório. Use o link de convite que o contabilista lhe enviou.'
     }

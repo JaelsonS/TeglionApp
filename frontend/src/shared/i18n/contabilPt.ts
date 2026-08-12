@@ -217,6 +217,11 @@ export const contabilPt = {
     inviteCopied: 'Link copiado para a área de transferência',
     inviteCopyManual: 'Não foi possível copiar automaticamente. Selecione o link abaixo e copie manualmente (Cmd+C / menu).',
     inviteError: 'Não foi possível gerar o convite',
+    inviteNeedsEmailTitle: 'E-mail em falta no cadastro',
+    inviteNeedsEmailBody:
+      'Esta empresa cliente não tem e-mail na ficha. Adicione um e-mail válido antes de enviar o convite de acesso ao portal.',
+    inviteInvalidEmailBody:
+      'O e-mail no cadastro desta empresa não é válido. Corrija-o na ficha do cliente antes de enviar o convite.',
     inviteDialogTitle: 'Link de convite do cliente',
     inviteDialogHint:
       'O cliente TEM de abrir este link e definir a palavra-passe. Enquanto não o fizer, o login no portal falha com «ainda não tem palavra-passe».',
