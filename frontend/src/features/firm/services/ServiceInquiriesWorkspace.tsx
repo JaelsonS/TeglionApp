@@ -49,6 +49,7 @@ const HISTORY_ACTION_LABELS: Record<string, string> = {
   'service_inquiry.request_added': 'Pendência adicionada pela equipa',
   'service_inquiry.document_delivered': 'Documento recebido',
   'service_inquiry.request_answered': 'Resposta recebida do cliente',
+  'service_inquiry.consultation_confirmed': 'Agendamento confirmado e cliente notificado',
 }
 
 function historyItemLabel(item: ServiceInquiryHistoryItem): string {
@@ -118,6 +119,7 @@ export function ServiceInquiriesWorkspace() {
   const [newTagColor, setNewTagColor] = useState(SUGGESTED_TAG_COLORS[0])
   const [savingTag, setSavingTag] = useState(false)
   const [savingInquiryTags, setSavingInquiryTags] = useState(false)
+  const [confirmingBooking, setConfirmingBooking] = useState(false)
 
   useEffect(() => {
     setDraftItems([])
@@ -354,6 +356,24 @@ export function ServiceInquiriesWorkspace() {
     }
   }
 
+  const confirmConsultation = async () => {
+    if (!selectedId) return
+    setConfirmingBooking(true)
+    try {
+      const result = await contabilServiceInquiriesApi.confirmConsultation(selectedId)
+      toast.success(
+        result.emailed
+          ? 'Agendamento confirmado — email enviado ao cliente'
+          : 'Agendamento confirmado (cliente sem email para notificar)',
+      )
+      await invalidateLists()
+    } catch (err) {
+      toast.error('Não foi possível confirmar', { description: getErrorMessage(err) })
+    } finally {
+      setConfirmingBooking(false)
+    }
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -584,15 +604,28 @@ export function ServiceInquiriesWorkspace() {
               </div>
 
               {detailQuery.data.inquiry.consultation ? (
-                <div className="rounded-lg border border-brand/30 bg-brand/5 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-brand">Consulta agendada</p>
-                  <p className="text-sm font-medium">
-                    {new Date(detailQuery.data.inquiry.consultation.scheduledAt).toLocaleString('pt-PT', {
-                      dateStyle: 'full',
-                      timeStyle: 'short',
-                      timeZone: 'Europe/Lisbon',
-                    })}
-                  </p>
+                <div className="space-y-3 rounded-lg border border-brand/30 bg-brand/5 p-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-brand">Consulta agendada</p>
+                    <p className="text-sm font-medium">
+                      {new Date(detailQuery.data.inquiry.consultation.scheduledAt).toLocaleString('pt-PT', {
+                        dateStyle: 'full',
+                        timeStyle: 'short',
+                        timeZone: 'Europe/Lisbon',
+                      })}
+                    </p>
+                  </div>
+                  {!TERMINAL_STATUSES.has(detailQuery.data.inquiry.status) &&
+                  detailQuery.data.inquiry.consultation.status !== 'CANCELLED' ? (
+                    <Button
+                      type="button"
+                      className="rounded-full"
+                      disabled={confirmingBooking}
+                      onClick={() => void confirmConsultation()}
+                    >
+                      {confirmingBooking ? 'A confirmar…' : 'Confirmar agendamento'}
+                    </Button>
+                  ) : null}
                 </div>
               ) : null}
 

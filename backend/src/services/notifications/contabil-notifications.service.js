@@ -464,6 +464,43 @@ async function notifyFirmConsultationBooked({ staffEmail, firmName, clientName, 
   });
 }
 
+/** Confirmação ao cliente/lead quando a equipa valida o agendamento em Solicitações. */
+async function notifyLeadConsultationConfirmed({
+  toEmail,
+  toName,
+  firmName,
+  serviceName,
+  when,
+  accessToken,
+}) {
+  if (!toEmail) return { skipped: true, reason: 'no_email' };
+  const firm = firmName || 'o escritório';
+  const link = accessToken ? serviceIntakeAccessUrl(accessToken) : null;
+  return sendEmail({
+    to: toEmail,
+    subject: `Agendamento confirmado — ${serviceName || 'consulta'} (${firm})`,
+    tags: ['transactional', 'consultation', 'service-intake'],
+    html: renderTransactionalEmail({
+      preheader: `Confirmado: ${when || 'a sua consulta'}`,
+      title: 'Agendamento confirmado',
+      greeting: `Olá${toName ? ` ${toName}` : ''},`,
+      bodyHtml: `<p style="margin:0 0 12px">O escritório <strong>${escapeHtml(firm)}</strong> confirmou o seu agendamento${serviceName ? ` de <strong>${escapeHtml(serviceName)}</strong>` : ''}.</p><p style="margin:0"><strong>Data/hora:</strong> ${escapeHtml(when || '—')}</p>`,
+      ctaLabel: link ? 'Ver o meu pedido' : undefined,
+      ctaUrl: link || undefined,
+      footerNote: 'Se precisar de alterar a data, contacte o escritório.',
+    }),
+    text: [
+      `Olá${toName ? ` ${toName}` : ''},`,
+      '',
+      `O escritório ${firm} confirmou o seu agendamento${serviceName ? ` de ${serviceName}` : ''}.`,
+      `Data/hora: ${when || '—'}`,
+      link ? `Ver pedido: ${link}` : '',
+      '',
+      'Teglion',
+    ].filter(Boolean).join('\n'),
+  });
+}
+
 async function notifyFirmStaffWelcome({ staffEmail, staffName, firmName }) {
   if (!staffEmail) return { skipped: true };
   const appName = firmName || 'Teglion';
@@ -654,6 +691,7 @@ module.exports = {
   notifyClientObligationReminder,
   notifyFirmDocumentReceived,
   notifyFirmConsultationBooked,
+  notifyLeadConsultationConfirmed,
   notifyLeadIntakeChecklist,
   notifyLeadIntakeReceived,
   notifyFirmIntakeSubmitted,

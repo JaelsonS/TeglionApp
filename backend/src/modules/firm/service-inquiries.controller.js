@@ -100,6 +100,21 @@ exports.addRequestsBatch = async (req, res, next) => {
   }
 };
 
+exports.confirmConsultation = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const inquiryId = parseEntityId(req.params.id, 'id');
+    const result = await serviceInquiriesService.confirmConsultation({
+      firmId,
+      inquiryId,
+      actor: req.user,
+    });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.downloadDocument = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);

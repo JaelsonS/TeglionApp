@@ -1,6 +1,6 @@
 # Captação & Solicitações — Plano aprovado (ajustado)
 
-**Estado:** Fases A–D feitas · Próximo: E (confirmar agendamento)  
+**Estado:** Fases A–E feitas · Próximo: F (editor Catálogo + regras de etiquetas)  
 **Branding:** usar tokens do sistema (`--cb-brand`, `--primary`, componentes shadcn existentes). Não introduzir paletas azuis genéricas dos mockups — só a **organização** dos ecrãs.
 
 ## Produção
@@ -8,7 +8,8 @@
 - Google Calendar Fase 1 e Google Drive Fase 2 já em `main` (`7e0a0df`).
 - Fase A (obrigado + sem docs automáticos) em `main` (`d9164de`).
 - Fase B/C (shell Serviços + inbox + etiquetas) em `main` (`31e8c6c`).
-- Fase D (pedido multi-item) em branch `feat/captacao-fase-d-multi-item-pedido`.
+- Fase D (pedido multi-item) em `main` (`bbf558c`).
+- Fase E (confirmar agendamento) em branch `feat/captacao-fase-e-confirm-booking`.
 
 ## Esclarecimento de etiquetas (aprovado)
 
@@ -26,7 +27,7 @@ Não usar categorias fixas do sistema (“Atenção/Fácil”) como única opç�
 | **B** | Reformular shell Serviços (tabs) com componentes/branding actuais | Feito |
 | **C** | Inbox Solicitações + badges de etiquetas da contadora | Feito |
 | **D** | Pedido multi-item (docs + perguntas) | Feito |
-| **E** | Confirmar agendamento → email | Próximo |
+| **E** | Confirmar agendamento → email | Feito |
 | **F** | Editor Catálogo auto-explicativo + regras de etiquetas | Próximo |
 | **G** | `visibleIf` completo (depois) | Depois |
 

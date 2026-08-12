@@ -108,6 +108,11 @@ export function createContabilServiceInquiriesApi(api: AxiosInstance) {
       api
         .post(`/contabil/service-inquiries/${encodeURIComponent(id)}/requests/batch`, payload)
         .then((r) => r.data as { requests: ServiceInquiryChecklistItem[] }),
+
+    confirmConsultation: (id: string) =>
+      api
+        .post(`/contabil/service-inquiries/${encodeURIComponent(id)}/confirm-consultation`)
+        .then((r) => r.data as { ok: boolean; emailed: boolean; consultation: { id: string; scheduledAt: string; status: string } }),
   }
 }
 

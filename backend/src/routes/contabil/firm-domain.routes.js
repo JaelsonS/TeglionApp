@@ -603,6 +603,11 @@ router.post(
   serviceInquiriesController.addRequestsBatch,
 );
 router.post(
+  '/service-inquiries/:id/confirm-consultation',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  serviceInquiriesController.confirmConsultation,
+);
+router.post(
   '/service-inquiries/:id/requests',
   requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
   [

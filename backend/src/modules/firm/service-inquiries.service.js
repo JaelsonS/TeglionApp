@@ -790,6 +790,69 @@ async function capturePublicLead({ firmSlug, serviceSlug, payload }) {
   return { inquiry, accessToken: inquiry.accessToken };
 }
 
+/**
+ * A equipa confirma o agendamento ligado à solicitação e notifica o cliente por email.
+ */
+async function confirmConsultation({ firmId, inquiryId, actor }) {
+  const inquiry = await serviceInquiriesRepository.findByIdForFirm(inquiryId, firmId);
+  if (!inquiry) throw new AppError('Solicitação não encontrada', 404);
+  if (!inquiry.consultationId) throw new AppError('Esta solicitação não tem agendamento', 400);
+  if (TERMINAL_STATUSES.has(inquiry.status)) {
+    throw new AppError('Solicitação encerrada — não é possível confirmar o agendamento', 409);
+  }
+
+  const consultation = await consultationsRepository.findByIdForFirm(inquiry.consultationId, firmId);
+  if (!consultation) throw new AppError('Agendamento não encontrado', 404);
+  if (consultation.status === 'CANCELLED') {
+    throw new AppError('Este agendamento foi cancelado', 409);
+  }
+
+  const [service, firm] = await Promise.all([
+    accountingServicesRepository.findByIdForFirm(inquiry.serviceId, firmId),
+    firmsRepository.findFirmById(firmId).catch(() => null),
+  ]);
+  const { name: requesterName, email: requesterEmail } = await requesterContactForInquiry(inquiry);
+
+  const when = consultation.scheduledAt
+    ? new Date(consultation.scheduledAt).toLocaleString('pt-PT', {
+        dateStyle: 'full',
+        timeStyle: 'short',
+        timeZone: 'Europe/Lisbon',
+      })
+    : null;
+
+  if (requesterEmail) {
+    await contabilNotifications.notifyLeadConsultationConfirmed({
+      toEmail: requesterEmail,
+      toName: requesterName,
+      firmName: firm?.name,
+      serviceName: interpolateServiceTemplate(service?.name),
+      when,
+      accessToken: inquiry.accessToken,
+    });
+  }
+
+  await auditRepository.writeAuditLog({
+    firmId,
+    actorRole: 'FIRM',
+    actorId: actor?.id,
+    action: 'service_inquiry.consultation_confirmed',
+    entityType: 'service_inquiry',
+    entityId: inquiry.id,
+    metadata: { consultationId: consultation.id, scheduledAt: consultation.scheduledAt },
+  });
+
+  return {
+    ok: true,
+    consultation: {
+      id: consultation.id,
+      scheduledAt: consultation.scheduledAt,
+      status: consultation.status,
+    },
+    emailed: Boolean(requesterEmail),
+  };
+}
+
 module.exports = {
   list,
   getById,
@@ -799,6 +862,7 @@ module.exports = {
   revokeAccessToken,
   addServiceInquiryRequest,
   addServiceInquiryRequestsBatch,
+  confirmConsultation,
   capturePublicLead,
   submitPublicIntake,
   getByAccessToken,
