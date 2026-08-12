@@ -1151,6 +1151,7 @@ export function AgendaServicesCatalogPanel({
                               size="sm"
                               className="h-8 rounded-full text-xs"
                               onClick={() => {
+                                if (!firmSlug || !s.slug) return
                                 const url = `${window.location.origin}/${encodeURIComponent(firmSlug)}/servicos/${encodeURIComponent(s.slug)}`
                                 window.open(url, '_blank', 'noopener,noreferrer')
                               }}

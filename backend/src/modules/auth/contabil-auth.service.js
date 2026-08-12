@@ -444,7 +444,7 @@ async function loginClient({ email, password, firmSlug, req }) {
   }
   if (!row.password_hash) {
     throw new AppError(
-      'Ainda não tem palavra-passe no portal. Use o link de convite enviado pelo escritório (Primeiro acesso).',
+      'Ainda não definiu a palavra-passe. Abra o link de convite enviado pelo escritório, crie a senha e só depois tente entrar. Se o link expirou, peça um novo convite.',
       401,
       { code: 'PASSWORD_NOT_SET' },
     );

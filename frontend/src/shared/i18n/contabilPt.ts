@@ -219,7 +219,7 @@ export const contabilPt = {
     inviteError: 'Não foi possível gerar o convite',
     inviteDialogTitle: 'Link de convite do cliente',
     inviteDialogHint:
-      'Envie este endereço ao cliente (e-mail, WhatsApp, etc.). Ele pode colar no browser para criar conta e aceder ao portal.',
+      'O cliente TEM de abrir este link e definir a palavra-passe. Enquanto não o fizer, o login no portal falha com «ainda não tem palavra-passe».',
     inviteCopyAgain: 'Copiar de novo',
     inviteShare: 'Partilhar…',
     inviteShareTitle: 'Convite portal Teglion',

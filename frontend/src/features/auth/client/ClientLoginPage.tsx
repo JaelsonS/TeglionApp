@@ -43,6 +43,7 @@ export function ClientLoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [serverWaking, setServerWaking] = useState(false)
   const [serverWakingSince, setServerWakingSince] = useState<number>()
+  const [passwordNotSetHint, setPasswordNotSetHint] = useState(false)
 
   const firmSlugRaw = params.get('firmSlug') || params.get('firm')
   const firmSlug =
@@ -97,6 +98,7 @@ export function ClientLoginPage() {
     setIsSubmitting(true)
     setServerWaking(false)
     setServerWakingSince(undefined)
+    setPasswordNotSetHint(false)
     try {
       await withAuthLoginRetry(() =>
         loginClient({
@@ -116,7 +118,21 @@ export function ClientLoginPage() {
         toast.error('Servidor a iniciar. Tente novamente em instantes.')
         return
       }
-      toast.error(redactInternalIdentifiers(getErrorMessage(err)))
+      const message = redactInternalIdentifiers(getErrorMessage(err))
+      const code =
+        typeof err === 'object' && err && 'response' in err
+          ? String(
+              (err as { response?: { data?: { code?: string; details?: { code?: string } } } }).response?.data
+                ?.code ||
+                (err as { response?: { data?: { details?: { code?: string } } } }).response?.data?.details
+                  ?.code ||
+                '',
+            ).toUpperCase()
+          : ''
+      if (code === 'PASSWORD_NOT_SET' || /ainda não definiu a palavra-passe|ainda não tem palavra-passe/i.test(message)) {
+        setPasswordNotSetHint(true)
+      }
+      toast.error(message)
     } finally {
       setIsSubmitting(false)
     }
@@ -140,6 +156,21 @@ export function ClientLoginPage() {
           />
 
           {serverWaking ? <ServerWakingBanner startedAt={serverWakingSince} className="mt-6" /> : null}
+
+          {passwordNotSetHint ? (
+            <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+              <p className="font-semibold">Ainda não há palavra-passe nesta conta</p>
+              <ol className="mt-2 list-decimal space-y-1 pl-4 text-caption leading-relaxed text-amber-900/90">
+                <li>Abra o email «Acesso ao portal» enviado pelo escritório.</li>
+                <li>Clique no link do convite e defina a palavra-passe.</li>
+                <li>Volte aqui e entre com o mesmo e-mail e a senha criada.</li>
+              </ol>
+              <p className="mt-2 text-caption text-amber-900/80">
+                Se não encontrar o email, peça ao escritório um novo convite (ou que defina uma palavra-passe
+                inicial).
+              </p>
+            </div>
+          ) : null}
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-5">
             <div>

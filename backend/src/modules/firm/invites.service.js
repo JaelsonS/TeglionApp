@@ -92,10 +92,20 @@ async function sendInviteEmail({ firmId, email, displayName, inviteUrl, expiresA
   }
 }
 
-async function createClientInvite({ firmId: firmIdRaw, clientId, email, createdByUserId, actor, req, emailOverride }) {
+async function createClientInvite({
+  firmId: firmIdRaw,
+  clientId,
+  email,
+  initialPassword,
+  createdByUserId,
+  actor,
+  req,
+  emailOverride,
+}) {
   const firmId = String(firmIdRaw);
 
   let clientName = null;
+  let clientEmail = email ? normalizeEmail(email) : null;
   if (clientId) {
     const client = await clientsRepository.findClientById(firmId, clientId);
     if (!client) throw new AppError('Cliente não encontrado', 404);
@@ -103,7 +113,56 @@ async function createClientInvite({ firmId: firmIdRaw, clientId, email, createdB
       throw new AppError('Este cliente já tem acesso ao portal. Use recuperação de palavra-passe.', 409);
     }
     clientName = client.displayName || null;
+    if (!clientEmail && client.email) clientEmail = normalizeEmail(client.email);
     await invitesRepository.revokePendingInvitesForClient(firmId, clientId);
+  }
+
+  // Caminho A: escritório define palavra-passe → acesso ACTIVE imediato (login normal).
+  if (initialPassword) {
+    if (!clientId) {
+      throw new AppError('Indique o cliente para definir a palavra-passe inicial.', 400);
+    }
+    assertStrongPassword(initialPassword);
+    const passwordHash = await hashPassword(String(initialPassword));
+    await clientsRepository.updateClientAuth(clientId, { passwordHash });
+    await clientsRepository.updatePortalAccessStatus(clientId, 'ACTIVE');
+
+    const firm = await firmsRepository.findFirmById(firmId).catch(() => null);
+    const base = String(require('../../config/env').env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+    const loginQs = new URLSearchParams();
+    if (firm?.slug) loginQs.set('firmSlug', String(firm.slug));
+    if (clientEmail) loginQs.set('email', clientEmail);
+    const loginUrl = `${base}/auth/client/login${loginQs.toString() ? `?${loginQs}` : ''}`;
+
+    if (clientEmail) {
+      void contabilNotifications
+        .notifyClientWelcome({
+          clientEmail,
+          clientName,
+          firmName: firm?.name || null,
+        })
+        .catch((err) => console.warn('[Teglion] welcome email:', err.message));
+    }
+
+    await securityAudit.recordClientMutation({
+      action: 'client.invite.sent',
+      actor: actor || null,
+      firmId,
+      clientId,
+      metadata: {
+        inviteId: null,
+        hasEmail: Boolean(clientEmail),
+        activatedWithPassword: true,
+      },
+      req: req || null,
+    });
+
+    return {
+      invite: null,
+      inviteUrl: loginUrl,
+      expiresAt: null,
+      activatedWithPassword: true,
+    };
   }
 
   const rawToken = generateToken();
@@ -112,7 +171,7 @@ async function createClientInvite({ firmId: firmIdRaw, clientId, email, createdB
   const invite = await invitesRepository.createInvite({
     firmId,
     clientId: clientId || null,
-    email: email ? normalizeEmail(email) : null,
+    email: clientEmail || null,
     token: hashToken(rawToken),
     expiresAt,
     createdBy: createdByUserId || null,
@@ -123,11 +182,10 @@ async function createClientInvite({ firmId: firmIdRaw, clientId, email, createdB
   }
 
   const inviteUrl = buildInviteUrl(rawToken);
-  const targetEmail = email ? normalizeEmail(email) : null;
-  if (targetEmail) {
+  if (clientEmail) {
     void sendInviteEmail({
       firmId,
-      email: targetEmail,
+      email: clientEmail,
       displayName: clientName,
       inviteUrl,
       expiresAt,
@@ -140,7 +198,7 @@ async function createClientInvite({ firmId: firmIdRaw, clientId, email, createdB
     actor: actor || null,
     firmId,
     clientId: clientId || null,
-    metadata: { inviteId: invite.id, hasEmail: Boolean(targetEmail) },
+    metadata: { inviteId: invite.id, hasEmail: Boolean(clientEmail) },
     req: req || null,
   });
 
@@ -148,6 +206,7 @@ async function createClientInvite({ firmId: firmIdRaw, clientId, email, createdB
     invite,
     inviteUrl,
     expiresAt,
+    activatedWithPassword: false,
   };
 }
 

@@ -120,13 +120,21 @@ export function createContabilClientsApi(api: AxiosInstance) {
     archive: (clientId: string) =>
       api.delete(`/contabil/clients/${encodeURIComponent(clientId)}`).then((r) => r.data),
 
-    createInvite: (payload: { clientId: string; email?: string }) =>
+    createInvite: (payload: { clientId: string; email?: string; initialPassword?: string }) =>
       api
         .post('/contabil/invites', {
           clientId: payload.clientId,
           email: payload.email,
+          initialPassword: payload.initialPassword,
         })
-        .then((r) => r.data as { inviteUrl: string }),
+        .then(
+          (r) =>
+            r.data as {
+              inviteUrl: string
+              activatedWithPassword?: boolean
+              expiresAt?: string | null
+            },
+        ),
 
     createBulkInvite: (
       clientIds: string[],

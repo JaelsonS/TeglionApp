@@ -18,7 +18,7 @@ function sha256(value) {
   return crypto.createHash('sha256').update(String(value)).digest('hex');
 }
 
-const FIRM = { id: 'firm-1', name: 'Escritório Exemplo' };
+const FIRM = { id: 'firm-1', name: 'Escritório Exemplo', slug: 'exemplo' };
 const CLIENT_NO_ACCESS = {
   id: 'client-1',
   firmId: 'firm-1',
@@ -65,6 +65,28 @@ test.afterEach(() => {
 // ---------------------------------------------------------------------------
 // createClientInvite — não deve regredir o fluxo individual já em produção
 // ---------------------------------------------------------------------------
+
+test('createClientInvite: com initialPassword activa o portal sem criar convite pendente', async () => {
+  stubHappyPathDeps();
+  mock.method(clientsRepository, 'findClientById', async () => CLIENT_NO_ACCESS);
+  const createInvite = mock.method(invitesRepository, 'createInvite', async () => ({ id: 'inv-1' }));
+  const updateAuth = mock.method(clientsRepository, 'updateClientAuth', async () => {});
+  const updateStatus = mock.method(clientsRepository, 'updatePortalAccessStatus', async () => {});
+
+  const result = await invitesService.createClientInvite({
+    firmId: 'firm-1',
+    clientId: 'client-1',
+    initialPassword: 'SenhaForte!2026',
+    actor: null,
+    req: null,
+  });
+
+  assert.equal(result.activatedWithPassword, true);
+  assert.equal(createInvite.mock.callCount(), 0);
+  assert.equal(updateAuth.mock.callCount(), 1);
+  assert.equal(updateStatus.mock.calls[0].arguments[1], 'ACTIVE');
+  assert.match(result.inviteUrl, /\/auth\/client\/login/);
+});
 
 test('createClientInvite: rejeita com 409 se o cliente já tem acesso ao portal (comportamento preservado)', async () => {
   stubHappyPathDeps();

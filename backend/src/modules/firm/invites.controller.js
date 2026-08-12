@@ -5,7 +5,7 @@ const { AppError } = require('../../middlewares/error.middleware');
 exports.create = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);
-    const { email } = req.body || {};
+    const { email, initialPassword } = req.body || {};
     const clientId = parseClientIdFromRequest(req.body);
     if (!clientId && !email) {
       throw new AppError('Indique o cliente (clientId) ou o e-mail', 400);
@@ -14,6 +14,7 @@ exports.create = async (req, res, next) => {
       firmId: firmId,
       clientId: clientId,
       email: email ? String(email).trim() : null,
+      initialPassword: initialPassword ? String(initialPassword) : null,
       createdByUserId: req.user?.id || null,
       actor: req.user,
       req,

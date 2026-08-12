@@ -125,7 +125,7 @@ export function getErrorMessage(err: unknown): string {
       return 'Tipo de ficheiro não permitido. Use PDF, imagem ou documento Office.'
     }
     if (code === 'PASSWORD_NOT_SET') {
-      return 'Ainda não tem palavra-passe no portal. Peça ao escritório um link de convite ou use «Primeiro acesso» na página de login.'
+      return 'Ainda não definiu a palavra-passe. Abra o email/link de convite do escritório, crie a senha e só depois use Entrar. Se não tiver o link, peça um novo convite ao contabilista.'
     }
     if (code === 'MULTIPLE_FIRMS') {
       return 'Este e-mail está em mais do que um escritório. Use o link de convite que o contabilista lhe enviou.'
