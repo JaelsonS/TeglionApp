@@ -134,8 +134,8 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
           }
           onCreated={() => void hub.refresh()}
         />
-      ) : null}
-
+      ) : (
+        <>
       <div className="cb-tasks-toolbar shrink-0">
         <select
           className="cb-tasks-filter"
@@ -351,6 +351,8 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
           </SheetContent>
         </Sheet>
       ) : null}
+        </>
+      )}
     </div>
   )
 }

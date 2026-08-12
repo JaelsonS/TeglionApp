@@ -149,7 +149,7 @@ export function ObligationCreatePanel({
   }
 
   return (
-    <section className="flex max-h-[min(70dvh,42rem)] min-h-0 shrink-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-muted/20 shadow-sm">
+    <section className="flex h-full min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/70 bg-muted/20 shadow-sm">
       <div className="flex shrink-0 items-center justify-between border-b border-border/40 px-4 py-3">
         <h3 className="flex items-center gap-2 text-sm font-semibold">
           <Sparkles className="h-4 w-4 text-brand" />
@@ -159,119 +159,123 @@ export function ObligationCreatePanel({
           <X className="h-4 w-4" />
         </Button>
       </div>
-      <form
-        onSubmit={submit}
-        className="cb-firm-panel-form-scroll grid min-h-0 flex-1 gap-3 overflow-y-auto overscroll-y-contain pb-4 md:grid-cols-2"
-      >
-        <label className="space-y-1 text-sm md:col-span-2">
-          <span className="font-medium">Modelo rápido</span>
-          <select
-            className="flex h-10 w-full rounded-xl border border-input bg-background px-3 text-sm"
-            value={templateId}
-            onChange={(e) => setTemplateId(e.target.value)}
-          >
-            <option value="">Escolher modelo (IVA, SS, SAF-T…) ou manual</option>
-            {templates.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="md:col-span-2">
-          <ClientSearchSelect clients={clients} value={clientId} onChange={setClientId} />
-        </div>
-        {!templateId ? (
+      <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col">
+        <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto overscroll-y-contain px-4 py-3 md:grid-cols-2">
+          <label className="space-y-1 text-sm md:col-span-2">
+            <span className="font-medium">Modelo rápido</span>
+            <select
+              className="flex h-10 w-full rounded-xl border border-input bg-background px-3 text-sm"
+              value={templateId}
+              onChange={(e) => setTemplateId(e.target.value)}
+            >
+              <option value="">Escolher modelo (IVA, SS, SAF-T…) ou manual</option>
+              {templates.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="md:col-span-2">
+            <ClientSearchSelect clients={clients} value={clientId} onChange={setClientId} />
+          </div>
+          {!templateId ? (
+            <label className="space-y-1 text-sm">
+              <span className="font-medium">Tipo</span>
+              <select
+                className="flex h-10 w-full rounded-xl border border-input px-3 text-sm"
+                value={type}
+                onChange={(e) => setType(e.target.value as ObligationType)}
+              >
+                {Object.entries(TYPE_LABELS).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           <label className="space-y-1 text-sm">
-            <span className="font-medium">Tipo</span>
+            <span className="font-medium">Período</span>
+            <Input value={period} onChange={(e: FormChangeEvent) => setPeriod(e.target.value)} placeholder="2026-05" required />
+          </label>
+          <label className="space-y-1 text-sm">
+            <span className="font-medium">Prazo</span>
+            <Input type="date" value={dueDate} onChange={(e: FormChangeEvent) => setDueDate(e.target.value)} required />
+          </label>
+          <label className="space-y-1 text-sm">
+            <span className="font-medium">Valor (EUR)</span>
+            <Input
+              value={amountEur}
+              onChange={(e: FormChangeEvent) => setAmountEur(maskEurInput(e.target.value))}
+              placeholder="1.250,00"
+              inputMode="decimal"
+            />
+          </label>
+          <label className="space-y-1 text-sm">
+            <span className="font-medium">Prioridade</span>
             <select
               className="flex h-10 w-full rounded-xl border border-input px-3 text-sm"
-              value={type}
-              onChange={(e) => setType(e.target.value as ObligationType)}
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as ObligationPriority)}
             >
-              {Object.entries(TYPE_LABELS).map(([k, v]) => (
+              {Object.entries(PRIORITY_LABELS).map(([k, v]) => (
                 <option key={k} value={k}>
                   {v}
                 </option>
               ))}
             </select>
           </label>
-        ) : null}
-        <label className="space-y-1 text-sm">
-          <span className="font-medium">Período</span>
-          <Input value={period} onChange={(e: FormChangeEvent) => setPeriod(e.target.value)} placeholder="2026-05" required />
-        </label>
-        <label className="space-y-1 text-sm">
-          <span className="font-medium">Prazo</span>
-          <Input type="date" value={dueDate} onChange={(e: FormChangeEvent) => setDueDate(e.target.value)} required />
-        </label>
-        <label className="space-y-1 text-sm">
-          <span className="font-medium">Valor (EUR)</span>
-          <Input
-            value={amountEur}
-            onChange={(e: FormChangeEvent) => setAmountEur(maskEurInput(e.target.value))}
-            placeholder="1.250,00"
-            inputMode="decimal"
-          />
-        </label>
-        <label className="space-y-1 text-sm">
-          <span className="font-medium">Prioridade</span>
-          <select
-            className="flex h-10 w-full rounded-xl border border-input px-3 text-sm"
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as ObligationPriority)}
-          >
-            {Object.entries(PRIORITY_LABELS).map(([k, v]) => (
-              <option key={k} value={k}>
-                {v}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="space-y-1 text-sm">
-          <span className="font-medium">Responsável</span>
-          <select
-            className="flex h-10 w-full rounded-xl border border-input px-3 text-sm"
-            value={assignedStaffId}
-            onChange={(e) => setAssignedStaffId(e.target.value)}
-          >
-            <option value="">Sem atribuição</option>
-            {staff.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.fullName || s.email}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex items-center gap-2 text-sm md:col-span-2">
-          <input type="checkbox" checked={recurring} onChange={(e) => setRecurring(e.target.checked)} />
-          Ativar recorrência automática (modelo)
-        </label>
-        <label className="space-y-1 text-sm md:col-span-2">
-          <span className="font-medium">Instruções ao cliente</span>
-          <Input
-            value={accountantNotes}
-            onChange={(e: FormChangeEvent) => setAccountantNotes(e.target.value)}
-            placeholder="Pagamento, referência, documentos em falta…"
-          />
-        </label>
-        {tpl?.checklist?.length ? (
-          <div className="rounded-xl border border-dashed border-border/70 bg-background p-3 text-xs md:col-span-2">
-            <p className="font-semibold text-muted-foreground">Checklist do modelo</p>
-            <ul className="mt-1 list-inside list-disc text-muted-foreground">
-              {tpl.checklist.map((c) => (
-                <li key={c}>{c}</li>
+          <label className="space-y-1 text-sm">
+            <span className="font-medium">Responsável</span>
+            <select
+              className="flex h-10 w-full rounded-xl border border-input px-3 text-sm"
+              value={assignedStaffId}
+              onChange={(e) => setAssignedStaffId(e.target.value)}
+            >
+              <option value="">Sem atribuição</option>
+              {staff.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.fullName || s.email}
+                </option>
               ))}
-            </ul>
-          </div>
-        ) : null}
-        <label className="space-y-1 text-sm md:col-span-2">
-          <span className="font-medium">Guia / documento (opcional)</span>
-          <Input type="file" accept=".pdf,.png,.jpg,.jpeg,.xls,.xlsx" onChange={(e: ChangeEvent<HTMLInputElement>) => setGuideFile(e.target.files?.[0] ?? null)} />
-          <p className="text-xs text-muted-foreground">Máx. {MAX_UPLOAD_MB} MB</p>
-        </label>
-        <div className="md:col-span-2">
-          <Button type="submit" className="rounded-full" disabled={saving}>
+            </select>
+          </label>
+          <label className="flex items-center gap-2 text-sm md:col-span-2">
+            <input type="checkbox" checked={recurring} onChange={(e) => setRecurring(e.target.checked)} />
+            Ativar recorrência automática (modelo)
+          </label>
+          <label className="space-y-1 text-sm md:col-span-2">
+            <span className="font-medium">Instruções ao cliente</span>
+            <Input
+              value={accountantNotes}
+              onChange={(e: FormChangeEvent) => setAccountantNotes(e.target.value)}
+              placeholder="Pagamento, referência, documentos em falta…"
+            />
+          </label>
+          {tpl?.checklist?.length ? (
+            <div className="rounded-xl border border-dashed border-border/70 bg-background p-3 text-xs md:col-span-2">
+              <p className="font-semibold text-muted-foreground">Checklist do modelo</p>
+              <ul className="mt-1 list-inside list-disc text-muted-foreground">
+                {tpl.checklist.map((c) => (
+                  <li key={c}>{c}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          <label className="space-y-1 text-sm md:col-span-2">
+            <span className="font-medium">Guia / documento (opcional)</span>
+            <Input
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg,.xls,.xlsx"
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setGuideFile(e.target.files?.[0] ?? null)}
+            />
+            <p className="text-xs text-muted-foreground">Máx. {MAX_UPLOAD_MB} MB</p>
+          </label>
+        </div>
+        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border/50 bg-card/80 px-4 py-3">
+          <p className="hidden text-xs text-muted-foreground sm:block">O cliente será notificado após criar.</p>
+          <Button type="submit" className="ml-auto rounded-full" disabled={saving}>
             {saving ? 'A criar…' : 'Criar obrigação fiscal'}
           </Button>
         </div>

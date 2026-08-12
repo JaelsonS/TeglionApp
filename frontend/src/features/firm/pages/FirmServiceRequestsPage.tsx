@@ -75,23 +75,51 @@ export function FirmServiceRequestsPage() {
           </nav>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col p-3 sm:p-4">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 p-3 sm:p-4">
           {activeTab === 'catalog' || activeTab === 'irs' ? (
-            <AgendaServicesCatalogPanel
-              key={activeTab}
-              services={servicesQuery.data?.items ?? []}
-              isLoading={servicesQuery.isLoading}
-              onReload={() => qc.invalidateQueries({ queryKey: ['contabil-accounting-services', 'catalog-tab'] })}
-              focusFilter={activeTab === 'irs' ? 'irs' : undefined}
-              title={activeTab === 'irs' ? 'Serviços de IRS' : undefined}
-              description={
-                activeTab === 'irs'
-                  ? 'Simulação, entrega e outros serviços de IRS. O cliente preenche na página pública; você recebe em Solicitações.'
-                  : 'Publique serviços na página do escritório. As respostas chegam em Solicitações — sem pedir documentos automaticamente.'
-              }
-            />
+            <>
+              <div className="shrink-0 rounded-xl border border-border/50 bg-muted/20 px-4 py-3">
+                <p className="text-sm text-muted-foreground">
+                  {activeTab === 'irs' ? (
+                    <>
+                      <span className="font-semibold text-foreground">IRS</span>
+                      {' — '}modelos e serviços do escritório. O cliente preenche na página pública; as respostas
+                      chegam em <span className="font-semibold text-foreground">Solicitações</span>.
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-semibold text-foreground">Catálogo</span>
+                      {' — '}publique serviços na página do escritório. Captação nova ≠ clientes já no escritório
+                      (isso é a <span className="font-semibold text-foreground">Central</span>).
+                    </>
+                  )}
+                </p>
+              </div>
+              <AgendaServicesCatalogPanel
+                key={activeTab}
+                services={servicesQuery.data?.items ?? []}
+                isLoading={servicesQuery.isLoading}
+                onReload={() => qc.invalidateQueries({ queryKey: ['contabil-accounting-services', 'catalog-tab'] })}
+                focusFilter={activeTab === 'irs' ? 'irs' : undefined}
+                title={activeTab === 'irs' ? 'Serviços de IRS' : undefined}
+                description={
+                  activeTab === 'irs'
+                    ? 'Simulação, entrega e outros serviços de IRS activos no escritório.'
+                    : 'Serviços publicados e formulários de captação.'
+                }
+              />
+            </>
           ) : activeTab === 'central' ? (
-            <ServicesWorkspace />
+            <>
+              <div className="shrink-0 rounded-xl border border-border/50 bg-muted/20 px-4 py-3">
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-semibold text-foreground">Central de Serviços</span>
+                  {' — '}pedidos de <span className="font-semibold text-foreground">clientes já no escritório</span>.
+                  Captação da página pública fica em Solicitações.
+                </p>
+              </div>
+              <ServicesWorkspace />
+            </>
           ) : (
             <ServiceInquiriesWorkspace />
           )}
