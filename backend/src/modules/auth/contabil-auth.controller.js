@@ -58,7 +58,7 @@ async function registerClientInvite(req, res, next) {
   try {
     assertValid(req);
     const { token, email, password, fullName } = req.body;
-    await contabilInvitesService.registerClientWithInvite({ token, email, password, fullName });
+    await contabilInvitesService.registerClientWithInvite({ token, email, password, fullName, req });
     const result = await contabilAuth.loginClient({ email, password, req });
     setRefreshTokenCookie(res, result.tokens.refreshToken, { req });
     setAccessTokenCookie(res, result.tokens.accessToken, { req });

@@ -47,4 +47,22 @@ async function markInviteExpired(id) {
   await sb.from('client_invites').update({ status: 'EXPIRED' }).eq('id', id);
 }
 
-module.exports = { createInvite, findInviteByToken, markInviteAccepted, markInviteExpired };
+/** Revoga convites pendentes de um cliente — usado antes de reemitir ou ao revogar o acesso. */
+async function revokePendingInvitesForClient(firmId, clientId) {
+  const sb = getSupabaseAdmin();
+  const { error } = await sb
+    .from('client_invites')
+    .update({ status: 'REVOKED', revoked_at: new Date().toISOString() })
+    .eq('firm_id', firmId)
+    .eq('client_id', clientId)
+    .eq('status', 'PENDING');
+  if (error) throw error;
+}
+
+module.exports = {
+  createInvite,
+  findInviteByToken,
+  markInviteAccepted,
+  markInviteExpired,
+  revokePendingInvitesForClient,
+};

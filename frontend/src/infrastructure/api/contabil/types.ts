@@ -13,6 +13,7 @@ export type ContabilClient = {
   phone?: string | null
   taxId?: string | null
   status?: string
+  portalAccessStatus?: 'NO_ACCESS' | 'PENDING_INVITE' | 'ACTIVE' | 'REVOKED'
   metadata?: Record<string, unknown>
   operationalStatus?: ClientOperationalStatus
   pendingDocuments?: number

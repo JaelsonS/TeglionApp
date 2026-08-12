@@ -15,6 +15,7 @@ function mapClient(row) {
     status: row.status,
     linkStatus: row.link_status,
     hasPortalAccess: Boolean(row.password_hash),
+    portalAccessStatus: row.portal_access_status || 'NO_ACCESS',
     lastLoginAt: row.last_login_at,
     assignedStaffId: row.assigned_staff_id,
     metadata: row.metadata || {},
@@ -69,7 +70,9 @@ async function findClientsByIds(firmId, clientIds) {
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
     .from('clients')
-    .select('id, firm_id, display_name, email, phone, tax_id, status, link_status, password_hash, last_login_at, assigned_staff_id, metadata')
+    .select(
+      'id, firm_id, display_name, email, phone, tax_id, status, link_status, password_hash, portal_access_status, last_login_at, assigned_staff_id, metadata',
+    )
     .eq('firm_id', firmId)
     .in('id', ids);
   if (error) throw error;
@@ -178,6 +181,13 @@ async function getClientRowById(clientId) {
   return data;
 }
 
+/** Estado explícito de acesso ao portal — independente de `status` (que controla se o cliente aparece na carteira). */
+async function updatePortalAccessStatus(clientId, portalAccessStatus) {
+  const sb = getSupabaseAdmin();
+  const { error } = await sb.from('clients').update({ portal_access_status: portalAccessStatus }).eq('id', clientId);
+  if (error) throw error;
+}
+
 module.exports = {
   mapClient,
   listClients,
@@ -193,4 +203,5 @@ module.exports = {
   updateClientAuth,
   touchClientLogin,
   getClientRowById,
+  updatePortalAccessStatus,
 };

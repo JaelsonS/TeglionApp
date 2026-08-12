@@ -105,6 +105,7 @@ export function FirmClientHubPage() {
           clientId={cid}
           onBack={() => navigate('/app/firm/clients')}
           onEdit={() => setSection('profile')}
+          onAccessChanged={() => void refetch()}
         />
 
         <div className="cb-firm-underline-tabs cb-client-hub-tabs overflow-x-auto px-4">

@@ -3,6 +3,7 @@ import { ArrowLeft, MessageSquare, Pencil } from 'lucide-react'
 
 import { CompanyAvatar, formatNifDisplay } from '@/features/firm/clients/clientCompanyAvatar'
 import { FirmClientInviteButton } from '@/features/firm/components/FirmClientInviteButton'
+import { FirmClientAccessManager } from '@/features/firm/components/FirmClientAccessManager'
 import { operationalStatusLabel } from '@/features/firm/client-hub/clientHubUtils'
 import { Button } from '@/shared/components/ui/button'
 import type { ClientHubResponse } from '@/infrastructure/api/contabil/types'
@@ -15,9 +16,10 @@ type Props = {
   clientId: string
   onBack: () => void
   onEdit?: () => void
+  onAccessChanged?: () => void
 }
 
-export function ClientHubHeader({ hub, displayName, clientId, onBack, onEdit }: Props) {
+export function ClientHubHeader({ hub, displayName, clientId, onBack, onEdit, onAccessChanged }: Props) {
   const { client, summary, counts } = hub
   const clientForAvatar = { ...client, _id: client._id || client.id || clientId, name: displayName } as Client
 
@@ -52,7 +54,15 @@ export function ClientHubHeader({ hub, displayName, clientId, onBack, onEdit }: 
         </div>
 
         <div className="cb-client-hub-actions">
-          <FirmClientInviteButton clientId={clientId} email={client.email || undefined} />
+          {client.portalAccessStatus === 'ACTIVE' || client.portalAccessStatus === 'REVOKED' ? (
+            <FirmClientAccessManager
+              clientId={clientId}
+              portalAccessStatus={client.portalAccessStatus}
+              onChanged={onAccessChanged}
+            />
+          ) : (
+            <FirmClientInviteButton clientId={clientId} email={client.email || undefined} />
+          )}
           <Button asChild variant="outline" size="sm" className="h-8 rounded-md text-xs">
             <Link to={`/app/firm/messages?client=${clientId}`}>
               <MessageSquare className="mr-1.5 h-3.5 w-3.5" />

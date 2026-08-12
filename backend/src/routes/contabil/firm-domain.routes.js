@@ -327,6 +327,9 @@ router.delete('/clients/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE)
 router.get('/clients/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.getById);
 
 router.post('/invites', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), invitesController.create);
+router.post('/invites/bulk', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), invitesController.createBulk);
+router.post('/clients/:id/revoke-access', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), invitesController.revokeAccess);
+router.post('/clients/:id/resend-invite', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), invitesController.resendInvite);
 
 router.get('/accounting-services', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_VIEW), accountingServicesController.list);
 router.get('/accounting-services/catalog-template', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_VIEW), accountingServicesController.getCatalogTemplate);

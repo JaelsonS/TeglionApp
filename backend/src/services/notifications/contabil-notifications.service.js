@@ -32,11 +32,28 @@ function serviceIntakeAccessUrl(token) {
   return `${APP_URL}/pedidos/${token}`;
 }
 
-async function notifyClientInvite({ clientEmail, clientName, firmName, inviteUrl: url, expiresAt }) {
+async function notifyClientInvite({
+  clientEmail,
+  clientName,
+  firmName,
+  inviteUrl: url,
+  expiresAt,
+  firmLogoUrl,
+  firmBrandColor,
+  firmContactEmail,
+  firmContactPhone,
+}) {
   if (!clientEmail) return { skipped: true, reason: 'no_email' };
   const link = url || portalUrl();
   const expiry = expiresAt ? new Date(expiresAt).toLocaleDateString('pt-PT') : '14 dias';
   const firm = firmName || 'o seu escritório';
+
+  const contactParts = [firmContactEmail, firmContactPhone].filter(Boolean);
+  const contactLine = contactParts.length
+    ? `<p style="margin:12px 0 0;font-size:13px;color:#64748b;">Contacto do escritório: ${contactParts.map(escapeHtml).join(' &middot; ')}</p>`
+    : '';
+  const contactLineText = contactParts.length ? `Contacto do escritório: ${contactParts.join(' · ')}` : null;
+
   return sendEmail({
     to: clientEmail,
     subject: `Acesso ao portal — ${firm}`,
@@ -45,10 +62,13 @@ async function notifyClientInvite({ clientEmail, clientName, firmName, inviteUrl
       preheader: `Convite para aceder ao portal do escritório ${firm}`,
       title: 'Convite para o portal do cliente',
       greeting: `Olá${clientName ? ` ${clientName}` : ''},`,
-      bodyHtml: `<p style="margin:0 0 12px">O escritório <strong>${escapeHtml(firm)}</strong> convidou-o a aceder ao portal Teglion para enviar documentos, ver obrigações e comunicar com a equipa.</p>`,
+      bodyHtml: `<p style="margin:0 0 12px">O escritório <strong>${escapeHtml(firm)}</strong> convidou-o a aceder ao portal Teglion para enviar documentos, ver obrigações e comunicar com a equipa.</p>${contactLine}`,
       ctaLabel: 'Aceitar convite',
       ctaUrl: link,
       footerNote: `Link válido até ${expiry}. Se não esperava este e-mail, ignore-o.`,
+      brandName: firmName || undefined,
+      brandColor: firmBrandColor || undefined,
+      logoUrl: firmLogoUrl || undefined,
     }),
     text: [
       `Olá${clientName ? ` ${clientName}` : ''},`,
@@ -58,6 +78,7 @@ async function notifyClientInvite({ clientEmail, clientName, firmName, inviteUrl
       `Aceitar convite: ${link}`,
       '',
       `Válido até ${expiry}. Se não esperava este e-mail, ignore-o.`,
+      ...(contactLineText ? ['', contactLineText] : []),
       '',
       'Teglion',
     ].join('\n'),

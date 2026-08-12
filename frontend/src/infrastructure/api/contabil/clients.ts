@@ -127,6 +127,28 @@ export function createContabilClientsApi(api: AxiosInstance) {
           email: payload.email,
         })
         .then((r) => r.data as { inviteUrl: string }),
+
+    createBulkInvite: (clientIds: string[]) =>
+      api.post('/contabil/invites/bulk', { clientIds }).then(
+        (r) =>
+          r.data as {
+            requested: number
+            sent: number
+            alreadyActive: number
+            skippedNoEmail: number
+            failed: number
+          },
+      ),
+
+    revokeAccess: (clientId: string) =>
+      api
+        .post(`/contabil/clients/${encodeURIComponent(clientId)}/revoke-access`)
+        .then((r) => r.data as { revoked: boolean }),
+
+    resendInvite: (clientId: string) =>
+      api
+        .post(`/contabil/clients/${encodeURIComponent(clientId)}/resend-invite`)
+        .then((r) => r.data as { inviteUrl: string; emailSent: boolean }),
   }
 }
 

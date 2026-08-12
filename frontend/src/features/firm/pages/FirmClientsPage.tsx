@@ -12,6 +12,8 @@ import {
   MoreVertical,
   Plus,
   Search,
+  Send,
+  X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -26,6 +28,7 @@ import {
 } from '@/features/firm/clients/clientCompanyAvatar'
 import { FirmScrollPage } from '@/features/firm/FirmPageLayout'
 import { CreateCompanyWizard } from '@/features/firm/components/CreateCompanyWizard'
+import { FirmClientBulkInviteDialog } from '@/features/firm/components/FirmClientBulkInviteDialog'
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
@@ -83,6 +86,7 @@ export function FirmClientsPage() {
   )
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkInviteOpen, setBulkInviteOpen] = useState(false)
   const [openCreate, setOpenCreate] = useState(false)
   const [archiveTarget, setArchiveTarget] = useState<Client | null>(null)
   const [isMobile, setIsMobile] = useState(() =>
@@ -297,6 +301,26 @@ export function FirmClientsPage() {
           </div>
         </div>
 
+        {selected.size > 0 ? (
+          <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
+            <span className="text-sm font-medium text-foreground">{selected.size} seleccionados</span>
+            <Button type="button" size="sm" className="h-8 gap-1.5 rounded-md text-xs" onClick={() => setBulkInviteOpen(true)}>
+              <Send className="h-3.5 w-3.5" />
+              Gerar e enviar convite
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-8 gap-1.5 rounded-md text-xs text-muted-foreground"
+              onClick={() => setSelected(new Set())}
+            >
+              <X className="h-3.5 w-3.5" />
+              Limpar seleção
+            </Button>
+          </div>
+        ) : null}
+
         {loading ? (
           <p className="cb-dash-empty">A carregar clientes…</p>
         ) : effectiveView === 'grid' ? (
@@ -487,6 +511,15 @@ export function FirmClientsPage() {
       </div>
 
       <CreateCompanyWizard open={openCreate} onOpenChange={setOpenCreate} onCreated={() => void load()} />
+      <FirmClientBulkInviteDialog
+        open={bulkInviteOpen}
+        onOpenChange={setBulkInviteOpen}
+        clientIds={[...selected]}
+        onDone={() => {
+          setSelected(new Set())
+          void load()
+        }}
+      />
       <ConfirmDialog
         open={!!archiveTarget}
         onOpenChange={(open) => !open && setArchiveTarget(null)}

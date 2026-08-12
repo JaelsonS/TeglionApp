@@ -12,6 +12,7 @@ export type Client = {
   phone?: string | null
   taxId?: string | null
   status?: string
+  portalAccessStatus?: 'NO_ACCESS' | 'PENDING_INVITE' | 'ACTIVE' | 'REVOKED'
   operationalStatus?: 'ativo' | 'atencao' | 'critico'
   pendingDocuments?: number
   pendingObligationsCount?: number

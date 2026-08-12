@@ -19,6 +19,13 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
+
+function safeHexColor(value, fallback) {
+  const trimmed = String(value || '').trim();
+  return HEX_COLOR_RE.test(trimmed) ? trimmed : fallback;
+}
+
 /**
  * @param {{
  *   preheader?: string,
@@ -28,6 +35,9 @@ function escapeHtml(value) {
  *   ctaLabel: string,
  *   ctaUrl: string,
  *   footerNote?: string,
+ *   brandName?: string,
+ *   brandColor?: string,
+ *   logoUrl?: string,
  * }} opts
  */
 function renderTransactionalEmail(opts) {
@@ -38,6 +48,15 @@ function renderTransactionalEmail(opts) {
   const ctaUrl = String(opts.ctaUrl || '').trim();
   const footerNote = opts.footerNote ? escapeHtml(opts.footerNote) : null;
   const safeBody = opts.bodyHtml || '';
+
+  // Branding do escritório é opcional e cai sempre para a marca Teglion —
+  // nenhuma outra chamada a renderTransactionalEmail() muda de comportamento.
+  const brand = opts.brandName ? escapeHtml(opts.brandName) : BRAND;
+  const brandColor = safeHexColor(opts.brandColor, BRAND_COLOR);
+  const logoUrl = opts.logoUrl ? String(opts.logoUrl).trim() : null;
+  const headerInner = logoUrl
+    ? `<img src="${escapeHtml(logoUrl)}" alt="${brand}" height="32" style="display:block;height:32px;width:auto;max-width:220px;" />`
+    : `<p style="margin:0;font-size:18px;font-weight:700;letter-spacing:0.02em;color:#ffffff;">${brand}</p>`;
 
   return `<!DOCTYPE html>
 <html lang="pt-PT">
@@ -55,8 +74,8 @@ function renderTransactionalEmail(opts) {
       <td align="center">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
           <tr>
-            <td style="background:${BRAND_COLOR};padding:20px 28px;">
-              <p style="margin:0;font-size:18px;font-weight:700;letter-spacing:0.02em;color:#ffffff;">${BRAND}</p>
+            <td style="background:${brandColor};padding:20px 28px;">
+              ${headerInner}
             </td>
           </tr>
           <tr>
@@ -85,7 +104,7 @@ function renderTransactionalEmail(opts) {
           <tr>
             <td style="padding:16px 28px;background:#f8fafc;border-top:1px solid #e2e8f0;">
               <p style="margin:0;font-size:11px;line-height:1.5;color:#94a3b8;">
-                Esta é uma mensagem transacional da ${BRAND} relacionada com a sua conta.
+                ${opts.brandName ? `Esta é uma mensagem transacional da ${brand}, enviada através da plataforma Teglion.` : `Esta é uma mensagem transacional da ${BRAND} relacionada com a sua conta.`}
                 <a href="${escapeHtml(APP_URL)}/privacidade" style="color:#64748b;">Privacidade</a>
               </p>
             </td>
