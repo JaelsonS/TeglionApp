@@ -30,6 +30,7 @@ import {
 import { readClientIdFromSearch } from '@/shared/utils/clientQueryParam'
 import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
 import { Button } from '@/shared/components/ui/button'
+import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
 import {
   Sheet,
   SheetContent,
@@ -254,13 +255,35 @@ export function FirmTasksWorkspacePage() {
     )
   }
 
-  const headerAction =
-    tab === 'manual' || tab === 'calendar' ? (
-      <Button type="button" className="h-8 rounded-md px-3.5 text-xs" onClick={openCreateTask}>
-        <Plus className="mr-1.5 h-3.5 w-3.5" />
-        Nova tarefa
-      </Button>
-    ) : null
+  const headerAction = (
+    <div className="flex items-center gap-2">
+      <ModuleHelpDialog
+        title="Tarefas e Obrigações"
+        intro="Este espaço reúne todo o trabalho do escritório. É importante perceber a diferença entre os dois conceitos:"
+        steps={[
+          {
+            title: 'Obrigações',
+            description:
+              'São os prazos e entregas que pertencem aos seus clientes (IVA, IRS, Segurança Social…), gerados automaticamente pelo calendário fiscal. Também aparecem no menu, em «Obrigações dos Clientes».',
+          },
+          {
+            title: 'Tarefas',
+            description: 'É o trabalho interno da sua equipa — o que precisa de ser feito no escritório, esteja ou não ligado a uma obrigação.',
+          },
+          {
+            title: 'Vistas disponíveis',
+            description: 'Use «Por cliente» ou «Calendário» para ver tudo junto, ou entre em cada separador para focar num tipo específico.',
+          },
+        ]}
+      />
+      {tab === 'manual' || tab === 'calendar' ? (
+        <Button type="button" className="h-8 rounded-md px-3.5 text-xs" onClick={openCreateTask}>
+          <Plus className="mr-1.5 h-3.5 w-3.5" />
+          Nova tarefa
+        </Button>
+      ) : null}
+    </div>
+  )
 
   return (
     <FirmWorkspacePage className="cb-tasks-page xl:min-h-0 xl:flex-1">

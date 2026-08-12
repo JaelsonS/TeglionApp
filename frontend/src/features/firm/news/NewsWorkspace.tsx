@@ -7,6 +7,7 @@ import { NewsComposer, type NewsDraft } from '@/features/firm/news/NewsComposer'
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
 import {
   Sheet,
   SheetContent,
@@ -112,22 +113,44 @@ export function NewsWorkspace() {
             Artigos longos que os clientes lêem em «Notícias» no portal.
           </p>
         </div>
-        <Button
-          type="button"
-          className="rounded-full"
-          onClick={() =>
-            setEditing({
-              title: '',
-              body: '',
-              excerpt: '',
-              status: 'DRAFT',
-              isFeatured: false,
-            })
-          }
-        >
-          <Plus className="mr-1.5 h-4 w-4" />
-          Nova notícia
-        </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          <ModuleHelpDialog
+            title="Notícias"
+            intro="Publique artigos e novidades para os seus clientes lerem no portal. Diferente da Central de Alertas — que é para avisos operacionais pontuais — aqui é conteúdo mais completo e informativo."
+            steps={[
+              { title: 'Escreva o artigo', description: 'Dê um título, escreva o conteúdo e adicione uma imagem de capa.' },
+              { title: 'Escolha o destaque', description: 'Marque como notícia principal se quiser que apareça em destaque no portal dos clientes.' },
+              { title: 'Publique quando quiser', description: 'Guarde como rascunho, agende ou publique imediatamente.' },
+            ]}
+            cta={{
+              label: 'Nova notícia',
+              onClick: () =>
+                setEditing({
+                  title: '',
+                  body: '',
+                  excerpt: '',
+                  status: 'DRAFT',
+                  isFeatured: false,
+                }),
+            }}
+          />
+          <Button
+            type="button"
+            className="rounded-full"
+            onClick={() =>
+              setEditing({
+                title: '',
+                body: '',
+                excerpt: '',
+                status: 'DRAFT',
+                isFeatured: false,
+              })
+            }
+          >
+            <Plus className="mr-1.5 h-4 w-4" />
+            Nova notícia
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">
