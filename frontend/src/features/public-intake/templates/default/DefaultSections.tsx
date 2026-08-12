@@ -52,6 +52,12 @@ export type PublicSiteRenderContext = {
   praiseLabel?: string | null
   /** @deprecated */
   praiseContact?: string | null
+  /**
+   * No editor do escritório: links internos (serviços/CTAs) abrem em nova aba
+   * para não navegar fora de `/app/firm` e “perder” a sessão da app.
+   * Na página pública real permanece navegação na mesma aba.
+   */
+  openInternalLinksInNewTab?: boolean
 }
 
 function formatPrice(cents: number) {
@@ -120,21 +126,29 @@ export function HeroSection({
         {content.bio ? <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">{content.bio}</p> : null}
         {content.ctas.length > 0 ? (
           <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-            {content.ctas.map((cta) => (
-              <a
-                key={cta.id}
-                href={resolveCtaHref(cta, ctx, socialLinks)}
-                target={cta.target.type === 'external-url' || cta.target.type === 'whatsapp' ? '_blank' : undefined}
-                rel="noopener noreferrer"
-                className={
-                  cta.style === 'secondary'
-                    ? 'inline-flex items-center rounded-lg border-2 border-secondary bg-secondary/15 px-4 py-2 text-sm font-medium text-[hsl(var(--secondary))] transition hover:bg-secondary/25'
-                    : 'inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90'
-                }
-              >
-                {cta.label}
-              </a>
-            ))}
+            {content.ctas.map((cta) => {
+              const isExternal =
+                cta.target.type === 'external-url' || cta.target.type === 'whatsapp'
+              const isServiceLink =
+                cta.target.type === 'booking' || cta.target.type === 'service-detail'
+              const openBlank =
+                isExternal || (Boolean(ctx.openInternalLinksInNewTab) && isServiceLink)
+              return (
+                <a
+                  key={cta.id}
+                  href={resolveCtaHref(cta, ctx, socialLinks)}
+                  target={openBlank ? '_blank' : undefined}
+                  rel={openBlank ? 'noopener noreferrer' : undefined}
+                  className={
+                    cta.style === 'secondary'
+                      ? 'inline-flex items-center rounded-lg border-2 border-secondary bg-secondary/15 px-4 py-2 text-sm font-medium text-[hsl(var(--secondary))] transition hover:bg-secondary/25'
+                      : 'inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90'
+                  }
+                >
+                  {cta.label}
+                </a>
+              )
+            })}
           </div>
         ) : null}
       </div>
@@ -158,16 +172,18 @@ function ServiceCard({
   firmSlug,
   service,
   showPrices = true,
+  openInNewTab = false,
 }: {
   firmSlug: string
   service: PublicFirmServiceSummary
   showPrices?: boolean
+  openInNewTab?: boolean
 }) {
-  return (
-    <Link
-      to={`/${encodeURIComponent(firmSlug)}/servicos/${encodeURIComponent(service.slug)}`}
-      className="block overflow-hidden rounded-2xl border border-border/50 bg-card shadow-sm transition hover:border-primary/40 hover:shadow-md"
-    >
+  const href = `/${encodeURIComponent(firmSlug)}/servicos/${encodeURIComponent(service.slug)}`
+  const className =
+    'block overflow-hidden rounded-2xl border border-border/50 bg-card shadow-sm transition hover:border-primary/40 hover:shadow-md'
+  const body = (
+    <>
       {service.imageUrl ? (
         <img src={service.imageUrl} alt="" className="h-36 w-full object-cover" loading="lazy" />
       ) : null}
@@ -191,6 +207,20 @@ function ServiceCard({
           </p>
         ) : null}
       </div>
+    </>
+  )
+
+  if (openInNewTab) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+        {body}
+      </a>
+    )
+  }
+
+  return (
+    <Link to={href} className={className}>
+      {body}
     </Link>
   )
 }
@@ -204,7 +234,12 @@ export function ServicesSection({ content, ctx }: { content: PublicSiteServicesC
       <ul className="space-y-3">
         {items.map((s) => (
           <li key={s.slug}>
-            <ServiceCard firmSlug={ctx.firmSlug} service={s} showPrices={ctx.showPrices !== false} />
+            <ServiceCard
+              firmSlug={ctx.firmSlug}
+              service={s}
+              showPrices={ctx.showPrices !== false}
+              openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
+            />
           </li>
         ))}
       </ul>
@@ -221,7 +256,12 @@ export function BookingServicesSection({ content, ctx }: { content: PublicSiteSe
       <ul className="space-y-3">
         {items.map((s) => (
           <li key={s.slug}>
-            <ServiceCard firmSlug={ctx.firmSlug} service={s} showPrices={ctx.showPrices !== false} />
+            <ServiceCard
+              firmSlug={ctx.firmSlug}
+              service={s}
+              showPrices={ctx.showPrices !== false}
+              openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
+            />
           </li>
         ))}
       </ul>

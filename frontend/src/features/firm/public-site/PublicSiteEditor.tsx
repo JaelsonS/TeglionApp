@@ -467,6 +467,7 @@ export function PublicSiteEditor({ bundle }: Props) {
                 praiseUrl: draft.praiseUrl,
                 praiseLabel: draft.praiseLabel,
                 praiseContact: draft.praiseContact,
+                openInternalLinksInNewTab: true,
               }}
             />
           </div>

@@ -1121,9 +1121,14 @@ export function AgendaServicesCatalogPanel({
                             <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
                             <div className="min-w-0">
                               <p className="text-xs font-semibold text-emerald-800">Publicado</p>
-                              <p className="truncate text-xs text-emerald-700">
+                              <a
+                                href={`${typeof window !== 'undefined' ? window.location.origin : ''}/${encodeURIComponent(firmSlug)}/servicos/${encodeURIComponent(s.slug)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block truncate text-xs text-emerald-700 underline-offset-2 hover:underline"
+                              >
                                 {typeof window !== 'undefined' ? window.location.origin : ''}/{firmSlug}/servicos/{s.slug}
-                              </p>
+                              </a>
                             </div>
                           </div>
                           <div className="flex shrink-0 gap-1.5">
@@ -1145,9 +1150,10 @@ export function AgendaServicesCatalogPanel({
                               type="button"
                               size="sm"
                               className="h-8 rounded-full text-xs"
-                              onClick={() =>
-                                window.open(`/${firmSlug}/servicos/${s.slug}`, '_blank', 'noopener,noreferrer')
-                              }
+                              onClick={() => {
+                                const url = `${window.location.origin}/${encodeURIComponent(firmSlug)}/servicos/${encodeURIComponent(s.slug)}`
+                                window.open(url, '_blank', 'noopener,noreferrer')
+                              }}
                             >
                               Abrir <ExternalLink className="ml-1 h-3 w-3" />
                             </Button>
