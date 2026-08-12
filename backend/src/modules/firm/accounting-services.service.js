@@ -215,7 +215,36 @@ function normalizeIntakeForm(value) {
       return question;
     })
     .filter(Boolean);
-  return { questions };
+
+  const ALLOWED_ANEXOS = new Set(['A', 'B', 'C', 'F', 'G', 'H', 'J', 'JOVEM']);
+  let irsConfig;
+  if (value.irsConfig && typeof value.irsConfig === 'object') {
+    const rawYear = value.irsConfig.taxYear;
+    const taxYear =
+      rawYear === null || rawYear === undefined || rawYear === ''
+        ? null
+        : Number.isFinite(Number(rawYear))
+          ? Math.trunc(Number(rawYear))
+          : null;
+    const anexos = Array.isArray(value.irsConfig.anexos)
+      ? [...new Set(value.irsConfig.anexos.map((a) => String(a).toUpperCase()).filter((a) => ALLOWED_ANEXOS.has(a)))]
+      : [];
+    irsConfig = { taxYear, anexos };
+  }
+
+  // Aspecto da página pública do serviço (ex.: mostrar o logótipo do
+  // escritório). Só é preservado quando o chamador o envia — assim um PATCH
+  // vindo de um editor que não conhece o campo não força um valor.
+  let pageOptions;
+  if (value.pageOptions && typeof value.pageOptions === 'object') {
+    pageOptions = { showFirmLogo: value.pageOptions.showFirmLogo !== false };
+  }
+
+  return {
+    questions,
+    ...(irsConfig ? { irsConfig } : {}),
+    ...(pageOptions ? { pageOptions } : {}),
+  };
 }
 
 /**
@@ -337,6 +366,14 @@ async function create({ firmId, payload }) {
     if (!slug) throw new AppError('Defina um slug antes de tornar o serviço público', 400);
     assertFormReadyForPublish(intakeForm);
   }
+  let paymentMethod = 'bank_transfer';
+  if (payload?.paymentMethod !== undefined) {
+    const allowed = new Set(['bank_transfer', 'multibanco', 'stripe_connect']);
+    const method = String(payload.paymentMethod);
+    if (!allowed.has(method)) throw new AppError('Meio de pagamento inválido', 400);
+    paymentMethod = method;
+  }
+
   const item = await accountingServicesRepository.createRow({
     firmId,
     name,
@@ -354,6 +391,7 @@ async function create({ firmId, payload }) {
     documentRequirements: normalizeDocumentRequirements(payload?.documentRequirements) || [],
     intakeForm,
     bookingOverrides: normalizeBookingOverrides(payload?.bookingOverrides) || null,
+    paymentMethod,
   });
   return { item: await enrichService(item) };
 }

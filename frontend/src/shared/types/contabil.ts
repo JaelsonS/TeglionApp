@@ -320,8 +320,23 @@ export type IntakeQuestion = {
   options?: IntakeQuestionOption[]
 }
 
+export type IrsAnexoId = 'A' | 'B' | 'C' | 'F' | 'G' | 'H' | 'J' | 'JOVEM'
+
+export type IrsServiceConfig = {
+  /** Ano fiscal da declaração — definido pelo escritório (ex.: 2026). */
+  taxYear?: number | null
+  anexos?: IrsAnexoId[]
+}
+
 export type IntakeForm = {
   questions: IntakeQuestion[]
+  /** Metadados IRS (Modelo 3 / anexos) — opcional. */
+  irsConfig?: IrsServiceConfig
+  /** Aspecto da página pública deste serviço. */
+  pageOptions?: {
+    /** Omissão: true. */
+    showFirmLogo?: boolean
+  }
 }
 
 export type AccountingService = {

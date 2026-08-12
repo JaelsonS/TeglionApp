@@ -174,46 +174,49 @@ const CONSULTING_SERVICES_CATALOG = [
       { tag: 'efatura_export', title: 'Exportação e-fatura / despesas' },
     ],
     intakeForm: {
+      irsConfig: {
+        taxYear: null,
+        anexos: ['A', 'B', 'F', 'H'],
+      },
       questions: [
         {
-          label: 'Estado civil / agregação familiar?',
-          type: 'single_choice',
+          label: 'Teve rendimentos de trabalho dependente?',
+          type: 'yes_no',
           options: [
-            { label: 'Solteiro(a) / separado' },
-            { label: 'Casado(a) / união de facto — declaração conjunta' },
-            { label: 'Casado(a) — declarações separadas' },
+            { label: 'Sim', documentTags: ['Recibos de vencimento'] },
+            { label: 'Não', documentTags: [] },
           ],
         },
         {
-          label: 'Tem dependentes a cargo?',
+          label: 'Teve rendimentos como trabalhador independente?',
           type: 'yes_no',
           options: [
-            { label: 'Sim', documentTags: ['Comprovativos dos dependentes'] },
-            { label: 'Não' },
+            { label: 'Sim', documentTags: ['Recibos verdes'] },
+            { label: 'Não', documentTags: [] },
           ],
         },
         {
-          label: 'Tem rendimentos de trabalho dependente (Anexo A)?',
+          label: 'Teve rendimentos prediais?',
           type: 'yes_no',
           options: [
-            { label: 'Sim', documentTags: ['Recibos de vencimento / declaração entidade'] },
-            { label: 'Não' },
+            { label: 'Sim', documentTags: ['Caderneta predial'] },
+            { label: 'Não', documentTags: [] },
           ],
         },
         {
-          label: 'Tem actividade independente / recibos verdes (Anexo B)?',
+          label: 'Teve mais-valias com venda de imóveis?',
           type: 'yes_no',
           options: [
-            { label: 'Sim', documentTags: ['Recibos verdes / AT'] },
-            { label: 'Não' },
+            { label: 'Sim', documentTags: ['Escritura / mais-valias'] },
+            { label: 'Não', documentTags: [] },
           ],
         },
         {
-          label: 'Tem rendimentos prediais (Anexo F)?',
+          label: 'Pretende usufruir de benefícios fiscais?',
           type: 'yes_no',
           options: [
-            { label: 'Sim', documentTags: ['Caderneta predial', 'Contrato de arrendamento'] },
-            { label: 'Não' },
+            { label: 'Sim', documentTags: ['Comprovativos benefícios'] },
+            { label: 'Não', documentTags: [] },
           ],
         },
       ],

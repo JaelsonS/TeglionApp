@@ -269,7 +269,11 @@ export function ServiceIntakePublicPage() {
   return (
     <div className="mx-auto min-h-screen max-w-xl bg-background px-4 py-10">
       <header className="mb-6 space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{service.firmName}</p>
+        {service.logoUrl ? (
+          <img src={service.logoUrl} alt={service.firmName || ''} className="mb-2 h-10 w-auto max-w-[200px] object-contain" />
+        ) : (
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{service.firmName}</p>
+        )}
         {service.imageUrl ? (
           <img src={service.imageUrl} alt="" className="mb-3 max-h-48 w-full rounded-xl object-cover" />
         ) : null}

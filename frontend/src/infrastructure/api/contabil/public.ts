@@ -14,6 +14,8 @@ export type PublicFirmServiceSummary = {
 
 export type PublicServiceIntake = {
   firmName: string
+  logoUrl?: string | null
+  showFirmLogo?: boolean
   serviceName: string
   description?: string | null
   imageUrl?: string | null

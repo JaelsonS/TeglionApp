@@ -73,10 +73,11 @@ export function FirmServiceRequestsPage() {
         <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 sm:p-4">
           {activeTab === 'catalog' ? (
             <>
-              <div className="shrink-0 rounded-xl border border-border/50 bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">Catálogo</span>
-                {' — '}à esquerda os serviços do escritório; à direita modelos Teglion para activar. O IRS tem ecrã
-                próprio no menu.
+              <div className="shrink-0 rounded-xl border border-sky-200/80 bg-gradient-to-r from-sky-50 to-brand/[0.05] px-4 py-3 text-sm text-sky-950">
+                <span className="font-semibold text-brand">Catálogo</span>
+                {' — '}à esquerda os serviços do escritório (caneta = editor completo: banner, formulário,
+                logótipo, publicação, pré-visualização e apagar). À direita, modelos Teglion: «Activar e editar».
+                O <span className="font-semibold">IRS</span> tem ecrã próprio no menu lateral.
               </div>
               <ServicesCatalogWorkspace
                 services={servicesQuery.data?.items ?? []}

@@ -498,10 +498,22 @@ export function ServiceInquiriesWorkspace() {
           <SheetHiddenTitle>Gerir etiquetas</SheetHiddenTitle>
           <div className="space-y-5 py-4">
             <div>
-              <h2 className="text-lg font-bold">As suas etiquetas</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Crie nomes e cores. No Catálogo (fase seguinte) define regras “se responder X → esta etiqueta”.
-              </p>
+              <h2 className="text-lg font-bold">Etiquetas das solicitações</h2>
+              <div className="mt-2 space-y-2 rounded-xl border border-sky-200/80 bg-sky-50/80 px-3 py-3 text-sm text-sky-950">
+                <p className="font-medium text-brand">Para que servem?</p>
+                <p>
+                  São <strong>rótulos da equipa</strong> para organizar pedidos (ex.: «Urgente», «Fácil»,
+                  «Agendar»). Não são vistas pelo cliente.
+                </p>
+                <p>
+                  Depois de criar, abra uma solicitação e marque as etiquetas. Pode filtrar a lista por
+                  etiqueta.
+                </p>
+                <p className="text-xs text-sky-900/80">
+                  Em breve: regras automáticas no Catálogo («se o cliente responder X → aplicar esta
+                  etiqueta»).
+                </p>
+              </div>
             </div>
             <div className="flex flex-wrap gap-2">
               {SUGGESTED_TAG_COLORS.map((c) => (

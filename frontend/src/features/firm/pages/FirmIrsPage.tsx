@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, Landmark, Loader2, Search } from 'lucide-react'
+import { CheckCircle2, Landmark, Loader2, Plus, Search, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
-import { ServiceEditorSheet } from '@/features/firm/services/ServiceEditorSheet'
+import { IrsModelo3EditorSheet, isModelo3Service } from '@/features/firm/services/IrsModelo3EditorSheet'
+import { ServiceFullEditorSheet } from '@/features/firm/services/ServiceFullEditorSheet'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -21,16 +22,25 @@ function formatEur(cents: number) {
 function isIrs(s: { name: string; catalogKey?: string | null; category?: string }) {
   if (s.category === 'IRS') return true
   const blob = `${s.name} ${s.catalogKey || ''}`
-  return /\birs\b/i.test(blob) || /e-?fatura/i.test(blob)
+  return /\birs\b/i.test(blob) || /e-?fatura/i.test(blob) || /^irs-/.test(s.catalogKey || '')
 }
 
-const YEAR = new Date().getFullYear()
+function taxYearOf(s: AccountingService): number | null {
+  const y = s.intakeForm?.irsConfig?.taxYear
+  return typeof y === 'number' && Number.isFinite(y) ? y : null
+}
 
 export function FirmIrsPage() {
   const qc = useQueryClient()
   const [modelSearch, setModelSearch] = useState('')
-  const [editId, setEditId] = useState<string | null>(null)
   const [busyKey, setBusyKey] = useState<string | null>(null)
+
+  const [fullOpen, setFullOpen] = useState(false)
+  const [fullService, setFullService] = useState<AccountingService | null>(null)
+  const [fullHint, setFullHint] = useState<{ name?: string; catalogKey?: string } | null>(null)
+
+  const [modelo3Open, setModelo3Open] = useState(false)
+  const [modelo3Service, setModelo3Service] = useState<AccountingService | null>(null)
 
   const servicesQuery = useQuery({
     queryKey: ['contabil-accounting-services', 'irs-hub'],
@@ -47,6 +57,17 @@ export function FirmIrsPage() {
   const activeIrs = firmIrs.filter((s: AccountingService) => s.isActive !== false)
   const publicIrs = firmIrs.filter((s: AccountingService) => s.isPubliclyListed)
 
+  const yearsLabel = useMemo(() => {
+    const years: number[] = []
+    for (const s of firmIrs) {
+      const y = taxYearOf(s)
+      if (y != null && !years.includes(y)) years.push(y)
+    }
+    years.sort((a, b) => Number(a) - Number(b))
+    if (!years.length) return 'Por serviço'
+    return years.join(' · ')
+  }, [firmIrs])
+
   const existingKeys = useMemo(
     () => new Set(all.map((s: AccountingService) => s.catalogKey).filter(Boolean) as string[]),
     [all],
@@ -57,20 +78,45 @@ export function FirmIrsPage() {
       (t: ConsultingCatalogEntry) => isIrs(t) && !existingKeys.has(t.catalogKey),
     )
     const q = modelSearch.trim().toLowerCase()
-    if (q) items = items.filter((t) => t.name.toLowerCase().includes(q) || t.catalogKey.includes(q))
+    if (q) {
+      items = items.filter(
+        (t: ConsultingCatalogEntry) =>
+          t.name.toLowerCase().includes(q) || t.catalogKey.includes(q),
+      )
+    }
     return items
   }, [catalogQuery.data, existingKeys, modelSearch])
 
-  const editing = editId ? (firmIrs.find((s: AccountingService) => s.id === editId) ?? null) : null
-
   const reload = () => qc.invalidateQueries({ queryKey: ['contabil-accounting-services'] })
+
+  const openFull = (s: AccountingService | null, hint?: { name?: string; catalogKey?: string } | null) => {
+    setFullService(s)
+    setFullHint(hint ?? null)
+    setFullOpen(true)
+  }
+
+  const openModelo3 = (s: AccountingService | null) => {
+    setModelo3Service(s)
+    setModelo3Open(true)
+  }
 
   const activate = async (entry: ConsultingCatalogEntry) => {
     setBusyKey(entry.catalogKey)
     try {
-      await contabilAccountingServicesApi.activateCatalog([entry.catalogKey])
-      toast.success(`“${entry.name}” activado`)
+      const res = await contabilAccountingServicesApi.activateCatalog([entry.catalogKey])
+      toast.success(`“${entry.name}” activado — personalize agora`)
       await reload()
+      const created =
+        (res as { items?: AccountingService[] })?.items?.[0] ||
+        (await contabilAccountingServicesApi.list())?.items?.find(
+          (s: AccountingService) => s.catalogKey === entry.catalogKey,
+        )
+      if (!created) return
+      if (isModelo3Service(created) || isModelo3Service(entry)) {
+        openModelo3(created)
+      } else {
+        openFull(created)
+      }
     } catch (err) {
       toast.error('Erro ao activar', { description: getErrorMessage(err) })
     } finally {
@@ -83,41 +129,85 @@ export function FirmIrsPage() {
       <FirmModuleShell
         className="cb-firm-operational-panel min-h-0 flex-1 overflow-hidden"
         title="IRS"
-        subtitle={`Campanha ${YEAR} — modelos prontos e serviços do escritório`}
+        subtitle="Campanha IRS — modelos prontos e serviços do escritório"
         bodyClassName="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4"
       >
         <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
-            { label: 'Campanha', value: String(YEAR) },
-            { label: 'Serviços IRS', value: String(firmIrs.length) },
-            { label: 'Activos', value: String(activeIrs.length) },
-            { label: 'Públicos', value: String(publicIrs.length) },
+            { label: 'Campanha', value: 'IRS', accent: true },
+            { label: 'Anos fiscais', value: yearsLabel, accent: false },
+            { label: 'Serviços IRS', value: String(firmIrs.length), accent: false },
+            { label: 'Activos / No site', value: `${activeIrs.length} / ${publicIrs.length}`, accent: false },
           ].map((kpi) => (
-            <div key={kpi.label} className="rounded-xl border border-border/60 bg-card px-3 py-2.5">
-              <p className="text-caption font-semibold uppercase tracking-wide text-muted-foreground">{kpi.label}</p>
-              <p className="mt-0.5 text-xl font-semibold tabular-nums text-foreground">{kpi.value}</p>
+            <div
+              key={kpi.label}
+              className={cn(
+                'rounded-xl border px-3 py-2.5 shadow-sm',
+                kpi.accent
+                  ? 'border-brand/30 bg-gradient-to-br from-brand to-brand/85 text-primary-foreground'
+                  : 'border-brand/15 bg-card',
+              )}
+            >
+              <p
+                className={cn(
+                  'text-caption font-semibold uppercase tracking-wide',
+                  kpi.accent ? 'text-primary-foreground/80' : 'text-brand/70',
+                )}
+              >
+                {kpi.label}
+              </p>
+              <p
+                className={cn(
+                  'mt-0.5 text-lg font-semibold tabular-nums sm:text-xl',
+                  kpi.accent ? 'text-primary-foreground' : 'text-foreground',
+                )}
+              >
+                {kpi.value}
+              </p>
             </div>
           ))}
         </div>
 
-        <div className="mb-3 rounded-xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm text-muted-foreground">
-          <span className="font-semibold text-foreground">Como funciona:</span> active um modelo → edite preço e
-          formulário → publique na página. O cliente preenche online; a equipa recebe em{' '}
-          <span className="font-semibold text-foreground">Solicitações</span> — sem pedir documentos automaticamente.
+        <div className="mb-3 flex flex-wrap items-start justify-between gap-3 rounded-xl border border-sky-200/90 bg-gradient-to-r from-sky-50 via-sky-50/80 to-brand/[0.06] px-4 py-3 text-sm text-sky-950">
+          <p className="min-w-0 flex-1">
+            <span className="font-semibold text-brand">Como funciona:</span> active ou crie → edite banner,
+            formulário, anexos e pagamento → publique no site. A equipa recebe em{' '}
+            <span className="font-semibold">Solicitações</span>. O ano fiscal define-se em cada serviço.
+          </p>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="rounded-full border-brand/30"
+              onClick={() => openFull(null, { name: 'Serviço IRS', catalogKey: undefined })}
+            >
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              Criar serviço
+            </Button>
+            <Button type="button" size="sm" className="rounded-full bg-brand" onClick={() => openModelo3(null)}>
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              Modelo 3 + Anexos
+            </Button>
+          </div>
         </div>
 
         <div className="grid min-h-[28rem] gap-3 lg:grid-cols-2">
-          <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-border/60 bg-card">
-            <div className="shrink-0 border-b border-border/50 px-4 py-3">
+          <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-brand/20 bg-card shadow-sm">
+            <div className="shrink-0 border-b border-brand/10 bg-gradient-to-r from-brand/[0.07] to-transparent px-4 py-3">
               <div className="flex items-center gap-2">
-                <Landmark className="h-4 w-4 text-brand" />
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-primary-foreground">
+                  <Landmark className="h-4 w-4" />
+                </span>
                 <h3 className="text-sm font-semibold">Modelos prontos Teglion</h3>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">Pack IRS Portugal — active o que o escritório oferece.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Active e edite — Modelo 3 abre o assistente de anexos; os outros abrem o editor completo.
+              </p>
               <div className="relative mt-2">
                 <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  className="h-9 rounded-lg pl-8 text-xs"
+                  className="h-9 rounded-lg border-brand/20 pl-8 text-xs"
                   placeholder="Pesquisar Anexo A, Modelo 3, IRS Jovem…"
                   value={modelSearch}
                   onChange={(e: FormChangeEvent) => setModelSearch(e.target.value)}
@@ -127,31 +217,36 @@ export function FirmIrsPage() {
             <div className="min-h-0 flex-1 overflow-y-auto">
               {catalogQuery.isLoading ? (
                 <div className="flex h-32 items-center justify-center">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  <Loader2 className="h-5 w-5 animate-spin text-brand" />
                 </div>
               ) : models.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
-                  <CheckCircle2 className="h-7 w-7 text-emerald-600/50" />
+                  <CheckCircle2 className="h-7 w-7 text-emerald-600/60" />
                   <p className="text-sm text-muted-foreground">Todos os modelos IRS já estão no escritório.</p>
                 </div>
               ) : (
                 <ul className="divide-y divide-border/40">
-                  {models.map((t) => (
-                    <li key={t.catalogKey} className="flex items-center gap-3 px-4 py-3">
+                  {models.map((t: ConsultingCatalogEntry) => (
+                    <li key={t.catalogKey} className="flex items-center gap-3 px-4 py-3 hover:bg-brand/[0.03]">
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium">{t.name}</p>
                         <p className="text-xs text-muted-foreground">
                           {t.durationMinutes} min · {formatEur(t.priceCents)}
+                          {t.category ? ` · ${t.category}` : ''}
                         </p>
                       </div>
                       <Button
                         type="button"
                         size="sm"
-                        className="shrink-0 rounded-full"
+                        className="shrink-0 rounded-full bg-brand"
                         disabled={busyKey === t.catalogKey}
                         onClick={() => void activate(t)}
                       >
-                        {busyKey === t.catalogKey ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Activar'}
+                        {busyKey === t.catalogKey ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          'Activar e editar'
+                        )}
                       </Button>
                     </li>
                   ))}
@@ -160,76 +255,138 @@ export function FirmIrsPage() {
             </div>
           </section>
 
-          <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-border/60 bg-card">
-            <div className="shrink-0 border-b border-border/50 px-4 py-3">
-              <h3 className="text-sm font-semibold">Os vossos serviços IRS</h3>
-              <p className="mt-1 text-xs text-muted-foreground">Cópias do escritório — edite e publique.</p>
+          <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-brand/20 bg-card shadow-sm">
+            <div className="shrink-0 border-b border-brand/10 bg-gradient-to-r from-sky-500/[0.08] to-transparent px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-sm font-semibold">Os vossos serviços IRS</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Editar abre o editor completo (banner, formulário, apagar…). Modelo 3 também tem Anexos.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="rounded-full border-brand/30 text-brand hover:bg-brand/5"
+                  onClick={() => openFull(null, { name: 'Serviço IRS' })}
+                >
+                  <Plus className="mr-1.5 h-3.5 w-3.5" />
+                  Criar
+                </Button>
+              </div>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto">
               {servicesQuery.isLoading ? (
                 <div className="flex h-32 items-center justify-center">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  <Loader2 className="h-5 w-5 animate-spin text-brand" />
                 </div>
               ) : firmIrs.length === 0 ? (
-                <div className="px-4 py-10 text-center text-sm text-muted-foreground">
-                  Ainda sem serviços IRS. Active um modelo à esquerda.
+                <div className="flex flex-col items-center gap-3 px-4 py-10 text-center">
+                  <Sparkles className="h-8 w-8 text-brand/40" />
+                  <p className="text-sm text-muted-foreground">
+                    Ainda sem serviços IRS. Crie um ou active um modelo à esquerda.
+                  </p>
                 </div>
               ) : (
                 <ul className="divide-y divide-border/40">
-                  {firmIrs.map((s: AccountingService) => (
-                    <li key={s.id} className="flex items-center gap-3 px-4 py-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="truncate text-sm font-medium">{s.name}</p>
-                          <span
-                            className={cn(
-                              'rounded-full px-2 py-0.5 text-caption font-bold uppercase',
-                              s.isActive !== false
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : 'bg-muted text-muted-foreground',
+                  {firmIrs.map((s: AccountingService) => {
+                    const year = taxYearOf(s)
+                    return (
+                      <li key={s.id} className="flex items-center gap-3 px-4 py-3 hover:bg-sky-50/50">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="truncate text-sm font-medium">{s.name}</p>
+                            {year != null ? (
+                              <span className="rounded-full bg-brand/10 px-2 py-0.5 text-caption font-bold uppercase text-brand">
+                                {year}
+                              </span>
+                            ) : null}
+                            <span
+                              className={cn(
+                                'rounded-full px-2 py-0.5 text-caption font-bold uppercase',
+                                s.isActive !== false
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : 'bg-muted text-muted-foreground',
+                              )}
+                              title="Activo = disponível no escritório"
+                            >
+                              {s.isActive !== false ? 'Activo' : 'Inactivo'}
+                            </span>
+                            {s.isPubliclyListed ? (
+                              <span
+                                className="rounded-full bg-sky-100 px-2 py-0.5 text-caption font-bold uppercase text-sky-900"
+                                title="Visível na página pública"
+                              >
+                                No site
+                              </span>
+                            ) : (
+                              <span
+                                className="rounded-full bg-muted px-2 py-0.5 text-caption font-bold uppercase text-muted-foreground"
+                                title="Ainda não publicado no site"
+                              >
+                                Só interno
+                              </span>
                             )}
-                          >
-                            {s.isActive !== false ? 'Activo' : 'Inactivo'}
-                          </span>
-                          {s.isPubliclyListed ? (
-                            <span className="rounded-full bg-sky-100 px-2 py-0.5 text-caption font-bold uppercase text-sky-900">
-                              Publicado
-                            </span>
-                          ) : (
-                            <span className="rounded-full bg-muted px-2 py-0.5 text-caption font-bold uppercase text-muted-foreground">
-                              Rascunho
-                            </span>
-                          )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {s.durationMinutes} min · {formatEur(s.priceCents)}
+                            {isModelo3Service(s) ? ' · Modelo 3' : ''}
+                          </p>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          {s.durationMinutes} min · {formatEur(s.priceCents)}
-                        </p>
-                      </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        className="shrink-0 rounded-full"
-                        onClick={() => setEditId(s.id)}
-                      >
-                        Abrir
-                      </Button>
-                    </li>
-                  ))}
+                        <div className="flex shrink-0 flex-wrap gap-1.5">
+                          {isModelo3Service(s) ? (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="rounded-full border-brand/25"
+                              onClick={() => openModelo3(s)}
+                            >
+                              Anexos
+                            </Button>
+                          ) : null}
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="rounded-full bg-brand"
+                            onClick={() => openFull(s)}
+                          >
+                            Editar
+                          </Button>
+                        </div>
+                      </li>
+                    )
+                  })}
                 </ul>
               )}
             </div>
           </section>
         </div>
 
-        {editing ? (
-          <ServiceEditorSheet
-            service={editing}
-            open={Boolean(editId)}
-            onOpenChange={(open) => !open && setEditId(null)}
-            onSaved={() => void reload()}
-          />
-        ) : null}
+        <ServiceFullEditorSheet
+          service={fullService}
+          open={fullOpen}
+          initialCatalogHint={fullHint}
+          onOpenChange={(open) => {
+            setFullOpen(open)
+            if (!open) {
+              setFullService(null)
+              setFullHint(null)
+            }
+          }}
+          onSaved={() => void reload()}
+        />
+
+        <IrsModelo3EditorSheet
+          service={modelo3Service}
+          open={modelo3Open}
+          onOpenChange={(open) => {
+            setModelo3Open(open)
+            if (!open) setModelo3Service(null)
+          }}
+          onSaved={() => void reload()}
+        />
       </FirmModuleShell>
     </FirmWorkspacePage>
   )

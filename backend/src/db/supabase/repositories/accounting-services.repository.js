@@ -71,6 +71,7 @@ async function createRow({
   documentRequirements,
   intakeForm,
   bookingOverrides,
+  paymentMethod,
 }) {
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
@@ -92,6 +93,7 @@ async function createRow({
       document_requirements: Array.isArray(documentRequirements) ? documentRequirements : [],
       intake_form: intakeForm || null,
       booking_overrides: bookingOverrides || null,
+      payment_method: paymentMethod || 'bank_transfer',
     })
     .select()
     .single();

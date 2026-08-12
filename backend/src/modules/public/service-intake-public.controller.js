@@ -191,8 +191,19 @@ async function getPublicService(req, res, next) {
       showPrices = true;
     }
 
+    let logoUrl = null;
+    try {
+      logoUrl = await firmBrandingService.resolveLogoUrl(firm);
+    } catch {
+      logoUrl = firm.settings?.branding?.logoUrl || null;
+    }
+
+    const showFirmLogo = service.intakeForm?.pageOptions?.showFirmLogo !== false;
+
     return res.json({
       firmName: firm.name,
+      logoUrl: showFirmLogo ? logoUrl : null,
+      showFirmLogo,
       serviceName: interpolateServiceTemplate(service.name),
       description: interpolateServiceTemplate(service.description) || null,
       imageUrl: (await accountingServicesService.resolveServiceImageUrl(service.imageStorageKey || service.imageUrl)) || null,
