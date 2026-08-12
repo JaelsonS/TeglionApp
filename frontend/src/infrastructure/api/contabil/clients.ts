@@ -130,13 +130,12 @@ export function createContabilClientsApi(api: AxiosInstance) {
 
     createBulkInvite: (
       clientIds: string[],
-      email?: { subject?: string; bodyHtml?: string; bodyText?: string },
+      email?: { subject?: string; bodyText?: string },
     ) =>
       api
         .post('/contabil/invites/bulk', {
           clientIds,
           subject: email?.subject,
-          bodyHtml: email?.bodyHtml,
           bodyText: email?.bodyText,
         })
         .then(
@@ -159,7 +158,6 @@ export function createContabilClientsApi(api: AxiosInstance) {
     sendTestInviteEmail: (payload: {
       toEmail: string
       subject?: string
-      bodyHtml?: string
       bodyText?: string
     }) => api.post('/contabil/invites/test-email', payload).then((r) => r.data as { sent: boolean }),
 

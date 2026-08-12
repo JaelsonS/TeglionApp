@@ -19,6 +19,24 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+/**
+ * Converte texto simples (editável pelo escritório) em HTML de e-mail seguro.
+ * Nunca interpreta tags — tudo é escapado; parágrafos = linhas em branco.
+ */
+function plainTextToEmailHtml(text) {
+  const raw = String(text || '')
+    .replace(/\r\n/g, '\n')
+    .trim();
+  if (!raw) return '';
+  return raw
+    .split(/\n{2,}/)
+    .map((block) => {
+      const escaped = escapeHtml(block).replace(/\n/g, '<br>\n');
+      return `<p style="margin:0 0 12px">${escaped}</p>`;
+    })
+    .join('');
+}
+
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 
 function safeHexColor(value, fallback) {
@@ -119,6 +137,7 @@ function renderTransactionalEmail(opts) {
 
 module.exports = {
   escapeHtml,
+  plainTextToEmailHtml,
   renderTransactionalEmail,
   APP_URL,
   BRAND,

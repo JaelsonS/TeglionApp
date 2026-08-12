@@ -27,12 +27,12 @@ exports.create = async (req, res, next) => {
 exports.createBulk = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);
-    const { clientIds, subject, bodyHtml, bodyText } = req.body || {};
+    const { clientIds, subject, bodyText } = req.body || {};
     if (!Array.isArray(clientIds) || !clientIds.length) {
       throw new AppError('Indique pelo menos um clientId', 400);
     }
     const emailOverride =
-      subject || bodyHtml || bodyText ? { subject: subject || null, bodyHtml: bodyHtml || null, bodyText: bodyText || null } : null;
+      subject || bodyText ? { subject: subject || null, bodyText: bodyText || null } : null;
     const result = await invitesService.createBulkClientInvites({
       firmId,
       clientIds,
@@ -62,12 +62,11 @@ exports.previewInviteEmail = async (req, res, next) => {
 exports.sendTestInviteEmail = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);
-    const { toEmail, subject, bodyHtml, bodyText } = req.body || {};
+    const { toEmail, subject, bodyText } = req.body || {};
     const result = await invitesService.sendTestInviteEmail({
       firmId,
       toEmail,
       subject,
-      bodyHtml,
       bodyText,
     });
     return res.json(result);

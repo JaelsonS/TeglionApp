@@ -74,7 +74,6 @@ async function sendInviteEmail({ firmId, email, displayName, inviteUrl, expiresA
       firmContactPhone: branding.contactPhone,
       firmWebsite: branding.website,
       subjectOverride: emailOverride?.subject || null,
-      bodyHtmlOverride: emailOverride?.bodyHtml || null,
       bodyTextOverride: emailOverride?.bodyText || null,
     });
     return { emailSent: true, emailError: null };
@@ -453,7 +452,7 @@ async function buildInviteEmailPreview({ firmId, clientName }) {
   });
 }
 
-async function sendTestInviteEmail({ firmId, toEmail, subject, bodyHtml, bodyText }) {
+async function sendTestInviteEmail({ firmId, toEmail, subject, bodyText }) {
   const email = normalizeEmail(toEmail);
   if (!email) throw new AppError('Indique o e-mail de teste', 400);
   const branding = await resolveInviteBranding(firmId);
@@ -469,7 +468,6 @@ async function sendTestInviteEmail({ firmId, toEmail, subject, bodyHtml, bodyTex
     firmContactPhone: branding.contactPhone,
     firmWebsite: branding.website,
     subjectOverride: subject || null,
-    bodyHtmlOverride: bodyHtml || null,
     bodyTextOverride: bodyText || null,
   });
   return { sent: true };

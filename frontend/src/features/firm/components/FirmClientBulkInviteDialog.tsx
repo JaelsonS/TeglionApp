@@ -29,8 +29,8 @@ type BulkInviteResult = {
 type Step = 'compose' | 'result'
 
 /**
- * Convite em massa — modal central com mensagem editável, pré-visualização e
- * envio de teste antes de disparar pela Brevo (transaccional, em lotes).
+ * Convite em massa — modal com texto de modelo editável (sem HTML),
+ * pré-visualização e envio de teste antes de disparar pela Brevo.
  */
 export function FirmClientBulkInviteDialog({
   open,
@@ -49,22 +49,20 @@ export function FirmClientBulkInviteDialog({
   const [loadingPreview, setLoadingPreview] = useState(false)
   const [result, setResult] = useState<BulkInviteResult | null>(null)
   const [subject, setSubject] = useState('')
-  const [bodyHtml, setBodyHtml] = useState('')
   const [bodyText, setBodyText] = useState('')
-  const [showPreview, setShowPreview] = useState(false)
+  const [showPreview, setShowPreview] = useState(true)
   const [testEmail, setTestEmail] = useState('')
 
   useEffect(() => {
     if (!open) return
     setStep('compose')
     setResult(null)
-    setShowPreview(false)
+    setShowPreview(true)
     setLoadingPreview(true)
     void contabilClientsApi
       .previewInviteEmail()
       .then((preview) => {
         setSubject(preview.subject || '')
-        setBodyHtml(preview.bodyHtml || '')
         setBodyText(preview.bodyText || '')
       })
       .catch(() => {
@@ -78,7 +76,7 @@ export function FirmClientBulkInviteDialog({
     setTesting(false)
     setResult(null)
     setStep('compose')
-    setShowPreview(false)
+    setShowPreview(true)
   }
 
   const handleOpenChange = (next: boolean) => {
@@ -91,7 +89,6 @@ export function FirmClientBulkInviteDialog({
     try {
       const res = await contabilClientsApi.createBulkInvite(clientIds, {
         subject: subject.trim() || undefined,
-        bodyHtml: bodyHtml.trim() || undefined,
         bodyText: bodyText.trim() || undefined,
       })
       setResult(res)
@@ -115,7 +112,6 @@ export function FirmClientBulkInviteDialog({
       await contabilClientsApi.sendTestInviteEmail({
         toEmail: testEmail.trim(),
         subject: subject.trim() || undefined,
-        bodyHtml: bodyHtml.trim() || undefined,
         bodyText: bodyText.trim() || undefined,
       })
       toast.success('E-mail de teste enviado')
@@ -179,8 +175,8 @@ export function FirmClientBulkInviteDialog({
               <DialogTitle>Enviar convites</DialogTitle>
               <DialogDescription>
                 Está prestes a enviar convites para <strong>{clientIds.length}</strong> cliente
-                {clientIds.length === 1 ? '' : 's'}. O texto abaixo é uma sugestão automática do Teglion —
-                pode adaptar à identidade do escritório.
+                {clientIds.length === 1 ? '' : 's'}. O texto abaixo é o modelo do Teglion — pode
+                editar se quiser; o e-mail é formatado automaticamente (sem código HTML).
               </DialogDescription>
             </DialogHeader>
 
@@ -200,14 +196,18 @@ export function FirmClientBulkInviteDialog({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="bulk-invite-body">Mensagem (HTML simples)</Label>
+                    <Label htmlFor="bulk-invite-body">Mensagem</Label>
                     <Textarea
                       id="bulk-invite-body"
-                      rows={10}
-                      value={bodyHtml}
-                      onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setBodyHtml(e.target.value)}
-                      className="font-mono text-xs"
+                      rows={12}
+                      value={bodyText}
+                      onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setBodyText(e.target.value)}
+                      className="text-sm leading-relaxed"
                     />
+                    <p className="text-caption text-muted-foreground">
+                      Texto simples — saudação, botão do convite e rodapé são acrescentados
+                      automaticamente. Linha em branco = novo parágrafo.
+                    </p>
                   </div>
                   <div className="flex flex-wrap items-end gap-2 rounded-xl border border-border/60 bg-muted/20 p-3">
                     <div className="min-w-[12rem] flex-1 space-y-1.5">
@@ -230,10 +230,11 @@ export function FirmClientBulkInviteDialog({
                     </Button>
                   </div>
                   {showPreview ? (
-                    <div
-                      className="rounded-xl border border-border/60 bg-card p-4 text-sm"
-                      dangerouslySetInnerHTML={{ __html: bodyHtml }}
-                    />
+                    <div className="rounded-xl border border-border/60 bg-card p-4 text-sm leading-relaxed whitespace-pre-wrap">
+                      {bodyText.trim() || (
+                        <span className="text-muted-foreground">A mensagem aparece aqui à medida que edita.</span>
+                      )}
+                    </div>
                   ) : null}
                   <p className="text-caption text-muted-foreground">
                     Os envios usam a Brevo em modo transaccional, em lotes com pausa entre mensagens, para proteger a
