@@ -18,6 +18,7 @@ import {
   CONNECT_STATUS_QUERY_KEY,
   contabilConnectApi,
 } from '@/infrastructure/api'
+import { humanizeConnectDisabledReason } from '@/features/firm/settings/connectStatusCopy'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 
@@ -192,7 +193,8 @@ export function FirmConnectPaymentsSection() {
             {account?.requirementsDisabledReason ? (
               <p className="mt-2 flex items-start gap-1.5 text-amber-800">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                {account.requirementsDisabledReason}
+                {humanizeConnectDisabledReason(account.requirementsDisabledReason) ||
+                  'Ainda falta concluir a configuração na Stripe.'}
               </p>
             ) : null}
           </div>

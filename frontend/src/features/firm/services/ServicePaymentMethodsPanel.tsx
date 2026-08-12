@@ -9,6 +9,7 @@ import {
   contabilConnectApi,
   type ConnectStatus,
 } from '@/infrastructure/api'
+import { connectPendingSummary } from '@/features/firm/settings/connectStatusCopy'
 import { cn } from '@/shared/lib/utils'
 
 export type ServicePaymentMethodId = 'bank_transfer' | 'multibanco' | 'stripe_connect'
@@ -49,7 +50,7 @@ function StatusPill({
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-caption font-semibold text-emerald-800">
         <CheckCircle2 className="h-3 w-3" aria-hidden />
-        Activo
+        Pronto
       </span>
     )
   }
@@ -57,20 +58,20 @@ function StatusPill({
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-caption font-semibold text-amber-900">
         <AlertTriangle className="h-3 w-3" aria-hidden />
-        Pendente
+        Quase lá
       </span>
     )
   }
   if (state === 'soon') {
     return (
       <span className="rounded-full bg-muted px-2 py-0.5 text-caption font-semibold text-muted-foreground">
-        em breve
+        Em breve
       </span>
     )
   }
   return (
     <span className="rounded-full bg-sky-100 px-2 py-0.5 text-caption font-semibold text-sky-900">
-      Configurar
+      Por ligar
     </span>
   )
 }
@@ -91,11 +92,14 @@ export function ServicePaymentMethodsPanel({
   const connectState = deriveConnectState(query.data)
   const feePercent = query.data?.platformFeePercent || '2'
   const onlineSelected = paymentMethod === 'stripe_connect' || paymentRequired
-  const pendingReason = query.data?.account?.requirementsDisabledReason
+  const pendingMessage = connectPendingSummary({
+    disabledReason: query.data?.account?.requirementsDisabledReason,
+    currentlyDue: query.data?.account?.requirementsCurrentlyDue,
+  })
 
-  const goConfigure = (reason?: string) => {
-    toast.message(reason || 'Configure o Stripe Connect', {
-      description: 'Definições → Pagamentos: ligue a conta e complete o KYC.',
+  const goConfigure = (title: string, description: string) => {
+    toast.message(title, {
+      description,
       action: {
         label: 'Abrir Pagamentos',
         onClick: () => {
@@ -109,18 +113,24 @@ export function ServicePaymentMethodsPanel({
     if (connectState === 'loading') return
     if (connectState === 'active') {
       onPaymentMethodChange('stripe_connect')
-      toast.success(kind === 'mbway' ? 'MB WAY disponível no Checkout' : 'Cartões activos', {
+      toast.success(kind === 'mbway' ? 'MB WAY seleccionado' : 'Cartões seleccionados', {
         description:
           kind === 'mbway'
-            ? 'O MB WAY aparece no Checkout Stripe quando a Stripe o activar na sua conta Connect.'
-            : 'O cliente paga com cartão (e Apple Pay / Google Pay quando disponíveis) no Checkout.',
+            ? 'No Checkout, o cliente pode pagar com MB WAY quando a Stripe o mostrar na sua conta.'
+            : 'No Checkout, o cliente pode pagar com cartão (e carteiras digitais, quando disponíveis).',
       })
       return
     }
+    if (connectState === 'pending') {
+      goConfigure(
+        'Falta só terminar na Stripe',
+        'Abra Pagamentos, continue o processo e volte aqui — depois fica verde e pronto a receber.',
+      )
+      return
+    }
     goConfigure(
-      connectState === 'pending'
-        ? 'Stripe Connect ainda tem pendências'
-        : 'Active o Stripe Connect para receber por este meio',
+      'Ligue os pagamentos online',
+      'Em Pagamentos, associe a conta Stripe do escritório. Depois pode receber por cartão e MB WAY.',
     )
   }
 
@@ -130,11 +140,14 @@ export function ServicePaymentMethodsPanel({
       return
     }
     if (!requiresBooking) {
-      toast.error('Active primeiro “Exige agendamento”')
+      toast.error('Primeiro active “Exige agendamento” neste serviço')
       return
     }
     if (connectState !== 'active') {
-      goConfigure('Para exigir pagamento no agendamento, o Stripe Connect tem de estar activo')
+      goConfigure(
+        'Ainda não dá para exigir pagamento',
+        'Termine a ligação Stripe em Pagamentos. Quando estiver pronta, volte e marque esta opção.',
+      )
       return
     }
     onPaymentRequiredChange(true)
@@ -143,47 +156,61 @@ export function ServicePaymentMethodsPanel({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-xl border border-border/70 bg-muted/20 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
-        Meios <strong className="font-medium text-foreground">online</strong> usam Stripe Connect
-        (dinheiro na conta do escritório). Taxa de serviço Teglion: {feePercent}% · taxas Stripe à
-        parte.
+      <p className="text-xs leading-relaxed text-muted-foreground">
+        O dinheiro dos clientes online vai para a conta Stripe do escritório. A Teglion cobra{' '}
+        {feePercent}% de taxa de serviço da plataforma; a Stripe cobra as taxas dela à parte.
         {connectState !== 'active' ? (
           <>
             {' '}
             <Link to={SETTINGS_PAYMENTS} className="font-medium text-brand underline-offset-2 hover:underline">
-              Ir a Definições → Pagamentos
+              Abrir Pagamentos
             </Link>
           </>
         ) : null}
-      </div>
+      </p>
 
       {connectState === 'pending' ? (
-        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50/90 px-3 py-2.5 text-xs text-amber-950">
+        <div className="flex items-start gap-2 rounded-xl border border-amber-200/80 bg-amber-50/70 px-3 py-2.5 text-xs text-amber-950">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
           <div>
-            <p className="font-medium">Stripe Connect com pendências</p>
-            <p className="mt-0.5">
-              {pendingReason ||
-                'Complete a configuração / KYC na Stripe para activar cobranças.'}
-            </p>
+            <p className="font-medium">Quase a receber online</p>
+            <p className="mt-1 leading-relaxed">{pendingMessage}</p>
             <Link
               to={SETTINGS_PAYMENTS}
-              className="mt-1.5 inline-flex items-center gap-1 font-medium text-amber-950 underline-offset-2 hover:underline"
+              className="mt-2 inline-flex items-center gap-1 font-medium text-amber-950 underline-offset-2 hover:underline"
             >
-              Continuar configuração
+              Continuar em Pagamentos
               <ExternalLink className="h-3 w-3" aria-hidden />
             </Link>
           </div>
         </div>
       ) : null}
 
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Online</p>
+      {connectState === 'not_started' || connectState === 'env_off' ? (
+        <div className="rounded-xl border border-border/60 bg-muted/15 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
+          Ainda não ligou a conta Stripe do escritório.{' '}
+          <Link to={SETTINGS_PAYMENTS} className="font-medium text-brand underline-offset-2 hover:underline">
+            Começar em Pagamentos
+          </Link>{' '}
+          — depois estes meios ficam prontos.
+        </div>
+      ) : null}
+
+      <p className="text-xs font-medium text-muted-foreground">Receber online</p>
 
       <OnlineMethodRow
         icon={<CreditCard className="h-4 w-4" aria-hidden />}
         title="Cartões"
-        hint="Visa, Mastercard, Apple Pay e Google Pay (quando disponíveis no Checkout)"
-        state={connectState === 'loading' ? 'loading' : connectState === 'active' ? 'active' : connectState === 'pending' ? 'pending' : 'not_started'}
+        hint="O cliente paga com cartão no Checkout seguro da Stripe"
+        state={
+          connectState === 'loading'
+            ? 'loading'
+            : connectState === 'active'
+              ? 'active'
+              : connectState === 'pending'
+                ? 'pending'
+                : 'not_started'
+        }
         selected={onlineSelected && connectState === 'active'}
         onClick={() => selectOnline('cards')}
       />
@@ -191,8 +218,16 @@ export function ServicePaymentMethodsPanel({
       <OnlineMethodRow
         icon={<Smartphone className="h-4 w-4" aria-hidden />}
         title="MB WAY"
-        hint="Pagamento instantâneo no telemóvel — aparece no Checkout se activo na Stripe"
-        state={connectState === 'loading' ? 'loading' : connectState === 'active' ? 'active' : connectState === 'pending' ? 'pending' : 'not_started'}
+        hint="O cliente confirma no telemóvel — rápido e habitual em Portugal"
+        state={
+          connectState === 'loading'
+            ? 'loading'
+            : connectState === 'active'
+              ? 'active'
+              : connectState === 'pending'
+                ? 'pending'
+                : 'not_started'
+        }
         selected={onlineSelected && connectState === 'active'}
         onClick={() => selectOnline('mbway')}
       />
@@ -214,17 +249,15 @@ export function ServicePaymentMethodsPanel({
           onChange={(e) => togglePaymentRequired(e.target.checked)}
         />
         <span className="min-w-0 text-sm">
-          <span className="font-medium">Pagamento obrigatório no agendamento</span>
+          <span className="font-medium">Pedir pagamento ao marcar o horário</span>
           <span className="mt-0.5 block text-xs text-muted-foreground">
-            O cliente paga no Checkout (cartão / MB WAY) antes do horário ficar confirmado.
-            {!requiresBooking ? ' Active “Exige agendamento” primeiro.' : null}
+            O cliente paga (cartão ou MB WAY) e só depois o horário fica confirmado.
+            {!requiresBooking ? ' Active primeiro “Exige agendamento”.' : null}
           </span>
         </span>
       </label>
 
-      <p className="pt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        Outros / informação
-      </p>
+      <p className="pt-1 text-xs font-medium text-muted-foreground">Outras formas</p>
 
       <label
         className={cn(
@@ -246,7 +279,9 @@ export function ServicePaymentMethodsPanel({
         />
         <span className="min-w-0">
           <span className="text-sm font-medium">Transferência bancária</span>
-          <span className="block text-xs text-muted-foreground">Dados no orçamento / PDF</span>
+          <span className="block text-xs text-muted-foreground">
+            Indica os dados no orçamento ou no PDF — fora do Checkout online
+          </span>
         </span>
       </label>
 
@@ -258,8 +293,8 @@ export function ServicePaymentMethodsPanel({
             <StatusPill state="soon" />
           </span>
           <span className="block text-xs text-muted-foreground">
-            Referência automática — ainda não disponível com reserva de horário (confirmação pode
-            demorar dias).
+            Em breve. Ainda não encaixa bem com reserva de horário (o pagamento pode demorar dias a
+            confirmar).
           </span>
         </span>
       </div>
@@ -284,10 +319,10 @@ function OnlineMethodRow({
 }) {
   const cta =
     state === 'active'
-      ? 'Usar neste serviço'
+      ? 'Seleccionar para este serviço'
       : state === 'pending'
-        ? 'Resolver pendências'
-        : 'Clique para activar'
+        ? 'Terminar configuração'
+        : 'Ligar para activar'
 
   return (
     <button
