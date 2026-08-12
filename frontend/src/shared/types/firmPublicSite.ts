@@ -106,7 +106,13 @@ export type PublicSiteSocialLinks = {
 export type PublicSiteConfig = {
   schemaVersion: number
   seo: { title: string | null; description: string | null; ogImage: PublicSiteImageRef | null }
-  theme: { primaryColor: string | null; secondaryColor: string | null; logoStorageKey: string | null }
+  theme: {
+    primaryColor: string | null
+    secondaryColor: string | null
+    /** Cor dos textos de destaque (tagline, preços). Se vazia, usa a principal. */
+    textColor: string | null
+    logoStorageKey: string | null
+  }
   images: { hero: PublicSiteImageRef[]; institutional: PublicSiteImageRef[] }
   socialLinks: PublicSiteSocialLinks
   sections: PublicSiteSection[]
@@ -116,7 +122,15 @@ export type PublicSiteConfig = {
   privacyText?: string | null
   /** Link oficial para o Livro de Reclamações Electrónico. */
   complaintsBookUrl?: string | null
-  /** Contacto opcional para elogios (não é obrigação legal). */
+  /** Texto do link do Livro de Reclamações. */
+  complaintsBookLabel?: string | null
+  /** Link de elogios / avaliações (ex.: Google Reviews). */
+  praiseUrl?: string | null
+  /** Texto do link de elogios. */
+  praiseLabel?: string | null
+  /**
+   * @deprecated Preferir praiseUrl. Mantido para compatibilidade com rascunhos antigos.
+   */
   praiseContact?: string | null
 }
 

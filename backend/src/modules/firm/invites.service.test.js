@@ -50,6 +50,8 @@ function stubHappyPathDeps() {
   mock.method(contabilNotifications, 'notifyClientWelcome', async () => ({}));
   mock.method(securityAudit, 'recordClientMutation', async () => {});
   mock.method(authRefreshSessionsRepository, 'deleteAllForActor', async () => {});
+  mock.method(invitesRepository, 'revokePendingInvitesForClient', async () => {});
+  mock.method(clientsRepository, 'updateClientAuth', async () => {});
 }
 
 test.beforeEach(() => {
@@ -144,6 +146,7 @@ test('revokeClientAccess: revoga convites pendentes, marca REVOKED e corta sess√
   mock.method(clientsRepository, 'findClientById', async () => CLIENT_ACTIVE);
   const revokeInvites = mock.method(invitesRepository, 'revokePendingInvitesForClient', async () => {});
   const updateStatus = mock.method(clientsRepository, 'updatePortalAccessStatus', async () => {});
+  const clearPassword = mock.method(clientsRepository, 'updateClientAuth', async () => {});
   const deleteSessions = mock.method(authRefreshSessionsRepository, 'deleteAllForActor', async () => {});
   const updateClient = mock.method(clientsRepository, 'updateClient', async () => {
     throw new Error('updateClient N√ÉO deveria ser chamado por revokeClientAccess');
@@ -160,6 +163,7 @@ test('revokeClientAccess: revoga convites pendentes, marca REVOKED e corta sess√
   assert.deepEqual(result, { revoked: true });
   assert.deepEqual(revokeInvites.mock.calls[0].arguments, ['firm-1', 'client-2']);
   assert.deepEqual(updateStatus.mock.calls[0].arguments, ['client-2', 'REVOKED']);
+  assert.deepEqual(clearPassword.mock.calls[0].arguments, ['client-2', { passwordHash: null }]);
   assert.deepEqual(deleteSessions.mock.calls[0].arguments, ['client', 'client-2']);
   assert.equal(updateClient.mock.callCount(), 0);
   assert.equal(audit.mock.calls[0].arguments[0].action, 'client.access.revoked');

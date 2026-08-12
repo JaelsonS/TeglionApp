@@ -152,6 +152,9 @@ async function getPublicFirmSite(req, res, next) {
       termsText: config.termsText || null,
       privacyText: config.privacyText || null,
       complaintsBookUrl: config.complaintsBookUrl || null,
+      complaintsBookLabel: config.complaintsBookLabel || null,
+      praiseUrl: config.praiseUrl || null,
+      praiseLabel: config.praiseLabel || null,
       praiseContact: config.praiseContact || null,
       contact: {
         email: contact.email || null,

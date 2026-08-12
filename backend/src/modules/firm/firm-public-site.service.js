@@ -200,7 +200,7 @@ function defaultSiteConfig() {
   return {
     schemaVersion: 1,
     seo: { title: null, description: null, ogImage: null },
-    theme: { primaryColor: null, secondaryColor: null, logoStorageKey: null },
+    theme: { primaryColor: null, secondaryColor: null, textColor: null, logoStorageKey: null },
     images: { hero: [], institutional: [] },
     socialLinks: normalizeSocialLinks(null),
     sections: defaultSections(),
@@ -208,6 +208,9 @@ function defaultSiteConfig() {
     termsText: null,
     privacyText: null,
     complaintsBookUrl: null,
+    complaintsBookLabel: null,
+    praiseUrl: null,
+    praiseLabel: null,
     praiseContact: null,
   };
 }
@@ -227,6 +230,7 @@ function normalizeSiteConfig(raw) {
     theme: {
       primaryColor: normalizeHexOrNull(input.theme?.primaryColor),
       secondaryColor: normalizeHexOrNull(input.theme?.secondaryColor),
+      textColor: normalizeHexOrNull(input.theme?.textColor),
       logoStorageKey: input.theme?.logoStorageKey ? String(input.theme.logoStorageKey).trim().slice(0, 300) : null,
     },
     images: {
@@ -243,6 +247,11 @@ function normalizeSiteConfig(raw) {
     termsText: input.termsText != null ? String(input.termsText).trim().slice(0, 50000) || null : null,
     privacyText: input.privacyText != null ? String(input.privacyText).trim().slice(0, 50000) || null : null,
     complaintsBookUrl: normalizeHttpsUrlOrNull(input.complaintsBookUrl),
+    complaintsBookLabel: input.complaintsBookLabel != null
+      ? String(input.complaintsBookLabel).trim().slice(0, 120) || null
+      : null,
+    praiseUrl: normalizeHttpsUrlOrNull(input.praiseUrl),
+    praiseLabel: input.praiseLabel != null ? String(input.praiseLabel).trim().slice(0, 120) || null : null,
     praiseContact: input.praiseContact != null ? String(input.praiseContact).trim().slice(0, 300) || null : null,
   };
 }
@@ -275,6 +284,7 @@ function buildConfigFromLegacySettings(firm) {
 
   config.theme.primaryColor = branding.primaryColor || null;
   config.theme.secondaryColor = branding.secondaryColor || null;
+  config.theme.textColor = branding.textColor || null;
   config.theme.logoStorageKey = branding.logoStorageKey || null;
   config.socialLinks = normalizeSocialLinks(publicProfile.socialLinks);
 
@@ -364,10 +374,11 @@ async function publishSite(firmId, actorUserId) {
   // não precisar de um segundo consumidor: passa a actualizar-se atomicamente
   // com a publicação do site, em vez de ficar sempre instantânea como antes.
   const theme = updated.published?.theme || {};
-  if (theme.primaryColor !== undefined || theme.secondaryColor !== undefined) {
+  if (theme.primaryColor !== undefined || theme.secondaryColor !== undefined || theme.textColor !== undefined) {
     await firmsRepository.updateFirmBranding(firmId, {
       primaryColor: theme.primaryColor ?? null,
       secondaryColor: theme.secondaryColor ?? null,
+      textColor: theme.textColor ?? null,
     });
   }
 

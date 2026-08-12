@@ -76,6 +76,9 @@ export type PublicFirmSite = {
   termsText?: string | null
   privacyText?: string | null
   complaintsBookUrl?: string | null
+  complaintsBookLabel?: string | null
+  praiseUrl?: string | null
+  praiseLabel?: string | null
   praiseContact?: string | null
   contact: PublicFirmContact
   services: PublicFirmServiceSummary[]

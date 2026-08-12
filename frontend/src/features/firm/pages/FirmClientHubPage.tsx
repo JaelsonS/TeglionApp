@@ -18,6 +18,7 @@ import {
 } from '@/features/firm/client-hub/ClientHubSectionPanels'
 import { FirmScrollPage } from '@/features/firm/FirmPageLayout'
 import { ClientHubHeader } from '@/features/firm/client-hub/ClientHubHeader'
+import { ClientAccessHistory } from '@/features/firm/client-hub/ClientAccessHistory'
 import { ClientHubProfilePanel } from '@/features/firm/client-hub/ClientHubProfilePanel'
 import { ClientHubActivityHistoryPanel } from '@/features/firm/client-hub/ClientHubActivityHistoryPanel'
 import { ClientHubHistory } from '@/features/firm/client-hub/ClientHubHistory'
@@ -136,6 +137,8 @@ export function FirmClientHubPage() {
             </div>
 
             <ClientHubOverviewMetrics hub={hub} clientId={cid} riskReason={riskReason} />
+
+            <ClientAccessHistory clientId={cid} />
 
             <div className="grid gap-4 lg:grid-cols-2">
               <section className="cb-surface">

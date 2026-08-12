@@ -9,6 +9,7 @@ export type FirmStatus = 'TRIAL' | 'ACTIVE' | 'SUSPENDED' | 'PAST_DUE' | 'CANCEL
 export type FirmBranding = {
   primaryColor?: string | null
   secondaryColor?: string | null
+  textColor?: string | null
   logoUrl?: string | null
 }
 

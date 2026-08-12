@@ -435,6 +435,13 @@ async function loginClient({ email, password, firmSlug, req }) {
   if (row.status && row.status !== 'ACTIVE') {
     throw new AppError('Conta de cliente inactiva. Contacte o seu escritório.', 403, { code: 'ACCOUNT_INACTIVE' });
   }
+  if (row.portal_access_status === 'REVOKED') {
+    throw new AppError(
+      'O acesso ao portal foi revogado pelo escritório. Peça um novo convite ao seu contabilista.',
+      403,
+      { code: 'ACCESS_REVOKED' },
+    );
+  }
   if (!row.password_hash) {
     throw new AppError(
       'Ainda não tem palavra-passe no portal. Use o link de convite enviado pelo escritório (Primeiro acesso).',

@@ -37,7 +37,11 @@ export function FirmPublicSitePage() {
 
   useEffect(() => {
     if (!query.data) return
-    applyFirmBranding({ primaryColor: query.data.theme.primaryColor, secondaryColor: query.data.theme.secondaryColor })
+    applyFirmBranding({
+      primaryColor: query.data.theme.primaryColor,
+      secondaryColor: query.data.theme.secondaryColor,
+      textColor: query.data.theme.textColor,
+    })
     applyPageSeo({
       title: query.data.seo.title || query.data.firmName,
       description: query.data.seo.description || undefined,
@@ -91,6 +95,9 @@ export function FirmPublicSitePage() {
           termsText: data.termsText,
           privacyText: data.privacyText,
           complaintsBookUrl: data.complaintsBookUrl,
+          complaintsBookLabel: data.complaintsBookLabel,
+          praiseUrl: data.praiseUrl,
+          praiseLabel: data.praiseLabel,
           praiseContact: data.praiseContact,
         }}
         ctx={{
@@ -101,6 +108,9 @@ export function FirmPublicSitePage() {
           contact: data.contact,
           showPrices: data.showPrices !== false,
           complaintsBookUrl: data.complaintsBookUrl,
+          complaintsBookLabel: data.complaintsBookLabel,
+          praiseUrl: data.praiseUrl,
+          praiseLabel: data.praiseLabel,
           praiseContact: data.praiseContact,
         }}
       />

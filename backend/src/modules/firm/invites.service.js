@@ -44,13 +44,21 @@ async function resolveInviteBranding(firmId) {
       brandColor: profile.firm?.branding?.primaryColor || null,
       contactEmail: contact.email || null,
       contactPhone: contact.phone || null,
+      website: contact.website || profile.firm?.settings?.publicProfile?.website || null,
     };
   } catch {
-    return { firmName: null, logoUrl: null, brandColor: null, contactEmail: null, contactPhone: null };
+    return {
+      firmName: null,
+      logoUrl: null,
+      brandColor: null,
+      contactEmail: null,
+      contactPhone: null,
+      website: null,
+    };
   }
 }
 
-async function sendInviteEmail({ firmId, email, displayName, inviteUrl, expiresAt }) {
+async function sendInviteEmail({ firmId, email, displayName, inviteUrl, expiresAt, emailOverride }) {
   if (!email) return { emailSent: false, emailError: 'no_email' };
   const branding = await resolveInviteBranding(firmId);
   try {
@@ -64,6 +72,10 @@ async function sendInviteEmail({ firmId, email, displayName, inviteUrl, expiresA
       firmBrandColor: branding.brandColor,
       firmContactEmail: branding.contactEmail,
       firmContactPhone: branding.contactPhone,
+      firmWebsite: branding.website,
+      subjectOverride: emailOverride?.subject || null,
+      bodyHtmlOverride: emailOverride?.bodyHtml || null,
+      bodyTextOverride: emailOverride?.bodyText || null,
     });
     return { emailSent: true, emailError: null };
   } catch (err) {
@@ -72,7 +84,7 @@ async function sendInviteEmail({ firmId, email, displayName, inviteUrl, expiresA
   }
 }
 
-async function createClientInvite({ firmId: firmIdRaw, clientId, email, createdByUserId, actor, req }) {
+async function createClientInvite({ firmId: firmIdRaw, clientId, email, createdByUserId, actor, req, emailOverride }) {
   const firmId = String(firmIdRaw);
 
   let clientName = null;
@@ -83,6 +95,7 @@ async function createClientInvite({ firmId: firmIdRaw, clientId, email, createdB
       throw new AppError('Este cliente já tem acesso ao portal. Use recuperação de palavra-passe.', 409);
     }
     clientName = client.displayName || null;
+    await invitesRepository.revokePendingInvitesForClient(firmId, clientId);
   }
 
   const rawToken = generateToken();
@@ -104,9 +117,14 @@ async function createClientInvite({ firmId: firmIdRaw, clientId, email, createdB
   const inviteUrl = buildInviteUrl(rawToken);
   const targetEmail = email ? normalizeEmail(email) : null;
   if (targetEmail) {
-    void sendInviteEmail({ firmId, email: targetEmail, displayName: clientName, inviteUrl, expiresAt }).catch((err) =>
-      console.warn('[Teglion] invite email:', err.message),
-    );
+    void sendInviteEmail({
+      firmId,
+      email: targetEmail,
+      displayName: clientName,
+      inviteUrl,
+      expiresAt,
+      emailOverride,
+    }).catch((err) => console.warn('[Teglion] invite email:', err.message));
   }
 
   await securityAudit.recordClientMutation({
@@ -137,6 +155,8 @@ async function revokeClientAccess({ firmId: firmIdRaw, clientId, actor, req }) {
 
   await invitesRepository.revokePendingInvitesForClient(firmId, clientId);
   await clientsRepository.updatePortalAccessStatus(clientId, 'REVOKED');
+  // Força nova senha no próximo acesso: remove credencial sem apagar dados.
+  await clientsRepository.updateClientAuth(clientId, { passwordHash: null });
   await authRefreshSessionsRepository.deleteAllForActor('client', clientId);
 
   await securityAudit.recordClientMutation({
@@ -144,7 +164,7 @@ async function revokeClientAccess({ firmId: firmIdRaw, clientId, actor, req }) {
     actor: actor || null,
     firmId,
     clientId,
-    metadata: { reason: 'manual_revoke' },
+    metadata: { reason: 'manual_revoke', passwordCleared: true, sessionsRevoked: true },
     req: req || null,
   });
 
@@ -205,14 +225,14 @@ async function resendClientInvite({ firmId: firmIdRaw, clientId, actor, req }) {
  * contratado). Clientes já com acesso activo são apenas contados, não
  * recebem novo convite.
  */
-async function createBulkClientInvites({ firmId: firmIdRaw, clientIds, actor, req }) {
+async function createBulkClientInvites({ firmId: firmIdRaw, clientIds, actor, req, emailOverride }) {
   const firmId = String(firmIdRaw);
   const ids = [...new Set((clientIds || []).map((id) => String(id || '').trim()).filter(Boolean))];
   if (!ids.length) throw new AppError('Selecione pelo menos um cliente', 400);
 
   const clients = await clientsRepository.findClientsByIds(firmId, ids);
 
-  const results = { requested: ids.length, sent: 0, alreadyActive: 0, skippedNoEmail: 0, failed: 0 };
+  const results = { requested: ids.length, sent: 0, alreadyActive: 0, skippedNoEmail: 0, failed: 0, pending: 0 };
 
   for (let i = 0; i < clients.length; i += BULK_INVITE_CHUNK) {
     const chunk = clients.slice(i, i + BULK_INVITE_CHUNK);
@@ -239,6 +259,7 @@ async function createBulkClientInvites({ firmId: firmIdRaw, clientIds, actor, re
           createdBy: actor?.id || null,
         });
         await clientsRepository.updatePortalAccessStatus(client.id, 'PENDING_INVITE');
+        results.pending += 1;
 
         const inviteUrl = buildInviteUrl(rawToken);
         const delivery = await sendInviteEmail({
@@ -247,6 +268,7 @@ async function createBulkClientInvites({ firmId: firmIdRaw, clientIds, actor, re
           displayName: client.displayName,
           inviteUrl,
           expiresAt,
+          emailOverride,
         });
         if (delivery.emailSent) results.sent += 1;
         else results.failed += 1;
@@ -381,6 +403,78 @@ async function registerClientWithInvite({ token, email, password, fullName, req 
   };
 }
 
+const auditRepository = require('../../db/supabase/repositories/contabil/audit.repository');
+
+const ACCESS_HISTORY_LABELS = {
+  'client.invite.sent': 'Convite criado / enviado',
+  'client.invite.resent': 'Novo convite emitido',
+  'client.invite.bulk_sent': 'Convite em massa',
+  'client.invite.accepted': 'Convite utilizado / acesso activado',
+  'client.access.revoked': 'Acesso revogado pelo administrador',
+};
+
+async function getClientAccessHistory({ firmId, clientId }) {
+  const client = await clientsRepository.findClientById(firmId, clientId);
+  if (!client) throw new AppError('Cliente não encontrado', 404);
+
+  const rows = await auditRepository.listByEntity({
+    firmId,
+    entityType: 'client',
+    entityId: clientId,
+    limit: 100,
+  });
+
+  const items = (rows || [])
+    .filter((row) => String(row.action || '').startsWith('client.invite.') || row.action === 'client.access.revoked')
+    .map((row) => ({
+      id: row.id,
+      action: row.action,
+      label: ACCESS_HISTORY_LABELS[row.action] || row.action,
+      createdAt: row.createdAt,
+      metadata: row.metadata || {},
+    }));
+
+  return {
+    portalAccessStatus: client.portalAccessStatus || 'NO_ACCESS',
+    items,
+  };
+}
+
+async function buildInviteEmailPreview({ firmId, clientName }) {
+  const branding = await resolveInviteBranding(firmId);
+  return contabilNotifications.buildClientInviteEmailContent({
+    clientName: clientName || 'Cliente',
+    firmName: branding.firmName || 'o seu escritório',
+    inviteUrl: 'https://teglion.com/convite/exemplo',
+    expiresAt: new Date(Date.now() + INVITE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString(),
+    firmContactEmail: branding.contactEmail,
+    firmContactPhone: branding.contactPhone,
+    firmWebsite: branding.website,
+  });
+}
+
+async function sendTestInviteEmail({ firmId, toEmail, subject, bodyHtml, bodyText }) {
+  const email = normalizeEmail(toEmail);
+  if (!email) throw new AppError('Indique o e-mail de teste', 400);
+  const branding = await resolveInviteBranding(firmId);
+  await contabilNotifications.notifyClientInvite({
+    clientEmail: email,
+    clientName: 'Cliente (teste)',
+    firmName: branding.firmName,
+    inviteUrl: 'https://teglion.com/convite/exemplo',
+    expiresAt: new Date(Date.now() + INVITE_TTL_DAYS * 24 * 60 * 60 * 1000).toISOString(),
+    firmLogoUrl: branding.logoUrl,
+    firmBrandColor: branding.brandColor,
+    firmContactEmail: branding.contactEmail,
+    firmContactPhone: branding.contactPhone,
+    firmWebsite: branding.website,
+    subjectOverride: subject || null,
+    bodyHtmlOverride: bodyHtml || null,
+    bodyTextOverride: bodyText || null,
+  });
+  return { sent: true };
+}
+
 module.exports = {
   createClientInvite,
   revokeClientAccess,
@@ -388,5 +482,8 @@ module.exports = {
   createBulkClientInvites,
   getInvitePublicPreview,
   registerClientWithInvite,
+  getClientAccessHistory,
+  buildInviteEmailPreview,
+  sendTestInviteEmail,
   buildInviteUrl,
 };

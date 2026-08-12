@@ -396,8 +396,11 @@ router.get('/clients/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), c
 
 router.post('/invites', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), invitesController.create);
 router.post('/invites/bulk', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), invitesController.createBulk);
+router.get('/invites/email-preview', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), invitesController.previewInviteEmail);
+router.post('/invites/test-email', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), invitesController.sendTestInviteEmail);
 router.post('/clients/:id/revoke-access', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), invitesController.revokeAccess);
 router.post('/clients/:id/resend-invite', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), invitesController.resendInvite);
+router.get('/clients/:id/access-history', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), invitesController.getAccessHistory);
 
 router.get('/accounting-services', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_VIEW), accountingServicesController.list);
 router.get('/accounting-services/catalog-template', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_VIEW), accountingServicesController.getCatalogTemplate);

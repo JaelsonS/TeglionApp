@@ -42,47 +42,101 @@ async function notifyClientInvite({
   firmBrandColor,
   firmContactEmail,
   firmContactPhone,
+  firmWebsite,
+  subjectOverride,
+  bodyHtmlOverride,
+  bodyTextOverride,
 }) {
   if (!clientEmail) return { skipped: true, reason: 'no_email' };
-  const link = url || portalUrl();
-  const expiry = expiresAt ? new Date(expiresAt).toLocaleDateString('pt-PT') : '14 dias';
+  const content = buildClientInviteEmailContent({
+    clientName,
+    firmName,
+    inviteUrl: url,
+    expiresAt,
+    firmContactEmail,
+    firmContactPhone,
+    firmWebsite,
+  });
   const firm = firmName || 'o seu escritório';
-
-  const contactParts = [firmContactEmail, firmContactPhone].filter(Boolean);
-  const contactLine = contactParts.length
-    ? `<p style="margin:12px 0 0;font-size:13px;color:#64748b;">Contacto do escritório: ${contactParts.map(escapeHtml).join(' &middot; ')}</p>`
-    : '';
-  const contactLineText = contactParts.length ? `Contacto do escritório: ${contactParts.join(' · ')}` : null;
+  const link = url || portalUrl();
 
   return sendEmail({
     to: clientEmail,
-    subject: `Acesso ao portal — ${firm}`,
+    subject: subjectOverride || content.subject,
     tags: ['transactional', 'client-invite'],
     html: renderTransactionalEmail({
       preheader: `Convite para aceder ao portal do escritório ${firm}`,
       title: 'Convite para o portal do cliente',
       greeting: `Olá${clientName ? ` ${clientName}` : ''},`,
-      bodyHtml: `<p style="margin:0 0 12px">O escritório <strong>${escapeHtml(firm)}</strong> convidou-o a aceder ao portal Teglion para enviar documentos, ver obrigações e comunicar com a equipa.</p>${contactLine}`,
-      ctaLabel: 'Aceitar convite',
+      bodyHtml: bodyHtmlOverride || content.bodyHtml,
+      ctaLabel: 'Aceitar convite e criar senha',
       ctaUrl: link,
-      footerNote: `Link válido até ${expiry}. Se não esperava este e-mail, ignore-o.`,
+      footerNote: content.footerNote,
       brandName: firmName || undefined,
       brandColor: firmBrandColor || undefined,
       logoUrl: firmLogoUrl || undefined,
     }),
-    text: [
-      `Olá${clientName ? ` ${clientName}` : ''},`,
-      '',
-      `O escritório ${firm} convidou-o a aceder ao portal Teglion.`,
-      '',
-      `Aceitar convite: ${link}`,
-      '',
-      `Válido até ${expiry}. Se não esperava este e-mail, ignore-o.`,
-      ...(contactLineText ? ['', contactLineText] : []),
-      '',
-      'Teglion',
-    ].join('\n'),
+    text: bodyTextOverride || content.bodyText,
   });
+}
+
+function buildClientInviteEmailContent({
+  clientName,
+  firmName,
+  inviteUrl,
+  expiresAt,
+  firmContactEmail,
+  firmContactPhone,
+  firmWebsite,
+}) {
+  const firm = firmName || 'o seu escritório';
+  const link = inviteUrl || portalUrl();
+  const expiry = expiresAt ? new Date(expiresAt).toLocaleDateString('pt-PT') : '14 dias';
+  const contactParts = [firmContactEmail, firmContactPhone, firmWebsite].filter(Boolean);
+  const contactHtml = contactParts.length
+    ? `<p style="margin:12px 0 0;font-size:13px;color:#64748b;">Contacto: ${contactParts.map(escapeHtml).join(' &middot; ')}</p>`
+    : '';
+
+  const bodyHtml = [
+    `<p style="margin:0 0 12px">O escritório <strong>${escapeHtml(firm)}</strong> convidou-o a activar a sua conta no <strong>Teglion</strong> — o portal seguro onde acompanha documentos, obrigações, mensagens e agendamentos.</p>`,
+    `<p style="margin:0 0 12px"><strong>Como activar:</strong></p>`,
+    `<ol style="margin:0 0 12px;padding-left:20px">`,
+    `<li>Abra o link do convite (botão abaixo).</li>`,
+    `<li>Crie a sua palavra-passe.</li>`,
+    `<li>Entre no portal com o mesmo e-mail deste convite.</li>`,
+    `<li>Active as notificações e, no telemóvel, adicione o Teglion ao ecrã inicial para acesso rápido.</li>`,
+    `</ol>`,
+    `<p style="margin:0 0 12px">No portal pode consultar documentos, falar com o escritório, acompanhar agendamentos e ver informações dos serviços disponíveis para si.</p>`,
+    contactHtml,
+  ].join('');
+
+  const bodyText = [
+    `Olá${clientName ? ` ${clientName}` : ''},`,
+    '',
+    `O escritório ${firm} convidou-o a activar a conta no Teglion.`,
+    '',
+    'Como activar:',
+    '1. Abra o link do convite',
+    '2. Crie a sua palavra-passe',
+    '3. Entre no portal com este e-mail',
+    '4. Active notificações e adicione o Teglion ao ecrã inicial no telemóvel',
+    '',
+    `Aceitar convite: ${link}`,
+    '',
+    `Válido até ${expiry}.`,
+    contactParts.length ? `Contacto: ${contactParts.join(' · ')}` : '',
+    '',
+    'Teglion',
+  ]
+    .filter((line) => line !== '')
+    .join('\n');
+
+  return {
+    subject: `Acesso ao portal — ${firm}`,
+    bodyHtml,
+    bodyText,
+    footerNote: `Link válido até ${expiry}. Se não esperava este e-mail, ignore-o. Esta mensagem é uma sugestão automática do Teglion — o escritório pode adaptá-la.`,
+  };
 }
 
 async function notifyClientNewTask({ clientEmail, clientName, taskTitle, firmName, dueDate }) {
@@ -553,6 +607,7 @@ async function notifyClientWelcome({ clientEmail, clientName, firmName }) {
 
 module.exports = {
   notifyClientInvite,
+  buildClientInviteEmailContent,
   notifyClientNewTask,
   notifyClientObligationAssigned,
   notifyClientObligationReminder,

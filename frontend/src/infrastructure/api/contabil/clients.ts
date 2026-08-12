@@ -128,15 +128,47 @@ export function createContabilClientsApi(api: AxiosInstance) {
         })
         .then((r) => r.data as { inviteUrl: string }),
 
-    createBulkInvite: (clientIds: string[]) =>
-      api.post('/contabil/invites/bulk', { clientIds }).then(
+    createBulkInvite: (
+      clientIds: string[],
+      email?: { subject?: string; bodyHtml?: string; bodyText?: string },
+    ) =>
+      api
+        .post('/contabil/invites/bulk', {
+          clientIds,
+          subject: email?.subject,
+          bodyHtml: email?.bodyHtml,
+          bodyText: email?.bodyText,
+        })
+        .then(
+          (r) =>
+            r.data as {
+              requested: number
+              sent: number
+              alreadyActive: number
+              skippedNoEmail: number
+              failed: number
+              pending?: number
+            },
+        ),
+
+    previewInviteEmail: (clientName?: string) =>
+      api
+        .get('/contabil/invites/email-preview', { params: clientName ? { clientName } : undefined })
+        .then((r) => r.data as { subject: string; bodyHtml: string; bodyText: string; footerNote?: string }),
+
+    sendTestInviteEmail: (payload: {
+      toEmail: string
+      subject?: string
+      bodyHtml?: string
+      bodyText?: string
+    }) => api.post('/contabil/invites/test-email', payload).then((r) => r.data as { sent: boolean }),
+
+    getAccessHistory: (clientId: string) =>
+      api.get(`/contabil/clients/${encodeURIComponent(clientId)}/access-history`).then(
         (r) =>
           r.data as {
-            requested: number
-            sent: number
-            alreadyActive: number
-            skippedNoEmail: number
-            failed: number
+            portalAccessStatus: string
+            items: Array<{ id: string; action: string; label: string; createdAt: string; metadata: Record<string, unknown> }>
           },
       ),
 

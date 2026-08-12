@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ChangeEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ChevronDown, ChevronUp, ExternalLink, Eye, Facebook, Globe, Instagram, Linkedin, Loader2, MessageCircle, Save, Upload } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -396,19 +396,48 @@ export function PublicSiteEditor({ bundle }: Props) {
               responsabiliza pelo conteúdo.
             </p>
             <label className="block space-y-1 text-sm">
-              <span className="font-medium">Livro de Reclamações (URL)</span>
+              <span className="font-medium">Livro de Reclamações — link</span>
               <Input
-                placeholder="https://www.livroreclamacoes.pt/..."
+                placeholder="https://www.livroreclamacoes.pt/Pedido/Iniciar"
                 value={draft.complaintsBookUrl || ''}
                 onChange={(e: FormChangeEvent) => setDraft({ ...draft, complaintsBookUrl: e.target.value || null })}
               />
+              <button
+                type="button"
+                className="text-caption font-medium text-brand hover:underline"
+                onClick={() =>
+                  setDraft({
+                    ...draft,
+                    complaintsBookUrl: 'https://www.livroreclamacoes.pt/Pedido/Iniciar',
+                    complaintsBookLabel: draft.complaintsBookLabel || 'Livro de Reclamações',
+                  })
+                }
+              >
+                Usar modelo oficial (livroreclamacoes.pt)
+              </button>
             </label>
             <label className="block space-y-1 text-sm">
-              <span className="font-medium">Livro de elogios (contacto opcional)</span>
+              <span className="font-medium">Livro de Reclamações — texto do link</span>
               <Input
-                placeholder="email ou telefone"
-                value={draft.praiseContact || ''}
-                onChange={(e: FormChangeEvent) => setDraft({ ...draft, praiseContact: e.target.value || null })}
+                placeholder="Livro de Reclamações"
+                value={draft.complaintsBookLabel || ''}
+                onChange={(e: FormChangeEvent) => setDraft({ ...draft, complaintsBookLabel: e.target.value || null })}
+              />
+            </label>
+            <label className="block space-y-1 text-sm">
+              <span className="font-medium">Elogios / avaliações — link</span>
+              <Input
+                placeholder="https://g.page/r/... (Google Reviews) ou outro URL"
+                value={draft.praiseUrl || ''}
+                onChange={(e: FormChangeEvent) => setDraft({ ...draft, praiseUrl: e.target.value || null })}
+              />
+            </label>
+            <label className="block space-y-1 text-sm">
+              <span className="font-medium">Elogios / avaliações — texto do link</span>
+              <Input
+                placeholder="Deixe a sua avaliação no Google"
+                value={draft.praiseLabel || ''}
+                onChange={(e: FormChangeEvent) => setDraft({ ...draft, praiseLabel: e.target.value || null })}
               />
             </label>
           </div>
@@ -421,6 +450,7 @@ export function PublicSiteEditor({ bundle }: Props) {
             style={resolveFirmBrandingCssVars({
               primaryColor: draft.theme.primaryColor,
               secondaryColor: draft.theme.secondaryColor,
+              textColor: draft.theme.textColor,
             })}
           >
             <DefaultTemplate
@@ -433,6 +463,9 @@ export function PublicSiteEditor({ bundle }: Props) {
                 contact: bundle.contact,
                 showPrices: draft.showPrices !== false,
                 complaintsBookUrl: draft.complaintsBookUrl,
+                complaintsBookLabel: draft.complaintsBookLabel,
+                praiseUrl: draft.praiseUrl,
+                praiseLabel: draft.praiseLabel,
                 praiseContact: draft.praiseContact,
               }}
             />
@@ -529,13 +562,19 @@ function isValidHex(value: string) {
 function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (next: PublicSiteConfig) => void }) {
   const primary = draft.theme.primaryColor || ''
   const secondary = draft.theme.secondaryColor || ''
+  const textColor = draft.theme.textColor || ''
   const primaryInvalid = primary.trim() !== '' && !isValidHex(primary)
   const secondaryInvalid = secondary.trim() !== '' && !isValidHex(secondary)
+  const textInvalid = textColor.trim() !== '' && !isValidHex(textColor)
 
   return (
     <div className="rounded-xl border border-border/50 p-4">
       <Label className="text-sm font-semibold">Cores</Label>
-      <div className="mt-3 grid gap-4 sm:grid-cols-2">
+      <p className="mt-1 text-caption text-muted-foreground">
+        A cor principal preenche botões e fundos de destaque. A secundária serve CTAs secundários. A cor de texto controla
+        títulos e taglines.
+      </p>
+      <div className="mt-3 grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="ps-primary">Cor principal</Label>
           <div className="flex items-center gap-2">
@@ -543,7 +582,9 @@ function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (
               type="color"
               aria-label="Escolher cor principal"
               value={isValidHex(primary) ? primary : '#12352a'}
-              onChange={(e) => onChange({ ...draft, theme: { ...draft.theme, primaryColor: e.target.value } })}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                onChange({ ...draft, theme: { ...draft.theme, primaryColor: e.target.value } })
+              }
               className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
             />
             <Input
@@ -562,15 +603,40 @@ function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (
               type="color"
               aria-label="Escolher cor secundária"
               value={isValidHex(secondary) ? secondary : '#c9a24b'}
-              onChange={(e) => onChange({ ...draft, theme: { ...draft.theme, secondaryColor: e.target.value } })}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                onChange({ ...draft, theme: { ...draft.theme, secondaryColor: e.target.value } })
+              }
               className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
             />
             <Input
               id="ps-secondary"
               value={secondary}
-              onChange={(e: FormChangeEvent) => onChange({ ...draft, theme: { ...draft.theme, secondaryColor: e.target.value } })}
+              onChange={(e: FormChangeEvent) =>
+                onChange({ ...draft, theme: { ...draft.theme, secondaryColor: e.target.value } })
+              }
               placeholder="#c9a24b"
               className={secondaryInvalid ? 'border-destructive' : undefined}
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="ps-text">Cor dos textos</Label>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              aria-label="Escolher cor dos textos"
+              value={isValidHex(textColor) ? textColor : isValidHex(primary) ? primary : '#12352a'}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                onChange({ ...draft, theme: { ...draft.theme, textColor: e.target.value } })
+              }
+              className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
+            />
+            <Input
+              id="ps-text"
+              value={textColor}
+              onChange={(e: FormChangeEvent) => onChange({ ...draft, theme: { ...draft.theme, textColor: e.target.value } })}
+              placeholder="Igual à principal"
+              className={textInvalid ? 'border-destructive' : undefined}
             />
           </div>
         </div>

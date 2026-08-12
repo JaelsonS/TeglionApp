@@ -47,6 +47,10 @@ export type PublicSiteRenderContext = {
   contact: { email: string | null; phone: string | null; address: string | null }
   showPrices?: boolean
   complaintsBookUrl?: string | null
+  complaintsBookLabel?: string | null
+  praiseUrl?: string | null
+  praiseLabel?: string | null
+  /** @deprecated */
   praiseContact?: string | null
 }
 
@@ -74,9 +78,11 @@ function resolveCtaHref(cta: PublicSiteHeroContent['ctas'][number], ctx: PublicS
 
 export function HeaderSection({ ctx }: { ctx: PublicSiteRenderContext }) {
   return (
-    <header className="border-b border-border/40 bg-card/40">
+    <header className="border-b border-primary/20 bg-primary/5">
       <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-4">
-        <span className="font-semibold">{ctx.firmName}</span>
+        <span className="font-semibold text-[hsl(var(--brand-text,var(--primary)))]">
+          {ctx.firmName}
+        </span>
       </div>
     </header>
   )
@@ -95,7 +101,7 @@ export function HeroSection({
 }) {
   const heroPhotoUrl = resolveFirstImageUrl(content.imageIds, images)
   return (
-    <section className="border-b border-border/40 bg-card/40">
+    <section className="border-b border-border/40 bg-gradient-to-b from-primary/10 to-card/40">
       {heroPhotoUrl ? (
         <img src={heroPhotoUrl} alt={ctx.firmName} className="h-48 w-full object-cover sm:h-64" />
       ) : null}
@@ -104,11 +110,13 @@ export function HeroSection({
           <img
             src={ctx.logoUrl}
             alt={ctx.firmName}
-            className="mx-auto mb-4 h-20 w-20 rounded-full border border-border/50 object-cover shadow-sm"
+            className="mx-auto mb-4 h-20 w-20 rounded-full border-2 border-primary/30 object-cover shadow-sm"
           />
         ) : null}
-        <h1 className="text-2xl font-bold">{ctx.firmName}</h1>
-        {content.tagline ? <p className="mt-2 text-base text-primary">{content.tagline}</p> : null}
+        <h1 className="text-2xl font-bold text-[hsl(var(--brand-text,var(--primary)))]">{ctx.firmName}</h1>
+        {content.tagline ? (
+          <p className="mt-2 text-base text-[hsl(var(--brand-text,var(--primary)))]">{content.tagline}</p>
+        ) : null}
         {content.bio ? <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground">{content.bio}</p> : null}
         {content.ctas.length > 0 ? (
           <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
@@ -120,8 +128,8 @@ export function HeroSection({
                 rel="noopener noreferrer"
                 className={
                   cta.style === 'secondary'
-                    ? 'inline-flex items-center rounded-lg border border-border/60 px-4 py-2 text-sm font-medium transition hover:border-primary/40'
-                    : 'inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90'
+                    ? 'inline-flex items-center rounded-lg border-2 border-secondary bg-secondary/15 px-4 py-2 text-sm font-medium text-[hsl(var(--secondary))] transition hover:bg-secondary/25'
+                    : 'inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90'
                 }
               >
                 {cta.label}
@@ -172,7 +180,9 @@ function ServiceCard({
             ) : null}
           </div>
           {showPrices && service.priceCents > 0 ? (
-            <span className="shrink-0 text-sm font-semibold text-primary">{formatPrice(service.priceCents)}</span>
+            <span className="shrink-0 text-sm font-semibold text-[hsl(var(--brand-text,var(--primary)))]">
+              {formatPrice(service.priceCents)}
+            </span>
           ) : null}
         </div>
         {service.requiresBooking ? (
@@ -333,10 +343,21 @@ export function FooterSection({ ctx, socialLinks }: { ctx: PublicSiteRenderConte
             rel="noopener noreferrer"
             className="underline underline-offset-2 hover:text-foreground"
           >
-            Livro de Reclamações
+            {ctx.complaintsBookLabel?.trim() || 'Livro de Reclamações'}
           </a>
         ) : null}
-        {ctx.praiseContact ? <p>Livro de elogios: {ctx.praiseContact}</p> : null}
+        {ctx.praiseUrl ? (
+          <a
+            href={ctx.praiseUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 hover:text-foreground"
+          >
+            {ctx.praiseLabel?.trim() || 'Deixe a sua avaliação'}
+          </a>
+        ) : ctx.praiseContact ? (
+          <p>{ctx.praiseContact}</p>
+        ) : null}
         <p className="text-muted-foreground/70">{ctx.firmName}</p>
       </div>
     </footer>

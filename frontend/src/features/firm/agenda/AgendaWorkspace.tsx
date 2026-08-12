@@ -20,6 +20,7 @@ import {
   type AgendaViewMode,
 } from '@/features/firm/agenda/agendaCalendarUtils'
 import { Button } from '@/shared/components/ui/button'
+import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
 import { cn } from '@/shared/lib/utils'
 import { contabilConsultationsApi, contabilClientsApi, contabilFirmApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -232,6 +233,16 @@ export function AgendaWorkspace() {
             <p className="cb-agenda-page-sub">Reuniões, chamadas e eventos da equipa</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <ModuleHelpDialog
+              title="Agenda"
+              intro="Organize reuniões, chamadas e eventos da equipa. Pode sincronizar com o Google Calendar nas definições."
+              triggerLabel="Guia"
+              steps={[
+                { title: 'Criar evento', description: 'Use Novo evento para marcar reuniões com clientes ou internos.' },
+                { title: 'Navegar o calendário', description: 'Alterne dia, semana ou mês e use Hoje para voltar à data actual.' },
+                { title: 'Definições', description: 'Configure disponibilidade, serviços de marcação e integração Google.' },
+              ]}
+            />
             <Button
               type="button"
               variant={tab === 'settings' ? 'default' : 'outline'}

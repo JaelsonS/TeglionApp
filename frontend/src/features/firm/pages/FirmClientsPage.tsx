@@ -32,6 +32,7 @@ import { FirmClientBulkInviteDialog } from '@/features/firm/components/FirmClien
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
+import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -224,10 +225,22 @@ export function FirmClientsPage() {
                   : `${filtered.length} de ${total} clientes`}
               </p>
             </div>
-            <Button className="h-8 rounded-md px-3.5 text-xs" onClick={() => setOpenCreate(true)}>
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
-              Novo cliente
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <ModuleHelpDialog
+                title="Clientes"
+                intro="Aqui gere a carteira do escritório: cadastro, hub de cada empresa e acesso ao portal Teglion."
+                triggerLabel="Guia"
+                steps={[
+                  { title: 'Criar ou abrir um cliente', description: 'Use Novo cliente ou abra o hub para ver documentos, tarefas e acesso.' },
+                  { title: 'Convidar ao portal', description: 'Seleccione um ou vários clientes e envie convite por email ou copie o link.' },
+                  { title: 'Gerir acesso', description: 'Revogue, reemita ou acompanhe o estado de acesso sem perder dados do cliente.' },
+                ]}
+              />
+              <Button className="h-8 rounded-md px-3.5 text-xs" onClick={() => setOpenCreate(true)}>
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                Novo cliente
+              </Button>
+            </div>
           </div>
         </div>
 
