@@ -18,15 +18,18 @@ import {
   CONNECT_STATUS_QUERY_KEY,
   contabilConnectApi,
 } from '@/infrastructure/api'
-import { humanizeConnectDisabledReason } from '@/features/firm/settings/connectStatusCopy'
+import {
+  connectPendingSummary,
+  humanizeConnectDisabledReason,
+} from '@/features/firm/settings/connectStatusCopy'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 
 function statusLabel(status: string | undefined, ready: boolean) {
-  if (ready) return 'Pronto a receber pagamentos'
-  if (status === 'restricted') return 'Acção necessária na Stripe'
+  if (ready) return 'Pronto a receber dos clientes'
+  if (status === 'restricted') return 'Falta concluir na Stripe'
   if (status === 'pending') return 'Configuração em curso'
-  if (status === 'complete') return 'Conta completa'
+  if (status === 'complete') return 'Conta pronta'
   return 'Ainda não ligado'
 }
 
@@ -46,12 +49,12 @@ export function FirmConnectPaymentsSection() {
     const connect = searchParams.get('connect')
     if (!connect) return
     if (connect === 'return') {
-      toast.message('A actualizar o estado Stripe…', {
-        description: 'O estado final confirma-se quando a Stripe notificar o Teglion.',
+      toast.message('A actualizar o estado…', {
+        description: 'Quando a Stripe confirmar, o estado fica actualizado aqui.',
       })
       void qc.invalidateQueries({ queryKey: CONNECT_STATUS_QUERY_KEY })
     } else if (connect === 'refresh') {
-      toast.message('Continue a configuração na Stripe')
+      toast.message('Pode continuar a configuração na Stripe')
     }
     setSearchParams(
       (prev) => {
@@ -69,21 +72,22 @@ export function FirmConnectPaymentsSection() {
   const ready = Boolean(account?.readyForCharges || account?.chargesEnabled)
   const canStart = Boolean(data?.canStartOnboarding)
   const configured = Boolean(data?.configured)
-  const feePercent = data?.platformFeePercent || '2'
   const termsOutdated = Boolean(account && data?.terms && !data.terms.accepted)
+  const pendingCopy = connectPendingSummary({
+    disabledReason: account?.requirementsDisabledReason,
+    currentlyDue: account?.requirementsCurrentlyDue,
+  })
 
   const startWithTerms = async () => {
     if (!accepted) {
-      toast.error('Tem de ler e aceitar a política para continuar')
+      toast.error('Leia e aceite a política para continuar')
       return
     }
     setSubmitting(true)
     try {
       const res = await contabilConnectApi.startOnboarding({ acceptedConnectTerms: true })
       if (res?.alreadyReady || !res?.url) {
-        toast.success('Política aceite', {
-          description: 'A taxa de serviço Teglion e as responsabilidades ficam registadas.',
-        })
+        toast.success('Política aceite')
         setTermsOpen(false)
         await qc.invalidateQueries({ queryKey: CONNECT_STATUS_QUERY_KEY })
         setSubmitting(false)
@@ -91,7 +95,7 @@ export function FirmConnectPaymentsSection() {
       }
       window.location.assign(res.url)
     } catch (err) {
-      toast.error('Não foi possível iniciar a ligação Stripe', {
+      toast.error('Não foi possível abrir a Stripe', {
         description: getErrorMessage(err),
       })
       setSubmitting(false)
@@ -125,36 +129,32 @@ export function FirmConnectPaymentsSection() {
           <div>
             <h3 className="cb-settings-panel-title">Pagamentos dos clientes</h3>
             <p className="cb-settings-panel-sub">
-              Stripe Connect — o dinheiro dos seus clientes vai para a sua conta Stripe, não para a
-              Teglion.
+              Receba online na conta do escritório — o dinheiro não passa pela Teglion.
             </p>
           </div>
           <ModuleHelpDialog
-            title="Pagamentos online (Stripe Connect)"
-            intro="O Teglion liga o seu escritório à Stripe para receber pagamentos dos clientes. A Teglion não custodia dinheiro."
+            title="Pagamentos online"
+            intro="Ligue a conta Stripe do escritório para os clientes pagarem no Checkout. A Teglion só faz a ponte técnica — não guarda o dinheiro."
+            triggerLabel="Como funciona?"
             steps={[
               {
-                title: 'Só o dono',
-                description: 'Apenas o responsável (dono) do escritório pode iniciar a ligação.',
+                title: 'Só o responsável',
+                description: 'Apenas o dono do escritório pode iniciar ou alterar esta ligação.',
               },
               {
-                title: 'Aceite registado',
+                title: 'Política e aceite',
                 description:
-                  'Antes, tem de ler e aceitar a política — inclui a taxa de serviço Teglion e a separação das taxas Stripe.',
+                  'Antes de continuar, leia a política (fica registada com data e versão). Os detalhes comerciais estão lá.',
               },
               {
-                title: 'Stripe processa',
+                title: 'Stripe trata do resto',
                 description:
-                  'A Stripe trata do KYC, do processamento e dos payouts na sua Connected Account.',
+                  'Identidade, processamento e transferências para o banco ficam na Stripe, na conta do escritório.',
               },
               {
-                title: 'Taxa Teglion',
-                description: `Em cada pagamento online dos seus clientes, a Teglion retém ${feePercent}% como taxa de serviço da plataforma (integração, Checkout, hold e confirmação). As taxas Stripe são à parte.`,
-              },
-              {
-                title: 'Billing separado',
+                title: 'Mensalidade à parte',
                 description:
-                  'A mensalidade Teglion (plano) é um fluxo separado — não misturar com pagamentos dos clientes.',
+                  'O plano Teglion (mensalidade) é outro fluxo — não se mistura com o que os clientes pagam pelos serviços.',
               },
             ]}
           />
@@ -178,48 +178,43 @@ export function FirmConnectPaymentsSection() {
             <p className="font-medium">{statusLabel(account?.onboardingStatus, ready)}</p>
             {!configured ? (
               <p className="mt-1 text-muted-foreground">
-                Pagamentos online ainda não estão activos neste ambiente (modo teste / feature flag).
+                Os pagamentos online ainda não estão disponíveis neste ambiente.
               </p>
             ) : null}
             {account ? (
               <ul className="mt-2 space-y-1 text-muted-foreground">
-                <li>Cobranças (charges): {account.chargesEnabled ? 'activas' : 'pendentes'}</li>
-                <li>Payouts: {account.payoutsEnabled ? 'activos' : 'pendentes'}</li>
-                <li>Detalhes submetidos: {account.detailsSubmitted ? 'sim' : 'ainda não'}</li>
+                <li>Receber pagamentos: {account.chargesEnabled ? 'activo' : 'ainda não'}</li>
+                <li>Transferir para o banco: {account.payoutsEnabled ? 'activo' : 'ainda não'}</li>
+                <li>Dados enviados à Stripe: {account.detailsSubmitted ? 'sim' : 'em falta'}</li>
               </ul>
             ) : configured ? (
-              <p className="mt-1 text-muted-foreground">Ainda não ligou a conta Stripe do escritório.</p>
+              <p className="mt-1 text-muted-foreground">
+                Ainda não associou a conta Stripe do escritório.
+              </p>
             ) : null}
-            {account?.requirementsDisabledReason ? (
-              <p className="mt-2 flex items-start gap-1.5 text-amber-800">
+            {!ready && account ? (
+              <p className="mt-2 flex items-start gap-1.5 text-amber-900">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-                {humanizeConnectDisabledReason(account.requirementsDisabledReason) ||
-                  'Ainda falta concluir a configuração na Stripe.'}
+                <span>
+                  {humanizeConnectDisabledReason(account.requirementsDisabledReason) || pendingCopy}
+                </span>
               </p>
             ) : null}
           </div>
         </div>
       </div>
 
-      <div className="rounded-xl border border-border/80 bg-background px-4 py-3 text-sm leading-relaxed text-muted-foreground">
-        <p className="font-medium text-foreground">Importante</p>
-        <p className="mt-1">
-          A Teglion vende o software e a integração de pagamentos. Os pagamentos dos seus clientes
-          são processados pela <strong className="font-medium text-foreground">Stripe</strong> na
-          conta Connect do seu escritório. Em cada pagamento online, a Teglion retém{' '}
-          <strong className="font-medium text-foreground">{feePercent}%</strong> como{' '}
-          <strong className="font-medium text-foreground">taxa de serviço da plataforma</strong>{' '}
-          (página pública, agendamento, Checkout e confirmação automática). As taxas de processamento
-          da Stripe são cobradas pela Stripe à parte. A Teglion não custodia o dinheiro dos clientes.
-        </p>
-      </div>
+      <p className="text-sm leading-relaxed text-muted-foreground">
+        Os clientes pagam no Checkout da Stripe; o valor fica na conta do escritório. A Teglion não
+        custodia esse dinheiro. Condições e responsabilidades estão na política que o responsável
+        aceita ao ligar os pagamentos.
+      </p>
 
       {termsOutdated ? (
-        <div className="rounded-xl border border-amber-200 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
-          <p className="font-medium">Política actualizada</p>
-          <p className="mt-1">
-            Há uma nova versão da política (inclui a taxa de serviço de {feePercent}%). Peça ao
-            responsável do escritório para a ler e aceitar.
+        <div className="rounded-xl border border-amber-200/80 bg-amber-50/70 px-4 py-3 text-sm text-amber-950">
+          <p className="font-medium">Há uma actualização da política</p>
+          <p className="mt-1 text-amber-950/90">
+            Peça ao responsável do escritório para a ler e aceitar antes de continuar.
           </p>
           {canStart ? (
             <Button
@@ -231,7 +226,7 @@ export function FirmConnectPaymentsSection() {
                 setTermsOpen(true)
               }}
             >
-              Ler e aceitar a nova política
+              Ler e aceitar
             </Button>
           ) : null}
         </div>
@@ -239,7 +234,7 @@ export function FirmConnectPaymentsSection() {
 
       {query.isLoading ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />A carregar estado…
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />A carregar…
         </div>
       ) : null}
 
@@ -257,7 +252,7 @@ export function FirmConnectPaymentsSection() {
             }}
             disabled={submitting}
           >
-            Ligar Stripe Connect
+            Ligar pagamentos online
           </Button>
         ) : null}
 
@@ -265,17 +260,31 @@ export function FirmConnectPaymentsSection() {
           <Button type="button" onClick={() => void refreshLink()} disabled={submitting}>
             {submitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />A redireccionar…
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />A abrir…
               </>
             ) : (
-              'Continuar configuração na Stripe'
+              'Continuar na Stripe'
             )}
+          </Button>
+        ) : null}
+
+        {configured && canStart && account && ready && termsOutdated ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setAccepted(false)
+              setTermsOpen(true)
+            }}
+            disabled={submitting}
+          >
+            Aceitar política actualizada
           </Button>
         ) : null}
 
         {configured && !canStart ? (
           <p className="text-sm text-muted-foreground">
-            Apenas o responsável (dono) do escritório pode ligar ou alterar o Stripe Connect.
+            Só o responsável (dono) do escritório pode gerir esta ligação.
           </p>
         ) : null}
       </div>
@@ -285,8 +294,7 @@ export function FirmConnectPaymentsSection() {
           <DialogHeader>
             <DialogTitle>{data?.terms?.title || 'Política de pagamentos online'}</DialogTitle>
             <DialogDescription>
-              Leia com atenção. O seu aceite fica registado (data, hora, IP e versão do texto) para
-              efeitos de auditoria.
+              Leia com atenção. O aceite fica registado (data, hora, IP e versão) para auditoria.
             </DialogDescription>
           </DialogHeader>
           <div className="max-h-[40vh] overflow-y-auto whitespace-pre-wrap rounded-lg border bg-muted/20 p-3 text-sm leading-relaxed">
@@ -300,9 +308,8 @@ export function FirmConnectPaymentsSection() {
               onChange={(e) => setAccepted(e.target.checked)}
             />
             <span>
-              Li e aceito esta política, incluindo a taxa de serviço Teglion de {feePercent}% por
-              pagamento online. Compreendo que as taxas Stripe são à parte e que a Teglion não
-              custodia o dinheiro dos clientes.
+              Li e aceito esta política, incluindo as condições descritas no texto acima. Compreendo
+              que a Teglion não custodia o dinheiro dos clientes.
             </span>
           </label>
           <DialogFooter className="gap-2 sm:gap-0">
@@ -312,10 +319,10 @@ export function FirmConnectPaymentsSection() {
             <Button type="button" onClick={() => void startWithTerms()} disabled={!accepted || submitting}>
               {submitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />A abrir Stripe…
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />A abrir…
                 </>
               ) : (
-                'Aceitar e continuar para a Stripe'
+                'Aceitar e continuar'
               )}
             </Button>
           </DialogFooter>

@@ -90,7 +90,6 @@ export function ServicePaymentMethodsPanel({
   })
 
   const connectState = deriveConnectState(query.data)
-  const feePercent = query.data?.platformFeePercent || '2'
   const onlineSelected = paymentMethod === 'stripe_connect' || paymentRequired
   const pendingMessage = connectPendingSummary({
     disabledReason: query.data?.account?.requirementsDisabledReason,
@@ -157,8 +156,8 @@ export function ServicePaymentMethodsPanel({
   return (
     <div className="space-y-3">
       <p className="text-xs leading-relaxed text-muted-foreground">
-        O dinheiro dos clientes online vai para a conta Stripe do escritório. A Teglion cobra{' '}
-        {feePercent}% de taxa de serviço da plataforma; a Stripe cobra as taxas dela à parte.
+        Online, o cliente paga no Checkout da Stripe e o valor fica na conta do escritório. Detalhes
+        e condições estão em Definições → Pagamentos.
         {connectState !== 'active' ? (
           <>
             {' '}
