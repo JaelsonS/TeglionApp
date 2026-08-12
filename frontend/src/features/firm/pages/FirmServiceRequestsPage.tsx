@@ -5,14 +5,35 @@ import { ServicesWorkspace } from '@/features/firm/services/ServicesWorkspace'
 import { ServiceInquiriesWorkspace } from '@/features/firm/services/ServiceInquiriesWorkspace'
 import { AgendaServicesCatalogPanel } from '@/features/firm/agenda/AgendaServicesCatalogPanel'
 import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
+import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { cn } from '@/shared/lib/utils'
 
 const TABS = [
-  { id: 'catalog', label: 'Catálogo' },
-  { id: 'irs', label: 'IRS' },
-  { id: 'central', label: 'Central de Serviços' },
-  { id: 'inquiries', label: 'Solicitações' },
+  {
+    id: 'catalog',
+    label: 'Catálogo',
+    title: 'Catálogo',
+    subtitle: 'Serviços da página pública e formulários de captação',
+  },
+  {
+    id: 'irs',
+    label: 'IRS',
+    title: 'IRS',
+    subtitle: 'Modelos e serviços de IRS activos no escritório',
+  },
+  {
+    id: 'inquiries',
+    label: 'Solicitações',
+    title: 'Solicitações',
+    subtitle: 'Pedidos da página pública — a equipa decide o próximo passo',
+  },
+  {
+    id: 'central',
+    label: 'Central de Serviços',
+    title: 'Central de Serviços',
+    subtitle: 'Pedidos de clientes já no escritório',
+  },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -22,6 +43,7 @@ export function FirmServiceRequestsPage() {
   const rawTab = searchParams.get('tab')
   const activeTab: TabId =
     rawTab === 'irs' || rawTab === 'central' || rawTab === 'inquiries' ? rawTab : 'catalog'
+  const activeMeta = TABS.find((t) => t.id === activeTab) ?? TABS[0]
 
   const qc = useQueryClient()
   const servicesQuery = useQuery({
@@ -31,42 +53,50 @@ export function FirmServiceRequestsPage() {
 
   return (
     <FirmWorkspacePage className="cb-services-layout-page xl:min-h-0 xl:flex-1">
-      <div className="mb-3 flex gap-1 rounded-full border border-border/50 bg-muted/20 p-1 w-fit">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setSearchParams(tab.id === 'catalog' ? {} : { tab: tab.id })}
-            className={cn(
-              'rounded-full px-3.5 py-1.5 text-sm font-semibold transition',
-              activeTab === tab.id ? 'bg-brand text-primary-foreground shadow-sm' : 'text-muted-foreground',
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-      <div className="cb-firm-operational-panel flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden">
-        {activeTab === 'catalog' || activeTab === 'irs' ? (
-          <AgendaServicesCatalogPanel
-            key={activeTab}
-            services={servicesQuery.data?.items ?? []}
-            isLoading={servicesQuery.isLoading}
-            onReload={() => qc.invalidateQueries({ queryKey: ['contabil-accounting-services', 'catalog-tab'] })}
-            focusFilter={activeTab === 'irs' ? 'irs' : undefined}
-            title={activeTab === 'irs' ? 'Serviços de IRS' : undefined}
-            description={
-              activeTab === 'irs'
-                ? 'Simulação, entrega e outros serviços de IRS activos no escritório. Active mais a partir do catálogo nacional ou crie um novo.'
-                : undefined
-            }
-          />
-        ) : activeTab === 'central' ? (
-          <ServicesWorkspace />
-        ) : (
-          <ServiceInquiriesWorkspace />
-        )}
-      </div>
+      <FirmModuleShell
+        className="cb-firm-operational-panel min-h-0 flex-1 overflow-hidden"
+        title={activeMeta.title}
+        subtitle={activeMeta.subtitle}
+        bodyClassName="min-h-0 flex-1 overflow-y-auto overflow-x-hidden"
+      >
+        <div className="shrink-0 border-b border-border/60 px-4 sm:px-5">
+          <nav className="cb-tasks-tabs -mb-px" aria-label="Secções de serviços">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                data-testid={`firm-services-tab-${tab.id}`}
+                onClick={() => setSearchParams(tab.id === 'catalog' ? {} : { tab: tab.id })}
+                className={cn('cb-tasks-tab', activeTab === tab.id && 'cb-tasks-tab-active')}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="flex min-h-0 flex-1 flex-col p-3 sm:p-4">
+          {activeTab === 'catalog' || activeTab === 'irs' ? (
+            <AgendaServicesCatalogPanel
+              key={activeTab}
+              services={servicesQuery.data?.items ?? []}
+              isLoading={servicesQuery.isLoading}
+              onReload={() => qc.invalidateQueries({ queryKey: ['contabil-accounting-services', 'catalog-tab'] })}
+              focusFilter={activeTab === 'irs' ? 'irs' : undefined}
+              title={activeTab === 'irs' ? 'Serviços de IRS' : undefined}
+              description={
+                activeTab === 'irs'
+                  ? 'Simulação, entrega e outros serviços de IRS. O cliente preenche na página pública; você recebe em Solicitações.'
+                  : 'Publique serviços na página do escritório. As respostas chegam em Solicitações — sem pedir documentos automaticamente.'
+              }
+            />
+          ) : activeTab === 'central' ? (
+            <ServicesWorkspace />
+          ) : (
+            <ServiceInquiriesWorkspace />
+          )}
+        </div>
+      </FirmModuleShell>
     </FirmWorkspacePage>
   )
 }

@@ -572,7 +572,12 @@ router.post(
 router.patch(
   '/service-inquiries/:id',
   requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
-  [body('status').optional().isString().trim(), body('notes').optional().isString().trim().isLength({ max: 4000 })],
+  [
+    body('status').optional().isString().trim(),
+    body('notes').optional().isString().trim().isLength({ max: 4000 }),
+    body('tagIds').optional().isArray(),
+    body('tagIds.*').optional().isUUID(),
+  ],
   serviceInquiriesController.patch,
 );
 router.post(
@@ -594,6 +599,37 @@ router.post(
     body('instructions').optional({ nullable: true }).isString().trim().isLength({ max: 2000 }),
   ],
   serviceInquiriesController.addRequest,
+);
+
+const firmInquiryTagsController = require('../../modules/firm/firm-inquiry-tags.controller');
+
+router.get(
+  '/inquiry-tags',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  firmInquiryTagsController.list,
+);
+router.post(
+  '/inquiry-tags',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  [
+    body('name').isString().trim().isLength({ min: 1, max: 60 }),
+    body('colorHex').optional().isString().trim().matches(/^#([0-9A-Fa-f]{6})$/),
+  ],
+  firmInquiryTagsController.create,
+);
+router.patch(
+  '/inquiry-tags/:id',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  [
+    body('name').optional().isString().trim().isLength({ min: 1, max: 60 }),
+    body('colorHex').optional().isString().trim().matches(/^#([0-9A-Fa-f]{6})$/),
+  ],
+  firmInquiryTagsController.patch,
+);
+router.delete(
+  '/inquiry-tags/:id',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  firmInquiryTagsController.remove,
 );
 
 module.exports = router;

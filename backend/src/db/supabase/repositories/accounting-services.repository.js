@@ -20,6 +20,7 @@ function map(row) {
     requiresBooking: Boolean(row.requires_booking),
     documentRequirements: Array.isArray(row.document_requirements) ? row.document_requirements : [],
     intakeForm: row.intake_form || null,
+    intakeTagRules: Array.isArray(row.intake_tag_rules) ? row.intake_tag_rules : [],
     bookingOverrides: row.booking_overrides || null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

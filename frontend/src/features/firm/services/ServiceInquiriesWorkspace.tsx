@@ -1,18 +1,26 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { FileText, Inbox, Loader2, Mail, Phone, Plus } from 'lucide-react'
+import { FileText, Inbox, Loader2, Mail, Phone, Plus, Settings2, Tag } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
 import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
-import { contabilAccountingServicesApi, contabilClientsApi, contabilLeadsApi, contabilServiceInquiriesApi } from '@/infrastructure/api'
+import {
+  contabilAccountingServicesApi,
+  contabilClientsApi,
+  contabilInquiryTagsApi,
+  contabilLeadsApi,
+  contabilServiceInquiriesApi,
+} from '@/infrastructure/api'
 import type {
   ServiceInquiryChecklistItem,
   ServiceInquiryHistoryItem,
   ServiceInquiryRequestKind,
+  ServiceInquiryTag,
 } from '@/infrastructure/api/contabil/serviceInquiries'
+import type { FirmInquiryTag } from '@/infrastructure/api/contabil/inquiryTags'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 import type { AccountingService, IntakeQuestion } from '@/shared/types/contabil'
@@ -31,8 +39,8 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_ORDER = ['LEAD_CAPTURED', 'NEW', 'CONTACTED', 'DOCS_REQUESTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']
 const TERMINAL_STATUSES = new Set(['COMPLETED', 'CANCELLED'])
 
-/** Histórico (Fase 4) — reaproveita os eventos já escritos em audit_logs em cada
- * fase (1a/2a/2b/2c/3a), sem duplicar em nenhuma tabela nova. Só formatação. */
+const SUGGESTED_TAG_COLORS = ['#0F2942', '#B45309', '#1B6B4A', '#9A3412', '#475569', '#854D0E']
+
 const HISTORY_ACTION_LABELS: Record<string, string> = {
   'service_inquiry.created': 'Solicitação criada',
   'service_inquiry.submitted': 'Formulário submetido pelo cliente',
@@ -48,9 +56,7 @@ function historyItemLabel(item: ServiceInquiryHistoryItem): string {
   if (item.action === 'service_inquiry.status_changed') {
     const from = String(item.metadata?.from ?? '')
     const to = String(item.metadata?.to ?? '')
-    const fromLabel = STATUS_LABELS[from] || from
-    const toLabel = STATUS_LABELS[to] || to
-    return `${base}: ${fromLabel} → ${toLabel}`
+    return `${base}: ${STATUS_LABELS[from] || from} → ${STATUS_LABELS[to] || to}`
   }
   if (item.action === 'service_inquiry.request_added' && item.metadata?.title) {
     return `${base} — "${String(item.metadata.title)}"`
@@ -64,15 +70,52 @@ function answerDisplay(question: IntakeQuestion | undefined, value: string | str
   return Array.isArray(value) ? value.map(resolve).join(', ') : resolve(value)
 }
 
+function tagTextColor(hex: string) {
+  const raw = hex.replace('#', '')
+  if (raw.length !== 6) return '#fff'
+  const r = parseInt(raw.slice(0, 2), 16)
+  const g = parseInt(raw.slice(2, 4), 16)
+  const b = parseInt(raw.slice(4, 6), 16)
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  return luminance > 0.62 ? '#0F172A' : '#FFFFFF'
+}
+
+function InquiryTagBadge({ tag }: { tag: ServiceInquiryTag | FirmInquiryTag }) {
+  return (
+    <span
+      className="inline-flex max-w-[10rem] items-center truncate rounded-full px-2 py-0.5 text-caption font-semibold"
+      style={{ backgroundColor: tag.colorHex, color: tagTextColor(tag.colorHex) }}
+      title={tag.name}
+    >
+      {tag.name}
+    </span>
+  )
+}
+
+function formatSubmittedAt(iso: string | null | undefined) {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleString('pt-PT', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+    timeZone: 'Europe/Lisbon',
+  })
+}
+
 export function ServiceInquiriesWorkspace() {
   const qc = useQueryClient()
   const [serviceFilter, setServiceFilter] = useState('')
+  const [tagFilter, setTagFilter] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [newRequestKind, setNewRequestKind] = useState<ServiceInquiryRequestKind>('question')
   const [newRequestTitle, setNewRequestTitle] = useState('')
   const [addingRequest, setAddingRequest] = useState(false)
   const [acceptingTag, setAcceptingTag] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [tagsOpen, setTagsOpen] = useState(false)
+  const [newTagName, setNewTagName] = useState('')
+  const [newTagColor, setNewTagColor] = useState(SUGGESTED_TAG_COLORS[0])
+  const [savingTag, setSavingTag] = useState(false)
+  const [savingInquiryTags, setSavingInquiryTags] = useState(false)
 
   const servicesQuery = useQuery({
     queryKey: ['contabil-accounting-services', 'all'],
@@ -80,9 +123,19 @@ export function ServiceInquiriesWorkspace() {
   })
   const services: AccountingService[] = servicesQuery.data?.items ?? []
 
+  const tagsQuery = useQuery({
+    queryKey: ['firm-inquiry-tags'],
+    queryFn: () => contabilInquiryTagsApi.list(),
+  })
+  const firmTags = tagsQuery.data?.items ?? []
+
   const listQuery = useQuery({
-    queryKey: ['service-inquiries', serviceFilter],
-    queryFn: () => contabilServiceInquiriesApi.list(serviceFilter ? { serviceId: serviceFilter } : undefined),
+    queryKey: ['service-inquiries', serviceFilter, tagFilter],
+    queryFn: () =>
+      contabilServiceInquiriesApi.list({
+        ...(serviceFilter ? { serviceId: serviceFilter } : {}),
+        ...(tagFilter ? { tagId: tagFilter } : {}),
+      }),
   })
   const items = listQuery.data?.items ?? []
 
@@ -101,9 +154,6 @@ export function ServiceInquiriesWorkspace() {
   const leadId = detailQuery.data?.inquiry.leadId
   const clientId = detailQuery.data?.inquiry.clientId
 
-  /** A Solicitação em si não guarda contacto — vem do Lead/Client associado.
-   * Sem isto, um Lead novo (captado pela página pública, sem conta ainda)
-   * fica sem nenhuma forma de a equipa ver o email/telefone para o contactar. */
   const leadQuery = useQuery({
     queryKey: ['service-inquiry-lead', leadId],
     queryFn: () => contabilLeadsApi.getById(leadId!),
@@ -128,15 +178,19 @@ export function ServiceInquiriesWorkspace() {
         }
       : null
 
+  const invalidateLists = async () => {
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ['service-inquiries'] }),
+      selectedId ? qc.invalidateQueries({ queryKey: ['service-inquiry-detail', selectedId] }) : Promise.resolve(),
+    ])
+  }
+
   const updateStatus = async (status: string) => {
     if (!selectedId) return
     try {
-      await contabilServiceInquiriesApi.patch(selectedId, { status });
+      await contabilServiceInquiriesApi.patch(selectedId, { status })
       toast.success('Estado actualizado')
-      await Promise.all([
-        qc.invalidateQueries({ queryKey: ['service-inquiries'] }),
-        qc.invalidateQueries({ queryKey: ['service-inquiry-detail', selectedId] }),
-      ])
+      await invalidateLists()
     } catch (err) {
       toast.error('Erro ao actualizar estado', { description: getErrorMessage(err) })
     }
@@ -144,13 +198,17 @@ export function ServiceInquiriesWorkspace() {
 
   const revokeToken = async () => {
     if (!selectedId) return
-    if (!window.confirm('Revogar o link do cliente? Esta ação não pode ser desfeita — o cliente deixa de conseguir aceder à solicitação por esse link.')) {
+    if (
+      !window.confirm(
+        'Revogar o link do cliente? Esta ação não pode ser desfeita — o cliente deixa de conseguir aceder à solicitação por esse link.',
+      )
+    ) {
       return
     }
     try {
       await contabilServiceInquiriesApi.revokeToken(selectedId)
       toast.success('Link revogado')
-      await qc.invalidateQueries({ queryKey: ['service-inquiry-detail', selectedId] })
+      await invalidateLists()
     } catch (err) {
       toast.error('Erro ao revogar link', { description: getErrorMessage(err) })
     }
@@ -158,13 +216,7 @@ export function ServiceInquiriesWorkspace() {
 
   const deleteInquiry = async () => {
     if (!selectedId) return
-    if (
-      !window.confirm(
-        'Apagar esta solicitação? Esta ação não pode ser desfeita — o histórico, respostas e documentos entregues são todos removidos.',
-      )
-    ) {
-      return
-    }
+    if (!window.confirm('Apagar esta solicitação? Esta ação não pode ser desfeita.')) return
     setDeleting(true)
     try {
       await contabilServiceInquiriesApi.remove(selectedId)
@@ -172,7 +224,7 @@ export function ServiceInquiriesWorkspace() {
       setSelectedId(null)
       await qc.invalidateQueries({ queryKey: ['service-inquiries'] })
     } catch (err) {
-      toast.error('Não foi possível apagar', { description: getErrorMessage(err) })
+      toast.error('Erro ao apagar', { description: getErrorMessage(err) })
     } finally {
       setDeleting(false)
     }
@@ -186,11 +238,11 @@ export function ServiceInquiriesWorkspace() {
         kind: newRequestKind,
         title: newRequestTitle.trim(),
       })
-      toast.success('Pendência adicionada — o cliente foi notificado')
       setNewRequestTitle('')
-      await qc.invalidateQueries({ queryKey: ['service-inquiry-detail', selectedId] })
+      toast.success('Pedido adicionado')
+      await invalidateLists()
     } catch (err) {
-      toast.error('Erro ao adicionar pendência', { description: getErrorMessage(err) })
+      toast.error('Erro ao pedir', { description: getErrorMessage(err) })
     } finally {
       setAddingRequest(false)
     }
@@ -203,11 +255,11 @@ export function ServiceInquiriesWorkspace() {
       await contabilServiceInquiriesApi.addRequest(selectedId, {
         kind: 'document',
         title: doc.title,
-        instructions: doc.instructions || undefined,
         tag: doc.tag,
+        instructions: doc.instructions || undefined,
       })
-      toast.success('Documento pedido — o cliente foi notificado')
-      await qc.invalidateQueries({ queryKey: ['service-inquiry-detail', selectedId] })
+      toast.success('Documento pedido ao cliente')
+      await invalidateLists()
     } catch (err) {
       toast.error('Erro ao pedir documento', { description: getErrorMessage(err) })
     } finally {
@@ -225,24 +277,104 @@ export function ServiceInquiriesWorkspace() {
     }
   }
 
+  const createTag = async () => {
+    if (!newTagName.trim()) return
+    setSavingTag(true)
+    try {
+      await contabilInquiryTagsApi.create({ name: newTagName.trim(), colorHex: newTagColor })
+      setNewTagName('')
+      toast.success('Etiqueta criada')
+      await qc.invalidateQueries({ queryKey: ['firm-inquiry-tags'] })
+    } catch (err) {
+      toast.error('Não foi possível criar etiqueta', { description: getErrorMessage(err) })
+    } finally {
+      setSavingTag(false)
+    }
+  }
+
+  const removeTag = async (tag: FirmInquiryTag) => {
+    if (!window.confirm(`Apagar a etiqueta “${tag.name}”? Será removida das solicitações.`)) return
+    try {
+      await contabilInquiryTagsApi.remove(tag.id)
+      if (tagFilter === tag.id) setTagFilter('')
+      toast.success('Etiqueta apagada')
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ['firm-inquiry-tags'] }),
+        qc.invalidateQueries({ queryKey: ['service-inquiries'] }),
+      ])
+    } catch (err) {
+      toast.error('Erro ao apagar etiqueta', { description: getErrorMessage(err) })
+    }
+  }
+
+  const toggleInquiryTag = async (tagId: string) => {
+    if (!selectedId || !detailQuery.data) return
+    const current = new Set((detailQuery.data.inquiry.tags || []).map((t) => t.id))
+    if (current.has(tagId)) current.delete(tagId)
+    else current.add(tagId)
+    setSavingInquiryTags(true)
+    try {
+      await contabilServiceInquiriesApi.patch(selectedId, { tagIds: [...current] })
+      await invalidateLists()
+    } catch (err) {
+      toast.error('Erro ao actualizar etiquetas', { description: getErrorMessage(err) })
+    } finally {
+      setSavingInquiryTags(false)
+    }
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-muted-foreground">
+          Captação da página pública. Categorize com as suas etiquetas e peça o que faltar ao cliente.
+        </p>
+        <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={() => setTagsOpen(true)}>
+          <Settings2 className="mr-1.5 h-3.5 w-3.5" />
+          Gerir etiquetas
+        </Button>
+      </div>
+
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
-          onClick={() => setServiceFilter('')}
+          onClick={() => {
+            setServiceFilter('')
+            setTagFilter('')
+          }}
           className={cn(
             'rounded-full px-3 py-1.5 text-xs font-semibold transition',
-            serviceFilter === '' ? 'bg-brand text-primary-foreground shadow-sm' : 'bg-muted/40 text-muted-foreground',
+            !serviceFilter && !tagFilter ? 'bg-brand text-primary-foreground shadow-sm' : 'bg-muted/40 text-muted-foreground',
           )}
         >
-          Todos os serviços
+          Todas
         </button>
-        {services.map((s) => (
+        {firmTags.map((tag) => (
+          <button
+            key={tag.id}
+            type="button"
+            onClick={() => {
+              setTagFilter(tag.id)
+              setServiceFilter('')
+            }}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition',
+              tagFilter === tag.id ? 'ring-2 ring-brand/40 ring-offset-1' : 'opacity-90 hover:opacity-100',
+            )}
+            style={{ backgroundColor: tag.colorHex, color: tagTextColor(tag.colorHex) }}
+          >
+            <Tag className="h-3 w-3 opacity-80" />
+            {tag.name}
+          </button>
+        ))}
+        {services.slice(0, 8).map((s) => (
           <button
             key={s.id}
             type="button"
-            onClick={() => setServiceFilter(s.id)}
+            onClick={() => {
+              setServiceFilter(s.id)
+              setTagFilter('')
+            }}
             className={cn(
               'rounded-full px-3 py-1.5 text-xs font-semibold transition',
               serviceFilter === s.id ? 'bg-brand text-primary-foreground shadow-sm' : 'bg-muted/40 text-muted-foreground',
@@ -260,13 +392,15 @@ export function ServiceInquiriesWorkspace() {
       ) : items.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 py-10 text-center">
           <Inbox className="h-8 w-8 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">Ainda sem solicitações recebidas pela página pública.</p>
+          <p className="text-sm text-muted-foreground">Ainda sem solicitações com estes filtros.</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-border/50">
-          <div className="grid grid-cols-[1fr_auto_auto] gap-2 border-b border-border/40 bg-muted/30 px-3 py-2 text-caption font-semibold uppercase tracking-wide text-muted-foreground">
-            <span>Solicitação</span>
+          <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 border-b border-border/40 bg-muted/30 px-3 py-2 text-caption font-semibold uppercase tracking-wide text-muted-foreground sm:grid-cols-[1.2fr_1fr_auto_auto_auto]">
+            <span>Cliente</span>
             <span className="hidden sm:block">Serviço</span>
+            <span className="hidden md:block">Etiquetas</span>
+            <span>Data</span>
             <span>Estado</span>
           </div>
           <ul className="divide-y divide-border/40">
@@ -274,13 +408,21 @@ export function ServiceInquiriesWorkspace() {
               <li key={item.id}>
                 <button
                   type="button"
-                  className="grid w-full grid-cols-[1fr_auto_auto] items-center gap-2 px-3 py-3 text-left hover:bg-muted/20"
+                  className="grid w-full grid-cols-[1fr_auto_auto_auto] items-center gap-2 px-3 py-3 text-left hover:bg-muted/20 sm:grid-cols-[1.2fr_1fr_auto_auto_auto]"
                   onClick={() => setSelectedId(item.id)}
                 >
-                  <span className="min-w-0 truncate text-sm font-medium">
-                    {item.requesterName || 'Sem nome'}
+                  <span className="min-w-0 truncate text-sm font-medium">{item.requesterName || 'Sem nome'}</span>
+                  <span className="hidden min-w-0 truncate text-xs text-muted-foreground sm:block">
+                    {item.serviceName || '—'}
                   </span>
-                  <span className="hidden text-xs text-muted-foreground sm:block">{item.serviceName || '—'}</span>
+                  <span className="hidden max-w-[12rem] flex-wrap justify-end gap-1 md:flex">
+                    {(item.tags || []).slice(0, 3).map((t) => (
+                      <InquiryTagBadge key={t.id} tag={t} />
+                    ))}
+                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {formatSubmittedAt(item.submittedAt || item.createdAt)}
+                  </span>
                   <span
                     className={cn(
                       'shrink-0 rounded-full px-2.5 py-1 text-caption font-bold uppercase',
@@ -300,6 +442,54 @@ export function ServiceInquiriesWorkspace() {
         </div>
       )}
 
+      <Sheet open={tagsOpen} onOpenChange={setTagsOpen}>
+        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
+          <SheetHiddenTitle>Gerir etiquetas</SheetHiddenTitle>
+          <div className="space-y-5 py-4">
+            <div>
+              <h2 className="text-lg font-bold">As suas etiquetas</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Crie nomes e cores. No Catálogo (fase seguinte) define regras “se responder X → esta etiqueta”.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {SUGGESTED_TAG_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  aria-label={`Cor ${c}`}
+                  onClick={() => setNewTagColor(c)}
+                  className={cn('h-7 w-7 rounded-full border-2', newTagColor === c ? 'border-foreground' : 'border-transparent')}
+                  style={{ backgroundColor: c }}
+                />
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                className="h-10 rounded-xl"
+                placeholder="Ex.: Atenção, Fácil, Agendamento…"
+                value={newTagName}
+                onChange={(e: FormChangeEvent) => setNewTagName(e.target.value)}
+              />
+              <Button type="button" className="shrink-0 rounded-full" disabled={savingTag || !newTagName.trim()} onClick={() => void createTag()}>
+                {savingTag ? '…' : 'Criar'}
+              </Button>
+            </div>
+            <ul className="space-y-2">
+              {firmTags.map((tag) => (
+                <li key={tag.id} className="flex items-center justify-between gap-2 rounded-lg border border-border/50 px-3 py-2">
+                  <InquiryTagBadge tag={tag} />
+                  <Button type="button" size="sm" variant="ghost" className="text-destructive" onClick={() => void removeTag(tag)}>
+                    Apagar
+                  </Button>
+                </li>
+              ))}
+              {!firmTags.length ? <p className="text-sm text-muted-foreground">Ainda sem etiquetas — crie a primeira acima.</p> : null}
+            </ul>
+          </div>
+        </SheetContent>
+      </Sheet>
+
       <Sheet open={Boolean(selectedId)} onOpenChange={(open: boolean) => !open && setSelectedId(null)}>
         <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
           <SheetHiddenTitle>Detalhe da solicitação</SheetHiddenTitle>
@@ -314,27 +504,52 @@ export function ServiceInquiriesWorkspace() {
                   {detailQuery.data.inquiry.serviceName || 'Serviço'}
                 </p>
                 <h2 className="text-lg font-bold">{detailQuery.data.inquiry.requesterName || 'Sem nome'}</h2>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Recebido {formatSubmittedAt(detailQuery.data.inquiry.submittedAt || detailQuery.data.inquiry.createdAt)}
+                </p>
                 {contact && (contact.email || contact.phone || contact.taxId) ? (
                   <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                     {contact.email ? (
-                      <a
-                        href={`mailto:${contact.email}`}
-                        className="inline-flex items-center gap-1 hover:text-foreground hover:underline"
-                      >
+                      <a href={`mailto:${contact.email}`} className="inline-flex items-center gap-1 hover:text-foreground hover:underline">
                         <Mail className="h-3.5 w-3.5" /> {contact.email}
                       </a>
                     ) : null}
                     {contact.phone ? (
-                      <a
-                        href={`tel:${contact.phone}`}
-                        className="inline-flex items-center gap-1 hover:text-foreground hover:underline"
-                      >
+                      <a href={`tel:${contact.phone}`} className="inline-flex items-center gap-1 hover:text-foreground hover:underline">
                         <Phone className="h-3.5 w-3.5" /> {contact.phone}
                       </a>
                     ) : null}
                     {contact.taxId ? <span>NIF {contact.taxId}</span> : null}
                   </div>
                 ) : null}
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Etiquetas</p>
+                <div className="flex flex-wrap gap-2">
+                  {firmTags.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Crie etiquetas em “Gerir etiquetas”.</p>
+                  ) : (
+                    firmTags.map((tag) => {
+                      const active = (detailQuery.data?.inquiry.tags || []).some((t) => t.id === tag.id)
+                      return (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          disabled={savingInquiryTags}
+                          onClick={() => void toggleInquiryTag(tag.id)}
+                          className={cn(
+                            'rounded-full px-2.5 py-1 text-caption font-semibold transition',
+                            active ? 'ring-2 ring-offset-1 ring-brand/50' : 'opacity-55 hover:opacity-100',
+                          )}
+                          style={{ backgroundColor: tag.colorHex, color: tagTextColor(tag.colorHex) }}
+                        >
+                          {tag.name}
+                        </button>
+                      )
+                    })
+                  )}
+                </div>
               </div>
 
               {detailQuery.data.inquiry.consultation ? (
@@ -405,18 +620,13 @@ export function ServiceInquiriesWorkspace() {
 
               {detailQuery.data.suggestedDocuments.length > 0 ? (
                 <div className="space-y-2 rounded-lg border border-amber-300/60 bg-amber-50/40 p-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">
-                    Sugestões baseadas nas respostas
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">Sugestões baseadas nas respostas</p>
                   <p className="text-xs text-muted-foreground">
-                    Configurou estes documentos como "só sugerir depois" — ainda não foram pedidos ao cliente.
+                    Configurou estes documentos como &quot;só sugerir depois&quot; — ainda não foram pedidos ao cliente.
                   </p>
                   <ul className="space-y-2">
                     {detailQuery.data.suggestedDocuments.map((doc) => (
-                      <li
-                        key={doc.tag}
-                        className="flex items-center justify-between gap-2 rounded-md border border-amber-300/50 bg-card p-2"
-                      >
+                      <li key={doc.tag} className="flex items-center justify-between gap-2 rounded-md border border-amber-300/50 bg-card p-2">
                         <span className="min-w-0 truncate text-sm">{doc.title}</span>
                         <Button
                           type="button"

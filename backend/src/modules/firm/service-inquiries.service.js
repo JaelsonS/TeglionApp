@@ -9,6 +9,7 @@ const consultationsRepository = require('../../db/supabase/repositories/consulta
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
+const firmInquiryTagsRepository = require('../../db/supabase/repositories/firm-inquiry-tags.repository');
 const accountingServicesService = require('./accounting-services.service');
 const leadsService = require('./leads.service');
 const bookingService = require('../booking/booking.service');
@@ -16,6 +17,41 @@ const contabilStorage = require('../../services/storage/contabil-storage.service
 const contabilNotifications = require('../../services/notifications/contabil-notifications.service');
 const auditRepository = require('../../db/supabase/repositories/contabil/audit.repository');
 const { interpolateServiceTemplate } = require('../../utils/service-text-template');
+
+/** Regras do serviço: [{ questionId, equals, tagId }] → tagIds a aplicar. */
+function resolveTagIdsFromRules(rules, answers) {
+  if (!Array.isArray(rules) || !rules.length || !answers || typeof answers !== 'object') return [];
+  const ids = new Set();
+  for (const rule of rules) {
+    const questionId = rule?.questionId != null ? String(rule.questionId) : '';
+    const tagId = rule?.tagId != null ? String(rule.tagId) : '';
+    if (!questionId || !tagId) continue;
+    const expected = String(rule.equals ?? '').trim().toLowerCase();
+    if (!expected) continue;
+    const raw = answers[questionId];
+    const values = Array.isArray(raw) ? raw : [raw];
+    const hit = values.some((v) => String(v ?? '').trim().toLowerCase() === expected);
+    if (hit) ids.add(tagId);
+  }
+  return [...ids];
+}
+
+function mapLinkRowsToTagsByInquiry(linkRows) {
+  const byInquiry = new Map();
+  for (const row of linkRows || []) {
+    const inquiryId = row.service_inquiry_id;
+    const tagRow = row.firm_inquiry_tags;
+    if (!inquiryId || !tagRow) continue;
+    const list = byInquiry.get(inquiryId) || [];
+    list.push({
+      id: tagRow.id,
+      name: tagRow.name,
+      colorHex: tagRow.color_hex || '#0F2942',
+    });
+    byInquiry.set(inquiryId, list);
+  }
+  return byInquiry;
+}
 
 const VALID_STATUSES = ['LEAD_CAPTURED', 'NEW', 'CONTACTED', 'DOCS_REQUESTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
 const TERMINAL_STATUSES = new Set(['COMPLETED', 'CANCELLED']);
@@ -30,6 +66,11 @@ async function enrichForList(firmId, inquiries) {
   const serviceIds = [...new Set(inquiries.map((i) => i.serviceId).filter(Boolean))];
   const services = await accountingServicesRepository.findByIdsForFirm(serviceIds, firmId);
   const serviceById = new Map(services.map((s) => [s.id, s]));
+  const linkRows = await firmInquiryTagsRepository.listLinksForInquiries(
+    firmId,
+    inquiries.map((i) => i.id),
+  );
+  const tagsByInquiry = mapLinkRowsToTagsByInquiry(linkRows);
 
   const enriched = [];
   for (const inquiry of inquiries) {
@@ -37,15 +78,20 @@ async function enrichForList(firmId, inquiries) {
       ...inquiry,
       serviceName: serviceById.get(inquiry.serviceId)?.name || null,
       requesterName: await requesterNameForInquiry(inquiry),
+      tags: tagsByInquiry.get(inquiry.id) || [],
     });
   }
   return enriched;
 }
 
-async function list({ firmId, status, serviceId }) {
+async function list({ firmId, status, serviceId, tagId }) {
   if (status && !VALID_STATUSES.includes(status)) throw new AppError('Estado inválido', 400);
-  const items = await serviceInquiriesRepository.listByFirm(firmId, { status, serviceId });
-  return { items: await enrichForList(firmId, items) };
+  let items = await serviceInquiriesRepository.listByFirm(firmId, { status, serviceId });
+  const enriched = await enrichForList(firmId, items);
+  if (tagId) {
+    return { items: enriched.filter((i) => (i.tags || []).some((t) => t.id === tagId)) };
+  }
+  return { items: enriched };
 }
 
 /** Forma comum do item de checklist devolvida ao staff e ao mini-portal — um
@@ -90,11 +136,15 @@ async function getById({ firmId, id }) {
     suggestedDocuments = manual.filter((d) => !alreadyRequestedTags.has(d.tag));
   }
 
+  const linkRows = await firmInquiryTagsRepository.listLinksForInquiries(firmId, [inquiry.id]);
+  const tags = mapLinkRowsToTagsByInquiry(linkRows).get(inquiry.id) || [];
+
   return {
     inquiry: {
       ...inquiry,
       serviceName: service?.name || null,
       requesterName,
+      tags,
       consultation: consultation
         ? { id: consultation.id, scheduledAt: consultation.scheduledAt, status: consultation.status }
         : null,
@@ -182,7 +232,16 @@ async function update({ firmId, id, actor, payload }) {
     }
   }
 
-  const inquiry = await serviceInquiriesRepository.updateRow(id, firmId, patch);
+  const inquiry = Object.keys(patch).length
+    ? await serviceInquiriesRepository.updateRow(id, firmId, patch)
+    : existing;
+
+  if (Array.isArray(payload?.tagIds)) {
+    const firmTags = await firmInquiryTagsRepository.listByFirm(firmId);
+    const allowed = new Set(firmTags.map((t) => t.id));
+    const tagIds = payload.tagIds.map(String).filter((tid) => allowed.has(tid));
+    await firmInquiryTagsRepository.replaceLinksForInquiry(firmId, id, tagIds);
+  }
 
   if (patch.status && patch.status !== existing.status) {
     await auditRepository.writeAuditLog({
@@ -196,7 +255,9 @@ async function update({ firmId, id, actor, payload }) {
     });
   }
 
-  return { inquiry };
+  const linkRows = await firmInquiryTagsRepository.listLinksForInquiries(firmId, [id]);
+  const tags = mapLinkRowsToTagsByInquiry(linkRows).get(id) || [];
+  return { inquiry: { ...inquiry, tags } };
 }
 
 /**
@@ -454,6 +515,16 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
     inquiry.consultationId = bookedConsultation.id;
   }
 
+  const resolvedTagIds = resolveTagIdsFromRules(service.intakeTagRules, answers);
+  if (resolvedTagIds.length) {
+    const firmTags = await firmInquiryTagsRepository.listByFirm(firm.id);
+    const allowed = new Set(firmTags.map((t) => t.id));
+    const tagIds = resolvedTagIds.filter((tid) => allowed.has(tid));
+    if (tagIds.length) {
+      await firmInquiryTagsRepository.replaceLinksForInquiry(firm.id, inquiry.id, tagIds);
+    }
+  }
+
   await auditRepository.writeAuditLog({
     firmId: firm.id,
     actorRole: 'PUBLIC',
@@ -466,6 +537,7 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
       identityType: identity.type,
       suggestedDocuments: requiredDocuments.length,
       booking: Boolean(bookedConsultation),
+      tagsApplied: resolvedTagIds.length,
     },
   });
 

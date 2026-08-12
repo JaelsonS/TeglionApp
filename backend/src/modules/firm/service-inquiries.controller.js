@@ -6,7 +6,8 @@ exports.list = async (req, res, next) => {
     const firmId = requireUserFirmId(req);
     const status = req.query.status ? String(req.query.status).toUpperCase() : undefined;
     const serviceId = req.query.serviceId ? String(req.query.serviceId) : undefined;
-    const result = await serviceInquiriesService.list({ firmId, status, serviceId });
+    const tagId = req.query.tagId ? String(req.query.tagId) : undefined;
+    const result = await serviceInquiriesService.list({ firmId, status, serviceId, tagId });
     return res.json(result);
   } catch (err) {
     return next(err);

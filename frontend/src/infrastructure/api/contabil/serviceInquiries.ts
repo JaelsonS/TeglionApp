@@ -1,5 +1,11 @@
 import type { AxiosInstance } from 'axios'
 
+export type ServiceInquiryTag = {
+  id: string
+  name: string
+  colorHex: string
+}
+
 export type ServiceInquiryListItem = {
   id: string
   serviceId: string
@@ -14,6 +20,7 @@ export type ServiceInquiryListItem = {
   accessTokenExpiresAt?: string | null
   accessTokenRevokedAt?: string | null
   createdAt: string
+  tags?: ServiceInquiryTag[]
   /** Consulta agendada (Fase 3a) — só devolvida por getById(), null se não houver booking. */
   consultation?: { id: string; scheduledAt: string; status: string } | null
 }
@@ -54,7 +61,7 @@ export type ServiceInquirySuggestedDocument = {
 
 export function createContabilServiceInquiriesApi(api: AxiosInstance) {
   return {
-    list: (params?: { status?: string; serviceId?: string }) =>
+    list: (params?: { status?: string; serviceId?: string; tagId?: string }) =>
       api
         .get('/contabil/service-inquiries', { params })
         .then((r) => r.data as { items: ServiceInquiryListItem[] }),

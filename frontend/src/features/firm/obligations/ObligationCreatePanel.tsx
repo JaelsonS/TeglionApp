@@ -149,8 +149,8 @@ export function ObligationCreatePanel({
   }
 
   return (
-    <section className="shrink-0 rounded-2xl border border-border/70 bg-muted/20 shadow-sm">
-      <div className="flex shrink-0 items-center justify-between px-4 py-3">
+    <section className="flex max-h-[min(70dvh,42rem)] min-h-0 shrink-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-muted/20 shadow-sm">
+      <div className="flex shrink-0 items-center justify-between border-b border-border/40 px-4 py-3">
         <h3 className="flex items-center gap-2 text-sm font-semibold">
           <Sparkles className="h-4 w-4 text-brand" />
           Nova obrigação fiscal
@@ -159,7 +159,10 @@ export function ObligationCreatePanel({
           <X className="h-4 w-4" />
         </Button>
       </div>
-      <form onSubmit={submit} className="cb-firm-panel-form-scroll grid gap-3 pb-4 md:grid-cols-2">
+      <form
+        onSubmit={submit}
+        className="cb-firm-panel-form-scroll grid min-h-0 flex-1 gap-3 overflow-y-auto overscroll-y-contain pb-4 md:grid-cols-2"
+      >
         <label className="space-y-1 text-sm md:col-span-2">
           <span className="font-medium">Modelo rápido</span>
           <select
