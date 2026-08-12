@@ -62,6 +62,62 @@ test('normalizeSiteConfig: rejeita cor hex inválida', () => {
   );
 });
 
+test('normalizeSiteConfig: redes sociais — handle e WhatsApp só com número', () => {
+  const config = firmPublicSiteService.normalizeSiteConfig({
+    socialLinks: {
+      instagram: 'meu_escritorio',
+      facebook: '@pagina',
+      linkedin: 'empresa-x',
+      whatsapp: '351 912 345 678',
+      website: 'www.exemplo.pt',
+    },
+  });
+  assert.equal(config.socialLinks.instagram, 'https://instagram.com/meu_escritorio');
+  assert.equal(config.socialLinks.facebook, 'https://facebook.com/pagina');
+  assert.equal(config.socialLinks.linkedin, 'https://linkedin.com/company/empresa-x');
+  assert.equal(config.socialLinks.whatsapp, 'https://wa.me/351912345678');
+  assert.equal(config.socialLinks.website, 'https://www.exemplo.pt');
+});
+
+test('normalizeSiteConfig: cores por secção e por botão', () => {
+  const config = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'hero',
+        content: {
+          tagline: 'Olá',
+          bio: '',
+          backgroundColor: '#112233',
+          titleColor: '#aabbcc',
+          taglineColor: '#ddeeff',
+          ctas: [
+            {
+              label: 'Contactar',
+              style: 'primary',
+              backgroundColor: '#ff5500',
+              textColor: '#ffffff',
+              target: { type: 'booking' },
+            },
+          ],
+        },
+      },
+      {
+        type: 'header',
+        content: { backgroundColor: '#010101', textColor: '#fefefe' },
+      },
+    ],
+  });
+  const hero = config.sections.find((s) => s.type === 'hero');
+  const header = config.sections.find((s) => s.type === 'header');
+  assert.equal(hero.content.backgroundColor, '#112233');
+  assert.equal(hero.content.titleColor, '#aabbcc');
+  assert.equal(hero.content.taglineColor, '#ddeeff');
+  assert.equal(hero.content.ctas[0].backgroundColor, '#ff5500');
+  assert.equal(hero.content.ctas[0].textColor, '#ffffff');
+  assert.equal(header.content.backgroundColor, '#010101');
+  assert.equal(header.content.textColor, '#fefefe');
+});
+
 test('normalizeSiteConfig: faq filtra entradas sem pergunta ou sem resposta', () => {
   const config = firmPublicSiteService.normalizeSiteConfig({
     sections: [

@@ -34,6 +34,7 @@ import {
 } from '@/features/firm/public-site/publicSiteLegalTemplates'
 import {
   AboutEditor,
+  ChromeSectionEditor,
   ContactEditor,
   FaqEditor,
   FeaturesEditor,
@@ -244,27 +245,27 @@ export function PublicSiteEditor({ bundle }: Props) {
   return (
     <div className="space-y-6">
       <div className="rounded-xl border border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-950">
-        <p className="font-semibold">Como actualizar a página pública</p>
+        <p className="font-semibold">Como configurar a página pública</p>
         <ol className="mt-2 list-decimal space-y-1 pl-4 text-caption leading-relaxed text-sky-900/90">
           <li>
-            Edite cores, textos e secções — a pré-visualização à direita mostra o rascunho na hora.
+            Em cada secção (Cabeçalho, Destaque, Sobre, etc.) escolha a <strong>cor</strong> ao lado do campo —
+            fundo, título, texto ou botão.
           </li>
           <li>
-            Clique em <strong>Guardar rascunho</strong> para não perder o trabalho.
+            No Destaque pode usar <strong>foto de capa</strong> ou só uma <strong>cor de fundo</strong>.
           </li>
           <li>
-            Clique em <strong>Publicar</strong> para os clientes verem as alterações em{' '}
-            {firmSlug ? (
-              <span className="font-medium">teglion.com/{firmSlug}</span>
-            ) : (
-              'o link público'
-            )}
-            .
+            Em Redes sociais, o link já vem pré-preenchido — basta o nome de utilizador; no WhatsApp basta o
+            número.
+          </li>
+          <li>
+            <strong>Guardar rascunho</strong> e depois <strong>Publicar</strong> para os clientes verem em{' '}
+            {firmSlug ? <span className="font-medium">teglion.com/{firmSlug}</span> : 'o link público'}.
           </li>
         </ol>
         <p className="mt-2 text-caption text-sky-900/80">
-          Sem publicar, o link público continua com a versão anterior. Use{' '}
-          <strong>Pré-visualizar</strong> para abrir o rascunho numa nova aba sem o tornar público.
+          Sem publicar, o link público continua com a versão anterior. Use <strong>Pré-visualizar</strong> para
+          abrir o rascunho numa nova aba.
         </p>
       </div>
 
@@ -591,8 +592,9 @@ function SectionEditorSwitch({
     case 'contact':
       return <ContactEditor content={section.content} onChange={onChange} />
     case 'header':
+      return <ChromeSectionEditor content={section.content} onChange={onChange} title="Cabeçalho" />
     case 'footer':
-      return <p className="text-caption text-muted-foreground">Sem opções — usa o logótipo e as redes sociais já configurados.</p>
+      return <ChromeSectionEditor content={section.content} onChange={onChange} title="Rodapé" />
     default:
       return null
   }
@@ -602,217 +604,97 @@ function isValidHex(value: string) {
   return HEX_RE.test(value.trim())
 }
 
-const THEME_DEFAULTS = {
-  primaryColor: '#12352a',
-  secondaryColor: '#c9a24b',
-  textColor: '#12352a',
-  backgroundColor: '#faf9f7',
-  surfaceColor: '#ffffff',
-  mutedTextColor: '#64748b',
-} as const
+/** Extrai o handle a partir de um URL conhecido (ex.: instagram.com/nome → nome). */
+function stripSocialPrefix(url: string | null | undefined, prefixes: string[]): string {
+  const raw = String(url || '').trim()
+  if (!raw) return ''
+  for (const prefix of prefixes) {
+    if (raw.toLowerCase().startsWith(prefix.toLowerCase())) {
+      return raw.slice(prefix.length).replace(/^\/+/, '').replace(/\/$/, '')
+    }
+  }
+  if (/^https?:\/\//i.test(raw)) return raw
+  return raw.replace(/^@/, '')
+}
 
-type ThemeColorKey =
-  | 'primaryColor'
-  | 'secondaryColor'
-  | 'textColor'
-  | 'backgroundColor'
-  | 'surfaceColor'
-  | 'mutedTextColor'
-
-function ColorField({
-  id,
-  label,
-  hint,
-  value,
-  fallback,
-  placeholder,
-  onChange,
-}: {
-  id: string
-  label: string
-  hint: string
-  value: string
-  fallback: string
-  placeholder?: string
-  onChange: (value: string) => void
-}) {
-  const invalid = value.trim() !== '' && !isValidHex(value)
-  return (
-    <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
-      <p className="text-[11px] leading-snug text-muted-foreground">{hint}</p>
-      <div className="flex items-center gap-2">
-        <input
-          type="color"
-          aria-label={label}
-          value={isValidHex(value) ? value : fallback}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
-          className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
-        />
-        <Input
-          id={id}
-          value={value}
-          onChange={(e: FormChangeEvent) => onChange(e.target.value)}
-          placeholder={placeholder || fallback}
-          className={invalid ? 'border-destructive' : undefined}
-        />
-      </div>
-    </div>
-  )
+function whatsappDisplayNumber(url: string | null | undefined): string {
+  const raw = String(url || '').trim()
+  if (!raw) return ''
+  const fromWa = raw.match(/wa\.me\/(\d+)/i)
+  if (fromWa) return fromWa[1]
+  return raw.replace(/\D/g, '')
 }
 
 function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (next: PublicSiteConfig) => void }) {
   const theme = draft.theme
+  const bg = theme.backgroundColor || ''
+  const surface = theme.surfaceColor || ''
+  const bgInvalid = bg.trim() !== '' && !isValidHex(bg)
+  const surfaceInvalid = surface.trim() !== '' && !isValidHex(surface)
 
-  const setColor = (key: ThemeColorKey, value: string) => {
-    onChange({ ...draft, theme: { ...draft.theme, [key]: value || null } })
-  }
-
-  const clearColors = () => {
-    onChange({
-      ...draft,
-      theme: {
-        ...draft.theme,
-        primaryColor: null,
-        secondaryColor: null,
-        textColor: null,
-        backgroundColor: null,
-        surfaceColor: null,
-        mutedTextColor: null,
-      },
-    })
+  const setSocial = (key: keyof PublicSiteConfig['socialLinks'], value: string | null) => {
+    onChange({ ...draft, socialLinks: { ...draft.socialLinks, [key]: value } })
   }
 
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-border/50 p-4">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <Label className="text-sm font-semibold">Identidade visual</Label>
-            <p className="mt-1 text-caption text-muted-foreground">
-              Estas cores actualizam a pré-visualização à direita na hora. Para os clientes verem no link público:
-              guarde o rascunho e depois publique.
-            </p>
-          </div>
-          <Button type="button" variant="ghost" size="sm" className="h-8 text-xs" onClick={clearColors}>
-            Repor padrão
-          </Button>
-        </div>
-
-        <div className="mt-4 space-y-4">
-          <div>
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Página</p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <ColorField
-                id="ps-bg"
-                label="Fundo da página"
-                hint="Cor de fundo geral (atrás de tudo)."
-                value={theme.backgroundColor || ''}
-                fallback={THEME_DEFAULTS.backgroundColor}
-                onChange={(v) => setColor('backgroundColor', v)}
-              />
-              <ColorField
-                id="ps-surface"
-                label="Fundo dos cartões"
-                hint="Cartões de serviços, FAQ e painéis."
-                value={theme.surfaceColor || ''}
-                fallback={THEME_DEFAULTS.surfaceColor}
-                onChange={(v) => setColor('surfaceColor', v)}
-              />
-            </div>
-          </div>
-
-          <div>
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Botões e acentos</p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <ColorField
-                id="ps-primary"
-                label="Cor principal"
-                hint="Botões primários e detalhes de destaque."
-                value={theme.primaryColor || ''}
-                fallback={THEME_DEFAULTS.primaryColor}
-                onChange={(v) => setColor('primaryColor', v)}
-              />
-              <ColorField
-                id="ps-secondary"
-                label="Cor secundária"
-                hint="Botões e CTAs secundários."
-                value={theme.secondaryColor || ''}
-                fallback={THEME_DEFAULTS.secondaryColor}
-                onChange={(v) => setColor('secondaryColor', v)}
-              />
-            </div>
-          </div>
-
-          <div>
-            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Textos</p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <ColorField
-                id="ps-text"
-                label="Títulos e destaques"
-                hint="Nome do escritório, tagline e preços."
-                value={theme.textColor || ''}
-                fallback={
-                  isValidHex(theme.primaryColor || '') ? theme.primaryColor! : THEME_DEFAULTS.textColor
+        <Label className="text-sm font-semibold">Fundo geral da página</Label>
+        <p className="mt-1 text-caption text-muted-foreground">
+          Cor de base por detrás de todas as secções. As cores de cada bloco (cabeçalho, destaque, botões, etc.)
+          escolhem-se dentro da própria secção, acima.
+        </p>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="ps-page-bg">Fundo da página</Label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                aria-label="Fundo da página"
+                value={isValidHex(bg) ? bg : '#faf9f7'}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  onChange({ ...draft, theme: { ...draft.theme, backgroundColor: e.target.value } })
                 }
-                placeholder="Igual à principal"
-                onChange={(v) => setColor('textColor', v)}
+                className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
               />
-              <ColorField
-                id="ps-muted"
-                label="Texto secundário"
-                hint="Descrições, legendas e texto auxiliar."
-                value={theme.mutedTextColor || ''}
-                fallback={THEME_DEFAULTS.mutedTextColor}
-                onChange={(v) => setColor('mutedTextColor', v)}
+              <Input
+                id="ps-page-bg"
+                value={bg}
+                onChange={(e: FormChangeEvent) =>
+                  onChange({
+                    ...draft,
+                    theme: { ...draft.theme, backgroundColor: e.target.value.trim() || null },
+                  })
+                }
+                placeholder="#faf9f7"
+                className={bgInvalid ? 'border-destructive' : undefined}
               />
             </div>
           </div>
-
-          <div className="rounded-lg border border-dashed border-border/60 bg-muted/20 p-3">
-            <p className="text-[11px] font-medium text-muted-foreground">Pré-visualização rápida</p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span
-                className="inline-flex h-8 items-center rounded-md px-3 text-xs font-semibold text-white"
-                style={{
-                  backgroundColor: isValidHex(theme.primaryColor || '')
-                    ? theme.primaryColor!
-                    : THEME_DEFAULTS.primaryColor,
-                }}
-              >
-                Botão
-              </span>
-              <span
-                className="inline-flex h-8 items-center rounded-md border px-3 text-xs font-medium"
-                style={{
-                  borderColor: isValidHex(theme.secondaryColor || '')
-                    ? theme.secondaryColor!
-                    : THEME_DEFAULTS.secondaryColor,
-                  color: isValidHex(theme.secondaryColor || '')
-                    ? theme.secondaryColor!
-                    : THEME_DEFAULTS.secondaryColor,
-                  backgroundColor: isValidHex(theme.surfaceColor || '')
-                    ? theme.surfaceColor!
-                    : THEME_DEFAULTS.surfaceColor,
-                }}
-              >
-                Secundário
-              </span>
-              <span
-                className="rounded-md px-3 py-1.5 text-xs"
-                style={{
-                  backgroundColor: isValidHex(theme.backgroundColor || '')
-                    ? theme.backgroundColor!
-                    : THEME_DEFAULTS.backgroundColor,
-                  color: isValidHex(theme.textColor || '')
-                    ? theme.textColor!
-                    : isValidHex(theme.primaryColor || '')
-                      ? theme.primaryColor!
-                      : THEME_DEFAULTS.textColor,
-                }}
-              >
-                Título no fundo
-              </span>
+          <div className="space-y-1.5">
+            <Label htmlFor="ps-surface">Fundo dos cartões (serviços / FAQ)</Label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                aria-label="Fundo dos cartões"
+                value={isValidHex(surface) ? surface : '#ffffff'}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  onChange({ ...draft, theme: { ...draft.theme, surfaceColor: e.target.value } })
+                }
+                className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
+              />
+              <Input
+                id="ps-surface"
+                value={surface}
+                onChange={(e: FormChangeEvent) =>
+                  onChange({
+                    ...draft,
+                    theme: { ...draft.theme, surfaceColor: e.target.value.trim() || null },
+                  })
+                }
+                placeholder="#ffffff"
+                className={surfaceInvalid ? 'border-destructive' : undefined}
+              />
             </div>
           </div>
         </div>
@@ -821,39 +703,80 @@ function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (
       <div className="rounded-xl border border-border/50 p-4">
         <Label className="text-sm font-semibold">Redes sociais</Label>
         <p className="mt-1 text-caption text-muted-foreground">
-          Links públicos mostrados no destaque e no rodapé da página.
+          O início do link já está preenchido — escreva só o seu nome de utilizador (ou o número no WhatsApp).
         </p>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <SocialLinkField
+        <div className="mt-4 space-y-4">
+          <SocialHandleField
             label="Instagram"
             icon={Instagram}
-            value={draft.socialLinks.instagram || ''}
-            onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, instagram: v || null } })}
+            prefix="https://instagram.com/"
+            value={stripSocialPrefix(draft.socialLinks.instagram, [
+              'https://instagram.com/',
+              'https://www.instagram.com/',
+              'http://instagram.com/',
+            ])}
+            onChange={(handle) =>
+              setSocial('instagram', handle ? `https://instagram.com/${handle.replace(/^@/, '')}` : null)
+            }
+            placeholder="nome_do_escritorio"
           />
-          <SocialLinkField
+          <SocialHandleField
             label="Facebook"
             icon={Facebook}
-            value={draft.socialLinks.facebook || ''}
-            onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, facebook: v || null } })}
+            prefix="https://facebook.com/"
+            value={stripSocialPrefix(draft.socialLinks.facebook, [
+              'https://facebook.com/',
+              'https://www.facebook.com/',
+              'http://facebook.com/',
+            ])}
+            onChange={(handle) =>
+              setSocial('facebook', handle ? `https://facebook.com/${handle.replace(/^@/, '')}` : null)
+            }
+            placeholder="pagina-do-escritorio"
           />
-          <SocialLinkField
+          <SocialHandleField
             label="LinkedIn"
             icon={Linkedin}
-            value={draft.socialLinks.linkedin || ''}
-            onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, linkedin: v || null } })}
+            prefix="https://linkedin.com/company/"
+            value={stripSocialPrefix(draft.socialLinks.linkedin, [
+              'https://linkedin.com/company/',
+              'https://www.linkedin.com/company/',
+              'https://linkedin.com/in/',
+              'https://www.linkedin.com/in/',
+            ])}
+            onChange={(handle) =>
+              setSocial('linkedin', handle ? `https://linkedin.com/company/${handle.replace(/^@/, '')}` : null)
+            }
+            placeholder="nome-da-empresa"
           />
-          <SocialLinkField
-            label="WhatsApp"
-            icon={MessageCircle}
-            value={draft.socialLinks.whatsapp || ''}
-            onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, whatsapp: v || null } })}
-            placeholder="https://wa.me/351…"
-          />
-          <SocialLinkField
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5 text-xs">
+              <MessageCircle className="h-3 w-3" /> WhatsApp
+            </Label>
+            <div className="flex items-center gap-0 overflow-hidden rounded-md border border-input">
+              <span className="shrink-0 bg-muted/50 px-2.5 py-2 text-xs text-muted-foreground">wa.me/</span>
+              <Input
+                value={whatsappDisplayNumber(draft.socialLinks.whatsapp)}
+                onChange={(e: FormChangeEvent) => {
+                  const digits = e.target.value.replace(/\D/g, '').slice(0, 15)
+                  setSocial('whatsapp', digits ? `https://wa.me/${digits}` : null)
+                }}
+                placeholder="351912345678"
+                className="border-0 focus-visible:ring-0"
+                inputMode="tel"
+              />
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Inclua o indicativo do país (ex.: 351 para Portugal) + número, sem espaços.
+            </p>
+          </div>
+          <SocialHandleField
             label="Outro site"
             icon={Globe}
-            value={draft.socialLinks.website || ''}
-            onChange={(v) => onChange({ ...draft, socialLinks: { ...draft.socialLinks, website: v || null } })}
+            prefix="https://"
+            value={stripSocialPrefix(draft.socialLinks.website, ['https://', 'http://'])}
+            onChange={(handle) => setSocial('website', handle ? `https://${handle}` : null)}
+            placeholder="www.meuescritorio.pt"
           />
         </div>
       </div>
@@ -861,15 +784,17 @@ function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (
   )
 }
 
-function SocialLinkField({
+function SocialHandleField({
   label,
   icon: Icon,
+  prefix,
   value,
   onChange,
   placeholder,
 }: {
   label: string
   icon: LucideIcon
+  prefix: string
   value: string
   onChange: (v: string) => void
   placeholder?: string
@@ -879,7 +804,17 @@ function SocialLinkField({
       <Label className="flex items-center gap-1.5 text-xs">
         <Icon className="h-3 w-3" /> {label}
       </Label>
-      <Input value={value} onChange={(e: FormChangeEvent) => onChange(e.target.value)} placeholder={placeholder || 'https://…'} />
+      <div className="flex items-center gap-0 overflow-hidden rounded-md border border-input">
+        <span className="max-w-[55%] shrink-0 truncate bg-muted/50 px-2.5 py-2 text-[11px] text-muted-foreground">
+          {prefix}
+        </span>
+        <Input
+          value={value}
+          onChange={(e: FormChangeEvent) => onChange(e.target.value.trim())}
+          placeholder={placeholder}
+          className="border-0 focus-visible:ring-0"
+        />
+      </div>
     </div>
   )
 }

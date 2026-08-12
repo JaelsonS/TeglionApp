@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, type ChangeEvent } from 'react'
 import { ImageIcon, Loader2, Plus, Trash2, X } from 'lucide-react'
 
 import { Button } from '@/shared/components/ui/button'
@@ -9,6 +9,7 @@ import { Checkbox } from '@/shared/components/ui/checkbox'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import type {
   PublicSiteAboutContent,
+  PublicSiteChromeContent,
   PublicSiteContactContent,
   PublicSiteCta,
   PublicSiteFaqContent,
@@ -27,12 +28,64 @@ const CTA_TARGET_OPTIONS: { value: PublicSiteCta['target']['type']; label: strin
   { value: 'whatsapp', label: 'WhatsApp' },
 ]
 
+const HEX_RE = /^#[0-9a-f]{6}$/i
+
 function generateStableId(prefix: string): string {
   const random =
     typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`
   return `${prefix}${random}`
+}
+
+function isValidHex(value: string) {
+  return HEX_RE.test(value.trim())
+}
+
+/** Seletor compacto ao lado de cada campo — vazio = cor padrão do tema. */
+export function InlineColorField({
+  id,
+  label,
+  value,
+  fallback = '#12352a',
+  onChange,
+}: {
+  id: string
+  label: string
+  value?: string | null
+  fallback?: string
+  onChange: (value: string | null) => void
+}) {
+  const raw = value || ''
+  const invalid = raw.trim() !== '' && !isValidHex(raw)
+  return (
+    <div className="space-y-1">
+      <Label htmlFor={id} className="text-caption text-muted-foreground">
+        {label}
+      </Label>
+      <div className="flex items-center gap-1.5">
+        <input
+          type="color"
+          aria-label={label}
+          value={isValidHex(raw) ? raw : fallback}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+          className="h-8 w-8 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
+        />
+        <Input
+          id={id}
+          value={raw}
+          onChange={(e: FormChangeEvent) => onChange(e.target.value.trim() || null)}
+          placeholder="Padrão"
+          className={`h-8 font-mono text-xs ${invalid ? 'border-destructive' : ''}`}
+        />
+        {raw ? (
+          <Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-xs" onClick={() => onChange(null)}>
+            Limpar
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  )
 }
 
 /** Reaproveitado pelo Hero e pelo Sobre — um slot de imagem simples (v1: uma
@@ -89,6 +142,39 @@ export function ImagePickerField({
   )
 }
 
+export function ChromeSectionEditor({
+  content,
+  onChange,
+  title,
+}: {
+  content: PublicSiteChromeContent
+  onChange: (next: PublicSiteChromeContent) => void
+  title: string
+}) {
+  return (
+    <div className="space-y-3">
+      <p className="text-caption text-muted-foreground">
+        Escolha as cores só desta zona ({title}). Deixe em branco para usar o padrão da página.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <InlineColorField
+          id={`${title}-bg`}
+          label="Cor de fundo"
+          value={content.backgroundColor}
+          fallback="#f0f4f1"
+          onChange={(v) => onChange({ ...content, backgroundColor: v })}
+        />
+        <InlineColorField
+          id={`${title}-text`}
+          label="Cor do texto"
+          value={content.textColor}
+          onChange={(v) => onChange({ ...content, textColor: v })}
+        />
+      </div>
+    </div>
+  )
+}
+
 export function HeroEditor({
   content,
   onChange,
@@ -109,7 +195,17 @@ export function HeroEditor({
   const addCta = () => {
     onChange({
       ...content,
-      ctas: [...content.ctas, { id: generateStableId('cta_'), label: '', style: 'primary', target: { type: 'external-url', url: '' } } as PublicSiteCta],
+      ctas: [
+        ...content.ctas,
+        {
+          id: generateStableId('cta_'),
+          label: '',
+          style: 'primary',
+          backgroundColor: null,
+          textColor: null,
+          target: { type: 'external-url', url: '' },
+        } as PublicSiteCta,
+      ],
     })
   }
   const patchCta = (id: string, patch: Partial<PublicSiteCta>) => {
@@ -121,9 +217,37 @@ export function HeroEditor({
 
   return (
     <div className="space-y-4">
-      <ImagePickerField label="Foto de capa" imageUrl={imageUrl} uploading={uploadingImage} onUpload={onUploadImage} onRemove={onRemoveImage} />
+      <div className="space-y-2 rounded-lg border border-border/40 bg-muted/10 p-3">
+        <p className="text-caption font-medium">Fundo do destaque</p>
+        <p className="text-[11px] text-muted-foreground">
+          Pode usar foto de capa, uma cor de fundo, ou as duas. Se não houver foto, a cor preenche a zona.
+        </p>
+        <ImagePickerField
+          label="Foto de capa (opcional)"
+          imageUrl={imageUrl}
+          uploading={uploadingImage}
+          onUpload={onUploadImage}
+          onRemove={onRemoveImage}
+        />
+        <InlineColorField
+          id="hero-bg"
+          label="Cor de fundo (em vez de / além da foto)"
+          value={content.backgroundColor}
+          fallback="#e8f0ec"
+          onChange={(v) => onChange({ ...content, backgroundColor: v })}
+        />
+      </div>
+
       <div className="space-y-2">
-        <Label>Frase de destaque</Label>
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <Label>Frase de destaque</Label>
+          <InlineColorField
+            id="hero-tagline-color"
+            label="Cor da frase"
+            value={content.taglineColor}
+            onChange={(v) => onChange({ ...content, taglineColor: v })}
+          />
+        </div>
         <Input
           value={content.tagline}
           onChange={(e: FormChangeEvent) => onChange({ ...content, tagline: e.target.value })}
@@ -131,8 +255,18 @@ export function HeroEditor({
           maxLength={160}
         />
       </div>
+
       <div className="space-y-2">
-        <Label>Sobre o escritório</Label>
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <Label>Sobre o escritório (no destaque)</Label>
+          <InlineColorField
+            id="hero-bio-color"
+            label="Cor do texto"
+            value={content.bioColor}
+            fallback="#64748b"
+            onChange={(v) => onChange({ ...content, bioColor: v })}
+          />
+        </div>
         <Textarea
           value={content.bio}
           onChange={(e: FormChangeEvent) => onChange({ ...content, bio: e.target.value })}
@@ -141,6 +275,14 @@ export function HeroEditor({
           placeholder="Um parágrafo curto sobre a sua forma de trabalhar."
         />
       </div>
+
+      <InlineColorField
+        id="hero-title-color"
+        label="Cor do nome do escritório"
+        value={content.titleColor}
+        onChange={(v) => onChange({ ...content, titleColor: v })}
+      />
+
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label>Botões de destaque (máx. 3)</Label>
@@ -150,63 +292,85 @@ export function HeroEditor({
             </Button>
           ) : null}
         </div>
-        {content.ctas.map((cta) => (
-          <div key={cta.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-border/50 p-3">
-            <Input
-              value={cta.label}
-              onChange={(e: FormChangeEvent) => patchCta(cta.id, { label: e.target.value })}
-              placeholder="Texto do botão"
-              className="flex-1 basis-40"
-              maxLength={80}
-            />
-            <select
-              className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-              value={cta.target.type}
-              onChange={(e) =>
-                patchCta(cta.id, {
-                  target:
-                    e.target.value === 'external-url'
-                      ? { type: 'external-url', url: '' }
-                      : e.target.value === 'service-detail'
-                        ? { type: 'service-detail', serviceId: services[0]?.slug }
-                        : { type: e.target.value as PublicSiteCta['target']['type'] },
-                })
-              }
-            >
-              {CTA_TARGET_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            {cta.target.type === 'external-url' ? (
+        {content.ctas.map((cta, index) => (
+          <div key={cta.id} className="space-y-2 rounded-lg border border-border/50 p-3">
+            <div className="flex flex-wrap items-center gap-2">
               <Input
-                value={cta.target.url || ''}
-                onChange={(e: FormChangeEvent) => patchCta(cta.id, { target: { type: 'external-url', url: e.target.value } })}
-                placeholder="https://…"
-                className="w-40"
+                value={cta.label}
+                onChange={(e: FormChangeEvent) => patchCta(cta.id, { label: e.target.value })}
+                placeholder={`Texto do botão ${index + 1}`}
+                className="flex-1 basis-40"
+                maxLength={80}
               />
-            ) : null}
-            {cta.target.type === 'service-detail' ? (
-              services.length > 0 ? (
-                <select
-                  className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-                  value={cta.target.serviceId || ''}
-                  onChange={(e) => patchCta(cta.id, { target: { type: 'service-detail', serviceId: e.target.value } })}
-                >
-                  {services.map((s) => (
-                    <option key={s.slug} value={s.slug}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <span className="text-caption text-muted-foreground">Sem serviços públicos ainda</span>
-              )
-            ) : null}
-            <Button type="button" variant="ghost" size="icon" onClick={() => removeCta(cta.id)} aria-label="Remover botão">
-              <Trash2 className="h-4 w-4" />
-            </Button>
+              <select
+                className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                value={cta.target.type}
+                onChange={(e) =>
+                  patchCta(cta.id, {
+                    target:
+                      e.target.value === 'external-url'
+                        ? { type: 'external-url', url: '' }
+                        : e.target.value === 'service-detail'
+                          ? { type: 'service-detail', serviceId: services[0]?.slug }
+                          : { type: e.target.value as PublicSiteCta['target']['type'] },
+                  })
+                }
+              >
+                {CTA_TARGET_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              {cta.target.type === 'external-url' ? (
+                <Input
+                  value={cta.target.url || ''}
+                  onChange={(e: FormChangeEvent) =>
+                    patchCta(cta.id, { target: { type: 'external-url', url: e.target.value } })
+                  }
+                  placeholder="https://…"
+                  className="w-40"
+                />
+              ) : null}
+              {cta.target.type === 'service-detail' ? (
+                services.length > 0 ? (
+                  <select
+                    className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                    value={cta.target.serviceId || ''}
+                    onChange={(e) =>
+                      patchCta(cta.id, { target: { type: 'service-detail', serviceId: e.target.value } })
+                    }
+                  >
+                    {services.map((s) => (
+                      <option key={s.slug} value={s.slug}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className="text-caption text-muted-foreground">Sem serviços públicos ainda</span>
+                )
+              ) : null}
+              <Button type="button" variant="ghost" size="icon" onClick={() => removeCta(cta.id)} aria-label="Remover botão">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <InlineColorField
+                id={`cta-bg-${cta.id}`}
+                label="Cor do botão"
+                value={cta.backgroundColor}
+                fallback={cta.style === 'secondary' ? '#c9a24b' : '#12352a'}
+                onChange={(v) => patchCta(cta.id, { backgroundColor: v })}
+              />
+              <InlineColorField
+                id={`cta-text-${cta.id}`}
+                label="Cor do texto do botão"
+                value={cta.textColor}
+                fallback="#ffffff"
+                onChange={(v) => patchCta(cta.id, { textColor: v })}
+              />
+            </div>
           </div>
         ))}
       </div>
@@ -231,9 +395,33 @@ export function AboutEditor({
 }) {
   return (
     <div className="space-y-4">
-      <ImagePickerField label="Foto" imageUrl={imageUrl} uploading={uploadingImage} onUpload={onUploadImage} onRemove={onRemoveImage} />
+      <div className="space-y-2 rounded-lg border border-border/40 bg-muted/10 p-3">
+        <p className="text-caption font-medium">Fundo da secção</p>
+        <ImagePickerField
+          label="Foto (opcional)"
+          imageUrl={imageUrl}
+          uploading={uploadingImage}
+          onUpload={onUploadImage}
+          onRemove={onRemoveImage}
+        />
+        <InlineColorField
+          id="about-bg"
+          label="Cor de fundo (em vez de / além da foto)"
+          value={content.backgroundColor}
+          fallback="#ffffff"
+          onChange={(v) => onChange({ ...content, backgroundColor: v })}
+        />
+      </div>
       <div className="space-y-2">
-        <Label>Título</Label>
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <Label>Título</Label>
+          <InlineColorField
+            id="about-heading-color"
+            label="Cor do título"
+            value={content.headingColor}
+            onChange={(v) => onChange({ ...content, headingColor: v })}
+          />
+        </div>
         <Input
           value={content.heading}
           onChange={(e: FormChangeEvent) => onChange({ ...content, heading: e.target.value })}
@@ -242,7 +430,16 @@ export function AboutEditor({
         />
       </div>
       <div className="space-y-2">
-        <Label>Texto</Label>
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <Label>Texto</Label>
+          <InlineColorField
+            id="about-body-color"
+            label="Cor do texto"
+            value={content.bodyColor}
+            fallback="#64748b"
+            onChange={(v) => onChange({ ...content, bodyColor: v })}
+          />
+        </div>
         <Textarea
           value={content.body}
           onChange={(e: FormChangeEvent) => onChange({ ...content, body: e.target.value })}
@@ -264,29 +461,75 @@ export function ServicesHeadingEditor({
   placeholder: string
 }) {
   return (
-    <div className="space-y-2">
-      <Label>Título da secção</Label>
-      <Input
-        value={content.heading}
-        onChange={(e: FormChangeEvent) => onChange({ ...content, heading: e.target.value })}
-        placeholder={placeholder}
-        maxLength={160}
-      />
-      <p className="text-caption text-muted-foreground">
-        Os serviços aparecem automaticamente a partir do catálogo em Serviços — active "Aparece na página pública" em cada um.
-      </p>
+    <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <InlineColorField
+          id="services-bg"
+          label="Cor de fundo da secção"
+          value={content.backgroundColor}
+          fallback="#faf9f7"
+          onChange={(v) => onChange({ ...content, backgroundColor: v })}
+        />
+        <InlineColorField
+          id="services-heading-color"
+          label="Cor do título"
+          value={content.headingColor}
+          onChange={(v) => onChange({ ...content, headingColor: v })}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>Título da secção</Label>
+        <Input
+          value={content.heading}
+          onChange={(e: FormChangeEvent) => onChange({ ...content, heading: e.target.value })}
+          placeholder={placeholder}
+          maxLength={160}
+        />
+        <p className="text-caption text-muted-foreground">
+          Os serviços aparecem automaticamente a partir do catálogo em Serviços — active «Aparece na página pública» em
+          cada um.
+        </p>
+      </div>
     </div>
   )
 }
 
-export function FeaturesEditor({ content, onChange }: { content: PublicSiteFeaturesContent; onChange: (next: PublicSiteFeaturesContent) => void }) {
-  const addItem = () => onChange({ items: [...content.items, { id: generateStableId('feat_'), title: '', description: '' }] })
+export function FeaturesEditor({
+  content,
+  onChange,
+}: {
+  content: PublicSiteFeaturesContent
+  onChange: (next: PublicSiteFeaturesContent) => void
+}) {
+  const addItem = () => onChange({ ...content, items: [...content.items, { id: generateStableId('feat_'), title: '', description: '' }] })
   const patchItem = (id: string, patch: Partial<PublicSiteFeaturesContent['items'][number]>) =>
-    onChange({ items: content.items.map((it) => (it.id === id ? { ...it, ...patch } : it)) })
-  const removeItem = (id: string) => onChange({ items: content.items.filter((it) => it.id !== id) })
+    onChange({ ...content, items: content.items.map((it) => (it.id === id ? { ...it, ...patch } : it)) })
+  const removeItem = (id: string) => onChange({ ...content, items: content.items.filter((it) => it.id !== id) })
 
   return (
     <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <InlineColorField
+          id="feat-bg"
+          label="Fundo"
+          value={content.backgroundColor}
+          fallback="#ffffff"
+          onChange={(v) => onChange({ ...content, backgroundColor: v })}
+        />
+        <InlineColorField
+          id="feat-title"
+          label="Cor dos títulos"
+          value={content.titleColor}
+          onChange={(v) => onChange({ ...content, titleColor: v })}
+        />
+        <InlineColorField
+          id="feat-text"
+          label="Cor dos textos"
+          value={content.textColor}
+          fallback="#64748b"
+          onChange={(v) => onChange({ ...content, textColor: v })}
+        />
+      </div>
       <div className="flex items-center justify-between">
         <Label>Diferenciais</Label>
         <Button type="button" variant="outline" size="sm" onClick={addItem}>
@@ -308,14 +551,42 @@ export function FeaturesEditor({ content, onChange }: { content: PublicSiteFeatu
   )
 }
 
-export function ProcessEditor({ content, onChange }: { content: PublicSiteProcessContent; onChange: (next: PublicSiteProcessContent) => void }) {
-  const addStep = () => onChange({ steps: [...content.steps, { id: generateStableId('step_'), title: '', description: '' }] })
+export function ProcessEditor({
+  content,
+  onChange,
+}: {
+  content: PublicSiteProcessContent
+  onChange: (next: PublicSiteProcessContent) => void
+}) {
+  const addStep = () => onChange({ ...content, steps: [...content.steps, { id: generateStableId('step_'), title: '', description: '' }] })
   const patchStep = (id: string, patch: Partial<PublicSiteProcessContent['steps'][number]>) =>
-    onChange({ steps: content.steps.map((s) => (s.id === id ? { ...s, ...patch } : s)) })
-  const removeStep = (id: string) => onChange({ steps: content.steps.filter((s) => s.id !== id) })
+    onChange({ ...content, steps: content.steps.map((s) => (s.id === id ? { ...s, ...patch } : s)) })
+  const removeStep = (id: string) => onChange({ ...content, steps: content.steps.filter((s) => s.id !== id) })
 
   return (
     <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <InlineColorField
+          id="process-bg"
+          label="Fundo"
+          value={content.backgroundColor}
+          fallback="#ffffff"
+          onChange={(v) => onChange({ ...content, backgroundColor: v })}
+        />
+        <InlineColorField
+          id="process-title"
+          label="Cor dos títulos"
+          value={content.titleColor}
+          onChange={(v) => onChange({ ...content, titleColor: v })}
+        />
+        <InlineColorField
+          id="process-text"
+          label="Cor dos textos"
+          value={content.textColor}
+          fallback="#64748b"
+          onChange={(v) => onChange({ ...content, textColor: v })}
+        />
+      </div>
       <div className="flex items-center justify-between">
         <Label>Como funciona (passos)</Label>
         <Button type="button" variant="outline" size="sm" onClick={addStep}>
@@ -339,13 +610,35 @@ export function ProcessEditor({ content, onChange }: { content: PublicSiteProces
 }
 
 export function FaqEditor({ content, onChange }: { content: PublicSiteFaqContent; onChange: (next: PublicSiteFaqContent) => void }) {
-  const addItem = () => onChange({ items: [...content.items, { id: generateStableId('faq_'), question: '', answer: '' }] })
+  const addItem = () => onChange({ ...content, items: [...content.items, { id: generateStableId('faq_'), question: '', answer: '' }] })
   const patchItem = (id: string, patch: Partial<PublicSiteFaqContent['items'][number]>) =>
-    onChange({ items: content.items.map((it) => (it.id === id ? { ...it, ...patch } : it)) })
-  const removeItem = (id: string) => onChange({ items: content.items.filter((it) => it.id !== id) })
+    onChange({ ...content, items: content.items.map((it) => (it.id === id ? { ...it, ...patch } : it)) })
+  const removeItem = (id: string) => onChange({ ...content, items: content.items.filter((it) => it.id !== id) })
 
   return (
     <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <InlineColorField
+          id="faq-bg"
+          label="Fundo"
+          value={content.backgroundColor}
+          fallback="#ffffff"
+          onChange={(v) => onChange({ ...content, backgroundColor: v })}
+        />
+        <InlineColorField
+          id="faq-title"
+          label="Cor das perguntas"
+          value={content.titleColor}
+          onChange={(v) => onChange({ ...content, titleColor: v })}
+        />
+        <InlineColorField
+          id="faq-text"
+          label="Cor das respostas"
+          value={content.textColor}
+          fallback="#64748b"
+          onChange={(v) => onChange({ ...content, textColor: v })}
+        />
+      </div>
       <div className="flex items-center justify-between">
         <Label>Perguntas frequentes</Label>
         <Button type="button" variant="outline" size="sm" onClick={addItem}>
@@ -369,7 +662,23 @@ export function FaqEditor({ content, onChange }: { content: PublicSiteFaqContent
 
 export function ContactEditor({ content, onChange }: { content: PublicSiteContactContent; onChange: (next: PublicSiteContactContent) => void }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <InlineColorField
+          id="contact-bg"
+          label="Cor de fundo"
+          value={content.backgroundColor}
+          fallback="#faf9f7"
+          onChange={(v) => onChange({ ...content, backgroundColor: v })}
+        />
+        <InlineColorField
+          id="contact-text"
+          label="Cor do texto"
+          value={content.textColor}
+          fallback="#64748b"
+          onChange={(v) => onChange({ ...content, textColor: v })}
+        />
+      </div>
       <label className="flex items-center gap-2 text-sm">
         <Checkbox
           checked={content.showEmail}

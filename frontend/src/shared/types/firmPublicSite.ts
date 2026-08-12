@@ -22,6 +22,10 @@ export type PublicSiteCta = {
   id: string
   label: string
   style: 'primary' | 'secondary'
+  /** Cor de fundo do botão (hex). Se vazia, usa o estilo primary/secondary. */
+  backgroundColor?: string | null
+  /** Cor do texto do botão (hex). */
+  textColor?: string | null
   target: {
     type: PublicSiteCtaTargetType
     serviceId?: string
@@ -60,31 +64,72 @@ export type PublicSiteHeroContent = {
   bio: string
   imageIds: string[]
   ctas: PublicSiteCta[]
+  /** Fundo da zona hero (quando não há foto, ou por baixo/junto da foto). */
+  backgroundColor?: string | null
+  /** Cor do nome do escritório no hero. */
+  titleColor?: string | null
+  /** Cor da frase de destaque. */
+  taglineColor?: string | null
+  /** Cor do texto «Sobre o escritório» no hero. */
+  bioColor?: string | null
 }
 
 export type PublicSiteAboutContent = {
   heading: string
   body: string
   imageIds: string[]
+  backgroundColor?: string | null
+  headingColor?: string | null
+  bodyColor?: string | null
 }
 
 export type PublicSiteServicesContent = {
   heading: string
   mode: 'auto'
+  backgroundColor?: string | null
+  headingColor?: string | null
 }
 
-export type PublicSiteFeaturesContent = { items: PublicSiteFeatureItem[] }
-export type PublicSiteProcessContent = { steps: PublicSiteProcessStep[] }
-export type PublicSiteFaqContent = { items: PublicSiteFaqItem[] }
-export type PublicSiteContactContent = { showEmail: boolean; showPhone: boolean; showAddress: boolean }
-export type PublicSiteEmptyContent = Record<string, never>
+export type PublicSiteFeaturesContent = {
+  items: PublicSiteFeatureItem[]
+  backgroundColor?: string | null
+  titleColor?: string | null
+  textColor?: string | null
+}
+export type PublicSiteProcessContent = {
+  steps: PublicSiteProcessStep[]
+  backgroundColor?: string | null
+  titleColor?: string | null
+  textColor?: string | null
+}
+export type PublicSiteFaqContent = {
+  items: PublicSiteFaqItem[]
+  backgroundColor?: string | null
+  titleColor?: string | null
+  textColor?: string | null
+}
+export type PublicSiteContactContent = {
+  showEmail: boolean
+  showPhone: boolean
+  showAddress: boolean
+  backgroundColor?: string | null
+  textColor?: string | null
+}
+
+/** Cabeçalho / rodapé — só cores (logótipo e redes vêm de outros sítios). */
+export type PublicSiteChromeContent = {
+  backgroundColor?: string | null
+  textColor?: string | null
+}
+
+export type PublicSiteEmptyContent = PublicSiteChromeContent
 
 type PublicSiteSectionBase = { key: string; enabled: boolean; order: number }
 
 /** União discriminada por `type` — deixa o TypeScript estreitar `content`
  * automaticamente num `switch(section.type)`, sem casts. */
 export type PublicSiteSection =
-  | (PublicSiteSectionBase & { type: 'header'; content: PublicSiteEmptyContent })
+  | (PublicSiteSectionBase & { type: 'header'; content: PublicSiteChromeContent })
   | (PublicSiteSectionBase & { type: 'hero'; content: PublicSiteHeroContent })
   | (PublicSiteSectionBase & { type: 'about'; content: PublicSiteAboutContent })
   | (PublicSiteSectionBase & { type: 'services'; content: PublicSiteServicesContent })
@@ -93,7 +138,7 @@ export type PublicSiteSection =
   | (PublicSiteSectionBase & { type: 'process'; content: PublicSiteProcessContent })
   | (PublicSiteSectionBase & { type: 'faq'; content: PublicSiteFaqContent })
   | (PublicSiteSectionBase & { type: 'contact'; content: PublicSiteContactContent })
-  | (PublicSiteSectionBase & { type: 'footer'; content: PublicSiteEmptyContent })
+  | (PublicSiteSectionBase & { type: 'footer'; content: PublicSiteChromeContent })
 
 export type PublicSiteSocialLinks = {
   instagram: string | null
@@ -107,17 +152,17 @@ export type PublicSiteConfig = {
   schemaVersion: number
   seo: { title: string | null; description: string | null; ogImage: PublicSiteImageRef | null }
   theme: {
-    /** Botões e acentos principais. */
+    /** @deprecated Preferir cores por secção/botão. Mantido para compatibilidade e branding do portal. */
     primaryColor: string | null
-    /** CTAs secundários. */
+    /** @deprecated Preferir cores por botão secundário. */
     secondaryColor: string | null
-    /** Títulos, taglines e preços. Se vazia, usa a principal. */
+    /** @deprecated Preferir cores por título/frase. */
     textColor: string | null
     /** Fundo geral da página. */
     backgroundColor: string | null
     /** Fundo de cartões e painéis. */
     surfaceColor: string | null
-    /** Descrições e texto auxiliar. */
+    /** Descrições e texto auxiliar (fallback). */
     mutedTextColor: string | null
     logoStorageKey: string | null
   }

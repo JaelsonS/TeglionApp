@@ -32,7 +32,7 @@ export function DefaultTemplate({ config, ctx }: Props) {
       {sections.map((section) => {
         switch (section.type) {
           case 'header':
-            return <HeaderSection key={section.key} ctx={ctx} />
+            return <HeaderSection key={section.key} ctx={ctx} content={section.content} />
           case 'hero':
             return (
               <HeroSection key={section.key} content={section.content} ctx={ctx} socialLinks={config.socialLinks} images={config.images} />
@@ -52,7 +52,7 @@ export function DefaultTemplate({ config, ctx }: Props) {
           case 'contact':
             return <ContactSection key={section.key} content={section.content} ctx={ctx} />
           case 'footer':
-            return <FooterSection key={section.key} ctx={ctx} socialLinks={config.socialLinks} />
+            return <FooterSection key={section.key} ctx={ctx} socialLinks={config.socialLinks} content={section.content} />
           default:
             return null
         }

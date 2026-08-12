@@ -52,6 +52,13 @@ function normalizeImageRef(raw) {
   };
 }
 
+function normalizeOptionalHex(value) {
+  if (value == null) return null;
+  const trimmed = String(value).trim();
+  if (!trimmed) return null;
+  return normalizeHexOrNull(trimmed);
+}
+
 function normalizeCta(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const type = String(raw?.target?.type || raw?.type || '');
@@ -68,6 +75,8 @@ function normalizeCta(raw) {
     id: String(raw.id || generateStableId('cta_')).slice(0, 80),
     label,
     style: raw.style === 'secondary' ? 'secondary' : 'primary',
+    backgroundColor: normalizeOptionalHex(raw.backgroundColor),
+    textColor: normalizeOptionalHex(raw.textColor),
     target,
   };
 }
@@ -81,18 +90,27 @@ function normalizeSectionContent(type, raw) {
         bio: content.bio ? String(content.bio).trim().slice(0, 2000) : '',
         imageIds: Array.isArray(content.imageIds) ? content.imageIds.slice(0, 5).map((id) => String(id).slice(0, 80)) : [],
         ctas: Array.isArray(content.ctas) ? content.ctas.slice(0, 3).map(normalizeCta).filter(Boolean) : [],
+        backgroundColor: normalizeOptionalHex(content.backgroundColor),
+        titleColor: normalizeOptionalHex(content.titleColor),
+        taglineColor: normalizeOptionalHex(content.taglineColor),
+        bioColor: normalizeOptionalHex(content.bioColor),
       };
     case 'about':
       return {
         heading: content.heading ? String(content.heading).trim().slice(0, 160) : '',
         body: content.body ? String(content.body).trim().slice(0, 4000) : '',
         imageIds: Array.isArray(content.imageIds) ? content.imageIds.slice(0, 5).map((id) => String(id).slice(0, 80)) : [],
+        backgroundColor: normalizeOptionalHex(content.backgroundColor),
+        headingColor: normalizeOptionalHex(content.headingColor),
+        bodyColor: normalizeOptionalHex(content.bodyColor),
       };
     case 'services':
     case 'bookingServices':
       return {
         heading: content.heading ? String(content.heading).trim().slice(0, 160) : '',
         mode: 'auto',
+        backgroundColor: normalizeOptionalHex(content.backgroundColor),
+        headingColor: normalizeOptionalHex(content.headingColor),
       };
     case 'features':
       return {
@@ -106,6 +124,9 @@ function normalizeSectionContent(type, raw) {
               }))
               .filter((it) => it.title)
           : [],
+        backgroundColor: normalizeOptionalHex(content.backgroundColor),
+        titleColor: normalizeOptionalHex(content.titleColor),
+        textColor: normalizeOptionalHex(content.textColor),
       };
     case 'process':
       return {
@@ -119,6 +140,9 @@ function normalizeSectionContent(type, raw) {
               }))
               .filter((s) => s.title)
           : [],
+        backgroundColor: normalizeOptionalHex(content.backgroundColor),
+        titleColor: normalizeOptionalHex(content.titleColor),
+        textColor: normalizeOptionalHex(content.textColor),
       };
     case 'faq':
       return {
@@ -132,15 +156,24 @@ function normalizeSectionContent(type, raw) {
               }))
               .filter((f) => f.question && f.answer)
           : [],
+        backgroundColor: normalizeOptionalHex(content.backgroundColor),
+        titleColor: normalizeOptionalHex(content.titleColor),
+        textColor: normalizeOptionalHex(content.textColor),
       };
     case 'contact':
       return {
         showEmail: content.showEmail !== false,
         showPhone: content.showPhone !== false,
         showAddress: content.showAddress !== false,
+        backgroundColor: normalizeOptionalHex(content.backgroundColor),
+        textColor: normalizeOptionalHex(content.textColor),
       };
     case 'header':
     case 'footer':
+      return {
+        backgroundColor: normalizeOptionalHex(content.backgroundColor),
+        textColor: normalizeOptionalHex(content.textColor),
+      };
     default:
       return {};
   }
@@ -169,7 +202,42 @@ function normalizeSocialLinks(raw) {
   const out = {};
   for (const key of SOCIAL_LINK_KEYS) {
     const value = input[key];
-    out[key] = value == null ? null : String(value).trim().slice(0, 300) || null;
+    if (value == null) {
+      out[key] = null;
+      continue;
+    }
+    let trimmed = String(value).trim().slice(0, 300);
+    if (!trimmed) {
+      out[key] = null;
+      continue;
+    }
+    // WhatsApp: aceita só o número (ex. 351912345678) e normaliza para wa.me.
+    if (key === 'whatsapp') {
+      const digits = trimmed.replace(/\D/g, '');
+      if (/^https?:\/\/wa\.me\//i.test(trimmed)) {
+        out[key] = trimmed;
+      } else if (digits.length >= 8 && digits.length <= 15) {
+        out[key] = `https://wa.me/${digits}`;
+      } else if (/^https:\/\//i.test(trimmed)) {
+        out[key] = trimmed;
+      } else {
+        out[key] = null;
+      }
+      continue;
+    }
+    // Redes: se veio só o handle, prefixa o URL base.
+    if (!/^https?:\/\//i.test(trimmed)) {
+      const handle = trimmed.replace(/^@/, '').replace(/^\/+/, '');
+      if (!handle) {
+        out[key] = null;
+        continue;
+      }
+      if (key === 'instagram') trimmed = `https://instagram.com/${handle}`;
+      else if (key === 'facebook') trimmed = `https://facebook.com/${handle}`;
+      else if (key === 'linkedin') trimmed = `https://linkedin.com/company/${handle}`;
+      else if (key === 'website') trimmed = `https://${handle}`;
+    }
+    out[key] = trimmed.slice(0, 300) || null;
   }
   return out;
 }
@@ -183,7 +251,7 @@ function normalizeSocialLinks(raw) {
  */
 function defaultSections() {
   return [
-    { key: generateStableId('sec_'), type: 'header', enabled: true, order: 0, content: {} },
+    { key: generateStableId('sec_'), type: 'header', enabled: true, order: 0, content: { backgroundColor: null, textColor: null } },
     { key: generateStableId('sec_'), type: 'hero', enabled: true, order: 1, content: { tagline: '', bio: '', imageIds: [], ctas: [] } },
     { key: generateStableId('sec_'), type: 'about', enabled: false, order: 2, content: { heading: '', body: '', imageIds: [] } },
     { key: generateStableId('sec_'), type: 'services', enabled: true, order: 3, content: { heading: 'Consultorias com agendamento', mode: 'auto' } },
@@ -192,7 +260,7 @@ function defaultSections() {
     { key: generateStableId('sec_'), type: 'process', enabled: false, order: 6, content: { steps: [] } },
     { key: generateStableId('sec_'), type: 'faq', enabled: true, order: 7, content: { items: [] } },
     { key: generateStableId('sec_'), type: 'contact', enabled: true, order: 8, content: { showEmail: true, showPhone: true, showAddress: true } },
-    { key: generateStableId('sec_'), type: 'footer', enabled: true, order: 9, content: {} },
+    { key: generateStableId('sec_'), type: 'footer', enabled: true, order: 9, content: { backgroundColor: null, textColor: null } },
   ];
 }
 
