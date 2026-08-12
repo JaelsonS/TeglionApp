@@ -8,6 +8,7 @@ import { Button } from '@/shared/components/ui/button'
 import { contabilGoogleCalendarApi } from '@/infrastructure/api'
 import { getGoogleCalendarConnectUrl } from '@/infrastructure/http/apiClient'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { openExternalUrl } from '@/shared/utils/openExternalUrl'
 import type { GoogleCalendarListItem } from '@/infrastructure/api/contabil/googleCalendar'
 
 const STATUS_QUERY_KEY = ['google-calendar-status']
@@ -147,7 +148,10 @@ export function GoogleCalendarIntegrationPanel() {
           size="sm"
           className="rounded-full"
           onClick={() => {
-            window.location.href = getGoogleCalendarConnectUrl()
+            openExternalUrl(getGoogleCalendarConnectUrl())
+            toast.message('Google aberto noutra aba', {
+              description: 'Autorize o calendário na nova aba. O Teglion mantém-se aberto.',
+            })
           }}
         >
           Reconectar Google Calendar
@@ -243,7 +247,10 @@ export function GoogleCalendarIntegrationPanel() {
         size="sm"
         className="rounded-full"
         onClick={() => {
-          window.location.href = getGoogleCalendarConnectUrl()
+          openExternalUrl(getGoogleCalendarConnectUrl())
+          toast.message('Google aberto noutra aba', {
+            description: 'Autorize o calendário na nova aba. O Teglion mantém-se aberto.',
+          })
         }}
       >
         Ligar Google Calendar

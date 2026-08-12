@@ -12,6 +12,7 @@ import { Button } from '@/shared/components/ui/button'
 import { useApiToast } from '@/shared/hooks/useApiToast'
 import { cn } from '@/shared/lib/utils'
 import { PRICING_FALLBACK, formatEurCents } from '@/shared/config/pricingConstants'
+import { openExternalUrl } from '@/shared/utils/openExternalUrl'
 
 type CheckoutInterval = 'month' | 'year'
 
@@ -48,8 +49,10 @@ export function FirmBillingPage() {
     setLoadingCheckout(interval)
     try {
       const { url } = await contabilBillingApi.createCheckout(interval)
-      if (url) window.location.href = url
-      else toast.error('Não foi possível abrir o checkout.')
+      if (url) {
+        openExternalUrl(url)
+        toast.success('Checkout aberto noutra aba')
+      } else toast.error('Não foi possível abrir o checkout.')
     } catch (e: unknown) {
       toast.error(e, 'Erro ao iniciar pagamento')
     } finally {
@@ -61,7 +64,10 @@ export function FirmBillingPage() {
     setLoadingPortal(true)
     try {
       const { url } = await contabilBillingApi.createPortal()
-      if (url) window.location.href = url
+      if (url) {
+        openExternalUrl(url)
+        toast.success('Portal Stripe aberto noutra aba')
+      }
     } catch (e: unknown) {
       toast.error(e, 'Erro ao abrir portal de pagamento')
     } finally {

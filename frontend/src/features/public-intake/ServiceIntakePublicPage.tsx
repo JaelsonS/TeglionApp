@@ -15,6 +15,7 @@ import {
 } from '@/shared/components/ui/dialog'
 import { contabilPublicApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { openExternalUrl } from '@/shared/utils/openExternalUrl'
 import { applyFirmBranding } from '@/shared/utils/firmBranding'
 import type { IntakeQuestion } from '@/shared/types/contabil'
 import type { PublicIntakeSubmitResult } from '@/infrastructure/api/contabil/public'
@@ -206,7 +207,13 @@ export function ServiceIntakePublicPage() {
         leadAccessToken: leadAccessToken || undefined,
       })
       if (res.checkoutUrl) {
-        window.location.assign(res.checkoutUrl)
+        const opened = openExternalUrl(res.checkoutUrl)
+        if (opened) {
+          toast.message('Pagamento noutra aba', {
+            description: 'Conclua o pagamento na nova aba. Esta página mantém-se aberta.',
+          })
+        }
+        setResult(res)
         return
       }
       setResult(res)

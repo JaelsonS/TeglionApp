@@ -23,6 +23,7 @@ import {
   humanizeConnectDisabledReason,
 } from '@/features/firm/settings/connectStatusCopy'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { openExternalUrl } from '@/shared/utils/openExternalUrl'
 import { cn } from '@/shared/lib/utils'
 
 function statusLabel(status: string | undefined, ready: boolean) {
@@ -93,7 +94,13 @@ export function FirmConnectPaymentsSection() {
         setSubmitting(false)
         return
       }
-      window.location.assign(res.url)
+      openExternalUrl(res.url)
+      toast.message('Stripe aberta noutra aba', {
+        description: 'Conclua a configuração na nova aba. Esta página do Teglion mantém-se aberta.',
+      })
+      setTermsOpen(false)
+      setSubmitting(false)
+      void qc.invalidateQueries({ queryKey: CONNECT_STATUS_QUERY_KEY })
     } catch (err) {
       toast.error('Não foi possível abrir a Stripe', {
         description: getErrorMessage(err),
@@ -107,7 +114,12 @@ export function FirmConnectPaymentsSection() {
     try {
       const res = await contabilConnectApi.refreshOnboarding()
       if (!res?.url) throw new Error('URL em falta')
-      window.location.assign(res.url)
+      openExternalUrl(res.url)
+      toast.message('Stripe aberta noutra aba', {
+        description: 'Conclua os passos na nova aba e volte aqui quando terminar.',
+      })
+      setSubmitting(false)
+      void qc.invalidateQueries({ queryKey: CONNECT_STATUS_QUERY_KEY })
     } catch (err) {
       const code = (err as { response?: { data?: { code?: string } } })?.response?.data?.code
       if (code === 'CONNECT_TERMS_REQUIRED' || code === 'CONNECT_NOT_STARTED') {

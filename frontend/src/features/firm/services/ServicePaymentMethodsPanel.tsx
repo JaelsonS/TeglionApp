@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { CheckCircle2, CreditCard, ExternalLink, Loader2, Smartphone, AlertTriangle } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import {
@@ -83,6 +83,7 @@ export function ServicePaymentMethodsPanel({
   onPaymentMethodChange,
   onPaymentRequiredChange,
 }: Props) {
+  const navigate = useNavigate()
   const query = useQuery({
     queryKey: CONNECT_STATUS_QUERY_KEY,
     queryFn: () => contabilConnectApi.getStatus(),
@@ -102,7 +103,7 @@ export function ServicePaymentMethodsPanel({
       action: {
         label: 'Abrir Pagamentos',
         onClick: () => {
-          window.location.assign(SETTINGS_PAYMENTS)
+          navigate(SETTINGS_PAYMENTS)
         },
       },
     })
