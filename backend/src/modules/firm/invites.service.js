@@ -62,7 +62,7 @@ async function sendInviteEmail({ firmId, email, displayName, inviteUrl, expiresA
   if (!email) return { emailSent: false, emailError: 'no_email' };
   const branding = await resolveInviteBranding(firmId);
   try {
-    await contabilNotifications.notifyClientInvite({
+    const delivery = await contabilNotifications.notifyClientInvite({
       clientEmail: email,
       clientName: displayName || null,
       firmName: branding.firmName,
@@ -76,9 +76,18 @@ async function sendInviteEmail({ firmId, email, displayName, inviteUrl, expiresA
       subjectOverride: emailOverride?.subject || null,
       bodyTextOverride: emailOverride?.bodyText || null,
     });
+    if (delivery?.skipped) {
+      return {
+        emailSent: false,
+        emailError:
+          delivery.reason === 'email_disabled'
+            ? 'email_disabled'
+            : delivery.reason || 'email_skipped',
+      };
+    }
     return { emailSent: true, emailError: null };
   } catch (err) {
-    const message = err?.response?.data?.message || err?.message || 'email_delivery_failed';
+    const message = err?.message || err?.response?.data?.message || 'email_delivery_failed';
     return { emailSent: false, emailError: String(message) };
   }
 }
@@ -456,7 +465,7 @@ async function sendTestInviteEmail({ firmId, toEmail, subject, bodyText }) {
   const email = normalizeEmail(toEmail);
   if (!email) throw new AppError('Indique o e-mail de teste', 400);
   const branding = await resolveInviteBranding(firmId);
-  await contabilNotifications.notifyClientInvite({
+  const delivery = await contabilNotifications.notifyClientInvite({
     clientEmail: email,
     clientName: 'Cliente (teste)',
     firmName: branding.firmName,
@@ -470,7 +479,16 @@ async function sendTestInviteEmail({ firmId, toEmail, subject, bodyText }) {
     subjectOverride: subject || null,
     bodyTextOverride: bodyText || null,
   });
-  return { sent: true };
+  if (delivery?.skipped) {
+    const hint =
+      delivery.reason === 'email_disabled'
+        ? 'O envio de e-mail está desactivado (BREVO_API_KEY em falta no servidor).'
+        : delivery.reason === 'missing_from_email'
+          ? 'Falta FROM_EMAIL no servidor.'
+          : 'O e-mail de teste não foi enviado.';
+    throw new AppError(hint, 503, { code: 'EMAIL_NOT_SENT' });
+  }
+  return { sent: true, messageId: delivery?.messageId || null };
 }
 
 module.exports = {

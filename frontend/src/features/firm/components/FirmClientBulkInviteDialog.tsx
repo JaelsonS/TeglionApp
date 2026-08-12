@@ -94,6 +94,11 @@ export function FirmClientBulkInviteDialog({
       setResult(res)
       setStep('result')
       if (res.sent > 0) onDone?.()
+      else if (res.failed > 0) {
+        toast.error('Convites criados, mas o e-mail falhou', {
+          description: 'Verifique o remetente Brevo (FROM_EMAIL) e tente reenviar ou usar o e-mail de teste.',
+        })
+      }
     } catch (err) {
       toast.error('Não foi possível enviar os convites', { description: getErrorMessage(err) })
       handleOpenChange(false)
