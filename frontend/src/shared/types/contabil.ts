@@ -374,4 +374,6 @@ export type FirmBookingSettings = {
   schedule?: BookingDaySchedule
   /** Excepções por data (férias/feriados/horário especial). [] = fechado. */
   dateOverrides?: BookingDateOverrides
+  /** Staff cuja ligação Google Calendar recebe sync dos agendamentos públicos. */
+  googleCalendarStaffUserId?: string | null
 }

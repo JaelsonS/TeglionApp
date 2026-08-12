@@ -2,6 +2,7 @@ const { env } = require('../../../config/env');
 const { requireUserFirmId } = require('../../../utils/contabil-scope');
 const { buildAuthCookieOptions } = require('../../../utils/auth-cookies');
 const { logger } = require('../../../utils/logger');
+const { AppError } = require('../../../middlewares/error.middleware');
 const {
   isGoogleCalendarConfigured,
   generateOAuthState,
@@ -10,6 +11,12 @@ const {
 const connectionsService = require('./google-calendar-connections.service');
 
 const STATE_COOKIE = 'gcal_oauth_state';
+
+function toHttpError(err) {
+  if (err instanceof AppError) return err;
+  const status = Number(err?.status) || 500;
+  return new AppError(err?.message || 'Erro Google Calendar', status, undefined, err?.code || undefined);
+}
 
 async function getStatus(req, res, next) {
   try {
@@ -65,4 +72,53 @@ async function disconnect(req, res, next) {
   }
 }
 
-module.exports = { getStatus, startConnect, callback, disconnect };
+async function listCalendars(req, res, next) {
+  try {
+    const firmId = requireUserFirmId(req);
+    const calendars = await connectionsService.listCalendarsForStaff({ firmId, staffUserId: req.user.id });
+    return res.json({ calendars });
+  } catch (err) {
+    return next(toHttpError(err));
+  }
+}
+
+async function selectCalendar(req, res, next) {
+  try {
+    const firmId = requireUserFirmId(req);
+    const { calendarId, calendarSummary } = req.body || {};
+    const result = await connectionsService.selectCalendar({
+      firmId,
+      staffUserId: req.user.id,
+      calendarId,
+      calendarSummary,
+    });
+    return res.json(result);
+  } catch (err) {
+    return next(toHttpError(err));
+  }
+}
+
+async function setPublicSync(req, res, next) {
+  try {
+    const firmId = requireUserFirmId(req);
+    const enabled = Boolean(req.body?.enabled);
+    const result = await connectionsService.setPublicSync({
+      firmId,
+      staffUserId: req.user.id,
+      enabled,
+    });
+    return res.json(result);
+  } catch (err) {
+    return next(toHttpError(err));
+  }
+}
+
+module.exports = {
+  getStatus,
+  startConnect,
+  callback,
+  disconnect,
+  listCalendars,
+  selectCalendar,
+  setPublicSync,
+};

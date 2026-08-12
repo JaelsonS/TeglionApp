@@ -134,6 +134,21 @@ router.post(
   requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE),
   googleCalendarController.disconnect,
 );
+router.get(
+  '/integrations/google-calendar/calendars',
+  requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE),
+  googleCalendarController.listCalendars,
+);
+router.patch(
+  '/integrations/google-calendar/calendar',
+  requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE),
+  googleCalendarController.selectCalendar,
+);
+router.patch(
+  '/integrations/google-calendar/public-sync',
+  requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE),
+  googleCalendarController.setPublicSync,
+);
 
 router.get(
   '/integrations/google-drive/config',

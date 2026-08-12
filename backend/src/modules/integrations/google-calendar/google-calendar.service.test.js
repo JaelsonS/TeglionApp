@@ -30,7 +30,7 @@ test('isGoogleCalendarConfigured: true quando ambas as credenciais estão presen
   }
 });
 
-test('buildCalendarAuthUrl: pede offline+consent (para garantir refresh_token) e o scope mínimo de eventos', () => {
+test('buildCalendarAuthUrl: offline+consent e scopes de eventos+lista+email', () => {
   const prevId = env.GOOGLE_OAUTH_CLIENT_ID;
   const prevRedirect = env.GOOGLE_CALENDAR_REDIRECT_URI;
   env.GOOGLE_OAUTH_CLIENT_ID = 'client-x';
@@ -39,7 +39,10 @@ test('buildCalendarAuthUrl: pede offline+consent (para garantir refresh_token) e
     const url = new URL(googleCalendarService.buildCalendarAuthUrl('state-123'));
     assert.equal(url.searchParams.get('access_type'), 'offline');
     assert.equal(url.searchParams.get('prompt'), 'consent');
-    assert.equal(url.searchParams.get('scope'), 'https://www.googleapis.com/auth/calendar.events');
+    const scope = url.searchParams.get('scope') || '';
+    assert.ok(scope.includes('calendar.events'));
+    assert.ok(scope.includes('calendar.calendarlist.readonly'));
+    assert.ok(scope.includes('email') || scope.includes('openid'));
     assert.equal(url.searchParams.get('state'), 'state-123');
     assert.equal(url.searchParams.get('redirect_uri'), env.GOOGLE_CALENDAR_REDIRECT_URI);
   } finally {
@@ -48,9 +51,16 @@ test('buildCalendarAuthUrl: pede offline+consent (para garantir refresh_token) e
   }
 });
 
-test('generateOAuthState: gera valores diferentes a cada chamada (não previsível)', () => {
+test('generateOAuthState: gera valores diferentes a cada chamada', () => {
   const a = googleCalendarService.generateOAuthState();
   const b = googleCalendarService.generateOAuthState();
   assert.notEqual(a, b);
   assert.ok(a.length >= 32);
+});
+
+test('consultationICalUID: determinístico por consultation id', () => {
+  assert.equal(
+    googleCalendarService.consultationICalUID('c1'),
+    'teglion-consultation-c1@teglion.com',
+  );
 });

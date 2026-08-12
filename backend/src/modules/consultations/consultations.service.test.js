@@ -5,6 +5,7 @@ const { mock } = require('node:test');
 const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const leadsRepository = require('../../db/supabase/repositories/leads.repository');
+const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const googleCalendarSyncService = require('../integrations/google-calendar/google-calendar-sync.service');
 const consultationsService = require('./consultations.service');
 
@@ -12,6 +13,13 @@ const FIRM_ID = 'firm-x';
 
 function resetMocks() {
   mock.restoreAll();
+}
+
+function mockFirmTimezone(tz = 'Europe/Lisbon') {
+  mock.method(firmsRepository, 'findFirmById', async () => ({
+    id: FIRM_ID,
+    settings: { booking: { timezone: tz } },
+  }));
 }
 
 test('listConsultations: resolve holderName a partir do Client quando clientId presente', async () => {
@@ -52,6 +60,7 @@ test('listConsultations: resolve holderName a partir do Lead quando leadId prese
 
 test('createConsultation: dispara sync para o Google Calendar (fire-and-forget, Fase Hb)', async () => {
   resetMocks();
+  mockFirmTimezone('Europe/Lisbon');
   mock.method(clientsRepository, 'findClientById', async () => ({ id: 'client-1', displayName: 'Ana Cliente' }));
   mock.method(consultationsRepository, 'findRecentDuplicateConsultation', async () => null);
   mock.method(consultationsRepository, 'createConsultation', async (args) => ({ id: 'c1', ...args }));
@@ -72,10 +81,12 @@ test('createConsultation: dispara sync para o Google Calendar (fire-and-forget, 
   assert.equal(syncArgs.firmId, FIRM_ID);
   assert.equal(syncArgs.consultation.id, 'c1');
   assert.equal(syncArgs.requesterName, 'Ana Cliente');
+  assert.equal(syncArgs.timeZone, 'Europe/Lisbon');
 });
 
 test('updateConsultation: dispara sync para o Google Calendar com o holderName resolvido (Fase Hb)', async () => {
   resetMocks();
+  mockFirmTimezone('Europe/Lisbon');
   mock.method(consultationsRepository, 'updateConsultation', async () => ({
     id: 'c1',
     clientId: 'client-1',
@@ -92,4 +103,5 @@ test('updateConsultation: dispara sync para o Google Calendar com o holderName r
 
   assert.equal(syncArgs.consultation.id, 'c1');
   assert.equal(syncArgs.requesterName, 'Ana Cliente');
+  assert.equal(syncArgs.timeZone, 'Europe/Lisbon');
 });

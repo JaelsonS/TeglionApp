@@ -27,7 +27,7 @@ Pedido real da contadora piloto (2026-08-06): menu de captação para IRS anual 
 | 4 — Vista operacional + sidebar "Captação" | Pipeline cruzando `service_inquiries` de todos os Services (mesmo padrão do board de `ServicesWorkspace.tsx`) + menu lateral "Captação" (Solicitações/Leads) | Não iniciada — substitui de vez a tela `/app/firm/leads` que existiu brevemente e foi removida (ver nota) |
 | 5 — Booking Integration | `ServiceInquiry.consultation_id` ligado ao motor de agendamento já existente | Não iniciada |
 | 6 — Public Service Page | Página pública por serviço (`/:firmSlug/servicos/:serviceSlug`), path-based (não subdomínio) | Não iniciada |
-| 7 — Google Calendar | Sync bidirecional, `consultations` como fonte de verdade, `calendar_busy_blocks` para eventos externos | Não iniciada |
+| 7 — Google Calendar | Sync Teglion→Google (production-ready): OAuth, calendário escolhido, public booking, needs_reconnect, retry | Em curso (Fase 1) |
 | 8 — Google Drive | Picker + download server-side validado, staff-only | Não iniciada |
 
 **Achado importante da Fase 1:** já existia uma tabela/módulo `service_requests` em produção ("Central de Serviços" — pipeline de orçamento/pagamento `SUBMITTED→QUOTED→APPROVED→PAID→DONE→RATED` para clientes já existentes, com portal do cliente, comentários, PDF de orçamento). É uma ferramenta diferente e complementar — por isso o pivô novo desta iniciativa chama-se `service_inquiries` (fase de captação/Lead), não `service_requests`. Um Lead convertido pode, mais tarde, gerar um `service_requests` normal na Central de Serviços já existente para o pipeline de orçamento formal.

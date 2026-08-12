@@ -1,12 +1,7 @@
 /**
- * Google Calendar — ligar/desligar a conta de um membro da equipa (Fase Ha,
- * ver plan file da sessão, v3 secção L). Fonte de verdade continua a ser
- * `consultations`; esta fase só liga a conta, ainda não sincroniza nada.
- * Reaproveita o mesmo OAuth Client (GOOGLE_OAUTH_CLIENT_ID/SECRET) da SSO
- * (google-sso.service.js), com redirect_uri e scope diferentes — a SSO
- * autentica qualquer pessoa (openid email profile, access_type=online); isto
- * autoriza uma integração para um staff já autenticado no Teglion
- * (calendar.events, access_type=offline, para obter refresh_token).
+ * Google Calendar — OAuth + Calendar API HTTP.
+ * Reaproveita o mesmo OAuth Client (GOOGLE_OAUTH_CLIENT_ID/SECRET) da SSO,
+ * com redirect_uri e scopes diferentes (offline + consent → refresh_token).
  */
 const crypto = require('crypto');
 const { env } = require('../../../config/env');
@@ -15,7 +10,17 @@ const GOOGLE_AUTH = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN = 'https://oauth2.googleapis.com/token';
 const GOOGLE_REVOKE = 'https://oauth2.googleapis.com/revoke';
 const CALENDAR_API = 'https://www.googleapis.com/calendar/v3';
-const CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
+
+/** Eventos + listar calendários + email (userinfo). */
+const CALENDAR_SCOPES = [
+  'openid',
+  'email',
+  'https://www.googleapis.com/auth/calendar.events',
+  'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
+].join(' ');
+
+/** @deprecated use CALENDAR_SCOPES — mantido para testes/compat. */
+const CALENDAR_SCOPE = CALENDAR_SCOPES;
 
 function isGoogleCalendarConfigured() {
   return Boolean(env.GOOGLE_OAUTH_CLIENT_ID && env.GOOGLE_OAUTH_CLIENT_SECRET);
@@ -30,10 +35,8 @@ function buildCalendarAuthUrl(state) {
     client_id: env.GOOGLE_OAUTH_CLIENT_ID,
     redirect_uri: env.GOOGLE_CALENDAR_REDIRECT_URI,
     response_type: 'code',
-    scope: CALENDAR_SCOPE,
+    scope: CALENDAR_SCOPES,
     state,
-    // offline + consent: só assim o Google garante devolver um refresh_token
-    // (sem isto, reconectar uma conta já autorizada antes não devolve nenhum).
     access_type: 'offline',
     prompt: 'consent',
   });
@@ -60,7 +63,6 @@ async function exchangeCalendarCode(code) {
   return res.json();
 }
 
-/** Revoga o token junto do Google — melhor esforço: se falhar, ainda assim apagamos a ligação localmente. */
 async function revokeGoogleToken(token) {
   if (!token) return;
   try {
@@ -69,11 +71,10 @@ async function revokeGoogleToken(token) {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
   } catch {
-    // noop — desligar localmente é o que importa para o utilizador
+    // noop — desligar localmente é o que importa
   }
 }
 
-/** Troca o refresh_token por um access_token novo — chamado quando o access_token guardado expirou (Fase Hb). */
 async function refreshAccessToken(refreshToken) {
   const body = new URLSearchParams({
     refresh_token: refreshToken,
@@ -93,12 +94,6 @@ async function refreshAccessToken(refreshToken) {
   return res.json();
 }
 
-/**
- * Cria um evento no Google Calendar (Fase Hb — push de consultations para o
- * Calendar). Sempre com reminders desligados por omissão — o Google já
- * aplica os lembretes por defeito do calendário do utilizador, não
- * precisamos de duplicar.
- */
 async function createCalendarEvent({ accessToken, calendarId, event }) {
   const res = await fetch(`${CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events`, {
     method: 'POST',
@@ -107,7 +102,10 @@ async function createCalendarEvent({ accessToken, calendarId, event }) {
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Google Calendar create event failed (${res.status}): ${text.slice(0, 200)}`);
+    const err = new Error(`Google Calendar create event failed (${res.status}): ${text.slice(0, 200)}`);
+    err.status = res.status;
+    err.body = text;
+    throw err;
   }
   return res.json();
 }
@@ -123,12 +121,14 @@ async function updateCalendarEvent({ accessToken, calendarId, eventId, event }) 
   );
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Google Calendar update event failed (${res.status}): ${text.slice(0, 200)}`);
+    const err = new Error(`Google Calendar update event failed (${res.status}): ${text.slice(0, 200)}`);
+    err.status = res.status;
+    err.body = text;
+    throw err;
   }
   return res.json();
 }
 
-/** 404/410 conta como sucesso — o evento já não existe do lado do Google, exactamente o estado que queríamos. */
 async function deleteCalendarEvent({ accessToken, calendarId, eventId }) {
   const res = await fetch(
     `${CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`,
@@ -139,32 +139,91 @@ async function deleteCalendarEvent({ accessToken, calendarId, eventId }) {
   );
   if (!res.ok && res.status !== 404 && res.status !== 410) {
     const text = await res.text();
-    throw new Error(`Google Calendar delete event failed (${res.status}): ${text.slice(0, 200)}`);
+    const err = new Error(`Google Calendar delete event failed (${res.status}): ${text.slice(0, 200)}`);
+    err.status = res.status;
+    throw err;
   }
 }
 
-/**
- * Lista eventos no intervalo — usado para puxar os horários ocupados do
- * calendário pessoal do staff (Fase Hc). singleEvents=true expande eventos
- * recorrentes em ocorrências individuais (sem isto, um evento recorrente
- * semanal viria como 1 linha só, sem start/end úteis para bloquear slots).
- */
+/** Lista eventos no intervalo com paginação (evita busy incompleto além de 250). */
 async function listCalendarEvents({ accessToken, calendarId, timeMinIso, timeMaxIso }) {
-  const params = new URLSearchParams({
-    timeMin: timeMinIso,
-    timeMax: timeMaxIso,
-    singleEvents: 'true',
-    maxResults: '250',
-  });
-  const res = await fetch(`${CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events?${params.toString()}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
+  const items = [];
+  let pageToken = null;
+  do {
+    const params = new URLSearchParams({
+      timeMin: timeMinIso,
+      timeMax: timeMaxIso,
+      singleEvents: 'true',
+      orderBy: 'startTime',
+      maxResults: '250',
+    });
+    if (pageToken) params.set('pageToken', pageToken);
+    const res = await fetch(
+      `${CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events?${params.toString()}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+    if (!res.ok) {
+      const text = await res.text();
+      const err = new Error(`Google Calendar list events failed (${res.status}): ${text.slice(0, 200)}`);
+      err.status = res.status;
+      throw err;
+    }
+    const data = await res.json();
+    items.push(...(data.items || []));
+    pageToken = data.nextPageToken || null;
+  } while (pageToken);
+  return items;
+}
+
+/** Lista calendários da conta (calendarList) — para o utilizador escolher qual usar. */
+async function listCalendars({ accessToken }) {
+  const items = [];
+  let pageToken = null;
+  do {
+    const params = new URLSearchParams({ minAccessRole: 'writer', maxResults: '250' });
+    if (pageToken) params.set('pageToken', pageToken);
+    const res = await fetch(`${CALENDAR_API}/users/me/calendarList?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      const err = new Error(`Google Calendar list calendars failed (${res.status}): ${text.slice(0, 200)}`);
+      err.status = res.status;
+      throw err;
+    }
+    const data = await res.json();
+    for (const cal of data.items || []) {
+      items.push({
+        id: cal.id,
+        summary: cal.summary || cal.id,
+        primary: Boolean(cal.primary),
+        accessRole: cal.accessRole || null,
+      });
+    }
+    pageToken = data.nextPageToken || null;
+  } while (pageToken);
+  return items;
+}
+
+/** Procura evento por iCalUID — idempotência quando create OK mas falhou gravar google_event_id. */
+async function findEventByICalUID({ accessToken, calendarId, iCalUID }) {
+  const params = new URLSearchParams({ iCalUID, maxResults: '1' });
+  const res = await fetch(
+    `${CALENDAR_API}/calendars/${encodeURIComponent(calendarId)}/events?${params.toString()}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  );
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Google Calendar list events failed (${res.status}): ${text.slice(0, 200)}`);
+    const err = new Error(`Google Calendar find by iCalUID failed (${res.status}): ${text.slice(0, 200)}`);
+    err.status = res.status;
+    throw err;
   }
   const data = await res.json();
-  return data.items || [];
+  return (data.items && data.items[0]) || null;
+}
+
+function consultationICalUID(consultationId) {
+  return `teglion-consultation-${consultationId}@teglion.com`;
 }
 
 module.exports = {
@@ -178,5 +237,9 @@ module.exports = {
   updateCalendarEvent,
   deleteCalendarEvent,
   listCalendarEvents,
+  listCalendars,
+  findEventByICalUID,
+  consultationICalUID,
   CALENDAR_SCOPE,
+  CALENDAR_SCOPES,
 };

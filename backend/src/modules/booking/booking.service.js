@@ -35,6 +35,15 @@ function normalizeTimezone(raw) {
   return TZ_SET.has(z) ? z : 'Europe/Lisbon';
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function normalizeUuidOrNull(raw) {
+  if (raw === null || raw === undefined || raw === '') return null;
+  if (typeof raw !== 'string') return null;
+  const id = raw.trim();
+  return UUID_RE.test(id) ? id : null;
+}
+
 function normalizeTimeHHMM(value, fallback) {
   return typeof value === 'string' && TIME_RE.test(value) ? value : fallback;
 }
@@ -142,6 +151,8 @@ function normalizeBooking(raw) {
     timezone: tz,
     schedule,
     dateOverrides: normalizeDateOverrides(b.dateOverrides),
+    /** Staff cuja ligação Google Calendar recebe sync dos agendamentos públicos/cliente. */
+    googleCalendarStaffUserId: normalizeUuidOrNull(b.googleCalendarStaffUserId),
   };
 }
 
@@ -303,7 +314,7 @@ async function bookAsClient({ firmId, clientId, leadId, serviceId, scheduledAt }
   const startMs = new Date(scheduledAt).getTime();
   if (!Number.isFinite(startMs)) throw new AppError('Data inválida', 400);
 
-  const { slots } = await listSlotsForBooking({
+  const { slots, booking } = await listSlotsForBooking({
     firmId,
     serviceId,
     fromIso: new Date(startMs - 120 * 1000).toISOString(),
@@ -313,11 +324,16 @@ async function bookAsClient({ firmId, clientId, leadId, serviceId, scheduledAt }
   const match = slots.some((iso) => Math.abs(new Date(iso).getTime() - startMs) <= 90 * 1000);
   if (!match) throw new AppError('Este horário já não está disponível', 409);
 
+  // Assignee público vem só das settings do escritório (não de overrides por serviço).
+  const firm = await firmsRepository.findFirmById(firmId);
+  const firmBooking = normalizeBooking(firm?.settings?.booking || {});
+  const publicStaffId = firmBooking.googleCalendarStaffUserId || null;
+
   const consultation = await consultationsRepository.createConsultation({
     firmId,
     clientId: clientId || null,
     leadId: leadId || null,
-    staffId: null,
+    staffId: publicStaffId,
     title: service.name,
     scheduledAt: new Date(startMs).toISOString(),
     durationMinutes: service.durationMinutes,
@@ -328,6 +344,29 @@ async function bookAsClient({ firmId, clientId, leadId, serviceId, scheduledAt }
     currency: service.currency,
     source: 'CLIENT',
   });
+
+  // Fire-and-forget — falha do Google nunca reverte o booking.
+  if (publicStaffId) {
+    const googleCalendarSyncService = require('../integrations/google-calendar/google-calendar-sync.service');
+    const leadsRepository = require('../../db/supabase/repositories/leads.repository');
+    const clientsRepository = require('../../db/supabase/repositories/clients.repository');
+    void (async () => {
+      let requesterName = null;
+      if (leadId) {
+        const lead = await leadsRepository.findByIdForFirm(leadId, firmId);
+        requesterName = lead?.name || null;
+      } else if (clientId) {
+        const client = await clientsRepository.findClientById(firmId, clientId);
+        requesterName = client?.displayName || client?.name || null;
+      }
+      await googleCalendarSyncService.syncConsultationToGoogle({
+        firmId,
+        consultation,
+        requesterName,
+        timeZone: firmBooking.timezone || booking?.timezone || 'Europe/Lisbon',
+      });
+    })().catch(() => {});
+  }
 
   return { consultation, service };
 }

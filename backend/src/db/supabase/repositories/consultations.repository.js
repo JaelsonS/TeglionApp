@@ -19,6 +19,9 @@ function mapConsultation(row) {
     currency: row.currency,
     source: row.source,
     googleEventId: row.google_event_id || null,
+    googleSyncStatus: row.google_sync_status || null,
+    googleSyncError: row.google_sync_error || null,
+    googleSyncedAt: row.google_synced_at || null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -124,7 +127,11 @@ async function updateConsultation(id, firmId, patch) {
   if (patch.notes !== undefined) row.notes = patch.notes;
   if (patch.scheduledAt !== undefined) row.scheduled_at = patch.scheduledAt;
   if (patch.title !== undefined) row.title = patch.title;
+  if (patch.staffId !== undefined) row.staff_id = patch.staffId;
   if (patch.googleEventId !== undefined) row.google_event_id = patch.googleEventId;
+  if (patch.googleSyncStatus !== undefined) row.google_sync_status = patch.googleSyncStatus;
+  if (patch.googleSyncError !== undefined) row.google_sync_error = patch.googleSyncError;
+  if (patch.googleSyncedAt !== undefined) row.google_synced_at = patch.googleSyncedAt;
   const { data, error } = await sb
     .from('consultations')
     .update(row)
