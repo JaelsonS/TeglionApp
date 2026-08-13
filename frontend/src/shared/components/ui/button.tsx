@@ -84,6 +84,15 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const Comp = asChild ? Slot : 'button'
     const isDisabled = Boolean(disabled || loading)
+    // Radix Slot (asChild) exige exactamente um elemento filho — não misturar spinner.
+    const content = asChild ? (
+      children
+    ) : (
+      <>
+        {loading ? <Loader2 className="animate-spin" aria-hidden /> : null}
+        {children}
+      </>
+    )
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }), fullWidth && 'w-full')}
@@ -93,8 +102,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         aria-busy={loading || undefined}
         {...props}
       >
-        {loading ? <Loader2 className="animate-spin" aria-hidden /> : null}
-        {children}
+        {content}
       </Comp>
     )
   },
