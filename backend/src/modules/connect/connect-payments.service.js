@@ -102,22 +102,34 @@ async function bookAndPayAsClient({
   const expiresAt = holdExpiresAtDate();
   const expiresUnix = Math.floor(expiresAt.getTime() / 1000);
 
-  const consultation = await consultationsRepository.createConsultation({
-    firmId,
-    clientId: clientId || null,
-    leadId: leadId || null,
-    staffId: publicStaffId,
-    title: service.name,
-    scheduledAt: new Date(startMs).toISOString(),
-    durationMinutes: service.durationMinutes,
-    notes: null,
-    status: 'PENDING_PAYMENT',
-    accountingServiceId: service.id,
-    priceCents: amountCents,
-    currency: service.currency || 'EUR',
-    source: 'CLIENT',
-    holdExpiresAt: expiresAt.toISOString(),
-  });
+  let consultation;
+  try {
+    consultation = await consultationsRepository.createConsultation({
+      firmId,
+      clientId: clientId || null,
+      leadId: leadId || null,
+      staffId: publicStaffId,
+      title: service.name,
+      scheduledAt: new Date(startMs).toISOString(),
+      durationMinutes: service.durationMinutes,
+      notes: null,
+      status: 'PENDING_PAYMENT',
+      accountingServiceId: service.id,
+      priceCents: amountCents,
+      currency: service.currency || 'EUR',
+      source: 'CLIENT',
+      holdExpiresAt: expiresAt.toISOString(),
+    });
+  } catch (err) {
+    // 23P01 = violação da exclusion constraint consultations_no_overlap —
+    // outra requisição reservou este horário entre a checagem e o insert.
+    // Aqui importa ainda mais: sem isto, dois clientes poderiam chegar a
+    // pagar pelo mesmo horário antes de qualquer um dos dois confirmar.
+    if (err?.code === '23P01') {
+      throw new AppError('Este horário já não está disponível', 409, { code: 'SLOT_TAKEN' }, 'SLOT_TAKEN');
+    }
+    throw err;
+  }
 
   const publicStatusToken = firmPaymentsRepository.newPublicStatusToken();
   const platformFeeCents = computePlatformFeeCents(amountCents);

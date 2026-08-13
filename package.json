@@ -9,7 +9,7 @@
     "build": "npm run build -w frontend",
     "build:spa": "npm run build:spa -w frontend",
     "test": "npm run test -w frontend",
-    "test:backend": "node --test backend/src/utils/file-magic-bytes.test.js",
+    "test:backend": "npm run test -w backend",
     "tsc": "npm exec -w frontend -- tsc --noEmit",
     "smoke:pilot": "npm run smoke:pilot -w backend",
     "release:readiness": "node tools/ci/release-readiness.mjs",

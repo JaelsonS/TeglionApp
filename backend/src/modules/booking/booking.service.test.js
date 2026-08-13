@@ -118,6 +118,55 @@ test('bookAsClient: clientId sozinho continua a funcionar tal como antes', async
   assert.equal(createArgs.leadId, null);
 });
 
+test('bookAsClient: violação da exclusion constraint (23P01) vira 409 amigável, não 500', async () => {
+  resetMocks();
+  mockAvailability();
+  mock.method(consultationsRepository, 'createConsultation', async () => {
+    const err = new Error('conflicting key value violates exclusion constraint "consultations_no_overlap"');
+    err.code = '23P01';
+    throw err;
+  });
+
+  await assert.rejects(
+    () =>
+      bookingService.bookAsClient({
+        firmId: FIRM_ID,
+        clientId: 'client-1',
+        serviceId: SERVICE.id,
+        scheduledAt: nextWeekdayNoonUtc(),
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 409);
+      return true;
+    },
+  );
+});
+
+test('bookAsClient: outro erro de banco (não 23P01) continua a propagar sem virar 409', async () => {
+  resetMocks();
+  mockAvailability();
+  mock.method(consultationsRepository, 'createConsultation', async () => {
+    const err = new Error('connection reset');
+    err.code = '08006';
+    throw err;
+  });
+
+  await assert.rejects(
+    () =>
+      bookingService.bookAsClient({
+        firmId: FIRM_ID,
+        clientId: 'client-1',
+        serviceId: SERVICE.id,
+        scheduledAt: nextWeekdayNoonUtc(),
+      }),
+    (err) => {
+      assert.equal(err.code, '08006');
+      assert.notEqual(err.statusCode, 409);
+      return true;
+    },
+  );
+});
+
 test('listSlotsForBooking: bookingOverrides do Service restringe os dias, sem afectar as regras do escritório (Fase 3b)', async () => {
   resetMocks();
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({

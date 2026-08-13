@@ -3,6 +3,7 @@ const firmUsersRepository = require('../../db/supabase/repositories/firm-users.r
 const departmentsRepository = require('../../db/supabase/repositories/departments.repository');
 const securityAudit = require('../../services/audit/security-audit.service');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
+const authRefreshSessionsRepository = require('../../db/supabase/repositories/auth-refresh-sessions.repository');
 const { hashPassword } = require('../../utils/password-crypto');
 const { assertStrongPassword } = require('../../utils/password-policy');
 const { notifyFirmStaffWelcome } = require('../../services/notifications/contabil-notifications.service');
@@ -222,12 +223,16 @@ async function deactivateMember({ firmId, memberId, actor, req }) {
     }
 
     const updated = await firmUsersRepository.setFirmMemberActive(firmId, memberId, false);
+    // Sem isto, o refresh token do membro desativado continua válido e a
+    // renovar-se indefinidamente — mesma falha que já foi corrigida para
+    // clientes em invites.service.js#revokeClientAccess.
+    await authRefreshSessionsRepository.deleteAllForActor('firm_user', memberId);
     await securityAudit.recordTeamMutation({
         action: 'team.member.deactivated',
         actor,
         firmId,
         targetUserId: updated.id,
-        metadata: { role: updated.role },
+        metadata: { role: updated.role, sessionsRevoked: true },
         req,
     });
     return getMember(firmId, updated.id);

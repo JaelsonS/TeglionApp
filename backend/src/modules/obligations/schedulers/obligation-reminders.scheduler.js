@@ -8,6 +8,7 @@ const clientsRepository = require('../../../db/supabase/repositories/clients.rep
 const firmsRepository = require('../../../db/supabase/repositories/firms.repository');
 const contabilNotifications = require('../../../services/notifications/contabil-notifications.service');
 const { contabilRepository } = require('../../../db/supabase/repositories/contabil.repository');
+const reminderSendsRepository = require('../../../db/supabase/repositories/obligation-reminder-sends.repository');
 
 const MS_DAY = 24 * 60 * 60 * 1000;
 
@@ -17,6 +18,10 @@ function daysUntil(dueDate, now) {
   const n = new Date(now);
   n.setHours(0, 0, 0, 0);
   return Math.round((due.getTime() - n.getTime()) / MS_DAY);
+}
+
+function dayBucketOf(now) {
+  return new Date(now).toISOString().slice(0, 10); // 'YYYY-MM-DD'
 }
 
 async function processFirm(firmId) {
@@ -36,28 +41,40 @@ async function processFirm(firmId) {
     if (!template) continue;
     const title = ob.title || ob.type;
     const body = template.replace('{title}', title);
-    await messagesRepository
-      .createMessage({
-        firmId,
-        clientId: ob.clientId,
-        senderRole: 'FIRM',
-        senderId: firmId,
-        body,
-        obligationId: ob.id,
-      })
-      .catch(() => {});
+    const dayBucket = dayBucketOf(now);
+
+    const canSendMessage = await reminderSendsRepository
+      .tryClaimReminderSend({ firmId, obligationId: ob.id, channel: 'message', dayBucket })
+      .catch(() => true); // falha na claim não deve impedir o lembrete de sair
+    if (canSendMessage) {
+      await messagesRepository
+        .createMessage({
+          firmId,
+          clientId: ob.clientId,
+          senderRole: 'FIRM',
+          senderId: firmId,
+          body,
+          obligationId: ob.id,
+        })
+        .catch(() => {});
+    }
 
     const client = await clientsRepository.findClientById(firmId, ob.clientId).catch(() => null);
     if (client?.email) {
-      void contabilNotifications
-        .notifyClientObligationReminder({
-          clientEmail: client.email,
-          clientName: client.displayName || client.name,
-          obligationTitle: title,
-          firmName: firm?.name,
-          body,
-        })
-        .catch(() => {});
+      const canSendEmail = await reminderSendsRepository
+        .tryClaimReminderSend({ firmId, obligationId: ob.id, channel: 'email', dayBucket })
+        .catch(() => true);
+      if (canSendEmail) {
+        void contabilNotifications
+          .notifyClientObligationReminder({
+            clientEmail: client.email,
+            clientName: client.displayName || client.name,
+            obligationTitle: title,
+            firmName: firm?.name,
+            body,
+          })
+          .catch(() => {});
+      }
       if (client.phone) {
         const smsLogs = require('../../../services/sms/sms-logs.service');
         const templateKey =

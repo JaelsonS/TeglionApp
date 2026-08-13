@@ -329,21 +329,31 @@ async function bookAsClient({ firmId, clientId, leadId, serviceId, scheduledAt }
   const firmBooking = normalizeBooking(firm?.settings?.booking || {});
   const publicStaffId = firmBooking.googleCalendarStaffUserId || null;
 
-  const consultation = await consultationsRepository.createConsultation({
-    firmId,
-    clientId: clientId || null,
-    leadId: leadId || null,
-    staffId: publicStaffId,
-    title: service.name,
-    scheduledAt: new Date(startMs).toISOString(),
-    durationMinutes: service.durationMinutes,
-    notes: null,
-    status: 'SCHEDULED',
-    accountingServiceId: service.id,
-    priceCents: service.priceCents,
-    currency: service.currency,
-    source: 'CLIENT',
-  });
+  let consultation;
+  try {
+    consultation = await consultationsRepository.createConsultation({
+      firmId,
+      clientId: clientId || null,
+      leadId: leadId || null,
+      staffId: publicStaffId,
+      title: service.name,
+      scheduledAt: new Date(startMs).toISOString(),
+      durationMinutes: service.durationMinutes,
+      notes: null,
+      status: 'SCHEDULED',
+      accountingServiceId: service.id,
+      priceCents: service.priceCents,
+      currency: service.currency,
+      source: 'CLIENT',
+    });
+  } catch (err) {
+    // 23P01 = violação da exclusion constraint consultations_no_overlap —
+    // outra requisição reservou este horário entre a checagem e o insert.
+    if (err?.code === '23P01') {
+      throw new AppError('Este horário já não está disponível', 409);
+    }
+    throw err;
+  }
 
   // Fire-and-forget — falha do Google nunca reverte o booking.
   if (publicStaffId) {

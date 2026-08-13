@@ -40,6 +40,20 @@ jobs:
       - name: Backend static security audit
         run: npm run test:security-static -w backend
 
+      - name: Tenant isolation test (staging)
+        env:
+          SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+          PRODUCT_MODE: contabil
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "STAGING_SUPABASE_URL / STAGING_SUPABASE_SERVICE_ROLE_KEY não configurados neste repositório — passo desativado."
+            echo "Nunca aponte isto para o Supabase de produção: este teste escreve dados reais."
+            echo "Ver docs/06-SEGURANCA/SECURITY-GATES.md para o que falta para ativar."
+            exit 0
+          fi
+          npm run test:tenant-isolation -w backend
+
       - name: File size limits
         run: npm run check:file-sizes
 
