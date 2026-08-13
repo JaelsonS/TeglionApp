@@ -12,7 +12,7 @@ O critério de saída do Sprint 0 é simples: **os sete itens abaixo resolvidos*
 |---|---|
 | 1. Revogar sessão ao desativar funcionário | ✅ Feito — código no `main`, testado |
 | 2. Travar o double-booking | ✅ Feito — constraint em **staging e produção** (helpers IMMUTABLE); overlap drill OK no staging |
-| 3. Provar que o backup funciona | ✅ Feito — restore drill 2026-08-13 documentado em `docs/operations/BACKUP_RESTORE.md` (RTO ~2 min) |
+| 3. Provar que o backup funciona | ✅ Feito — restore drill formal 2026-08-13 com dump R2 real `2026-08-13-130155.dump` (SHA-256 OK) → Postgres 17 Docker isolado; smoke PASS; RTO ~1,3 min (Docker disponível); ver `docs/operations/BACKUP_RESTORE.md` Drill 2 |
 | 4. Isolamento entre escritórios rodando sozinho no CI | ✅ Feito — secrets staging no GitHub; CI fail-closed sem secrets; tenant isolation PASS em staging (`xscriwhchdblmwmpglby`) |
 | 5. Rodar segredos de produção | ✅ Feito — rotação das chaves de produção concluída |
 | 6. Parar de reenviar lembrete por email | ✅ Feito — migration aplicada, código no `main`, testado |
@@ -25,7 +25,7 @@ O critério de saída do Sprint 0 é simples: **os sete itens abaixo resolvidos*
 |---|---|
 | 9. Staging validado | ✅ Schema Phase A+B + parity May tables; bucket privado; overlap + RLS |
 | 10. RLS/Storage revisados | ✅ Matriz em SECURITY-GATES; prod↔staging equivalentes nas 4 tabelas + storage |
-| 11–15. MFA / Admin / Sentry / Audit | ⏸️ Bloqueados até fecho formal das fases B/C (Item 4 fechado) |
+| 11–15. MFA / Admin / Sentry / Audit | ⏸️ Bloqueados até confirmação explícita (Items 3 e 4 fechados) |
 
 ## 1. Revogar sessão ao desativar um funcionário
 
@@ -45,9 +45,9 @@ Isso não é uma falha de segurança — é uma falha de produto que vai aparece
 
 ## 3. Provar que o backup funciona
 
-Ninguém testou um restore. Essa frase, sozinha, é o item de maior risco desta lista — não porque seja provável que o banco suma amanhã, mas porque se sumir, hoje não sabemos se conseguimos trazer os dados de volta. Não há confirmação de que o Point-in-Time Recovery está ativo no plano de produção do Supabase.
+**Estado:** ✅ Feito (Drill 2, 2026-08-13). Restore de dump R2 real (`2026-08-13-130155.dump`) num Postgres 17 Docker isolado, SHA-256 validado, smoke PASS, RTO ~1,3 min. Detalhe em [`BACKUP_RESTORE.md`](../operations/BACKUP_RESTORE.md).
 
-**Critério de pronto:** rodar um restore de verdade (em um projeto/ambiente separado, não em produção) a partir de um backup real, confirmar que os dados voltam íntegros, documentar o tempo que levou. Depois disso, repetir esse teste em uma cadência definida — não é algo que se faz uma vez e esquece.
+O critério de pronto era: restore de verdade fora de produção a partir de backup real, dados íntegros, tempo documentado, cadência definida (trimestral).
 
 ## 4. Colocar o teste de isolamento entre escritórios para rodar sozinho
 

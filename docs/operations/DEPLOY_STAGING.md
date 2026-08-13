@@ -62,7 +62,7 @@ Duplicar o Web Service de produção com nome `teglion-api-staging`:
 | `STRIPE_SECRET_KEY` | `sk_test_…` |
 | `STRIPE_WEBHOOK_SECRET` | webhook endpoint staging |
 
-Branch de deploy sugerida: `staging` (ou `main` com auto-deploy desligado em prod).
+Branch de deploy do ambiente staging: **`staging`** (sempre alinhada ao que está em QA). Trabalho de fase em `feature/fase-N` → PR para `staging` → UAT → PR `staging`→`main`. Ver [GIT_WORKFLOW.md](./GIT_WORKFLOW.md).
 
 ## 2.1 Secrets GitHub para staging
 
