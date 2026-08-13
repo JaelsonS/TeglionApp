@@ -339,7 +339,7 @@ export function ServicesSection({ content, ctx }: { content: PublicSiteServicesC
           }
           style={headingColor ? { color: headingColor } : undefined}
         >
-          {content.heading || 'Consultorias com agendamento'}
+          {content.heading || 'Serviços com marcação'}
         </h2>
         <ul className="space-y-3">
           {items.map((s) => (
@@ -374,7 +374,7 @@ export function BookingServicesSection({ content, ctx }: { content: PublicSiteSe
           }
           style={headingColor ? { color: headingColor } : undefined}
         >
-          {content.heading || 'Outros serviços'}
+          {content.heading || 'Serviços sob pedido'}
         </h2>
         <ul className="space-y-3">
           {items.map((s) => (
@@ -388,6 +388,20 @@ export function BookingServicesSection({ content, ctx }: { content: PublicSiteSe
             </li>
           ))}
         </ul>
+      </div>
+    </section>
+  )
+}
+
+/** Quando o escritório ainda não publicou serviços — mensagem útil (não silêncio). */
+export function EmptyPublicServicesSection() {
+  return (
+    <section id="servicos" className="px-4 py-10" data-testid="public-services-empty">
+      <div className="mx-auto max-w-2xl rounded-2xl border border-dashed border-border/60 bg-muted/20 px-5 py-8 text-center">
+        <h2 className="text-base font-semibold text-foreground">Serviços</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Este escritório ainda não publicou serviços. Volte mais tarde ou use o contacto abaixo, se disponível.
+        </p>
       </div>
     </section>
   )

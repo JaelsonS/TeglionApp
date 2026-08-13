@@ -3,6 +3,7 @@ import {
   AboutSection,
   BookingServicesSection,
   ContactSection,
+  EmptyPublicServicesSection,
   FaqSection,
   FeaturesSection,
   FooterSection,
@@ -26,6 +27,9 @@ type Props = {
  */
 export function DefaultTemplate({ config, ctx }: Props) {
   const sections = [...config.sections].filter((s) => s.enabled).sort((a, b) => a.order - b.order)
+  const hasServiceSection = sections.some((s) => s.type === 'services' || s.type === 'bookingServices')
+  const showEmptyServices = hasServiceSection && ctx.services.length === 0
+  const firstServiceKey = sections.find((s) => s.type === 'services' || s.type === 'bookingServices')?.key
 
   return (
     <div className="min-h-screen bg-background">
@@ -35,14 +39,28 @@ export function DefaultTemplate({ config, ctx }: Props) {
             return <HeaderSection key={section.key} ctx={ctx} content={section.content} />
           case 'hero':
             return (
-              <HeroSection key={section.key} content={section.content} ctx={ctx} socialLinks={config.socialLinks} images={config.images} />
+              <HeroSection
+                key={section.key}
+                content={section.content}
+                ctx={ctx}
+                socialLinks={config.socialLinks}
+                images={config.images}
+              />
             )
           case 'about':
             return <AboutSection key={section.key} content={section.content} images={config.images} />
           case 'services':
-            return <ServicesSection key={section.key} content={section.content} ctx={ctx} />
-          case 'bookingServices':
-            return <BookingServicesSection key={section.key} content={section.content} ctx={ctx} />
+          case 'bookingServices': {
+            if (showEmptyServices) {
+              if (section.key !== firstServiceKey) return null
+              return <EmptyPublicServicesSection key="public-services-empty" />
+            }
+            return section.type === 'services' ? (
+              <ServicesSection key={section.key} content={section.content} ctx={ctx} />
+            ) : (
+              <BookingServicesSection key={section.key} content={section.content} ctx={ctx} />
+            )
+          }
           case 'features':
             return <FeaturesSection key={section.key} content={section.content} />
           case 'process':
@@ -52,7 +70,9 @@ export function DefaultTemplate({ config, ctx }: Props) {
           case 'contact':
             return <ContactSection key={section.key} content={section.content} ctx={ctx} />
           case 'footer':
-            return <FooterSection key={section.key} ctx={ctx} socialLinks={config.socialLinks} content={section.content} />
+            return (
+              <FooterSection key={section.key} ctx={ctx} socialLinks={config.socialLinks} content={section.content} />
+            )
           default:
             return null
         }
