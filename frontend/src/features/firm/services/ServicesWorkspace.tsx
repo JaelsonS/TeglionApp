@@ -359,10 +359,10 @@ export function ServicesWorkspace() {
           ) : filtered.length === 0 ? (
             <EmptyState
               icon={ClipboardList}
-              title={items.length === 0 ? 'Ainda sem pedidos de clientes' : 'Nenhum pedido neste filtro'}
+              title={items.length === 0 ? 'Ainda sem pedidos de clientes da app' : 'Nenhum pedido neste filtro'}
               description={
                 items.length === 0
-                  ? 'Crie um pedido com «Novo pedido» ou aguarde pedidos do portal do cliente. Contactos novos da página pública aparecem em Solicitações.'
+                  ? 'A Central é para clientes que já usam a app Teglion. Pedidos da página pública aparecem em Solicitações.'
                   : 'Altere o filtro de estado ou limpe a pesquisa para ver outros pedidos.'
               }
               action={

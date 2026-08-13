@@ -7,6 +7,8 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
 import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
+import { EmptyState } from '@/shared/design-system'
+import { Link } from 'react-router-dom'
 import {
   contabilAccountingServicesApi,
   contabilClientsApi,
@@ -441,10 +443,46 @@ export function ServiceInquiriesWorkspace() {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : items.length === 0 ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 py-10 text-center">
-          <Inbox className="h-8 w-8 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">Ainda sem solicitações com estes filtros.</p>
-        </div>
+        <EmptyState
+          className="flex-1 border-dashed"
+          icon={Inbox}
+          title={
+            !serviceFilter && !tagFilter
+              ? 'Ainda não recebeu pedidos através da página pública'
+              : 'Nenhuma solicitação com estes filtros'
+          }
+          description={
+            !serviceFilter && !tagFilter
+              ? 'Quando um potencial cliente solicitar um serviço publicado, o pedido aparece aqui — não na Central. Publique um serviço e partilhe a página pública.'
+              : 'Limpe o filtro de serviço ou etiqueta para ver outros pedidos.'
+          }
+          action={
+            !serviceFilter && !tagFilter ? (
+              <Button type="button" size="sm" variant="primary" asChild>
+                <Link to="/app/firm/services">Ver catálogo de serviços</Link>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setServiceFilter('')
+                  setTagFilter('')
+                }}
+              >
+                Limpar filtros
+              </Button>
+            )
+          }
+          secondaryAction={
+            !serviceFilter && !tagFilter ? (
+              <Button type="button" size="sm" variant="outline" asChild>
+                <Link to="/app/firm/settings?tab=pagina-publica">Ver página pública</Link>
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
         <div className="overflow-hidden rounded-xl border border-border/50">
           <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 border-b border-border/40 bg-muted/30 px-3 py-2 text-caption font-semibold uppercase tracking-wide text-muted-foreground sm:grid-cols-[1.2fr_1fr_auto_auto_auto]">

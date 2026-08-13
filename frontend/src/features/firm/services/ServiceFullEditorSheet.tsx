@@ -7,6 +7,7 @@ import {
   ExternalLink,
   FileQuestion,
   Globe,
+  HelpCircle,
   ImageIcon,
   Info,
   Loader2,
@@ -21,6 +22,8 @@ import {
   ServicePaymentMethodsPanel,
   type ServicePaymentMethodId,
 } from '@/features/firm/services/ServicePaymentMethodsPanel'
+import { getServicePublishPresentation } from '@/features/firm/services/servicePublishState'
+import { openMaya } from '@/features/maya/openMaya'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -70,11 +73,11 @@ const QUESTION_TYPE_LABELS: Record<IntakeQuestionType, string> = {
 const CHOICE_TYPES: IntakeQuestionType[] = ['single_choice', 'multiple_choice', 'yes_no']
 
 const TABS = [
-  { id: 'geral', label: 'Geral' },
-  { id: 'banner', label: 'Banner' },
-  { id: 'formulario', label: 'Formulário' },
-  { id: 'publicacao', label: 'Publicação' },
-  { id: 'preview', label: 'Pré-visualização' },
+  { id: 'geral', label: '1. O que oferece', short: 'Oferta' },
+  { id: 'banner', label: '2. Imagem', short: 'Imagem' },
+  { id: 'formulario', label: '3. Como solicita', short: 'Pedido' },
+  { id: 'publicacao', label: '4. Publicação', short: 'Publicar' },
+  { id: 'preview', label: 'Pré-visualização', short: 'Ver' },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -533,6 +536,11 @@ export function ServiceFullEditorSheet({
   }
 
   const headerTitle = name.trim() || (isCreate ? 'Novo serviço' : service!.name)
+  const publishState = getServicePublishPresentation({
+    isActive,
+    isPubliclyListed,
+    slug,
+  })
 
   return (
     <>
@@ -542,19 +550,42 @@ export function ServiceFullEditorSheet({
         >
           <DialogTitle className="sr-only">{headerTitle}</DialogTitle>
 
-          <div className="shrink-0 border-b border-brand/15 bg-gradient-to-r from-brand/[0.08] via-sky-500/[0.06] to-transparent px-5 pb-0 pr-12 pt-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand/80">
-              Serviços › {isCreate ? 'Criar' : 'Editar'}
+          <div className="shrink-0 border-b border-brand/15 bg-card px-5 pb-0 pr-12 pt-4">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand/80">
+                  Serviços › {isCreate ? 'Criar' : 'Editar'}
+                </p>
+                <h2 className="mt-1 text-xl font-semibold tracking-tight text-foreground">{headerTitle}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Configure o que oferece, como o cliente solicita, e publique na página pública.
+                </p>
+              </div>
+              <Button type="button" size="sm" variant="outline" onClick={() => openMaya('service')}>
+                <HelpCircle className="h-4 w-4" />
+                Precisa de ajuda?
+              </Button>
+            </div>
+            <p
+              className={cn(
+                'mt-2 text-sm',
+                publishState.id === 'published'
+                  ? 'text-emerald-700 dark:text-emerald-400'
+                  : publishState.id === 'inactive'
+                    ? 'text-muted-foreground'
+                    : 'text-amber-800 dark:text-amber-400',
+              )}
+              data-testid="service-editor-publish-state"
+            >
+              <span className="font-semibold">{publishState.label}.</span> {publishState.description}
             </p>
-            <h2 className="mt-1 text-xl font-semibold tracking-tight text-foreground">{headerTitle}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Tudo o que o cliente vê neste serviço: descrição, banner, formulário e link público.
-            </p>
-            <div className="mt-3 flex gap-1 overflow-x-auto pb-2">
+            <div className="mt-3 flex gap-1 overflow-x-auto pb-2" role="tablist" aria-label="Passos do serviço">
               {TABS.map((t) => (
                 <button
                   key={t.id}
                   type="button"
+                  role="tab"
+                  aria-selected={tab === t.id}
                   onClick={() => setTab(t.id)}
                   className={cn(
                     'shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition',
@@ -563,7 +594,8 @@ export function ServiceFullEditorSheet({
                       : 'text-muted-foreground hover:bg-brand/[0.06] hover:text-foreground',
                   )}
                 >
-                  {t.label}
+                  <span className="sm:hidden">{t.short}</span>
+                  <span className="hidden sm:inline">{t.label}</span>
                 </button>
               ))}
             </div>
@@ -976,8 +1008,19 @@ export function ServiceFullEditorSheet({
             {tab === 'publicacao' ? (
               <SectionCard
                 title="Publicação"
-                description="Endereço público e visibilidade deste serviço na página do escritório."
+                description="Só aparece na página pública quando marcar a opção abaixo e tiver um endereço (slug) válido."
               >
+                <div
+                  className={cn(
+                    'rounded-xl border px-3 py-2.5 text-sm',
+                    publishState.id === 'published'
+                      ? 'border-emerald-200 bg-emerald-50/70 text-emerald-900'
+                      : 'border-amber-200 bg-amber-50/70 text-amber-950',
+                  )}
+                >
+                  <p className="font-semibold">{publishState.label}</p>
+                  <p className="mt-0.5 text-xs opacity-90">{publishState.description}</p>
+                </div>
                 <label className="block space-y-1 text-sm">
                   <span className="font-medium">Endereço público (slug)</span>
                   <Input
@@ -994,7 +1037,7 @@ export function ServiceFullEditorSheet({
                     onCheckedChange={(checked: boolean | 'indeterminate') => setIsPubliclyListed(Boolean(checked))}
                   />
                   <span>
-                    Aparece na página pública do escritório
+                    Publicar na página pública do escritório
                     <span className="block text-xs text-muted-foreground">
                       Precisa de um slug e de um formulário válido — perguntas de escolha sem opções bloqueiam a
                       publicação.
@@ -1007,7 +1050,7 @@ export function ServiceFullEditorSheet({
                     <div className="flex min-w-0 items-center gap-2">
                       <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
                       <div className="min-w-0">
-                        <p className="text-xs font-semibold text-emerald-800">Publicado</p>
+                        <p className="text-xs font-semibold text-emerald-800">Assim o cliente chega a este serviço</p>
                         <a
                           href={publicUrl}
                           target="_blank"
@@ -1049,13 +1092,24 @@ export function ServiceFullEditorSheet({
                       clientes.
                     </p>
                   </div>
-                ) : null}
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Enquanto não publicar, o serviço fica só interno (equipa). Os pedidos da página pública só chegam
+                    depois de publicar.
+                  </p>
+                )}
+                <Button type="button" size="sm" variant="outline" onClick={() => setTab('preview')}>
+                  Ver pré-visualização
+                </Button>
               </SectionCard>
             ) : null}
 
             {/* -------------------------- Pré-visualização ------------------------- */}
             {tab === 'preview' ? (
               <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Assim o cliente verá este serviço (pré-visualização local — guarde e publique para o link real).
+                </p>
                 {showFirmLogo ? (
                   <div className="flex gap-2 rounded-xl border border-sky-200/80 bg-sky-50 px-3 py-2.5 text-xs text-sky-950">
                     <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" />
