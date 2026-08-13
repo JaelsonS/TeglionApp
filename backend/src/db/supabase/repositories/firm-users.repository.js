@@ -40,9 +40,11 @@ async function findFirmUserByEmail(email) {
   return data;
 }
 
-async function findFirmUserById(id) {
+async function findFirmUserById(id, firmId = null) {
   const sb = getSupabaseAdmin();
-  const { data, error } = await sb.from('firm_users').select('*').eq('id', id).maybeSingle();
+  let q = sb.from('firm_users').select('*').eq('id', id);
+  if (firmId) q = q.eq('firm_id', firmId);
+  const { data, error } = await q.maybeSingle();
   if (error) throw error;
   return data;
 }
@@ -237,23 +239,27 @@ async function createFirmOwner({
   return data;
 }
 
-async function updateFirmUserSso(id, { ssoProvider, ssoSubject }) {
+async function updateFirmUserSso(id, { ssoProvider, ssoSubject, firmId }) {
   const sb = getSupabaseAdmin();
   const row = { updated_at: new Date().toISOString() };
   if (ssoProvider !== undefined) row.sso_provider = ssoProvider;
   if (ssoSubject !== undefined) row.sso_subject = ssoSubject;
-  const { data, error } = await sb.from('firm_users').update(row).eq('id', id).select().single();
+  let q = sb.from('firm_users').update(row).eq('id', id);
+  if (firmId) q = q.eq('firm_id', firmId);
+  const { data, error } = await q.select().single();
   if (error) throw error;
   return data;
 }
 
-async function updateFirmUserAuth(id, { refreshTokenHash, refreshTokenExpiresAt, passwordHash }) {
+async function updateFirmUserAuth(id, { refreshTokenHash, refreshTokenExpiresAt, passwordHash, firmId }) {
   const sb = getSupabaseAdmin();
   const row = {};
   if (refreshTokenHash !== undefined) row.refresh_token_hash = refreshTokenHash;
   if (refreshTokenExpiresAt !== undefined) row.refresh_token_expires_at = refreshTokenExpiresAt;
   if (passwordHash !== undefined) row.password_hash = passwordHash;
-  const { data, error } = await sb.from('firm_users').update(row).eq('id', id).select().single();
+  let q = sb.from('firm_users').update(row).eq('id', id);
+  if (firmId) q = q.eq('firm_id', firmId);
+  const { data, error } = await q.select().single();
   if (error) throw error;
   return data;
 }

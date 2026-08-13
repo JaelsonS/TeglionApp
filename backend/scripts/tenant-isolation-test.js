@@ -362,10 +362,24 @@ async function runApiTests(ctx) {
 }
 
 /**
- * Tabelas sem coluna firm_id própria (a própria tabela é a raiz do tenant,
- * ou não guarda dados por escritório) — não fazem sentido no scan abaixo.
+ * Tabelas sem coluna firm_id (ou cuja PK não é tenant-scoped): o scan de
+ * `.eq('id', …)` sem firm_id não se aplica — não são candidatos a IDOR multi-tenant.
  */
-const STATIC_AUDIT_TABLE_ALLOWLIST = new Set(['firms']);
+const STATIC_AUDIT_TABLE_ALLOWLIST = new Set([
+  'firms',
+  'auth_login_attempts',
+  'password_reset_tokens',
+  'email_confirmation_tokens',
+]);
+
+/**
+ * Entidades cujo ciclo de vida é “resolver por token → actualizar por PK”.
+ * O isolamento acontece na resolução do token (único, não adivinhável), não no update por id.
+ */
+const STATIC_AUDIT_TOKEN_ENTITY_TABLES = new Set([
+  'firm_member_invites',
+  'client_invites',
+]);
 
 /**
  * Heurística (não substitui os testes dinâmicos acima): para cada `.from('tabela')...eq('id', …)`
@@ -380,13 +394,18 @@ function findUnscopedIdLookups(content) {
   while ((match = fromRe.exec(content))) {
     const table = match[1];
     if (STATIC_AUDIT_TABLE_ALLOWLIST.has(table)) continue;
+    if (STATIC_AUDIT_TOKEN_ENTITY_TABLES.has(table)) continue;
     const chainStart = match.index;
     const terminatorIdx = content.indexOf(';', chainStart);
     const chainEnd = terminatorIdx === -1 ? Math.min(content.length, chainStart + 600) : terminatorIdx;
     const chain = content.slice(chainStart, chainEnd);
+    // Só o statement actual conta para `.eq('id'` — evita cruzar a função seguinte.
     const hasIdLookup = /\.eq\('id',/.test(chain);
-    const hasTenantScope = /\.eq\('firm_id',|\.eq\('client_id',/.test(chain);
-    if (hasIdLookup && !hasTenantScope) {
+    const hasTenantInChain = /\.eq\('firm_id',|\.eq\('client_id',/.test(chain);
+    // Padrão defense-in-depth: `let q = …eq('id'); if (firmId) q = q.eq('firm_id', firmId)`
+    const post = content.slice(chainEnd, Math.min(content.length, chainEnd + 180));
+    const hasTenantFollowup = /q\s*=\s*q\.eq\('(firm_id|client_id)'/.test(post);
+    if (hasIdLookup && !hasTenantInChain && !hasTenantFollowup) {
       const line = content.slice(0, chainStart).split('\n').length;
       findings.push({ table, line });
     }

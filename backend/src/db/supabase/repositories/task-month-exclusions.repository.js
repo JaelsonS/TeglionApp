@@ -51,6 +51,8 @@ async function upsertObligationExclusionSafe({ firmId, clientId, obligationId, m
       .from('task_month_exclusions')
       .update({ excluded: true, created_by: createdBy || null })
       .eq('id', existing.data.id)
+      .eq('firm_id', firmId)
+      .eq('client_id', clientId)
       .select()
       .single();
     if (error) throw error;

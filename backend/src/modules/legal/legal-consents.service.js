@@ -73,7 +73,7 @@ async function recordFirmOwnerConsent({ firmId, firmUserId, payload, ipAddress, 
   });
 
   const bundle = buildConsentBundle(LEGAL_VERSIONS);
-  await legalConsentsRepository.updateFirmUserConsentBundle(firmUserId, bundle);
+  await legalConsentsRepository.updateFirmUserConsentBundle(firmUserId, bundle, firmId);
 
   return { consent: row, versions: LEGAL_VERSIONS };
 }

@@ -111,11 +111,14 @@ async function getValidAccessToken(connection) {
     await googleCalendarConnectionsRepository.updateAccessToken(connection.id, {
       accessToken: tokens.access_token,
       tokenExpiresAt,
+      firmId: connection.firmId,
     });
     return tokens.access_token;
   } catch (err) {
     if (isInvalidGrantError(err) && connection.id) {
-      await googleCalendarConnectionsRepository.markNeedsReconnect(connection.id, err.message);
+      await googleCalendarConnectionsRepository.markNeedsReconnect(connection.id, err.message, {
+        firmId: connection.firmId,
+      });
     }
     throw err;
   }

@@ -300,8 +300,8 @@ async function markClientRead({ firmId, clientId, broadcastId, acknowledge = fal
     acknowledged: acknowledge || broadcast.readConfirmationRequired,
   });
 
-  if (!wasRead) await broadcastsRepository.incrementBroadcastCounters(broadcastId, { readDelta: 1 });
-  if (acknowledge && !wasAck) await broadcastsRepository.incrementBroadcastCounters(broadcastId, { ackDelta: 1 });
+  if (!wasRead) await broadcastsRepository.incrementBroadcastCounters(broadcastId, { readDelta: 1, firmId });
+  if (acknowledge && !wasAck) await broadcastsRepository.incrementBroadcastCounters(broadcastId, { ackDelta: 1, firmId });
 
   const sb = require('../../db/supabase/client').getSupabaseAdmin();
   await sb

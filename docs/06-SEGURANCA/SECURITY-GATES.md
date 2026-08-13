@@ -64,4 +64,16 @@ Isolamento efectivo de documentos no produto continua a passar pelo backend (`fi
 
 ### Nota de schema
 
-Produção tem tabelas extras das migrations de maio (`conversations`, `document_requests`, `task_recurring_rules`, `task_month_exclusions`) — todas com RLS ON. Staging baseline absorveu o equivalente sem reaplicar esses ficheiros; não é gap de segurança nas 4 tabelas acima.
+Produção tem tabelas extras das migrations de maio (`conversations`, `document_requests`, `task_recurring_rules`, `task_month_exclusions`) — todas com RLS ON. O baseline de staging **saltou** `20260522*` na Phase A; a parity migration `20260927030000_sprint0_architecture_debt_parity.sql` restaurou essas tabelas no staging. **Não** é tabela artificial: o código de mensagens/document-requests depende de `conversations` (`conversations.repository.js`).
+
+### Classificação dos 20 avisos estáticos `.eq('id', …)` (audit 2026-08-13)
+
+O scanner do tenant-isolation **não falha** o CI por estes avisos (`TENANT_ISOLATION_FAIL_ON_WARNINGS=false`). Classificação:
+
+| Classe | Tabelas / locais | Acção |
+|---|---|---|
+| Falso positivo / não-tenant | `auth_login_attempts`, `password_reset_tokens`, `email_confirmation_tokens` | Allowlist no scanner |
+| Token lifecycle (seguro) | `firm_member_invites`, `client_invites` | Allowlist — isolamento na resolução do token |
+| Call-site + endurecido | `clients`, `firm_users`, `firm_broadcasts`, `firm_google_calendar_connections`, `task_month_exclusions` | Queries passam a filtrar `firm_id` quando disponível |
+
+Após o endurecimento + allowlist: **0 avisos** no scan estático local.

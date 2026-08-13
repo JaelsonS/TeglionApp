@@ -146,8 +146,8 @@ async function createClientInvite({
     }
     assertStrongPassword(initialPassword);
     const passwordHash = await hashPassword(String(initialPassword));
-    await clientsRepository.updateClientAuth(clientId, { passwordHash });
-    await clientsRepository.updatePortalAccessStatus(clientId, 'ACTIVE');
+    await clientsRepository.updateClientAuth(clientId, { passwordHash, firmId });
+    await clientsRepository.updatePortalAccessStatus(clientId, 'ACTIVE', firmId);
 
     const firm = await firmsRepository.findFirmById(firmId).catch(() => null);
     const base = String(require('../../config/env').env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
@@ -200,7 +200,7 @@ async function createClientInvite({
   });
 
   if (clientId) {
-    await clientsRepository.updatePortalAccessStatus(clientId, 'PENDING_INVITE');
+    await clientsRepository.updatePortalAccessStatus(clientId, 'PENDING_INVITE', firmId);
   }
 
   const inviteUrl = buildInviteUrl(rawToken);
@@ -243,9 +243,9 @@ async function revokeClientAccess({ firmId: firmIdRaw, clientId, actor, req }) {
   if (!client) throw new AppError('Cliente não encontrado', 404);
 
   await invitesRepository.revokePendingInvitesForClient(firmId, clientId);
-  await clientsRepository.updatePortalAccessStatus(clientId, 'REVOKED');
+  await clientsRepository.updatePortalAccessStatus(clientId, 'REVOKED', firmId);
   // Força nova senha no próximo acesso: remove credencial sem apagar dados.
-  await clientsRepository.updateClientAuth(clientId, { passwordHash: null });
+  await clientsRepository.updateClientAuth(clientId, { passwordHash: null, firmId });
   await authRefreshSessionsRepository.deleteAllForActor('client', clientId);
 
   await securityAudit.recordClientMutation({
@@ -285,7 +285,7 @@ async function resendClientInvite({ firmId: firmIdRaw, clientId, actor, req }) {
     expiresAt,
     createdBy: actor?.id || null,
   });
-  await clientsRepository.updatePortalAccessStatus(clientId, 'PENDING_INVITE');
+  await clientsRepository.updatePortalAccessStatus(clientId, 'PENDING_INVITE', firmId);
 
   const inviteUrl = buildInviteUrl(rawToken);
   const delivery = await sendInviteEmail({
@@ -349,7 +349,7 @@ async function createBulkClientInvites({ firmId: firmIdRaw, clientIds, actor, re
           expiresAt,
           createdBy: actor?.id || null,
         });
-        await clientsRepository.updatePortalAccessStatus(client.id, 'PENDING_INVITE');
+        await clientsRepository.updatePortalAccessStatus(client.id, 'PENDING_INVITE', firmId);
         results.pending += 1;
 
         const inviteUrl = buildInviteUrl(rawToken);
@@ -443,17 +443,20 @@ async function registerClientWithInvite({ token, email, password, fullName, req 
 
   const passwordHash = await hashPassword(String(password));
   let clientId = invite.client_id;
+  const inviteFirmId = invite.firm_id;
 
   if (clientId) {
-    await clientsRepository.updateClientAuth(clientId, { passwordHash });
-    const row = await clientsRepository.getClientRowById(clientId);
-    if (row) {
-      const sb = require('../../db/supabase/client').getSupabaseAdmin();
-      await sb
-        .from('clients')
-        .update({ display_name: name, email: normalizedEmail, link_status: 'APPROVED' })
-        .eq('id', clientId);
-    }
+    await clientsRepository.updateClientAuth(clientId, { passwordHash, firmId: inviteFirmId });
+    await clientsRepository.updateClient(clientId, inviteFirmId, {
+      displayName: name,
+      email: normalizedEmail,
+    });
+    const sb = require('../../db/supabase/client').getSupabaseAdmin();
+    await sb
+      .from('clients')
+      .update({ link_status: 'APPROVED' })
+      .eq('id', clientId)
+      .eq('firm_id', inviteFirmId);
   } else {
     const created = await clientsRepository.createClient({
       firmId: invite.firm_id,
@@ -461,10 +464,10 @@ async function registerClientWithInvite({ token, email, password, fullName, req 
       email: normalizedEmail,
     });
     clientId = created.id;
-    await clientsRepository.updateClientAuth(clientId, { passwordHash });
+    await clientsRepository.updateClientAuth(clientId, { passwordHash, firmId: inviteFirmId });
   }
 
-  await clientsRepository.updatePortalAccessStatus(clientId, 'ACTIVE');
+  await clientsRepository.updatePortalAccessStatus(clientId, 'ACTIVE', inviteFirmId);
   await invitesRepository.markInviteAccepted(invite.id, clientId);
 
   const firm = await firmsRepository.findFirmById(invite.firm_id).catch(() => null);

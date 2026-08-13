@@ -78,9 +78,9 @@ async function upsertConnection({
   return map(data);
 }
 
-async function updateAccessToken(id, { accessToken, tokenExpiresAt }) {
+async function updateAccessToken(id, { accessToken, tokenExpiresAt, firmId }) {
   const sb = getSupabaseAdmin();
-  const { data, error } = await sb
+  let q = sb
     .from('firm_google_calendar_connections')
     .update({
       access_token_enc: encryptField(accessToken),
@@ -90,16 +90,16 @@ async function updateAccessToken(id, { accessToken, tokenExpiresAt }) {
       last_auth_check_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
-    .eq('id', id)
-    .select()
-    .maybeSingle();
+    .eq('id', id);
+  if (firmId) q = q.eq('firm_id', firmId);
+  const { data, error } = await q.select().maybeSingle();
   if (error) throw error;
   return map(data);
 }
 
-async function markNeedsReconnect(id, errorMessage) {
+async function markNeedsReconnect(id, errorMessage, { firmId } = {}) {
   const sb = getSupabaseAdmin();
-  const { data, error } = await sb
+  let q = sb
     .from('firm_google_calendar_connections')
     .update({
       auth_status: 'needs_reconnect',
@@ -107,9 +107,9 @@ async function markNeedsReconnect(id, errorMessage) {
       last_auth_check_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
-    .eq('id', id)
-    .select()
-    .maybeSingle();
+    .eq('id', id);
+  if (firmId) q = q.eq('firm_id', firmId);
+  const { data, error } = await q.select().maybeSingle();
   if (error) throw error;
   return map(data);
 }

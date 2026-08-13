@@ -117,6 +117,7 @@ async function issueTokensForFirmUser(row) {
   await firmUsersRepository.updateFirmUserAuth(row.id, {
     refreshTokenHash: null,
     refreshTokenExpiresAt: null,
+    firmId: row.firm_id,
   });
   const publicUser = await toPublicAuthUser(user);
   return { user: publicUser, tokens: { accessToken, refreshToken: refresh.token } };
@@ -141,8 +142,9 @@ async function issueTokensForClient(row) {
   await clientsRepository.updateClientAuth(row.id, {
     refreshTokenHash: null,
     refreshTokenExpiresAt: null,
+    firmId: row.firm_id,
   });
-  await clientsRepository.touchClientLogin(row.id).catch(() => { });
+  await clientsRepository.touchClientLogin(row.id, row.firm_id).catch(() => { });
   const publicUser = await toPublicAuthUser(user);
   return { user: publicUser, tokens: { accessToken, refreshToken: refresh.token } };
 }
@@ -373,6 +375,7 @@ async function loginFirmBySso({ email, req, provider = 'google', googleSub }) {
     await firmUsersRepository.updateFirmUserSso(row.id, {
       ssoProvider: provider,
       ssoSubject: googleSub,
+      firmId: row.firm_id,
     });
   }
   const firm = await firmsRepository.findFirmById(row.firm_id);

@@ -169,7 +169,9 @@ test('createClientInvite: marca portal_access_status como PENDING_INVITE quando 
   await invitesService.createClientInvite({ firmId: 'firm-1', clientId: 'client-1', actor: null, req: null });
 
   assert.equal(updateStatus.mock.callCount(), 1);
-  assert.deepEqual(updateStatus.mock.calls[0].arguments, ['client-1', 'PENDING_INVITE']);
+  assert.equal(updateStatus.mock.calls[0].arguments[0], 'client-1');
+  assert.equal(updateStatus.mock.calls[0].arguments[1], 'PENDING_INVITE');
+  assert.equal(updateStatus.mock.calls[0].arguments[2], 'firm-1');
 });
 
 test('createClientInvite: regista auditoria client.invite.sent', async () => {
@@ -220,8 +222,12 @@ test('revokeClientAccess: revoga convites pendentes, marca REVOKED e corta sess�
 
   assert.deepEqual(result, { revoked: true });
   assert.deepEqual(revokeInvites.mock.calls[0].arguments, ['firm-1', 'client-2']);
-  assert.deepEqual(updateStatus.mock.calls[0].arguments, ['client-2', 'REVOKED']);
-  assert.deepEqual(clearPassword.mock.calls[0].arguments, ['client-2', { passwordHash: null }]);
+  assert.equal(updateStatus.mock.calls[0].arguments[0], 'client-2');
+  assert.equal(updateStatus.mock.calls[0].arguments[1], 'REVOKED');
+  assert.equal(updateStatus.mock.calls[0].arguments[2], 'firm-1');
+  assert.equal(clearPassword.mock.calls[0].arguments[0], 'client-2');
+  assert.equal(clearPassword.mock.calls[0].arguments[1].passwordHash, null);
+  assert.equal(clearPassword.mock.calls[0].arguments[1].firmId, 'firm-1');
   assert.deepEqual(deleteSessions.mock.calls[0].arguments, ['client', 'client-2']);
   assert.equal(updateClient.mock.callCount(), 0);
   assert.equal(audit.mock.calls[0].arguments[0].action, 'client.access.revoked');
@@ -260,7 +266,9 @@ test('resendClientInvite: revoga convites pendentes antes de emitir um novo e re
   await invitesService.resendClientInvite({ firmId: 'firm-1', clientId: 'client-2', actor: null, req: null });
 
   assert.equal(revokeInvites.mock.callCount(), 1);
-  assert.deepEqual(updateStatus.mock.calls[0].arguments, ['client-2', 'PENDING_INVITE']);
+  assert.equal(updateStatus.mock.calls[0].arguments[0], 'client-2');
+  assert.equal(updateStatus.mock.calls[0].arguments[1], 'PENDING_INVITE');
+  assert.equal(updateStatus.mock.calls[0].arguments[2], 'firm-1');
 });
 
 test('resendClientInvite: novo token é diferente do anterior e também gravado como hash', async () => {
@@ -488,7 +496,7 @@ test('registerClientWithInvite: cliente novo (sem client_id prévio) fica ACTIVE
   });
 
   assert.equal(result.clientId, 'client-novo');
-  assert.deepEqual(updateStatus.mock.calls[0].arguments, ['client-novo', 'ACTIVE']);
+  assert.deepEqual(updateStatus.mock.calls[0].arguments, ['client-novo', 'ACTIVE', 'firm-1']);
 });
 
 test('registerClientWithInvite: cliente pré-existente (revogado e reemitido) volta a ficar ACTIVE, preservando o mesmo client_id', async () => {
@@ -503,8 +511,10 @@ test('registerClientWithInvite: cliente pré-existente (revogado e reemitido) vo
   }));
   mock.method(clientsRepository, 'findClientsByEmail', async () => []);
   mock.method(clientsRepository, 'updateClientAuth', async () => {});
-  mock.method(clientsRepository, 'getClientRowById', async () => ({ id: 'client-2' }));
-  const stubSb = { from: () => ({ update: () => ({ eq: async () => ({ data: null, error: null }) }) }) };
+  mock.method(clientsRepository, 'updateClient', async () => ({ id: 'client-2' }));
+  const eq2 = async () => ({ data: null, error: null });
+  const eq1 = () => ({ eq: eq2 });
+  const stubSb = { from: () => ({ update: () => ({ eq: eq1 }) }) };
   mock.method(supabaseClient, 'getSupabaseAdmin', () => stubSb);
   const updateStatus = mock.method(clientsRepository, 'updatePortalAccessStatus', async () => {});
   mock.method(invitesRepository, 'markInviteAccepted', async () => {});
@@ -517,5 +527,5 @@ test('registerClientWithInvite: cliente pré-existente (revogado e reemitido) vo
   });
 
   assert.equal(result.clientId, 'client-2'); // mesmo id — nunca cria um cliente duplicado
-  assert.deepEqual(updateStatus.mock.calls[0].arguments, ['client-2', 'ACTIVE']);
+  assert.deepEqual(updateStatus.mock.calls[0].arguments, ['client-2', 'ACTIVE', 'firm-1']);
 });

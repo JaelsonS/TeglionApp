@@ -40,12 +40,14 @@ async function countClients(firmId, { includeInactive = false } = {}) {
   return count ?? 0;
 }
 
-async function touchClientLogin(clientId) {
+async function touchClientLogin(clientId, firmId = null) {
   const sb = getSupabaseAdmin();
-  const { error } = await sb
+  let q = sb
     .from('clients')
     .update({ last_login_at: new Date().toISOString() })
     .eq('id', clientId);
+  if (firmId) q = q.eq('firm_id', firmId);
+  const { error } = await q;
   if (error) throw error;
 }
 
@@ -163,28 +165,34 @@ async function createClient({ firmId, displayName, email, phone, taxId, metadata
   return mapClient(data);
 }
 
-async function updateClientAuth(clientId, { passwordHash, refreshTokenHash, refreshTokenExpiresAt }) {
+async function updateClientAuth(clientId, { passwordHash, refreshTokenHash, refreshTokenExpiresAt, firmId }) {
   const sb = getSupabaseAdmin();
   const row = {};
   if (passwordHash !== undefined) row.password_hash = passwordHash;
   if (refreshTokenHash !== undefined) row.refresh_token_hash = refreshTokenHash;
   if (refreshTokenExpiresAt !== undefined) row.refresh_token_expires_at = refreshTokenExpiresAt;
-  const { data, error } = await sb.from('clients').update(row).eq('id', clientId).select().single();
+  let q = sb.from('clients').update(row).eq('id', clientId);
+  if (firmId) q = q.eq('firm_id', firmId);
+  const { data, error } = await q.select().single();
   if (error) throw error;
   return mapClient(data);
 }
 
-async function getClientRowById(clientId) {
+async function getClientRowById(clientId, firmId = null) {
   const sb = getSupabaseAdmin();
-  const { data, error } = await sb.from('clients').select('*').eq('id', clientId).maybeSingle();
+  let q = sb.from('clients').select('*').eq('id', clientId);
+  if (firmId) q = q.eq('firm_id', firmId);
+  const { data, error } = await q.maybeSingle();
   if (error) throw error;
   return data;
 }
 
 /** Estado explícito de acesso ao portal — independente de `status` (que controla se o cliente aparece na carteira). */
-async function updatePortalAccessStatus(clientId, portalAccessStatus) {
+async function updatePortalAccessStatus(clientId, portalAccessStatus, firmId = null) {
   const sb = getSupabaseAdmin();
-  const { error } = await sb.from('clients').update({ portal_access_status: portalAccessStatus }).eq('id', clientId);
+  let q = sb.from('clients').update({ portal_access_status: portalAccessStatus }).eq('id', clientId);
+  if (firmId) q = q.eq('firm_id', firmId);
+  const { error } = await q;
   if (error) throw error;
 }
 

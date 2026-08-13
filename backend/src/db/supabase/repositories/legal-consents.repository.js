@@ -42,12 +42,14 @@ async function listByFirmUser(firmUserId, { limit = 20 } = {}) {
   return (data || []).map(mapRow);
 }
 
-async function updateFirmUserConsentBundle(firmUserId, bundle) {
+async function updateFirmUserConsentBundle(firmUserId, bundle, firmId = null) {
   const sb = getSupabaseAdmin();
-  const { error } = await sb
+  let q = sb
     .from('firm_users')
     .update({ legal_consent_bundle: bundle, updated_at: new Date().toISOString() })
     .eq('id', firmUserId);
+  if (firmId) q = q.eq('firm_id', firmId);
+  const { error } = await q;
   if (error) throw error;
 }
 

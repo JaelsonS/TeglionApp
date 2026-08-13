@@ -216,15 +216,19 @@ async function markRead(broadcastId, clientId, { acknowledged = false } = {}) {
   return data;
 }
 
-async function incrementBroadcastCounters(broadcastId, { readDelta = 0, ackDelta = 0 }) {
+async function incrementBroadcastCounters(broadcastId, { readDelta = 0, ackDelta = 0, firmId } = {}) {
   if (!readDelta && !ackDelta) return;
   const sb = getSupabaseAdmin();
-  const { data: current } = await sb.from('firm_broadcasts').select('read_count, ack_count').eq('id', broadcastId).single();
+  let q = sb.from('firm_broadcasts').select('read_count, ack_count').eq('id', broadcastId);
+  if (firmId) q = q.eq('firm_id', firmId);
+  const { data: current } = await q.single();
   if (!current) return;
   const patch = {};
   if (readDelta) patch.read_count = (current.read_count || 0) + readDelta;
   if (ackDelta) patch.ack_count = (current.ack_count || 0) + ackDelta;
-  await sb.from('firm_broadcasts').update(patch).eq('id', broadcastId);
+  q = sb.from('firm_broadcasts').update(patch).eq('id', broadcastId);
+  if (firmId) q = q.eq('firm_id', firmId);
+  await q;
 }
 
 async function listReadsForAnalytics(broadcastId) {

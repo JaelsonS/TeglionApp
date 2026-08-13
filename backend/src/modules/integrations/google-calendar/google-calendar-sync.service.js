@@ -217,7 +217,9 @@ async function syncConsultationToGoogle({ firmId, consultation, requesterName, t
             consultation.staffId,
           );
           if (connection?.id) {
-            await googleCalendarConnectionsRepository.markNeedsReconnect(connection.id, err.message);
+            await googleCalendarConnectionsRepository.markNeedsReconnect(connection.id, err.message, {
+              firmId,
+            });
           }
         }
         await markSync(firmId, consultation.id, {
