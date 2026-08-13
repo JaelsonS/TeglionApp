@@ -62,9 +62,10 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
           'fixed z-40 flex h-12 w-12 items-center justify-center overflow-hidden rounded-full',
           'border border-brand/20 bg-card shadow-[var(--cb-shadow-elevated)]',
           'transition hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2',
-          /* Mobile: acima da bottom nav + safe area; desktop: canto inferior direito */
+          /* Mobile (<768): acima da bottom nav + safe area */
           'bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] right-[max(1rem,env(safe-area-inset-right,0px))]',
-          'xl:bottom-6 xl:right-6',
+          /* Tablet + desktop (≥768): canto inferior — sem bottom nav */
+          'md:bottom-6 md:right-6',
           className,
         )}
         aria-label="Abrir Maya, assistente virtual do Teglion"
