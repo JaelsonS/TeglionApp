@@ -9,11 +9,10 @@
 
 ## FASE 1B — Design System + UX Foundation
 
-**STATUS:** fundação concluída (migração progressiva)
+**STATUS:** **CLOSED** (fecho 1B.1)
 
 Ver `docs/02-ROADMAP/PHASE-1B.md`.
 
 ### Próximo passo
 
-**FASE 1C** — Onboarding + Dashboard + Empty States (aprofundamento)  
-ou residual 1B (Agenda/Messages + tablet rail em 1E).
+**FASE 1C** — Onboarding + Dashboard “próximo passo” + empty states restantes
