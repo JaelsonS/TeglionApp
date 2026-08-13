@@ -40,17 +40,29 @@ export function getApiUploadsRoot(): string {
 }
 
 /**
- * Domínios finais servidos por este projecto Vercel, que reescreve `/api/*` para o
- * backend (Render) no servidor — o browser nunca navega directamente para o
- * *.onrender.com, evitando a tela de "spin up" da Render (não personalizável).
+ * Domínios de PRODUÇÃO neste projecto Vercel — reescrevem `/api/*` para Render prod.
+ * Nunca incluir staging aqui: o rewrite de `vercel.json` aponta para produção.
  */
 const SAME_ORIGIN_HOSTS = ['teglion.com', 'www.teglion.com', 'app.teglion.com']
+const STAGING_API_BASE = 'https://teglion-api-staging.onrender.com/api'
 
-export function getGoogleAuthStartUrl(options?: { intent?: 'login' | 'register'; countryCode?: string }): string {
+function isStagingFrontendHost(host: string): boolean {
+  if (!host) return false
+  if (host === 'staging.teglion.com' || host === 'www.staging.teglion.com') return true
+  return host.endsWith('.vercel.app') && host.includes('staging')
+}
+
+/** Base URL for full-page navigations (Google OAuth / Calendar) — must not use staging→prod rewrite. */
+function resolveNavigationApiBase(): string {
   const isBrowser = typeof window !== 'undefined'
   const host = isBrowser ? String(window.location.hostname || '').toLowerCase() : ''
-  const useSameOrigin = SAME_ORIGIN_HOSTS.includes(host)
-  const base = (useSameOrigin ? `${window.location.origin}/api` : getApiBaseUrlResolved()).replace(/\/$/, '')
+  if (isStagingFrontendHost(host)) return STAGING_API_BASE
+  if (SAME_ORIGIN_HOSTS.includes(host)) return `${window.location.origin}/api`
+  return getApiBaseUrlResolved()
+}
+
+export function getGoogleAuthStartUrl(options?: { intent?: 'login' | 'register'; countryCode?: string }): string {
+  const base = resolveNavigationApiBase().replace(/\/$/, '')
   const params = new URLSearchParams()
   if (options?.intent === 'register') params.set('intent', 'register')
   if (options?.countryCode) params.set('countryCode', options.countryCode)
@@ -61,10 +73,7 @@ export function getGoogleAuthStartUrl(options?: { intent?: 'login' | 'register';
 /** URL de navegação de página inteira (não XHR) para ligar o Google Calendar — mesma
  * resolução de origem que getGoogleAuthStartUrl(), rota autenticada (Fase Ha). */
 export function getGoogleCalendarConnectUrl(): string {
-  const isBrowser = typeof window !== 'undefined'
-  const host = isBrowser ? String(window.location.hostname || '').toLowerCase() : ''
-  const useSameOrigin = SAME_ORIGIN_HOSTS.includes(host)
-  const base = (useSameOrigin ? `${window.location.origin}/api` : getApiBaseUrlResolved()).replace(/\/$/, '')
+  const base = resolveNavigationApiBase().replace(/\/$/, '')
   return `${base}/contabil/integrations/google-calendar/connect`
 }
 

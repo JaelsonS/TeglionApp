@@ -49,7 +49,12 @@ Duplicar o Web Service de produção com nome `teglion-api-staging`:
 |----------|----------------|
 | `NODE_ENV` | `production` |
 | `PRODUCT_MODE` | `contabil` |
-| `FRONTEND_URL` | `https://staging.teglion.com` |
+| `FRONTEND_URL` | `https://staging.teglion.com` (https, nunca http) |
+| `PUBLIC_API_URL` | `https://teglion-api-staging.onrender.com` |
+| `GOOGLE_OAUTH_REDIRECT_URI` | `https://teglion-api-staging.onrender.com/api/auth/google/callback` — **nunca** `staging.teglion.com/api/...` (o rewrite Vercel manda isso para **prod**) |
+| `GOOGLE_CALENDAR_REDIRECT_URI` | `https://teglion-api-staging.onrender.com/api/contabil/integrations/google-calendar/callback` |
+| `COOKIE_DOMAIN` | vazio (API em `*.onrender.com`; não uses `.teglion.com`) |
+| `TURNSTILE_EXPECTED_HOSTNAMES` | `staging.teglion.com` |
 | `PUBLIC_API_URL` | `https://teglion-api-staging.onrender.com` |
 | `CORS_ORIGINS` | `https://staging.teglion.com` |
 | `COOKIE_SECURE` | `true` |
