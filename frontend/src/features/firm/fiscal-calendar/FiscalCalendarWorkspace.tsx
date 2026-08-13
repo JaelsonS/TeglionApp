@@ -17,6 +17,7 @@ import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import { FiscalCalendarConfigDialog } from '@/features/firm/fiscal-calendar/FiscalCalendarConfigDialog'
 import { FiscalCalendarDetailSheet } from '@/features/firm/fiscal-calendar/FiscalCalendarDetailSheet'
+import { AskMayaButton } from '@/features/maya'
 import {
   buildEventPayload,
   FiscalEventFormDialog,
@@ -40,7 +41,6 @@ import type { FirmFiscalEvent } from '@/infrastructure/api/contabil/fiscalCalend
 import { CalendarMonthGrid, todayCivil } from '@/shared/calendar'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
-import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
 import { useFirmBranding } from '@/shared/hooks/useFirmBranding'
 import { cn } from '@/shared/lib/utils'
 import type { Client } from '@/shared/types/clients'
@@ -241,16 +241,7 @@ export function FiscalCalendarWorkspace() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <ModuleHelpDialog
-              title="Calendário Fiscal"
-              intro="Organize os prazos fiscais do escritório: crie eventos, categorias e importe o modelo Portugal."
-              triggerLabel="Guia"
-              steps={[
-                { title: 'Importar ou criar', description: 'Comece com o modelo Portugal ou adicione os seus próprios eventos.' },
-                { title: 'Recorrência', description: 'Configure eventos mensais, trimestrais ou anuais e edite só uma ocorrência quando precisar.' },
-                { title: 'Configurar', description: 'Defina categorias, cores e a vista predefinida do calendário.' },
-              ]}
-            />
+            <AskMayaButton intentId="fiscal-calendar" />
             <Button type="button" variant="outline" size="sm" className="gap-1.5" onClick={() => setConfigOpen(true)}>
               <Settings2 className="h-4 w-4" />
               Configurar

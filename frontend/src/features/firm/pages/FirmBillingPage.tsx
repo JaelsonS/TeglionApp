@@ -10,6 +10,7 @@ import { BILLING_STATUS_QUERY_KEY } from '@/infrastructure/api/contabil/billing'
 import { contabilBillingApi, type BillingStatus } from '@/infrastructure/api'
 import { Button } from '@/shared/components/ui/button'
 import { PageHeader, PageLoading } from '@/shared/design-system'
+import { AskMayaButton } from '@/features/maya'
 import { useApiToast } from '@/shared/hooks/useApiToast'
 import { cn } from '@/shared/lib/utils'
 import { PRICING_FALLBACK, formatEurCents } from '@/shared/config/pricingConstants'
@@ -94,6 +95,7 @@ export function FirmBillingPage() {
           title="Plano e subscrição"
           subtitle={`${trialDays} dias de teste · depois mensal (${monthlyLabel}) ou anual (${yearlyLabel} — ~${yearlyMonthlyLabel}/mês). Sem alteração à lógica de pagamento.`}
           testId="firm-billing-header"
+          secondary={<AskMayaButton intentId="billing" />}
         />
 
         {isLoading ? <PageLoading label="A carregar o plano…" /> : null}

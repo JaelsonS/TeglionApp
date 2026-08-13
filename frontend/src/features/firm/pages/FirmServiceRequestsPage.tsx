@@ -1,16 +1,15 @@
 import { Navigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ExternalLink, HelpCircle } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 
 import { ServicesWorkspace } from '@/features/firm/services/ServicesWorkspace'
 import { ServiceInquiriesWorkspace } from '@/features/firm/services/ServiceInquiriesWorkspace'
 import { ServicesCatalogWorkspace } from '@/features/firm/services/ServicesCatalogWorkspace'
 import { countServicePublishStats } from '@/features/firm/services/servicePublishState'
 import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
+import { AskMayaButton } from '@/features/maya'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
-import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
 import { Button } from '@/shared/components/ui/button'
-import { openMaya } from '@/features/maya/openMaya'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { contabilAccountingServicesApi, contabilServiceInquiriesApi } from '@/infrastructure/api'
 import { cn } from '@/shared/lib/utils'
@@ -40,73 +39,6 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id']
 
-const HELP_BY_TAB: Record<
-  TabId,
-  { title: string; intro: string; steps: { title: string; description: string }[] }
-> = {
-  catalog: {
-    title: 'Como funcionam os serviços',
-    intro:
-      'Os serviços são o que o escritório oferece. Crie ou active um modelo, configure e publique na página pública. Os pedidos públicos aparecem em Solicitações; a Central é só para clientes na app. O IRS tem ecrã próprio.',
-    steps: [
-      {
-        title: '1. Criar ou activar',
-        description: 'Use um modelo Teglion ou «Adicionar serviço» para criar do zero.',
-      },
-      {
-        title: '2. Configurar',
-        description: 'Defina nome, preço, formulário e se exige marcação.',
-      },
-      {
-        title: '3. Publicar',
-        description: 'No editor, em Publicação, marque «Aparece na página pública» e defina o endereço (slug).',
-      },
-      {
-        title: '4. Receber pedidos',
-        description: 'Quando alguém solicita na página, o pedido chega ao separador Solicitações.',
-      },
-    ],
-  },
-  inquiries: {
-    title: 'Onde tratar pedidos da página pública',
-    intro:
-      'Solicitações = leads e pedidos da página pública. A Central é outro sítio: só clientes já na app. Se o pedido veio do site, trate-o aqui.',
-    steps: [
-      {
-        title: 'Abrir um pedido',
-        description: 'Veja contacto, respostas do formulário e histórico.',
-      },
-      {
-        title: 'Actualizar o estado',
-        description: 'Marque contactado, peça documentos ou conclua.',
-      },
-      {
-        title: 'Se não há pedidos',
-        description: 'Confirme que tem pelo menos um serviço publicado e partilhe a página pública.',
-      },
-    ],
-  },
-  central: {
-    title: 'Central vs Solicitações',
-    intro:
-      'A Central trata pedidos de clientes com acesso ao portal/app. Captação de novos contactos pela página pública fica sempre em Solicitações.',
-    steps: [
-      {
-        title: 'Ver pedidos internos',
-        description: 'Acompanhe pedidos feitos por clientes da carteira.',
-      },
-      {
-        title: 'Orçamentos e estados',
-        description: 'Avance o pipeline (orçamento, aprovação, conclusão) conforme o fluxo do serviço.',
-      },
-      {
-        title: 'Pedido veio do site?',
-        description: 'Abra o separador Solicitações — não a Central.',
-      },
-    ],
-  },
-}
-
 function isIrsService(s: { name: string; catalogKey?: string | null; category?: string }) {
   if (s.category === 'IRS') return true
   const blob = `${s.name} ${s.catalogKey || ''}`
@@ -122,7 +54,6 @@ export function FirmServiceRequestsPage() {
 
   const activeTab: TabId = rawTab === 'central' || rawTab === 'inquiries' ? rawTab : 'catalog'
   const activeMeta = TABS.find((t) => t.id === activeTab) ?? TABS[0]
-  const help = HELP_BY_TAB[activeTab]
 
   const qc = useQueryClient()
   const servicesQuery = useQuery({
@@ -154,11 +85,7 @@ export function FirmServiceRequestsPage() {
         subtitle={activeMeta.subtitle}
         headerRight={
           <div className="flex flex-wrap items-center gap-2">
-            <ModuleHelpDialog title={help.title} intro={help.intro} triggerLabel="Guia" steps={help.steps} />
-            <Button type="button" size="sm" variant="outline" onClick={() => openMaya('service')}>
-              <HelpCircle className="h-4 w-4" />
-              Ajuda
-            </Button>
+            <AskMayaButton intentId={activeTab === 'inquiries' || activeTab === 'central' ? 'requests' : 'service'} />
             {publicUrl ? (
               <Button type="button" size="sm" variant="outline" asChild>
                 <a href={publicUrl} target="_blank" rel="noopener noreferrer">

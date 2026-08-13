@@ -28,7 +28,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog'
-import { ModuleHelpDialog, PageHeader } from '@/shared/design-system'
+import { AskMayaButton } from '@/features/maya'
+import { PageHeader } from '@/shared/design-system'
 import { cn } from '@/shared/lib/utils'
 import { contabilConsultationsApi, contabilClientsApi, contabilFirmApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -245,25 +246,7 @@ export function AgendaWorkspace() {
             subtitle="Marque reuniões, configure disponibilidade e sincronize com o Google Calendar — sem alterar o fluxo de booking."
             testId="firm-agenda-header"
             secondary={
-              <ModuleHelpDialog
-                title="Agenda"
-                intro="Organize reuniões, chamadas e eventos da equipa. Pode sincronizar com o Google Calendar nas definições."
-                triggerLabel="Guia"
-                steps={[
-                  {
-                    title: 'Criar evento',
-                    description: 'Use Novo evento para marcar reuniões com clientes ou internos.',
-                  },
-                  {
-                    title: 'Navegar o calendário',
-                    description: 'Alterne dia, semana ou mês e use Hoje para voltar à data actual.',
-                  },
-                  {
-                    title: 'Definições',
-                    description: 'Configure disponibilidade, serviços de marcação e integração Google.',
-                  },
-                ]}
-              />
+              <AskMayaButton intentId="agenda" />
             }
             right={
               <>

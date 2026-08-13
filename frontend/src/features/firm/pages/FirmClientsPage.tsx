@@ -33,7 +33,8 @@ import { FirmClientBulkInviteDialog } from '@/features/firm/components/FirmClien
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
-import { ModuleHelpDialog, EmptyState, PageHeader } from '@/shared/design-system'
+import { AskMayaButton } from '@/features/maya'
+import { EmptyState, PageHeader } from '@/shared/design-system'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -249,25 +250,7 @@ export function FirmClientsPage() {
             }
             testId="firm-clients-header"
             secondary={
-              <ModuleHelpDialog
-                title="Clientes"
-                intro="Aqui gere a carteira do escritório: cadastro, hub de cada empresa e acesso ao portal Teglion."
-                triggerLabel="Guia"
-                steps={[
-                  {
-                    title: 'Criar ou abrir um cliente',
-                    description: 'Use Novo cliente ou abra o hub para ver documentos, tarefas e acesso.',
-                  },
-                  {
-                    title: 'Convidar ao portal',
-                    description: 'Seleccione um ou vários clientes e envie convite por email ou copie o link.',
-                  },
-                  {
-                    title: 'Gerir acesso',
-                    description: 'Revogue, reemita ou acompanhe o estado de acesso sem perder dados do cliente.',
-                  },
-                ]}
-              />
+              <AskMayaButton intentId="clients" />
             }
             right={
               <Button size="sm" variant="primary" onClick={() => setOpenCreate(true)}>

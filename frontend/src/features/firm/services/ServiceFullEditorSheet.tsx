@@ -7,7 +7,6 @@ import {
   ExternalLink,
   FileQuestion,
   Globe,
-  HelpCircle,
   ImageIcon,
   Info,
   Loader2,
@@ -23,7 +22,7 @@ import {
   type ServicePaymentMethodId,
 } from '@/features/firm/services/ServicePaymentMethodsPanel'
 import { getServicePublishPresentation } from '@/features/firm/services/servicePublishState'
-import { openMaya } from '@/features/maya/openMaya'
+import { AskMayaButton } from '@/features/maya'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -561,10 +560,7 @@ export function ServiceFullEditorSheet({
                   Configure o que oferece, como o cliente solicita, e publique na página pública.
                 </p>
               </div>
-              <Button type="button" size="sm" variant="outline" onClick={() => openMaya('service')}>
-                <HelpCircle className="h-4 w-4" />
-                Precisa de ajuda?
-              </Button>
+              <AskMayaButton intentId="service" />
             </div>
             <p
               className={cn(

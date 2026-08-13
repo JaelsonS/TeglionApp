@@ -1,16 +1,15 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, ExternalLink, Eye, HelpCircle, Landmark, Loader2, Plus, Search } from 'lucide-react'
+import { CheckCircle2, ExternalLink, Eye, Landmark, Loader2, Plus, Search } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
 import { IrsModelo3EditorSheet, isModelo3Service } from '@/features/firm/services/IrsModelo3EditorSheet'
 import { ServiceFullEditorSheet } from '@/features/firm/services/ServiceFullEditorSheet'
 import { getServicePublishPresentation } from '@/features/firm/services/servicePublishState'
-import { openMaya } from '@/features/maya/openMaya'
+import { AskMayaButton } from '@/features/maya'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
-import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
 import { EmptyState } from '@/shared/design-system'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -153,29 +152,7 @@ export function FirmIrsPage() {
         subtitle="Divulgue o apoio à entrega do IRS e receba pedidos — o Teglion não calcula o imposto."
         headerRight={
           <div className="flex flex-wrap items-center gap-2">
-            <ModuleHelpDialog
-              title="Campanha IRS no Teglion"
-              intro="Configure serviços IRS, publique-os na página pública e trate os pedidos em Solicitações. Não é software de cálculo fiscal."
-              triggerLabel="Guia"
-              steps={[
-                {
-                  title: '1. Configurar campanha',
-                  description: 'Active um modelo (ex.: Modelo 3) ou crie um serviço IRS.',
-                },
-                {
-                  title: '2. Publicar',
-                  description: 'No editor completo, marque publicação e defina o slug.',
-                },
-                {
-                  title: '3. Ver página e pedidos',
-                  description: 'Partilhe a página pública; novos contactos chegam a Serviços → Solicitações.',
-                },
-              ]}
-            />
-            <Button type="button" size="sm" variant="outline" onClick={() => openMaya('irs-campaign')}>
-              <HelpCircle className="h-4 w-4" />
-              Ajuda
-            </Button>
+            <AskMayaButton intentId="irs-campaign" />
             <Button type="button" size="sm" variant="outline" asChild>
               <Link to="/app/firm/services?tab=inquiries">Ver pedidos</Link>
             </Button>
