@@ -10,7 +10,7 @@ import { DocumentRequestDetailPanel } from '@/features/firm/documents/DocumentRe
 import { normalizeRequestStatus } from '@/features/firm/documents/documentRequestStatus'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
-import { FirmSplitView } from '@/shared/design-system'
+import { FirmSplitView, EmptyState } from '@/shared/design-system'
 import { useFirmInbox } from '@/shared/hooks/queries/useFirmInbox'
 import { contabilMessagesApi } from '@/infrastructure/api'
 import { emitAppDataChanged, onAppDataChanged } from '@/shared/utils/appEvents'
@@ -199,13 +199,22 @@ export function FormalRequestsModule() {
           ))}
         </div>
       ) : filteredRequests.length === 0 ? (
-        <div className="cb-empty-state m-3 p-4 text-center">
-          <Inbox className="mx-auto mb-2 h-8 w-8 text-muted-foreground/40" />
-          <p className="text-sm font-medium">Nenhum pedido neste filtro</p>
-          <Button className="mt-2 h-8 rounded-lg" size="sm" onClick={() => setComposeOpen(true)}>
-            Criar pedido formal
-          </Button>
-        </div>
+        <EmptyState
+          className="m-3"
+          icon={Inbox}
+          title={requests.length === 0 ? 'Ainda sem pedidos de documentos' : 'Nenhum pedido neste filtro'}
+          description={
+            requests.length === 0
+              ? 'Peça documentos aos clientes de forma formal. Eles recebem o pedido no portal e enviam os ficheiros para validação.'
+              : 'Altere o filtro de estado ou limpe a pesquisa.'
+          }
+          action={
+            <Button type="button" size="sm" variant="primary" onClick={() => setComposeOpen(true)}>
+              <Plus className="h-4 w-4" />
+              {requests.length === 0 ? 'Criar primeiro pedido' : 'Criar pedido formal'}
+            </Button>
+          }
+        />
       ) : (
         <div className="divide-y divide-border/50">
           {filteredRequests.map((r) => (

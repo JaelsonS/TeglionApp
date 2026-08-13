@@ -16,6 +16,7 @@ import { toast } from 'sonner'
 import { ServiceFullEditorSheet } from '@/features/firm/services/ServiceFullEditorSheet'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import { EmptyState } from '@/shared/design-system'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -187,15 +188,28 @@ export function ServicesCatalogWorkspace({
                 <Loader2 className="h-5 w-5 animate-spin text-brand" />
               </div>
             ) : firmServices.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 px-4 py-12 text-center">
-                <Sparkles className="h-7 w-7 text-brand/40" />
-                <p className="text-sm text-muted-foreground">
-                  Ainda sem serviços neste filtro. Active um modelo Teglion ao lado ou crie um novo.
-                </p>
-                <Button type="button" size="sm" className="rounded-full bg-brand" onClick={() => openEditor(null)}>
-                  <Plus className="mr-1.5 h-3.5 w-3.5" /> Criar serviço
-                </Button>
-              </div>
+              <EmptyState
+                className="m-3 border-0 bg-transparent"
+                icon={Sparkles}
+                title={
+                  (excludeIrs ? services.filter((s) => !isIrsEntry(s)) : services).length === 0
+                    ? 'Ainda não tem serviços publicados'
+                    : 'Nenhum serviço neste filtro'
+                }
+                description={
+                  (excludeIrs ? services.filter((s) => !isIrsEntry(s)) : services).length === 0
+                    ? 'Os serviços publicados aparecem na página pública e permitem que potenciais clientes conheçam e solicitem o que o escritório oferece.'
+                    : 'Altere o filtro (Activos / Inactivos / Todos) ou crie um novo serviço.'
+                }
+                action={
+                  <Button type="button" size="sm" variant="primary" onClick={() => openEditor(null)}>
+                    <Plus className="h-4 w-4" />
+                    {(excludeIrs ? services.filter((s) => !isIrsEntry(s)) : services).length === 0
+                      ? 'Criar primeiro serviço'
+                      : 'Criar serviço'}
+                  </Button>
+                }
+              />
             ) : (
               <ul className="divide-y divide-border/40">
                 {firmServices.map((s) => {

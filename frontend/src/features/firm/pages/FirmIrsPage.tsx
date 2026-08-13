@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, Landmark, Loader2, Plus, Search, Sparkles } from 'lucide-react'
+import { CheckCircle2, Landmark, Loader2, Plus, Search } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
@@ -8,6 +8,7 @@ import { IrsModelo3EditorSheet, isModelo3Service } from '@/features/firm/service
 import { ServiceFullEditorSheet } from '@/features/firm/services/ServiceFullEditorSheet'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
+import { EmptyState } from '@/shared/design-system'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
@@ -300,12 +301,23 @@ export function FirmIrsPage() {
                   <Loader2 className="h-5 w-5 animate-spin text-brand" />
                 </div>
               ) : firmIrs.length === 0 ? (
-                <div className="flex flex-col items-center gap-3 px-4 py-10 text-center">
-                  <Sparkles className="h-8 w-8 text-brand/40" />
-                  <p className="text-sm text-muted-foreground">
-                    Ainda sem serviços IRS. Crie um ou active um modelo à esquerda.
-                  </p>
-                </div>
+                <EmptyState
+                  className="m-3 border-0 bg-transparent"
+                  icon={Landmark}
+                  title="Ainda sem serviços IRS"
+                  description="Use esta área para campanha e captação de pedidos relacionados com IRS. O Teglion não calcula o imposto — active um modelo ou crie um serviço e publique-o na página pública."
+                  action={
+                    <Button type="button" size="sm" variant="primary" onClick={() => openModelo3(null)}>
+                      <Plus className="h-4 w-4" />
+                      Criar Modelo 3
+                    </Button>
+                  }
+                  secondaryAction={
+                    <Button type="button" size="sm" variant="outline" onClick={() => openFull(null, { name: 'Serviço IRS' })}>
+                      Criar serviço IRS
+                    </Button>
+                  }
+                />
               ) : (
                 <ul className="divide-y divide-border/40">
                   {firmIrs.map((s: AccountingService) => {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
-import { Search } from 'lucide-react'
+import { FileText, Search } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 import { DocumentPreviewPanel } from '@/features/firm/documents/DocumentPreviewPanel'
 import { useDocumentsHub } from '@/features/firm/documents/useDocumentsHub'
@@ -15,6 +16,8 @@ import {
 import { formatDateTime } from '@/shared/utils/date'
 import { cn } from '@/shared/lib/utils'
 import { Input } from '@/shared/components/ui/input'
+import { Button } from '@/shared/components/ui/button'
+import { EmptyState } from '@/shared/design-system'
 import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
 import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
 
@@ -136,8 +139,18 @@ export function DocumentsFilesWorkspace() {
                 </tr>
               ) : hub.items.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="cb-docs-empty">
-                    Nenhum ficheiro neste filtro.
+                  <td colSpan={6} className="p-0">
+                    <EmptyState
+                      className="m-4 border-0 bg-transparent"
+                      icon={FileText}
+                      title="Ainda sem ficheiros nesta vista"
+                      description="Documentos enviados pelos clientes ou pedidos formais aparecem aqui para consulta e validação."
+                      action={
+                        <Button type="button" size="sm" variant="outline" asChild>
+                          <Link to="/app/firm/documents/requests">Pedir documentos</Link>
+                        </Button>
+                      }
+                    />
                   </td>
                 </tr>
               ) : (

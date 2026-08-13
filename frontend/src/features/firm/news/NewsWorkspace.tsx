@@ -15,6 +15,7 @@ import {
   SheetTitle,
 } from '@/shared/components/ui/sheet'
 import { SkeletonCard } from '@/shared/design-system/Skeleton'
+import { EmptyState } from '@/shared/design-system'
 import { contabilNewsApi } from '@/infrastructure/api'
 import type { NewsArticle } from '@/shared/types/contabil'
 import { formatPtDate } from '@/shared/utils/contabilLocale'
@@ -181,10 +182,36 @@ export function NewsWorkspace() {
           <SkeletonCard />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="cb-empty-state">
-          <Newspaper className="h-10 w-10 text-muted-foreground/40" />
-          <p className="mt-3 text-sm text-muted-foreground">Ainda não há notícias. Publique a primeira.</p>
-        </div>
+        <EmptyState
+          icon={Newspaper}
+          title={items.length === 0 ? 'Ainda sem notícias' : 'Nenhuma notícia neste filtro'}
+          description={
+            items.length === 0
+              ? 'Publique actualizações fiscais ou do escritório na página pública e no portal dos clientes.'
+              : 'Altere o filtro de estado ou limpe a pesquisa.'
+          }
+          action={
+            items.length === 0 ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="primary"
+                onClick={() =>
+                  setEditing({
+                    title: '',
+                    body: '',
+                    excerpt: '',
+                    status: 'DRAFT',
+                    isFeatured: false,
+                  })
+                }
+              >
+                <Plus className="h-4 w-4" />
+                Publicar primeira notícia
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
         <ul className="space-y-2 overflow-y-auto">
           {filtered.map((a) => {

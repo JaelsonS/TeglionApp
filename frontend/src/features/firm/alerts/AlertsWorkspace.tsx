@@ -12,13 +12,13 @@ import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
+import { EmptyState, FirmSplitView } from '@/shared/design-system'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog'
-import { FirmSplitView } from '@/shared/design-system'
 import type { FirmBroadcast } from '@/infrastructure/api/contabil/broadcasts'
 import { useBroadcastMutations, useBroadcastsMeta, useFirmBroadcasts } from '@/shared/hooks/queries/useBroadcasts'
 import { fetchBroadcastAnalytics } from '@/infrastructure/api/contabil/broadcasts'
@@ -237,15 +237,18 @@ export function AlertsWorkspace() {
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="cb-alerts-empty">
-          <Megaphone className="mb-2 h-8 w-8 opacity-30" />
-          <p className="text-sm font-medium">Sem comunicados</p>
-          <p className="mt-1 text-xs text-muted-foreground">Crie o primeiro alerta para a carteira.</p>
-          <Button type="button" size="sm" className="cb-alerts-btn-primary mt-3" onClick={startCreate}>
-            <Plus className="mr-1.5 h-4 w-4" />
-            Novo comunicado
-          </Button>
-        </div>
+        <EmptyState
+          className="m-3"
+          icon={Megaphone}
+          title="Ainda sem comunicados"
+          description="Use alertas para avisar a carteira de prazos, mudanças fiscais ou avisos urgentes. Os clientes vêem-nos no portal."
+          action={
+            <Button type="button" size="sm" variant="primary" onClick={startCreate}>
+              <Plus className="h-4 w-4" />
+              Criar primeiro comunicado
+            </Button>
+          }
+        />
       ) : (
         <ul className="space-y-1 p-2">
           {items.map((item) => {
