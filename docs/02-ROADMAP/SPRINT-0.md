@@ -13,19 +13,19 @@ O critério de saída do Sprint 0 é simples: **os sete itens abaixo resolvidos*
 | 1. Revogar sessão ao desativar funcionário | ✅ Feito — código no `main`, testado |
 | 2. Travar o double-booking | ✅ Feito — constraint em **staging e produção** (helpers IMMUTABLE); overlap drill OK no staging |
 | 3. Provar que o backup funciona | ✅ Feito — restore drill 2026-08-13 documentado em `docs/operations/BACKUP_RESTORE.md` (RTO ~2 min) |
-| 4. Isolamento entre escritórios rodando sozinho no CI | 🔄 Em andamento — staging `xscriwhchdblmwmpglby` validado; CI fail-closed sem secrets; **falta cadastrar `STAGING_SUPABASE_URL` + `STAGING_SUPABASE_SERVICE_ROLE_KEY` no GitHub e correr o teste verde** |
+| 4. Isolamento entre escritórios rodando sozinho no CI | ✅ Feito — secrets staging no GitHub; CI fail-closed sem secrets; tenant isolation PASS em staging (`xscriwhchdblmwmpglby`) |
 | 5. Rodar segredos de produção | ✅ Feito — rotação das chaves de produção concluída |
 | 6. Parar de reenviar lembrete por email | ✅ Feito — migration aplicada, código no `main`, testado |
-| 7. Suíte de backend rodando no CI | 🔄 Em andamento — 365 testes locais OK; workflow CI agora injeta placeholders de env (antes falhava ao importar `env.js`) |
+| 7. Suíte de backend rodando no CI | ✅ Feito — 365 testes + placeholders herméticos no workflow; CI verde |
 | 8. Hardening de infraestrutura | ✅ Feito — Render Pro, Supabase Pro, Cloudflare/Turnstile, Cron backup R2 |
 
 ### Fundação adicional (Sprint 0 — complementar)
 
 | Item | Estado |
 |---|---|
-| 9. Staging validado | 🔄 Migrations Phase A+B presentes; bucket privado OK; RLS das 4 tabelas aplicado no staging |
-| 10. RLS/Storage revisados | 🔄 Storage `contabil-documents` privado; 4 tabelas com RLS+policies em staging/prod; advisor ERROR `rls_disabled_in_public` limpo no staging |
-| 11–15. MFA / Admin / Sentry / Audit | ⏸️ Bloqueados até Item 4 + CI verdes (FASE A) |
+| 9. Staging validado | ✅ Schema Phase A+B + parity May tables; bucket privado; overlap + RLS |
+| 10. RLS/Storage revisados | ✅ Matriz em SECURITY-GATES; prod↔staging equivalentes nas 4 tabelas + storage |
+| 11–15. MFA / Admin / Sentry / Audit | ⏸️ Bloqueados até fecho formal das fases B/C (Item 4 fechado) |
 
 ## 1. Revogar sessão ao desativar um funcionário
 
