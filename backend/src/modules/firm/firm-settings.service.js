@@ -108,6 +108,10 @@ async function getSettingsBundle(firmId, actorUserId) {
         hasPermissionForUser(actorPermissionUser(actor), PERMISSIONS.USERS_CREATE) ||
         hasPermissionForUser(actorPermissionUser(actor), PERMISSIONS.FIRM_INVITES_MANAGE) ||
         hasPermissionForUser(actorPermissionUser(actor), PERMISSIONS.FIRM_TEAM_MANAGE),
+      canManageMemberRoles:
+        actor.role === 'FIRM_OWNER' ||
+        hasPermissionForUser(actorPermissionUser(actor), PERMISSIONS.FIRM_MEMBER_ROLE_MANAGE),
+      canAssignFirmOwner: actor.role === 'FIRM_OWNER',
       canCloseAccount: actor.role === 'FIRM_OWNER',
       canEditOwnProfile: true,
     },

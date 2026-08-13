@@ -31,7 +31,7 @@ async function listMyTasks({ actor, status }) {
 async function getMyTaskDetail({ actor, taskId }) {
   const client = await requireLinkedClient(actor);
   const task = await requireClientVisibleTask(client, taskId);
-  const comments = await tasksRepo.listComments(taskId);
+  const comments = await tasksRepo.listComments(taskId, client.firmId);
   return { task, comments };
 }
 

@@ -11,6 +11,7 @@ const emailConfirmationService = require('../../services/email/email-confirmatio
 const {
     notifyFirmMemberInvite,
 } = require('../../services/notifications/contabil-notifications.service');
+const { assertActorCanAssignRole } = require('./team.service');
 
 const INVITE_TTL_DAYS = 14;
 
@@ -75,9 +76,7 @@ async function createStaffInvite({ firmId, actor, payload, req }) {
         throw new AppError('Nome inválido.', 400);
     }
 
-    const role = String(payload.role || 'FIRM_STAFF').trim().toUpperCase();
-    const allowedRoles = new Set(['FIRM_OWNER', 'FIRM_STAFF', 'FIRM_CONSULTANT']);
-    if (!allowedRoles.has(role)) throw new AppError('Role inválida.', 400);
+    const role = assertActorCanAssignRole(actor, payload.role || 'FIRM_STAFF');
     const jobTitle = normalizeJobTitle(payload.jobTitle);
     const departmentId = payload.departmentId || null;
     await assertDepartmentBelongsToFirm(firmId, departmentId);
