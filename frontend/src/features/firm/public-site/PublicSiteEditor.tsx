@@ -434,7 +434,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             {previewing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Eye className="mr-1.5 h-3.5 w-3.5" />}
             Pré-visualizar
           </Button>
-          <Button type="button" className="cb-btn-primary" size="sm" disabled={publishing} onClick={() => setConfirmPublishOpen(true)}>
+          <Button type="button" variant="primary" size="sm" disabled={publishing} loading={publishing} onClick={() => setConfirmPublishOpen(true)}>
             <Upload className="mr-1.5 h-3.5 w-3.5" /> Publicar
           </Button>
           {canEditLink ? (

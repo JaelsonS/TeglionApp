@@ -484,11 +484,13 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                         </Label>
                         <Button
                             type="button"
-                            className="cb-btn-primary w-full justify-center"
+                            variant="primary"
+                            fullWidth
                             disabled={createDirectMutation.isPending}
+                            loading={createDirectMutation.isPending}
                             onClick={() => createDirectMutation.mutate()}
                         >
-                            {createDirectMutation.isPending ? 'A criar...' : 'Criar colaborador'}
+                            Criar colaborador
                         </Button>
                     </div>
                 </div>
@@ -539,11 +541,13 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                         </select>
                         <Button
                             type="button"
-                            className="cb-btn-primary w-full justify-center"
+                            variant="primary"
+                            fullWidth
                             disabled={createInviteMutation.isPending}
+                            loading={createInviteMutation.isPending}
                             onClick={() => createInviteMutation.mutate()}
                         >
-                            {createInviteMutation.isPending ? 'A enviar...' : 'Enviar convite'}
+                            Enviar convite
                         </Button>
                     </div>
                 </div>

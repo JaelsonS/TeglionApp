@@ -234,7 +234,8 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
             </div>
             <Button
               type="button"
-              className="cb-btn-primary mt-4"
+              variant="primary"
+              className="mt-4"
               disabled={savingPassword}
               onClick={() => void onChangePassword()}
             >

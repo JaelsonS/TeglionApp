@@ -341,7 +341,7 @@ export function ServicesWorkspace() {
             onChange={(e: FormChangeEvent) => setForm((f) => ({ ...f, description: e.target.value }))}
             className="cb-services-input"
           />
-          <Button type="submit" className="cb-services-btn-primary" disabled={createMut.isPending}>
+          <Button type="submit" variant="primary" disabled={createMut.isPending} loading={createMut.isPending}>
             Criar pedido
           </Button>
         </form>
