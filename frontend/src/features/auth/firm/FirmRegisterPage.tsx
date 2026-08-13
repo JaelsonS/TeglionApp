@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { isAxiosError } from 'axios'
@@ -14,11 +14,14 @@ import { AuthHeader } from '@/shared/components/auth/AuthHeader'
 import { AuthLayout } from '@/shared/components/auth/AuthLayout'
 import { GoogleAuthButton } from '@/shared/components/auth/GoogleAuthButton'
 import { OfficeScreensCarousel } from '@/shared/components/auth/OfficeScreensCarousel'
+import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
 import { contabilPt as t } from '@/shared/i18n/contabilPt'
 import { authFirmLoginUrl, authProfileChoiceUrl } from '@/shared/constants/authPaths'
 import { contabilFirmApi, getGoogleAuthStartUrl } from '@/infrastructure/api'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { withTurnstileToken } from '@/shared/security/withTurnstileToken'
+import { isTurnstileEnabled, TURNSTILE_ACTIONS } from '@/shared/security/turnstile'
 import { Input } from '@/shared/components/ui/input'
 import { PasswordInput } from '@/shared/components/ui/password-input'
 import { Label } from '@/shared/components/ui/label'
@@ -53,6 +56,8 @@ export function FirmRegisterPage() {
   const [legal, setLegal] = useState<FirmLegalConsentState>(emptyFirmLegalConsent)
   const [legalError, setLegalError] = useState<string | null>(null)
   const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const turnstileRef = useRef<TurnstileFieldHandle | null>(null)
   const countryCode = 'PT'
 
   const form = useForm<FormValues>({
@@ -68,14 +73,19 @@ export function FirmRegisterPage() {
     setLegalError(null)
     setSubmitting(true)
     try {
-      const res = (await contabilFirmApi.register({
-        firmName: values.firmName.trim(),
-        ownerName: values.ownerName.trim(),
-        email: values.email.trim().toLowerCase(),
-        password: values.password,
-        countryCode,
-        legalConsents: buildFirmLegalConsentPayload(legal),
-      })) as {
+      const res = (await contabilFirmApi.register(
+        withTurnstileToken(
+          {
+            firmName: values.firmName.trim(),
+            ownerName: values.ownerName.trim(),
+            email: values.email.trim().toLowerCase(),
+            password: values.password,
+            countryCode,
+            legalConsents: buildFirmLegalConsentPayload(legal),
+          },
+          turnstileToken,
+        ),
+      )) as {
         needsEmailConfirmation?: boolean
         emailSent?: boolean
         email?: string
@@ -104,7 +114,13 @@ export function FirmRegisterPage() {
       toast.success('Conta criada com sucesso')
       navigate('/app/firm/dashboard', { replace: true })
     } catch (err) {
+      turnstileRef.current?.reset()
+      setTurnstileToken('')
       let title = 'Não foi possível criar a conta'
+      if (err instanceof Error && /verificação de segurança/i.test(err.message)) {
+        toast.error(err.message)
+        return
+      }
       if (isAxiosError(err)) {
         const status = err.response?.status
         const code = String((err.response?.data as { code?: string })?.code || '').toUpperCase()
@@ -113,6 +129,8 @@ export function FirmRegisterPage() {
           title = 'Erro temporário no servidor — tente de novo ou use recuperação de palavra-passe se já tentou antes'
         else if (status === 403 && code === 'CSRF_INVALID')
           title = 'Sessão de segurança expirada. Actualize a página e tente de novo.'
+        else if (code.startsWith('TURNSTILE_'))
+          title = 'Verificação de segurança falhou. Actualize a página e tente de novo.'
         else if (code === 'LEGAL_CONSENT_REQUIRED' || code === 'LEGAL_CONSENT_INCOMPLETE')
           title = 'Aceite todos os documentos legais'
         else if (code === 'LEGAL_VERSION_MISMATCH')
@@ -207,10 +225,20 @@ export function FirmRegisterPage() {
                   error={legalError}
                 />
 
+                <TurnstileField
+                  action={TURNSTILE_ACTIONS.REGISTER_FIRM}
+                  onTokenChange={setTurnstileToken}
+                  fieldRef={turnstileRef}
+                />
+
                 <button
                   type="submit"
                   className="h-12 w-full rounded-2xl bg-gradient-to-r from-[#0f2942] to-[#195285] text-white shadow-[0_14px_28px_rgba(15,41,66,0.28)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={submitting || !isFirmLegalConsentComplete(legal)}
+                  disabled={
+                    submitting ||
+                    !isFirmLegalConsentComplete(legal) ||
+                    (isTurnstileEnabled() && !turnstileToken)
+                  }
                 >
                   {submitting ? 'A criar…' : t.auth.registerSubmit}
                 </button>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { isAxiosError } from 'axios'
@@ -10,11 +10,14 @@ import { AuthCard } from '@/shared/components/auth/AuthCard'
 import { AuthFooter } from '@/shared/components/auth/AuthFooter'
 import { AuthHeader } from '@/shared/components/auth/AuthHeader'
 import { AuthLayout } from '@/shared/components/auth/AuthLayout'
+import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
 import { contabilPt as t } from '@/shared/i18n/contabilPt'
 import { authFirmLoginUrl, authFirmRegisterUrl, authProfileChoiceUrl } from '@/shared/constants/authPaths'
 import { contabilFirmApi } from '@/infrastructure/api'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { withTurnstileToken } from '@/shared/security/withTurnstileToken'
+import { isTurnstileEnabled, TURNSTILE_ACTIONS } from '@/shared/security/turnstile'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import {
@@ -50,6 +53,8 @@ export function FirmRegisterGooglePage() {
   const [pending, setPending] = useState<PendingGoogle | null>(null)
   const [legal, setLegal] = useState<FirmLegalConsentState>(emptyFirmLegalConsent)
   const [legalError, setLegalError] = useState<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const turnstileRef = useRef<TurnstileFieldHandle | null>(null)
   const [countryCode, setCountryCode] = useState<CountryCode>('PT')
 
   const form = useForm<FormValues>({
@@ -95,12 +100,17 @@ export function FirmRegisterGooglePage() {
     setLegalError(null)
     setSubmitting(true)
     try {
-      const res = await contabilFirmApi.registerWithGoogle({
-        firmName: values.firmName.trim(),
-        ownerName: values.ownerName.trim(),
-        countryCode,
-        legalConsents: buildFirmLegalConsentPayload(legal),
-      })
+      const res = await contabilFirmApi.registerWithGoogle(
+        withTurnstileToken(
+          {
+            firmName: values.firmName.trim(),
+            ownerName: values.ownerName.trim(),
+            countryCode,
+            legalConsents: buildFirmLegalConsentPayload(legal),
+          },
+          turnstileToken,
+        ),
+      )
       if (!setSession(res.user)) {
         toast.warning('Conta criada. Inicie sessão com Google novamente.')
         navigate(authFirmLoginUrl(), { replace: true })
@@ -111,13 +121,20 @@ export function FirmRegisterGooglePage() {
       })
       navigate('/app/firm/dashboard', { replace: true })
     } catch (err) {
+      turnstileRef.current?.reset()
+      setTurnstileToken('')
       let title = 'Não foi possível concluir o registo'
+      if (err instanceof Error && /verificação de segurança/i.test(err.message)) {
+        toast.error(err.message)
+        return
+      }
       if (isAxiosError(err)) {
         const status = err.response?.status
         const code = String((err.response?.data as { code?: string })?.code || '').toUpperCase()
         if (status === 409) title = 'Este e-mail Google já está registado'
         if (code === 'SSO_PENDING_NOT_FOUND') title = 'Sessão Google expirada — tente de novo'
         if (code === 'LEGAL_CONSENT_INCOMPLETE') title = 'Aceite todos os documentos legais'
+        if (code.startsWith('TURNSTILE_')) title = 'Verificação de segurança falhou. Actualize a página e tente de novo.'
       }
       toast.error(title, { description: getErrorMessage(err) })
     } finally {
@@ -226,10 +243,19 @@ export function FirmRegisterGooglePage() {
               disabled={submitting}
               error={legalError}
             />
+            <TurnstileField
+              action={TURNSTILE_ACTIONS.REGISTER_FIRM_GOOGLE}
+              onTokenChange={setTurnstileToken}
+              fieldRef={turnstileRef}
+            />
             <button
               type="submit"
               className="cb-btn-primary mt-2 w-full disabled:opacity-60"
-              disabled={submitting || !isFirmLegalConsentComplete(legal)}
+              disabled={
+                submitting ||
+                !isFirmLegalConsentComplete(legal) ||
+                (isTurnstileEnabled() && !turnstileToken)
+              }
             >
               {submitting ? 'A criar escritório...' : 'Criar escritório com Google'}
             </button>

@@ -2,6 +2,8 @@ const express = require('express');
 const { body } = require('express-validator');
 const contabilAuthController = require('../modules/auth/contabil-auth.controller');
 const { authMiddleware } = require('../middlewares/auth.middleware');
+const { requireTurnstile } = require('../middlewares/turnstile.middleware');
+const { TURNSTILE_ACTIONS } = require('../services/turnstile/turnstile-actions');
 const {
   firmLoginLimiter,
   recoverLimiter,
@@ -27,13 +29,26 @@ const loginClientValidators = [
   body('firmSlug').optional().isString().trim().isLength({ min: 2, max: 64 }),
 ];
 
-router.post('/login-firm', firmLoginLimiter, loginFirmValidators, contabilAuthController.loginFirm);
+router.post(
+  '/login-firm',
+  firmLoginLimiter,
+  requireTurnstile({ action: TURNSTILE_ACTIONS.LOGIN_FIRM }),
+  loginFirmValidators,
+  contabilAuthController.loginFirm,
+);
 
-router.post('/login-client', firmLoginLimiter, loginClientValidators, contabilAuthController.loginClient);
+router.post(
+  '/login-client',
+  firmLoginLimiter,
+  requireTurnstile({ action: TURNSTILE_ACTIONS.LOGIN_CLIENT }),
+  loginClientValidators,
+  contabilAuthController.loginClient,
+);
 
 router.post(
   '/register-firm',
   registerFirmLimiter,
+  requireTurnstile({ action: TURNSTILE_ACTIONS.REGISTER_FIRM }),
   [
     body('firmName').trim().notEmpty(),
     body('ownerName').trim().notEmpty(),
@@ -47,6 +62,7 @@ router.post(
 router.post(
   '/register-firm-google',
   registerFirmLimiter,
+  requireTurnstile({ action: TURNSTILE_ACTIONS.REGISTER_FIRM_GOOGLE }),
   [
     body('firmName').trim().notEmpty(),
     body('ownerName').optional().trim().isLength({ min: 2, max: 140 }),
@@ -58,6 +74,7 @@ router.post(
 router.post(
   '/register-client-invite',
   firmLoginLimiter,
+  requireTurnstile({ action: TURNSTILE_ACTIONS.REGISTER_CLIENT_INVITE }),
   [
     body('token').isString().trim().isLength({ min: 16, max: 128 }),
     emailField(),
@@ -75,6 +92,7 @@ router.post('/complete-onboarding', authMiddleware, contabilAuthController.compl
 router.post(
   '/recover',
   recoverLimiter,
+  requireTurnstile({ action: TURNSTILE_ACTIONS.RECOVER }),
   [emailField(), body('role').optional().isString().trim()],
   contabilAuthController.recoverPassword
 );
@@ -91,8 +109,20 @@ const resetValidators = [
   body('newPassword').isString().isLength({ min: 10 }),
 ];
 
-router.post('/reset', recoverLimiter, resetValidators, contabilAuthController.resetPassword);
-router.post('/reset-password', recoverLimiter, resetValidators, contabilAuthController.resetPassword);
+router.post(
+  '/reset',
+  recoverLimiter,
+  requireTurnstile({ action: TURNSTILE_ACTIONS.RESET_PASSWORD }),
+  resetValidators,
+  contabilAuthController.resetPassword,
+);
+router.post(
+  '/reset-password',
+  recoverLimiter,
+  requireTurnstile({ action: TURNSTILE_ACTIONS.RESET_PASSWORD }),
+  resetValidators,
+  contabilAuthController.resetPassword,
+);
 
 const googleSsoController = require('../modules/auth/google/google-sso.controller');
 router.get('/sso/status', googleSsoController.ssoStatus);

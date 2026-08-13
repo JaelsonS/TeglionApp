@@ -66,6 +66,7 @@ export type AuthLoginFirmRequest = AuthLoginRequest & {
   country?: string
   locale?: string
   rememberMe?: boolean
+  turnstileToken?: string
 }
 
 export type AuthLoginClientRequest = AuthLoginRequest & {
@@ -75,6 +76,7 @@ export type AuthLoginClientRequest = AuthLoginRequest & {
   rememberMe?: boolean
   /** Slug público do escritório — apenas quando o e-mail existe em vários tenants */
   firmSlug?: string
+  turnstileToken?: string
 }
 
 export type AuthLoginResponse = {
@@ -147,12 +149,14 @@ export type AuthContextValue = {
     country?: string
     locale?: string
     role?: 'client' | 'firm'
+    turnstileToken?: string
   }) => Promise<{ success: boolean; token?: string; message?: string }>
   resetPassword: (payload: {
     token: string
     newPassword: string
     country?: string
     locale?: string
+    turnstileToken?: string
   }) => Promise<{ success: boolean; message?: string }>
   setUser: (user: AuthUser | null) => void
   /** Normaliza utilizador após login/registo (sessão via cookies httpOnly). */

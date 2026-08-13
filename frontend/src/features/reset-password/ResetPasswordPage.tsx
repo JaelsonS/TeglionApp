@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { CheckCircle, AlertCircle, Loader } from 'lucide-react'
 import { z } from 'zod'
@@ -12,6 +12,9 @@ import { normalizeRecoveryProfile, readFirmSlugFromRecoveryContext } from '@/sha
 import { useApiToast } from '@/shared/hooks/useApiToast'
 import { usePasswordStrength } from '@/shared/hooks/usePasswordStrength'
 import { PasswordStrengthIndicator } from '@/shared/components/PasswordStrengthIndicator'
+import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
+import { withTurnstileToken } from '@/shared/security/withTurnstileToken'
+import { isTurnstileEnabled, TURNSTILE_ACTIONS } from '@/shared/security/turnstile'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { PasswordInput } from '@/shared/components/ui/password-input'
@@ -69,6 +72,8 @@ export function ResetPasswordPage() {
       : '/recover-password?role=firm'
   const [step, setStep] = useState<ResetPasswordStep>({ type: 'initial' })
   const [isValidatingToken, setIsValidatingToken] = useState(true)
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const turnstileRef = useRef<TurnstileFieldHandle | null>(null)
 
   const resetPasswordSchema = useMemo(() => buildResetPasswordSchema(t), [t])
 
@@ -145,10 +150,16 @@ export function ResetPasswordPage() {
     try {
       setStep({ type: 'loading' })
 
-      const response = await api.post('/auth/reset-password', {
-        token,
-        newPassword: values.newPassword,
-      })
+      await api.post(
+        '/auth/reset-password',
+        withTurnstileToken(
+          {
+            token,
+            newPassword: values.newPassword,
+          },
+          turnstileToken,
+        ),
+      )
 
       setStep({ type: 'success' })
       toast.success(t('resetPassword.successRedirect3s', { defaultValue: 'Senha redefinida com sucesso! Você será redirecionado em 3 segundos.' }))
@@ -161,10 +172,18 @@ export function ResetPasswordPage() {
         })
       }, 3000)
     } catch (err: any) {
+      turnstileRef.current?.reset()
+      setTurnstileToken('')
       const status = err?.response?.status
       const message = err?.response?.data?.message || ''
+      const code = String(err?.response?.data?.code || '').toUpperCase()
 
-      if (status === 429) {
+      if (code.startsWith('TURNSTILE_') || /verificação de segurança/i.test(String(message || err?.message || ''))) {
+        setStep({
+          type: 'error',
+          message: 'Verificação de segurança falhou. Actualize a página e tente de novo.',
+        })
+      } else if (status === 429) {
         setStep({
           type: 'error',
           message: t('resetPassword.tooManyAttempts', { defaultValue: 'Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.' }),
@@ -417,11 +436,17 @@ export function ResetPasswordPage() {
               </ul>
             </div>
 
+            <TurnstileField
+              action={TURNSTILE_ACTIONS.RESET_PASSWORD}
+              onTokenChange={setTurnstileToken}
+              fieldRef={turnstileRef}
+            />
+
             {/* Botão Submit — nunca desactivar por isValid (em mobile parece “não funcionar”) */}
             <Button
               type="submit"
               className="h-12 w-full touch-manipulation text-base"
-              disabled={isSubmitting}
+              disabled={isSubmitting || (isTurnstileEnabled() && !turnstileToken)}
               size="lg"
             >
               {isSubmitting ? (

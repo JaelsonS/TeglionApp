@@ -293,12 +293,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [clearSession, navigate, t, user?.role, user?.tenant]) as AuthContextValue['logout']
 
-  const recoverPassword = useCallback(async (payload: { email: string; country?: string; locale?: string }) => {
-    return authApi.recover(payload)
-  }, []) as AuthContextValue['recoverPassword']
+  const recoverPassword = useCallback(
+    async (payload: {
+      email: string
+      country?: string
+      locale?: string
+      role?: 'client' | 'firm'
+      turnstileToken?: string
+    }) => {
+      return authApi.recover(payload)
+    },
+    [],
+  ) as AuthContextValue['recoverPassword']
 
   const resetPassword = useCallback(
-    async (payload: { token: string; newPassword: string; country?: string; locale?: string }) => {
+    async (payload: {
+      token: string
+      newPassword: string
+      country?: string
+      locale?: string
+      turnstileToken?: string
+    }) => {
       return authApi.reset(payload)
     },
     [],

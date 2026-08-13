@@ -62,6 +62,7 @@ export function createContabilFirmApi(api: AxiosInstance) {
       email: string
       password: string
       countryCode?: string
+      turnstileToken?: string
       legalConsents: {
         terms: boolean
         privacy: boolean
@@ -80,6 +81,7 @@ export function createContabilFirmApi(api: AxiosInstance) {
       firmName: string
       ownerName?: string
       countryCode?: string
+      turnstileToken?: string
       legalConsents: {
         terms: boolean
         privacy: boolean

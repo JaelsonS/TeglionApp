@@ -5,7 +5,13 @@ import { api, getApiBaseUrlResolved, refreshAccessToken, refreshApi } from '@/in
 import { CSRF_HEADER_NAME, ensureCsrfToken } from '@/infrastructure/http/csrf'
 
 export const authApi = {
-  recover: async (payload: { email: string; country?: string; locale?: string; role?: string }) => {
+  recover: async (payload: {
+    email: string
+    country?: string
+    locale?: string
+    role?: string
+    turnstileToken?: string
+  }) => {
     logger.info('Iniciando recuperacao de senha...')
     const csrfToken = await ensureCsrfToken(refreshApi)
 
@@ -58,6 +64,7 @@ export const authApi = {
     country?: string
     locale?: string
     rememberMe?: boolean
+    turnstileToken?: string
   }) => api.post('/auth/login-firm', payload).then((r) => r.data),
 
   loginClient: (payload: {
@@ -68,6 +75,7 @@ export const authApi = {
     locale?: string
     rememberMe?: boolean
     firmSlug?: string
+    turnstileToken?: string
   }) => api.post('/auth/login-client', payload).then((r) => r.data),
 
   registerFirm: (payload: { firmName: string; fullName: string; email: string; password: string }) =>
@@ -96,6 +104,11 @@ export const authApi = {
 
   completeOnboarding: () => api.post('/auth/complete-onboarding').then((r) => r.data),
 
-  reset: (payload: { token: string; newPassword: string; country?: string; locale?: string }) =>
-    api.post('/auth/reset', payload, { timeout: 15000 }).then((r) => r.data),
+  reset: (payload: {
+    token: string
+    newPassword: string
+    country?: string
+    locale?: string
+    turnstileToken?: string
+  }) => api.post('/auth/reset', payload, { timeout: 15000 }).then((r) => r.data),
 }

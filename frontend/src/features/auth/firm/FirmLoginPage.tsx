@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { CheckedState } from '@radix-ui/react-checkbox'
 import { isAxiosError } from 'axios'
 
 import { AuthCard } from '@/shared/components/auth/AuthCard'
@@ -13,6 +12,7 @@ import { AuthHeader } from '@/shared/components/auth/AuthHeader'
 import { AuthLayout } from '@/shared/components/auth/AuthLayout'
 import { GoogleAuthButton } from '@/shared/components/auth/GoogleAuthButton'
 import { OfficeScreensCarousel } from '@/shared/components/auth/OfficeScreensCarousel'
+import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
 import { contabilPt as t } from '@/shared/i18n/contabilPt'
 import { authFirmRegisterUrl, authProfileChoiceUrl } from '@/shared/constants/authPaths'
 import { useAuth } from '@/shared/hooks/useAuth'
@@ -22,7 +22,8 @@ import { ServerWakingBanner } from '@/shared/components/feedback/ServerWakingUp'
 import { isNoResponseError } from '@/shared/utils/requestTimeout'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { warmupAuthLoginPage, withAuthLoginRetry } from '@/shared/utils/authLoginRetry'
-import { Checkbox } from '@/shared/components/ui/checkbox'
+import { withTurnstileToken } from '@/shared/security/withTurnstileToken'
+import { isTurnstileEnabled, TURNSTILE_ACTIONS } from '@/shared/security/turnstile'
 import { Input } from '@/shared/components/ui/input'
 import { PasswordInput } from '@/shared/components/ui/password-input'
 import { Label } from '@/shared/components/ui/label'
@@ -56,13 +57,16 @@ export function FirmLoginPage() {
   const [serverWaking, setServerWaking] = useState(false)
   const [serverWakingSince, setServerWakingSince] = useState<number>()
   const [ssoError, setSsoError] = useState<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const turnstileRef = useRef<TurnstileFieldHandle | null>(null)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { email: '', password: '', rememberMe: false },
   })
 
-  const canSubmit = form.formState.isValid && !isSubmitting
+  const turnstileOk = !isTurnstileEnabled() || Boolean(turnstileToken)
+  const canSubmit = form.formState.isValid && !isSubmitting && turnstileOk
 
   useEffect(() => {
     void warmupAuthLoginPage()
@@ -86,11 +90,15 @@ export function FirmLoginPage() {
     setServerWakingSince(undefined)
     try {
       await withAuthLoginRetry(async () => {
-        const res = await loginFirm({
-          email: values.email.trim().toLowerCase(),
-          password: values.password.trim(),
-          rememberMe: values.rememberMe,
-        })
+        const payload = withTurnstileToken(
+          {
+            email: values.email.trim().toLowerCase(),
+            password: values.password.trim(),
+            rememberMe: values.rememberMe,
+          },
+          turnstileToken,
+        )
+        const res = await loginFirm(payload)
         if (res.firmAccess?.hasAccess === false && res.firmAccess.reason === 'TRIAL_EXPIRED') {
           navigate('/app/firm/billing', { replace: true })
           return
@@ -99,10 +107,16 @@ export function FirmLoginPage() {
         void prefetchAuthCsrf()
       })
     } catch (err: unknown) {
+      turnstileRef.current?.reset()
+      setTurnstileToken('')
       if (isNoResponseError(err)) {
         setServerWaking(true)
         setServerWakingSince((prev) => prev ?? Date.now())
         toast.error('Servidor a iniciar. Tente novamente em instantes.')
+        return
+      }
+      if (err instanceof Error && /verificação de segurança/i.test(err.message)) {
+        toast.error(err.message)
         return
       }
       if (isAxiosError(err)) {
@@ -115,6 +129,10 @@ export function FirmLoginPage() {
         }
         if (code === 'SSO_REQUIRED') {
           toast.error('Esta conta entra com Google. Use o botão «Continuar com Google» em baixo.')
+          return
+        }
+        if (code.startsWith('TURNSTILE_')) {
+          toast.error('Verificação de segurança falhou. Actualize a página e tente de novo.')
           return
         }
       }
@@ -181,6 +199,12 @@ export function FirmLoginPage() {
               {errors.password ? <p className="mt-2 text-sm text-red-600">{errors.password.message}</p> : null}
             </div>
 
+            <TurnstileField
+              action={TURNSTILE_ACTIONS.LOGIN_FIRM}
+              onTokenChange={setTurnstileToken}
+              fieldRef={turnstileRef}
+            />
+
             <button
               type="submit"
               disabled={!canSubmit}
@@ -217,4 +241,3 @@ export function FirmLoginPage() {
     </AuthLayout>
   )
 }
-

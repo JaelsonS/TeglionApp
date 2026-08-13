@@ -1,15 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
+import { isAxiosError } from 'axios'
 
 import { contabilPt as t } from '@/shared/i18n/contabilPt'
 import { authClientLoginUrl } from '@/shared/constants/authPaths'
 import { api } from '@/infrastructure/api'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
+import { withTurnstileToken } from '@/shared/security/withTurnstileToken'
+import { isTurnstileEnabled, TURNSTILE_ACTIONS } from '@/shared/security/turnstile'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { PasswordInput } from '@/shared/components/ui/password-input'
@@ -49,6 +53,8 @@ export function ClientInviteRegisterPage() {
   const [loadingPreview, setLoadingPreview] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [previewError, setPreviewError] = useState<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const turnstileRef = useRef<TurnstileFieldHandle | null>(null)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -99,12 +105,18 @@ export function ClientInviteRegisterPage() {
     if (!token) return
     setSubmitting(true)
     try {
-      const res = await api.post('/auth/register-client-invite', {
-        token,
-        email: values.email,
-        password: values.password,
-        fullName: values.fullName,
-      })
+      const res = await api.post(
+        '/auth/register-client-invite',
+        withTurnstileToken(
+          {
+            token,
+            email: values.email,
+            password: values.password,
+            fullName: values.fullName,
+          },
+          turnstileToken,
+        ),
+      )
       const data = res.data as { user: unknown }
       if (!data?.user || !setSession(data.user)) {
         toast.warning(
@@ -116,6 +128,19 @@ export function ClientInviteRegisterPage() {
       toast.success('Conta criada com sucesso')
       navigate('/app/client', { replace: true })
     } catch (err) {
+      turnstileRef.current?.reset()
+      setTurnstileToken('')
+      if (err instanceof Error && /verificação de segurança/i.test(err.message)) {
+        toast.error(err.message)
+        return
+      }
+      if (isAxiosError(err)) {
+        const code = String((err.response?.data as { code?: string })?.code || '').toUpperCase()
+        if (code.startsWith('TURNSTILE_')) {
+          toast.error('Verificação de segurança falhou. Actualize a página e tente de novo.')
+          return
+        }
+      }
       toast.error('Não foi possível criar a conta', { description: getErrorMessage(err) })
     } finally {
       setSubmitting(false)
@@ -184,10 +209,15 @@ export function ClientInviteRegisterPage() {
                 />
                 <FieldError message={errors.confirmPassword?.message} />
               </div>
+              <TurnstileField
+                action={TURNSTILE_ACTIONS.REGISTER_CLIENT_INVITE}
+                onTokenChange={setTurnstileToken}
+                fieldRef={turnstileRef}
+              />
               <Button
                 type="submit"
                 className="h-12 w-full touch-manipulation rounded-full text-base"
-                disabled={submitting}
+                disabled={submitting || (isTurnstileEnabled() && !turnstileToken)}
               >
                 {submitting ? 'A criar…' : t.invite.submit}
               </Button>

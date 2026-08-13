@@ -1,19 +1,21 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
-import { api } from '@/infrastructure/api'
 import { AuthCard } from '@/shared/components/auth/AuthCard'
 import { AuthFooter } from '@/shared/components/auth/AuthFooter'
 import { AuthHeader } from '@/shared/components/auth/AuthHeader'
 import { AuthLayout } from '@/shared/components/auth/AuthLayout'
 import { OfficeScreensCarousel } from '@/shared/components/auth/OfficeScreensCarousel'
+import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
 import { authClientLoginUrl, authFirmLoginUrl } from '@/shared/constants/authPaths'
 import { readFirmSlugFromRecoveryContext } from '@/shared/utils/recoveryAuth'
 import { useApiToast } from '@/shared/hooks/useApiToast'
 import { useAuth } from '@/shared/hooks/useAuth'
+import { withTurnstileToken } from '@/shared/security/withTurnstileToken'
+import { isTurnstileEnabled, TURNSTILE_ACTIONS } from '@/shared/security/turnstile'
 
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -62,6 +64,10 @@ export function RecoverPasswordPage() {
   )
 
   const [recoverSent, setRecoverSent] = useState(false)
+  const [recoverTurnstileToken, setRecoverTurnstileToken] = useState('')
+  const [resetTurnstileToken, setResetTurnstileToken] = useState('')
+  const recoverTurnstileRef = useRef<TurnstileFieldHandle | null>(null)
+  const resetTurnstileRef = useRef<TurnstileFieldHandle | null>(null)
 
   const isReset = Boolean(tokenFromUrl)
   const backToLoginHref =
@@ -102,25 +108,35 @@ export function RecoverPasswordPage() {
     generic: copy.errors.generic,
   }
 
-  const canRecover = recoverForm.formState.isValid && !recoverForm.formState.isSubmitting
-  const canReset = resetForm.formState.isValid && !resetForm.formState.isSubmitting
+  const turnstileOk = !isTurnstileEnabled() || Boolean(isReset ? resetTurnstileToken : recoverTurnstileToken)
+  const canRecover = recoverForm.formState.isValid && !recoverForm.formState.isSubmitting && turnstileOk
+  const canReset = resetForm.formState.isValid && !resetForm.formState.isSubmitting && turnstileOk
 
   async function handleRecover(values: RecoverValues) {
     try {
       setRecoverSent(false)
-      await recoverPassword({
-        email: values.email,
-        role: profile,
-      })
+      await recoverPassword(
+        withTurnstileToken(
+          {
+            email: values.email,
+            role: profile,
+          },
+          recoverTurnstileToken,
+        ),
+      )
 
       setRecoverSent(true)
       toast.success(copy.messages.requestSentTitle, { description: copy.messages.requestSentBody })
     } catch (err: any) {
+      recoverTurnstileRef.current?.reset()
+      setRecoverTurnstileToken('')
       const status = err?.response?.status
       const code = err?.response?.data?.code || err?.code
       const message = err?.response?.data?.message || err?.message
       if (status === 429) {
         toast.error(messages.tooManyAttempts)
+      } else if (String(code || '').toUpperCase().startsWith('TURNSTILE_') || /verificação de segurança/i.test(String(message || ''))) {
+        toast.error('Verificação de segurança falhou. Actualize a página e tente de novo.')
       } else if (status === 503 || code === 'EMAIL_UNAVAILABLE' || code === 'EMAIL_DELIVERY_FAILED') {
         toast.error(typeof message === 'string' && message.length > 8 ? message : 'Serviço de e-mail indisponível. Tente mais tarde ou contacte o suporte.')
       } else {
@@ -134,9 +150,14 @@ export function RecoverPasswordPage() {
       const { confirmPassword, ...payload } = values
       void confirmPassword
 
-      await resetPassword({
-        ...payload,
-      })
+      await resetPassword(
+        withTurnstileToken(
+          {
+            ...payload,
+          },
+          resetTurnstileToken,
+        ),
+      )
 
       toast.success(copy.messages.resetSuccessTitle, { description: copy.messages.resetSuccessBody })
       navigate(backToLoginHref, {
@@ -144,11 +165,19 @@ export function RecoverPasswordPage() {
         state: profile === 'client' ? { firmSlug } : undefined,
       })
     } catch (err: any) {
+      resetTurnstileRef.current?.reset()
+      setResetTurnstileToken('')
       const msg = String(err?.response?.data?.message || err?.message || '')
       const status = err?.response?.status
+      const code = String(err?.response?.data?.code || '').toUpperCase()
 
       if (status === 429) {
         toast.error(messages.tooManyAttempts)
+        return
+      }
+
+      if (code.startsWith('TURNSTILE_') || /verificação de segurança/i.test(msg)) {
+        toast.error('Verificação de segurança falhou. Actualize a página e tente de novo.')
         return
       }
 
@@ -202,6 +231,12 @@ export function RecoverPasswordPage() {
                   )}
                 </div>
 
+                <TurnstileField
+                  action={TURNSTILE_ACTIONS.RECOVER}
+                  onTokenChange={setRecoverTurnstileToken}
+                  fieldRef={recoverTurnstileRef}
+                />
+
                 <Button type="submit" disabled={!canRecover} className="cb-btn-primary h-12 w-full rounded-2xl">
                   {recoverForm.formState.isSubmitting ? copy.actions.sending : copy.actions.sendLink}
                 </Button>
@@ -250,6 +285,12 @@ export function RecoverPasswordPage() {
                     </p>
                   )}
                 </div>
+
+                <TurnstileField
+                  action={TURNSTILE_ACTIONS.RESET_PASSWORD}
+                  onTokenChange={setResetTurnstileToken}
+                  fieldRef={resetTurnstileRef}
+                />
 
                 <Button type="submit" disabled={!canReset} className="cb-btn-primary h-12 w-full rounded-2xl">
                   {resetForm.formState.isSubmitting ? copy.actions.resetting : copy.actions.resetPassword}

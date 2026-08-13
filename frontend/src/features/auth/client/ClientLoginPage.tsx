@@ -1,16 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import type { CheckedState } from '@radix-ui/react-checkbox'
+import { isAxiosError } from 'axios'
 
 import { AuthCard } from '@/shared/components/auth/AuthCard'
 import { AuthFooter } from '@/shared/components/auth/AuthFooter'
 import { AuthHeader } from '@/shared/components/auth/AuthHeader'
 import { AuthLayout } from '@/shared/components/auth/AuthLayout'
 import { OfficeScreensCarousel } from '@/shared/components/auth/OfficeScreensCarousel'
+import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
 import { contabilPt as t } from '@/shared/i18n/contabilPt'
 import { authClientLoginUrl, authClientRegisterUrl, authProfileChoiceUrl } from '@/shared/constants/authPaths'
 import { useAuth } from '@/shared/hooks/useAuth'
@@ -18,6 +20,8 @@ import { useApiToast } from '@/shared/hooks/useApiToast'
 import { isNoResponseError } from '@/shared/utils/requestTimeout'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { warmupAuthLoginPage, withAuthLoginRetry } from '@/shared/utils/authLoginRetry'
+import { withTurnstileToken } from '@/shared/security/withTurnstileToken'
+import { isTurnstileEnabled, TURNSTILE_ACTIONS } from '@/shared/security/turnstile'
 import { isInternalIdentifier, redactInternalIdentifiers, sanitizePublicLabel } from '@/shared/utils/sanitizePublicDisplay'
 import { readClientLoginBranding } from '@/shared/utils/clientLoginBrandingStorage'
 import { contabilPublicApi, prefetchAuthCsrf } from '@/infrastructure/api'
@@ -44,6 +48,8 @@ export function ClientLoginPage() {
   const [serverWaking, setServerWaking] = useState(false)
   const [serverWakingSince, setServerWakingSince] = useState<number>()
   const [passwordNotSetHint, setPasswordNotSetHint] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const turnstileRef = useRef<TurnstileFieldHandle | null>(null)
 
   const firmSlugRaw = params.get('firmSlug') || params.get('firm')
   const firmSlug =
@@ -67,7 +73,8 @@ export function ClientLoginPage() {
     defaultValues: { email: '', password: '', rememberMe: false },
   })
 
-  const canSubmit = form.formState.isValid && !isSubmitting
+  const turnstileOk = !isTurnstileEnabled() || Boolean(turnstileToken)
+  const canSubmit = form.formState.isValid && !isSubmitting && turnstileOk
   const errors = form.formState.errors
 
   useEffect(() => {
@@ -101,34 +108,46 @@ export function ClientLoginPage() {
     setPasswordNotSetHint(false)
     try {
       await withAuthLoginRetry(() =>
-        loginClient({
-          email: values.email.trim().toLowerCase(),
-          password: values.password.trim(),
-          rememberMe: values.rememberMe,
-          firmSlug,
-        }),
+        loginClient(
+          withTurnstileToken(
+            {
+              email: values.email.trim().toLowerCase(),
+              password: values.password.trim(),
+              rememberMe: values.rememberMe,
+              firmSlug,
+            },
+            turnstileToken,
+          ),
+        ),
       )
       // Garante cookies same-origin antes de entrar no portal (evita loop no mobile).
       await prefetchAuthCsrf()
       navigate('/app/client', { replace: true })
     } catch (err: unknown) {
+      turnstileRef.current?.reset()
+      setTurnstileToken('')
       if (isNoResponseError(err)) {
         setServerWaking(true)
         setServerWakingSince((prev) => prev ?? Date.now())
         toast.error('Servidor a iniciar. Tente novamente em instantes.')
         return
       }
+      if (err instanceof Error && /verificação de segurança/i.test(err.message)) {
+        toast.error(err.message)
+        return
+      }
       const message = redactInternalIdentifiers(getErrorMessage(err))
-      const code =
-        typeof err === 'object' && err && 'response' in err
-          ? String(
-              (err as { response?: { data?: { code?: string; details?: { code?: string } } } }).response?.data
-                ?.code ||
-                (err as { response?: { data?: { details?: { code?: string } } } }).response?.data?.details
-                  ?.code ||
-                '',
-            ).toUpperCase()
-          : ''
+      const code = isAxiosError(err)
+        ? String(
+            (err.response?.data as { code?: string; details?: { code?: string } } | undefined)?.code ||
+              (err.response?.data as { details?: { code?: string } } | undefined)?.details?.code ||
+              '',
+          ).toUpperCase()
+        : ''
+      if (code.startsWith('TURNSTILE_')) {
+        toast.error('Verificação de segurança falhou. Actualize a página e tente de novo.')
+        return
+      }
       if (code === 'PASSWORD_NOT_SET' || /ainda não definiu a palavra-passe|ainda não tem palavra-passe/i.test(message)) {
         setPasswordNotSetHint(true)
       }
@@ -214,6 +233,12 @@ export function ClientLoginPage() {
                 Esqueci a palavra-passe
               </Link>
             </div>
+
+            <TurnstileField
+              action={TURNSTILE_ACTIONS.LOGIN_CLIENT}
+              onTokenChange={setTurnstileToken}
+              fieldRef={turnstileRef}
+            />
 
             <button type="submit" disabled={!canSubmit} className="cb-btn-primary h-12 w-full rounded-2xl disabled:opacity-60">
               {isSubmitting ? 'A entrar…' : 'Entrar'}
