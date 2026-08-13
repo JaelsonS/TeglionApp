@@ -1,0 +1,12 @@
+# Nunca enviar secrets / artefactos locais para imagens de backup ou app.
+**/.env
+**/.env.*
+!**/.env.example
+**/node_modules
+**/.git
+**/coverage
+**/.DS_Store
+frontend
+docs
+tools
+supabase

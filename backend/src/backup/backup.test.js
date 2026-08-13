@@ -44,9 +44,22 @@ test('config: rejeita variáveis obrigatórias em falta', () => {
     () =>
       loadBackupConfig({
         BACKUP_DATABASE_URL: 'postgresql://u:p@host:5432/db',
+        R2_ACCOUNT_ID: 'acct',
+        R2_ACCESS_KEY_ID: 'aki',
+        R2_BUCKET_NAME: 'bucket',
       }),
-    /R2_ACCOUNT_ID/,
+    /R2_SECRET_ACCESS_KEY.*presentes: BACKUP_DATABASE_URL, R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_BUCKET_NAME/,
   );
+});
+
+test('config: aceita alias AWS_SECRET_ACCESS_KEY', () => {
+  const cfg = loadBackupConfig(
+    baseEnv({
+      R2_SECRET_ACCESS_KEY: '',
+      AWS_SECRET_ACCESS_KEY: 'from-aws-alias',
+    }),
+  );
+  assert.equal(cfg.r2.secretAccessKey, 'from-aws-alias');
 });
 
 test('config: rejeita Transaction pooler :6543', () => {

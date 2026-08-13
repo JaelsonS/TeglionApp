@@ -5,7 +5,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { loadBackupConfig } = require('./config');
+const { loadBackupConfig, probeBackupEnv } = require('./config');
 const { buildBackupId, buildDumpObjectKey, buildManifestObjectKey } = require('./naming');
 const { sha256File } = require('./checksum');
 const { buildManifest } = require('./manifest');
@@ -104,6 +104,21 @@ async function runBackup(options = {}) {
 
   try {
     stage = 'config';
+    // Nunca loga valores — só quais keys existem (ajuda a debug no Render).
+    const envProbe = probeBackupEnv(env);
+    backupLog('backup_env_probe', {
+      present: envProbe.present,
+      missingRequired: envProbe.missing.filter((k) =>
+        [
+          'BACKUP_DATABASE_URL',
+          'R2_ACCOUNT_ID',
+          'R2_ACCESS_KEY_ID',
+          'R2_SECRET_ACCESS_KEY',
+          'R2_BUCKET_NAME',
+        ].includes(k),
+      ),
+      nearMiss: envProbe.nearMiss,
+    });
     config = options.config || loadBackupConfig(env);
 
     stage = 'lock';

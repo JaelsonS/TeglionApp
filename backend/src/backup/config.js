@@ -84,8 +84,99 @@ function anonymizeDatabaseIdentity(url) {
   }
 }
 
-function loadBackupConfig(env = process.env) {
+function collectMissingRequired(env, names) {
+  return names.filter((name) => !String(env[name] || '').trim());
+}
+
+function firstNonEmpty(env, names) {
+  for (const name of names) {
+    const v = String(env[name] || '').trim();
+    if (v) return { name, value: v };
+  }
+  return null;
+}
+
+/**
+ * Snapshot seguro: só nomes presentes/ausentes (nunca valores).
+ * Inclui aliases comuns que o Render/Cloudflare às vezes usam.
+ */
+function probeBackupEnv(env = process.env) {
+  const watched = [
+    'BACKUP_DATABASE_URL',
+    'BACKUP_DRY_RUN',
+    'R2_ACCOUNT_ID',
+    'R2_ACCESS_KEY_ID',
+    'R2_SECRET_ACCESS_KEY',
+    'R2_BUCKET_NAME',
+    'R2_ENDPOINT',
+    // aliases (Cloudflare S3-compatible docs)
+    'AWS_ACCESS_KEY_ID',
+    'AWS_SECRET_ACCESS_KEY',
+    'CLOUDFLARE_R2_ACCESS_KEY_ID',
+    'CLOUDFLARE_R2_SECRET_ACCESS_KEY',
+  ];
+  const present = [];
+  const missing = [];
+  const nearMiss = []; // keys that look like R2/BACKUP but aren't exact
+  for (const name of watched) {
+    if (String(env[name] || '').trim()) present.push(name);
+    else missing.push(name);
+  }
+  for (const name of Object.keys(env)) {
+    if (!/^(R2_|BACKUP_|AWS_.*KEY|CLOUDFLARE_R2_)/i.test(name)) continue;
+    if (watched.includes(name)) continue;
+    nearMiss.push(name);
+  }
+  return { present, missing, nearMiss };
+}
+
+/**
+ * Normaliza aliases → nomes canónicos antes da validação.
+ */
+function normalizeBackupEnv(env = process.env) {
+  const out = { ...env };
+  const access = firstNonEmpty(env, [
+    'R2_ACCESS_KEY_ID',
+    'AWS_ACCESS_KEY_ID',
+    'CLOUDFLARE_R2_ACCESS_KEY_ID',
+  ]);
+  const secret = firstNonEmpty(env, [
+    'R2_SECRET_ACCESS_KEY',
+    'AWS_SECRET_ACCESS_KEY',
+    'CLOUDFLARE_R2_SECRET_ACCESS_KEY',
+  ]);
+  if (access) out.R2_ACCESS_KEY_ID = access.value;
+  if (secret) out.R2_SECRET_ACCESS_KEY = secret.value;
+  return out;
+}
+
+function loadBackupConfig(rawEnv = process.env) {
+  const env = normalizeBackupEnv(rawEnv);
   const dryRun = truthy(env.BACKUP_DRY_RUN);
+
+  // Report all missing keys at once (Render typos / empty secrets are common).
+  const required = [
+    'BACKUP_DATABASE_URL',
+    'R2_ACCOUNT_ID',
+    'R2_ACCESS_KEY_ID',
+    'R2_SECRET_ACCESS_KEY',
+    'R2_BUCKET_NAME',
+  ];
+  const missing = collectMissingRequired(env, required);
+  if (missing.length) {
+    const present = required.filter((name) => !missing.includes(name));
+    const probe = probeBackupEnv(rawEnv);
+    const err = new Error(
+      `Variável(eis) obrigatória(s) em falta: ${missing.join(', ')}`
+        + (present.length ? ` (presentes: ${present.join(', ')})` : '')
+        + (probe.nearMiss.length ? ` (outras keys semelhantes: ${probe.nearMiss.join(', ')})` : ''),
+    );
+    err.code = 'BACKUP_CONFIG_MISSING';
+    err.missing = missing;
+    err.present = present;
+    err.probe = probe;
+    throw err;
+  }
 
   const databaseUrl = requireNonEmpty('BACKUP_DATABASE_URL', env.BACKUP_DATABASE_URL);
   const dbMeta = assertDumpCompatibleDatabaseUrl(databaseUrl);
@@ -138,6 +229,8 @@ module.exports = {
   loadBackupConfig,
   assertDumpCompatibleDatabaseUrl,
   anonymizeDatabaseIdentity,
+  probeBackupEnv,
+  normalizeBackupEnv,
   truthy,
   parsePositiveInt,
 };
