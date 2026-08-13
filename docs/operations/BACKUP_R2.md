@@ -78,7 +78,7 @@ docker build -f Dockerfile.backup -t teglion-backup .
 docker run --rm -e BACKUP_DRY_RUN=true ... teglion-backup
 ```
 
-A imagem inclui `postgresql-client` (`pg_dump` / `pg_restore`).
+A imagem inclui `postgresql-client-17` via PGDG (`pg_dump` / `pg_restore`), alinhado com o Postgres 17 do Supabase.
 
 ## Checklist Render Cron Job
 
