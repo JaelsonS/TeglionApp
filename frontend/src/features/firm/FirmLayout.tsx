@@ -4,6 +4,7 @@ import { Outlet } from 'react-router-dom'
 import { FirmMobileNavBar } from '@/features/firm/FirmMobileNavBar'
 import { FirmSidebar } from '@/features/firm/FirmSidebar'
 import { FirmTopbar } from '@/features/firm/FirmTopbar'
+import { MayaAssistant } from '@/features/maya'
 import { AgencyCredit } from '@/shared/components/agency/AgencyCredit'
 import { PageRouteFallback } from '@/shared/components/layout/PageRouteFallback'
 import { LiveEventsProvider } from '@/shared/providers/LiveEventsProvider'
@@ -45,6 +46,7 @@ export function FirmLayout() {
           </main>
         </div>
       </div>
+      <MayaAssistant />
     </LiveEventsProvider>
   )
 }
