@@ -29,6 +29,12 @@ export const refreshApi: AxiosInstance = axios.create({
   withCredentials: true,
 })
 
+refreshApi.interceptors.request.use((config) => {
+  config.headers = config.headers ?? {}
+  config.headers['X-Requested-With'] = 'XMLHttpRequest'
+  return config
+})
+
 export function getApiBaseUrlResolved(): string {
   const raw =
     api.defaults.baseURL && String(api.defaults.baseURL).length > 0 ? String(api.defaults.baseURL) : API_BASE_URL
@@ -40,11 +46,12 @@ export function getApiUploadsRoot(): string {
 }
 
 /**
- * Domínios de PRODUÇÃO neste projecto Vercel — reescrevem `/api/*` para Render prod.
- * Nunca incluir staging aqui: o rewrite de `vercel.json` aponta para produção.
+ * Full-page OAuth (Google SSO / Calendar) must hit the Render host directly on staging:
+ * callback cookies live on `*.onrender.com`, not on the Vercel rewrite host.
+ * XHR/fetch uses same-origin `/api` via apiBase (first-party cookies).
  */
-const SAME_ORIGIN_HOSTS = ['teglion.com', 'www.teglion.com', 'app.teglion.com']
 const STAGING_API_BASE = 'https://teglion-api-staging.onrender.com/api'
+const PROD_SAME_ORIGIN_HOSTS = ['teglion.com', 'www.teglion.com', 'app.teglion.com']
 
 function isStagingFrontendHost(host: string): boolean {
   if (!host) return false
@@ -52,12 +59,12 @@ function isStagingFrontendHost(host: string): boolean {
   return host.endsWith('.vercel.app') && host.includes('staging')
 }
 
-/** Base URL for full-page navigations (Google OAuth / Calendar) — must not use staging→prod rewrite. */
+/** Base URL for full-page navigations (Google OAuth / Calendar). */
 function resolveNavigationApiBase(): string {
   const isBrowser = typeof window !== 'undefined'
   const host = isBrowser ? String(window.location.hostname || '').toLowerCase() : ''
   if (isStagingFrontendHost(host)) return STAGING_API_BASE
-  if (SAME_ORIGIN_HOSTS.includes(host)) return `${window.location.origin}/api`
+  if (PROD_SAME_ORIGIN_HOSTS.includes(host)) return `${window.location.origin}/api`
   return getApiBaseUrlResolved()
 }
 

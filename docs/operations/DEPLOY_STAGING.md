@@ -51,9 +51,9 @@ Duplicar o Web Service de produção com nome `teglion-api-staging`:
 | `PRODUCT_MODE` | `contabil` |
 | `FRONTEND_URL` | `https://staging.teglion.com` (https, nunca http) |
 | `PUBLIC_API_URL` | `https://teglion-api-staging.onrender.com` |
-| `GOOGLE_OAUTH_REDIRECT_URI` | `https://teglion-api-staging.onrender.com/api/auth/google/callback` — **nunca** `staging.teglion.com/api/...` (o rewrite Vercel manda isso para **prod**) |
+| `GOOGLE_OAUTH_REDIRECT_URI` | `https://teglion-api-staging.onrender.com/api/auth/google/callback` — callback no host Render (cookies OAuth); o SPA usa same-origin `/api` para XHR e URL absoluta Render só em navegação Google |
 | `GOOGLE_CALENDAR_REDIRECT_URI` | `https://teglion-api-staging.onrender.com/api/contabil/integrations/google-calendar/callback` |
-| `COOKIE_DOMAIN` | vazio (API em `*.onrender.com`; não uses `.teglion.com`) |
+| `COOKIE_DOMAIN` | vazio (cookies host-only; com SPA same-origin em `staging.teglion.com` o rewrite Vercel grava cookies nesse host) |
 | `TURNSTILE_EXPECTED_HOSTNAMES` | `staging.teglion.com` |
 | `PUBLIC_API_URL` | `https://teglion-api-staging.onrender.com` |
 | `CORS_ORIGINS` | `https://staging.teglion.com` |
@@ -89,20 +89,18 @@ Criar environment `staging` no GitHub e definir pelo menos:
 
 ### Porquê staging escreveu em produção (incidente)
 
-1. `frontend/vercel.json` reescreve `/api/*` → **`teglionapp.onrender.com` (produção)**.
+1. `frontend/vercel.json` reescrevia `/api/*` → **`teglionapp.onrender.com` (produção)** sem distinção de host.
 2. Em `apiBase.ts`, só `teglion.com` / `www` forçavam `/api`. Em `staging.teglion.com`, se o build usasse Production env ou caísse no fallback `/api`, o browser falava com a **API de produção**.
 3. Variáveis **Preview** no Vercel **não** entram se o domínio `staging.teglion.com` estiver ligado ao deployment **Production** (`main`).
 
-### Regra dura (código + Vercel)
+### Regra dura (código + Vercel) — actual
 
-Em `staging.teglion.com`, o frontend **sempre** usa (JS):
-
-`https://teglion-api-staging.onrender.com/api`
-
-Além disso, `frontend/vercel.json` tem rewrite **condicional por host**:
+`frontend/vercel.json` tem rewrite **condicional por host**:
 
 - host `staging.teglion.com` / `www.staging.teglion.com` → `teglion-api-staging.onrender.com`
 - restantes (produção) → `teglionapp.onrender.com`
+
+Em `staging.teglion.com`, o SPA usa **same-origin** `/api` (primeiro partido: cookies auth/CSRF no Chrome/iOS). Navegação Google OAuth continua em URL absoluta Render (callback cookies no host da API).
 
 Assim `GET https://staging.teglion.com/api/health` deixa de atravessar para a API de produção (cookies `Domain=.teglion.com`).
 
@@ -113,16 +111,16 @@ Assim `GET https://staging.teglion.com/api/health` deixa de atravessar para a AP
 1. **Settings → Git** → Production Branch = `main` (não `staging`).
 2. **Settings → Domains** → `staging.teglion.com` → assign to Git Branch **`staging`** (não Production).
 3. **Settings → Environment Variables**
-   - Preview: `VITE_API_BASE_URL` = `https://teglion-api-staging.onrender.com/api`
-   - Production: `VITE_API_BASE_URL` = `/api` (ou URL da API prod; o rewrite de `vercel.json` cobre `/api`)
+   - Preview / branch staging: `VITE_API_BASE_URL` = `/api` (recomendado; o rewrite por host cobre o destino)
+   - Production: `VITE_API_BASE_URL` = `/api`
 4. Redeploy do branch `staging` (Deployments → ⋯ → Redeploy).
-5. Em `https://staging.teglion.com`, DevTools → Network: pedidos devem ir a **`teglion-api-staging.onrender.com`**, nunca a `teglionapp.onrender.com`.
+5. Em `https://staging.teglion.com`, DevTools → Network: XHR devem ir a **`staging.teglion.com/api/...`** (rewrite → API staging), nunca a `teglionapp.onrender.com`. Google SSO pode abrir `teglion-api-staging.onrender.com` em navegação full-page.
 
 **Opção B (recomendada a médio prazo):** segundo projeto Vercel (`teglion-app-staging`), root `frontend`, branch `staging`, domínio `staging.teglion.com`, e usar `frontend/vercel.staging.json` (rewrite `/api` → API staging) como `vercel.json` desse projeto.
 
 | Variável | Preview / projeto staging | Production |
 |----------|---------------------------|------------|
-| `VITE_API_BASE_URL` | `https://teglion-api-staging.onrender.com/api` | `/api` (prod rewrite) |
+| `VITE_API_BASE_URL` | `/api` (rewrite host → API staging) | `/api` (prod rewrite) |
 | `VITE_PRODUCT_MODE` | `contabil` | `contabil` |
 | `VITE_SENTRY_DSN` | DSN do projecto Sentry (ver `frontend/.env.staging.example`) | DSN prod (pode ser o mesmo projecto) |
 | `VITE_SENTRY_ENVIRONMENT` | `staging` | `production` |

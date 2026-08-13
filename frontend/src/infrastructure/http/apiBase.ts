@@ -1,27 +1,22 @@
 const DEFAULT_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 export const API_BASE_STORAGE_KEY = 'contabil.apiBaseUrl'
 
-const STAGING_API_BASE = 'https://teglion-api-staging.onrender.com/api'
-
 function getHostname(): string {
   if (typeof window === 'undefined') return ''
   return String(window.location.hostname || '').toLowerCase()
 }
 
+/**
+ * Hosts whose Vercel rewrites send `/api` to the correct backend for that env.
+ * Same-origin `/api` keeps auth/CSRF cookies first-party (required on Chrome iOS).
+ */
 function shouldForceSameOriginApi(): boolean {
   const host = getHostname()
-  return host === 'teglion.com' || host === 'www.teglion.com'
-}
-
-/**
- * Staging hosts must never use relative `/api` because `vercel.json` rewrites
- * `/api` to production Render (`teglionapp.onrender.com`).
- */
-function shouldForceStagingApi(): boolean {
-  const host = getHostname()
   if (!host) return false
+  if (host === 'teglion.com' || host === 'www.teglion.com') return true
   if (host === 'staging.teglion.com' || host === 'www.staging.teglion.com') return true
-  // Vercel preview URLs that include "staging" in the hostname (safety net)
+  // Vercel preview URLs that include "staging" — only safe if that project’s vercel.json
+  // rewrites /api to teglion-api-staging (see frontend/vercel.json host rules).
   if (host.endsWith('.vercel.app') && host.includes('staging')) return true
   return false
 }
@@ -77,11 +72,6 @@ function dedupeBases(list: string[]): string[] {
 export function getApiBaseUrlCandidates(): string[] {
   if (import.meta.env.DEV) {
     return ['/api']
-  }
-
-  // Hard lock: staging host can NEVER talk to prod via `/api` rewrite.
-  if (shouldForceStagingApi()) {
-    return [STAGING_API_BASE]
   }
 
   if (shouldForceSameOriginApi()) {
