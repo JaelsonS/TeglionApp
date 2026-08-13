@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { ArrowLeft, ExternalLink, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -10,6 +10,7 @@ import { SafeImage } from '@/shared/components/ui/SafeImage'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { cn } from '@/shared/lib/utils'
 import { getMayaIntent, MAYA_INTENTS } from '@/features/maya/mayaContent'
+import { MAYA_OPEN_EVENT, type MayaOpenDetail } from '@/features/maya/openMaya'
 
 type MayaAssistantProps = {
   className?: string
@@ -31,6 +32,16 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
     .trim()
     .split(/\s+/)[0]
   const active = activeIntentId ? getMayaIntent(activeIntentId) : null
+
+  useEffect(() => {
+    function onOpen(ev: Event) {
+      const detail = (ev as CustomEvent<MayaOpenDetail>).detail
+      setOpen(true)
+      setActiveIntentId(detail?.intentId || null)
+    }
+    window.addEventListener(MAYA_OPEN_EVENT, onOpen as EventListener)
+    return () => window.removeEventListener(MAYA_OPEN_EVENT, onOpen as EventListener)
+  }, [])
 
   if (!user || user.role === 'CLIENT') return null
 
