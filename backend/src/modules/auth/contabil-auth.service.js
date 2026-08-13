@@ -487,6 +487,27 @@ async function refreshSession({ refreshToken }) {
   const tokenHash = hashToken(refreshToken);
   const jti = payload.jti ? String(payload.jti) : null;
 
+  async function rejectInactiveFirmUser(row) {
+    if (!row || row.is_active !== false) return;
+    if (jti) await authRefreshSessionsRepository.deleteByJti(jti).catch(() => {});
+    await authRefreshSessionsRepository.deleteAllForActor('firm_user', row.id).catch(() => {});
+    await firmUsersRepository
+      .updateFirmUserAuth(row.id, { refreshTokenHash: null, refreshTokenExpiresAt: null })
+      .catch(() => {});
+    throw new AppError('Sessão inválida', 401, { code: 'ACCOUNT_INACTIVE' });
+  }
+
+  async function rejectInactiveClient(row) {
+    const inactive =
+      (row.status && row.status !== 'ACTIVE') || row.portal_access_status === 'REVOKED' || row.is_active === false;
+    if (!row || !inactive) return;
+    if (jti) await authRefreshSessionsRepository.deleteByJti(jti).catch(() => {});
+    await clientsRepository
+      .updateClientAuth(row.id, { refreshTokenHash: null, refreshTokenExpiresAt: null })
+      .catch(() => {});
+    throw new AppError('Sessão inválida', 401, { code: 'ACCOUNT_INACTIVE' });
+  }
+
   if (jti) {
     const session = await authRefreshSessionsRepository.findByJti(jti);
     if (session && session.token_hash === tokenHash) {
@@ -498,10 +519,12 @@ async function refreshSession({ refreshToken }) {
       if (payload.actorType === 'client' || isClientRole(payload.role)) {
         const row = await clientsRepository.getClientRowById(payload.id);
         if (!row) throw new AppError('Sessão inválida', 401);
+        await rejectInactiveClient(row);
         return issueTokensForClient(row);
       }
       const row = await firmUsersRepository.findFirmUserById(payload.id);
       if (!row) throw new AppError('Sessão inválida', 401);
+      await rejectInactiveFirmUser(row);
       const firm = await firmsRepository.findFirmById(row.firm_id);
       assertFirmLoginAllowed(firm);
       return issueTokensForFirmUser(row);
@@ -513,6 +536,7 @@ async function refreshSession({ refreshToken }) {
     if (!row || row.refresh_token_hash !== tokenHash) {
       throw new AppError('Sessão inválida', 401);
     }
+    await rejectInactiveClient(row);
     await clientsRepository.updateClientAuth(row.id, { refreshTokenHash: null, refreshTokenExpiresAt: null });
     return issueTokensForClient(row);
   }
@@ -521,6 +545,7 @@ async function refreshSession({ refreshToken }) {
   if (!row || row.refresh_token_hash !== tokenHash) {
     throw new AppError('Sessão inválida', 401);
   }
+  await rejectInactiveFirmUser(row);
   const firm = await firmsRepository.findFirmById(row.firm_id);
   assertFirmLoginAllowed(firm);
   await firmUsersRepository.updateFirmUserAuth(row.id, { refreshTokenHash: null, refreshTokenExpiresAt: null });

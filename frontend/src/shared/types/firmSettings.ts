@@ -24,6 +24,10 @@ export type FirmSettingsTeamMember = {
 export type FirmSettingsCapabilities = {
   canEditFirm: boolean
   canManageTeam: boolean
+  /** Alterar role de membros (exceto atribuir FIRM_OWNER sem ser owner). */
+  canManageMemberRoles?: boolean
+  /** Criar / promover / rebaixar FIRM_OWNER — só o dono do escritório. */
+  canAssignFirmOwner?: boolean
   canCloseAccount: boolean
   canEditOwnProfile: boolean
 }

@@ -1,6 +1,10 @@
 /**
  * Layouts autenticados (escritório + cliente)
- * Breakpoint de layout desktop: 1280px (xl) — tablets 768–1279 usam scroll único.
+ *
+ * Firm chrome (1E Bloco 1):
+ * - Mobile <768: coluna + bottom nav
+ * - Tablet 768–1279: icon rail + main (sem bottom nav)
+ * - Desktop ≥1280: sidebar completa + main
  */
 @tailwind components;
 
@@ -9,6 +13,7 @@
   /* Scroll suave em superfícies principais (Safari/iPad) */
   .app-scroll,
   .cb-firm-mobile-main,
+  .cb-firm-unified-main,
   .firm-app-content-wrap,
   .staff-app-content-wrap,
   .pc-scroll {
@@ -26,8 +31,7 @@
   }
 
   /*
-   * Escritório — telemóvel + tablet (< 1280px): viewport fixo, scroll só no main.
-   * Desktop (≥ 1280px): sidebar fixa + scroll no content-wrap ou colunas split.
+   * Shell firm: viewport fixo; ≥768 em linha (rail/sidebar + main).
    */
   .firm-app-shell,
   .staff-app-shell {
@@ -36,10 +40,23 @@
     touch-action: manipulation;
   }
 
-  @media (max-width: 1279px) {
+  .staff-app-shell.cb-firm-shell {
+    height: 100dvh;
+    max-height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
 
-    .firm-app-shell,
-    .staff-app-shell {
+  @media (min-width: 768px) {
+    .staff-app-shell.cb-firm-shell {
+      @apply flex-row;
+    }
+  }
+
+  /* Compat: shells antigos sem .cb-firm-shell */
+  @media (max-width: 1279px) {
+    .firm-app-shell:not(.cb-firm-shell),
+    .staff-app-shell:not(.cb-firm-shell) {
       height: 100dvh;
       max-height: 100dvh;
       min-height: 0;
@@ -48,10 +65,29 @@
   }
 
   @media (min-width: 1280px) {
-
-    .firm-app-shell,
-    .staff-app-shell {
+    .firm-app-shell:not(.cb-firm-shell),
+    .staff-app-shell:not(.cb-firm-shell) {
       @apply h-dvh max-h-dvh min-h-0 overflow-hidden;
+    }
+  }
+
+  .cb-firm-tablet-rail-aside {
+    @apply h-full min-h-0 shrink-0 overflow-hidden bg-card;
+    width: var(--cb-firm-rail-width);
+  }
+
+  .cb-firm-main-column {
+    @apply flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden;
+  }
+
+  .cb-firm-unified-main {
+    @apply flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden;
+  }
+
+  /* Mobile <768: espaço para bottom nav no content scroll */
+  @media (max-width: 767px) {
+    .cb-firm-shell .cb-firm-content-wrap {
+      padding-bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
     }
   }
 

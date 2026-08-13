@@ -162,7 +162,7 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
           </p>
         ) : null}
         {canEdit ? (
-          <Button type="button" className="cb-btn-primary" disabled={saving} onClick={() => void onSave()}>
+          <Button type="button" variant="primary" disabled={saving} loading={saving} onClick={() => void onSave()}>
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
             Guardar dados do escritório
           </Button>

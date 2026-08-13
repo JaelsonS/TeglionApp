@@ -98,12 +98,16 @@ async function update(id, firmId, patch) {
   return mapRow(data);
 }
 
-async function listComments(requestId, { includeInternal = true } = {}) {
+async function listComments(requestId, { firmId, includeInternal = true } = {}) {
+  if (!firmId) {
+    throw new Error('listComments requer firmId para isolamento multi-tenant');
+  }
   const sb = getSupabaseAdmin();
   let q = sb
     .from('service_request_comments')
     .select('*')
     .eq('service_request_id', requestId)
+    .eq('firm_id', firmId)
     .order('created_at', { ascending: true });
   if (!includeInternal) q = q.eq('is_internal', false);
   const { data, error } = await q;

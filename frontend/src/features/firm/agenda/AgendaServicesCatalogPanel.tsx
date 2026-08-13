@@ -736,7 +736,7 @@ export function AgendaServicesCatalogPanel({
             </button>
           ))}
         </div>
-        <Button type="button" className="cb-btn-primary rounded-full" onClick={() => setCreateOpen(true)}>
+        <Button type="button" variant="primary" className="rounded-full" onClick={() => setCreateOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Criar serviço
         </Button>
@@ -786,8 +786,10 @@ export function AgendaServicesCatalogPanel({
             <div className="border-t border-border/50 p-3">
               <Button
                 type="button"
-                className="cb-btn-primary w-full rounded-full"
+                variant="primary"
+                className="w-full rounded-full"
                 disabled={busy || pickerKeys.size === 0}
+                loading={busy}
                 onClick={() => void activatePicker()}
               >
                 Activar seleccionados ({pickerKeys.size})

@@ -81,7 +81,7 @@ export function ServiceQuoteDialog({
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button type="button" className="cb-services-btn-primary" disabled={loading} onClick={handleConfirm}>
+          <Button type="button" variant="primary" disabled={loading} loading={loading} onClick={handleConfirm}>
             Guardar orçamento
           </Button>
         </DialogFooter>

@@ -30,7 +30,7 @@ async function listPipeline(firmId, query) {
 async function getDetail(firmId, id, clientId) {
   const request = await serviceRequestsRepo.findById(firmId, id, clientId);
   if (!request) throw new AppError('Pedido não encontrado', 404);
-  const comments = await serviceRequestsRepo.listComments(id, { includeInternal: !clientId });
+  const comments = await serviceRequestsRepo.listComments(id, { firmId, includeInternal: !clientId });
   const client = await clientsRepository.findClientById(firmId, request.clientId);
   return {
     request: { ...request, clientName: client?.displayName || client?.name },

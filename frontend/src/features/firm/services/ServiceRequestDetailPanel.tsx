@@ -170,7 +170,7 @@ export function ServiceRequestDetailPanel({
           </Button>
         ) : null}
         {status === 'IN_PROGRESS' && onComplete ? (
-          <Button size="sm" className="cb-services-btn-primary rounded-lg" disabled={actionLoading} onClick={onComplete}>
+          <Button size="sm" variant="primary" disabled={actionLoading} onClick={onComplete}>
             Concluir
           </Button>
         ) : null}

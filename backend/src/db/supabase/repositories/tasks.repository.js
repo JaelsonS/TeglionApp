@@ -124,12 +124,16 @@ async function deleteTask(taskId, firmId) {
   if (error) throw error;
 }
 
-async function listComments(taskId) {
+async function listComments(taskId, firmId) {
+  if (!firmId) {
+    throw new Error('listComments requer firmId para isolamento multi-tenant');
+  }
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
     .from('task_comments')
     .select('*')
     .eq('client_task_id', taskId)
+    .eq('firm_id', firmId)
     .order('created_at', { ascending: true });
   if (error) throw error;
   return (data || []).map((r) => ({
