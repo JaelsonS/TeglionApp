@@ -11,12 +11,21 @@ O critério de saída do Sprint 0 é simples: **os sete itens abaixo resolvidos*
 | Item | Estado |
 |---|---|
 | 1. Revogar sessão ao desativar funcionário | ✅ Feito — código no `main`, testado |
-| 2. Travar o double-booking | ✅ Feito — migration aplicada, código no `main`, testado |
-| 3. Provar que o backup funciona | 🔄 Em andamento — Supabase Pro ativado (ver abaixo); restore ainda não testado |
-| 4. Isolamento entre escritórios rodando sozinho no CI | 🔄 Parcial — step já existe no CI, falta o projeto de staging |
-| 5. Rodar segredos de produção | ⬜ Pendente |
+| 2. Travar o double-booking | ✅ Feito — constraint em **staging e produção** (helpers IMMUTABLE); overlap drill OK no staging |
+| 3. Provar que o backup funciona | ✅ Feito — restore drill 2026-08-13 documentado em `docs/operations/BACKUP_RESTORE.md` (RTO ~2 min) |
+| 4. Isolamento entre escritórios rodando sozinho no CI | 🔄 Em andamento — staging `xscriwhchdblmwmpglby` validado; CI fail-closed sem secrets; **falta cadastrar `STAGING_SUPABASE_URL` + `STAGING_SUPABASE_SERVICE_ROLE_KEY` no GitHub e correr o teste verde** |
+| 5. Rodar segredos de produção | ✅ Feito — rotação das chaves de produção concluída |
 | 6. Parar de reenviar lembrete por email | ✅ Feito — migration aplicada, código no `main`, testado |
-| 7. Suíte de backend rodando no CI | ✅ Feito — 340 testes, todos no pipeline |
+| 7. Suíte de backend rodando no CI | 🔄 Em andamento — 365 testes locais OK; workflow CI agora injeta placeholders de env (antes falhava ao importar `env.js`) |
+| 8. Hardening de infraestrutura | ✅ Feito — Render Pro, Supabase Pro, Cloudflare/Turnstile, Cron backup R2 |
+
+### Fundação adicional (Sprint 0 — complementar)
+
+| Item | Estado |
+|---|---|
+| 9. Staging validado | 🔄 Migrations Phase A+B presentes; bucket privado OK; RLS das 4 tabelas aplicado no staging |
+| 10. RLS/Storage revisados | 🔄 Storage `contabil-documents` privado; 4 tabelas com RLS+policies em staging/prod; advisor ERROR `rls_disabled_in_public` limpo no staging |
+| 11–15. MFA / Admin / Sentry / Audit | ⏸️ Bloqueados até Item 4 + CI verdes (FASE A) |
 
 ## 1. Revogar sessão ao desativar um funcionário
 
@@ -71,8 +80,9 @@ O comando que o CI executa hoje roda um único arquivo de teste. Existem 37. Os 
 Não veio da auditoria original — são decisões de infraestrutura tomadas pelo fundador enquanto o Sprint 0 estava em andamento, registradas aqui para não se perder e porque se conectam diretamente com itens acima.
 
 - **Render Pro** (ativado) — o plano gratuito do Render "adormece" o backend depois de um tempo sem tráfego; a próxima requisição paga o preço de acordar o servidor (vários segundos de latência). Isso é inaceitável assim que existir mais de um escritório pagante dependendo do sistema estar sempre responsivo. Resolvido.
-- **Supabase Pro** (em ativação) — plano pago do Supabase inclui Point-in-Time Recovery real. Isso remove a incerteza sobre se PITR está disponível (parte do item 3), mas **não substitui o teste de restore em si** — ter o recurso disponível e já ter confirmado que o restore funciona na prática continuam sendo coisas diferentes. Depois de ativado, o próximo passo do item 3 é agendar esse teste.
-- **Cloudflare completo** (em ativação) — WAF, rate limiting de borda e proteção contra bot (Turnstile) na frente do domínio. Isso é uma camada de defesa adicional, útil, mas não fecha nenhum dos 7 itens originais sozinho — ver a seção de arquitetura de segurança de borda para como isso se encaixa no desenho geral.
+- **Supabase Pro** (ativado) — plano pago do Supabase inclui Point-in-Time Recovery real. Complementa o backup externo diário para R2; o restore drill (item 3) valida que o dump R2 reabre.
+- **Cloudflare completo** (ativado) — WAF, rate limiting de borda e Turnstile nos formulários públicos. Camada de defesa adicional; não substitui os itens 1–7 sozinha.
+- **Backup externo R2** (ativado) — Cron Job no Render (`Dockerfile.backup`) → `pg_dump` → Cloudflare R2, com checksum e retenção.
 
 ---
 

@@ -35,6 +35,16 @@ jobs:
         run: npm run build
 
       - name: Backend unit tests
+        env:
+          # Placeholders locais ao job — nunca secrets reais. env.js exige estas
+          # chaves ao importar módulos; os unit tests mockam I/O e não falam com
+          # Supabase/Stripe de verdade.
+          NODE_ENV: test
+          JWT_ACCESS_SECRET: ci-test-jwt-access-secret-not-for-prod
+          JWT_REFRESH_SECRET: ci-test-jwt-refresh-secret-not-for-prod
+          SUPABASE_URL: https://example.invalid
+          SUPABASE_SERVICE_ROLE_KEY: ci-test-service-role-not-for-prod
+          PRODUCT_MODE: contabil
         run: npm run test:backend
 
       - name: Backend static security audit
@@ -44,13 +54,18 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+          # JWT só para assinar tokens de teste no script; não precisa coincidir com prod.
+          JWT_ACCESS_SECRET: ci-test-jwt-access-secret-not-for-prod
+          JWT_REFRESH_SECRET: ci-test-jwt-refresh-secret-not-for-prod
           PRODUCT_MODE: contabil
+          TENANT_ISOLATION_FAIL_ON_WARNINGS: "false"
         run: |
           if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
-            echo "STAGING_SUPABASE_URL / STAGING_SUPABASE_SERVICE_ROLE_KEY não configurados neste repositório — passo desativado."
-            echo "Nunca aponte isto para o Supabase de produção: este teste escreve dados reais."
-            echo "Ver docs/06-SEGURANCA/SECURITY-GATES.md para o que falta para ativar."
-            exit 0
+            echo "::error::STAGING_SUPABASE_URL / STAGING_SUPABASE_SERVICE_ROLE_KEY em falta."
+            echo "Cria o projeto Supabase de staging e cadastra os secrets no repositório."
+            echo "Nunca apontes isto para o Supabase de produção: este teste escreve dados reais."
+            echo "Ver docs/06-SEGURANCA/SECURITY-GATES.md"
+            exit 1
           fi
           npm run test:tenant-isolation -w backend
 

@@ -10,20 +10,58 @@ Esta é a distinção mais importante deste documento: existe uma diferença gra
 - Build do frontend.
 - Um scan estático de segurança do backend (padrões conhecidos de risco no código).
 - Varredura de segredos (evita que uma chave real seja commitada por engano).
-- **A suíte completa de testes de backend** — 337 testes, todos os 37 arquivos. Corrigido no Sprint 0: o script `test:backend` da raiz do monorepo rodava um único arquivo (`file-magic-bytes.test.js`); agora chama a suíte real do workspace de backend. Os outros 36 arquivos — agendamento, cobrança, Google Calendar, entre outros — agora bloqueiam merge se falharem, igual ao frontend já fazia.
+- **A suíte completa de testes de backend** — 365 testes (locais verificados 2026-08-13). O job CI injeta placeholders de `JWT_*` / `SUPABASE_*` para o `env.js` carregar; os testes mockam I/O e não usam produção.
 
 Isso é real e roda automaticamente hoje.
 
-## O que existe, pronto, mas ainda depende de uma peça externa
+## Isolamento entre escritórios (fail-closed)
 
-**O teste de isolamento entre escritórios.** O step já está no `.github/workflows/ci.yml`, condicionado a dois secrets do GitHub (`STAGING_SUPABASE_URL`, `STAGING_SUPABASE_SERVICE_ROLE_KEY`). Enquanto esses dois secrets não existirem no repositório, o step roda, imprime um aviso e sai limpo — não quebra o pipeline de ninguém, mas também não protege nada ainda. No momento em que existir um projeto Supabase de staging e os dois secrets forem cadastrados, o teste passa a rodar de verdade em todo PR que toca `backend/**`, sem precisar tocar no workflow de novo.
+**Projeto staging:** `xscriwhchdblmwmpglby` (`teglion-staging`, eu-west-1).
 
-Continua sendo verdade que a última execução real e completa deste teste é anterior a este marco de documentação, e que ele nunca correu automaticamente até agora — o que muda é que a partir de agora o único item que falta é operacional (criar o projeto de staging), não mais um item de código pendente.
+O step `Tenant isolation test (staging)` em `.github/workflows/ci.yml`:
+
+- **Sem** `STAGING_SUPABASE_URL` ou `STAGING_SUPABASE_SERVICE_ROLE_KEY` → **CI FAIL** (`exit 1`). Não passa em silêncio.
+- **Com** secrets → corre `npm run test:tenant-isolation -w backend` contra staging (escreve dados sintéticos; nunca produção).
+
+### Secrets obrigatórios no GitHub (Settings → Secrets → Actions)
+
+| Secret | Valor |
+|---|---|
+| `STAGING_SUPABASE_URL` | `https://xscriwhchdblmwmpglby.supabase.co` |
+| `STAGING_SUPABASE_SERVICE_ROLE_KEY` | service_role do projeto **staging** (Dashboard → Settings → API) |
+
+Nunca usar a service_role de produção nestes secrets.
+
+### Suíte backend no CI
+
+O job `Backend unit tests` injeta placeholders locais (`JWT_*`, `SUPABASE_*` fictícios) porque `env.js` exige essas variáveis ao importar módulos. Os unit tests mockam I/O e não contactam Supabase real.
 
 ## Por que isso importava mais do que parecia
 
-Antes desta correção, era fisicamente possível publicar uma mudança de código em produção sem nenhuma verificação automatizada — nem da suíte de backend inteira, nem do isolamento entre escritórios. A disciplina de sempre filtrar por `firm_id` era (e continua sendo) consistente, verificada manualmente — mas consistente não é o mesmo que garantido.
+Antes, era possível publicar mudança em produção sem isolamento automático no CI, e o step de tenant isolation saía limpo quando os secrets faltavam. Agora falta só a peça operacional: cadastrar os dois secrets de staging e confirmar um run verde.
 
-## O que ainda falta — ação fora do código
+## Matriz RLS — 4 tabelas críticas (audit 2026-08-13)
 
-Criar um projeto Supabase de staging e cadastrar `STAGING_SUPABASE_URL`/`STAGING_SUPABASE_SERVICE_ROLE_KEY` como secrets do repositório no GitHub. Sem isso, o step de isolamento continua desativado, mesmo já estando pronto no workflow. Detalhe completo em [SPRINT-0.md](../02-ROADMAP/SPRINT-0.md).
+Tráfego real do produto: backend com `service_role` (bypassa RLS). RLS = defesa em profundidade no PostgREST.
+
+| Tabela | Prod RLS | Prod Policies | Staging RLS | Staging Policies | Acesso | Risco residual |
+|---|---|---|---|---|---|---|
+| `stripe_webhook_events` | ON | deny-all (1) | ON | deny-all (1) | só backend | baixo — sem `firm_id`; idempotência Stripe |
+| `auth_login_attempts` | ON | deny-all (1) | ON | deny-all (1) | só backend | baixo — lockout; IPs/contas |
+| `obligation_templates` | ON | firm_staff (1) | ON | firm_staff (1) | backend; JWT staff se usado | baixo — tenant via `firm_id` |
+| `obligation_recurrence_rules` | ON | firm_staff (1) | ON | firm_staff (1) | backend; JWT staff se usado | baixo — tenant via `firm_id` |
+
+Migration canónica: `20260927020000_sprint0_rls_defense_in_depth.sql` (aplicada em staging e produção).
+
+### Storage `contabil-documents`
+
+| Ambiente | `public` | Policies select/insert/delete | Equivalente |
+|---|---|---|---|
+| Produção | `false` | firm_staff + client scoped a `firm/{firm_id}/…` | sim |
+| Staging | `false` | mesmas 5 policies | sim |
+
+Isolamento efectivo de documentos no produto continua a passar pelo backend (`firm_id` na autorização); policies Storage reforçam se JWT Supabase for usado.
+
+### Nota de schema
+
+Produção tem tabelas extras das migrations de maio (`conversations`, `document_requests`, `task_recurring_rules`, `task_month_exclusions`) — todas com RLS ON. Staging baseline absorveu o equivalente sem reaplicar esses ficheiros; não é gap de segurança nas 4 tabelas acima.

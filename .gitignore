@@ -13,6 +13,8 @@ coverage/
 .env.*
 !.env.example
 backend/TeglionRender.env
+.tmp-restore-drill/
+.tmp*/
 
 # OS and editor files
 .DS_Store

@@ -102,3 +102,17 @@ Após o primeiro restore bem-sucedido, anotar:
 - duração total (RTO observado)
 - queries smoke (pass/fail)
 - anomalias (roles, extensions, etc.)
+
+### Drill 1 — 2026-08-13 (Sprint 0)
+
+| Campo | Valor |
+|-------|--------|
+| Data/hora UTC | 2026-08-13 ~13:16–13:18 UTC |
+| Object key | `postgresql/daily/2026/08/2026-08-13-131519.dump` |
+| Manifest SHA-256 | `965f8737dbb52610e5dad0ecc1a4b9b2e0b2978ffb0aaf6c3efd205dd1777bad` (match OK) |
+| Destino | Docker local `postgres:17` (`teglion-restore-tmp`, porta `55432`) — **não** produção |
+| RTO observado | ~2 min (download R2 ~1,4 s + pull/start Postgres 17 + `pg_restore` + smoke) |
+| Smoke | PASS — `firms=2`, `clients=39`, `firm_users=5`, `accounting_services=21`, `consultations=2`, `documents=0`, `auth_refresh_sessions=77` |
+| Anomalias | `pg_restore` reporta erros esperados em schemas/extensões Supabase (`auth`, `storage`, `supabase_vault`, etc.) ao restaurar num Postgres vanilla; tabelas `public` de negócio OK. Usar `--no-owner --no-acl`. |
+
+Cadência: repetir este drill pelo menos **trimestralmente** (ou após mudança material no schema / pipeline de backup).
