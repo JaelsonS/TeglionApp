@@ -67,6 +67,8 @@ Duplicar o Web Service de produção com nome `teglion-api-staging`:
 | `STRIPE_SECRET_KEY` | `sk_test_…` |
 | `STRIPE_WEBHOOK_SECRET` | webhook endpoint staging |
 
+**Turnstile em staging:** o backend pode ter `TURNSTILE_SECRET_KEY`, mas o build Vercel de staging **tem** de definir `VITE_TURNSTILE_SITE_KEY` (sitekey pública Cloudflare, com hostname `staging.teglion.com` permitido). Sem a sitekey no frontend o widget não aparece e o login falhava com `TURNSTILE_MISSING`. Há um skip temporário no API quando `FRONTEND_URL` é `https://staging.teglion.com` e o token falta — mesmo assim configura a sitekey no Vercel.
+
 Branch de deploy do ambiente staging: **`staging`** (sempre alinhada ao que está em QA). Trabalho de fase em `feature/fase-N` → PR para `staging` → UAT → PR `staging`→`main`. Ver [GIT_WORKFLOW.md](./GIT_WORKFLOW.md).
 
 ## 2.1 Secrets GitHub para staging
