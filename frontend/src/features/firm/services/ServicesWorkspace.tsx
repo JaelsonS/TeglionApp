@@ -21,6 +21,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
 import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
+import { EmptyState, PageHeader } from '@/shared/design-system'
 import { api, contabilClientsApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { escapeHtml } from '@/shared/utils/escapeHtml'
@@ -227,35 +228,24 @@ export function ServicesWorkspace() {
 
   return (
     <div className="cb-services-page">
-      <header className="cb-services-page-hd shrink-0">
-        <div className="cb-services-page-hd-row">
-          <div>
-            <h1 className="cb-services-page-title">Central de Serviços</h1>
-            <p className="cb-services-page-sub">
-              Pedidos e orçamentos dos seus clientes já activos — do primeiro contacto à entrega. Para pedidos
-              de novos contactos vindos da página pública, veja "Solicitações" em Serviços.
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="rounded-full"
-              onClick={() => setPdfSettingsOpen(true)}
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Personalizar PDF
-            </Button>
-            <Button
-              type="button"
-              className="cb-services-btn-primary"
-              onClick={() => setShowForm((v) => !v)}
-            >
-              {showForm ? <X className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
-              {showForm ? 'Fechar' : 'Novo pedido'}
-            </Button>
-          </div>
-        </div>
+      <div className="cb-services-page-hd shrink-0 space-y-4">
+        <PageHeader
+          title="Central de Serviços"
+          subtitle="Pedidos e orçamentos dos clientes activos — do contacto à entrega. Pedidos novos da página pública estão em Solicitações."
+          testId="firm-services-central-header"
+          right={
+            <>
+              <Button type="button" variant="outline" size="sm" onClick={() => setPdfSettingsOpen(true)}>
+                <FileText className="h-4 w-4" />
+                Personalizar PDF
+              </Button>
+              <Button type="button" variant="primary" size="sm" onClick={() => setShowForm((v) => !v)}>
+                {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                {showForm ? 'Fechar' : 'Novo pedido'}
+              </Button>
+            </>
+          }
+        />
 
         <div className="cb-services-toolbar">
           <div className="cb-services-kpi-row">
@@ -306,7 +296,7 @@ export function ServicesWorkspace() {
             </button>
           ))}
         </div>
-      </header>
+      </div>
 
       {showForm ? (
         <form
@@ -367,20 +357,27 @@ export function ServicesWorkspace() {
           {isLoading ? (
             <div className="cb-services-loading" />
           ) : filtered.length === 0 ? (
-            <div className="cb-services-empty">
-              <ClipboardList className="mb-2 h-8 w-8 opacity-30" />
-              {items.length === 0 ? (
-                <>
-                  <p className="text-sm font-medium">Ainda sem pedidos de clientes</p>
-                  <p className="mt-1 max-w-sm text-center text-sm text-muted-foreground">
-                    Um pedido aparece aqui quando um cliente já activo pede um serviço pelo portal dele, ou
-                    quando você cria um pedido manualmente com "Novo pedido".
-                  </p>
-                </>
-              ) : (
-                <p className="text-sm font-medium">Nenhum pedido neste filtro</p>
-              )}
-            </div>
+            <EmptyState
+              icon={ClipboardList}
+              title={items.length === 0 ? 'Ainda sem pedidos de clientes' : 'Nenhum pedido neste filtro'}
+              description={
+                items.length === 0
+                  ? 'Crie um pedido com «Novo pedido» ou aguarde pedidos do portal do cliente. Contactos novos da página pública aparecem em Solicitações.'
+                  : 'Altere o filtro de estado ou limpe a pesquisa para ver outros pedidos.'
+              }
+              action={
+                items.length === 0 ? (
+                  <Button type="button" variant="primary" size="sm" onClick={() => setShowForm(true)}>
+                    <Plus className="h-4 w-4" />
+                    Novo pedido
+                  </Button>
+                ) : (
+                  <Button type="button" variant="outline" size="sm" onClick={() => setStatusFilter('')}>
+                    Ver todos
+                  </Button>
+                )
+              }
+            />
           ) : (
             <div className="cb-services-board">
               {PIPELINE.map((col) => {

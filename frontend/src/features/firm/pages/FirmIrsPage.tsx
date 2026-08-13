@@ -130,25 +130,25 @@ export function FirmIrsPage() {
       <FirmModuleShell
         className="cb-firm-operational-panel min-h-0 flex-1 overflow-hidden"
         title="IRS"
-        subtitle="Campanha IRS — modelos prontos e serviços do escritório"
+        subtitle="Capte e organize clientes interessados em serviços relacionados com o IRS — não é um cálculo de imposto."
         headerRight={
           <div className="flex flex-wrap items-center gap-2">
             <ModuleHelpDialog
-              title="IRS"
-              intro="Campanha IRS: active ou crie serviços, configure banner, formulário, anexos e pagamento, e publique no site. A equipa recebe pedidos em Solicitações."
+              title="Como funciona o IRS no Teglion"
+              intro="Esta área é um hub de campanha e captação: active serviços IRS, publique-os na página pública e receba pedidos em Solicitações. O Teglion não calcula o imposto."
               triggerLabel="Guia"
               steps={[
                 {
-                  title: 'Modelos prontos',
-                  description: 'Active um modelo Teglion à esquerda — Modelo 3 abre o assistente de anexos.',
+                  title: '1. Escolher ou activar um serviço',
+                  description: 'Use um modelo Teglion (ex.: Modelo 3) ou crie o vosso serviço IRS.',
                 },
                 {
-                  title: 'Os vossos serviços',
-                  description: 'Edite, publique no site e acompanhe anos fiscais em cada serviço IRS.',
+                  title: '2. Configurar e publicar',
+                  description: 'Defina preço, formulário e publicação no site do escritório.',
                 },
                 {
-                  title: 'Criar do zero',
-                  description: 'Use «Criar serviço» ou «Modelo 3 + Anexos» para começar rapidamente.',
+                  title: '3. Receber e gerir pedidos',
+                  description: 'Novos contactos chegam a Solicitações; clientes activos à Central de Serviços.',
                 },
               ]}
             />
@@ -156,16 +156,15 @@ export function FirmIrsPage() {
               type="button"
               size="sm"
               variant="outline"
-              className="h-8 rounded-md"
               onClick={() => openFull(null, { name: 'Serviço IRS', catalogKey: undefined })}
             >
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              <Plus className="h-4 w-4" />
               Criar serviço
             </Button>
             <Button
               type="button"
               size="sm"
-              className="h-8 rounded-md bg-brand"
+              variant="primary"
               onClick={() => openModelo3(null)}
             >
               <Plus className="mr-1.5 h-3.5 w-3.5" />

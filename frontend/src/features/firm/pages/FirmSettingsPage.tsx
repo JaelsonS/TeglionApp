@@ -22,6 +22,7 @@ import { FirmSettingsProfileSection } from '@/features/firm/settings/FirmSetting
 import { FirmSettingsTeamSection } from '@/features/firm/settings/FirmSettingsTeamSection'
 import { FirmSettingsNotificationsSection } from '@/features/firm/settings/FirmSettingsNotificationsSection'
 import { FirmConnectPaymentsSection } from '@/features/firm/settings/FirmConnectPaymentsSection'
+import { PageHeader } from '@/shared/design-system'
 import { cn } from '@/shared/lib/utils'
 
 const TABS = [
@@ -109,12 +110,11 @@ export function FirmSettingsPage() {
   return (
     <FirmScrollPage className="cb-settings-layout-page">
       <div className="cb-settings-page">
-        <header className="cb-settings-page-hd">
-          <h1 className="cb-settings-page-title">Definições</h1>
-          <p className="cb-settings-page-sub">
-            Identidade, escritório, equipa e segurança — escolha a secção em cima.
-          </p>
-        </header>
+        <PageHeader
+          title="Definições"
+          subtitle="Identidade, página pública, equipa e segurança — escolha a secção abaixo."
+          testId="firm-settings-header"
+        />
 
         {isLoading ? (
           <div className="cb-settings-skeleton" aria-busy="true">

@@ -33,7 +33,8 @@ import {
   type PeriodScope,
 } from '@/features/firm/dashboard/firmDashboardUtils'
 import { AgencyPromoCard } from '@/shared/components/agency/AgencyPromoCard'
-import { SkeletonCard } from '@/shared/design-system'
+import { Button } from '@/shared/components/ui/button'
+import { EmptyState, PageHeader, SkeletonCard } from '@/shared/design-system'
 import { useFirmDashboard } from '@/shared/hooks/queries/useFirmDashboard'
 import { contabilMessagesApi } from '@/infrastructure/api'
 import { formatDate, formatDateTime } from '@/shared/utils/date'
@@ -167,42 +168,40 @@ export function FirmDashboardPage() {
     <FirmScrollPage>
     <div className="cb-dash-page" data-testid="firm-dashboard">
       <FirmOnboardingWizard className="mb-4" />
-      <header className="cb-dash-ph">
-        <div className="min-w-0">
-          <h1 className="cb-dash-title">Painel operacional</h1>
-          <p className="cb-dash-sub">
-            Estado da carteira em tempo real · Atualizado {relativeUpdated(updatedAt)}
-            {data ? ` · ${data.totalClients} empresas` : ''}
-          </p>
-        </div>
-        <div className="cb-dash-ph-acts">
-          <button
-            type="button"
-            className={cn('cb-dash-btn-sec', scope === 'all' && 'cb-dash-btn-sec-active')}
-            onClick={() => setScope('all')}
-          >
-            Tudo
-          </button>
-          <button
-            type="button"
-            className={cn('cb-dash-btn-sec', scope === 'today' && 'cb-dash-btn-sec-active')}
-            onClick={() => setScope('today')}
-          >
-            Hoje
-          </button>
-          <button
-            type="button"
-            className={cn('cb-dash-btn-sec', scope === 'week' && 'cb-dash-btn-sec-active')}
-            onClick={() => setScope('week')}
-          >
-            Esta semana
-          </button>
-          <button type="button" className="cb-dash-btn-primary" onClick={() => navigate(firmTasksPath('manual'))}>
-            <Plus className="h-3.5 w-3.5" />
+      <PageHeader
+        title="Painel do escritório"
+        subtitle={`Como está a carteira agora — e o que fazer a seguir. Actualizado ${relativeUpdated(updatedAt)}${
+          data ? ` · ${data.totalClients} empresas` : ''
+        }`}
+        testId="firm-dashboard-header"
+        secondary={
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Período">
+            {(
+              [
+                ['all', 'Tudo'],
+                ['today', 'Hoje'],
+                ['week', 'Esta semana'],
+              ] as const
+            ).map(([key, label]) => (
+              <Button
+                key={key}
+                type="button"
+                size="sm"
+                variant={scope === key ? 'primary' : 'outline'}
+                onClick={() => setScope(key)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+        }
+        right={
+          <Button type="button" size="sm" variant="primary" onClick={() => navigate(firmTasksPath('manual'))}>
+            <Plus className="h-4 w-4" />
             Nova tarefa
-          </button>
-        </div>
-      </header>
+          </Button>
+        }
+      />
 
       {loading && !data ? (
         <div className="cb-dash-kpi-row">
@@ -213,20 +212,19 @@ export function FirmDashboardPage() {
       ) : null}
 
       {loadFailed ? (
-        <div className="cb-dash-panel px-4 py-8 text-center">
-          <AlertCircle className="mx-auto mb-3 h-8 w-8 text-red-500" aria-hidden />
-          <p className="text-sm font-medium text-foreground">Não foi possível carregar o painel</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {getErrorMessage(dashboardQuery.error) || 'Verifique a ligação e tente novamente.'}
-          </p>
-          <button
-            type="button"
-            className="cb-dash-btn-primary mt-4"
-            onClick={() => void dashboardQuery.refetch()}
-          >
-            Tentar novamente
-          </button>
-        </div>
+        <EmptyState
+          icon={AlertCircle}
+          title="Não foi possível carregar o painel"
+          description={
+            getErrorMessage(dashboardQuery.error) ||
+            'Verifique a ligação e tente novamente. Os seus dados estão seguros.'
+          }
+          action={
+            <Button type="button" variant="primary" onClick={() => void dashboardQuery.refetch()}>
+              Tentar novamente
+            </Button>
+          }
+        />
       ) : null}
 
       {data ? (

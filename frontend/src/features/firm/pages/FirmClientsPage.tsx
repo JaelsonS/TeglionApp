@@ -3,6 +3,7 @@ import type { FormChangeEvent } from '@/shared/types/react-events'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Archive,
+  Building2,
   ChevronLeft,
   ChevronRight,
   ExternalLink,
@@ -32,7 +33,7 @@ import { FirmClientBulkInviteDialog } from '@/features/firm/components/FirmClien
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
-import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
+import { ModuleHelpDialog, EmptyState, PageHeader } from '@/shared/design-system'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -239,34 +240,42 @@ export function FirmClientsPage() {
     <FirmScrollPage className="cb-clients-page">
       <div className="cb-clients-panel">
         <div className="cb-clients-panel-hd">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h1 className="cb-clients-title" data-testid="firm-clients-header">
-                Clientes
-              </h1>
-              <p className="cb-clients-sub">
-                {filtered.length === total
-                  ? `${activeCount} clientes activos`
-                  : `${filtered.length} de ${total} clientes`}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
+          <PageHeader
+            title="Clientes"
+            subtitle={
+              filtered.length === total
+                ? `Carteira do escritório · ${activeCount} clientes activos`
+                : `${filtered.length} de ${total} clientes — filtre, convide ao portal e abra o hub de cada empresa.`
+            }
+            testId="firm-clients-header"
+            secondary={
               <ModuleHelpDialog
                 title="Clientes"
                 intro="Aqui gere a carteira do escritório: cadastro, hub de cada empresa e acesso ao portal Teglion."
                 triggerLabel="Guia"
                 steps={[
-                  { title: 'Criar ou abrir um cliente', description: 'Use Novo cliente ou abra o hub para ver documentos, tarefas e acesso.' },
-                  { title: 'Convidar ao portal', description: 'Seleccione um ou vários clientes e envie convite por email ou copie o link.' },
-                  { title: 'Gerir acesso', description: 'Revogue, reemita ou acompanhe o estado de acesso sem perder dados do cliente.' },
+                  {
+                    title: 'Criar ou abrir um cliente',
+                    description: 'Use Novo cliente ou abra o hub para ver documentos, tarefas e acesso.',
+                  },
+                  {
+                    title: 'Convidar ao portal',
+                    description: 'Seleccione um ou vários clientes e envie convite por email ou copie o link.',
+                  },
+                  {
+                    title: 'Gerir acesso',
+                    description: 'Revogue, reemita ou acompanhe o estado de acesso sem perder dados do cliente.',
+                  },
                 ]}
               />
-              <Button className="h-8 rounded-md px-3.5 text-xs" onClick={() => setOpenCreate(true)}>
-                <Plus className="mr-1.5 h-3.5 w-3.5" />
+            }
+            right={
+              <Button size="sm" variant="primary" onClick={() => setOpenCreate(true)}>
+                <Plus className="h-4 w-4" />
                 Novo cliente
               </Button>
-            </div>
-          </div>
+            }
+          />
         </div>
 
         <div className="cb-clients-toolbar">
@@ -364,7 +373,24 @@ export function FirmClientsPage() {
         ) : effectiveView === 'grid' ? (
           <div className="cb-clients-grid">
             {pageItems.length === 0 ? (
-              <p className="col-span-full cb-dash-empty">Nenhum cliente neste filtro.</p>
+              <EmptyState
+                className="col-span-full"
+                icon={Building2}
+                title={total === 0 ? 'Ainda não tem clientes' : 'Nenhum cliente neste filtro'}
+                description={
+                  total === 0
+                    ? 'Adicione a primeira empresa à carteira para organizar documentos, prazos e o portal do cliente.'
+                    : 'Ajuste a pesquisa ou os filtros para ver outros clientes.'
+                }
+                action={
+                  total === 0 ? (
+                    <Button size="sm" variant="primary" onClick={() => setOpenCreate(true)}>
+                      <Plus className="h-4 w-4" />
+                      Novo cliente
+                    </Button>
+                  ) : undefined
+                }
+              />
             ) : (
               pageItems.map((c) => (
                 <button
