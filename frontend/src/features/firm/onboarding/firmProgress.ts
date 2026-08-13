@@ -91,7 +91,7 @@ export function computeFirmProgress(input: FirmProgressInput): FirmProgressResul
     },
     {
       id: 'booking',
-      label: 'Configure a agenda e o booking',
+      label: 'Configure a agenda e o agendamento',
       hint: 'Opcional — horários para marcações na página pública',
       to: '/app/firm/agenda?panel=settings',
       done: input.hasBookingSchedule,

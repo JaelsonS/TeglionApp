@@ -78,7 +78,7 @@ export function AgendaMonthGrid({ anchor, items, onSelectDay, onSelectEvent }: P
       ))}
       {items.length === 0 ? (
         <p className="cb-agenda-month-empty px-2 py-3 text-center text-sm text-muted-foreground">
-          Ainda sem eventos neste mês. Crie um com «Novo evento» ou aguarde marcações do booking.
+          Ainda sem eventos neste mês. Crie um com «Novo evento» ou aguarde marcações da página pública.
         </p>
       ) : null}
     </div>
