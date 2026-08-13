@@ -20,7 +20,9 @@ if (env.SENTRY_DSN && !isNodeTestRun()) {
     Sentry.init({
       dsn: env.SENTRY_DSN,
       release: process.env.SENTRY_RELEASE || process.env.npm_package_version || 'unknown',
-      environment: env.NODE_ENV || 'development',
+      environment:
+        process.env.SENTRY_ENVIRONMENT ||
+        (env.isProduction ? 'production' : env.NODE_ENV || 'development'),
       tracesSampleRate: env.isProduction ? 0.1 : 0,
       sendDefaultPii: false,
       beforeSend(event) {
