@@ -4,13 +4,16 @@ O que existe hoje, com honestidade sobre o que não foi possível confirmar.
 
 ## Estado real
 
-O banco de dados de produção roda em Supabase, que oferece backup automático e recuperação pontual (PITR) como recurso da plataforma, dependendo do plano contratado. Não foi possível confirmar, a partir do código e da documentação do projeto, se o Point-in-Time Recovery está de fato ativo no plano de produção usado hoje — essa é uma configuração do lado do painel do Supabase, fora do que o repositório consegue revelar.
+O banco de dados de produção roda em Supabase **Pro**, com backup automático da plataforma (e PITR conforme configuração do projecto).
 
-Para arquivos (documentos de cliente, imagens), o armazenamento também vive no Supabase Storage, sujeito à mesma incerteza de configuração de backup do lado da plataforma.
+**Segunda camada (externa):** backup lógico diário `pg_dump` → Cloudflare R2 — ver [BACKUP_R2.md](../operations/BACKUP_R2.md) e [BACKUP_RESTORE.md](../operations/BACKUP_RESTORE.md).
+
+Para arquivos (documentos de cliente, imagens), o armazenamento vive no Supabase Storage; **ainda sem** réplica externa no R2 (fase futura).
 
 ## O que isso significa
 
-"Existe backup" não é a pergunta certa — a maioria das plataformas gerenciadas de banco de dados tem alguma forma de backup por padrão. A pergunta certa é: **se for preciso usar esse backup, alguém já confirmou que funciona?** Hoje a resposta é não. Nenhum restore foi testado.
+"Existe backup nativo" não basta. A pergunta certa é: **já restaurou um dump externo com sucesso?** Até o primeiro drill em Postgres temporário, tratar a camada R2 como "implementada, restore por validar".
+
 
 ## Recomendação (documentada aqui, não implementada)
 

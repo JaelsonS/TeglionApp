@@ -19,6 +19,7 @@
     "test:portal-hub": "node scripts/portal-hub-smoke-test.js",
     "benchmark:dashboard": "node scripts/benchmark-dashboard.js",
     "storage:validate": "node scripts/validate-storage.js",
+    "backup:postgres": "node scripts/backup-postgres-to-r2.js",
     "stripe:setup": "node scripts/stripe-setup.js",
     "postinstall": "echo 'Dependencies installed successfully'",
     "smoke:pilot": "node scripts/pilot-smoke-e2e.js"
@@ -27,6 +28,7 @@
     "node": ">=20.19.0"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1109.0",
     "@sentry/node": "^10.58.0",
     "@supabase/supabase-js": "^2.106.0",
     "argon2": "^0.41.1",
