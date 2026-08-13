@@ -18,6 +18,17 @@ function normalizeSlug(value) {
   return slug;
 }
 
+/** rótulo público do preço: included | excluded | null (sem frase) */
+function normalizePriceTaxMode(value) {
+  if (value === undefined) return undefined;
+  if (value === null || value === '') return null;
+  const mode = String(value).trim().toLowerCase();
+  if (mode !== 'included' && mode !== 'excluded') {
+    throw new AppError('Modo de IVA inválido', 400, { code: 'INVALID_PRICE_TAX_MODE' });
+  }
+  return mode;
+}
+
 const DOCUMENT_TIMINGS = new Set(['immediate', 'manual']);
 
 /**
@@ -421,6 +432,7 @@ async function create({ firmId, payload }) {
     bookingOverrides: normalizeBookingOverrides(payload?.bookingOverrides) || null,
     paymentMethod,
     paymentRequired,
+    priceTaxMode: normalizePriceTaxMode(payload?.priceTaxMode) ?? null,
   });
   return { item: await enrichService(item) };
 }
@@ -447,6 +459,8 @@ async function update({ firmId, id, payload }) {
   }
   const priceCents = parsePriceEuros(payload);
   if (priceCents !== undefined) patch.priceCents = priceCents;
+  const priceTaxMode = normalizePriceTaxMode(payload?.priceTaxMode);
+  if (priceTaxMode !== undefined) patch.priceTaxMode = priceTaxMode;
   if (payload?.isActive !== undefined) patch.isActive = Boolean(payload.isActive);
   if (payload?.slug !== undefined) patch.slug = normalizeSlug(payload.slug);
   if (payload?.requiresBooking !== undefined) patch.requiresBooking = Boolean(payload.requiresBooking);

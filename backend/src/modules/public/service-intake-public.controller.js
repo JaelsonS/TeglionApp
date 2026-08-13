@@ -36,6 +36,7 @@ async function mapPublicServiceSummary(s) {
     description: interpolateServiceTemplate(enriched.description) || null,
     durationMinutes: enriched.durationMinutes,
     priceCents: enriched.priceCents,
+    priceTaxMode: enriched.priceTaxMode || null,
     requiresBooking: enriched.requiresBooking === true,
     paymentRequired: enriched.paymentRequired === true,
     imageUrl: enriched.imageUrl || null,
@@ -47,6 +48,13 @@ function assertValid(req) {
   if (!errors.isEmpty()) {
     throw new AppError('Parâmetros inválidos', 400, { errors: errors.array() });
   }
+}
+
+/** Nome nas redes / página pública; fallback para o nome interno do escritório. */
+function resolvePublicFirmName(firm) {
+  const display = firm?.settings?.publicProfile?.displayName;
+  const trimmed = display != null ? String(display).trim() : '';
+  return trimmed || firm.name;
 }
 
 /**
@@ -78,7 +86,7 @@ async function getPublicFirmServices(req, res, next) {
     const contact = firm.settings?.contact || {};
 
     return res.json({
-      firmName: firm.name,
+      firmName: resolvePublicFirmName(firm),
       logoUrl,
       primaryColor: branding.primaryColor || null,
       secondaryColor: branding.secondaryColor || null,
@@ -140,7 +148,7 @@ async function getPublicFirmSite(req, res, next) {
     }
 
     return res.json({
-      firmName: firm.name,
+      firmName: resolvePublicFirmName(firm),
       logoUrl,
       isPreview: previewValid,
       templateKey: site.templateKey || 'default',
@@ -202,7 +210,7 @@ async function getPublicService(req, res, next) {
     const showFirmLogo = service.intakeForm?.pageOptions?.showFirmLogo !== false;
 
     return res.json({
-      firmName: firm.name,
+      firmName: resolvePublicFirmName(firm),
       logoUrl: showFirmLogo ? logoUrl : null,
       showFirmLogo,
       serviceName: interpolateServiceTemplate(service.name),
@@ -212,6 +220,7 @@ async function getPublicService(req, res, next) {
       requiresBooking: service.requiresBooking === true,
       paymentRequired: service.paymentRequired === true,
       priceCents: service.priceCents,
+      priceTaxMode: service.priceTaxMode || null,
       showPrices,
       termsText,
       privacyText,

@@ -32,6 +32,7 @@ function resolveFirstImageUrl(imageIds: string[], images: PublicSiteConfig['imag
 }
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
 import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
+import { priceTaxModeCaption } from '@/shared/utils/priceTaxMode'
 
 /**
  * Contexto partilhado por todas as secções — dados que não vivem no
@@ -286,9 +287,16 @@ function ServiceCard({
             ) : null}
           </div>
           {showPrices && service.priceCents > 0 ? (
-            <span className="shrink-0 text-sm font-semibold text-[hsl(var(--brand-text,var(--primary)))]">
-              {formatPrice(service.priceCents)}
-            </span>
+            <div className="shrink-0 text-right">
+              <span className="block text-sm font-semibold text-[hsl(var(--brand-text,var(--primary)))]">
+                {formatPrice(service.priceCents)}
+              </span>
+              {priceTaxModeCaption(service.priceTaxMode) ? (
+                <span className="mt-0.5 block max-w-[9rem] text-[10px] font-normal leading-snug text-muted-foreground">
+                  {priceTaxModeCaption(service.priceTaxMode)}
+                </span>
+              ) : null}
+            </div>
           ) : null}
         </div>
         {service.requiresBooking ? (

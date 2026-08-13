@@ -18,6 +18,7 @@ import { contabilPublicApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { openExternalUrl } from '@/shared/utils/openExternalUrl'
 import { applyFirmBranding } from '@/shared/utils/firmBranding'
+import { priceTaxModeCaption } from '@/shared/utils/priceTaxMode'
 import { withTurnstileToken } from '@/shared/security/withTurnstileToken'
 import { isTurnstileEnabled, TURNSTILE_ACTIONS } from '@/shared/security/turnstile'
 import type { IntakeQuestion } from '@/shared/types/contabil'
@@ -321,9 +322,14 @@ export function ServiceIntakePublicPage() {
         <h1 className="text-2xl font-bold text-[hsl(var(--brand-text,var(--foreground)))]">{service.serviceName}</h1>
         {service.description ? <SanitizedServiceHtml html={service.description} className="text-sm text-muted-foreground" /> : null}
         {service.showPrices !== false && (service.priceCents ?? 0) > 0 ? (
-          <p className="text-sm font-semibold text-[hsl(var(--brand-text,var(--primary)))]">
-            {((service.priceCents || 0) / 100).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
-          </p>
+          <div>
+            <p className="text-sm font-semibold text-[hsl(var(--brand-text,var(--primary)))]">
+              {((service.priceCents || 0) / 100).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
+            </p>
+            {priceTaxModeCaption(service.priceTaxMode) ? (
+              <p className="mt-0.5 text-xs text-muted-foreground">{priceTaxModeCaption(service.priceTaxMode)}</p>
+            ) : null}
+          </div>
         ) : null}
       </header>
 

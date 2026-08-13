@@ -59,6 +59,8 @@ export type FirmSettingsBundle = {
     secondaryColor: string | null
   }
   publicProfile: {
+    /** Nome nas redes / página pública; se vazio, usa o nome interno do escritório. */
+    displayName: string | null
     tagline: string | null
     bio: string | null
     socialLinks: FirmPublicProfileSocialLinks
@@ -98,6 +100,7 @@ export type PatchFirmProfilePayload = {
 }
 
 export type PatchFirmPublicProfilePayload = {
+  displayName?: string | null
   tagline?: string | null
   bio?: string | null
   socialLinks?: FirmPublicProfileSocialLinks | null

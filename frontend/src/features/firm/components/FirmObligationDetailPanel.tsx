@@ -87,6 +87,8 @@ export function FirmObligationDetailPanel({
   const [obligationDocs, setObligationDocs] = useState<
     { id: string; title?: string; category?: string; uploadedByRole?: string }[]
   >([])
+  const [periodDraft, setPeriodDraft] = useState(String(obligation.period || '').slice(0, 7))
+  const [savingPeriod, setSavingPeriod] = useState(false)
 
   const lane = (obligation.operationalLane || 'upcoming') as OperationalLane
   const laneBadge = LANE_BADGE[lane] ?? LANE_BADGE.upcoming
@@ -159,6 +161,30 @@ export function FirmObligationDetailPanel({
       toast.error('Não foi possível actualizar', { description: getErrorMessage(err) })
     } finally {
       setMarking(false)
+    }
+  }
+
+  useEffect(() => {
+    setPeriodDraft(String(obligation.period || '').slice(0, 7))
+  }, [obligation._id, obligation.period])
+
+  const savePeriod = async () => {
+    const next = String(periodDraft || '').trim()
+    if (!/^\d{4}-\d{2}$/.test(next)) {
+      toast.error('Período inválido', { description: 'Use o formato AAAA-MM (ex.: 2026-08).' })
+      return
+    }
+    if (next === String(obligation.period || '').slice(0, 7)) return
+    setSavingPeriod(true)
+    try {
+      await contabilObligationsApi.update(obligation._id, { period: next })
+      toast.success('Período actualizado')
+      onUpdated()
+    } catch (err) {
+      toast.error('Não foi possível actualizar o período', { description: getErrorMessage(err) })
+      setPeriodDraft(String(obligation.period || '').slice(0, 7))
+    } finally {
+      setSavingPeriod(false)
     }
   }
 
@@ -246,7 +272,18 @@ export function FirmObligationDetailPanel({
             </div>
             <div className="cb-ob-meta-cell">
               <p className="cb-ob-meta-label">Período</p>
-              <p className="cb-ob-meta-val">{obligation.period || '—'}</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="month"
+                  className="cb-ob-meta-val h-8 w-full max-w-[9.5rem] rounded-md border border-input bg-background px-2 text-sm"
+                  value={periodDraft}
+                  onChange={(e) => setPeriodDraft(e.target.value)}
+                  onBlur={() => void savePeriod()}
+                  disabled={savingPeriod || isDelivered}
+                  aria-label="Período da obrigação"
+                />
+                {savingPeriod ? <span className="text-[11px] text-muted-foreground">A guardar…</span> : null}
+              </div>
             </div>
             <div className="cb-ob-meta-cell">
               <p className="cb-ob-meta-label">Prazo legal</p>

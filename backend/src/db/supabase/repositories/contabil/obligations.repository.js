@@ -53,6 +53,7 @@ async function updateObligation(id, firmId, patch) {
   if (patch.status !== undefined) row.status = patch.status;
   if (patch.notes !== undefined) row.notes = patch.notes;
   if (patch.title !== undefined) row.title = patch.title;
+  if (patch.period !== undefined) row.period = patch.period;
   if (patch.dueDate !== undefined) row.due_date = patch.dueDate;
   if (patch.assignedStaffId !== undefined) row.assigned_staff_id = patch.assignedStaffId;
   if (patch.amountCents !== undefined) row.amount_cents = patch.amountCents;

@@ -77,10 +77,16 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const [resetting, setResetting] = useState(false)
   const [slugDraft, setSlugDraft] = useState(firmSlug)
   const [savingSlug, setSavingSlug] = useState(false)
+  const [publicDisplayName, setPublicDisplayName] = useState(bundle.publicProfile.displayName ?? '')
+  const [savingDisplayName, setSavingDisplayName] = useState(false)
 
   useEffect(() => {
     setSlugDraft(firmSlug)
   }, [firmSlug])
+
+  useEffect(() => {
+    setPublicDisplayName(bundle.publicProfile.displayName ?? '')
+  }, [bundle.publicProfile.displayName])
 
   const siteQuery = useQuery({
     queryKey: ['firm-public-site'],
@@ -257,6 +263,22 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     }
   }
 
+  const onSavePublicDisplayName = async () => {
+    const next = publicDisplayName.trim()
+    const current = (bundle.publicProfile.displayName || '').trim()
+    if (next === current) return
+    setSavingDisplayName(true)
+    try {
+      await firmSettingsApi.patchPublicProfile({ displayName: next || null })
+      toast.success('Nome público actualizado.')
+      onFirmUpdated?.()
+    } catch (err) {
+      toast.error('Não foi possível guardar o nome público', { description: getErrorMessage(err) })
+    } finally {
+      setSavingDisplayName(false)
+    }
+  }
+
   const onResetSite = async () => {
     setResetting(true)
     try {
@@ -282,6 +304,8 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
 
   const previewServices: PublicFirmServiceSummary[] = servicesQuery.data?.items || []
   const booking = bookingQuery.data?.booking
+  const previewFirmName =
+    publicDisplayName.trim() || bundle.publicProfile.displayName?.trim() || bundle.firm.name
 
   return (
     <div className="space-y-6">
@@ -370,6 +394,36 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             Ao alterar o link, o endereço antigo deixa de funcionar. Só o responsável do escritório pode
             editar.
           </p>
+          {canEditLink ? (
+            <>
+              <div className="flex flex-wrap items-end gap-2 pt-1">
+                <label className="min-w-[14rem] flex-1 space-y-1 text-xs">
+                  <span className="font-medium text-muted-foreground">Nome na página pública (redes)</span>
+                  <Input
+                    className="h-9 text-sm"
+                    value={publicDisplayName}
+                    onChange={(e: FormChangeEvent) => setPublicDisplayName(e.target.value)}
+                    placeholder={bundle.firm.name || 'Como aparece no site'}
+                    maxLength={120}
+                  />
+                </label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9"
+                  disabled={savingDisplayName}
+                  onClick={() => void onSavePublicDisplayName()}
+                >
+                  {savingDisplayName ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+                  Guardar nome
+                </Button>
+              </div>
+              <p className="text-caption text-muted-foreground">
+                Diferente do nome interno do escritório. Se vazio, usa «{bundle.firm.name}».
+              </p>
+            </>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" size="sm" disabled={saving || publishing} onClick={() => void onSaveDraft()}>
@@ -602,7 +656,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               config={draft}
               ctx={{
                 firmSlug,
-                firmName: bundle.firm.name,
+                firmName: previewFirmName,
                 logoUrl: bundle.logoUrl || null,
                 services: previewServices,
                 contact: bundle.contact,

@@ -3,6 +3,7 @@ import { ImagePlus, Loader2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/shared/components/ui/button'
+import { ImageCropDialog } from '@/shared/components/media/ImageCropDialog'
 import { contabilFirmApi } from '@/infrastructure/api'
 import { useFirmBranding } from '@/shared/hooks/useFirmBranding'
 import { emitAppDataChanged } from '@/shared/utils/appEvents'
@@ -22,6 +23,8 @@ export function FirmLogoSettingsCard({
   const [uploading, setUploading] = useState(false)
   const [removing, setRemoving] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [cropFile, setCropFile] = useState<File | null>(null)
+  const [cropOpen, setCropOpen] = useState(false)
 
   const displayUrl = previewUrl || firmLogoUrl
   const hasLogo = Boolean(displayUrl)
@@ -29,6 +32,16 @@ export function FirmLogoSettingsCard({
   const onPick = () => {
     if (readOnly) return
     inputRef.current?.click()
+  }
+
+  const onFilePicked = (file: File | undefined) => {
+    if (!file) return
+    if (file.size > MAX_LOGO_MB * 1024 * 1024) {
+      toast.error(`Imagem até ${MAX_LOGO_MB} MB`)
+      return
+    }
+    setCropFile(file)
+    setCropOpen(true)
   }
 
   const onFile = async (file: File | undefined) => {
@@ -79,7 +92,7 @@ export function FirmLogoSettingsCard({
       <p className="mt-1 text-sm text-muted-foreground">
         {readOnly
           ? 'Apenas o dono do escritório pode alterar o logótipo.'
-          : 'Aparece de imediato no menu, login do cliente e portal. Recomendado: imagem quadrada (PNG ou WebP).'}
+          : 'Aparece de imediato no menu, login do cliente e portal. Recomendado: imagem quadrada (PNG ou WebP). Pode recortar antes de enviar.'}
       </p>
 
       <div className="mt-5 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
@@ -96,7 +109,10 @@ export function FirmLogoSettingsCard({
             type="file"
             accept="image/jpeg,image/png,image/webp"
             className="hidden"
-            onChange={(e) => void onFile(e.target.files?.[0])}
+            onChange={(e) => {
+              onFilePicked(e.target.files?.[0])
+              e.target.value = ''
+            }}
           />
           <div className="flex flex-wrap gap-2">
             <Button
@@ -183,6 +199,18 @@ export function FirmLogoSettingsCard({
           </div>
         </div>
       ) : null}
+
+      <ImageCropDialog
+        open={cropOpen}
+        onOpenChange={(next) => {
+          setCropOpen(next)
+          if (!next) setCropFile(null)
+        }}
+        file={cropFile}
+        title="Recortar logótipo"
+        aspect={1}
+        onCropped={(cropped) => void onFile(cropped)}
+      />
     </section>
   )
 }

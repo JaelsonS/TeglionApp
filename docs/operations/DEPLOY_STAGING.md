@@ -119,6 +119,8 @@ Em `staging.teglion.com`, o frontend **sempre** usa:
 |----------|---------------------------|------------|
 | `VITE_API_BASE_URL` | `https://teglion-api-staging.onrender.com/api` | `/api` (prod rewrite) |
 | `VITE_PRODUCT_MODE` | `contabil` | `contabil` |
+| `VITE_SENTRY_DSN` | DSN do projecto Sentry (ver `frontend/.env.staging.example`) | DSN prod (pode ser o mesmo projecto) |
+| `VITE_SENTRY_ENVIRONMENT` | `staging` | `production` |
 
 Ficheiro local de referência (raiz do monorepo): `.env.staging` (git-ignored) + template versionável `.env.staging.example`. Frontend: [frontend/.env.staging.example](../../frontend/.env.staging.example). Backend: [backend/.env.staging.example](../../backend/.env.staging.example).
 
