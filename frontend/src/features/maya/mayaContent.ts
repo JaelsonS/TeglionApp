@@ -109,7 +109,7 @@ export const MAYA_INTENTS: MayaIntent[] = [
     title: 'Como usar a agenda?',
     shortDescription: 'agenda e reuniões',
     answer:
-      'Na Agenda marca eventos, define disponibilidade de booking e pode ligar o Google Calendar. O booking público usa os horários que configurar nas Definições da agenda.',
+      'Na Agenda marca eventos, define disponibilidade de agendamento e pode ligar o Google Calendar. O agendamento na página pública usa os horários que configurar nas Definições da agenda.',
     steps: [
       'Abrir Agenda',
       'Criar um evento ou abrir Definições',
@@ -121,10 +121,10 @@ export const MAYA_INTENTS: MayaIntent[] = [
   },
   {
     id: 'booking',
-    title: 'Como configurar o booking?',
+    title: 'Como configurar o agendamento?',
     shortDescription: 'marcação na página pública',
     answer:
-      'O booking combina um serviço publicável com horários da Agenda. Em Agenda → Definições configure disponibilidade; no serviço active a marcação e publique.',
+      'O agendamento na página pública combina um serviço publicável com horários da Agenda. Em Agenda → Definições configure disponibilidade; no serviço active a marcação e publique.',
     steps: [
       'Configurar disponibilidade na Agenda',
       'Associar serviço de marcação',

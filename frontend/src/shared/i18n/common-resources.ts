@@ -206,7 +206,7 @@ function baseExtra(locale: 'pt-PT' | 'pt-BR' | 'en' | 'es-ES') {
           chat: isPt ? 'Mensagens' : 'Messages',
           operations: isPt ? 'Gestor de Operações' : 'Operations',
           tasks: isPt ? 'Tarefas' : 'Tasks',
-          consultations: isPt ? 'Agendamentos' : 'Bookings',
+          consultations: isPt ? 'Agendamentos' : 'Appointments',
           fiscalCalendar: isPt ? 'Calendário fiscal' : 'Fiscal calendar',
           admin: isPt ? 'Configurações' : 'Settings',
           alerts: isPt ? 'Central de Alertas' : 'Alerts',

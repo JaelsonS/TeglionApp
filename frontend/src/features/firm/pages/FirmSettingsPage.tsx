@@ -169,23 +169,20 @@ export function FirmSettingsPage() {
 
             <div className="cb-settings-hub-main">
               <div className="cb-settings-hub-panel-hd">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <h2 className="cb-settings-hub-panel-title">{activeMeta.label}</h2>
-                    <p className="cb-settings-hub-panel-sub">
-                      {activeTab === 'identidade' && 'Logótipo no menu, portal do cliente e comunicações.'}
-                      {activeTab === 'pagina-publica' &&
-                        'O que aparece na sua página pública partilhável — a Maya explica cada passo.'}
-                      {activeTab === 'escritorio' && 'Nome e contactos do escritório.'}
-                      {activeTab === 'pagamentos' &&
-                        'Stripe Connect — receber pagamentos dos clientes na conta do escritório.'}
-                      {activeTab === 'perfil' && 'Os seus dados de acesso e segurança.'}
-                      {activeTab === 'equipa' && 'Colaboradores, cargos e departamentos.'}
-                      {activeTab === 'notificacoes' && 'Alertas push e preferências de aviso.'}
-                      {activeTab === 'encerrar' && 'Acção irreversível — encerra o escritório.'}
-                    </p>
-                  </div>
-                  {activeTab === 'pagina-publica' ? <AskMayaButton intentId="public-page" /> : null}
+                <div className="min-w-0">
+                  <h2 className="cb-settings-hub-panel-title">{activeMeta.label}</h2>
+                  <p className="cb-settings-hub-panel-sub">
+                    {activeTab === 'identidade' && 'Logótipo no menu, portal do cliente e comunicações.'}
+                    {activeTab === 'pagina-publica' &&
+                      'O que aparece na sua página pública partilhável — a Maya explica cada passo.'}
+                    {activeTab === 'escritorio' && 'Nome e contactos do escritório.'}
+                    {activeTab === 'pagamentos' &&
+                      'Stripe Connect — receber pagamentos dos clientes na conta do escritório.'}
+                    {activeTab === 'perfil' && 'Os seus dados de acesso e segurança.'}
+                    {activeTab === 'equipa' && 'Colaboradores, cargos e departamentos.'}
+                    {activeTab === 'notificacoes' && 'Alertas push e preferências de aviso.'}
+                    {activeTab === 'encerrar' && 'Acção irreversível — encerra o escritório.'}
+                  </p>
                 </div>
               </div>
 

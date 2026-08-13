@@ -13,7 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog'
-import { AskMayaButton } from '@/features/maya'
 import {
   CONNECT_STATUS_QUERY_KEY,
   contabilConnectApi,
@@ -137,14 +136,11 @@ export function FirmConnectPaymentsSection() {
         <span className="cb-settings-panel-icon">
           <CreditCard className="h-4 w-4" aria-hidden />
         </span>
-        <div className="flex flex-1 flex-wrap items-start justify-between gap-3">
-          <div>
-            <h3 className="cb-settings-panel-title">Pagamentos dos clientes</h3>
-            <p className="cb-settings-panel-sub">
-              Receba online na conta do escritório — o dinheiro não passa pela Teglion.
-            </p>
-          </div>
-          <AskMayaButton intentId="payments" />
+        <div>
+          <h3 className="cb-settings-panel-title">Pagamentos dos clientes</h3>
+          <p className="cb-settings-panel-sub">
+            Receba online na conta do escritório — o dinheiro não passa pela Teglion.
+          </p>
         </div>
       </div>
 
