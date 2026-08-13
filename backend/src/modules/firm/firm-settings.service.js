@@ -81,6 +81,7 @@ async function getSettingsBundle(firmId, actorUserId) {
       secondaryColor: settings.branding?.secondaryColor || null,
     },
     publicProfile: {
+      displayName: settings.publicProfile?.displayName || null,
       tagline: settings.publicProfile?.tagline || null,
       bio: settings.publicProfile?.bio || null,
       socialLinks: settings.publicProfile?.socialLinks || {},
@@ -343,6 +344,10 @@ async function updatePublicProfile(firmId, actorUserId, payload) {
   }
 
   const patch = {};
+  if (payload.displayName !== undefined) {
+    patch.displayName =
+      payload.displayName == null ? null : String(payload.displayName).trim().slice(0, 120) || null;
+  }
   if (payload.tagline !== undefined) {
     patch.tagline = payload.tagline == null ? null : String(payload.tagline).trim().slice(0, 160) || null;
   }

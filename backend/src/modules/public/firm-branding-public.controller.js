@@ -25,9 +25,12 @@ async function getBySlug(req, res, next) {
     } catch {
       logoUrl = firm.settings?.branding?.logoUrl || null;
     }
+    const display = firm.settings?.publicProfile?.displayName;
+    const publicName =
+      display != null && String(display).trim() ? String(display).trim() : firm.name;
     return res.status(200).json({
       slug: firm.slug,
-      name: firm.name,
+      name: publicName,
       logoUrl,
     });
   } catch (err) {

@@ -174,6 +174,14 @@ async function createObligationWithTask({
   return { obligation, task };
 }
 
+function normalizePeriodLabel(raw) {
+  const value = String(raw || '').trim();
+  if (!value) return null;
+  if (/^\d{4}-\d{2}$/.test(value)) return value;
+  if (/^\d{4}$/.test(value)) return value;
+  throw new AppError('Período inválido. Use AAAA-MM (ex.: 2026-08).', 400, { code: 'INVALID_PERIOD' });
+}
+
 async function updateObligation({ firmId, obligationId, patch }) {
   const allowed = [
     'status',
@@ -181,6 +189,7 @@ async function updateObligation({ firmId, obligationId, patch }) {
     'assignedStaffId',
     'dueDate',
     'title',
+    'period',
     'paymentStatus',
     'priority',
     'amountCents',
@@ -190,6 +199,10 @@ async function updateObligation({ firmId, obligationId, patch }) {
   const update = {};
   for (const key of allowed) {
     if (patch[key] !== undefined) update[key] = patch[key];
+  }
+  if (update.period !== undefined) {
+    update.period = normalizePeriodLabel(update.period);
+    if (!update.period) throw new AppError('Período é obrigatório.', 400, { code: 'INVALID_PERIOD' });
   }
   if (update.dueDate) update.dueDate = new Date(update.dueDate);
   if (update.status === 'DELIVERED') update.deliveredAt = new Date();

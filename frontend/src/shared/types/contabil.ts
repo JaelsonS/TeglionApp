@@ -350,6 +350,8 @@ export type AccountingService = {
   imageStorageKey?: string | null
   durationMinutes: number
   priceCents: number
+  /** rótulo na página pública: included | excluded | null */
+  priceTaxMode?: 'included' | 'excluded' | null
   currency?: string
   isActive?: boolean
   sortOrder?: number

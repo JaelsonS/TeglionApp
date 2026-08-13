@@ -36,9 +36,11 @@ import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
 import { Dialog, DialogContent, DialogTitle } from '@/shared/components/ui/dialog'
 import { EuroInput, RichTextEditor, UploadDropzone } from '@/shared/design-system'
+import { ImageCropDialog } from '@/shared/components/media/ImageCropDialog'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { PRICE_TAX_MODE_LABELS, type PriceTaxMode } from '@/shared/utils/priceTaxMode'
 import { cn } from '@/shared/lib/utils'
 import type {
   AccountingService,
@@ -174,6 +176,7 @@ export function ServiceFullEditorSheet({
   const [name, setName] = useState('')
   const [durationMinutes, setDurationMinutes] = useState(60)
   const [priceEuros, setPriceEuros] = useState(0)
+  const [priceTaxMode, setPriceTaxMode] = useState<PriceTaxMode | ''>('')
   const [description, setDescription] = useState('')
   const [descOpen, setDescOpen] = useState(false)
   const [isActive, setIsActive] = useState(true)
@@ -187,6 +190,8 @@ export function ServiceFullEditorSheet({
    * o `imageUrl` devolvido pela API gravaria uma URL assinada temporária. */
   const [imageDirty, setImageDirty] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [cropFile, setCropFile] = useState<File | null>(null)
+  const [cropOpen, setCropOpen] = useState(false)
 
   const [slug, setSlug] = useState('')
   const [isPubliclyListed, setIsPubliclyListed] = useState(false)
@@ -219,6 +224,7 @@ export function ServiceFullEditorSheet({
       setName(service.name)
       setDurationMinutes(service.durationMinutes || 60)
       setPriceEuros((service.priceCents || 0) / 100)
+      setPriceTaxMode(service.priceTaxMode === 'included' || service.priceTaxMode === 'excluded' ? service.priceTaxMode : '')
       setDescription(service.description || '')
       setDescOpen(Boolean(service.description?.replace(/<[^>]+>/g, '').trim()))
       setIsActive(service.isActive !== false)
@@ -238,6 +244,7 @@ export function ServiceFullEditorSheet({
       setName(catalogHintName || '')
       setDurationMinutes(60)
       setPriceEuros(0)
+      setPriceTaxMode('')
       setDescription('')
       setDescOpen(false)
       setIsActive(true)
@@ -412,6 +419,11 @@ export function ServiceFullEditorSheet({
   const uploadBanner = (files: File[]) => {
     const file = files[0]
     if (!file) return
+    setCropFile(file)
+    setCropOpen(true)
+  }
+
+  const uploadCroppedBanner = (file: File) => {
     setUploading(true)
     void (async () => {
       try {
@@ -458,6 +470,7 @@ export function ServiceFullEditorSheet({
       description: description || null,
       durationMinutes,
       priceEuros,
+      priceTaxMode: priceTaxMode || null,
       isActive,
       requiresBooking,
       slug: slug.trim() || null,
@@ -585,6 +598,21 @@ export function ServiceFullEditorSheet({
                     <label className="space-y-1 text-sm">
                       <span className="font-medium">Preço</span>
                       <EuroInput value={priceEuros} onChange={setPriceEuros} />
+                    </label>
+                    <label className="space-y-1 text-sm sm:col-span-3">
+                      <span className="font-medium">Texto do IVA (página pública)</span>
+                      <select
+                        className="flex h-10 w-full rounded-xl border border-brand/20 bg-card px-3 text-sm"
+                        value={priceTaxMode}
+                        onChange={(e) => setPriceTaxMode((e.target.value as PriceTaxMode | '') || '')}
+                      >
+                        <option value="">Sem frase de IVA</option>
+                        <option value="included">{PRICE_TAX_MODE_LABELS.included}</option>
+                        <option value="excluded">{PRICE_TAX_MODE_LABELS.excluded}</option>
+                      </select>
+                      <span className="block text-xs text-muted-foreground">
+                        Só aparece sob o preço na página pública — não altera o pagamento Stripe.
+                      </span>
                     </label>
                     <div className="flex items-end">
                       <label className="flex items-center gap-2 text-sm">
@@ -1116,6 +1144,18 @@ export function ServiceFullEditorSheet({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ImageCropDialog
+        open={cropOpen}
+        onOpenChange={(next) => {
+          setCropOpen(next)
+          if (!next) setCropFile(null)
+        }}
+        file={cropFile}
+        title="Recortar banner do serviço"
+        aspect={16 / 9}
+        onCropped={uploadCroppedBanner}
+      />
     </>
   )
 }

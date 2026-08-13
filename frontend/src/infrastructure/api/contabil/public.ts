@@ -8,6 +8,7 @@ export type PublicFirmServiceSummary = {
   description?: string | null
   durationMinutes: number
   priceCents: number
+  priceTaxMode?: 'included' | 'excluded' | null
   requiresBooking: boolean
   paymentRequired?: boolean
   imageUrl?: string | null
@@ -24,6 +25,7 @@ export type PublicServiceIntake = {
   requiresBooking: boolean
   paymentRequired?: boolean
   priceCents?: number
+  priceTaxMode?: 'included' | 'excluded' | null
   showPrices?: boolean
   termsText?: string | null
   privacyText?: string | null
