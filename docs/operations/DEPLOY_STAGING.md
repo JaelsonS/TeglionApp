@@ -80,22 +80,47 @@ Criar environment `staging` no GitHub e definir pelo menos:
 
 ---
 
-## 3. Frontend (Vercel — projeto staging)
+## 3. Frontend (Vercel — isolamento obrigatório)
 
-**Opção A (recomendada):** segundo projeto Vercel ligado ao mesmo repo, branch `staging`.
+### Porquê staging escreveu em produção (incidente)
 
-**Opção B:** Preview Deployments do PR — útil para features pontuais, menos estável para QA contínuo.
+1. `frontend/vercel.json` reescreve `/api/*` → **`teglionapp.onrender.com` (produção)**.
+2. Em `apiBase.ts`, só `teglion.com` / `www` forçavam `/api`. Em `staging.teglion.com`, se o build usasse Production env ou caísse no fallback `/api`, o browser falava com a **API de produção**.
+3. Variáveis **Preview** no Vercel **não** entram se o domínio `staging.teglion.com` estiver ligado ao deployment **Production** (`main`).
 
-| Variável | Valor |
-|----------|--------|
-| `VITE_API_BASE_URL` | `https://teglion-api-staging.onrender.com/api` |
-| `VITE_PRODUCT_MODE` | `contabil` |
+### Regra dura (código)
 
-Domínio: `staging.teglion.com` → CNAME para Vercel.
+Em `staging.teglion.com`, o frontend **sempre** usa:
 
-Ficheiro local de referência: `frontend/.env.staging.example`.
+`https://teglion-api-staging.onrender.com/api`
+
+(mesmo que `VITE_API_BASE_URL` esteja errado ou o rewrite exista).
+
+### Configuração Vercel (fazer agora)
+
+**Opção A — mesmo projeto (mínimo):**
+
+1. **Settings → Git** → Production Branch = `main` (não `staging`).
+2. **Settings → Domains** → `staging.teglion.com` → assign to Git Branch **`staging`** (não Production).
+3. **Settings → Environment Variables**
+   - Preview: `VITE_API_BASE_URL` = `https://teglion-api-staging.onrender.com/api`
+   - Production: `VITE_API_BASE_URL` = `/api` (ou URL da API prod; o rewrite de `vercel.json` cobre `/api`)
+4. Redeploy do branch `staging` (Deployments → ⋯ → Redeploy).
+5. Em `https://staging.teglion.com`, DevTools → Network: pedidos devem ir a **`teglion-api-staging.onrender.com`**, nunca a `teglionapp.onrender.com`.
+
+**Opção B (recomendada a médio prazo):** segundo projeto Vercel (`teglion-app-staging`), root `frontend`, branch `staging`, domínio `staging.teglion.com`, e usar `frontend/vercel.staging.json` (rewrite `/api` → API staging) como `vercel.json` desse projeto.
+
+| Variável | Preview / projeto staging | Production |
+|----------|---------------------------|------------|
+| `VITE_API_BASE_URL` | `https://teglion-api-staging.onrender.com/api` | `/api` (prod rewrite) |
+| `VITE_PRODUCT_MODE` | `contabil` | `contabil` |
+
+Ficheiro local de referência (raiz do monorepo): `.env.staging` (git-ignored) + template versionável `.env.staging.example`. Frontend: [frontend/.env.staging.example](../../frontend/.env.staging.example). Backend: [backend/.env.staging.example](../../backend/.env.staging.example).
 
 ```bash
+# Preencher .env.staging na raiz (nunca copiar de produção)
+cp .env.staging.example .env.staging
+
 cd frontend
 cp .env.staging.example .env.staging.local   # só local, não commitar
 npm run dev -- --mode staging                # se configurares mode no Vite
