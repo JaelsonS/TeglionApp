@@ -1,6 +1,7 @@
 import { FirmMessagesModule } from '@/features/firm/chat/FirmMessagesModule'
 import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
-import { ModuleHelpDialog, PageHeader } from '@/shared/design-system'
+import { AskMayaButton } from '@/features/maya'
+import { PageHeader } from '@/shared/design-system'
 
 export function FirmMessagesPage() {
   return (
@@ -10,27 +11,7 @@ export function FirmMessagesPage() {
           title="Mensagens"
           subtitle="Conversas e anexos com a carteira de clientes — histórico num só lugar."
           testId="firm-messages-title"
-          secondary={
-            <ModuleHelpDialog
-              title="Mensagens"
-              intro="Aqui pode conversar directamente com os seus clientes — mensagens, anexos e histórico, tudo num só lugar."
-              triggerLabel="Guia"
-              steps={[
-                {
-                  title: 'Escolha uma conversa',
-                  description: 'Seleccione um cliente na lista à esquerda para ver o histórico completo.',
-                },
-                {
-                  title: 'Escreva e envie',
-                  description: 'Escreva a mensagem e anexe ficheiros quando for preciso — o cliente recebe no portal.',
-                },
-                {
-                  title: 'Fixe as conversas importantes',
-                  description: 'Use o menu ⋯ numa conversa para a fixar e mantê-la no topo da lista.',
-                },
-              ]}
-            />
-          }
+          secondary={<AskMayaButton intentId="messages" />}
         />
       </div>
       <div className="cb-chat-page-panel cb-firm-operational-panel flex min-h-0 flex-1 flex-col overflow-hidden">

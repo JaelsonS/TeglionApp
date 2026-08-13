@@ -1,10 +1,10 @@
-import { ArrowRight, Copy, ExternalLink, HelpCircle, Link2 } from 'lucide-react'
+import { ArrowRight, Copy, ExternalLink, Link2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import { AskMayaButton } from '@/features/maya'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
-import { openMaya } from '@/features/maya/openMaya'
 import type { FirmNextAction } from '@/features/firm/onboarding/firmProgress'
 
 type FirmNextStepCardProps = {
@@ -30,17 +30,7 @@ export function FirmNextStepCard({ action, loading }: FirmNextStepCardProps) {
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>
-        {action.mayaIntentId ? (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => openMaya(action.mayaIntentId)}
-          >
-            <HelpCircle className="h-4 w-4" />
-            Precisa de ajuda?
-          </Button>
-        ) : null}
+        {action.mayaIntentId ? <AskMayaButton intentId={action.mayaIntentId} /> : null}
       </CardContent>
     </Card>
   )

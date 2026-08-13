@@ -7,7 +7,7 @@ import { NewsComposer, type NewsDraft } from '@/features/firm/news/NewsComposer'
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
-import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
+import { AskMayaButton } from '@/features/maya'
 import {
   Sheet,
   SheetContent,
@@ -115,26 +115,7 @@ export function NewsWorkspace() {
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <ModuleHelpDialog
-            title="Notícias"
-            intro="Publique artigos e novidades para os seus clientes lerem no portal. Diferente da Central de Alertas — que é para avisos operacionais pontuais — aqui é conteúdo mais completo e informativo."
-            steps={[
-              { title: 'Escreva o artigo', description: 'Dê um título, escreva o conteúdo e adicione uma imagem de capa.' },
-              { title: 'Escolha o destaque', description: 'Marque como notícia principal se quiser que apareça em destaque no portal dos clientes.' },
-              { title: 'Publique quando quiser', description: 'Guarde como rascunho, agende ou publique imediatamente.' },
-            ]}
-            cta={{
-              label: 'Nova notícia',
-              onClick: () =>
-                setEditing({
-                  title: '',
-                  body: '',
-                  excerpt: '',
-                  status: 'DRAFT',
-                  isFeatured: false,
-                }),
-            }}
-          />
+          <AskMayaButton intentId="news" />
           <Button
             type="button"
             className="rounded-full"

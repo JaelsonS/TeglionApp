@@ -11,7 +11,7 @@ import { categoryLabel, PRIORITY_FILTER_OPTIONS } from '@/features/firm/alerts/a
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
-import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
+import { AskMayaButton } from '@/features/maya'
 import { EmptyState, FirmSplitView } from '@/shared/design-system'
 import {
   Dialog,
@@ -321,16 +321,7 @@ export function AlertsWorkspace() {
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <ModuleHelpDialog
-              title="Central de Alertas"
-              intro="Use a Central de Alertas para avisar os seus clientes sobre informações importantes que o escritório tratou — prazos, novidades fiscais ou avisos operacionais, de forma profissional e rastreável."
-              steps={[
-                { title: 'Escreva o comunicado', description: 'Escolha um título e a mensagem que quer partilhar com os clientes.' },
-                { title: 'Escolha os destinatários', description: 'Envie para toda a carteira ou seleccione apenas alguns clientes.' },
-                { title: 'Publique e acompanhe', description: 'Depois de publicado, veja quem leu e quem confirmou em «Envolvimento».' },
-              ]}
-              cta={{ label: 'Criar novo comunicado', onClick: startCreate }}
-            />
+            <AskMayaButton intentId="alerts" />
             <Button type="button" className="cb-alerts-btn-primary shrink-0" onClick={startCreate}>
               <Plus className="mr-2 h-4 w-4" />
               Novo comunicado

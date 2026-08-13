@@ -11,6 +11,11 @@ import { useAuth } from '@/shared/hooks/useAuth'
 import { cn } from '@/shared/lib/utils'
 import { getMayaIntent, MAYA_INTENTS } from '@/features/maya/mayaContent'
 import { MAYA_OPEN_EVENT, type MayaOpenDetail } from '@/features/maya/openMaya'
+import {
+  isMayaFabVisible,
+  MAYA_FAB_CHANGED_EVENT,
+  setMayaFabVisible,
+} from '@/features/maya/mayaFabPreference'
 
 type MayaAssistantProps = {
   className?: string
@@ -19,7 +24,6 @@ type MayaAssistantProps = {
 /**
  * Maya v1 — assistente guiada.
  * Sem LLM · sem APIs de negócio · sem acesso a documentos/clientes/tokens.
- * Telemetria: não envia payloads (apenas navegação local).
  */
 export function MayaAssistant({ className }: MayaAssistantProps) {
   const { user } = useAuth()
@@ -27,11 +31,23 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
   const titleId = useId()
   const [open, setOpen] = useState(false)
   const [activeIntentId, setActiveIntentId] = useState<string | null>(null)
+  const [fabVisible, setFabVisible] = useState(true)
 
   const firstName = String(user?.fullName || '')
     .trim()
     .split(/\s+/)[0]
   const active = activeIntentId ? getMayaIntent(activeIntentId) : null
+
+  useEffect(() => {
+    setFabVisible(isMayaFabVisible())
+    function onFabChanged(ev: Event) {
+      const detail = (ev as CustomEvent<{ visible: boolean }>).detail
+      if (typeof detail?.visible === 'boolean') setFabVisible(detail.visible)
+      else setFabVisible(isMayaFabVisible())
+    }
+    window.addEventListener(MAYA_FAB_CHANGED_EVENT, onFabChanged as EventListener)
+    return () => window.removeEventListener(MAYA_FAB_CHANGED_EVENT, onFabChanged as EventListener)
+  }, [])
 
   useEffect(() => {
     function onOpen(ev: Event) {
@@ -45,37 +61,95 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
 
   if (!user || user.role === 'CLIENT') return null
 
-  function close() {
+  function closeSheet() {
     setOpen(false)
     setActiveIntentId(null)
+  }
+
+  function hideFab() {
+    setMayaFabVisible(false)
+    setFabVisible(false)
+  }
+
+  function showFab() {
+    setMayaFabVisible(true)
+    setFabVisible(true)
   }
 
   function openIntent(id: string) {
     setActiveIntentId(id)
   }
 
+  const fabPosition = cn(
+    'fixed z-40',
+    'bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] right-[max(1rem,env(safe-area-inset-right,0px))]',
+    'md:bottom-6 md:right-6',
+  )
+
   return (
     <>
-      <button
-        type="button"
-        className={cn(
-          'fixed z-40 flex h-12 w-12 items-center justify-center overflow-hidden rounded-full',
-          'border border-brand/20 bg-card shadow-[var(--cb-shadow-elevated)]',
-          'transition hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2',
-          /* Mobile (<768): acima da bottom nav + safe area */
-          'bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] right-[max(1rem,env(safe-area-inset-right,0px))]',
-          /* Tablet + desktop (≥768): canto inferior — sem bottom nav */
-          'md:bottom-6 md:right-6',
-          className,
-        )}
-        aria-label="Abrir Maya, assistente virtual do Teglion"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        title="Maya — assistente Teglion"
-        onClick={() => setOpen(true)}
-      >
-        <SafeImage src="/maya/maya-avatar-sm.png" alt="" className="h-full w-full object-cover" />
-      </button>
+      {fabVisible ? (
+        <div className={cn(fabPosition, 'group', className)} data-testid="maya-fab">
+          <button
+            type="button"
+            className={cn(
+              'flex h-12 w-12 items-center justify-center overflow-hidden rounded-full',
+              'border border-brand/20 bg-card shadow-[var(--cb-shadow-elevated)]',
+              'transition hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2',
+            )}
+            aria-label="Abrir Maya, assistente virtual do Teglion"
+            aria-haspopup="dialog"
+            aria-expanded={open}
+            title="Maya — assistente Teglion"
+            onClick={() => setOpen(true)}
+          >
+            <SafeImage src="/maya/maya-avatar-sm.png" alt="" className="h-full w-full object-cover" />
+          </button>
+          <button
+            type="button"
+            className={cn(
+              'absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full',
+              'border border-border/80 bg-card text-muted-foreground shadow-sm',
+              'opacity-80 transition hover:opacity-100 hover:text-foreground',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+            )}
+            aria-label="Esconder Maya"
+            title="Esconder Maya"
+            data-testid="maya-fab-dismiss"
+            onClick={(e) => {
+              e.stopPropagation()
+              hideFab()
+            }}
+          >
+            <X className="h-3 w-3" aria-hidden />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className={cn(
+            fabPosition,
+            'flex h-9 items-center gap-1 rounded-full border border-border/70 bg-card/95 px-2.5',
+            'text-xs text-muted-foreground shadow-sm backdrop-blur-sm',
+            'transition hover:border-brand/30 hover:text-foreground',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+            className,
+          )}
+          aria-label="Mostrar Maya"
+          title="Mostrar Maya"
+          data-testid="maya-fab-restore"
+          onClick={showFab}
+        >
+          <span className="font-bold text-brand" aria-hidden>
+            ?
+          </span>
+          <SafeImage
+            src="/maya/maya-avatar-sm.png"
+            alt=""
+            className="h-4 w-4 rounded-full object-cover opacity-90"
+          />
+        </button>
+      )}
 
       <Sheet
         open={open}
@@ -116,7 +190,7 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
                 {active ? active.title : 'Assistente Teglion'}
               </p>
             </div>
-            <Button type="button" size="icon" variant="ghost" aria-label="Fechar Maya" onClick={close}>
+            <Button type="button" size="icon" variant="ghost" aria-label="Fechar Maya" onClick={closeSheet}>
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -129,11 +203,10 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
                     Olá{firstName ? `, ${firstName}` : ''}! Eu sou a Maya, a assistente virtual do Teglion.
                   </p>
                   <p className="mt-2 text-muted-foreground">
-                    Estou aqui para o ajudar a perceber e configurar o Teglion.
+                    Escolha uma pergunta abaixo — ou use «? Maya» em qualquer página para ajuda contextual.
                   </p>
                   <p className="mt-2 text-caption text-muted-foreground">
-                    Na minha versão actual não tenho acesso aos seus documentos nem aos dados privados do
-                    escritório.
+                    Nesta versão não tenho acesso aos seus documentos nem aos dados privados do escritório.
                   </p>
                 </div>
 
@@ -147,10 +220,6 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
                     ))}
                   </div>
                 </div>
-
-                <p className="text-caption text-muted-foreground">
-                  A ajuda contextual de cada módulo continua no botão «Guia».
-                </p>
               </>
             ) : (
               <div className="space-y-4">
@@ -170,7 +239,7 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
                   variant="primary"
                   fullWidth
                   onClick={() => {
-                    close()
+                    closeSheet()
                     navigate(active.deepLink)
                   }}
                 >
@@ -180,7 +249,9 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
 
                 {active.relatedIntents.length ? (
                   <div>
-                    <p className="mb-2 text-caption font-medium text-muted-foreground">Também pode interessar</p>
+                    <p className="mb-2 text-caption font-medium text-muted-foreground">
+                      Outras perguntas
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {active.relatedIntents.map((rid) => {
                         const related = getMayaIntent(rid)
