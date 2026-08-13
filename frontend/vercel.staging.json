@@ -13,6 +13,16 @@
     },
     {
       "source": "/api/:path*",
+      "has": [{ "type": "host", "value": "staging.teglion.com" }],
+      "destination": "https://teglion-api-staging.onrender.com/api/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "has": [{ "type": "host", "value": "www.staging.teglion.com" }],
+      "destination": "https://teglion-api-staging.onrender.com/api/:path*"
+    },
+    {
+      "source": "/api/:path*",
       "destination": "https://teglion-api-staging.onrender.com/api/:path*"
     },
     {

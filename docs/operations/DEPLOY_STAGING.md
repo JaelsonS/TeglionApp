@@ -93,13 +93,18 @@ Criar environment `staging` no GitHub e definir pelo menos:
 2. Em `apiBase.ts`, só `teglion.com` / `www` forçavam `/api`. Em `staging.teglion.com`, se o build usasse Production env ou caísse no fallback `/api`, o browser falava com a **API de produção**.
 3. Variáveis **Preview** no Vercel **não** entram se o domínio `staging.teglion.com` estiver ligado ao deployment **Production** (`main`).
 
-### Regra dura (código)
+### Regra dura (código + Vercel)
 
-Em `staging.teglion.com`, o frontend **sempre** usa:
+Em `staging.teglion.com`, o frontend **sempre** usa (JS):
 
 `https://teglion-api-staging.onrender.com/api`
 
-(mesmo que `VITE_API_BASE_URL` esteja errado ou o rewrite exista).
+Além disso, `frontend/vercel.json` tem rewrite **condicional por host**:
+
+- host `staging.teglion.com` / `www.staging.teglion.com` → `teglion-api-staging.onrender.com`
+- restantes (produção) → `teglionapp.onrender.com`
+
+Assim `GET https://staging.teglion.com/api/health` deixa de atravessar para a API de produção (cookies `Domain=.teglion.com`).
 
 ### Configuração Vercel (fazer agora)
 

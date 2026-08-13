@@ -358,6 +358,22 @@ if (missing.length > 0) {
   throw new Error(`${BRAND.logPrefix} Variáveis de ambiente em falta: ${missing.join(', ')}`);
 }
 
+// Guarda operacional: chave Stripe LIVE em ambiente de desenvolvimento local.
+const stripeKey = String(process.env.STRIPE_SECRET_KEY || '').trim();
+if (env.isDevelopment && stripeKey.startsWith('sk_live_')) {
+  const allow = String(process.env.ALLOW_LIVE_STRIPE_IN_DEV || '').toLowerCase() === 'true';
+  if (!allow) {
+    console.error(
+      `${BRAND.logPrefix} STRIPE_SECRET_KEY live detectada com NODE_ENV=development.`,
+    );
+    console.error(
+      `${BRAND.logPrefix} Use sk_test_ no .env local, ou defina ALLOW_LIVE_STRIPE_IN_DEV=true conscientemente.`,
+    );
+    throw new Error(`${BRAND.logPrefix} Stripe LIVE bloqueada em desenvolvimento`);
+  }
+  console.warn(`${BRAND.logPrefix}[WARN] Stripe LIVE permitida em dev via ALLOW_LIVE_STRIPE_IN_DEV=true`);
+}
+
 if (env.DATA_ENCRYPTION_KEY) {
   const keyFingerprint = crypto.createHash('sha256').update(env.DATA_ENCRYPTION_KEY).digest('hex').slice(0, 12);
   console.log(`🔐 DATA_ENCRYPTION_KEY fingerprint: ${keyFingerprint} (len=${env.DATA_ENCRYPTION_KEY.length})`);
