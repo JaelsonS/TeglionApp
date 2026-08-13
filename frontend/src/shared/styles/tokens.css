@@ -115,9 +115,9 @@
     --cb-icon-md: 1.25rem;
     --cb-icon-lg: 1.5rem;
 
-    /* Escritório — sidebar expandida com labels */
+    /* Escritório — sidebar expandida (≥1280) e rail de ícones (768–1279) */
     --cb-firm-sidebar-width: 16.5rem;
-    --cb-firm-rail-width: var(--cb-firm-sidebar-width);
+    --cb-firm-rail-width: 4.25rem;
   }
 
   .dark {

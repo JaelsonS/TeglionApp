@@ -353,17 +353,17 @@
     @apply bg-muted/60 text-foreground;
   }
 
-  /* Legacy rail — mantido para referências antigas */
+  /* Legacy rail — usado pelo tablet 768–1279 */
   .cb-firm-icon-rail {
-    @apply flex h-full w-[var(--cb-firm-sidebar-width)] flex-col border-r border-border/60 bg-card;
+    @apply flex h-full w-[var(--cb-firm-rail-width)] flex-col border-r border-border/60 bg-card;
   }
 
   .cb-firm-icon-rail-brand {
-    @apply flex shrink-0 items-center justify-center border-b border-border/60 py-5;
+    @apply flex shrink-0 items-center justify-center border-b border-border/60 py-3;
   }
 
   .cb-firm-rail-logo {
-    @apply flex h-10 w-10 items-center justify-center rounded-lg outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-brand/25;
+    @apply flex h-11 w-11 items-center justify-center rounded-xl outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-brand/25;
   }
 
   .cb-firm-rail-logo-mark {
@@ -375,19 +375,19 @@
   }
 
   .cb-firm-icon-rail-nav {
-    @apply flex min-h-0 flex-1 flex-col items-center gap-2 overflow-y-auto px-2 py-5;
+    @apply flex min-h-0 flex-1 flex-col items-center gap-1.5 overflow-y-auto overflow-x-hidden px-1.5 py-3;
   }
 
   .cb-firm-icon-rail-bottom {
-    @apply flex shrink-0 flex-col items-center gap-2 border-t border-border/60 px-2 py-4;
+    @apply flex shrink-0 flex-col items-center gap-1.5 border-t border-border/60 px-1.5 py-3;
   }
 
   .cb-firm-rail-icon {
-    @apply h-[1.5rem] w-[1.5rem];
+    @apply h-5 w-5;
   }
 
   .cb-firm-icon-nav {
-    @apply relative flex h-12 w-12 items-center justify-center rounded-xl transition-colors duration-150;
+    @apply relative flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-150;
   }
 
   .cb-firm-icon-nav-wrap {
