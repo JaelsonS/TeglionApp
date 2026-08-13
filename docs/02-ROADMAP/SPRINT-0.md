@@ -6,6 +6,18 @@ Esta lista vem inteira da [auditoria de 12/08/2026](../06-SEGURANCA/MULTI-TENANT
 
 O critério de saída do Sprint 0 é simples: **os sete itens abaixo resolvidos** é o que separa "temos um piloto que funciona com uma contadora que confia na gente" de "podemos colocar o segundo, terceiro, quarto escritório pagante sem cruzar os dedos".
 
+## Status (atualizado durante a execução)
+
+| Item | Estado |
+|---|---|
+| 1. Revogar sessão ao desativar funcionário | ✅ Feito — código no `main`, testado |
+| 2. Travar o double-booking | ✅ Feito — migration aplicada, código no `main`, testado |
+| 3. Provar que o backup funciona | 🔄 Em andamento — Supabase Pro ativado (ver abaixo); restore ainda não testado |
+| 4. Isolamento entre escritórios rodando sozinho no CI | 🔄 Parcial — step já existe no CI, falta o projeto de staging |
+| 5. Rodar segredos de produção | ⬜ Pendente |
+| 6. Parar de reenviar lembrete por email | ✅ Feito — migration aplicada, código no `main`, testado |
+| 7. Suíte de backend rodando no CI | ✅ Feito — 340 testes, todos no pipeline |
+
 ## 1. Revogar sessão ao desativar um funcionário
 
 Hoje, quando o dono de um escritório desativa um membro da equipe, o sistema marca `is_active = false` no banco e para por aí. O fluxo de refresh de token nunca checa essa flag — só valida se a assinatura do escritório está em dia. Resultado: o refresh token de um funcionário demitido continua válido, se renovando por mais 30 dias a cada uso, indefinidamente. Ele continua acessando clientes, documentos, mensagens e obrigações do escritório depois de ter sido desligado.
@@ -53,6 +65,14 @@ Isso não aconteceu ainda de forma visível porque o volume de obrigações reai
 O comando que o CI executa hoje roda um único arquivo de teste. Existem 37. Os outros 36 — incluindo os testes de agendamento, de billing, de todas as integrações de Google Calendar — só rodam se alguém lembrar de disparar manualmente. O webhook do Stripe, que é o caminho financeiro mais crítico do produto, não tem nenhum teste automatizado cobrindo ele.
 
 **Critério de pronto:** o CI roda a suíte completa de backend, não um arquivo isolado. Falha de teste bloqueia merge, do mesmo jeito que já bloqueia no frontend.
+
+## 8. Hardening de infraestrutura (adicionado durante a execução)
+
+Não veio da auditoria original — são decisões de infraestrutura tomadas pelo fundador enquanto o Sprint 0 estava em andamento, registradas aqui para não se perder e porque se conectam diretamente com itens acima.
+
+- **Render Pro** (ativado) — o plano gratuito do Render "adormece" o backend depois de um tempo sem tráfego; a próxima requisição paga o preço de acordar o servidor (vários segundos de latência). Isso é inaceitável assim que existir mais de um escritório pagante dependendo do sistema estar sempre responsivo. Resolvido.
+- **Supabase Pro** (em ativação) — plano pago do Supabase inclui Point-in-Time Recovery real. Isso remove a incerteza sobre se PITR está disponível (parte do item 3), mas **não substitui o teste de restore em si** — ter o recurso disponível e já ter confirmado que o restore funciona na prática continuam sendo coisas diferentes. Depois de ativado, o próximo passo do item 3 é agendar esse teste.
+- **Cloudflare completo** (em ativação) — WAF, rate limiting de borda e proteção contra bot (Turnstile) na frente do domínio. Isso é uma camada de defesa adicional, útil, mas não fecha nenhum dos 7 itens originais sozinho — ver a seção de arquitetura de segurança de borda para como isso se encaixa no desenho geral.
 
 ---
 
