@@ -85,6 +85,17 @@ const SANITIZATION_PATTERNS = [
     pattern: /sk_(live|test)_[A-Za-z0-9]+/g,
     replacement: 'sk_[REDACTED]',
   },
+  // Cloudflare Turnstile response tokens
+  {
+    name: 'Turnstile Token JSON',
+    pattern: /"turnstileToken"\s*:\s*"[^"]+"/gi,
+    replacement: '"turnstileToken": "[REDACTED]"',
+  },
+  {
+    name: 'Turnstile cf-turnstile-response JSON',
+    pattern: /"cf-turnstile-response"\s*:\s*"[^"]+"/gi,
+    replacement: '"cf-turnstile-response": "[REDACTED]"',
+  },
   // MongoDB URI (senha exposta)
   {
     name: 'MongoDB URI Password',
@@ -115,6 +126,9 @@ const SENSITIVE_KEYS = new Set(
     'medicalRecord',
     'observations',
     'description',
+    'turnstileToken',
+    'cf-turnstile-response',
+    'cfTurnstileResponse',
   ].map((k) => k.toLowerCase()),
 );
 

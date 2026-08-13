@@ -164,6 +164,15 @@ function resolveMaxFileSizeMb() {
   return 25;
 }
 
+function resolveTurnstileExpectedHostnames() {
+  const raw = String(process.env.TURNSTILE_EXPECTED_HOSTNAMES || '')
+    .split(',')
+    .map((h) => h.trim().toLowerCase().replace(/\.$/, ''))
+    .filter(Boolean);
+  if (raw.length > 0) return raw;
+  return ['www.teglion.com', 'teglion.com'];
+}
+
 const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: Number(process.env.PORT || 8001),
@@ -285,6 +294,10 @@ const env = {
 
   SENTRY_DSN: process.env.SENTRY_DSN || null,
 
+  /** Cloudflare Turnstile — secret só no backend; sitekey no frontend (VITE_). */
+  TURNSTILE_SECRET_KEY: String(process.env.TURNSTILE_SECRET_KEY || '').trim() || null,
+  TURNSTILE_EXPECTED_HOSTNAMES: resolveTurnstileExpectedHostnames(),
+
   LEGAL_OPERATOR_NAME: process.env.LEGAL_OPERATOR_NAME || null,
   LEGAL_OPERATOR_NIF: process.env.LEGAL_OPERATOR_NIF || null,
   LEGAL_OPERATOR_EMAIL: process.env.LEGAL_OPERATOR_EMAIL || null,
@@ -392,5 +405,17 @@ if (env.COOKIE_SAMESITE === 'none' && !env.COOKIE_SECURE) {
 console.log(
   `${BRAND.logPrefix} Auth cookies: SameSite=${env.COOKIE_SAMESITE}, Secure=${env.COOKIE_SECURE}, domain=${env.COOKIE_DOMAIN || '(host-only)'}`,
 );
+
+if (env.TURNSTILE_SECRET_KEY) {
+  console.log(
+    `${BRAND.logPrefix} Turnstile: secret configurado; hostnames=${env.TURNSTILE_EXPECTED_HOSTNAMES.join(',')}`,
+  );
+} else if (env.isProduction) {
+  console.warn(
+    `${BRAND.logPrefix}[WARN] TURNSTILE_SECRET_KEY ausente — rotas protegidas por Turnstile falham fechado (403).`,
+  );
+} else {
+  console.log(`${BRAND.logPrefix} Turnstile: desactivado (sem TURNSTILE_SECRET_KEY — skip em não-produção)`);
+}
 
 module.exports = { env };

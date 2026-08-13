@@ -15,6 +15,9 @@ const SENSITIVE_KEYS = new Set([
   'secret',
   'apiKey',
   'api_key',
+  'turnstileToken',
+  'cf-turnstile-response',
+  'cfTurnstileResponse',
 ]);
 
 function stripSensitiveValue(value) {
