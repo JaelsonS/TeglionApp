@@ -17,6 +17,8 @@ const supportController = require('../modules/public/support.controller');
 const serviceIntakeController = require('../modules/public/service-intake-public.controller');
 const { createRateLimitStore } = require('../utils/rate-limit-store');
 const { uploadSingle } = require('../middlewares/upload.middleware');
+const { requireTurnstile } = require('../middlewares/turnstile.middleware');
+const { TURNSTILE_ACTIONS } = require('../services/turnstile/turnstile-actions');
 
 const router = express.Router();
 
@@ -95,14 +97,34 @@ router.get('/pricing', pricingController.getPublicPricing);
 router.get('/postal-lookup', postalLookupController.lookup);
 router.get('/client-invite/:token', invitePreviewLimiter, invitesController.previewPublic);
 router.get('/team-invite/:token', invitePreviewLimiter, teamInvitesController.previewPublic);
-router.post('/team-invite/:token/accept', invitePreviewLimiter, teamInvitesController.acceptPublic);
+router.post(
+  '/team-invite/:token/accept',
+  invitePreviewLimiter,
+  requireTurnstile({ action: TURNSTILE_ACTIONS.TEAM_INVITE_ACCEPT }),
+  teamInvitesController.acceptPublic,
+);
 router.get('/team-email-confirm/:token', invitePreviewLimiter, teamInvitesController.confirmEmailPublic);
 router.get('/team/invites/:token', invitePreviewLimiter, teamInvitesController.previewPublic);
-router.post('/team/invites/:token/accept', invitePreviewLimiter, teamInvitesController.acceptPublic);
+router.post(
+  '/team/invites/:token/accept',
+  invitePreviewLimiter,
+  requireTurnstile({ action: TURNSTILE_ACTIONS.TEAM_INVITE_ACCEPT }),
+  teamInvitesController.acceptPublic,
+);
 router.get('/team/email-confirm/:token', invitePreviewLimiter, teamInvitesController.confirmEmailPublic);
 router.get('/firm-branding', firmBrandingPublic.validators, firmBrandingPublic.getBySlug);
-router.post('/blog/newsletter', newsletterLimiter, blogNewsletterController.subscribe);
-router.post('/support', supportLimiter, supportController.submit);
+router.post(
+  '/blog/newsletter',
+  newsletterLimiter,
+  requireTurnstile({ action: TURNSTILE_ACTIONS.NEWSLETTER }),
+  blogNewsletterController.subscribe,
+);
+router.post(
+  '/support',
+  supportLimiter,
+  requireTurnstile({ action: TURNSTILE_ACTIONS.SUPPORT }),
+  supportController.submit,
+);
 
 router.get(
   '/firms/:firmSlug/services',
@@ -131,12 +153,14 @@ router.get(
 router.post(
   '/firms/:firmSlug/services/:serviceSlug/intake/lead',
   serviceSubmitLimiter,
+  requireTurnstile({ action: TURNSTILE_ACTIONS.INTAKE_LEAD }),
   serviceIntakeController.captureLeadValidators,
   serviceIntakeController.captureLead,
 );
 router.post(
   '/firms/:firmSlug/services/:serviceSlug/submit',
   serviceSubmitLimiter,
+  requireTurnstile({ action: TURNSTILE_ACTIONS.INTAKE_SUBMIT }),
   serviceIntakeController.submitValidators,
   serviceIntakeController.submitIntake,
 );

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
@@ -12,7 +12,10 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { PasswordInput } from '@/shared/components/ui/password-input'
 import { Label } from '@/shared/components/ui/label'
+import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
 import { PASSWORD_MIN_LENGTH, passwordPolicySchema } from '@/shared/utils/passwordPolicy'
+import { withTurnstileToken } from '@/shared/security/withTurnstileToken'
+import { isTurnstileEnabled, TURNSTILE_ACTIONS } from '@/shared/security/turnstile'
 
 const schema = z
   .object({
@@ -57,6 +60,9 @@ export function FirmInviteRegisterPage() {
   const [loadingPreview, setLoadingPreview] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [previewError, setPreviewError] = useState<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const turnstileRef = useRef<TurnstileFieldHandle | null>(null)
+  const turnstileOk = !isTurnstileEnabled() || Boolean(turnstileToken)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -107,11 +113,17 @@ export function FirmInviteRegisterPage() {
     if (!normalizedToken) return
     setSubmitting(true)
     try {
-      const result = await teamInvitePublicApi.accept(normalizedToken, {
-        fullName: values.fullName,
-        email: values.email,
-        password: values.password,
-      })
+      const result = await teamInvitePublicApi.accept(
+        normalizedToken,
+        withTurnstileToken(
+          {
+            fullName: values.fullName,
+            email: values.email,
+            password: values.password,
+          },
+          turnstileToken,
+        ),
+      )
       if (result?.emailSent === false) {
         toast.warning(
           'Conta criada, mas o e-mail de confirmação não foi enviado. Peça um novo link ao administrador.',
@@ -121,6 +133,8 @@ export function FirmInviteRegisterPage() {
       }
       navigate(authFirmLoginUrl(), { replace: true })
     } catch (err) {
+      turnstileRef.current?.reset()
+      setTurnstileToken('')
       toast.error('Não foi possível concluir o convite', { description: getErrorMessage(err) })
     } finally {
       setSubmitting(false)
@@ -196,10 +210,15 @@ export function FirmInviteRegisterPage() {
                 />
                 <FieldError message={errors.confirmPassword?.message} />
               </div>
+              <TurnstileField
+                fieldRef={turnstileRef}
+                action={TURNSTILE_ACTIONS.TEAM_INVITE_ACCEPT}
+                onTokenChange={setTurnstileToken}
+              />
               <Button
                 type="submit"
                 className="h-12 w-full touch-manipulation rounded-full text-base"
-                disabled={submitting}
+                disabled={submitting || !turnstileOk}
               >
                 {submitting ? 'A concluir...' : 'Criar palavra-passe e concluir'}
               </Button>

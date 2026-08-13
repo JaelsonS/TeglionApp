@@ -90,7 +90,10 @@ export const teamInvitePublicApi = {
             r.data as { firmName: string; emailHint: string; fullNameHint?: string | null; expiresAt: string },
         ),
 
-    accept: (token: string, payload: { fullName: string; email: string; password: string }) =>
+    accept: (
+        token: string,
+        payload: { fullName: string; email: string; password: string; turnstileToken?: string },
+    ) =>
         api.post(`/public/team-invite/${encodeURIComponent(token)}/accept`, payload).then((r) =>
             r.data as {
                 success: boolean

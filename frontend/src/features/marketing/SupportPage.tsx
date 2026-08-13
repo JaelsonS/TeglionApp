@@ -1,11 +1,14 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Loader2, Mail, MessageCircle, Phone } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { FadeInView } from '@/shared/components/landing/FadeInView'
 import { LandingMarketingShell } from '@/shared/components/landing/LandingMarketingShell'
+import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
 import { BRAND } from '@/shared/config/brand'
 import { contabilPublicApi } from '@/infrastructure/api'
+import { withTurnstileToken } from '@/shared/security/withTurnstileToken'
+import { isTurnstileEnabled, TURNSTILE_ACTIONS } from '@/shared/security/turnstile'
 
 const CHANNELS = [
   {
@@ -41,10 +44,14 @@ const EMPTY_FORM: FormState = { name: '', email: '', phone: '', subject: '', mes
 export function SupportPage() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [loading, setLoading] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const turnstileRef = useRef<TurnstileFieldHandle | null>(null)
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
+
+  const turnstileOk = !isTurnstileEnabled() || Boolean(turnstileToken)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -54,16 +61,25 @@ export function SupportPage() {
     }
     setLoading(true)
     try {
-      await contabilPublicApi.sendSupportRequest({
-        name: form.name.trim(),
-        email: form.email.trim().toLowerCase(),
-        phone: form.phone.trim() || undefined,
-        subject: form.subject.trim() || undefined,
-        message: form.message.trim(),
-      })
+      await contabilPublicApi.sendSupportRequest(
+        withTurnstileToken(
+          {
+            name: form.name.trim(),
+            email: form.email.trim().toLowerCase(),
+            phone: form.phone.trim() || undefined,
+            subject: form.subject.trim() || undefined,
+            message: form.message.trim(),
+          },
+          turnstileToken,
+        ),
+      )
       toast.success('Mensagem enviada! Vamos responder o mais rápido possível.')
       setForm(EMPTY_FORM)
+      turnstileRef.current?.reset()
+      setTurnstileToken('')
     } catch {
+      turnstileRef.current?.reset()
+      setTurnstileToken('')
       toast.error('Não foi possível enviar. Tente novamente ou contacte-nos por telefone/e-mail.')
     } finally {
       setLoading(false)
@@ -202,9 +218,15 @@ export function SupportPage() {
                 />
               </div>
 
+              <TurnstileField
+                fieldRef={turnstileRef}
+                action={TURNSTILE_ACTIONS.SUPPORT}
+                onTokenChange={setTurnstileToken}
+              />
+
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !turnstileOk}
                 className="landing-btn-primary inline-flex w-full items-center justify-center gap-2 px-8 py-3 disabled:opacity-60 sm:w-auto"
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}

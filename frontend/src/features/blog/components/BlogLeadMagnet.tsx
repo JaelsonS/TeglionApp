@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { subscribeBlogNewsletter } from '@/features/blog/subscribeBlogNewsletter'
 import { trackBlogEvent } from '@/features/blog/blogAnalytics'
+import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
+import { isTurnstileEnabled, TURNSTILE_ACTIONS } from '@/shared/security/turnstile'
 
 type Props = {
   source?: string
@@ -20,6 +22,9 @@ export function BlogLeadMagnet({
   const [email, setEmail] = useState('')
   const [consent, setConsent] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const turnstileRef = useRef<TurnstileFieldHandle | null>(null)
+  const turnstileOk = !isTurnstileEnabled() || Boolean(turnstileToken)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -29,12 +34,21 @@ export function BlogLeadMagnet({
     }
     setLoading(true)
     try {
-      await subscribeBlogNewsletter({ email, source: source.slice(0, 80), consent: true })
+      await subscribeBlogNewsletter({
+        email,
+        source: source.slice(0, 80),
+        consent: true,
+        turnstileToken,
+      })
       trackBlogEvent('blog_lead_magnet_subscribe', { source: source.slice(0, 40) })
       toast.success('Checklist pedida. Em breve recebe novidades no e-mail.')
       setEmail('')
       setConsent(false)
+      turnstileRef.current?.reset()
+      setTurnstileToken('')
     } catch (err) {
+      turnstileRef.current?.reset()
+      setTurnstileToken('')
       toast.error(err instanceof Error ? err.message : 'Não foi possível enviar. Tente novamente.')
     } finally {
       setLoading(false)
@@ -73,7 +87,16 @@ export function BlogLeadMagnet({
             </Link>
           </span>
         </label>
-        <button type="submit" disabled={loading} className="landing-btn-primary w-full text-sm disabled:opacity-60">
+        <TurnstileField
+          fieldRef={turnstileRef}
+          action={TURNSTILE_ACTIONS.NEWSLETTER}
+          onTokenChange={setTurnstileToken}
+        />
+        <button
+          type="submit"
+          disabled={loading || !turnstileOk}
+          className="landing-btn-primary w-full text-sm disabled:opacity-60"
+        >
           {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" aria-hidden /> : 'Receber checklist'}
         </button>
       </form>

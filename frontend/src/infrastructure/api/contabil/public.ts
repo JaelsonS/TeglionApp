@@ -98,6 +98,7 @@ export type PublicIntakeSubmitPayload = {
   website?: string
   scheduledAt?: string
   leadAccessToken?: string
+  turnstileToken?: string
 }
 
 export type PublicIntakeSubmitResult = {
@@ -153,6 +154,7 @@ export type SupportRequestPayload = {
   phone?: string
   subject?: string
   message: string
+  turnstileToken?: string
 }
 
 export function createContabilPublicApi(api: AxiosInstance) {
@@ -226,7 +228,14 @@ export function createContabilPublicApi(api: AxiosInstance) {
     captureServiceLead: (
       firmSlug: string,
       serviceSlug: string,
-      payload: { name: string; email: string; phone?: string; taxId?: string; website?: string },
+      payload: {
+        name: string
+        email: string
+        phone?: string
+        taxId?: string
+        website?: string
+        turnstileToken?: string
+      },
     ) =>
       api
         .post(

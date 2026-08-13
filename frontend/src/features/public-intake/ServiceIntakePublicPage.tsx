@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, Loader2 } from 'lucide-react'
@@ -13,10 +13,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog'
+import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
 import { contabilPublicApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { openExternalUrl } from '@/shared/utils/openExternalUrl'
 import { applyFirmBranding } from '@/shared/utils/firmBranding'
+import { withTurnstileToken } from '@/shared/security/withTurnstileToken'
+import { isTurnstileEnabled, TURNSTILE_ACTIONS } from '@/shared/security/turnstile'
 import type { IntakeQuestion } from '@/shared/types/contabil'
 import type { PublicIntakeSubmitResult } from '@/infrastructure/api/contabil/public'
 import type { FormChangeEvent, FormSubmitEvent } from '@/shared/types/react-events'
@@ -115,6 +118,15 @@ export function ServiceIntakePublicPage() {
   const [leadAccessToken, setLeadAccessToken] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [legalDialog, setLegalDialog] = useState<'terms' | 'privacy' | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const turnstileRef = useRef<TurnstileFieldHandle | null>(null)
+  const turnstileOk = !isTurnstileEnabled() || Boolean(turnstileToken)
+  const turnstileAction = step === 1 ? TURNSTILE_ACTIONS.INTAKE_LEAD : TURNSTILE_ACTIONS.INTAKE_SUBMIT
+
+  useEffect(() => {
+    setTurnstileToken('')
+    turnstileRef.current?.reset()
+  }, [step])
 
   const query = useQuery({
     queryKey: ['public-service-intake', firmSlug, serviceSlug],
@@ -168,16 +180,25 @@ export function ServiceIntakePublicPage() {
     }
     setSubmitting(true)
     try {
-      const res = await contabilPublicApi.captureServiceLead(firmSlug!, serviceSlug!, {
-        name: name.trim(),
-        email: email.trim(),
-        phone: phone.trim() || undefined,
-        taxId: taxId.trim() || undefined,
-        website: website || undefined,
-      })
+      const res = await contabilPublicApi.captureServiceLead(
+        firmSlug!,
+        serviceSlug!,
+        withTurnstileToken(
+          {
+            name: name.trim(),
+            email: email.trim(),
+            phone: phone.trim() || undefined,
+            taxId: taxId.trim() || undefined,
+            website: website || undefined,
+          },
+          turnstileToken,
+        ),
+      )
       setLeadAccessToken(res.accessToken)
       setStep(2)
     } catch (err) {
+      turnstileRef.current?.reset()
+      setTurnstileToken('')
       toast.error('Não foi possível guardar o contacto', { description: getErrorMessage(err) })
     } finally {
       setSubmitting(false)
@@ -196,16 +217,23 @@ export function ServiceIntakePublicPage() {
     }
     setSubmitting(true)
     try {
-      const res = await contabilPublicApi.submitServiceIntake(firmSlug!, serviceSlug!, {
-        name: name.trim(),
-        email: email.trim(),
-        phone: phone.trim() || undefined,
-        taxId: taxId.trim() || undefined,
-        answers,
-        website: website || undefined,
-        scheduledAt: scheduledAt || undefined,
-        leadAccessToken: leadAccessToken || undefined,
-      })
+      const res = await contabilPublicApi.submitServiceIntake(
+        firmSlug!,
+        serviceSlug!,
+        withTurnstileToken(
+          {
+            name: name.trim(),
+            email: email.trim(),
+            phone: phone.trim() || undefined,
+            taxId: taxId.trim() || undefined,
+            answers,
+            website: website || undefined,
+            scheduledAt: scheduledAt || undefined,
+            leadAccessToken: leadAccessToken || undefined,
+          },
+          turnstileToken,
+        ),
+      )
       if (res.checkoutUrl) {
         const opened = openExternalUrl(res.checkoutUrl)
         if (opened) {
@@ -218,6 +246,8 @@ export function ServiceIntakePublicPage() {
       }
       setResult(res)
     } catch (err) {
+      turnstileRef.current?.reset()
+      setTurnstileToken('')
       toast.error('Não foi possível enviar o pedido', { description: getErrorMessage(err) })
       if (query.data?.requiresBooking) {
         setScheduledAt('')
@@ -361,7 +391,14 @@ export function ServiceIntakePublicPage() {
               </label>
             ) : null}
 
-            <Button type="submit" className="w-full rounded-full" disabled={submitting}>
+            <TurnstileField
+              key={turnstileAction}
+              fieldRef={turnstileRef}
+              action={turnstileAction}
+              onTokenChange={setTurnstileToken}
+            />
+
+            <Button type="submit" className="w-full rounded-full" disabled={submitting || !turnstileOk}>
               {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Continuar
             </Button>
@@ -413,11 +450,18 @@ export function ServiceIntakePublicPage() {
               </div>
             ))}
 
+            <TurnstileField
+              key={turnstileAction}
+              fieldRef={turnstileRef}
+              action={turnstileAction}
+              onTokenChange={setTurnstileToken}
+            />
+
             <div className="flex gap-2">
               <Button type="button" variant="outline" className="rounded-full" onClick={() => setStep(1)}>
                 Voltar
               </Button>
-              <Button type="submit" className="flex-1 rounded-full" disabled={submitting}>
+              <Button type="submit" className="flex-1 rounded-full" disabled={submitting || !turnstileOk}>
                 {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 {service.paymentRequired ? 'Continuar para pagamento' : 'Enviar pedido'}
               </Button>

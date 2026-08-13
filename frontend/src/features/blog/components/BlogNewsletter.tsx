@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -6,6 +6,8 @@ import { toast } from 'sonner'
 import { authFirmRegisterUrl } from '@/shared/constants/authPaths'
 import { subscribeBlogNewsletter } from '@/features/blog/subscribeBlogNewsletter'
 import { trackBlogEvent } from '@/features/blog/blogAnalytics'
+import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
+import { isTurnstileEnabled, TURNSTILE_ACTIONS } from '@/shared/security/turnstile'
 
 type Props = {
   variant?: 'default' | 'compact' | 'rail'
@@ -22,6 +24,9 @@ export function BlogNewsletter({
   const [email, setEmail] = useState('')
   const [consent, setConsent] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const turnstileRef = useRef<TurnstileFieldHandle | null>(null)
+  const turnstileOk = !isTurnstileEnabled() || Boolean(turnstileToken)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -31,12 +36,16 @@ export function BlogNewsletter({
     }
     setLoading(true)
     try {
-      await subscribeBlogNewsletter({ email, source, consent: true })
+      await subscribeBlogNewsletter({ email, source, consent: true, turnstileToken })
       trackBlogEvent('blog_newsletter_subscribe', { source })
       toast.success('Subscrição confirmada. Obrigado!')
       setEmail('')
       setConsent(false)
+      turnstileRef.current?.reset()
+      setTurnstileToken('')
     } catch (err) {
+      turnstileRef.current?.reset()
+      setTurnstileToken('')
       toast.error(err instanceof Error ? err.message : 'Não foi possível subscrever.')
     } finally {
       setLoading(false)
@@ -84,7 +93,16 @@ export function BlogNewsletter({
               </Link>
             </span>
           </label>
-          <button type="submit" disabled={loading} className="landing-btn-primary w-full text-sm disabled:opacity-60">
+          <TurnstileField
+            fieldRef={turnstileRef}
+            action={TURNSTILE_ACTIONS.NEWSLETTER}
+            onTokenChange={setTurnstileToken}
+          />
+          <button
+            type="submit"
+            disabled={loading || !turnstileOk}
+            className="landing-btn-primary w-full text-sm disabled:opacity-60"
+          >
             {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" aria-hidden /> : 'Subscrever'}
           </button>
         </form>
@@ -119,7 +137,7 @@ export function BlogNewsletter({
           />
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !turnstileOk}
             className="inline-flex shrink-0 items-center justify-center rounded-[10px] blog-bg-gold px-5 py-3 text-sm font-semibold blog-text-navy blog-bg-gold-hover disabled:opacity-60 sm:self-start"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : 'Subscrever'}
@@ -135,6 +153,11 @@ export function BlogNewsletter({
             .
           </span>
         </label>
+        <TurnstileField
+          fieldRef={turnstileRef}
+          action={TURNSTILE_ACTIONS.NEWSLETTER}
+          onTokenChange={setTurnstileToken}
+        />
       </form>
       <p className="mt-4 text-xs text-white/70">
         É contabilista?{' '}
