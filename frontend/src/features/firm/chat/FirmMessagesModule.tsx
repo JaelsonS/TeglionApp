@@ -18,7 +18,7 @@ import {
 } from '@/features/firm/chat/chatUi'
 import { openGoogleDrivePicker } from '@/features/firm/chat/googleDrivePicker'
 import { formatNifDisplay } from '@/features/firm/clients/clientCompanyAvatar'
-import { FirmSplitView } from '@/shared/design-system'
+import { FirmSplitView, EmptyState } from '@/shared/design-system'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { useFirmInbox } from '@/shared/hooks/queries/useFirmInbox'
 import { Input } from '@/shared/components/ui/input'
@@ -329,13 +329,24 @@ export function FirmMessagesModule({ embeddedClientId }: { embeddedClientId?: st
         {inboxQuery.isLoading ? (
           <p className="cb-chat-conv-empty">A carregar conversas…</p>
         ) : filteredOptions.length === 0 ? (
-          <p className="cb-chat-conv-empty">
-            {listFilter === 'pinned'
-              ? 'Nenhuma conversa fixada. Use o menu ⋯ numa conversa para fixar.'
-              : listFilter === 'unread'
-                ? 'Sem mensagens por ler.'
-                : 'Sem conversas activas.'}
-          </p>
+          <EmptyState
+            className="m-3 py-8"
+            icon={MessageSquare}
+            title={
+              listFilter === 'pinned'
+                ? 'Nenhuma conversa fixada'
+                : listFilter === 'unread'
+                  ? 'Sem mensagens por ler'
+                  : 'Sem conversas activas'
+            }
+            description={
+              listFilter === 'pinned'
+                ? 'Use o menu ⋯ numa conversa para a fixar e mantê-la no topo.'
+                : listFilter === 'unread'
+                  ? 'Quando um cliente enviar uma mensagem nova, aparece aqui.'
+                  : 'As conversas aparecem quando há mensagens com clientes da carteira.'
+            }
+          />
         ) : (
           filteredOptions.map((c) => (
             <FirmChatConversationRow
@@ -356,11 +367,12 @@ export function FirmMessagesModule({ embeddedClientId }: { embeddedClientId?: st
   )
 
   const detail = !selectedClientId ? (
-    <div className="cb-chat-empty-main">
-      <MessageSquare className="cb-chat-empty-icon" aria-hidden />
-      <p className="cb-chat-empty-title">Escolha uma conversa</p>
-      <p className="cb-chat-empty-sub">Mensagens e anexos com os seus clientes.</p>
-    </div>
+    <EmptyState
+      className="h-full min-h-[16rem] rounded-none border-0 bg-transparent"
+      icon={MessageSquare}
+      title="Escolha uma conversa"
+      description="Seleccione um cliente à esquerda para ver mensagens e anexos. As conversas ficam privadas ao seu escritório."
+    />
   ) : (
     <div className="cb-chat-main">
       <header className="cb-chat-main-header">
