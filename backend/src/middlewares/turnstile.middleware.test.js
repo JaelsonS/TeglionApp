@@ -1,22 +1,50 @@
 require('../test/ensure-test-env');
 
-delete process.env.TURNSTILE_SECRET_KEY;
-
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { AppError } = require('./error.middleware');
+const { env } = require('../config/env');
 const { requireTurnstile } = require('./turnstile.middleware');
 
-test('requireTurnstile: em test sem secret, deixa passar (skip)', async () => {
-  const mw = requireTurnstile({ action: 'login-firm' });
-  let nextErr;
-  let nextCalled = false;
-  await mw({ body: {} }, {}, (err) => {
-    nextErr = err;
-    nextCalled = true;
-  });
-  assert.equal(nextCalled, true);
-  assert.equal(nextErr, undefined);
+test('requireTurnstile: sem secret (não-produção), deixa passar (skip)', async () => {
+  const previousSecret = env.TURNSTILE_SECRET_KEY;
+  const previousProd = env.isProduction;
+  env.TURNSTILE_SECRET_KEY = null;
+  env.isProduction = false;
+  try {
+    const mw = requireTurnstile({ action: 'login-firm' });
+    let nextErr;
+    let nextCalled = false;
+    await mw({ body: {} }, {}, (err) => {
+      nextErr = err;
+      nextCalled = true;
+    });
+    assert.equal(nextCalled, true);
+    assert.equal(nextErr, undefined);
+  } finally {
+    env.TURNSTILE_SECRET_KEY = previousSecret;
+    env.isProduction = previousProd;
+  }
+});
+
+test('requireTurnstile: produção sem secret → fail closed TURNSTILE_UNAVAILABLE', async () => {
+  const previousSecret = env.TURNSTILE_SECRET_KEY;
+  const previousProd = env.isProduction;
+  env.TURNSTILE_SECRET_KEY = null;
+  env.isProduction = true;
+  try {
+    const mw = requireTurnstile({ action: 'login-firm' });
+    let nextErr;
+    await mw({ body: {} }, {}, (err) => {
+      nextErr = err;
+    });
+    assert.ok(nextErr instanceof AppError);
+    assert.equal(nextErr.code, 'TURNSTILE_UNAVAILABLE');
+    assert.equal(nextErr.statusCode, 403);
+  } finally {
+    env.TURNSTILE_SECRET_KEY = previousSecret;
+    env.isProduction = previousProd;
+  }
 });
 
 test('requireTurnstile: exige action na factory', () => {
