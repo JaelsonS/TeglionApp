@@ -1,7 +1,8 @@
-// STRIPE_CONNECT_ENABLED precisa estar definida ANTES do primeiro require de
-// config/env.js (transitivo, via qualquer módulo abaixo) — env.js lê
-// process.env uma única vez, no load do módulo, não em cada chamada.
-process.env.STRIPE_CONNECT_ENABLED = 'true';
+// STRIPE_CONNECT_ENABLED / STRIPE_SECRET_KEY precisam existir no process.env
+// ANTES do primeiro require de config/env.js (env.js congela no load). Em CI
+// o workflow também as injecta; aqui reforçamos para runs locais herméticos.
+process.env.STRIPE_CONNECT_ENABLED = process.env.STRIPE_CONNECT_ENABLED || 'true';
+process.env.STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || 'sk_test_ci_placeholder_not_for_prod';
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -12,6 +13,7 @@ const accountingServicesRepository = require('../../db/supabase/repositories/acc
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
 const bookingService = require('../booking/booking.service');
+const entitlements = require('../entitlements/entitlements.service');
 const connectPaymentsService = require('./connect-payments.service');
 
 const FIRM_ID = 'firm-x';
@@ -40,6 +42,9 @@ function nextWeekdayNoonUtc() {
 }
 
 function wireHappyPathUpToConsultationCreate(scheduledIso) {
+  // isStripeConnectConfigured é lido via binding no service — o CI/workflow
+  // injecta STRIPE_CONNECT_ENABLED + STRIPE_SECRET_KEY antes do boot do Node.
+  mock.method(entitlements, 'can', async () => ({ allowed: true }));
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
   mock.method(connectAccountsRepository, 'findByFirmId', async () => ({
     stripeAccountId: 'acct_123',

@@ -44,6 +44,10 @@ jobs:
           JWT_REFRESH_SECRET: ci-test-jwt-refresh-secret-not-for-prod
           SUPABASE_URL: https://example.invalid
           SUPABASE_SERVICE_ROLE_KEY: ci-test-service-role-not-for-prod
+          # 32 bytes em base64 (só para testes de crypto; não é chave de produção)
+          DATA_ENCRYPTION_KEY: gnlpC9dSI3yqfif5l7xZA74j1bLlyAqfCR+cTNyJIZs=
+          STRIPE_SECRET_KEY: sk_test_ci_placeholder_not_for_prod
+          STRIPE_CONNECT_ENABLED: "true"
           PRODUCT_MODE: contabil
         run: npm run test:backend
 
