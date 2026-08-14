@@ -8,6 +8,10 @@ import { PRICING_TEXT } from '@/shared/config/pricingConstants'
 
 const FAQ = [
   {
+    q: 'Quem desenvolve o Teglion?',
+    a: 'O Teglion é uma plataforma de gestão para escritórios de contabilidade, desenvolvida e operada pela AfDigital — Soluções Tecnológicas. Teglion é o nome do produto — não uma empresa independente. Cada escritório continua responsável pelos dados e pela utilização que faz do serviço; o detalhe está nos Termos e na Política de Privacidade.',
+  },
+  {
     q: 'Quanto custa depois do teste?',
     a: `${PRICING_TEXT.monthlyLabel}/mês ou ${PRICING_TEXT.yearlyTotalLabel}/ano (equiv. ${PRICING_TEXT.yearlyMonthlyLabel}/mês), por escritório. Os ${PRICING_TEXT.trialDays} dias são grátis e sem cartão — só paga se decidir ficar.`,
   },

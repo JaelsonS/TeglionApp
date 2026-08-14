@@ -4,6 +4,7 @@ export const LANDING_ANCHORS = {
   funcionalidades: '/#funcionalidades',
   paginaPublica: '/#pagina-publica',
   comoFunciona: '/#como-funciona',
+  transparencia: '/#transparencia',
   faq: '/#faq',
   precos: '/#precos',
 } as const

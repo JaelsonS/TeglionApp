@@ -213,11 +213,13 @@ export function FirmAboutPanel({ className }: { className?: string }) {
         </CardHeader>
         <CardContent className="space-y-3 text-sm leading-relaxed text-foreground">
           <p>
-            O {BRAND.name} é um produto SaaS desenvolvido e operado pela {AGENCY.displayName}.
+            O {BRAND.name} é uma plataforma de gestão para escritórios de contabilidade, desenvolvida e
+            operada pela {AGENCY.displayName}. {BRAND.name} é o nome do produto — não uma empresa
+            independente.
           </p>
           <p className="text-muted-foreground">
-            Foi criado para ajudar escritórios de contabilidade a centralizar operação, clientes,
-            serviços, agenda, documentos, comunicações e presença digital num único sistema.
+            Foi criado para ajudar escritórios a centralizar operação, clientes, serviços, agenda,
+            documentos, comunicações e presença digital num único sistema.
           </p>
           <p className="text-xs text-muted-foreground">
             Desenvolvido e operado por {AGENCY.displayName}.

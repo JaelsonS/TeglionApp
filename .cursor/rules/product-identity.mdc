@@ -1,0 +1,28 @@
+---
+description: Identidade oficial Teglion/AfDigital e limites jurídicos
+alwaysApply: true
+---
+
+# Identidade do produto e responsabilidades
+
+## Marca
+
+- **Teglion** = nome comercial do produto SaaS (não é empresa, Lda., S.A. nem entidade jurídica).
+- **AfDigital — Soluções Tecnológicas** = entidade que desenvolve e opera o produto.
+- **teglion.com** = domínio do produto.
+
+Arquitetura: `AfDigital → Teglion → teglion.com`
+
+Comunicação UI: «Teglion» ou «Teglion · Um produto da AfDigital — Soluções Tecnológicas».
+
+## Jurídico (obrigatório)
+
+- Documentos legais **não** atribuem personalidade jurídica a «Teglion».
+- Não inventar NIF, morada, razão social, DPO, CAE, etc.
+- Sem dados confirmados → `LEGAL_DECISION_REQUIRED`.
+- Papéis RGPD **por tratamento**, nunca um papel único inventado.
+- AfDigital responde pelo que controla/presta; escritório pelo que controla/insere; terceiros pelos seus serviços.
+- Não transferir responsabilidades indevidas nem afastar as que legalmente cabem à AfDigital.
+- Landing comercial: transparência clara, **sem** matriz jurídica pesada (detalhe nos docs legais).
+
+Fonte completa: `docs/00-FOUNDATION/PRODUCT_IDENTITY_AND_LEGAL_RESPONSIBILITY.md`

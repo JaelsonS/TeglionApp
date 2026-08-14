@@ -24,24 +24,13 @@ import {
 } from '@/shared/config/supportLinks'
 import { openExternalUrl } from '@/shared/utils/openExternalUrl'
 
-const PRODUCT_ANCHORS: { href: string; label: string }[] = [
-  { href: LANDING_ANCHORS.funcionalidades, label: 'Funcionalidades' },
-  { href: LANDING_ANCHORS.produto, label: 'Ver o produto' },
-  { href: LANDING_ANCHORS.faq, label: 'FAQ' },
-]
-
-const PRODUCT_ROUTES: { to: string; label: string }[] = [
+const LEGAL_FOOTER_LINKS: { to: string; label: string }[] = [
   { to: '/suporte', label: 'Ajuda e suporte' },
-  { to: '/case-studies', label: 'Casos' },
-  { to: '/blog', label: 'Blog' },
-]
-
-const LEGAL_LINKS: { to: string; label: string }[] = [
   { to: '/termos', label: 'Termos' },
   { to: '/privacidade', label: 'Privacidade' },
   { to: '/cookies', label: 'Cookies' },
   { to: '/dpa', label: 'DPA' },
-  { to: '/aviso-legal', label: 'Aviso legal' },
+  { to: '/aviso-legal', label: 'Aviso Legal' },
 ]
 
 function ExtLink({
@@ -73,7 +62,7 @@ function ExtLink({
 }
 
 /**
- * Footer institucional da landing — completo e em colunas.
+ * Footer institucional da landing — identidade clara, links compactos, contactos AfDigital.
  * Diferente do footer autenticado (mínimo).
  */
 export function LandingFooter() {
@@ -82,37 +71,102 @@ export function LandingFooter() {
   const tel = telSupportUrl()
   const site = agencyWebsiteUrl()
   const year = new Date().getFullYear()
+  const compactLinks: { to?: string; href?: string; external?: boolean; label: string }[] = [
+    ...(site ? [{ href: site, external: true as const, label: 'Sobre a AfDigital' }] : []),
+    ...LEGAL_FOOTER_LINKS,
+  ]
 
   return (
     <footer className="border-t border-[#0F2942]/10 bg-[#FAFAF7] py-10 sm:py-12">
       <div className="landing-container px-5 sm:px-8">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto max-w-3xl text-center">
+          <div className="flex items-center justify-center gap-2">
+            <span
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-[10px] font-bold text-white"
+              style={{ backgroundColor: BRAND.colors.navy }}
+            >
+              {BRAND.initials}
+            </span>
+            <span className="font-semibold" style={{ color: BRAND.colors.navy }}>
+              {BRAND.name}
+            </span>
+          </div>
+
+          <p className="mt-3 text-sm font-medium text-[#0F2942]">{teglionProductOfAgencyLine()}</p>
+
+          <p className="mt-4 text-sm leading-relaxed text-[#4A5568]">
+            O {BRAND.name} é uma plataforma de software desenvolvida e operada pela {AGENCY.name}. A
+            utilização da plataforma pelos escritórios e os dados inseridos pelos seus utilizadores
+            estão sujeitos às responsabilidades definidas nos{' '}
+            <Link to="/termos" className="font-medium text-[#0F2942] underline-offset-2 hover:underline">
+              Termos de Utilização
+            </Link>{' '}
+            e na{' '}
+            <Link
+              to="/privacidade"
+              className="font-medium text-[#0F2942] underline-offset-2 hover:underline"
+            >
+              Política de Privacidade
+            </Link>
+            .
+          </p>
+
+          <nav
+            className="mt-6 flex flex-wrap items-center justify-center gap-x-2 gap-y-2 text-[12px] text-[#4A5568] sm:text-[13px]"
+            aria-label="Links institucionais"
+          >
+            {compactLinks.map((item, index) => {
+              const sep = index > 0 ? <span className="text-[#0F2942]/25" aria-hidden>·</span> : null
+              if (item.external && item.href) {
+                return (
+                  <span key={item.label} className="inline-flex items-center gap-2">
+                    {sep}
+                    <ExtLink
+                      href={item.href}
+                      ariaLabel={item.label}
+                      className="hover:text-[#0F2942] hover:underline underline-offset-2"
+                    >
+                      {item.label}
+                    </ExtLink>
+                  </span>
+                )
+              }
+              return (
+                <span key={item.label} className="inline-flex items-center gap-2">
+                  {sep}
+                  <Link
+                    to={item.to || '/'}
+                    className="hover:text-[#0F2942] hover:underline underline-offset-2"
+                  >
+                    {item.label}
+                  </Link>
+                </span>
+              )
+            })}
+          </nav>
+        </div>
+
+        <div className="mt-10 grid gap-8 border-t border-[#0F2942]/10 pt-8 sm:grid-cols-2 lg:grid-cols-3">
           <div>
-            <div className="flex items-center gap-2">
-              <span
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-[10px] font-bold text-white"
-                style={{ backgroundColor: BRAND.colors.navy }}
-              >
-                {BRAND.initials}
-              </span>
-              <span className="font-semibold" style={{ color: BRAND.colors.navy }}>
-                {BRAND.name}
-              </span>
-            </div>
-            <p className="mt-3 text-sm leading-relaxed text-[#4A5568]">{teglionProductOfAgencyLine()}</p>
-            <ul className="mt-4 space-y-2 text-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#0F2942]">Produto</p>
+            <ul className="mt-3 space-y-2 text-sm text-[#4A5568]">
               <li>
-                <Link to="/suporte" className="text-[#4A5568] hover:text-[#0F2942]">
-                  Sobre / Ajuda
-                </Link>
+                <a href={LANDING_ANCHORS.funcionalidades} className="hover:text-[#0F2942]">
+                  Funcionalidades
+                </a>
               </li>
               <li>
-                <Link to="/pricing" className="text-[#4A5568] hover:text-[#0F2942]">
+                <a href={LANDING_ANCHORS.transparencia} className="hover:text-[#0F2942]">
+                  Transparência
+                </a>
+              </li>
+              <li>
+                <Link to="/pricing" className="hover:text-[#0F2942]">
                   Preços
                 </Link>
               </li>
               <li>
-                <Link to={authProfileChoiceUrl('login')} className="text-[#4A5568] hover:text-[#0F2942]">
+                <Link to={authProfileChoiceUrl('login')} className="hover:text-[#0F2942]">
                   Entrar
                 </Link>
               </li>
@@ -125,42 +179,7 @@ export function LandingFooter() {
           </div>
 
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#0F2942]">Produto</p>
-            <ul className="mt-3 space-y-2 text-sm">
-              {PRODUCT_ANCHORS.map((item) => (
-                <li key={item.href}>
-                  <a href={item.href} className="text-[#4A5568] hover:text-[#0F2942]">
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-              {PRODUCT_ROUTES.map((item) => (
-                <li key={item.to}>
-                  <Link to={item.to} className="text-[#4A5568] hover:text-[#0F2942]">
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#0F2942]">Legal</p>
-            <ul className="mt-3 space-y-2 text-sm">
-              {LEGAL_LINKS.map((item) => (
-                <li key={item.to}>
-                  <Link to={item.to} className="text-[#4A5568] hover:text-[#0F2942]">
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#0F2942]">
-              AfDigital
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#0F2942]">AfDigital</p>
             <ul className="mt-3 space-y-2.5 text-sm text-[#4A5568]">
               {site ? (
                 <li>
@@ -205,10 +224,10 @@ export function LandingFooter() {
                 </ExtLink>
               </li>
             </ul>
+          </div>
 
-            <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-[#0F2942]">
-              Contacto
-            </p>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#0F2942]">Contacto</p>
             <ul className="mt-3 space-y-2.5 text-sm text-[#4A5568]">
               {wa ? (
                 <li>
@@ -246,11 +265,6 @@ export function LandingFooter() {
                   </a>
                 </li>
               ) : null}
-              <li>
-                <Link to="/suporte" className="hover:text-[#0F2942]">
-                  Atendimento ao cliente
-                </Link>
-              </li>
             </ul>
           </div>
         </div>
