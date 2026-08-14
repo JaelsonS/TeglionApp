@@ -189,7 +189,7 @@ export function FirmSettingsPage() {
                     {activeTab === 'ajuda' &&
                       'Maya, WhatsApp, email e telefone — suporte humano e assistente.'}
                     {activeTab === 'sobre' &&
-                      'Teglion e AfDigital — Soluções Tecnológicas, site e redes oficiais.'}
+                      'Produto AfDigital, redes oficiais e ligações para documentos legais.'}
                     {activeTab === 'encerrar' && 'Acção irreversível — encerra o escritório.'}
                   </p>
                 </div>

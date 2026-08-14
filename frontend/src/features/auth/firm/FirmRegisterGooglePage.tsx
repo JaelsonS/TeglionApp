@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 
+import { AuthAgencyIdentity } from '@/shared/components/auth/AuthAgencyIdentity'
 import { AuthCard } from '@/shared/components/auth/AuthCard'
 import { AuthFooter } from '@/shared/components/auth/AuthFooter'
 import { AuthHeader } from '@/shared/components/auth/AuthHeader'
@@ -182,7 +183,11 @@ export function FirmRegisterGooglePage() {
           </AuthCard>
 
           <AuthFooter className="mt-6">
-            <Link to={authFirmRegisterUrl()} className="font-semibold text-slate-900 hover:underline">
+            <AuthAgencyIdentity />
+            <Link
+              to={authFirmRegisterUrl()}
+              className="mt-3 block font-semibold text-slate-900 hover:underline"
+            >
               Voltar ao registo
             </Link>
           </AuthFooter>
@@ -263,17 +268,20 @@ export function FirmRegisterGooglePage() {
         </AuthCard>
 
         <AuthFooter className="mt-6">
-          <Link to={authFirmRegisterUrl()} className="font-semibold text-slate-900 hover:underline">
-            Registar com e-mail
-          </Link>
-          <span className="mx-2">·</span>
-          <Link to={authFirmLoginUrl()} className="hover:underline">
-            {t.auth.loginLink}
-          </Link>
-          <span className="mx-2">·</span>
-          <Link to={authProfileChoiceUrl('register')} className="hover:underline">
-            Voltar à escolha de perfil
-          </Link>
+          <AuthAgencyIdentity />
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm">
+            <Link to={authFirmRegisterUrl()} className="font-semibold text-slate-900 hover:underline">
+              Registar com e-mail
+            </Link>
+            <span aria-hidden>·</span>
+            <Link to={authFirmLoginUrl()} className="hover:underline">
+              {t.auth.loginLink}
+            </Link>
+            <span aria-hidden>·</span>
+            <Link to={authProfileChoiceUrl('register')} className="hover:underline">
+              Voltar à escolha de perfil
+            </Link>
+          </div>
         </AuthFooter>
       </div>
     </AuthLayout>

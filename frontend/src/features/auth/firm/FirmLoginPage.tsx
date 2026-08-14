@@ -13,8 +13,7 @@ import { AuthLayout } from '@/shared/components/auth/AuthLayout'
 import { GoogleAuthButton } from '@/shared/components/auth/GoogleAuthButton'
 import { OfficeScreensCarousel } from '@/shared/components/auth/OfficeScreensCarousel'
 import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
-import { AGENCY } from '@/shared/config/agency'
-import { teglionProductOfAgencyLine } from '@/shared/config/supportLinks'
+import { AuthAgencyIdentity } from '@/shared/components/auth/AuthAgencyIdentity'
 import { contabilPt as t } from '@/shared/i18n/contabilPt'
 import { authFirmRegisterUrl, authProfileChoiceUrl } from '@/shared/constants/authPaths'
 import { useAuth } from '@/shared/hooks/useAuth'
@@ -235,15 +234,7 @@ export function FirmLoginPage() {
         </AuthCard>
 
         <AuthFooter className="mt-6">
-          <p className="mb-2 text-center text-[11px] text-slate-500">{teglionProductOfAgencyLine()}</p>
-          <a
-            href={AGENCY.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-center text-[11px] font-medium text-slate-700 underline-offset-2 hover:underline"
-          >
-            {AGENCY.url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-          </a>
+          <AuthAgencyIdentity />
           <Link to={authProfileChoiceUrl('login')} className="mt-3 block font-semibold text-slate-900 hover:underline">
             Voltar à escolha de perfil
           </Link>
