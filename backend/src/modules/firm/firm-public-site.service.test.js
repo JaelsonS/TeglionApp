@@ -118,6 +118,33 @@ test('normalizeSiteConfig: cores por secção e por botão', () => {
   assert.equal(header.content.textColor, '#fefefe');
 });
 
+test('normalizeSiteConfig: header.title e hero.title são independentes e truncados', () => {
+  const config = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'header',
+        content: { title: '  Maya Contabilidade  ' },
+      },
+      {
+        type: 'hero',
+        content: {
+          title: 'Contabilidade clara para o seu negócio',
+          tagline: 'Frase',
+          bio: '',
+        },
+      },
+    ],
+  });
+  const header = config.sections.find((s) => s.type === 'header');
+  const hero = config.sections.find((s) => s.type === 'hero');
+  assert.equal(header.content.title, 'Maya Contabilidade');
+  assert.equal(hero.content.title, 'Contabilidade clara para o seu negócio');
+  assert.notEqual(header.content.title, hero.content.title);
+  assert.equal(hero.content.tagline, 'Frase');
+  assert.equal(Object.prototype.hasOwnProperty.call(header.content, 'title'), true);
+  assert.equal(Object.prototype.hasOwnProperty.call(config.sections.find((s) => s.type === 'footer')?.content || {}, 'title'), false);
+});
+
 test('normalizeSiteConfig: faq filtra entradas sem pergunta ou sem resposta', () => {
   const config = firmPublicSiteService.normalizeSiteConfig({
     sections: [

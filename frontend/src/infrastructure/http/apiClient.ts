@@ -29,6 +29,12 @@ export const refreshApi: AxiosInstance = axios.create({
   withCredentials: true,
 })
 
+refreshApi.interceptors.request.use((config) => {
+  config.headers = config.headers ?? {}
+  config.headers['X-Requested-With'] = 'XMLHttpRequest'
+  return config
+})
+
 export function getApiBaseUrlResolved(): string {
   const raw =
     api.defaults.baseURL && String(api.defaults.baseURL).length > 0 ? String(api.defaults.baseURL) : API_BASE_URL
@@ -40,17 +46,33 @@ export function getApiUploadsRoot(): string {
 }
 
 /**
- * Domínios finais servidos por este projecto Vercel, que reescreve `/api/*` para o
- * backend (Render) no servidor — o browser nunca navega directamente para o
- * *.onrender.com, evitando a tela de "spin up" da Render (não personalizável).
+ * Full-page OAuth (Google SSO / Calendar) on staging still starts on the Render host
+ * while `GOOGLE_OAUTH_REDIRECT_URI` aponta para `*.onrender.com` (state cookie same-host).
+ * XHR usa `/api` same-origin. O registo Google nova conta usa token `?pending=` +
+ * header `X-OAuth-Pending` porque o cookie pendente no Render não chega ao SPA.
+ * Migração: redirect URI → `https://staging.teglion.com/api/auth/google/callback`
+ * e então trocar esta base para `${window.location.origin}/api` (ver GOOGLE_SSO_SETUP.md).
  */
-const SAME_ORIGIN_HOSTS = ['teglion.com', 'www.teglion.com', 'app.teglion.com']
+const STAGING_API_BASE = 'https://teglion-api-staging.onrender.com/api'
+const PROD_SAME_ORIGIN_HOSTS = ['teglion.com', 'www.teglion.com', 'app.teglion.com']
 
-export function getGoogleAuthStartUrl(options?: { intent?: 'login' | 'register'; countryCode?: string }): string {
+function isStagingFrontendHost(host: string): boolean {
+  if (!host) return false
+  if (host === 'staging.teglion.com' || host === 'www.staging.teglion.com') return true
+  return host.endsWith('.vercel.app') && host.includes('staging')
+}
+
+/** Base URL for full-page navigations (Google OAuth / Calendar). */
+function resolveNavigationApiBase(): string {
   const isBrowser = typeof window !== 'undefined'
   const host = isBrowser ? String(window.location.hostname || '').toLowerCase() : ''
-  const useSameOrigin = SAME_ORIGIN_HOSTS.includes(host)
-  const base = (useSameOrigin ? `${window.location.origin}/api` : getApiBaseUrlResolved()).replace(/\/$/, '')
+  if (isStagingFrontendHost(host)) return STAGING_API_BASE
+  if (PROD_SAME_ORIGIN_HOSTS.includes(host)) return `${window.location.origin}/api`
+  return getApiBaseUrlResolved()
+}
+
+export function getGoogleAuthStartUrl(options?: { intent?: 'login' | 'register'; countryCode?: string }): string {
+  const base = resolveNavigationApiBase().replace(/\/$/, '')
   const params = new URLSearchParams()
   if (options?.intent === 'register') params.set('intent', 'register')
   if (options?.countryCode) params.set('countryCode', options.countryCode)
@@ -61,10 +83,7 @@ export function getGoogleAuthStartUrl(options?: { intent?: 'login' | 'register';
 /** URL de navegação de página inteira (não XHR) para ligar o Google Calendar — mesma
  * resolução de origem que getGoogleAuthStartUrl(), rota autenticada (Fase Ha). */
 export function getGoogleCalendarConnectUrl(): string {
-  const isBrowser = typeof window !== 'undefined'
-  const host = isBrowser ? String(window.location.hostname || '').toLowerCase() : ''
-  const useSameOrigin = SAME_ORIGIN_HOSTS.includes(host)
-  const base = (useSameOrigin ? `${window.location.origin}/api` : getApiBaseUrlResolved()).replace(/\/$/, '')
+  const base = resolveNavigationApiBase().replace(/\/$/, '')
   return `${base}/contabil/integrations/google-calendar/connect`
 }
 

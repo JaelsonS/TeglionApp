@@ -1,0 +1,27 @@
+---
+description: Teglion — main/staging/feature-fase; sem develop; produção intocável
+alwaysApply: true
+---
+
+# Fluxo Git — Teglion
+
+## Branches oficiais
+
+- `main` — **só** produção aprovada (Liliane + clientes)
+- `staging` — integração e deploy do ambiente STAGING
+- `feature/fase-N` — trabalho da fase do roadmap (ex.: `feature/fase-0`, depois `feature/fase-1`)
+
+**Não criar `develop`.** Não trabalhar directamente na `main`.
+
+## Fluxo
+
+```
+feature/fase-N → PR → staging → CI + UAT staging → aprovado → PR → main → PRODUÇÃO
+```
+
+## Regras para o agente
+
+1. Se a branch actual for `main`, criar/checkout `feature/fase-N` (ou `fix/…`) **antes** de editar.
+2. Não sugerir push directo / force push / `--no-verify` na `main`.
+3. Não apontar testes ou migrations experimentais a Supabase **PROD**.
+4. Documentação: `docs/operations/GIT_WORKFLOW.md`.

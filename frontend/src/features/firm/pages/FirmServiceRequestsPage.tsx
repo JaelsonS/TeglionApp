@@ -1,116 +1,81 @@
 import { Navigate, useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { ExternalLink } from 'lucide-react'
 
 import { ServicesWorkspace } from '@/features/firm/services/ServicesWorkspace'
 import { ServiceInquiriesWorkspace } from '@/features/firm/services/ServiceInquiriesWorkspace'
 import { ServicesCatalogWorkspace } from '@/features/firm/services/ServicesCatalogWorkspace'
+import { countServicePublishStats } from '@/features/firm/services/servicePublishState'
 import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
+import { AskMayaButton } from '@/features/maya'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
-import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
-import { contabilAccountingServicesApi } from '@/infrastructure/api'
+import { Button } from '@/shared/components/ui/button'
+import { useAuth } from '@/shared/hooks/useAuth'
+import { contabilAccountingServicesApi, contabilServiceInquiriesApi } from '@/infrastructure/api'
 import { cn } from '@/shared/lib/utils'
+import type { AccountingService } from '@/shared/types/contabil'
 
 const TABS = [
   {
     id: 'catalog',
     label: 'Catálogo',
-    title: 'Catálogo',
-    subtitle: 'Serviços activos do escritório e modelos Teglion',
+    title: 'Serviços',
+    subtitle:
+      'Apresente o que o escritório oferece e permita que potenciais clientes façam pedidos pela página pública.',
   },
   {
     id: 'inquiries',
     label: 'Solicitações',
     title: 'Solicitações',
-    subtitle: 'Pedidos da página pública — a equipa decide o próximo passo',
+    subtitle: 'Pedidos que chegam da página pública — contacte, peça documentos e avance o estado.',
   },
   {
     id: 'central',
-    label: 'Central de Serviços',
+    label: 'Central',
     title: 'Central de Serviços',
-    subtitle: 'Pedidos de clientes já no escritório (app Teglion)',
+    subtitle: 'Pedidos de clientes que já usam a app Teglion (carteira). Captação pública fica em Solicitações.',
   },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
 
-const HELP_BY_TAB: Record<
-  TabId,
-  { title: string; intro: string; steps: { title: string; description: string }[] }
-> = {
-  catalog: {
-    title: 'Catálogo de serviços',
-    intro:
-      'Aqui gere o que o escritório oferece: serviços activos à esquerda e modelos Teglion à direita. O IRS tem ecrã próprio no menu lateral.',
-    steps: [
-      {
-        title: 'Os vossos serviços',
-        description:
-          'À esquerda: filtre e abra o editor completo (caneta) — banner, formulário, logótipo, publicação, pré-visualização e apagar.',
-      },
-      {
-        title: 'Modelos Teglion',
-        description: 'À direita: «Activar e editar» cria o serviço a partir do modelo e abre o editor para personalizar.',
-      },
-      {
-        title: 'Criar do zero',
-        description: 'Use «Criar serviço» para um serviço novo sem modelo, com o mesmo editor completo.',
-      },
-    ],
-  },
-  inquiries: {
-    title: 'Solicitações',
-    intro:
-      'Pedidos que chegam da página pública (captação). A equipa contacta, pede documentos e avança o estado até concluir.',
-    steps: [
-      {
-        title: 'Abrir um pedido',
-        description: 'Seleccione na lista para ver contacto, respostas do formulário e histórico.',
-      },
-      {
-        title: 'Actualizar o estado',
-        description: 'Marque contactado, peça documentos ou conclua — o cliente acompanha o progresso quando aplicável.',
-      },
-      {
-        title: 'Etiquetas e follow-up',
-        description: 'Organize com etiquetas e use as acções do painel para não perder leads.',
-      },
-    ],
-  },
-  central: {
-    title: 'Central de Serviços',
-    intro:
-      'Só para clientes com acesso à app Teglion. Pedem e agendam serviços que o escritório activou. Captação pública fica em Solicitações.',
-    steps: [
-      {
-        title: 'Ver pedidos internos',
-        description: 'Acompanhe pedidos feitos por clientes já na carteira, dentro da app.',
-      },
-      {
-        title: 'Agendamentos e confirmações',
-        description: 'Confirme ou trate o pedido conforme o fluxo do serviço (com ou sem pagamento online).',
-      },
-      {
-        title: 'Catálogo activo',
-        description: 'Só aparecem serviços que o escritório activou e publicou para esses clientes.',
-      },
-    ],
-  },
+function isIrsService(s: { name: string; catalogKey?: string | null; category?: string }) {
+  if (s.category === 'IRS') return true
+  const blob = `${s.name} ${s.catalogKey || ''}`
+  return /\birs\b/i.test(blob) || /e-?fatura/i.test(blob) || /^irs-/.test(s.catalogKey || '')
 }
 
 export function FirmServiceRequestsPage() {
+  const { user } = useAuth()
+  const firmSlug = user?.tenant?.slug
   const [searchParams, setSearchParams] = useSearchParams()
   const rawTab = searchParams.get('tab')
   if (rawTab === 'irs') return <Navigate to="/app/firm/irs" replace />
 
   const activeTab: TabId = rawTab === 'central' || rawTab === 'inquiries' ? rawTab : 'catalog'
   const activeMeta = TABS.find((t) => t.id === activeTab) ?? TABS[0]
-  const help = HELP_BY_TAB[activeTab]
 
   const qc = useQueryClient()
   const servicesQuery = useQuery({
     queryKey: ['contabil-accounting-services', 'catalog-tab'],
     queryFn: () => contabilAccountingServicesApi.list(),
   })
+  const inquiriesQuery = useQuery({
+    queryKey: ['contabil-service-inquiries', 'services-hub-kpis'],
+    queryFn: () => contabilServiceInquiriesApi.list({ status: 'NEW' }),
+    staleTime: 30_000,
+  })
+
+  const allServices = (servicesQuery.data?.items ?? []) as AccountingService[]
+  const nonIrs = allServices.filter((s) => !isIrsService(s))
+  const stats = countServicePublishStats(nonIrs)
+  const newInquiries = inquiriesQuery.data?.items?.length ?? 0
+  const publicUrl =
+    typeof window !== 'undefined' && firmSlug
+      ? `${window.location.origin}/${encodeURIComponent(firmSlug)}`
+      : firmSlug
+        ? `/${firmSlug}`
+        : null
 
   return (
     <FirmWorkspacePage className="cb-services-layout-page xl:min-h-0 xl:flex-1">
@@ -119,12 +84,22 @@ export function FirmServiceRequestsPage() {
         title={activeMeta.title}
         subtitle={activeMeta.subtitle}
         headerRight={
-          <ModuleHelpDialog title={help.title} intro={help.intro} triggerLabel="Guia" steps={help.steps} />
+          <div className="flex flex-wrap items-center gap-2">
+            <AskMayaButton intentId={activeTab === 'inquiries' || activeTab === 'central' ? 'requests' : 'service'} />
+            {publicUrl ? (
+              <Button type="button" size="sm" variant="outline" asChild>
+                <a href={publicUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4" />
+                  Ver página pública
+                </a>
+              </Button>
+            ) : null}
+          </div>
         }
         bodyClassName="flex min-h-0 flex-1 flex-col overflow-hidden"
       >
         <div className="shrink-0 border-b border-border/60 px-4 sm:px-5">
-          <nav className="cb-tasks-tabs -mb-px" aria-label="Secções de serviços">
+          <nav className="cb-tasks-tabs -mb-px overflow-x-auto" aria-label="Secções de serviços">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
@@ -134,15 +109,55 @@ export function FirmServiceRequestsPage() {
                 className={cn('cb-tasks-tab', activeTab === tab.id && 'cb-tasks-tab-active')}
               >
                 {tab.label}
+                {tab.id === 'inquiries' && newInquiries > 0 ? (
+                  <span className="ml-1.5 rounded-full bg-brand/15 px-1.5 py-0.5 text-[10px] font-bold text-brand">
+                    {newInquiries}
+                  </span>
+                ) : null}
               </button>
             ))}
           </nav>
         </div>
 
+        {activeTab === 'catalog' ? (
+          <div className="shrink-0 border-b border-border/40 bg-muted/15 px-3 py-3 sm:px-4">
+            <p className="mb-2 text-caption text-muted-foreground">
+              Activo = disponível no escritório · Publicado = visível na página pública · Pedidos do site =
+              Solicitações
+            </p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" data-testid="services-hub-kpis">
+              {[
+                { label: 'Activos', value: String(stats.active) },
+                { label: 'Publicados', value: String(stats.published) },
+                { label: 'Só internos', value: String(stats.internal) },
+                { label: 'Pedidos novos', value: String(newInquiries) },
+              ].map((kpi) => (
+                <div key={kpi.label} className="rounded-lg border border-border/60 bg-card px-3 py-2">
+                  <p className="text-caption font-medium text-muted-foreground">{kpi.label}</p>
+                  <p className="text-lg font-semibold tabular-nums text-foreground">{kpi.value}</p>
+                </div>
+              ))}
+            </div>
+            {newInquiries > 0 ? (
+              <p className="mt-2 text-sm text-muted-foreground">
+                Tem pedidos novos da página pública —{' '}
+                <button
+                  type="button"
+                  className="font-medium text-brand underline-offset-2 hover:underline"
+                  onClick={() => setSearchParams({ tab: 'inquiries' })}
+                >
+                  abrir Solicitações
+                </button>
+                .
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
         <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 sm:p-4">
           {activeTab === 'catalog' ? (
             <ServicesCatalogWorkspace
-              services={servicesQuery.data?.items ?? []}
+              services={allServices}
               isLoading={servicesQuery.isLoading}
               onReload={() => qc.invalidateQueries({ queryKey: ['contabil-accounting-services'] })}
               excludeIrs

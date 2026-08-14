@@ -1,7 +1,8 @@
-import { useRef, type ChangeEvent } from 'react'
+import { useRef, useState, type ChangeEvent } from 'react'
 import { ImageIcon, Loader2, Plus, Trash2, X } from 'lucide-react'
 
 import { Button } from '@/shared/components/ui/button'
+import { ImageCropDialog, type ImageCropAspect } from '@/shared/components/media/ImageCropDialog'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
@@ -96,14 +97,20 @@ export function ImagePickerField({
   uploading,
   onUpload,
   onRemove,
+  cropAspect = 16 / 9,
+  cropTitle = 'Recortar foto',
 }: {
   label: string
   imageUrl: string | null
   uploading: boolean
   onUpload: (file: File) => void
   onRemove: () => void
+  cropAspect?: ImageCropAspect
+  cropTitle?: string
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const [cropFile, setCropFile] = useState<File | null>(null)
+  const [cropOpen, setCropOpen] = useState(false)
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
@@ -114,7 +121,10 @@ export function ImagePickerField({
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0]
-          if (file) onUpload(file)
+          if (file) {
+            setCropFile(file)
+            setCropOpen(true)
+          }
           e.target.value = ''
         }}
       />
@@ -138,6 +148,17 @@ export function ImagePickerField({
           Adicionar foto
         </Button>
       )}
+      <ImageCropDialog
+        open={cropOpen}
+        onOpenChange={(next) => {
+          setCropOpen(next)
+          if (!next) setCropFile(null)
+        }}
+        file={cropFile}
+        title={cropTitle}
+        aspect={cropAspect}
+        onCropped={(cropped) => onUpload(cropped)}
+      />
     </div>
   )
 }
@@ -146,27 +167,49 @@ export function ChromeSectionEditor({
   content,
   onChange,
   title,
+  showTitleField = false,
+  titleFieldLabel = 'Texto desta zona',
+  titlePlaceholder,
 }: {
   content: PublicSiteChromeContent
   onChange: (next: PublicSiteChromeContent) => void
   title: string
+  /** Cabeçalho: permite marca curta diferente do H1 do hero. */
+  showTitleField?: boolean
+  titleFieldLabel?: string
+  titlePlaceholder?: string
 }) {
   return (
     <div className="space-y-3">
       <p className="text-caption text-muted-foreground">
         Escolha as cores só desta zona ({title}). Deixe em branco para usar o padrão da página.
       </p>
+      {showTitleField ? (
+        <div className="space-y-2">
+          <Label htmlFor={`${title}-label`}>{titleFieldLabel}</Label>
+          <Input
+            id={`${title}-label`}
+            value={content.title || ''}
+            onChange={(e: FormChangeEvent) => onChange({ ...content, title: e.target.value })}
+            placeholder={titlePlaceholder || 'Ex.: Maya Contabilidade'}
+            maxLength={120}
+          />
+          <p className="text-[11px] text-muted-foreground">
+            Se ficar vazio, usa o «Nome na página pública». Pode ser diferente do título em destaque (H1).
+          </p>
+        </div>
+      ) : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <InlineColorField
           id={`${title}-bg`}
-          label="Cor de fundo"
+          label="Fundo desta zona (não é a cor do botão)"
           value={content.backgroundColor}
           fallback="#f0f4f1"
           onChange={(v) => onChange({ ...content, backgroundColor: v })}
         />
         <InlineColorField
           id={`${title}-text`}
-          label="Cor do texto"
+          label="Cor do texto desta zona"
           value={content.textColor}
           onChange={(v) => onChange({ ...content, textColor: v })}
         />
@@ -218,9 +261,10 @@ export function HeroEditor({
   return (
     <div className="space-y-4">
       <div className="space-y-2 rounded-lg border border-border/40 bg-muted/10 p-3">
-        <p className="text-caption font-medium">Fundo do destaque</p>
+        <p className="text-caption font-medium">Fundo da secção de destaque</p>
         <p className="text-[11px] text-muted-foreground">
-          Pode usar foto de capa, uma cor de fundo, ou as duas. Se não houver foto, a cor preenche a zona.
+          Cor ou foto do bloco atrás do texto. Para mudar a cor do botão em si, use «Cor do botão (call-to-action)»
+          abaixo em cada botão — não este fundo.
         </p>
         <ImagePickerField
           label="Foto de capa (opcional)"
@@ -228,14 +272,38 @@ export function HeroEditor({
           uploading={uploadingImage}
           onUpload={onUploadImage}
           onRemove={onRemoveImage}
+          cropAspect={16 / 9}
+          cropTitle="Recortar foto de capa"
         />
         <InlineColorField
           id="hero-bg"
-          label="Cor de fundo (em vez de / além da foto)"
+          label="Fundo da secção (atrás do texto)"
           value={content.backgroundColor}
           fallback="#e8f0ec"
           onChange={(v) => onChange({ ...content, backgroundColor: v })}
         />
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <Label htmlFor="hero-title">Título em destaque (H1)</Label>
+          <InlineColorField
+            id="hero-title-color"
+            label="Cor do título"
+            value={content.titleColor}
+            onChange={(v) => onChange({ ...content, titleColor: v })}
+          />
+        </div>
+        <Input
+          id="hero-title"
+          value={content.title || ''}
+          onChange={(e: FormChangeEvent) => onChange({ ...content, title: e.target.value })}
+          placeholder="Ex.: Contabilidade clara para o seu negócio"
+          maxLength={120}
+        />
+        <p className="text-[11px] text-muted-foreground">
+          Independente do texto do cabeçalho. Vazio → usa o «Nome na página pública».
+        </p>
       </div>
 
       <div className="space-y-2">
@@ -275,13 +343,6 @@ export function HeroEditor({
           placeholder="Um parágrafo curto sobre a sua forma de trabalhar."
         />
       </div>
-
-      <InlineColorField
-        id="hero-title-color"
-        label="Cor do nome do escritório"
-        value={content.titleColor}
-        onChange={(v) => onChange({ ...content, titleColor: v })}
-      />
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -356,13 +417,18 @@ export function HeroEditor({
               </Button>
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
-              <InlineColorField
-                id={`cta-bg-${cta.id}`}
-                label="Cor do botão"
-                value={cta.backgroundColor}
-                fallback={cta.style === 'secondary' ? '#c9a24b' : '#12352a'}
-                onChange={(v) => patchCta(cta.id, { backgroundColor: v })}
-              />
+              <div className="space-y-1">
+                <InlineColorField
+                  id={`cta-bg-${cta.id}`}
+                  label="Cor do botão (call-to-action)"
+                  value={cta.backgroundColor}
+                  fallback={cta.style === 'secondary' ? '#c9a24b' : '#12352a'}
+                  onChange={(v) => patchCta(cta.id, { backgroundColor: v })}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Cor do botão em si — diferente do «Fundo da secção» acima.
+                </p>
+              </div>
               <InlineColorField
                 id={`cta-text-${cta.id}`}
                 label="Cor do texto do botão"
@@ -403,6 +469,8 @@ export function AboutEditor({
           uploading={uploadingImage}
           onUpload={onUploadImage}
           onRemove={onRemoveImage}
+          cropAspect="free"
+          cropTitle="Recortar foto"
         />
         <InlineColorField
           id="about-bg"

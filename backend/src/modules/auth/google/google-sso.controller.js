@@ -15,6 +15,7 @@ const {
 } = require('../../../utils/auth-cookies');
 const {
   setPendingRegistrationCookie,
+  createPendingRegistrationToken,
   readPendingRegistration,
   clearPendingRegistrationCookie,
 } = require('../../../utils/oauth-pending-cookie');
@@ -23,6 +24,27 @@ const { logger } = require('../../../utils/logger');
 const OAUTH_STATE_COOKIE = 'oauth_state';
 const OAUTH_INTENT_COOKIE = 'oauth_intent';
 const VALID_INTENTS = new Set(['login', 'register']);
+
+function captureSsoSignal(message, extra = {}) {
+  try {
+    const { Sentry } = require('../../../instrument');
+    if (!Sentry || typeof Sentry.captureMessage !== 'function') return;
+    Sentry.withScope((scope) => {
+      scope.setLevel('error');
+      scope.setTag('auth.flow', 'google_sso');
+      scope.setTag('auth.code', String(extra.code || 'SSO_SIGNAL'));
+      if (extra.intent) scope.setTag('auth.intent', String(extra.intent));
+      scope.setContext('google_sso', {
+        ...extra,
+        // nunca enviar tokens / googleSub
+        hasEmail: Boolean(extra.hasEmail),
+      });
+      Sentry.captureMessage(message);
+    });
+  } catch {
+    /* Sentry opcional */
+  }
+}
 
 function parseIntent(raw) {
   const value = String(raw || 'login').toLowerCase();
@@ -69,6 +91,7 @@ async function googleCallback(req, res) {
   const savedState = req.cookies?.[OAUTH_STATE_COOKIE];
   res.clearCookie(OAUTH_STATE_COOKIE, buildAuthCookieOptions(req));
   if (!state || !savedState || state !== savedState) {
+    captureSsoSignal('Google SSO invalid_state', { code: 'INVALID_STATE', intent });
     return res.redirect(`${intent === 'register' ? registerUrl : loginUrl}?error=invalid_state`);
   }
 
@@ -101,18 +124,26 @@ async function googleCallback(req, res) {
     }
 
     if (loginResult.reason === 'account_not_found' && intent === 'register') {
-      setPendingRegistrationCookie(res, req, {
+      const pendingToken = createPendingRegistrationToken({
         email: linked.email,
         ownerName: linked.name,
         googleSub: linked.googleSub,
         countryCode,
       });
-      return res.redirect(`${env.FRONTEND_URL}/auth/firm/register/google`);
+      setPendingRegistrationCookie(res, req, pendingToken);
+      const dest = new URL(`${env.FRONTEND_URL}/auth/firm/register/google`);
+      dest.searchParams.set('pending', pendingToken);
+      return res.redirect(dest.toString());
     }
 
     return res.redirect(`${loginUrl}?error=${loginResult.reason || 'account_not_found'}`);
   } catch (err) {
     logger.safe.warn('[google-sso] callback failed', { message: err?.message });
+    captureSsoSignal('Google SSO callback failed', {
+      code: 'SSO_CALLBACK_FAILED',
+      intent,
+      message: err?.message || 'unknown',
+    });
     return res.redirect(`${intent === 'register' ? registerUrl : loginUrl}?error=sso_failed`);
   }
 }
@@ -120,6 +151,13 @@ async function googleCallback(req, res) {
 function getPendingRegistration(req, res) {
   const pending = readPendingRegistration(req);
   if (!pending) {
+    captureSsoSignal('Google SSO pending registration missing', {
+      code: 'SSO_PENDING_NOT_FOUND',
+      intent: 'register',
+      hasCookie: Boolean(req.cookies?.oauth_register_pending),
+      hasHeader: Boolean(req.get?.('x-oauth-pending') || req.headers?.['x-oauth-pending']),
+      hasQuery: Boolean(req.query?.pending),
+    });
     return res.status(404).json({ code: 'SSO_PENDING_NOT_FOUND', message: 'Sessão Google expirada. Tente novamente.' });
   }
   return res.json({

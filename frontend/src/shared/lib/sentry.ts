@@ -7,6 +7,18 @@ function normalizeSentryDsn(raw: unknown): string {
   return value
 }
 
+/** Vite `MODE` em builds de staging.teglion.com é `production` — distinguir via env/host. */
+function resolveSentryEnvironment(): string {
+  const fromEnv = String(import.meta.env.VITE_SENTRY_ENVIRONMENT || '').trim()
+  if (fromEnv) return fromEnv
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname.toLowerCase()
+    if (host === 'staging.teglion.com' || host.endsWith('.staging.teglion.com')) return 'staging'
+    if (host === 'teglion.com' || host === 'www.teglion.com') return 'production'
+  }
+  return import.meta.env.MODE || 'development'
+}
+
 /** Chunks Vite com hash mudam a cada deploy — erros de "Failed to fetch dynamically imported module" são esperados com abas antigas. */
 function isStaleChunkLoadError(event: Sentry.ErrorEvent, hint?: Sentry.EventHint): boolean {
   const messages: string[] = []
@@ -42,15 +54,19 @@ export function initSentry() {
     import.meta.env.npm_package_version ||
     'unknown'
 
+  const environment = resolveSentryEnvironment()
+  // Staging e prod fazem build Vite `production` — amostrar ambos; local/dev fica quieto.
+  const isDeployedBuild = import.meta.env.PROD
+
   try {
     Sentry.init({
       dsn,
       release,
-      environment: import.meta.env.MODE,
+      environment,
       integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
-      tracesSampleRate: import.meta.env.PROD ? 0.1 : 0,
+      tracesSampleRate: isDeployedBuild ? 0.1 : 0,
       replaysSessionSampleRate: 0,
-      replaysOnErrorSampleRate: import.meta.env.PROD ? 1.0 : 0,
+      replaysOnErrorSampleRate: isDeployedBuild ? 1.0 : 0,
       sendDefaultPii: false,
       beforeSend(event, hint) {
         if (isStaleChunkLoadError(event, hint)) {
@@ -74,7 +90,7 @@ export function initSentry() {
 
   Sentry.setTag('service', 'contabil-frontend')
   Sentry.setTag('platform', 'web')
-  Sentry.setTag('environment', import.meta.env.MODE)
+  Sentry.setTag('environment', environment)
   Sentry.setTag('app.version', release)
 }
 

@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 import { isAxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 
+import { AuthAgencyIdentity } from '@/shared/components/auth/AuthAgencyIdentity'
 import { AuthCard } from '@/shared/components/auth/AuthCard'
 import { AuthFooter } from '@/shared/components/auth/AuthFooter'
-import { AuthHeader } from '@/shared/components/auth/AuthHeader'
 import { AuthLayout } from '@/shared/components/auth/AuthLayout'
 import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
 import { contabilPt as t } from '@/shared/i18n/contabilPt'
@@ -31,6 +31,12 @@ import { SUPPORTED_COUNTRIES, type CountryCode } from '@/shared/config/country/c
 import { api } from '@/infrastructure/http/apiClient'
 import { getGoogleAuthStartUrl } from '@/infrastructure/api'
 import { GoogleAuthButton } from '@/shared/components/auth/GoogleAuthButton'
+import { Sentry } from '@/shared/lib/sentry'
+import {
+  clearStoredOAuthPendingToken,
+  oauthPendingHeaders,
+  readStoredOAuthPendingToken,
+} from '@/features/auth/firm/oauthPendingToken'
 
 const schema = z.object({
   firmName: z.string().min(2, 'Nome do escritório obrigatório'),
@@ -45,12 +51,37 @@ type PendingGoogle = {
   countryCode: CountryCode
 }
 
+function reportPendingMissing(reason: string, err?: unknown) {
+  if (!Sentry) return
+  try {
+    Sentry.withScope((scope) => {
+      scope.setLevel('error')
+      scope.setTag('auth.flow', 'google_sso')
+      scope.setTag('auth.code', 'SSO_PENDING_NOT_FOUND')
+      scope.setContext('google_register', {
+        reason,
+        path: typeof window !== 'undefined' ? window.location.pathname : '',
+        hasStoredToken: Boolean(readStoredOAuthPendingToken()),
+      })
+      if (err instanceof Error) {
+        Sentry.captureException(err)
+      } else {
+        Sentry.captureMessage(`Google firm register: sessão pendente em falta (${reason})`)
+      }
+    })
+  } catch {
+    /* ignore */
+  }
+}
+
 export function FirmRegisterGooglePage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { setSession } = useAuth()
   const [submitting, setSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
   const [pending, setPending] = useState<PendingGoogle | null>(null)
+  const [pendingToken, setPendingToken] = useState<string | null>(null)
   const [legal, setLegal] = useState<FirmLegalConsentState>(emptyFirmLegalConsent)
   const [legalError, setLegalError] = useState<string | null>(null)
   const [turnstileToken, setTurnstileToken] = useState('')
@@ -64,8 +95,21 @@ export function FirmRegisterGooglePage() {
 
   useEffect(() => {
     let cancelled = false
+    const fromQuery = searchParams.get('pending')
+    const token = readStoredOAuthPendingToken()
+    if (fromQuery) {
+      setPendingToken(fromQuery.trim())
+      const next = new URLSearchParams(searchParams)
+      next.delete('pending')
+      setSearchParams(next, { replace: true })
+    } else if (token) {
+      setPendingToken(token)
+    }
+
     void api
-      .get<{ email: string; ownerName: string; countryCode?: CountryCode }>('/auth/google/pending')
+      .get<{ email: string; ownerName: string; countryCode?: CountryCode }>('/auth/google/pending', {
+        headers: oauthPendingHeaders(token || fromQuery),
+      })
       .then((res) => {
         if (cancelled) return
         const data = res.data
@@ -80,8 +124,11 @@ export function FirmRegisterGooglePage() {
           ownerName: data.ownerName || '',
         })
       })
-      .catch(() => {
-        if (!cancelled) setPending(null)
+      .catch((err) => {
+        if (cancelled) return
+        setPending(null)
+        clearStoredOAuthPendingToken()
+        reportPendingMissing('pending_fetch_failed', err)
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -89,7 +136,9 @@ export function FirmRegisterGooglePage() {
     return () => {
       cancelled = true
     }
-  }, [form])
+    // Carregar uma vez ao montar (token na URL / sessionStorage).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const onSubmit = form.handleSubmit(async (values) => {
     if (!pending) return
@@ -100,6 +149,7 @@ export function FirmRegisterGooglePage() {
     setLegalError(null)
     setSubmitting(true)
     try {
+      const token = pendingToken || readStoredOAuthPendingToken()
       const res = await contabilFirmApi.registerWithGoogle(
         withTurnstileToken(
           {
@@ -107,10 +157,12 @@ export function FirmRegisterGooglePage() {
             ownerName: values.ownerName.trim(),
             countryCode,
             legalConsents: buildFirmLegalConsentPayload(legal),
+            ...(token ? { pendingToken: token } : {}),
           },
           turnstileToken,
         ),
       )
+      clearStoredOAuthPendingToken()
       if (!setSession(res.user)) {
         toast.warning('Conta criada. Inicie sessão com Google novamente.')
         navigate(authFirmLoginUrl(), { replace: true })
@@ -132,7 +184,11 @@ export function FirmRegisterGooglePage() {
         const status = err.response?.status
         const code = String((err.response?.data as { code?: string })?.code || '').toUpperCase()
         if (status === 409) title = 'Este e-mail Google já está registado'
-        if (code === 'SSO_PENDING_NOT_FOUND') title = 'Sessão Google expirada — tente de novo'
+        if (code === 'SSO_PENDING_NOT_FOUND') {
+          title = 'Sessão Google expirada — tente de novo'
+          clearStoredOAuthPendingToken()
+          reportPendingMissing('register_submit_pending_missing', err)
+        }
         if (code === 'LEGAL_CONSENT_INCOMPLETE') title = 'Aceite todos os documentos legais'
         if (code.startsWith('TURNSTILE_')) title = 'Verificação de segurança falhou. Actualize a página e tente de novo.'
       }
@@ -144,17 +200,10 @@ export function FirmRegisterGooglePage() {
 
   if (loading) {
     return (
-      <AuthLayout
-        title="A preparar registo..."
-        subtitle="A validar a sua conta Google."
-      >
-        <div className="mx-auto max-w-md">
-          <AuthCard>
-            <AuthHeader
-              title="A preparar registo..."
-              subtitle="A validar a sua conta Google."
-            />
-            <div className="mt-8 h-24 animate-pulse rounded-xl bg-slate-100" />
+      <AuthLayout title="A preparar registo..." subtitle="A validar a sua conta Google.">
+        <div className="w-full">
+          <AuthCard className="p-6 sm:p-7">
+            <div className="h-24 animate-pulse rounded-xl bg-slate-100" />
           </AuthCard>
         </div>
       </AuthLayout>
@@ -167,22 +216,20 @@ export function FirmRegisterGooglePage() {
         title="Sessão Google expirada"
         subtitle="Volte a iniciar o registo com Google ou use e-mail e palavra-passe."
       >
-        <div className="mx-auto max-w-md">
-          <AuthCard>
-            <AuthHeader
-              title="Sessão Google expirada"
-              subtitle="Volte a iniciar o registo com Google ou use e-mail e palavra-passe."
+        <div className="w-full">
+          <AuthCard className="p-6 sm:p-7">
+            <GoogleAuthButton
+              href={getGoogleAuthStartUrl({ intent: 'register', countryCode })}
+              label="Continuar com Google"
             />
-            <div className="mt-8">
-              <GoogleAuthButton
-                href={getGoogleAuthStartUrl({ intent: 'register', countryCode })}
-                label="Continuar com Google"
-              />
-            </div>
           </AuthCard>
 
           <AuthFooter className="mt-6">
-            <Link to={authFirmRegisterUrl()} className="font-semibold text-slate-900 hover:underline">
+            <AuthAgencyIdentity />
+            <Link
+              to={authFirmRegisterUrl()}
+              className="mt-3 block font-semibold text-slate-900 hover:underline"
+            >
               Voltar ao registo
             </Link>
           </AuthFooter>
@@ -192,18 +239,10 @@ export function FirmRegisterGooglePage() {
   }
 
   return (
-    <AuthLayout
-      title="Concluir escritório"
-      subtitle={`Conta Google: ${pending.email}`}
-    >
-      <div className="mx-auto max-w-md">
-        <AuthCard>
-          <AuthHeader
-            title="Concluir escritório"
-            subtitle={`Conta Google: ${pending.email}`}
-          />
-
-          <form className="mt-8 space-y-4" onSubmit={(e) => void onSubmit(e)}>
+    <AuthLayout title="Concluir escritório" subtitle={`Conta Google: ${pending.email}`}>
+      <div className="w-full">
+        <AuthCard className="p-6 sm:p-7">
+          <form className="space-y-4" onSubmit={(e) => void onSubmit(e)}>
             <div>
               <Label htmlFor="countryCode">País do escritório</Label>
               <select
@@ -263,17 +302,20 @@ export function FirmRegisterGooglePage() {
         </AuthCard>
 
         <AuthFooter className="mt-6">
-          <Link to={authFirmRegisterUrl()} className="font-semibold text-slate-900 hover:underline">
-            Registar com e-mail
-          </Link>
-          <span className="mx-2">·</span>
-          <Link to={authFirmLoginUrl()} className="hover:underline">
-            {t.auth.loginLink}
-          </Link>
-          <span className="mx-2">·</span>
-          <Link to={authProfileChoiceUrl('register')} className="hover:underline">
-            Voltar à escolha de perfil
-          </Link>
+          <AuthAgencyIdentity />
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm">
+            <Link to={authFirmRegisterUrl()} className="font-semibold text-slate-900 hover:underline">
+              Registar com e-mail
+            </Link>
+            <span aria-hidden>·</span>
+            <Link to={authFirmLoginUrl()} className="hover:underline">
+              {t.auth.loginLink}
+            </Link>
+            <span aria-hidden>·</span>
+            <Link to={authProfileChoiceUrl('register')} className="hover:underline">
+              Voltar à escolha de perfil
+            </Link>
+          </div>
         </AuthFooter>
       </div>
     </AuthLayout>

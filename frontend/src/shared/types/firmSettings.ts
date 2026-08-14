@@ -24,6 +24,10 @@ export type FirmSettingsTeamMember = {
 export type FirmSettingsCapabilities = {
   canEditFirm: boolean
   canManageTeam: boolean
+  /** Alterar role de membros (exceto atribuir FIRM_OWNER sem ser owner). */
+  canManageMemberRoles?: boolean
+  /** Criar / promover / rebaixar FIRM_OWNER — só o dono do escritório. */
+  canAssignFirmOwner?: boolean
   canCloseAccount: boolean
   canEditOwnProfile: boolean
 }
@@ -59,6 +63,8 @@ export type FirmSettingsBundle = {
     secondaryColor: string | null
   }
   publicProfile: {
+    /** Nome nas redes / página pública; se vazio, usa o nome interno do escritório. */
+    displayName: string | null
     tagline: string | null
     bio: string | null
     socialLinks: FirmPublicProfileSocialLinks
@@ -98,6 +104,7 @@ export type PatchFirmProfilePayload = {
 }
 
 export type PatchFirmPublicProfilePayload = {
+  displayName?: string | null
   tagline?: string | null
   bio?: string | null
   socialLinks?: FirmPublicProfileSocialLinks | null

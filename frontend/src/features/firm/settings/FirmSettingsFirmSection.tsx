@@ -20,6 +20,7 @@ type Props = {
 export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
   const canEdit = bundle.capabilities.canEditFirm
   const [name, setName] = useState(bundle.firm.name)
+  const [publicDisplayName, setPublicDisplayName] = useState(bundle.publicProfile.displayName ?? '')
   const [contactEmail, setContactEmail] = useState(bundle.contact.email ?? '')
   const [contactPhone, setContactPhone] = useState(bundle.contact.phone ?? '')
   const [taxId, setTaxId] = useState(bundle.contact.taxId ?? '')
@@ -28,6 +29,7 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
 
   useEffect(() => {
     setName(bundle.firm.name)
+    setPublicDisplayName(bundle.publicProfile.displayName ?? '')
     setContactEmail(bundle.contact.email ?? '')
     setContactPhone(bundle.contact.phone ?? '')
     setTaxId(bundle.contact.taxId ?? '')
@@ -44,6 +46,9 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
         contactPhone: contactPhone.trim() || null,
         taxId: taxId.trim() || null,
         address: address.trim() || null,
+      })
+      await firmSettingsApi.patchPublicProfile({
+        displayName: publicDisplayName.trim() || null,
       })
       emitAppDataChanged({ scope: 'branding' })
       toast.success('Dados do escritório guardados.')
@@ -81,6 +86,21 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
             disabled={!canEdit || saving}
             placeholder="Ex.: MFContabil"
           />
+          <p className="text-xs text-muted-foreground">Nome interno / legal — usado na app e na facturação.</p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="firm-public-display-name">Nome na página pública (redes)</Label>
+          <Input
+            id="firm-public-display-name"
+            value={publicDisplayName}
+            onChange={(e: FormChangeEvent) => setPublicDisplayName(e.target.value)}
+            disabled={!canEdit || saving}
+            placeholder={name.trim() || 'Como aparece no site e redes'}
+            maxLength={120}
+          />
+          <p className="text-xs text-muted-foreground">
+            Se ficar vazio, a página pública usa o nome do escritório acima.
+          </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
@@ -142,7 +162,7 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
           </p>
         ) : null}
         {canEdit ? (
-          <Button type="button" className="cb-btn-primary" disabled={saving} onClick={() => void onSave()}>
+          <Button type="button" variant="primary" disabled={saving} loading={saving} onClick={() => void onSave()}>
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
             Guardar dados do escritório
           </Button>

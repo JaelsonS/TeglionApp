@@ -13,7 +13,6 @@
 const crypto = require('crypto');
 
 const { env } = require('../config/env');
-const { BRAND } = require('../config/brand');
 const { logger } = require('../utils/logger');
 
 const CSRF_COOKIE_NAME = 'csrfToken';
@@ -58,7 +57,8 @@ function matchesWildcardSubdomain(origin, pattern) {
 
 function buildAllowedOrigins() {
   const list = Array.isArray(env.CORS_ORIGINS) ? env.CORS_ORIGINS : [];
-  const criticalOrigins = [env.FRONTEND_URL, ...BRAND.productionOrigins];
+  const { buildCriticalCorsOrigins } = require('../utils/cors-critical-origins');
+  const criticalOrigins = [...buildCriticalCorsOrigins(env.FRONTEND_URL)];
   // Previews Vercel só em desenvolvimento — em produção use CORS_ORIGINS explícito se necessário
   if (!env.isProduction) {
     criticalOrigins.push('https://*.vercel.app');

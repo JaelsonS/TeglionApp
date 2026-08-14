@@ -174,6 +174,19 @@ async function registerFirmGoogle(req, res, next) {
     const googleSsoController = require('./google/google-sso.controller');
     const pending = googleSsoController.readPendingRegistration(req);
     if (!pending) {
+      try {
+        const { Sentry } = require('../../instrument');
+        if (Sentry?.captureMessage) {
+          Sentry.withScope((scope) => {
+            scope.setLevel('error');
+            scope.setTag('auth.flow', 'google_sso');
+            scope.setTag('auth.code', 'SSO_PENDING_NOT_FOUND');
+            Sentry.captureMessage('Google SSO pending missing on register-firm-google');
+          });
+        }
+      } catch {
+        /* optional */
+      }
       throw new AppError('Sessão Google expirada. Volte a usar «Continuar com Google».', 401, {
         code: 'SSO_PENDING_NOT_FOUND',
       });

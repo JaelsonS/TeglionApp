@@ -1,10 +1,24 @@
 const DEFAULT_API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
 export const API_BASE_STORAGE_KEY = 'contabil.apiBaseUrl'
 
+function getHostname(): string {
+  if (typeof window === 'undefined') return ''
+  return String(window.location.hostname || '').toLowerCase()
+}
+
+/**
+ * Hosts whose Vercel rewrites send `/api` to the correct backend for that env.
+ * Same-origin `/api` keeps auth/CSRF cookies first-party (required on Chrome iOS).
+ */
 function shouldForceSameOriginApi(): boolean {
-  if (typeof window === 'undefined') return false
-  const host = String(window.location.hostname || '').toLowerCase()
-  return host === 'teglion.com' || host === 'www.teglion.com'
+  const host = getHostname()
+  if (!host) return false
+  if (host === 'teglion.com' || host === 'www.teglion.com') return true
+  if (host === 'staging.teglion.com' || host === 'www.staging.teglion.com') return true
+  // Vercel preview URLs that include "staging" — only safe if that project’s vercel.json
+  // rewrites /api to teglion-api-staging (see frontend/vercel.json host rules).
+  if (host.endsWith('.vercel.app') && host.includes('staging')) return true
+  return false
 }
 
 export function allowApiBaseFromQuery(): boolean {
@@ -150,7 +164,11 @@ export function persistPreferredApiBase(url: string) {
   }
 }
 
-export function applyActiveApiBase(url: string, api: { defaults: { baseURL?: string } }, refreshApi: { defaults: { baseURL?: string } }) {
+export function applyActiveApiBase(
+  url: string,
+  api: { defaults: { baseURL?: string } },
+  refreshApi: { defaults: { baseURL?: string } },
+) {
   const u = normalizeApiBase(url)
   api.defaults.baseURL = u
   refreshApi.defaults.baseURL = u

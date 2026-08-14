@@ -12,6 +12,7 @@ function map(row) {
     imageStorageKey: row.image_url && String(row.image_url).startsWith('firm/') ? row.image_url : null,
     durationMinutes: row.duration_minutes,
     priceCents: row.price_cents,
+    priceTaxMode: row.price_tax_mode === 'included' || row.price_tax_mode === 'excluded' ? row.price_tax_mode : null,
     currency: row.currency || 'EUR',
     isActive: row.is_active,
     sortOrder: row.sort_order,
@@ -74,6 +75,7 @@ async function createRow({
   bookingOverrides,
   paymentMethod,
   paymentRequired,
+  priceTaxMode,
 }) {
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
@@ -86,6 +88,7 @@ async function createRow({
       image_url: imageUrl || null,
       duration_minutes: durationMinutes ?? 60,
       price_cents: priceCents ?? 0,
+      price_tax_mode: priceTaxMode || null,
       currency: currency || 'EUR',
       is_active: isActive !== false,
       sort_order: sortOrder ?? 0,
@@ -129,6 +132,9 @@ async function updateRow(id, firmId, patch) {
   }
   if (patch.durationMinutes !== undefined) row.duration_minutes = patch.durationMinutes;
   if (patch.priceCents !== undefined) row.price_cents = patch.priceCents;
+  if (patch.priceTaxMode !== undefined) {
+    row.price_tax_mode = patch.priceTaxMode || null;
+  }
   if (patch.currency !== undefined) row.currency = patch.currency;
   if (patch.isActive !== undefined) row.is_active = Boolean(patch.isActive);
   if (patch.sortOrder !== undefined) row.sort_order = patch.sortOrder;

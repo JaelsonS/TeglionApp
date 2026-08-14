@@ -2,21 +2,24 @@
 
 Visão geral do processo de publicação. Para os passos detalhados, use [../operations/DEPLOY_PRODUCTION.md](../operations/DEPLOY_PRODUCTION.md) e [../operations/DEPLOY_STAGING.md](../operations/DEPLOY_STAGING.md).
 
+**Fluxo Git obrigatório:** [../operations/GIT_WORKFLOW.md](../operations/GIT_WORKFLOW.md) — `main` = produção; trabalho só via `feature/*` → staging → PR → CI → `main`.
+
 ## Onde cada parte roda
 
 Frontend na Vercel, backend no Render, banco e storage no Supabase. Cada um com seu próprio ciclo de deploy — não é um "deploy único" que sobe tudo junto.
 
-## O que já é automático
+| Ambiente | Git | Destino |
+|----------|-----|---------|
+| Produção | `main` | Vercel Production + Backend Prod + Supabase PROD |
+| Staging | `staging` (integração) ← PRs de `feature/fase-N` | Preview/Staging + Backend Staging + Supabase STAGING |
 
-Todo PR e push para as branches principais roda uma esteira de CI: checagem de tipos e testes do frontend, build do frontend, um scan estático de segurança do backend, varredura de segredo, e um único arquivo de teste do backend. Isso é real e roda sozinho — não depende de alguém lembrar de rodar manualmente.
+## O que é automático
 
-## O que não é automático ainda, e por quê isso importa
+Todo PR (e push) para `main` / `staging` corre a esteira CI: typecheck e testes frontend, build, suíte backend, auditoria estática, tenant isolation contra **staging**, limites de ficheiro e secret scan. O job `validate` é **obrigatório** para merge na `main` (repository ruleset).
 
-A suíte completa de testes de backend e o teste de isolamento entre escritórios não fazem parte dessa esteira (ver [SECURITY-GATES.md](../06-SEGURANCA/SECURITY-GATES.md)). Isso significa que hoje é possível publicar uma mudança em produção sem nenhuma verificação automatizada do risco mais caro do produto.
+## Protecção de produção
 
-Isso ficou mais concreto do que uma preocupação abstrata durante a própria auditoria de 12/08/2026: um merge direto para a branch principal aconteceu durante essa sessão, sem revisão de pull request visível neste repositório. Não há evidência de má intenção nisso — mas é exatamente o tipo de caminho que, combinado com a ausência de gate automatizado de isolamento, poderia deixar passar uma regressão séria sem ninguém perceber antes de chegar em produção.
-
-**Recomendação, documentada aqui, não implementada**: proteção de branch na branch principal (exigir PR e checagem de CI passando antes de merge), e os dois testes citados acima entrando na esteira obrigatória — ambos já listados no [Sprint 0](../02-ROADMAP/SPRINT-0.md).
+A `main` não aceita push directo nem force push. Alterações entram só por Pull Request com CI verde. Desenvolvimento e UAT acontecem em staging com dados fictícios — nunca na base da Liliane.
 
 ## Rollback
 

@@ -28,7 +28,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog'
-import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
+import { AskMayaButton } from '@/features/maya'
+import { PageHeader } from '@/shared/design-system'
 import { cn } from '@/shared/lib/utils'
 import { contabilConsultationsApi, contabilClientsApi, contabilFirmApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -238,60 +239,55 @@ export function AgendaWorkspace() {
 
   return (
     <div className="cb-agenda-page">
-      <div className="cb-agenda-page-hd">
-        <div className="flex flex-wrap items-start justify-between gap-3 px-4 pt-4 sm:px-5">
-          <div>
-            <h1 className="cb-agenda-page-title">Agenda</h1>
-            <p className="cb-agenda-page-sub">Reuniões, chamadas e eventos da equipa</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <ModuleHelpDialog
-              title="Agenda"
-              intro="Organize reuniões, chamadas e eventos da equipa. Pode sincronizar com o Google Calendar nas definições."
-              triggerLabel="Guia"
-              steps={[
-                { title: 'Criar evento', description: 'Use Novo evento para marcar reuniões com clientes ou internos.' },
-                { title: 'Navegar o calendário', description: 'Alterne dia, semana ou mês e use Hoje para voltar à data actual.' },
-                { title: 'Definições', description: 'Configure disponibilidade, serviços de marcação e integração Google.' },
-              ]}
-            />
-            <Button
-              type="button"
-              variant={tab === 'settings' ? 'default' : 'outline'}
-              size="sm"
-              className={cn('h-8 rounded-md text-xs', tab === 'settings' && 'bg-brand hover:bg-brand/90')}
-              onClick={() => setTab(tab === 'settings' ? 'calendar' : 'settings')}
-            >
-              <Settings2 className="mr-1.5 h-3.5 w-3.5" />
-              {tab === 'settings' ? 'Calendário' : 'Definições'}
-            </Button>
-            {tab === 'calendar' ? (
-              <Button type="button" size="sm" className="h-8 rounded-md text-xs" onClick={() => setShowForm(true)}>
-                <Plus className="mr-1.5 h-3.5 w-3.5" />
-                Novo evento
-              </Button>
-            ) : null}
-          </div>
+      <div className="cb-agenda-page-hd space-y-0">
+        <div className="px-4 pt-4 sm:px-5">
+          <PageHeader
+            title="Agenda"
+            subtitle="Marque reuniões, configure disponibilidade e sincronize com o Google Calendar — e a disponibilidade para agendamento na página pública."
+            testId="firm-agenda-header"
+            secondary={
+              <AskMayaButton intentId="agenda" />
+            }
+            right={
+              <>
+                <Button
+                  type="button"
+                  variant={tab === 'settings' ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => setTab(tab === 'settings' ? 'calendar' : 'settings')}
+                >
+                  <Settings2 className="h-4 w-4" />
+                  {tab === 'settings' ? 'Calendário' : 'Definições'}
+                </Button>
+                {tab === 'calendar' ? (
+                  <Button type="button" size="sm" variant="primary" onClick={() => setShowForm(true)}>
+                    <Plus className="h-4 w-4" />
+                    Novo evento
+                  </Button>
+                ) : null}
+              </>
+            }
+          />
         </div>
 
         {tab === 'calendar' ? (
           <div className="cb-agenda-toolbar">
             <div className="flex items-center gap-1">
-              <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => shift(-1)}>
+              <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="Período anterior" onClick={() => shift(-1)}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <span className="min-w-[10rem] max-w-[18rem] truncate text-center text-xs font-medium capitalize text-foreground sm:min-w-[12rem] sm:text-sm">
                 {formatNavLabel(view, normalizeAnchor(view, anchor))}
               </span>
-              <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => shift(1)}>
+              <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="Período seguinte" onClick={() => shift(1)}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
-              <Button type="button" variant="outline" size="sm" className="ml-1 h-8 rounded-md text-xs" onClick={goToday}>
+              <Button type="button" variant="outline" size="sm" className="ml-1 h-8" onClick={goToday}>
                 Hoje
               </Button>
             </div>
 
-            <div className="cb-agenda-view-toggle">
+            <div className="cb-agenda-view-toggle" role="group" aria-label="Vista do calendário">
               {(['day', 'week', 'month'] as AgendaViewMode[]).map((v) => (
                 <button
                   key={v}

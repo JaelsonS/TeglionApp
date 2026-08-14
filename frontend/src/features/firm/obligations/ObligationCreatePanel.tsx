@@ -197,7 +197,12 @@ export function ObligationCreatePanel({
           ) : null}
           <label className="space-y-1 text-sm">
             <span className="font-medium">Período</span>
-            <Input value={period} onChange={(e: FormChangeEvent) => setPeriod(e.target.value)} placeholder="2026-05" required />
+            <Input
+              type="month"
+              value={period}
+              onChange={(e: FormChangeEvent) => setPeriod(e.target.value)}
+              required
+            />
           </label>
           <label className="space-y-1 text-sm">
             <span className="font-medium">Prazo</span>

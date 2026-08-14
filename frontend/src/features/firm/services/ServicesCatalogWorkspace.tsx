@@ -14,8 +14,10 @@ import {
 import { toast } from 'sonner'
 
 import { ServiceFullEditorSheet } from '@/features/firm/services/ServiceFullEditorSheet'
+import { getServicePublishPresentation } from '@/features/firm/services/servicePublishState'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import { EmptyState } from '@/shared/design-system'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -148,12 +150,12 @@ export function ServicesCatalogWorkspace({
           <div className="shrink-0 space-y-3 border-b border-brand/10 bg-gradient-to-r from-brand/[0.06] to-transparent px-4 py-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-sm font-semibold">{title}</h3>
-              <Button type="button" size="sm" className="rounded-full bg-brand" onClick={() => openEditor(null)}>
-                <Plus className="mr-1.5 h-3.5 w-3.5" /> Criar serviço
+              <Button type="button" size="sm" variant="primary" onClick={() => openEditor(null)}>
+                <Plus className="h-4 w-4" /> Adicionar serviço
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Clique na caneta para editar tudo: banner, formulário, logótipo, publicação e pré-visualização.
+              Comece pelos serviços que o escritório mais presta. Edite para configurar e publicar na página pública.
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative min-w-[10rem] flex-1">
@@ -187,19 +189,33 @@ export function ServicesCatalogWorkspace({
                 <Loader2 className="h-5 w-5 animate-spin text-brand" />
               </div>
             ) : firmServices.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 px-4 py-12 text-center">
-                <Sparkles className="h-7 w-7 text-brand/40" />
-                <p className="text-sm text-muted-foreground">
-                  Ainda sem serviços neste filtro. Active um modelo Teglion ao lado ou crie um novo.
-                </p>
-                <Button type="button" size="sm" className="rounded-full bg-brand" onClick={() => openEditor(null)}>
-                  <Plus className="mr-1.5 h-3.5 w-3.5" /> Criar serviço
-                </Button>
-              </div>
+              <EmptyState
+                className="m-3 border-0 bg-transparent"
+                icon={Sparkles}
+                title={
+                  (excludeIrs ? services.filter((s) => !isIrsEntry(s)) : services).length === 0
+                    ? 'Comece pelos serviços que o escritório mais presta'
+                    : 'Nenhum serviço neste filtro'
+                }
+                description={
+                  (excludeIrs ? services.filter((s) => !isIrsEntry(s)) : services).length === 0
+                    ? 'Crie um serviço, configure-o e publique-o na página pública para potenciais clientes poderem solicitar.'
+                    : 'Altere o filtro (Activos / Inactivos / Todos) ou adicione um novo serviço.'
+                }
+                action={
+                  <Button type="button" size="sm" variant="primary" onClick={() => openEditor(null)}>
+                    <Plus className="h-4 w-4" />
+                    {(excludeIrs ? services.filter((s) => !isIrsEntry(s)) : services).length === 0
+                      ? 'Criar primeiro serviço'
+                      : 'Adicionar serviço'}
+                  </Button>
+                }
+              />
             ) : (
               <ul className="divide-y divide-border/40">
                 {firmServices.map((s) => {
                   const active = s.isActive !== false
+                  const publish = getServicePublishPresentation(s)
                   return (
                     <li key={s.id} className="flex items-center gap-3 px-4 py-3 hover:bg-brand/[0.03]">
                       <div className="min-w-0 flex-1">
@@ -210,33 +226,29 @@ export function ServicesCatalogWorkspace({
                               'rounded-full px-2 py-0.5 text-caption font-bold uppercase',
                               active ? 'bg-emerald-100 text-emerald-800' : 'bg-muted text-muted-foreground',
                             )}
-                            title={
-                              active
-                                ? 'Disponível no escritório (pode ainda não estar no site)'
-                                : 'Desactivado — não aparece para a equipa nem no site'
-                            }
                           >
                             {active ? 'Activo' : 'Inactivo'}
                           </span>
-                          {s.isPubliclyListed ? (
-                            <span
-                              className="rounded-full bg-sky-100 px-2 py-0.5 text-caption font-bold uppercase text-sky-900"
-                              title="Visível na página pública do escritório"
-                            >
-                              No site
-                            </span>
-                          ) : (
-                            <span
-                              className="rounded-full bg-muted px-2 py-0.5 text-caption font-bold uppercase text-muted-foreground"
-                              title="Só interno — ainda não publicado no site"
-                            >
-                              Só interno
-                            </span>
-                          )}
+                          <span
+                            className={cn(
+                              'rounded-full px-2 py-0.5 text-caption font-bold uppercase',
+                              publish.id === 'published'
+                                ? 'bg-sky-100 text-sky-900'
+                                : publish.id === 'ready'
+                                  ? 'bg-amber-100 text-amber-900'
+                                  : 'bg-muted text-muted-foreground',
+                            )}
+                            title={publish.description}
+                          >
+                            {publish.label}
+                          </span>
                         </div>
                         <p className="mt-0.5 text-xs text-muted-foreground">
                           {s.durationMinutes} min · {formatEur(s.priceCents)}
                         </p>
+                        {publish.id === 'draft' || publish.id === 'ready' ? (
+                          <p className="mt-1 text-caption text-amber-800 dark:text-amber-400">{publish.description}</p>
+                        ) : null}
                       </div>
                       <div className="flex shrink-0 items-center gap-1">
                         <Button

@@ -13,6 +13,7 @@ import { AuthLayout } from '@/shared/components/auth/AuthLayout'
 import { GoogleAuthButton } from '@/shared/components/auth/GoogleAuthButton'
 import { OfficeScreensCarousel } from '@/shared/components/auth/OfficeScreensCarousel'
 import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
+import { AuthAgencyIdentity } from '@/shared/components/auth/AuthAgencyIdentity'
 import { contabilPt as t } from '@/shared/i18n/contabilPt'
 import { authFirmRegisterUrl, authProfileChoiceUrl } from '@/shared/constants/authPaths'
 import { useAuth } from '@/shared/hooks/useAuth'
@@ -233,7 +234,8 @@ export function FirmLoginPage() {
         </AuthCard>
 
         <AuthFooter className="mt-6">
-          <Link to={authProfileChoiceUrl('login')} className="font-semibold text-slate-900 hover:underline">
+          <AuthAgencyIdentity />
+          <Link to={authProfileChoiceUrl('login')} className="mt-3 block font-semibold text-slate-900 hover:underline">
             Voltar à escolha de perfil
           </Link>
         </AuthFooter>

@@ -1,15 +1,19 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2, Landmark, Loader2, Plus, Search, Sparkles } from 'lucide-react'
+import { CheckCircle2, ExternalLink, Eye, Landmark, Loader2, Plus, Search } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
 import { IrsModelo3EditorSheet, isModelo3Service } from '@/features/firm/services/IrsModelo3EditorSheet'
 import { ServiceFullEditorSheet } from '@/features/firm/services/ServiceFullEditorSheet'
+import { getServicePublishPresentation } from '@/features/firm/services/servicePublishState'
+import { AskMayaButton } from '@/features/maya'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
-import { ModuleHelpDialog } from '@/shared/design-system/ModuleHelpDialog'
+import { EmptyState } from '@/shared/design-system'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import { useAuth } from '@/shared/hooks/useAuth'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
@@ -32,6 +36,8 @@ function taxYearOf(s: AccountingService): number | null {
 }
 
 export function FirmIrsPage() {
+  const { user } = useAuth()
+  const firmSlug = user?.tenant?.slug
   const qc = useQueryClient()
   const [modelSearch, setModelSearch] = useState('')
   const [busyKey, setBusyKey] = useState<string | null>(null)
@@ -56,7 +62,13 @@ export function FirmIrsPage() {
   const all = servicesQuery.data?.items ?? []
   const firmIrs = useMemo(() => all.filter(isIrs), [all])
   const activeIrs = firmIrs.filter((s: AccountingService) => s.isActive !== false)
-  const publicIrs = firmIrs.filter((s: AccountingService) => s.isPubliclyListed)
+  const publicIrs = firmIrs.filter(
+    (s: AccountingService) => getServicePublishPresentation(s).id === 'published',
+  )
+  const campaignReady = publicIrs.length > 0
+  const nextUnpublished = firmIrs.find(
+    (s: AccountingService) => getServicePublishPresentation(s).id !== 'published' && s.isActive !== false,
+  )
 
   const yearsLabel = useMemo(() => {
     const years: number[] = []
@@ -68,6 +80,13 @@ export function FirmIrsPage() {
     if (!years.length) return 'Por serviço'
     return years.join(' · ')
   }, [firmIrs])
+
+  const publicUrl =
+    typeof window !== 'undefined' && firmSlug
+      ? `${window.location.origin}/${encodeURIComponent(firmSlug)}`
+      : firmSlug
+        ? `/${firmSlug}`
+        : null
 
   const existingKeys = useMemo(
     () => new Set(all.map((s: AccountingService) => s.catalogKey).filter(Boolean) as string[]),
@@ -129,84 +148,85 @@ export function FirmIrsPage() {
     <FirmWorkspacePage className="cb-irs-layout-page xl:min-h-0 xl:flex-1">
       <FirmModuleShell
         className="cb-firm-operational-panel min-h-0 flex-1 overflow-hidden"
-        title="IRS"
-        subtitle="Campanha IRS — modelos prontos e serviços do escritório"
+        title="Campanha IRS"
+        subtitle="Divulgue o apoio à entrega do IRS e receba pedidos — o Teglion não calcula o imposto."
         headerRight={
           <div className="flex flex-wrap items-center gap-2">
-            <ModuleHelpDialog
-              title="IRS"
-              intro="Campanha IRS: active ou crie serviços, configure banner, formulário, anexos e pagamento, e publique no site. A equipa recebe pedidos em Solicitações."
-              triggerLabel="Guia"
-              steps={[
-                {
-                  title: 'Modelos prontos',
-                  description: 'Active um modelo Teglion à esquerda — Modelo 3 abre o assistente de anexos.',
-                },
-                {
-                  title: 'Os vossos serviços',
-                  description: 'Edite, publique no site e acompanhe anos fiscais em cada serviço IRS.',
-                },
-                {
-                  title: 'Criar do zero',
-                  description: 'Use «Criar serviço» ou «Modelo 3 + Anexos» para começar rapidamente.',
-                },
-              ]}
-            />
+            <AskMayaButton intentId="irs-campaign" />
+            <Button type="button" size="sm" variant="outline" asChild>
+              <Link to="/app/firm/services?tab=inquiries">Ver pedidos</Link>
+            </Button>
+            {publicUrl ? (
+              <Button type="button" size="sm" variant="outline" asChild>
+                <a href={publicUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4" />
+                  Página pública
+                </a>
+              </Button>
+            ) : null}
             <Button
               type="button"
               size="sm"
               variant="outline"
-              className="h-8 rounded-md"
               onClick={() => openFull(null, { name: 'Serviço IRS', catalogKey: undefined })}
             >
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              <Plus className="h-4 w-4" />
               Criar serviço
             </Button>
-            <Button
-              type="button"
-              size="sm"
-              className="h-8 rounded-md bg-brand"
-              onClick={() => openModelo3(null)}
-            >
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
-              Modelo 3 + Anexos
+            <Button type="button" size="sm" variant="primary" onClick={() => openModelo3(null)}>
+              <Plus className="h-4 w-4" />
+              Modelo 3
             </Button>
           </div>
         }
         bodyClassName="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4"
       >
-        <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div
+          className={cn(
+            'mb-3 rounded-xl border px-4 py-3',
+            campaignReady ? 'border-emerald-200 bg-emerald-50/50' : 'border-amber-200 bg-amber-50/40',
+          )}
+          data-testid="irs-campaign-status"
+        >
+          <p className="text-caption font-semibold uppercase tracking-wide text-muted-foreground">Estado da campanha</p>
+          <p className="mt-1 text-base font-semibold text-foreground">
+            {campaignReady
+              ? 'A campanha IRS está a captar — tem serviços publicados na página pública.'
+              : firmIrs.length === 0
+                ? 'Ainda não há serviço IRS. Active um modelo ou crie um serviço para começar.'
+                : 'Tem serviços IRS, mas ainda não estão publicados na página pública.'}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Fluxo: configurar serviço → publicar → ver página → receber pedidos em Solicitações.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {!campaignReady && nextUnpublished ? (
+              <Button type="button" size="sm" variant="primary" onClick={() => openFull(nextUnpublished)}>
+                Publicar «{nextUnpublished.name}»
+              </Button>
+            ) : null}
+            {!campaignReady && firmIrs.length === 0 ? (
+              <Button type="button" size="sm" variant="primary" onClick={() => openModelo3(null)}>
+                Começar com Modelo 3
+              </Button>
+            ) : null}
+            {campaignReady ? (
+              <Button type="button" size="sm" variant="outline" asChild>
+                <Link to="/app/firm/services?tab=inquiries">Ver Solicitações</Link>
+              </Button>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
           {[
-            { label: 'Campanha', value: 'IRS', accent: true },
-            { label: 'Anos fiscais', value: yearsLabel, accent: false },
-            { label: 'Serviços IRS', value: String(firmIrs.length), accent: false },
-            { label: 'Activos / No site', value: `${activeIrs.length} / ${publicIrs.length}`, accent: false },
+            { label: 'Anos fiscais', value: yearsLabel },
+            { label: 'Serviços IRS', value: `${activeIrs.length} activos` },
+            { label: 'Publicados', value: String(publicIrs.length) },
           ].map((kpi) => (
-            <div
-              key={kpi.label}
-              className={cn(
-                'rounded-xl border px-3 py-2.5 shadow-sm',
-                kpi.accent
-                  ? 'border-brand/30 bg-gradient-to-br from-brand to-brand/85 text-primary-foreground'
-                  : 'border-brand/15 bg-card',
-              )}
-            >
-              <p
-                className={cn(
-                  'text-caption font-semibold uppercase tracking-wide',
-                  kpi.accent ? 'text-primary-foreground/80' : 'text-brand/70',
-                )}
-              >
-                {kpi.label}
-              </p>
-              <p
-                className={cn(
-                  'mt-0.5 text-lg font-semibold tabular-nums sm:text-xl',
-                  kpi.accent ? 'text-primary-foreground' : 'text-foreground',
-                )}
-              >
-                {kpi.value}
-              </p>
+            <div key={kpi.label} className="rounded-xl border border-border/60 bg-card px-3 py-2.5">
+              <p className="text-caption font-semibold uppercase tracking-wide text-muted-foreground">{kpi.label}</p>
+              <p className="mt-0.5 text-lg font-semibold tabular-nums text-foreground">{kpi.value}</p>
             </div>
           ))}
         </div>
@@ -301,16 +321,28 @@ export function FirmIrsPage() {
                   <Loader2 className="h-5 w-5 animate-spin text-brand" />
                 </div>
               ) : firmIrs.length === 0 ? (
-                <div className="flex flex-col items-center gap-3 px-4 py-10 text-center">
-                  <Sparkles className="h-8 w-8 text-brand/40" />
-                  <p className="text-sm text-muted-foreground">
-                    Ainda sem serviços IRS. Crie um ou active um modelo à esquerda.
-                  </p>
-                </div>
+                <EmptyState
+                  className="m-3 border-0 bg-transparent"
+                  icon={Landmark}
+                  title="Ainda sem serviços IRS"
+                  description="Use esta área para campanha e captação de pedidos relacionados com IRS. O Teglion não calcula o imposto — active um modelo ou crie um serviço e publique-o na página pública."
+                  action={
+                    <Button type="button" size="sm" variant="primary" onClick={() => openModelo3(null)}>
+                      <Plus className="h-4 w-4" />
+                      Criar Modelo 3
+                    </Button>
+                  }
+                  secondaryAction={
+                    <Button type="button" size="sm" variant="outline" onClick={() => openFull(null, { name: 'Serviço IRS' })}>
+                      Criar serviço IRS
+                    </Button>
+                  }
+                />
               ) : (
                 <ul className="divide-y divide-border/40">
                   {firmIrs.map((s: AccountingService) => {
                     const year = taxYearOf(s)
+                    const publish = getServicePublishPresentation(s)
                     return (
                       <li key={s.id} className="flex items-center gap-3 px-4 py-3 hover:bg-sky-50/50">
                         <div className="min-w-0 flex-1">
@@ -324,54 +356,51 @@ export function FirmIrsPage() {
                             <span
                               className={cn(
                                 'rounded-full px-2 py-0.5 text-caption font-bold uppercase',
-                                s.isActive !== false
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : 'bg-muted text-muted-foreground',
+                                publish.id === 'published'
+                                  ? 'bg-sky-100 text-sky-900'
+                                  : publish.id === 'inactive'
+                                    ? 'bg-muted text-muted-foreground'
+                                    : 'bg-amber-100 text-amber-900',
                               )}
-                              title="Activo = disponível no escritório"
+                              title={publish.description}
                             >
-                              {s.isActive !== false ? 'Activo' : 'Inactivo'}
+                              {publish.label}
                             </span>
-                            {s.isPubliclyListed ? (
-                              <span
-                                className="rounded-full bg-sky-100 px-2 py-0.5 text-caption font-bold uppercase text-sky-900"
-                                title="Visível na página pública"
-                              >
-                                No site
-                              </span>
-                            ) : (
-                              <span
-                                className="rounded-full bg-muted px-2 py-0.5 text-caption font-bold uppercase text-muted-foreground"
-                                title="Ainda não publicado no site"
-                              >
-                                Só interno
-                              </span>
-                            )}
                           </div>
                           <p className="text-xs text-muted-foreground">
                             {s.durationMinutes} min · {formatEur(s.priceCents)}
                             {isModelo3Service(s) ? ' · Modelo 3' : ''}
                           </p>
+                          {publish.id !== 'published' && publish.id !== 'inactive' ? (
+                            <p className="mt-1 text-caption text-amber-800 dark:text-amber-400">{publish.description}</p>
+                          ) : null}
                         </div>
                         <div className="flex shrink-0 flex-wrap gap-1.5">
+                          {firmSlug && publish.id === 'published' && s.slug ? (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              title="Ver página do serviço"
+                              onClick={() =>
+                                window.open(`/${firmSlug}/servicos/${s.slug}`, '_blank', 'noopener,noreferrer')
+                              }
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                            </Button>
+                          ) : null}
                           {isModelo3Service(s) ? (
                             <Button
                               type="button"
                               size="sm"
                               variant="outline"
-                              className="rounded-full border-brand/25"
                               onClick={() => openModelo3(s)}
                             >
                               Anexos
                             </Button>
                           ) : null}
-                          <Button
-                            type="button"
-                            size="sm"
-                            className="rounded-full bg-brand"
-                            onClick={() => openFull(s)}
-                          >
-                            Editar
+                          <Button type="button" size="sm" variant="primary" onClick={() => openFull(s)}>
+                            {publish.id === 'published' ? 'Editar' : 'Publicar'}
                           </Button>
                         </div>
                       </li>

@@ -285,19 +285,31 @@ export function ServicePaymentMethodsPanel({
         </span>
       </label>
 
-      <div className="flex items-start gap-3 rounded-xl border border-border/50 px-3 py-2.5 opacity-70">
-        <input type="radio" className="mt-1" disabled aria-disabled />
+      <label
+        className={cn(
+          'flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 transition',
+          paymentMethod === 'multibanco' && !paymentRequired
+            ? 'border-brand bg-brand/[0.06]'
+            : 'border-border/60 hover:bg-muted/20',
+        )}
+      >
+        <input
+          type="radio"
+          name="service-payment-method-offline"
+          className="mt-1 accent-[var(--cb-brand,#0F2942)]"
+          checked={paymentMethod === 'multibanco' && !paymentRequired}
+          onChange={() => {
+            onPaymentRequiredChange(false)
+            onPaymentMethodChange('multibanco')
+          }}
+        />
         <span className="min-w-0">
-          <span className="flex flex-wrap items-center gap-2 text-sm font-medium">
-            Multibanco
-            <StatusPill state="soon" />
-          </span>
+          <span className="text-sm font-medium">Referência Multibanco</span>
           <span className="block text-xs text-muted-foreground">
-            Em breve. Ainda não encaixa bem com reserva de horário (o pagamento pode demorar dias a
-            confirmar).
+            Indica a referência ao cliente (orçamento / PDF) — o escritório gere o pagamento
           </span>
         </span>
-      </div>
+      </label>
     </div>
   )
 }

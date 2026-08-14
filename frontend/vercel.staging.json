@@ -1,0 +1,82 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "build": {
+    "env": {
+      "VITE_ENABLE_PWA": "false"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/favicon.ico",
+      "destination": "/icons/icon.svg"
+    },
+    {
+      "source": "/api/:path*",
+      "has": [{ "type": "host", "value": "staging.teglion.com" }],
+      "destination": "https://teglion-api-staging.onrender.com/api/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "has": [{ "type": "host", "value": "www.staging.teglion.com" }],
+      "destination": "https://teglion-api-staging.onrender.com/api/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://teglion-api-staging.onrender.com/api/:path*"
+    },
+    {
+      "source": "/((?!api/|assets/|icons/|og/|landing/|sw\\.js|workbox-|manifest\\.webmanifest|rss\\.xml|llms\\.txt|robots\\.txt|sitemap\\.xml|.*\\.[a-zA-Z0-9]+$).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/((?!api/|assets/|icons/|og/|landing/|sw\\.js|workbox-|manifest\\.webmanifest|rss\\.xml|llms\\.txt|robots\\.txt|sitemap\\.xml|.*\\.[a-zA-Z0-9]+$).*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/((?!api/).*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://pagead2.googlesyndication.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google https://accounts.google.com https://apis.google.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.googletagmanager.com; img-src 'self' data: https: blob:; font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com; connect-src 'self' https://*.supabase.co https://*.onrender.com https://api.teglion.com https://*.teglion.com https://api.stripe.com https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://pagead2.googlesyndication.com https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://ep2.adtrafficquality.google https://fonts.googleapis.com https://fonts.gstatic.com https://accounts.google.com https://www.googleapis.com https://content.googleapis.com https://challenges.cloudflare.com; worker-src 'self' blob:; frame-src https://js.stripe.com https://hooks.stripe.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://www.googletagmanager.com https://fundingchoicesmessages.google.com https://accounts.google.com https://docs.google.com https://drive.google.com https://content.googleapis.com https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'"
+        }
+      ]
+    }
+  ]
+}

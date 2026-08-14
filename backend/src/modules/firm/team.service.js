@@ -7,6 +7,7 @@ const authRefreshSessionsRepository = require('../../db/supabase/repositories/au
 const { hashPassword } = require('../../utils/password-crypto');
 const { assertStrongPassword } = require('../../utils/password-policy');
 const { notifyFirmStaffWelcome } = require('../../services/notifications/contabil-notifications.service');
+const { PERMISSIONS, hasPermissionForUser } = require('../../utils/permissions');
 
 const ALLOWED_ROLES = new Set(['FIRM_OWNER', 'FIRM_STAFF', 'FIRM_CONSULTANT']);
 
@@ -16,6 +17,41 @@ function normalizeRole(role) {
         throw new AppError('Role inválida para membro da equipa.', 400);
     }
     return value;
+}
+
+function actorIsFirmOwner(actor) {
+    return String(actor?.role || '').toUpperCase() === 'FIRM_OWNER';
+}
+
+/**
+ * SEC-H1: staff nunca atribui/remove FIRM_OWNER; alterações de role exigem
+ * FIRM_MEMBER_ROLE_MANAGE (só owner por defeito). Criar/convidar STAFF/CONSULTANT
+ * continua permitido a quem já passou USERS_CREATE / FIRM_INVITES_MANAGE.
+ */
+function assertActorCanAssignRole(actor, targetRole, { previousRole = null } = {}) {
+    const nextRole = normalizeRole(targetRole);
+    const prev = previousRole != null ? String(previousRole).trim().toUpperCase() : null;
+    if (prev && prev === nextRole) return nextRole;
+
+    const touchesOwner = nextRole === 'FIRM_OWNER' || prev === 'FIRM_OWNER';
+    if (touchesOwner && !actorIsFirmOwner(actor)) {
+        throw new AppError('Apenas o dono do escritório pode gerir o papel FIRM_OWNER.', 403, {
+            code: 'OWNER_ROLE_FORBIDDEN',
+        });
+    }
+
+    // Alteração de role num membro existente (não é create/invite com role inicial).
+    if (prev != null && prev !== nextRole) {
+        const canManageRoles =
+            actorIsFirmOwner(actor) || hasPermissionForUser(actor, PERMISSIONS.FIRM_MEMBER_ROLE_MANAGE);
+        if (!canManageRoles) {
+            throw new AppError('Não tem permissão para alterar o nível de acesso.', 403, {
+                code: 'ROLE_CHANGE_FORBIDDEN',
+            });
+        }
+    }
+
+    return nextRole;
 }
 
 function normalizeJobTitle(value) {
@@ -78,7 +114,9 @@ async function createMember({ firmId, actor, payload, req }) {
         throw new AppError('Nome inválido.', 400);
     }
 
-    const role = payload.role ? normalizeRole(payload.role) : 'FIRM_STAFF';
+    const role = payload.role
+        ? assertActorCanAssignRole(actor, payload.role)
+        : 'FIRM_STAFF';
     const jobTitle = normalizeJobTitle(payload.jobTitle);
     const departmentId = payload.departmentId || null;
     await assertDepartmentBelongsToFirm(firmId, departmentId);
@@ -175,7 +213,7 @@ async function updateMember({ firmId, memberId, actor, payload, req }) {
         patch.email = email;
     }
     if (payload.role !== undefined) {
-        patch.role = normalizeRole(payload.role);
+        patch.role = assertActorCanAssignRole(actor, payload.role, { previousRole: current.role });
     }
     if (payload.jobTitle !== undefined) {
         patch.jobTitle = normalizeJobTitle(payload.jobTitle);
@@ -214,6 +252,12 @@ async function deactivateMember({ firmId, memberId, actor, req }) {
     if (!current) throw new AppError('Membro não encontrado.', 404);
     if (String(current.id) === String(actor.id)) {
         throw new AppError('Não é permitido desativar o próprio utilizador.', 400);
+    }
+
+    if (current.role === 'FIRM_OWNER' && !actorIsFirmOwner(actor)) {
+        throw new AppError('Apenas o dono do escritório pode desativar outro dono.', 403, {
+            code: 'OWNER_ROLE_FORBIDDEN',
+        });
     }
 
     const all = await firmUsersRepository.listFirmUsers(firmId, { activeOnly: false });
@@ -261,4 +305,5 @@ module.exports = {
     updateMember,
     deactivateMember,
     reactivateMember,
+    assertActorCanAssignRole,
 };

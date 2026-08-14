@@ -7,9 +7,9 @@ Procedimento para validar um dump R2 **sem tocar na produção**.
 | Métrica | Esperado | Notas |
 |---------|----------|--------|
 | **RPO** | ≤ 24 h | Schedule diário 03:00 UTC; pior caso ≈ 1 dia desde o último SUCCESS |
-| **RTO** | a medir no 1º drill | Tempo desde “preciso do restore” até smoke test verde no Postgres temporário |
+| **RTO** | ~1–2 min (observado) | Tempo desde download R2 até smoke verde no Postgres temporário (Docker já disponível) |
 
-Registar o RTO observado no fim do primeiro drill.
+Registar o RTO observado em cada drill.
 
 ## Pré-requisitos
 
@@ -103,7 +103,7 @@ Após o primeiro restore bem-sucedido, anotar:
 - queries smoke (pass/fail)
 - anomalias (roles, extensions, etc.)
 
-### Drill 1 — 2026-08-13 (Sprint 0)
+### Drill 1 — 2026-08-13 (Sprint 0, referência)
 
 | Campo | Valor |
 |-------|--------|
@@ -114,5 +114,24 @@ Após o primeiro restore bem-sucedido, anotar:
 | RTO observado | ~2 min (download R2 ~1,4 s + pull/start Postgres 17 + `pg_restore` + smoke) |
 | Smoke | PASS — `firms=2`, `clients=39`, `firm_users=5`, `accounting_services=21`, `consultations=2`, `documents=0`, `auth_refresh_sessions=77` |
 | Anomalias | `pg_restore` reporta erros esperados em schemas/extensões Supabase (`auth`, `storage`, `supabase_vault`, etc.) ao restaurar num Postgres vanilla; tabelas `public` de negócio OK. Usar `--no-owner --no-acl`. |
+
+### Drill 2 — 2026-08-13 (Sprint 0 Item 3 — fecho formal)
+
+Backup operacional real pedido: `2026-08-13-130155.dump` (não artificial).
+
+| Campo | Valor |
+|-------|--------|
+| Data/hora UTC | 2026-08-13 ~15:02–15:08 UTC |
+| Object key | `postgresql/daily/2026/08/2026-08-13-130155.dump` |
+| Manifest | `postgresql/manifests/2026/08/2026-08-13-130155.json` (`status=SUCCESS`, `createdAt=2026-08-13T13:01:55.123Z`, size `641713` bytes) |
+| SHA-256 | `a5588154a5e78b28cb49ed4d06bcbc235136cbd52a125f3790e345842bcd1040` — manifesto vs ficheiro **MATCH OK** |
+| Destino | Docker local `postgres:17.10` (`teglion-restore-tmp`, porta `55432`, volume `teglion_restore_tmp_data`) — **não** produção / **não** staging Supabase |
+| `pg_restore` | `--no-owner --no-acl`; exit não-zero esperado por extensão `supabase_vault` ausente no Postgres vanilla (`errors ignored: 3`) |
+| RTO observado | **~1,3 min** com Docker Desktop já disponível: download R2 ~2 s + start/ready Postgres ~2–4 s + `pg_restore` ~2 s + smoke ~0,2 s. *(Se o daemon Docker estiver parado, o tempo até ao sock fica fora do RTO do procedimento e depende da máquina.)* |
+| Smoke | **PASS** — PG `17.10`; `public` tables=`58`; PKs=`58`; FKs=`142`; colunas `firm_id`=`50`; índices com `firm_id`=`89`; RLS ON=`58` |
+| Contagens | `firms=2`, `clients=39`, `firm_users=5`, `documents=0`, `consultations=2`, `accounting_services=21`, `auth_refresh_sessions=76`, `conversations=3`, `document_requests=0`, `messages=0`, `obligations=0`, `service_requests=0` |
+| Firms presentes | `LLCNunes` (`llcnunes`), `MayaContabilista` (`jaelson`) — dados de negócio do dump real; **não** modificados |
+| Ausências esperadas | tabela `public.tasks` **não** existe neste schema (modelo usa outras entidades) |
+| Limpeza | container + volume removidos; dump/manifesto locais apagados de `/tmp`; nada commitado no Git |
 
 Cadência: repetir este drill pelo menos **trimestralmente** (ou após mudança material no schema / pipeline de backup).

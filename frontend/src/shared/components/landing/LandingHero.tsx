@@ -4,8 +4,8 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { LandingScreenshot } from '@/shared/components/landing/LandingScreenshot'
 import { LANDING_SCREENS } from '@/shared/components/landing/landingScreens'
 import { authFirmRegisterUrl } from '@/shared/constants/authPaths'
+import { AgencyProductLine } from '@/shared/components/agency/AgencyNameLink'
 import { FadeInView } from '@/shared/components/landing/FadeInView'
-import { BRAND } from '@/shared/config/brand'
 
 export function LandingHero() {
   const reduce = useReducedMotion()
@@ -20,14 +20,14 @@ export function LandingHero() {
         <div className="grid items-center gap-8 sm:gap-12 lg:grid-cols-2 lg:gap-16">
           <FadeInView>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#C9932E]">
-              {BRAND.name} — para escritórios de contabilidade
+              <AgencyProductLine linkClassName="text-[#C9932E] hover:text-[#0F2942] normal-case tracking-normal" />
             </p>
             <h1 className="mt-3 max-w-xl text-[1.85rem] font-semibold leading-[1.12] text-[#0F2942] sm:text-[2.35rem] md:text-5xl lg:text-[3.25rem]">
               Um sistema. Zero saltos entre WhatsApp, email e links.
             </h1>
             <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-[#4A5568] sm:mt-5 sm:text-[17px]">
-              Documentos, prazos, portal do cliente, página pública, serviços, IRS e pagamentos —
-              no mesmo sítio. Deixa de gerir o escritório em cinco ferramentas.
+              Plataforma de gestão para escritórios de contabilidade: documentos, prazos, portal do
+              cliente, página pública, serviços, IRS e pagamentos — no mesmo sítio.
             </p>
             <div className="mt-6 flex w-full flex-col items-stretch gap-3 sm:mt-8 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
               <Link to={authFirmRegisterUrl()} className="landing-btn-primary w-full px-6 py-3.5 sm:w-auto sm:px-8">

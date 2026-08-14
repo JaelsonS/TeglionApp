@@ -8,7 +8,6 @@ const morgan = require('morgan');
 
 const { env } = require('./config/env');
 const { createRateLimitStore } = require('./utils/rate-limit-store');
-const { BRAND } = require('./config/brand');
 const { isAccessTokenValid, verifyAccessToken } = require('./config/jwt');
 const { logger } = require('./utils/logger');
 const { errorMiddleware } = require('./middlewares/error.middleware');
@@ -103,7 +102,8 @@ function buildAllowedOrigins() {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
-  const criticalOrigins = [env.FRONTEND_URL, ...BRAND.productionOrigins, ...legacyOrigins];
+  const { buildCriticalCorsOrigins } = require('./utils/cors-critical-origins');
+  const criticalOrigins = [...buildCriticalCorsOrigins(env.FRONTEND_URL), ...legacyOrigins];
   const merged = Array.from(
     new Set([...(list || []), ...criticalOrigins].filter(Boolean))
   );

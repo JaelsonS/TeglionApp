@@ -4,7 +4,9 @@ import {
   Building2,
   CreditCard,
   Globe,
+  HelpCircle,
   ImageIcon,
+  Info,
   Shield,
   User,
   Users,
@@ -22,6 +24,9 @@ import { FirmSettingsProfileSection } from '@/features/firm/settings/FirmSetting
 import { FirmSettingsTeamSection } from '@/features/firm/settings/FirmSettingsTeamSection'
 import { FirmSettingsNotificationsSection } from '@/features/firm/settings/FirmSettingsNotificationsSection'
 import { FirmConnectPaymentsSection } from '@/features/firm/settings/FirmConnectPaymentsSection'
+import { FirmAboutPanel, FirmHelpSupportPanel } from '@/features/firm/support/FirmSupportPanels'
+import { AskMayaButton } from '@/features/maya'
+import { PageHeader } from '@/shared/design-system'
 import { cn } from '@/shared/lib/utils'
 
 const TABS = [
@@ -32,6 +37,8 @@ const TABS = [
   { id: 'perfil', label: 'O seu perfil', shortLabel: 'Perfil', icon: User, danger: false },
   { id: 'equipa', label: 'Equipa', shortLabel: 'Equipa', icon: Users, danger: false },
   { id: 'notificacoes', label: 'Notificações', shortLabel: 'Avisos', icon: Shield, danger: false },
+  { id: 'ajuda', label: 'Ajuda e suporte', shortLabel: 'Ajuda', icon: HelpCircle, danger: false },
+  { id: 'sobre', label: 'Sobre o Teglion', shortLabel: 'Sobre', icon: Info, danger: false },
   { id: 'encerrar', label: 'Encerrar conta', shortLabel: 'Encerrar', icon: AlertTriangle, danger: true },
 ] as const
 
@@ -109,12 +116,22 @@ export function FirmSettingsPage() {
   return (
     <FirmScrollPage className="cb-settings-layout-page">
       <div className="cb-settings-page">
-        <header className="cb-settings-page-hd">
-          <h1 className="cb-settings-page-title">Definições</h1>
-          <p className="cb-settings-page-sub">
-            Identidade, escritório, equipa e segurança — escolha a secção em cima.
-          </p>
-        </header>
+        <PageHeader
+          title="Definições"
+          subtitle="Identidade, página pública, equipa e segurança — escolha a secção abaixo."
+          testId="firm-settings-header"
+          secondary={
+            <AskMayaButton
+              intentId={
+                activeTab === 'pagina-publica'
+                  ? 'public-page'
+                  : activeTab === 'pagamentos'
+                    ? 'payments'
+                    : 'settings'
+              }
+            />
+          }
+        />
 
         {isLoading ? (
           <div className="cb-settings-skeleton" aria-busy="true">
@@ -157,18 +174,25 @@ export function FirmSettingsPage() {
 
             <div className="cb-settings-hub-main">
               <div className="cb-settings-hub-panel-hd">
-                <h2 className="cb-settings-hub-panel-title">{activeMeta.label}</h2>
-                <p className="cb-settings-hub-panel-sub">
-                  {activeTab === 'identidade' && 'Logótipo no menu, portal do cliente e comunicações.'}
-                  {activeTab === 'pagina-publica' && 'O que aparece na sua página pública partilhável.'}
-                  {activeTab === 'escritorio' && 'Nome e contactos do escritório.'}
-                  {activeTab === 'pagamentos' &&
-                    'Stripe Connect — receber pagamentos dos clientes na conta do escritório.'}
-                  {activeTab === 'perfil' && 'Os seus dados de acesso e segurança.'}
-                  {activeTab === 'equipa' && 'Colaboradores, cargos e departamentos.'}
-                  {activeTab === 'notificacoes' && 'Alertas push e preferências de aviso.'}
-                  {activeTab === 'encerrar' && 'Acção irreversível — encerra o escritório.'}
-                </p>
+                <div className="min-w-0">
+                  <h2 className="cb-settings-hub-panel-title">{activeMeta.label}</h2>
+                  <p className="cb-settings-hub-panel-sub">
+                    {activeTab === 'identidade' && 'Logótipo no menu, portal do cliente e comunicações.'}
+                    {activeTab === 'pagina-publica' &&
+                      'O que aparece na sua página pública partilhável — a Maya explica cada passo.'}
+                    {activeTab === 'escritorio' && 'Nome e contactos do escritório.'}
+                    {activeTab === 'pagamentos' &&
+                      'Stripe Connect — receber pagamentos dos clientes na conta do escritório.'}
+                    {activeTab === 'perfil' && 'Os seus dados de acesso e segurança.'}
+                    {activeTab === 'equipa' && 'Colaboradores, cargos e departamentos.'}
+                    {activeTab === 'notificacoes' && 'Alertas push e preferências de aviso.'}
+                    {activeTab === 'ajuda' &&
+                      'Maya, WhatsApp, email e telefone — suporte humano e assistente.'}
+                    {activeTab === 'sobre' &&
+                      'Produto AfDigital, redes oficiais e ligações para documentos legais.'}
+                    {activeTab === 'encerrar' && 'Acção irreversível — encerra o escritório.'}
+                  </p>
+                </div>
               </div>
 
               {activeTab === 'identidade' ? (
@@ -203,6 +227,10 @@ export function FirmSettingsPage() {
               {activeTab === 'equipa' ? <FirmSettingsTeamSection bundle={bundle} /> : null}
 
               {activeTab === 'notificacoes' ? <FirmSettingsNotificationsSection /> : null}
+
+              {activeTab === 'ajuda' ? <FirmHelpSupportPanel /> : null}
+
+              {activeTab === 'sobre' ? <FirmAboutPanel /> : null}
 
               {activeTab === 'encerrar' ? <FirmSettingsDangerZone bundle={bundle} /> : null}
             </div>

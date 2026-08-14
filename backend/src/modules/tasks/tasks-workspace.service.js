@@ -118,7 +118,7 @@ async function listWorkspace(firmId, query) {
 async function getTaskDetail(firmId, taskId) {
   const task = await tasksRepo.findTaskById(firmId, taskId);
   if (!task) throw new AppError('Tarefa não encontrada', 404);
-  const comments = await tasksRepo.listComments(taskId);
+  const comments = await tasksRepo.listComments(taskId, firmId);
   const client = await clientsRepository.findClientById(firmId, task.clientId);
   const repo = getRepository();
   const sb = require('../../db/supabase/client').getSupabaseAdmin();

@@ -12,6 +12,9 @@ coverage/
 .env
 .env.*
 !.env.example
+!.env.*.example
+!**/.env.example
+!**/.env.*.example
 backend/TeglionRender.env
 .tmp-restore-drill/
 .tmp*/
