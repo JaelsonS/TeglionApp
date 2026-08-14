@@ -53,20 +53,24 @@ export function AuthLayout({
                         )}
                     </section>
 
-                    <section className="flex flex-col justify-center">
-                        <div className="mb-6 flex items-center justify-between gap-4">
+                    <section className="flex min-w-0 flex-col justify-center">
+                        {/* Brand no topo só em mobile — no desktop o painel esquerdo já destaca o Teglion */}
+                        <div className="mb-6 flex items-center lg:hidden">
                             <BrandMark size="md" variant="onLight" showName className="shadow-sm" />
-                            <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                                Teglion
-                            </span>
                         </div>
 
-                        <div className="mb-7 space-y-3">
-                            <h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{title}</h1>
-                            {subtitle ? <p className="max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">{subtitle}</p> : null}
+                        <div className="mb-6 space-y-2 lg:mb-5">
+                            <h1 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl lg:text-[1.85rem] lg:leading-tight">
+                                {title}
+                            </h1>
+                            {subtitle ? (
+                                <p className="max-w-xl text-sm leading-relaxed text-slate-600 sm:text-[0.95rem] sm:leading-6">
+                                    {subtitle}
+                                </p>
+                            ) : null}
                         </div>
 
-                        <div className="w-full">{children}</div>
+                        <div className="w-full min-w-0">{children}</div>
 
                         {footer ? <div className="mt-6">{footer}</div> : null}
                     </section>

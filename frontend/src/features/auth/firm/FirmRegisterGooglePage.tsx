@@ -9,7 +9,6 @@ import { toast } from 'sonner'
 import { AuthAgencyIdentity } from '@/shared/components/auth/AuthAgencyIdentity'
 import { AuthCard } from '@/shared/components/auth/AuthCard'
 import { AuthFooter } from '@/shared/components/auth/AuthFooter'
-import { AuthHeader } from '@/shared/components/auth/AuthHeader'
 import { AuthLayout } from '@/shared/components/auth/AuthLayout'
 import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
 import { contabilPt as t } from '@/shared/i18n/contabilPt'
@@ -202,10 +201,9 @@ export function FirmRegisterGooglePage() {
   if (loading) {
     return (
       <AuthLayout title="A preparar registo..." subtitle="A validar a sua conta Google.">
-        <div className="mx-auto max-w-md">
-          <AuthCard>
-            <AuthHeader title="A preparar registo..." subtitle="A validar a sua conta Google." />
-            <div className="mt-8 h-24 animate-pulse rounded-xl bg-slate-100" />
+        <div className="w-full">
+          <AuthCard className="p-6 sm:p-7">
+            <div className="h-24 animate-pulse rounded-xl bg-slate-100" />
           </AuthCard>
         </div>
       </AuthLayout>
@@ -218,18 +216,12 @@ export function FirmRegisterGooglePage() {
         title="Sessão Google expirada"
         subtitle="Volte a iniciar o registo com Google ou use e-mail e palavra-passe."
       >
-        <div className="mx-auto max-w-md">
-          <AuthCard>
-            <AuthHeader
-              title="Sessão Google expirada"
-              subtitle="Volte a iniciar o registo com Google ou use e-mail e palavra-passe."
+        <div className="w-full">
+          <AuthCard className="p-6 sm:p-7">
+            <GoogleAuthButton
+              href={getGoogleAuthStartUrl({ intent: 'register', countryCode })}
+              label="Continuar com Google"
             />
-            <div className="mt-8">
-              <GoogleAuthButton
-                href={getGoogleAuthStartUrl({ intent: 'register', countryCode })}
-                label="Continuar com Google"
-              />
-            </div>
           </AuthCard>
 
           <AuthFooter className="mt-6">
@@ -248,11 +240,9 @@ export function FirmRegisterGooglePage() {
 
   return (
     <AuthLayout title="Concluir escritório" subtitle={`Conta Google: ${pending.email}`}>
-      <div className="mx-auto max-w-md">
-        <AuthCard>
-          <AuthHeader title="Concluir escritório" subtitle={`Conta Google: ${pending.email}`} />
-
-          <form className="mt-8 space-y-4" onSubmit={(e) => void onSubmit(e)}>
+      <div className="w-full">
+        <AuthCard className="p-6 sm:p-7">
+          <form className="space-y-4" onSubmit={(e) => void onSubmit(e)}>
             <div>
               <Label htmlFor="countryCode">País do escritório</Label>
               <select

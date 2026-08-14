@@ -179,21 +179,26 @@ export function LegalConsentBlock({ value, onChange, disabled, error }: Props) {
                   aria-describedby={`legal-${item.key}-label`}
                 />
                 <div className="min-w-0 flex-1">
-                  <Label
-                    id={`legal-${item.key}-label`}
-                    htmlFor={`legal-${item.key}`}
-                    className="cursor-pointer text-sm font-medium leading-snug text-slate-800"
-                  >
-                    {item.acceptLabel}
-                  </Label>
-                  <button
-                    type="button"
-                    className="mt-0.5 text-xs font-semibold text-[#0f2942] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f2942]/30 rounded-sm"
-                    onClick={() => setActiveDoc(item)}
-                    disabled={disabled}
-                  >
-                    Ler
-                  </button>
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                    <Label
+                      id={`legal-${item.key}-label`}
+                      htmlFor={`legal-${item.key}`}
+                      className="cursor-pointer text-sm font-medium leading-snug text-slate-800"
+                    >
+                      {item.acceptLabel}
+                    </Label>
+                    <span className="select-none text-slate-300" aria-hidden>
+                      ·
+                    </span>
+                    <button
+                      type="button"
+                      className="shrink-0 text-xs font-semibold text-[#0f2942] underline underline-offset-2 hover:text-[#195285] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f2942]/30 rounded-sm"
+                      onClick={() => setActiveDoc(item)}
+                      disabled={disabled}
+                    >
+                      Ler
+                    </button>
+                  </div>
                 </div>
               </li>
             )
