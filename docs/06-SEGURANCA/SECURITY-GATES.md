@@ -32,6 +32,26 @@ O step `Tenant isolation test (staging)` em `.github/workflows/ci.yml`:
 
 Nunca usar a service_role de produção nestes secrets.
 
+### Troubleshooting CI `42501` / RLS em `firms`
+
+Sintoma no job `Tenant isolation test (staging)`:
+
+```text
+new row violates row-level security policy for table "firms"
+```
+
+Causa típica: o secret `STAGING_SUPABASE_SERVICE_ROLE_KEY` contém a chave **anon** (ou publishable), não a **service_role**. A tabela `firms` tem RLS activo e **não** tem policy de INSERT — só a `service_role` (que bypassa RLS) consegue criar escritórios de teste.
+
+Corrigir:
+
+1. Abrir [Supabase](https://supabase.com/dashboard/project/xscriwhchdblmwmpglby/settings/api) → projecto **teglion-staging** → Settings → API.
+2. Copiar **`service_role` (secret)** — não a `anon` / `publishable`.
+3. Actualizar o GitHub secret `STAGING_SUPABASE_SERVICE_ROLE_KEY` (Settings → Secrets → Actions).
+4. Actualizar também `SUPABASE_SERVICE_ROLE_KEY` no Render staging e em `.env.staging` local se estiver errado.
+5. Re-correr o workflow CI.
+
+O script falha cedo com mensagem explícita se o JWT/API key não tiver `role=service_role`.
+
 ### Suíte backend no CI
 
 O job `Backend unit tests` injeta placeholders locais (`JWT_*`, `SUPABASE_*` fictícios) porque `env.js` exige essas variáveis ao importar módulos. Os unit tests mockam I/O e não contactam Supabase real.

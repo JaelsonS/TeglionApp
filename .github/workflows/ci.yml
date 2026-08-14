@@ -71,6 +71,13 @@ jobs:
             echo "Ver docs/06-SEGURANCA/SECURITY-GATES.md"
             exit 1
           fi
+          # Fail-fast se alguém colou a chave anon no secret service_role (causa 42501 em firms).
+          node -e "
+            const { assertServiceRoleKey } = require('./backend/src/db/supabase/client');
+            const r = assertServiceRoleKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
+            if (!r.ok) { console.error('::error::' + r.message); process.exit(1); }
+            console.log('Supabase key role OK:', r.role);
+          "
           npm run test:tenant-isolation -w backend
 
       - name: File size limits
