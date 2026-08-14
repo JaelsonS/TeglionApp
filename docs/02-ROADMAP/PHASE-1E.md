@@ -280,14 +280,22 @@ Exemplos:
 - Token `--cb-firm-rail-width: 4.25rem`
 - Contrato testável `firmShellChrome.ts`
 
-**Smoke browser live 768/1024/1280:** pendente validação humana / staging (sem sessão autenticada nesta execução). Contrato de breakpoints coberto por Vitest.
+**Smoke browser live (2026-08-14):**
+- Script: `frontend/scripts/bloco1-staging-shell-qa.mjs`
+- Vitest `firmShellChrome.test.ts`: **PASS** (7 widths → mobile/tablet/desktop)
+- Staging Playwright sem sessão: **PARTIAL** — nos 7 breakpoints (375–1440) redirect para `/auth/firm/login`, formulário visível, **sem scroll horizontal**
+- Shell autenticado (rail tablet / bottom nav / sidebar): **BLOCKED** — falta `STAGING_EMAIL` + `STAGING_PASSWORD` (ou UAT humano logado)
 
-**Não avançar para Bloco 2** até validação do relatório Bloco 1.
+```bash
+STAGING_EMAIL=… STAGING_PASSWORD=… node frontend/scripts/bloco1-staging-shell-qa.mjs
+```
+
+**Não avançar para Bloco 2** até chrome autenticado PASS nos 7 widths (ou UAT humano com checklist E).
 
 ---
 
 ## K. Próximo passo
 
-1. Validar Bloco 1 (este relatório)  
+1. Completar Bloco 1 QA autenticado (credenciais staging ou checklist manual)
 2. Bloco 2 — Dashboard overflow/densidade  
 3. … até Browser QA staging completo → CLOSED  
