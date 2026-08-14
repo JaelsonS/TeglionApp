@@ -1,18 +1,26 @@
 # Fase 1 — Progresso
 
-**Branch:** `feature/fase-1` (derivada de `staging`)  
-**Ambiente alvo:** staging only — sem produção.
+**Branch de integração:** `staging`  
+**Ambiente alvo:** staging only — sem produção / sem merge para `main` sem aprovação.
 
-## FASE 1A — Security Critical
+## Fecho do dia (2026-08-14)
 
-**STATUS:** concluída
+Trabalho do dia **integrado em `staging`** (`26db537`): SSO Google pending, links AfDigital, UX compacta do registo legal, identidade AfDigital.
 
-## FASE 1B — Design System + UX Foundation
+**Fase 1 não está CLOSED no total** — falta completar **1E** (Blocos 2–7 + QA final). Para hoje: paramos aqui.
 
-**STATUS:** **CLOSED** (fecho 1B.1)
+| Subfase | STATUS |
+|---------|--------|
+| 1A Security | CLOSED |
+| 1B Design System | CLOSED |
+| 1C Onboarding / Dashboard | CLOSED |
+| 1D IRS + Serviços | CLOSED |
+| 1E Responsive + Visual Polish | **IN PROGRESS** (Bloco 1 PASS; 2–7 pendentes) |
 
-Ver `docs/02-ROADMAP/PHASE-1B.md`.
+## Próximo (amanhã / sessão seguinte)
 
-### Próximo passo
+1. Fase 1E — Bloco 2 (Dashboard) … até CLOSED com QA staging  
+2. Legal & Compliance Foundation (auditoria — sem rewrite silencioso)  
+3. Só depois: Production Readiness / eventual PR `staging` → `main`
 
-**FASE 1C** — Onboarding + Dashboard “próximo passo” + empty states restantes
+Ver `docs/02-ROADMAP/PHASE-1E.md`.

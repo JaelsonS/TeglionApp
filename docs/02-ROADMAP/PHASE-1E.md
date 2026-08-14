@@ -295,6 +295,8 @@ Exemplos:
 
 ## K. Próximo passo
 
+**Fecho do dia 2026-08-14:** alterações do dia em `staging` (`26db537`). Fase 1E **não** CLOSED — retomamos no Bloco 2.
+
 1. ~~Completar Bloco 1 QA autenticado~~ ✅  
 2. Bloco 2 — Dashboard overflow/densidade  
 3. … até Browser QA staging completo → CLOSED  
