@@ -13,14 +13,15 @@ import { LandingPricing } from '@/shared/components/landing/LandingPricing'
 import { LandingProductCarousel } from '@/shared/components/landing/LandingProductCarousel'
 import { LandingPublicOffer } from '@/shared/components/landing/LandingPublicOffer'
 import { LandingSolution } from '@/shared/components/landing/LandingSolution'
+import { LandingTrust } from '@/shared/components/landing/LandingTrust'
 import { applyPageSeo } from '@/shared/utils/seo'
 
 export function LandingPage() {
   useLayoutEffect(() => {
     applyPageSeo({
-      title: 'Teglion — Um sistema para o escritório de contabilidade',
+      title: 'Teglion — Plataforma para escritórios de contabilidade',
       description:
-        'Documentos, prazos, portal do cliente, página pública, serviços, IRS e pagamentos num só sítio. Feito para escritórios em Portugal. 14 dias grátis, sem cartão.',
+        'Teglion é uma plataforma de gestão para escritórios de contabilidade, desenvolvida e operada pela AfDigital — Soluções Tecnológicas. Documentos, prazos, portal, serviços e pagamentos num só sítio. 14 dias grátis.',
       path: '/',
     })
   }, [])
@@ -37,6 +38,7 @@ export function LandingPage() {
         <LandingProductCarousel />
         <LandingHowItWorks />
         <LandingPricing />
+        <LandingTrust />
         <LandingFaq />
         <LandingCtaFinal />
       </main>
