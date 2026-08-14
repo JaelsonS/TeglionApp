@@ -6,21 +6,17 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
 import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
-import { RichTextEditor } from '@/shared/design-system'
-import { EuroInput } from '@/shared/design-system'
+import { RichTextEditor, DurationMinutesField, EuroInput } from '@/shared/design-system'
+import {
+  ServicePaymentMethodsPanel,
+  type ServicePaymentMethodId,
+} from '@/features/firm/services/ServicePaymentMethodsPanel'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
-import { cn } from '@/shared/lib/utils'
 import type { AccountingService } from '@/shared/types/contabil'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 
-type PaymentMethod = 'bank_transfer' | 'multibanco' | 'stripe_connect'
-
-const PAYMENT_OPTIONS: { id: PaymentMethod; label: string; hint: string; soon?: boolean }[] = [
-  { id: 'bank_transfer', label: 'Transferência bancária', hint: 'Dados no orçamento / PDF' },
-  { id: 'multibanco', label: 'Multibanco', hint: 'Referência gerada automaticamente', soon: true },
-  { id: 'stripe_connect', label: 'Cartão (Stripe Connect)', hint: 'Pagamento online no link' },
-]
+type PaymentMethod = ServicePaymentMethodId
 
 type Props = {
   service: AccountingService
@@ -39,6 +35,7 @@ export function ServiceEditorSheet({ service, open, onOpenChange, onSaved }: Pro
   const [requiresBooking, setRequiresBooking] = useState(Boolean(service.requiresBooking))
   const [slug, setSlug] = useState(service.slug || '')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(service.paymentMethod || 'bank_transfer')
+  const [paymentRequired, setPaymentRequired] = useState(Boolean(service.paymentRequired))
   const [descOpen, setDescOpen] = useState(Boolean(service.description?.trim()))
   const [saving, setSaving] = useState(false)
 
@@ -53,6 +50,7 @@ export function ServiceEditorSheet({ service, open, onOpenChange, onSaved }: Pro
     setRequiresBooking(Boolean(service.requiresBooking))
     setSlug(service.slug || '')
     setPaymentMethod(service.paymentMethod || 'bank_transfer')
+    setPaymentRequired(Boolean(service.paymentRequired))
     setDescOpen(Boolean(service.description?.trim()))
   }, [open, service])
 
@@ -72,7 +70,8 @@ export function ServiceEditorSheet({ service, open, onOpenChange, onSaved }: Pro
         isPubliclyListed,
         requiresBooking,
         slug: slug.trim() || null,
-        paymentMethod,
+        paymentMethod: paymentRequired ? 'stripe_connect' : paymentMethod,
+        paymentRequired,
       })
       toast.success('Serviço guardado')
       onSaved()
@@ -103,13 +102,7 @@ export function ServiceEditorSheet({ service, open, onOpenChange, onSaved }: Pro
             <div className="grid grid-cols-2 gap-3">
               <label className="space-y-1 text-sm">
                 <span className="font-medium">Duração (min)</span>
-                <Input
-                  type="number"
-                  min={15}
-                  value={durationMinutes}
-                  onChange={(e: FormChangeEvent) => setDurationMinutes(Number(e.target.value) || 60)}
-                  className="rounded-xl"
-                />
+                <DurationMinutesField value={durationMinutes} onChange={setDurationMinutes} />
               </label>
               <label className="space-y-1 text-sm">
                 <span className="font-medium">Preço</span>
@@ -169,37 +162,13 @@ export function ServiceEditorSheet({ service, open, onOpenChange, onSaved }: Pro
 
           <section className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Meio de pagamento</p>
-            <div className="space-y-2">
-              {PAYMENT_OPTIONS.map((opt) => (
-                <label
-                  key={opt.id}
-                  className={cn(
-                    'flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 transition',
-                    paymentMethod === opt.id ? 'border-brand bg-brand/5' : 'border-border/60 hover:bg-muted/20',
-                    opt.soon && opt.id !== paymentMethod && 'opacity-70',
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    className="mt-1"
-                    checked={paymentMethod === opt.id}
-                    onChange={() => setPaymentMethod(opt.id)}
-                  />
-                  <span className="min-w-0">
-                    <span className="flex items-center gap-2 text-sm font-medium">
-                      {opt.label}
-                      {opt.soon ? (
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-caption font-semibold text-muted-foreground">
-                          Em breve
-                        </span>
-                      ) : null}
-                    </span>
-                    <span className="text-xs text-muted-foreground">{opt.hint}</span>
-                  </span>
-                </label>
-              ))}
-            </div>
+            <ServicePaymentMethodsPanel
+              paymentMethod={paymentMethod}
+              paymentRequired={paymentRequired}
+              requiresBooking={requiresBooking}
+              onPaymentMethodChange={setPaymentMethod}
+              onPaymentRequiredChange={setPaymentRequired}
+            />
           </section>
         </div>
 

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
   Briefcase,
-  Building2,
   Globe2,
   Home,
   Info,
@@ -18,7 +17,8 @@ import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Dialog, DialogContent, DialogTitle } from '@/shared/components/ui/dialog'
-import { EuroInput } from '@/shared/design-system'
+import { DurationMinutesField, EuroInput } from '@/shared/design-system'
+import { ServicePaymentMethodsPanel, type ServicePaymentMethodId } from '@/features/firm/services/ServicePaymentMethodsPanel'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
@@ -30,7 +30,18 @@ import type {
 } from '@/shared/types/contabil'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 
-type PaymentMethod = 'bank_transfer' | 'multibanco' | 'stripe_connect'
+type PaymentMethod = ServicePaymentMethodId
+
+const DOC_SUGGESTIONS = [
+  'Recibos de vencimento',
+  'Certidão',
+  'Recibos verdes',
+  'Caderneta predial',
+  'Contrato de arrendamento',
+  'Escritura / mais-valias',
+  'Comprovativos benefícios',
+  'Cartão de Cidadão',
+]
 
 const ANEXOS: {
   id: IrsAnexoId
@@ -46,18 +57,6 @@ const ANEXOS: {
   { id: 'H', title: 'Anexo H', subtitle: 'Benefícios fiscais', Icon: Landmark },
   { id: 'J', title: 'Anexo J', subtitle: 'Não residentes', Icon: Globe2 },
   { id: 'JOVEM', title: 'IRS Jovem', subtitle: 'Regime IRS Jovem', Icon: Sparkles },
-]
-
-const DOC_OPTIONS = [
-  'Recibos de vencimento',
-  'Certidão',
-  'Recibos verdes',
-  'Caderneta predial',
-  'Contrato de arrendamento',
-  'Escritura / mais-valias',
-  'Comprovativos benefícios',
-  'Cartão de Cidadão',
-  'Outro documento',
 ]
 
 const DEFAULT_QUESTIONS: IntakeQuestion[] = [
@@ -113,12 +112,6 @@ const DEFAULT_QUESTIONS: IntakeQuestion[] = [
   },
 ]
 
-const PAYMENT_OPTIONS: { id: PaymentMethod; label: string; soon?: boolean }[] = [
-  { id: 'multibanco', label: 'Referência Multibanco', soon: true },
-  { id: 'bank_transfer', label: 'Transferência Bancária' },
-  { id: 'stripe_connect', label: 'Débito em Conta / Cartão' },
-]
-
 type EditorQuestion = {
   id: string
   label: string
@@ -133,7 +126,7 @@ function toEditorQuestions(form: IntakeForm | null | undefined): EditorQuestion[
     .filter((q) => q.type === 'yes_no' || !q.type)
     .map((q, i) => {
       const sim = q.options?.find((o) => /^sim$/i.test(o.label) || o.id === 'sim')
-      const tag = sim?.documentTags?.[0] || DOC_OPTIONS[0]
+      const tag = sim?.documentTags?.[0] || DOC_SUGGESTIONS[0]
       return {
         id: q.id || `q_${i}`,
         label: q.label,
@@ -207,6 +200,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
   const [anexos, setAnexos] = useState<IrsAnexoId[]>(['A', 'B', 'F', 'H'])
   const [questions, setQuestions] = useState<EditorQuestion[]>(() => toEditorQuestions(null))
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank_transfer')
+  const [paymentRequired, setPaymentRequired] = useState(false)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -224,6 +218,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
       )
       setQuestions(toEditorQuestions(service.intakeForm))
       setPaymentMethod(service.paymentMethod || 'bank_transfer')
+      setPaymentRequired(Boolean(service.paymentRequired))
     } else {
       setName('Declaração IRS Modelo 3')
       setTaxYear('')
@@ -232,6 +227,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
       setAnexos(['A', 'B', 'F', 'H'])
       setQuestions(toEditorQuestions(null))
       setPaymentMethod('bank_transfer')
+      setPaymentRequired(false)
     }
   }, [open, service])
 
@@ -270,7 +266,8 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
       priceEuros,
       isActive: true,
       catalogKey: service?.catalogKey || 'irs-modelo-3',
-      paymentMethod,
+      paymentMethod: paymentRequired ? 'stripe_connect' : paymentMethod,
+      paymentRequired,
       intakeForm,
       requiresBooking: false,
     }
@@ -336,13 +333,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
             </label>
             <label className="space-y-1 text-sm">
               <span className="font-medium">Duração (min)</span>
-              <Input
-                type="number"
-                min={15}
-                value={durationMinutes}
-                onChange={(e: FormChangeEvent) => setDurationMinutes(Number(e.target.value) || 120)}
-                className="rounded-xl border-brand/20 bg-card"
-              />
+              <DurationMinutesField value={durationMinutes} onChange={setDurationMinutes} />
             </label>
             <label className="space-y-1 text-sm">
               <span className="font-medium">Preço</span>
@@ -427,22 +418,24 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
                             <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                               Documento
                             </span>
-                            <select
-                              value={
-                                DOC_OPTIONS.includes(q.documentLabel) ? q.documentLabel : DOC_OPTIONS[DOC_OPTIONS.length - 1]
+                            <Input
+                              list={`irs-doc-suggestions-${q.id}`}
+                              value={q.documentLabel}
+                              onChange={(e: FormChangeEvent) =>
+                                updateQuestion(q.id, { documentLabel: e.target.value })
                               }
-                              onChange={(e) => updateQuestion(q.id, { documentLabel: e.target.value })}
-                              className="flex h-10 w-full rounded-xl border border-brand/20 bg-background px-3 text-sm"
-                            >
-                              {DOC_OPTIONS.map((opt) => (
-                                <option key={opt} value={opt}>
-                                  {opt}
-                                </option>
+                              placeholder="Escreva o documento ou escolha uma sugestão"
+                              className="rounded-xl border-brand/20 bg-background"
+                            />
+                            <datalist id={`irs-doc-suggestions-${q.id}`}>
+                              {DOC_SUGGESTIONS.map((opt) => (
+                                <option key={opt} value={opt} />
                               ))}
-                            </select>
+                            </datalist>
                           </label>
                           <p className="text-caption text-muted-foreground">
-                            Formatos aceites pelo cliente: PDF, JPG, PNG. Tamanho máximo: 10 MB.
+                            Sugestões ao digitar — pode escrever o nome à sua maneira. Formatos: PDF,
+                            JPG, PNG · máx. 10 MB.
                           </p>
                         </div>
                       ) : null}
@@ -455,48 +448,17 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
                 <div className="border-b border-brand/10 bg-brand/[0.04] px-4 py-3">
                   <h3 className="text-base font-semibold">Pagamento</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Selecione o método de pagamento para este serviço.
+                    Mesmas opções dos outros serviços — configure o que o escritório usa hoje.
                   </p>
                 </div>
-                <div className="flex flex-col gap-2 p-3 sm:flex-row sm:flex-wrap">
-                  {PAYMENT_OPTIONS.map((opt) => {
-                    const selected = paymentMethod === opt.id
-                    return (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setPaymentMethod(opt.id)}
-                        className={cn(
-                          'flex flex-1 items-center gap-2.5 rounded-xl border px-3 py-3 text-left text-sm font-medium transition',
-                          selected
-                            ? 'border-brand bg-brand text-primary-foreground shadow-sm'
-                            : 'border-border/70 bg-background text-foreground hover:border-brand/40 hover:bg-brand/[0.03]',
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2',
-                            selected ? 'border-primary-foreground' : 'border-muted-foreground/40',
-                          )}
-                        >
-                          {selected ? <span className="h-2 w-2 rounded-full bg-primary-foreground" /> : null}
-                        </span>
-                        <span className="min-w-0">
-                          {opt.label}
-                          {opt.soon ? (
-                            <span
-                              className={cn(
-                                'ml-1.5 text-caption font-semibold',
-                                selected ? 'text-primary-foreground/80' : 'text-muted-foreground',
-                              )}
-                            >
-                              (em breve)
-                            </span>
-                          ) : null}
-                        </span>
-                      </button>
-                    )
-                  })}
+                <div className="p-3">
+                  <ServicePaymentMethodsPanel
+                    paymentMethod={paymentMethod}
+                    paymentRequired={paymentRequired}
+                    requiresBooking={false}
+                    onPaymentMethodChange={setPaymentMethod}
+                    onPaymentRequiredChange={setPaymentRequired}
+                  />
                 </div>
               </section>
             </div>

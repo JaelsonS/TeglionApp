@@ -50,9 +50,8 @@ import {
 } from '@/shared/components/ui/command'
 import { Input } from '@/shared/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
-import { RichTextEditor, UploadDropzone } from '@/shared/design-system'
+import { DurationMinutesField, EuroInput, ProfileSectionCard, RichTextEditor, UploadDropzone } from '@/shared/design-system'
 import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
-import { EuroInput, ProfileSectionCard } from '@/shared/design-system'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
 import type {
@@ -812,11 +811,15 @@ export function AgendaServicesCatalogPanel({
           <label className="space-y-1">
             <span className="text-caption font-medium text-muted-foreground">Duração (min)</span>
             <Input
-              type="number"
-              min={15}
+              type="text"
+              inputMode="numeric"
               className="w-24 rounded-xl"
-              value={bulkDuration === '' ? '' : bulkDuration}
-              onChange={(e: FormChangeEvent) => setBulkDuration(e.target.value ? Number(e.target.value) : '')}
+              placeholder="ex. 90"
+              value={bulkDuration === '' ? '' : String(bulkDuration)}
+              onChange={(e: FormChangeEvent) => {
+                const raw = e.target.value.replace(/\D/g, '')
+                setBulkDuration(raw === '' ? '' : Number(raw))
+              }}
             />
           </label>
           <Button
@@ -964,15 +967,15 @@ export function AgendaServicesCatalogPanel({
                         </span>
                       ) : null}
                     </div>
-                    <Input
-                      type="number"
-                      min={15}
-                      className="hidden h-9 w-20 rounded-lg sm:block"
-                      value={duration}
-                      onChange={(e: FormChangeEvent) =>
-                        patchEditing(s.id, { durationMinutes: Number(e.target.value) || s.durationMinutes })
-                      }
-                    />
+                    <div className="hidden w-24 sm:block">
+                      <DurationMinutesField
+                        value={duration}
+                        onChange={(n) => patchEditing(s.id, { durationMinutes: n })}
+                        presets={[]}
+                        inputClassName="h-9 w-20 rounded-lg"
+                        aria-label={`Duração de ${s.name}`}
+                      />
+                    </div>
                     <div className="hidden w-28 sm:block">
                       <EuroInput
                         value={priceCents / 100}
@@ -1478,15 +1481,9 @@ export function AgendaServicesCatalogPanel({
           <div className="grid grid-cols-2 gap-3">
             <label className="block space-y-1">
               <span className="text-caption font-medium text-muted-foreground">Duração (min) *</span>
-              <Input
-                type="number"
-                min={15}
-                max={480}
-                className="rounded-lg"
+              <DurationMinutesField
                 value={createDraft.durationMinutes}
-                onChange={(e: FormChangeEvent) =>
-                  setCreateDraft((d) => ({ ...d, durationMinutes: Number(e.target.value) || 15 }))
-                }
+                onChange={(n) => setCreateDraft((d) => ({ ...d, durationMinutes: n }))}
               />
             </label>
             <label className="block space-y-1">
