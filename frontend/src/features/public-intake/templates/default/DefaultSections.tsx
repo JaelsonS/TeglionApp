@@ -98,17 +98,18 @@ export function HeaderSection({
 }) {
   const bg = hexStyle(content?.backgroundColor)
   const text = hexStyle(content?.textColor)
+  const headerLabel = String(content?.title || '').trim() || ctx.firmName
   return (
     <header
       className={bg ? 'border-b border-black/5' : 'border-b border-primary/20 bg-primary/5'}
       style={bg ? { backgroundColor: bg } : undefined}
     >
-      <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-4">
+      <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-4 lg:max-w-4xl">
         <span
           className={text ? 'font-semibold' : 'font-semibold text-[hsl(var(--brand-text,var(--primary)))]'}
           style={text ? { color: text } : undefined}
         >
-          {ctx.firmName}
+          {headerLabel}
         </span>
       </div>
     </header>
@@ -131,27 +132,28 @@ export function HeroSection({
   const titleColor = hexStyle(content.titleColor)
   const taglineColor = hexStyle(content.taglineColor)
   const bioColor = hexStyle(content.bioColor)
+  const heroTitle = String(content.title || '').trim() || ctx.firmName
   return (
     <section
       className={bg ? 'border-b border-black/5' : 'border-b border-border/40 bg-gradient-to-b from-primary/10 to-card/40'}
       style={bg ? { backgroundColor: bg } : undefined}
     >
       {heroPhotoUrl ? (
-        <img src={heroPhotoUrl} alt={ctx.firmName} className="h-48 w-full object-cover sm:h-64" />
+        <img src={heroPhotoUrl} alt={heroTitle} className="h-48 w-full object-cover sm:h-64" />
       ) : null}
-      <div className="mx-auto max-w-2xl px-4 py-10 text-center">
+      <div className="mx-auto max-w-2xl px-4 py-10 text-center lg:max-w-4xl">
         {ctx.logoUrl ? (
           <img
             src={ctx.logoUrl}
-            alt={ctx.firmName}
+            alt={heroTitle}
             className="mx-auto mb-4 h-20 w-20 rounded-full border-2 border-primary/30 object-cover shadow-sm"
           />
         ) : null}
         <h1
-          className={titleColor ? 'text-2xl font-bold' : 'text-2xl font-bold text-[hsl(var(--brand-text,var(--primary)))]'}
+          className={titleColor ? 'text-2xl font-bold sm:text-3xl' : 'text-2xl font-bold text-[hsl(var(--brand-text,var(--primary)))] sm:text-3xl'}
           style={titleColor ? { color: titleColor } : undefined}
         >
-          {ctx.firmName}
+          {heroTitle}
         </h1>
         {content.tagline ? (
           <p
@@ -230,7 +232,7 @@ export function AboutSection({ content, images }: { content: PublicSiteAboutCont
       className="px-4 py-6"
       style={bg ? { backgroundColor: bg } : undefined}
     >
-      <div className="mx-auto max-w-2xl space-y-3">
+      <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">
         {photoUrl ? <img src={photoUrl} alt="" loading="lazy" className="w-full rounded-xl object-cover" /> : null}
         {content.heading ? (
           <h2
@@ -330,7 +332,7 @@ export function ServicesSection({ content, ctx }: { content: PublicSiteServicesC
   const headingColor = hexStyle(content.headingColor)
   return (
     <section id="servicos" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
-      <div className="mx-auto max-w-2xl space-y-3">
+      <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">
         <h2
           className={
             headingColor
@@ -365,7 +367,7 @@ export function BookingServicesSection({ content, ctx }: { content: PublicSiteSe
   const headingColor = hexStyle(content.headingColor)
   return (
     <section className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
-      <div className="mx-auto max-w-2xl space-y-3">
+      <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">
         <h2
           className={
             headingColor
@@ -397,7 +399,7 @@ export function BookingServicesSection({ content, ctx }: { content: PublicSiteSe
 export function EmptyPublicServicesSection() {
   return (
     <section id="servicos" className="px-4 py-10" data-testid="public-services-empty">
-      <div className="mx-auto max-w-2xl rounded-2xl border border-dashed border-border/60 bg-muted/20 px-5 py-8 text-center">
+      <div className="mx-auto max-w-2xl lg:max-w-4xl rounded-2xl border border-dashed border-border/60 bg-muted/20 px-5 py-8 text-center">
         <h2 className="text-base font-semibold text-foreground">Serviços</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Este escritório ainda não publicou serviços. Volte mais tarde ou use o contacto abaixo, se disponível.
@@ -414,7 +416,7 @@ export function FeaturesSection({ content }: { content: PublicSiteFeaturesConten
   const textColor = hexStyle(content.textColor)
   return (
     <section className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
-      <div className="mx-auto max-w-2xl space-y-3">
+      <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">
         <div className="grid gap-4 sm:grid-cols-2">
           {content.items.map((it) => (
             <div key={it.id} className="rounded-xl border border-border/50 bg-card p-4">
@@ -451,7 +453,7 @@ export function ProcessSection({ content }: { content: PublicSiteProcessContent 
   const textColor = hexStyle(content.textColor)
   return (
     <section className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
-      <ol className="mx-auto max-w-2xl space-y-3">
+      <ol className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">
         {content.steps.map((step, index) => (
           <li key={step.id} className="flex gap-3 rounded-xl border border-border/50 bg-card p-4">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
@@ -491,7 +493,7 @@ export function FaqSection({ content }: { content: PublicSiteFaqContent }) {
   const textColor = hexStyle(content.textColor)
   return (
     <section className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
-      <div className="mx-auto max-w-2xl space-y-3">
+      <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">
         <h2
           className={
             titleColor
@@ -547,7 +549,7 @@ export function ContactSection({ content, ctx }: { content: PublicSiteContactCon
         color: text || undefined,
       }}
     >
-      <div className={`mx-auto max-w-2xl space-y-2 ${text ? '' : 'text-muted-foreground'}`}>
+      <div className={`mx-auto max-w-2xl lg:max-w-4xl space-y-2 ${text ? '' : 'text-muted-foreground'}`}>
         {rows.map(({ key, icon: Icon, label, href }) =>
           href ? (
             <a key={key} href={href} className="flex items-center justify-center gap-1.5 hover:opacity-80" style={text ? { color: text } : undefined}>
@@ -588,7 +590,7 @@ export function FooterSection({
       style={bg ? { backgroundColor: bg } : undefined}
     >
       {entries.length > 0 ? (
-        <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-center gap-3 px-4 py-8">
+        <div className="mx-auto flex max-w-2xl lg:max-w-4xl flex-wrap items-center justify-center gap-3 px-4 py-8">
           {entries.map(({ key, href, label, Icon }) => (
             <a
               key={key}
@@ -607,7 +609,7 @@ export function FooterSection({
         <div className="pt-6" />
       )}
       <div
-        className="mx-auto flex max-w-2xl flex-col items-center gap-2 px-4 pb-6 text-center text-xs"
+        className="mx-auto flex max-w-2xl lg:max-w-4xl flex-col items-center gap-2 px-4 pb-6 text-center text-xs"
         style={text ? { color: text } : undefined}
       >
         {ctx.complaintsBookUrl ? (

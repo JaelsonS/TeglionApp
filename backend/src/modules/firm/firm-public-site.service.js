@@ -86,6 +86,7 @@ function normalizeSectionContent(type, raw) {
   switch (type) {
     case 'hero':
       return {
+        title: content.title ? String(content.title).trim().slice(0, 120) : '',
         tagline: content.tagline ? String(content.tagline).trim().slice(0, 160) : '',
         bio: content.bio ? String(content.bio).trim().slice(0, 2000) : '',
         imageIds: Array.isArray(content.imageIds) ? content.imageIds.slice(0, 5).map((id) => String(id).slice(0, 80)) : [],
@@ -169,6 +170,11 @@ function normalizeSectionContent(type, raw) {
         textColor: normalizeOptionalHex(content.textColor),
       };
     case 'header':
+      return {
+        title: content.title ? String(content.title).trim().slice(0, 120) : '',
+        backgroundColor: normalizeOptionalHex(content.backgroundColor),
+        textColor: normalizeOptionalHex(content.textColor),
+      };
     case 'footer':
       return {
         backgroundColor: normalizeOptionalHex(content.backgroundColor),
@@ -251,8 +257,8 @@ function normalizeSocialLinks(raw) {
  */
 function defaultSections() {
   return [
-    { key: generateStableId('sec_'), type: 'header', enabled: true, order: 0, content: { backgroundColor: null, textColor: null } },
-    { key: generateStableId('sec_'), type: 'hero', enabled: true, order: 1, content: { tagline: '', bio: '', imageIds: [], ctas: [] } },
+    { key: generateStableId('sec_'), type: 'header', enabled: true, order: 0, content: { title: '', backgroundColor: null, textColor: null } },
+    { key: generateStableId('sec_'), type: 'hero', enabled: true, order: 1, content: { title: '', tagline: '', bio: '', imageIds: [], ctas: [] } },
     { key: generateStableId('sec_'), type: 'about', enabled: false, order: 2, content: { heading: '', body: '', imageIds: [] } },
     { key: generateStableId('sec_'), type: 'services', enabled: true, order: 3, content: { heading: 'Consultorias com agendamento', mode: 'auto' } },
     { key: generateStableId('sec_'), type: 'bookingServices', enabled: true, order: 4, content: { heading: 'Outros serviços', mode: 'auto' } },

@@ -774,7 +774,16 @@ function SectionEditorSwitch({
     case 'contact':
       return <ContactEditor content={section.content} onChange={onChange} />
     case 'header':
-      return <ChromeSectionEditor content={section.content} onChange={onChange} title="Cabeçalho" />
+      return (
+        <ChromeSectionEditor
+          content={section.content}
+          onChange={onChange}
+          title="Cabeçalho"
+          showTitleField
+          titleFieldLabel="Texto do cabeçalho (esquerda)"
+          titlePlaceholder="Ex.: Maya Contabilidade"
+        />
+      )
     case 'footer':
       return <ChromeSectionEditor content={section.content} onChange={onChange} title="Rodapé" />
     default:

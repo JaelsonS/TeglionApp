@@ -60,13 +60,19 @@ export type PublicSiteProcessStep = {
 }
 
 export type PublicSiteHeroContent = {
+  /**
+   * Título principal (H1) no destaque.
+   * Vazio → cai no nome público do escritório (`displayName` / `firm.name`).
+   * Pode diferir do texto do cabeçalho (`header.title`).
+   */
+  title?: string
   tagline: string
   bio: string
   imageIds: string[]
   ctas: PublicSiteCta[]
   /** Fundo da zona hero (quando não há foto, ou por baixo/junto da foto). */
   backgroundColor?: string | null
-  /** Cor do nome do escritório no hero. */
+  /** Cor do título (H1) no hero. */
   titleColor?: string | null
   /** Cor da frase de destaque. */
   taglineColor?: string | null
@@ -116,8 +122,17 @@ export type PublicSiteContactContent = {
   textColor?: string | null
 }
 
-/** Cabeçalho / rodapé — só cores (logótipo e redes vêm de outros sítios). */
+/**
+ * Cabeçalho / rodapé.
+ * Cores + texto opcional no cabeçalho (no rodapé o texto continua a ser o nome legal/público).
+ */
 export type PublicSiteChromeContent = {
+  /**
+   * Texto à esquerda no cabeçalho (marca curta).
+   * Vazio → cai no nome público do escritório.
+   * Independente do H1 do hero (`hero.title`).
+   */
+  title?: string
   backgroundColor?: string | null
   textColor?: string | null
 }
