@@ -85,6 +85,12 @@ const FirmLayout = lazy(() => import('@/features/firm/FirmLayout').then((m) => (
 const FirmSettingsPage = lazy(() =>
   import('@/features/firm/pages/FirmSettingsPage').then((m) => ({ default: m.FirmSettingsPage })),
 )
+const FirmHelpSupportPage = lazy(() =>
+  import('@/features/firm/support/FirmSupportPages').then((m) => ({ default: m.FirmHelpSupportPage })),
+)
+const FirmAboutPage = lazy(() =>
+  import('@/features/firm/support/FirmSupportPages').then((m) => ({ default: m.FirmAboutPage })),
+)
 const FirmMessagesPage = lazy(() =>
   import('@/features/firm/pages/FirmMessagesPage').then((m) => ({ default: m.FirmMessagesPage })),
 )
@@ -252,6 +258,8 @@ export function ContabilAppRouter() {
                 <Route path="irs" element={<FirmIrsPage />} />
                 <Route path="services" element={<FirmServiceRequestsPage />} />
                 <Route path="settings" element={<FirmSettingsPage />} />
+                <Route path="ajuda" element={<FirmHelpSupportPage />} />
+                <Route path="sobre" element={<FirmAboutPage />} />
               </Route>
               <Route path="billing" element={<FirmBillingPage />} />
             </Route>

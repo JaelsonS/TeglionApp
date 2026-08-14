@@ -26,7 +26,7 @@ export const MAYA_INTENTS: MayaIntent[] = [
       'Publique um serviço e receba o primeiro pedido',
     ],
     deepLink: '/app/firm/dashboard',
-    relatedIntents: ['public-page', 'service', 'settings'],
+    relatedIntents: ['public-page', 'service', 'settings', 'human-support'],
   },
   {
     id: 'settings',
@@ -284,6 +284,20 @@ export const MAYA_INTENTS: MayaIntent[] = [
     deepLink: '/app/firm/news',
     relatedIntents: ['alerts', 'clients'],
   },
+  {
+    id: 'human-support',
+    title: 'Falar com uma pessoa',
+    shortDescription: 'suporte humano Teglion',
+    answer:
+      'Se preferir falar directamente com uma pessoa da nossa equipa, use WhatsApp, email ou telefone — canais oficiais do Teglion / AfDigital. Eu sou a Maya, a assistente guiada: ajudo a navegar no produto, mas não substituo o suporte humano.',
+    steps: [
+      'Abrir Ajuda e suporte no escritório',
+      'Escolher WhatsApp, email ou telefone',
+      'Ou pedir «? Maya» noutro módulo se for só orientação no produto',
+    ],
+    deepLink: '/app/firm/ajuda',
+    relatedIntents: ['tour', 'settings'],
+  },
 ]
 
 /** Intent sugerido por módulo / ecrã. */
@@ -304,6 +318,8 @@ export const MAYA_MODULE_INTENT: Record<string, string> = {
   billing: 'billing',
   alerts: 'alerts',
   news: 'news',
+  help: 'human-support',
+  support: 'human-support',
 }
 
 export function getMayaIntent(id: string): MayaIntent | undefined {

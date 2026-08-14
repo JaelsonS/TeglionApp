@@ -4,7 +4,9 @@ import {
   Building2,
   CreditCard,
   Globe,
+  HelpCircle,
   ImageIcon,
+  Info,
   Shield,
   User,
   Users,
@@ -22,6 +24,7 @@ import { FirmSettingsProfileSection } from '@/features/firm/settings/FirmSetting
 import { FirmSettingsTeamSection } from '@/features/firm/settings/FirmSettingsTeamSection'
 import { FirmSettingsNotificationsSection } from '@/features/firm/settings/FirmSettingsNotificationsSection'
 import { FirmConnectPaymentsSection } from '@/features/firm/settings/FirmConnectPaymentsSection'
+import { FirmAboutPanel, FirmHelpSupportPanel } from '@/features/firm/support/FirmSupportPanels'
 import { AskMayaButton } from '@/features/maya'
 import { PageHeader } from '@/shared/design-system'
 import { cn } from '@/shared/lib/utils'
@@ -34,6 +37,8 @@ const TABS = [
   { id: 'perfil', label: 'O seu perfil', shortLabel: 'Perfil', icon: User, danger: false },
   { id: 'equipa', label: 'Equipa', shortLabel: 'Equipa', icon: Users, danger: false },
   { id: 'notificacoes', label: 'Notificações', shortLabel: 'Avisos', icon: Shield, danger: false },
+  { id: 'ajuda', label: 'Ajuda e suporte', shortLabel: 'Ajuda', icon: HelpCircle, danger: false },
+  { id: 'sobre', label: 'Sobre o Teglion', shortLabel: 'Sobre', icon: Info, danger: false },
   { id: 'encerrar', label: 'Encerrar conta', shortLabel: 'Encerrar', icon: AlertTriangle, danger: true },
 ] as const
 
@@ -181,6 +186,10 @@ export function FirmSettingsPage() {
                     {activeTab === 'perfil' && 'Os seus dados de acesso e segurança.'}
                     {activeTab === 'equipa' && 'Colaboradores, cargos e departamentos.'}
                     {activeTab === 'notificacoes' && 'Alertas push e preferências de aviso.'}
+                    {activeTab === 'ajuda' &&
+                      'Maya, WhatsApp, email e telefone — suporte humano e assistente.'}
+                    {activeTab === 'sobre' &&
+                      'Teglion e AfDigital — Soluções Tecnológicas, site e redes oficiais.'}
                     {activeTab === 'encerrar' && 'Acção irreversível — encerra o escritório.'}
                   </p>
                 </div>
@@ -218,6 +227,10 @@ export function FirmSettingsPage() {
               {activeTab === 'equipa' ? <FirmSettingsTeamSection bundle={bundle} /> : null}
 
               {activeTab === 'notificacoes' ? <FirmSettingsNotificationsSection /> : null}
+
+              {activeTab === 'ajuda' ? <FirmHelpSupportPanel /> : null}
+
+              {activeTab === 'sobre' ? <FirmAboutPanel /> : null}
 
               {activeTab === 'encerrar' ? <FirmSettingsDangerZone bundle={bundle} /> : null}
             </div>
