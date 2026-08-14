@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
+import { AuthAgencyIdentity } from '@/shared/components/auth/AuthAgencyIdentity'
 import { AuthCard } from '@/shared/components/auth/AuthCard'
 import { AuthFooter } from '@/shared/components/auth/AuthFooter'
 import { AuthHeader } from '@/shared/components/auth/AuthHeader'
@@ -301,11 +302,12 @@ export function RecoverPasswordPage() {
         </AuthCard>
 
         <AuthFooter className="mt-6">
-          <Link to={backToLoginHref} className="font-semibold text-slate-900 hover:underline">
-            {copy.actions.backToLogin}
-          </Link>
-          <span className="mx-2">·</span>
-          <span>© {new Date().getFullYear()} {copy.brand}</span>
+          <AuthAgencyIdentity />
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm">
+            <Link to={backToLoginHref} className="font-semibold text-slate-900 hover:underline">
+              {copy.actions.backToLogin}
+            </Link>
+          </div>
         </AuthFooter>
       </div>
     </AuthLayout>

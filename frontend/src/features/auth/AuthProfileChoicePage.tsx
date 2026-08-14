@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Building2, ChevronRight, ShieldCheck, UserCircle2 } from 'lucide-react'
 
 import { BrandMark } from '@/shared/components/brand/BrandMark'
+import { AuthAgencyIdentity } from '@/shared/components/auth/AuthAgencyIdentity'
 import { getInitialAppLocale } from '@/shared/i18n/appLocale'
 import { cn } from '@/shared/lib/utils'
 import { type AuthIntent, type AuthProfile, resolveAuthTarget } from '@/shared/constants/authPaths'
@@ -74,6 +75,10 @@ export function AuthProfileChoicePage() {
           <Link to="/" className="mt-10 inline-block text-sm font-medium text-slate-500 underline-offset-4 hover:underline">
             {copy.back}
           </Link>
+
+          <div className="mt-8">
+            <AuthAgencyIdentity />
+          </div>
         </main>
       </div>
     </div>

@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { MailCheck } from 'lucide-react'
 
+import { AuthAgencyIdentity } from '@/shared/components/auth/AuthAgencyIdentity'
 import { AuthCard } from '@/shared/components/auth/AuthCard'
 import { AuthDivider } from '@/shared/components/auth/AuthDivider'
 import { AuthFooter } from '@/shared/components/auth/AuthFooter'
@@ -263,7 +264,8 @@ export function FirmRegisterPage() {
         </AuthCard>
 
         <AuthFooter className="mt-6">
-          <Link to={authProfileChoiceUrl('login')} className="font-semibold text-slate-900 hover:underline">
+          <AuthAgencyIdentity />
+          <Link to={authProfileChoiceUrl('login')} className="mt-3 block font-semibold text-slate-900 hover:underline">
             Voltar à escolha de perfil
           </Link>
         </AuthFooter>

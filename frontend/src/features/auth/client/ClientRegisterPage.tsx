@@ -1,10 +1,11 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Mail, UserCircle2 } from 'lucide-react'
 
+import { AuthAgencyIdentity } from '@/shared/components/auth/AuthAgencyIdentity'
 import { authClientLoginUrl, authProfileChoiceUrl } from '@/shared/constants/authPaths'
 import { getAuthProfileCopy, toAuthProfileLocale } from '@/features/auth/authProfileI18n'
 import { getInitialAppLocale } from '@/shared/i18n/appLocale'
-import { useMemo } from 'react'
 
 export function ClientRegisterPage() {
   const locale = useMemo(() => toAuthProfileLocale(getInitialAppLocale()), [])
@@ -46,6 +47,10 @@ export function ClientRegisterPage() {
         >
           Voltar à escolha de perfil
         </Link>
+
+        <div className="mt-8">
+          <AuthAgencyIdentity />
+        </div>
       </div>
     </div>
   )

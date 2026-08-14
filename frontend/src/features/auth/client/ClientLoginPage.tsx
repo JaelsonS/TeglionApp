@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import type { CheckedState } from '@radix-ui/react-checkbox'
 import { isAxiosError } from 'axios'
 
+import { AuthAgencyIdentity } from '@/shared/components/auth/AuthAgencyIdentity'
 import { AuthCard } from '@/shared/components/auth/AuthCard'
 import { AuthFooter } from '@/shared/components/auth/AuthFooter'
 import { AuthHeader } from '@/shared/components/auth/AuthHeader'
@@ -247,13 +248,16 @@ export function ClientLoginPage() {
         </AuthCard>
 
         <AuthFooter className="mt-6">
-          <Link to={authClientRegisterUrl()} className="font-semibold text-slate-900 hover:underline">
-            Primeiro acesso
-          </Link>
-          <span className="mx-2">·</span>
-          <Link to={authProfileChoiceUrl('login')} className="hover:underline">
-            {t.auth.backChoice}
-          </Link>
+          <AuthAgencyIdentity />
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm">
+            <Link to={authClientRegisterUrl()} className="font-semibold text-slate-900 hover:underline">
+              Primeiro acesso
+            </Link>
+            <span aria-hidden>·</span>
+            <Link to={authProfileChoiceUrl('login')} className="hover:underline">
+              {t.auth.backChoice}
+            </Link>
+          </div>
         </AuthFooter>
       </div>
     </AuthLayout>
