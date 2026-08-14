@@ -6,8 +6,8 @@ import { FirmSidebar } from '@/features/firm/FirmSidebar'
 import { FirmTabletRail } from '@/features/firm/FirmTabletRail'
 import { FirmTopbar } from '@/features/firm/FirmTopbar'
 import { FIRM_SHELL_CHROME_CLASSES } from '@/features/firm/firmShellChrome'
+import { FirmShellFooter } from '@/features/firm/support/FirmShellFooter'
 import { MayaAssistant } from '@/features/maya'
-import { AgencyCredit } from '@/shared/components/agency/AgencyCredit'
 import { PageRouteFallback } from '@/shared/components/layout/PageRouteFallback'
 import { LiveEventsProvider } from '@/shared/providers/LiveEventsProvider'
 
@@ -57,8 +57,8 @@ export function FirmLayout() {
             </div>
           </main>
 
-          <div className="shrink-0 border-t border-border bg-card px-3 py-2 md:px-4">
-            <AgencyCredit surface="firm" />
+          <div className="shrink-0 border-t border-border bg-card">
+            <FirmShellFooter />
           </div>
 
           <div className={FIRM_SHELL_CHROME_CLASSES.mobileNavHost} data-testid="firm-mobile-nav-host">
