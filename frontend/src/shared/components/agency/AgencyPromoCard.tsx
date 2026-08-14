@@ -1,5 +1,6 @@
-import { ExternalLink, Sparkles } from 'lucide-react'
+import { ExternalLink as ExternalLinkIcon, Sparkles } from 'lucide-react'
 
+import { AgencyNameLink } from '@/shared/components/agency/AgencyNameLink'
 import { AGENCY } from '@/shared/config/agency'
 import { trackProductEvent } from '@/shared/utils/productAnalytics'
 
@@ -15,7 +16,7 @@ export function AgencyPromoCard() {
       </div>
       <p className="px-3.5 text-sm text-muted-foreground">{AGENCY.promoBody}</p>
       <p className="mt-1 px-3.5 text-xs font-medium text-foreground/70">
-        {AGENCY.displayName}
+        <AgencyNameLink className="text-foreground/70" />
       </p>
       <a
         href={AGENCY.url}
@@ -25,7 +26,7 @@ export function AgencyPromoCard() {
         onClick={() => trackProductEvent('agency_click', { surface: 'firm', placement: 'promo' })}
       >
         {AGENCY.promoCta}
-        <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+        <ExternalLinkIcon className="h-3.5 w-3.5" aria-hidden />
       </a>
     </section>
   )

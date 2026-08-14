@@ -182,36 +182,36 @@ export function FirmRegisterPage() {
             <>
               <AuthHeader
                 title="Criar conta de escritório"
-                subtitle="Insira os dados básicos e aceite os termos legais para começar."
+                subtitle="Crie a sua conta para começar a utilizar o Teglion, uma plataforma de gestão para escritórios de contabilidade."
               />
 
-              <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-                Depois de criar a conta, confirma o e-mail — só assim o acesso fica activo. Com Google, o e-mail
-                já vem confirmado.
+              <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs leading-relaxed text-slate-600">
+                Depois de criar a conta, confirme o e-mail para activar o acesso. Com Google, o e-mail já vem
+                confirmado.
               </div>
 
-              <form id="email-register" className="mt-8 space-y-5" onSubmit={(e) => void onSubmit(e)}>
+              <form id="email-register" className="mt-6 space-y-4" onSubmit={(e) => void onSubmit(e)}>
                 <div>
                   <Label htmlFor="firmName">{t.auth.firmName}</Label>
-                  <Input id="firmName" className="mt-3" {...form.register('firmName')} />
+                  <Input id="firmName" className="mt-1.5" {...form.register('firmName')} />
                   {form.formState.errors.firmName ? (
-                    <p className="mt-2 text-sm text-red-600">{form.formState.errors.firmName.message}</p>
+                    <p className="mt-1.5 text-sm text-red-600">{form.formState.errors.firmName.message}</p>
                   ) : null}
                 </div>
 
                 <div>
                   <Label htmlFor="ownerName">{t.auth.ownerName}</Label>
-                  <Input id="ownerName" className="mt-3" {...form.register('ownerName')} />
+                  <Input id="ownerName" className="mt-1.5" {...form.register('ownerName')} />
                 </div>
 
                 <div>
                   <Label htmlFor="email">{t.auth.email}</Label>
-                  <Input id="email" type="email" autoComplete="email" className="mt-3" {...form.register('email')} />
+                  <Input id="email" type="email" autoComplete="email" className="mt-1.5" {...form.register('email')} />
                 </div>
 
                 <div>
                   <Label htmlFor="password">{t.auth.password}</Label>
-                  <div className="mt-3">
+                  <div className="mt-1.5">
                     <PasswordInput id="password" autoComplete="new-password" {...form.register('password')} />
                   </div>
                 </div>

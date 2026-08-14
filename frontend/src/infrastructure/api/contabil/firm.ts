@@ -82,6 +82,7 @@ export function createContabilFirmApi(api: AxiosInstance) {
       ownerName?: string
       countryCode?: string
       turnstileToken?: string
+      pendingToken?: string
       legalConsents: {
         terms: boolean
         privacy: boolean
@@ -94,7 +95,13 @@ export function createContabilFirmApi(api: AxiosInstance) {
           cookies: string
         }
       }
-    }) => api.post('/auth/register-firm-google', payload).then((r) => r.data),
+    }) => {
+      const { pendingToken, ...body } = payload
+      const headers = pendingToken ? { 'X-OAuth-Pending': pendingToken } : undefined
+      return api
+        .post('/auth/register-firm-google', { ...body, ...(pendingToken ? { pendingToken } : {}) }, { headers })
+        .then((r) => r.data)
+    },
   }
 }
 

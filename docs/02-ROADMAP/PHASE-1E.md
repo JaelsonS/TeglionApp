@@ -2,8 +2,8 @@
 
 **Branch:** `feature/fase-1`  
 **Ambiente:** staging only — sem produção / sem merge para `main`.  
-**STATUS:** **IN PROGRESS** — Bloco 1 (Shell tablet rail) implementado no código.  
-Blocos 2–7 e **browser QA staging** ainda pendentes. Não declarar CLOSED sem QA nos 7 breakpoints.
+**STATUS:** **IN PROGRESS** — Bloco 1 (Shell tablet rail) **código + QA staging autenticado PASS** (7 breakpoints).  
+Blocos 2–7 ainda pendentes. Não declarar Fase 1E CLOSED sem QA completo das superfícies.
 
 **Dependências fechadas:** Fase 1A (segurança) · 1B (Design System) · 1C (onboarding/dashboard) · 1D (serviços/IRS captação)
 
@@ -281,21 +281,20 @@ Exemplos:
 - Contrato testável `firmShellChrome.ts`
 
 **Smoke browser live (2026-08-14):**
-- Script: `frontend/scripts/bloco1-staging-shell-qa.mjs`
-- Vitest `firmShellChrome.test.ts`: **PASS** (7 widths → mobile/tablet/desktop)
-- Staging Playwright sem sessão: **PARTIAL** — nos 7 breakpoints (375–1440) redirect para `/auth/firm/login`, formulário visível, **sem scroll horizontal**
-- Shell autenticado (rail tablet / bottom nav / sidebar): **BLOCKED** — falta `STAGING_EMAIL` + `STAGING_PASSWORD` (ou UAT humano logado)
+- Script: `frontend/scripts/bloco1-staging-shell-qa.mjs` (login API in-page; Turnstile headless bypass)
+- Vitest `firmShellChrome.test.ts`: **PASS**
+- Staging Playwright **autenticado**: **PASS** — 7/7 widths
+  - 375 / 390 / 430 → mobile nav, sem rail, sem sidebar, sem H-scroll
+  - 768 / 1024 → tablet rail (`flex`), sem bottom nav, sem sidebar desktop
+  - 1280 / 1440 → sidebar desktop, sem rail, sem bottom nav
+- Console: sem erros relevantes no dashboard após login
 
-```bash
-STAGING_EMAIL=… STAGING_PASSWORD=… node frontend/scripts/bloco1-staging-shell-qa.mjs
-```
-
-**Não avançar para Bloco 2** até chrome autenticado PASS nos 7 widths (ou UAT humano com checklist E).
+**Bloco 1 (chrome shell):** validação staging **OK** — pode avançar para Bloco 2 (Dashboard) quando aprovares.
 
 ---
 
 ## K. Próximo passo
 
-1. Completar Bloco 1 QA autenticado (credenciais staging ou checklist manual)
+1. ~~Completar Bloco 1 QA autenticado~~ ✅  
 2. Bloco 2 — Dashboard overflow/densidade  
 3. … até Browser QA staging completo → CLOSED  

@@ -51,8 +51,8 @@ Duplicar o Web Service de produção com nome `teglion-api-staging`:
 | `PRODUCT_MODE` | `contabil` |
 | `FRONTEND_URL` | `https://staging.teglion.com` (https, nunca http) |
 | `PUBLIC_API_URL` | `https://teglion-api-staging.onrender.com` |
-| `GOOGLE_OAUTH_REDIRECT_URI` | `https://teglion-api-staging.onrender.com/api/auth/google/callback` — callback no host Render (cookies OAuth); o SPA usa same-origin `/api` para XHR e URL absoluta Render só em navegação Google |
-| `GOOGLE_CALENDAR_REDIRECT_URI` | `https://teglion-api-staging.onrender.com/api/contabil/integrations/google-calendar/callback` |
+| `GOOGLE_OAUTH_REDIRECT_URI` | `https://staging.teglion.com/api/auth/google/callback` — **first-party** via rewrite Vercel (evita cookie no host Render invisível ao SPA). Manter também o URI Render na Google Console só durante migração. |
+| `GOOGLE_CALENDAR_REDIRECT_URI` | `https://staging.teglion.com/api/contabil/integrations/google-calendar/callback` |
 | `COOKIE_DOMAIN` | vazio (cookies host-only; com SPA same-origin em `staging.teglion.com` o rewrite Vercel grava cookies nesse host) |
 | `TURNSTILE_EXPECTED_HOSTNAMES` | `staging.teglion.com` |
 | `PUBLIC_API_URL` | `https://teglion-api-staging.onrender.com` |

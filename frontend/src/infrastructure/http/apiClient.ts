@@ -46,9 +46,12 @@ export function getApiUploadsRoot(): string {
 }
 
 /**
- * Full-page OAuth (Google SSO / Calendar) must hit the Render host directly on staging:
- * callback cookies live on `*.onrender.com`, not on the Vercel rewrite host.
- * XHR/fetch uses same-origin `/api` via apiBase (first-party cookies).
+ * Full-page OAuth (Google SSO / Calendar) on staging still starts on the Render host
+ * while `GOOGLE_OAUTH_REDIRECT_URI` aponta para `*.onrender.com` (state cookie same-host).
+ * XHR usa `/api` same-origin. O registo Google nova conta usa token `?pending=` +
+ * header `X-OAuth-Pending` porque o cookie pendente no Render não chega ao SPA.
+ * Migração: redirect URI → `https://staging.teglion.com/api/auth/google/callback`
+ * e então trocar esta base para `${window.location.origin}/api` (ver GOOGLE_SSO_SETUP.md).
  */
 const STAGING_API_BASE = 'https://teglion-api-staging.onrender.com/api'
 const PROD_SAME_ORIGIN_HOSTS = ['teglion.com', 'www.teglion.com', 'app.teglion.com']

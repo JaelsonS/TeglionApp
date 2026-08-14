@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom'
 
+import { AgencyNameLink, AgencyProductLine } from '@/shared/components/agency/AgencyNameLink'
+import { ExternalLink } from '@/shared/components/agency/ExternalLink'
 import { FadeInView } from '@/shared/components/landing/FadeInView'
 import { AGENCY } from '@/shared/config/agency'
 import { BRAND } from '@/shared/config/brand'
-import { agencyWebsiteUrl, teglionProductOfAgencyLine } from '@/shared/config/supportLinks'
-import { openExternalUrl } from '@/shared/utils/openExternalUrl'
+import { agencyWebsiteUrl } from '@/shared/config/supportLinks'
 
 /**
  * Transparência comercial — identidade produto/empresa sem matriz jurídica pesada.
@@ -29,11 +30,13 @@ export function LandingTrust() {
           >
             Uma plataforma da {AGENCY.name}
           </h2>
-          <p className="mt-2 text-sm font-medium text-[#0F2942]/80">{teglionProductOfAgencyLine()}</p>
+          <p className="mt-2 text-sm font-medium text-[#0F2942]/80">
+            <AgencyProductLine linkClassName="text-[#0F2942] hover:text-[#C9932E]" />
+          </p>
           <p className="mt-5 text-[15px] leading-relaxed text-[#4A5568] sm:text-base">
             O {BRAND.name} é uma plataforma de gestão para escritórios de contabilidade, desenvolvida e
-            operada pela {AGENCY.displayName}. {BRAND.name} é o nome do produto — não uma empresa
-            independente.
+            operada pela <AgencyNameLink className="text-[#0F2942]" />. {BRAND.name} é o nome do
+            produto — não uma empresa independente.
           </p>
           <p className="mt-4 text-[15px] leading-relaxed text-[#4A5568] sm:text-base">
             Cada escritório mantém a responsabilidade pelas informações, documentos e dados que
@@ -56,13 +59,12 @@ export function LandingTrust() {
             .
           </p>
           {site ? (
-            <button
-              type="button"
-              className="mt-6 text-sm font-semibold text-[#0F2942] underline-offset-4 hover:underline"
-              onClick={() => openExternalUrl(site)}
+            <ExternalLink
+              href={site}
+              className="mt-6 inline-block text-sm font-semibold text-[#0F2942] underline-offset-4 hover:underline"
             >
               Conhecer a AfDigital
-            </button>
+            </ExternalLink>
           ) : null}
         </FadeInView>
       </div>
