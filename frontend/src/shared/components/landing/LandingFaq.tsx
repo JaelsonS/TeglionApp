@@ -1,15 +1,23 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
+import { AgencyNameLink } from '@/shared/components/agency/AgencyNameLink'
 import { FadeInView } from '@/shared/components/landing/FadeInView'
 import { cn } from '@/shared/lib/utils'
 import { PRICING_TEXT } from '@/shared/config/pricingConstants'
 
-const FAQ = [
+const FAQ: { q: string; a: ReactNode }[] = [
   {
     q: 'Quem desenvolve o Teglion?',
-    a: 'O Teglion é uma plataforma de gestão para escritórios de contabilidade, desenvolvida e operada pela AfDigital — Soluções Tecnológicas. Teglion é o nome do produto — não uma empresa independente. Cada escritório continua responsável pelos dados e pela utilização que faz do serviço; o detalhe está nos Termos e na Política de Privacidade.',
+    a: (
+      <>
+        O Teglion é uma plataforma de gestão para escritórios de contabilidade, desenvolvida e operada
+        pela <AgencyNameLink className="text-[#0F2942]" />. Teglion é o nome do produto — não uma
+        empresa independente. Cada escritório continua responsável pelos dados e pela utilização que
+        faz do serviço; o detalhe está nos Termos e na Política de Privacidade.
+      </>
+    ),
   },
   {
     q: 'Quanto custa depois do teste?',
@@ -51,9 +59,9 @@ const FAQ = [
     q: 'Têm suporte em português?',
     a: 'Sim — suporte por email em dias úteis, em português, por quem conhece o dia a dia de um escritório.',
   },
-] as const
+]
 
-function FaqItem({ q, a }: { q: string; a: string }) {
+function FaqItem({ q, a }: { q: string; a: ReactNode }) {
   const [open, setOpen] = useState(false)
   return (
     <div className="border-b border-[#0F2942]/10">

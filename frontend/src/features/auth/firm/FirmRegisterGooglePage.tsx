@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 import { isAxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
@@ -32,6 +32,12 @@ import { SUPPORTED_COUNTRIES, type CountryCode } from '@/shared/config/country/c
 import { api } from '@/infrastructure/http/apiClient'
 import { getGoogleAuthStartUrl } from '@/infrastructure/api'
 import { GoogleAuthButton } from '@/shared/components/auth/GoogleAuthButton'
+import { Sentry } from '@/shared/lib/sentry'
+import {
+  clearStoredOAuthPendingToken,
+  oauthPendingHeaders,
+  readStoredOAuthPendingToken,
+} from '@/features/auth/firm/oauthPendingToken'
 
 const schema = z.object({
   firmName: z.string().min(2, 'Nome do escritório obrigatório'),
@@ -46,12 +52,37 @@ type PendingGoogle = {
   countryCode: CountryCode
 }
 
+function reportPendingMissing(reason: string, err?: unknown) {
+  if (!Sentry) return
+  try {
+    Sentry.withScope((scope) => {
+      scope.setLevel('error')
+      scope.setTag('auth.flow', 'google_sso')
+      scope.setTag('auth.code', 'SSO_PENDING_NOT_FOUND')
+      scope.setContext('google_register', {
+        reason,
+        path: typeof window !== 'undefined' ? window.location.pathname : '',
+        hasStoredToken: Boolean(readStoredOAuthPendingToken()),
+      })
+      if (err instanceof Error) {
+        Sentry.captureException(err)
+      } else {
+        Sentry.captureMessage(`Google firm register: sessão pendente em falta (${reason})`)
+      }
+    })
+  } catch {
+    /* ignore */
+  }
+}
+
 export function FirmRegisterGooglePage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { setSession } = useAuth()
   const [submitting, setSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
   const [pending, setPending] = useState<PendingGoogle | null>(null)
+  const [pendingToken, setPendingToken] = useState<string | null>(null)
   const [legal, setLegal] = useState<FirmLegalConsentState>(emptyFirmLegalConsent)
   const [legalError, setLegalError] = useState<string | null>(null)
   const [turnstileToken, setTurnstileToken] = useState('')
@@ -65,8 +96,21 @@ export function FirmRegisterGooglePage() {
 
   useEffect(() => {
     let cancelled = false
+    const fromQuery = searchParams.get('pending')
+    const token = readStoredOAuthPendingToken()
+    if (fromQuery) {
+      setPendingToken(fromQuery.trim())
+      const next = new URLSearchParams(searchParams)
+      next.delete('pending')
+      setSearchParams(next, { replace: true })
+    } else if (token) {
+      setPendingToken(token)
+    }
+
     void api
-      .get<{ email: string; ownerName: string; countryCode?: CountryCode }>('/auth/google/pending')
+      .get<{ email: string; ownerName: string; countryCode?: CountryCode }>('/auth/google/pending', {
+        headers: oauthPendingHeaders(token || fromQuery),
+      })
       .then((res) => {
         if (cancelled) return
         const data = res.data
@@ -81,8 +125,11 @@ export function FirmRegisterGooglePage() {
           ownerName: data.ownerName || '',
         })
       })
-      .catch(() => {
-        if (!cancelled) setPending(null)
+      .catch((err) => {
+        if (cancelled) return
+        setPending(null)
+        clearStoredOAuthPendingToken()
+        reportPendingMissing('pending_fetch_failed', err)
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -90,7 +137,9 @@ export function FirmRegisterGooglePage() {
     return () => {
       cancelled = true
     }
-  }, [form])
+    // Carregar uma vez ao montar (token na URL / sessionStorage).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const onSubmit = form.handleSubmit(async (values) => {
     if (!pending) return
@@ -101,6 +150,7 @@ export function FirmRegisterGooglePage() {
     setLegalError(null)
     setSubmitting(true)
     try {
+      const token = pendingToken || readStoredOAuthPendingToken()
       const res = await contabilFirmApi.registerWithGoogle(
         withTurnstileToken(
           {
@@ -108,10 +158,12 @@ export function FirmRegisterGooglePage() {
             ownerName: values.ownerName.trim(),
             countryCode,
             legalConsents: buildFirmLegalConsentPayload(legal),
+            ...(token ? { pendingToken: token } : {}),
           },
           turnstileToken,
         ),
       )
+      clearStoredOAuthPendingToken()
       if (!setSession(res.user)) {
         toast.warning('Conta criada. Inicie sessão com Google novamente.')
         navigate(authFirmLoginUrl(), { replace: true })
@@ -133,7 +185,11 @@ export function FirmRegisterGooglePage() {
         const status = err.response?.status
         const code = String((err.response?.data as { code?: string })?.code || '').toUpperCase()
         if (status === 409) title = 'Este e-mail Google já está registado'
-        if (code === 'SSO_PENDING_NOT_FOUND') title = 'Sessão Google expirada — tente de novo'
+        if (code === 'SSO_PENDING_NOT_FOUND') {
+          title = 'Sessão Google expirada — tente de novo'
+          clearStoredOAuthPendingToken()
+          reportPendingMissing('register_submit_pending_missing', err)
+        }
         if (code === 'LEGAL_CONSENT_INCOMPLETE') title = 'Aceite todos os documentos legais'
         if (code.startsWith('TURNSTILE_')) title = 'Verificação de segurança falhou. Actualize a página e tente de novo.'
       }
@@ -145,16 +201,10 @@ export function FirmRegisterGooglePage() {
 
   if (loading) {
     return (
-      <AuthLayout
-        title="A preparar registo..."
-        subtitle="A validar a sua conta Google."
-      >
+      <AuthLayout title="A preparar registo..." subtitle="A validar a sua conta Google.">
         <div className="mx-auto max-w-md">
           <AuthCard>
-            <AuthHeader
-              title="A preparar registo..."
-              subtitle="A validar a sua conta Google."
-            />
+            <AuthHeader title="A preparar registo..." subtitle="A validar a sua conta Google." />
             <div className="mt-8 h-24 animate-pulse rounded-xl bg-slate-100" />
           </AuthCard>
         </div>
@@ -197,16 +247,10 @@ export function FirmRegisterGooglePage() {
   }
 
   return (
-    <AuthLayout
-      title="Concluir escritório"
-      subtitle={`Conta Google: ${pending.email}`}
-    >
+    <AuthLayout title="Concluir escritório" subtitle={`Conta Google: ${pending.email}`}>
       <div className="mx-auto max-w-md">
         <AuthCard>
-          <AuthHeader
-            title="Concluir escritório"
-            subtitle={`Conta Google: ${pending.email}`}
-          />
+          <AuthHeader title="Concluir escritório" subtitle={`Conta Google: ${pending.email}`} />
 
           <form className="mt-8 space-y-4" onSubmit={(e) => void onSubmit(e)}>
             <div>

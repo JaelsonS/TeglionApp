@@ -1,10 +1,15 @@
 /**
- * Cookie assinado para concluir registo OAuth (Google) sem expor dados na URL.
+ * Cookie / token assinado para concluir registo OAuth (Google) sem expor dados em claro.
+ *
+ * Em staging, o callback Google corre no host Render e o SPA faz XHR same-origin
+ * em staging.teglion.com — o cookie host-only do Render não chega. Por isso o
+ * token assinado também vai no redirect (`?pending=`) e no header `X-OAuth-Pending`.
  */
 const crypto = require('crypto');
 const { env } = require('../config/env');
 
 const COOKIE_NAME = 'oauth_register_pending';
+const HEADER_NAME = 'x-oauth-pending';
 const TTL_MS = 15 * 60 * 1000;
 
 function signingSecret() {
@@ -19,13 +24,19 @@ function signPayload(payload) {
 
 function verifyToken(token) {
   if (!token || typeof token !== 'string') return null;
-  const dot = token.lastIndexOf('.');
+  const raw = String(token).trim();
+  if (!raw) return null;
+  const dot = raw.lastIndexOf('.');
   if (dot <= 0) return null;
-  const data = token.slice(0, dot);
-  const sig = token.slice(dot + 1);
+  const data = raw.slice(0, dot);
+  const sig = raw.slice(dot + 1);
   const expected = crypto.createHmac('sha256', signingSecret()).update(data).digest('base64url');
   if (sig.length !== expected.length) return null;
-  if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+  try {
+    if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+  } catch {
+    return null;
+  }
   try {
     const payload = JSON.parse(Buffer.from(data, 'base64url').toString('utf8'));
     if (!payload?.exp || Date.now() > payload.exp) return null;
@@ -46,20 +57,37 @@ function buildPendingRegistration({ email, ownerName, googleSub, countryCode = '
   };
 }
 
-function setPendingRegistrationCookie(res, req, profile) {
-  const payload = buildPendingRegistration(profile);
-  const token = signPayload(payload);
+function createPendingRegistrationToken(profile) {
+  return signPayload(buildPendingRegistration(profile));
+}
+
+function setPendingRegistrationCookie(res, req, profileOrToken) {
+  const token =
+    typeof profileOrToken === 'string' ? profileOrToken : createPendingRegistrationToken(profileOrToken);
   const { buildAuthCookieOptions } = require('./auth-cookies');
   res.cookie(COOKIE_NAME, token, {
     ...buildAuthCookieOptions(req),
     maxAge: TTL_MS,
     httpOnly: true,
   });
+  return token;
 }
 
 function readPendingRegistration(req) {
-  const token = req.cookies?.[COOKIE_NAME];
-  return verifyToken(token);
+  const fromCookie = verifyToken(req.cookies?.[COOKIE_NAME]);
+  if (fromCookie) return fromCookie;
+
+  const headerRaw = req.get?.(HEADER_NAME) || req.headers?.[HEADER_NAME];
+  const fromHeader = verifyToken(headerRaw);
+  if (fromHeader) return fromHeader;
+
+  const fromQuery = verifyToken(req.query?.pending);
+  if (fromQuery) return fromQuery;
+
+  const fromBody = verifyToken(req.body?.pendingToken);
+  if (fromBody) return fromBody;
+
+  return null;
 }
 
 function clearPendingRegistrationCookie(res, req) {
@@ -69,7 +97,10 @@ function clearPendingRegistrationCookie(res, req) {
 
 module.exports = {
   OAUTH_PENDING_COOKIE: COOKIE_NAME,
+  OAUTH_PENDING_HEADER: HEADER_NAME,
+  TTL_MS,
   setPendingRegistrationCookie,
+  createPendingRegistrationToken,
   readPendingRegistration,
   clearPendingRegistrationCookie,
   verifyToken,

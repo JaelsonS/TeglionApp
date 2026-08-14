@@ -130,3 +130,22 @@ Usa **dois OAuth clients** no Google Cloud (ou o mesmo client com **vários** re
 - Um redirect para API de produção
 
 Secrets diferentes em cada serviço Render — ver [BRANCHING.md](./BRANCHING.md).
+
+### Staging — cookies first-party (obrigatório)
+
+Em staging o SPA usa `/api` same-origin (`staging.teglion.com`). O callback Google **deve** ser no mesmo host:
+
+| Variável / consola | Valor |
+|--------------------|--------|
+| `GOOGLE_OAUTH_REDIRECT_URI` | `https://staging.teglion.com/api/auth/google/callback` |
+| Google Cloud → Redirect URIs | o mesmo URI |
+| `FRONTEND_URL` | `https://staging.teglion.com` |
+| `COOKIE_DOMAIN` | vazio (host-only em `staging.teglion.com`) |
+
+O rewrite Vercel `/api` → Render faz com que `Set-Cookie` fique first-party no domínio do SPA.
+
+**Registo Google (conta nova):** o callback também envia um token assinado em `?pending=` (e o SPA reenvia em `X-OAuth-Pending`). Isto evita a tela «Sessão Google expirada» quando o cookie OAuth ficou no host Render antigo.
+
+| Sintoma | Causa |
+|---------|--------|
+| `SSO_PENDING_NOT_FOUND` / «Sessão Google expirada» | Cookie pendente noutro host; token `pending` em falta ou expirado (15 min). Sentry: tag `auth.code=SSO_PENDING_NOT_FOUND`. |

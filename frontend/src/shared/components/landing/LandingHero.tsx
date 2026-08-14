@@ -4,8 +4,8 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { LandingScreenshot } from '@/shared/components/landing/LandingScreenshot'
 import { LANDING_SCREENS } from '@/shared/components/landing/landingScreens'
 import { authFirmRegisterUrl } from '@/shared/constants/authPaths'
+import { AgencyProductLine } from '@/shared/components/agency/AgencyNameLink'
 import { FadeInView } from '@/shared/components/landing/FadeInView'
-import { teglionProductOfAgencyLine } from '@/shared/config/supportLinks'
 
 export function LandingHero() {
   const reduce = useReducedMotion()
@@ -20,7 +20,7 @@ export function LandingHero() {
         <div className="grid items-center gap-8 sm:gap-12 lg:grid-cols-2 lg:gap-16">
           <FadeInView>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#C9932E]">
-              {teglionProductOfAgencyLine()}
+              <AgencyProductLine linkClassName="text-[#C9932E] hover:text-[#0F2942] normal-case tracking-normal" />
             </p>
             <h1 className="mt-3 max-w-xl text-[1.85rem] font-semibold leading-[1.12] text-[#0F2942] sm:text-[2.35rem] md:text-5xl lg:text-[3.25rem]">
               Um sistema. Zero saltos entre WhatsApp, email e links.

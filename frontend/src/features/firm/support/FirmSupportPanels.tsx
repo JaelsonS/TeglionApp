@@ -11,13 +11,13 @@ import {
 import { AskMayaButton } from '@/features/maya'
 import { AGENCY } from '@/shared/config/agency'
 import { BRAND } from '@/shared/config/brand'
+import { AgencyNameLink, AgencyProductLine } from '@/shared/components/agency/AgencyNameLink'
 import {
   agencySocialUrl,
   agencyWebsiteUrl,
   mailtoSupportUrl,
   supportEmailDisplay,
   supportPhoneDisplay,
-  teglionProductOfAgencyLine,
   telSupportUrl,
   whatsappSupportUrl,
 } from '@/shared/config/supportLinks'
@@ -29,7 +29,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/design-system'
-import { openExternalUrl } from '@/shared/utils/openExternalUrl'
 import { cn } from '@/shared/lib/utils'
 
 const ICON_CLASS = 'h-4 w-4 shrink-0 text-muted-foreground'
@@ -82,10 +81,6 @@ function ChannelRow({
         rel="noopener noreferrer"
         className={className}
         aria-label={ariaLabel}
-        onClick={(e) => {
-          e.preventDefault()
-          openExternalUrl(href)
-        }}
       >
         {body}
       </a>
@@ -136,10 +131,6 @@ export function FirmHelpSupportPanel({ className }: { className?: string }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Falar com o suporte pelo WhatsApp"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    openExternalUrl(wa)
-                  }}
                 >
                   <IconWhatsApp className="h-4 w-4 shrink-0" aria-hidden />
                   Falar pelo WhatsApp
@@ -209,12 +200,14 @@ export function FirmAboutPanel({ className }: { className?: string }) {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">{BRAND.name}</CardTitle>
-          <CardDescription>{teglionProductOfAgencyLine()}</CardDescription>
+          <CardDescription>
+            <AgencyProductLine linkClassName="text-foreground" />
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 text-sm leading-relaxed text-foreground">
           <p>
             O {BRAND.name} é uma plataforma de gestão para escritórios de contabilidade, desenvolvida e
-            operada pela {AGENCY.displayName}. {BRAND.name} é o nome do produto — não uma empresa
+            operada pela <AgencyNameLink />. {BRAND.name} é o nome do produto — não uma empresa
             independente.
           </p>
           <p className="text-muted-foreground">
@@ -222,7 +215,7 @@ export function FirmAboutPanel({ className }: { className?: string }) {
             documentos, comunicações e presença digital num único sistema.
           </p>
           <p className="text-xs text-muted-foreground">
-            Desenvolvido e operado por {AGENCY.displayName}.
+            Desenvolvido e operado por <AgencyNameLink className="text-muted-foreground" />.
           </p>
           {site ? (
             <Button type="button" variant="primary" size="sm" className="gap-1.5" asChild>
@@ -231,10 +224,6 @@ export function FirmAboutPanel({ className }: { className?: string }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Conhecer a AfDigital no site oficial"
-                onClick={(e) => {
-                  e.preventDefault()
-                  openExternalUrl(site)
-                }}
               >
                 <Globe className={ICON_CLASS} aria-hidden />
                 Conhecer a AfDigital

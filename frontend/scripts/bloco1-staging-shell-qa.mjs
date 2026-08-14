@@ -17,17 +17,45 @@ function band(w) {
   return 'desktop'
 }
 
+/**
+ * Login via fetch no browser (cookies + Origin correctos).
+ * Evita Turnstile no widget (headless deixa «Entrar» disabled).
+ * Em staging o backend faz skip Turnstile sem token.
+ */
 async function tryLogin(page) {
   if (!EMAIL || !PASSWORD) return false
   await page.goto(`${BASE}/auth/firm/login`, { waitUntil: 'domcontentloaded', timeout: 45_000 })
-  await page.waitForTimeout(1500)
-  const email = page.locator('input[type="email"], input[name="email"]').first()
-  const password = page.locator('input[type="password"], input[name="password"]').first()
-  if ((await email.count()) === 0 || (await password.count()) === 0) return false
-  await email.fill(EMAIL)
-  await password.fill(PASSWORD)
-  await page.locator('button[type="submit"]').first().click()
-  await page.waitForTimeout(4000)
+  await page.waitForTimeout(800)
+
+  const loginResult = await page.evaluate(async ({ email, password }) => {
+    const csrfRes = await fetch('/api/csrf', { credentials: 'include' })
+    if (!csrfRes.ok) {
+      return { ok: false, step: 'csrf', status: csrfRes.status, body: await csrfRes.text() }
+    }
+    const csrfJson = await csrfRes.json()
+    const token = csrfJson?.token
+    if (!token) return { ok: false, step: 'csrf', status: csrfRes.status, body: 'missing token' }
+
+    const loginRes = await fetch('/api/auth/login-firm', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': token,
+      },
+      body: JSON.stringify({ email, password, rememberMe: true }),
+    })
+    const body = await loginRes.text()
+    return { ok: loginRes.ok, step: 'login', status: loginRes.status, body: body.slice(0, 400) }
+  }, { email: EMAIL.trim().toLowerCase(), password: PASSWORD })
+
+  if (!loginResult.ok) {
+    console.error('login failed', loginResult.step, loginResult.status, loginResult.body)
+    return false
+  }
+
+  await page.goto(`${BASE}/app/firm/dashboard`, { waitUntil: 'domcontentloaded', timeout: 45_000 })
+  await page.waitForTimeout(2500)
   return (await page.locator('[data-testid="firm-shell"]').count()) > 0
 }
 
