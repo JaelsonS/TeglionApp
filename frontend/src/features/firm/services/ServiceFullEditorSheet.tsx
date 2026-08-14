@@ -37,7 +37,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
 import { Dialog, DialogContent, DialogTitle } from '@/shared/components/ui/dialog'
-import { EuroInput, RichTextEditor, UploadDropzone } from '@/shared/design-system'
+import { DurationMinutesField, EuroInput, RichTextEditor, UploadDropzone } from '@/shared/design-system'
 import { ImageCropDialog } from '@/shared/components/media/ImageCropDialog'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
@@ -614,14 +614,7 @@ export function ServiceFullEditorSheet({
                     </label>
                     <label className="space-y-1 text-sm">
                       <span className="font-medium">Duração (min)</span>
-                      <Input
-                        type="number"
-                        min={15}
-                        max={480}
-                        value={durationMinutes}
-                        onChange={(e: FormChangeEvent) => setDurationMinutes(Number(e.target.value) || 60)}
-                        className="rounded-xl border-brand/20 bg-card"
-                      />
+                      <DurationMinutesField value={durationMinutes} onChange={setDurationMinutes} />
                     </label>
                     <label className="space-y-1 text-sm">
                       <span className="font-medium">Preço</span>

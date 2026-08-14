@@ -3,6 +3,7 @@ import { Clock, Globe, Plus, Trash2 } from 'lucide-react'
 
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import { DurationMinutesField } from '@/shared/design-system'
 import { BOOKING_WEEKDAYS } from '@/features/firm/agenda/agendaCalendarUtils'
 import type { BookingDateOverrides, BookingDaySchedule, FirmBookingSettings, TimeInterval } from '@/shared/types/contabil'
 import { cn } from '@/shared/lib/utils'
@@ -331,12 +332,15 @@ export function AgendaAvailabilityPanel(props: Props) {
         </label>
         <label className="cb-agenda-field">
           <span className="cb-agenda-field-label">Duração do slot</span>
-          <select className="cb-agenda-field-input" value={slotMin} onChange={(e) => onSlotMin(Number(e.target.value))}>
-            <option value={15}>15 min</option>
-            <option value={30}>30 min</option>
-            <option value={45}>45 min</option>
-            <option value={60}>60 min</option>
-          </select>
+          <DurationMinutesField
+            value={slotMin}
+            onChange={onSlotMin}
+            min={5}
+            max={240}
+            presets={[15, 30, 45, 60, 90, 120]}
+            inputClassName="cb-agenda-field-input"
+            aria-label="Duração do slot em minutos"
+          />
         </label>
         <label className="cb-agenda-field">
           <span className="cb-agenda-field-label">Horizonte (dias à frente)</span>
