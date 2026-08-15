@@ -170,7 +170,8 @@ function resolveTurnstileExpectedHostnames() {
     .map((h) => h.trim().toLowerCase().replace(/\.$/, ''))
     .filter(Boolean);
   if (raw.length > 0) return raw;
-  return ['www.teglion.com', 'teglion.com'];
+  // Defaults: prod + staging (Render staging usa NODE_ENV=production).
+  return ['www.teglion.com', 'teglion.com', 'staging.teglion.com', 'www.staging.teglion.com'];
 }
 
 const env = {
