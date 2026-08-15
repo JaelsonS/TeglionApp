@@ -38,6 +38,7 @@ function map(row) {
     createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    staffSeenAt: row.staff_seen_at || null,
   };
 }
 
@@ -139,6 +140,7 @@ async function updateRow(id, firmId, patch) {
   if (patch.accessTokenExpiresAt !== undefined) row.access_token_expires_at = patch.accessTokenExpiresAt || null;
   if (patch.accessTokenRevokedAt !== undefined) row.access_token_revoked_at = patch.accessTokenRevokedAt || null;
   if (patch.submittedAt !== undefined) row.submitted_at = patch.submittedAt || null;
+  if (patch.staffSeenAt !== undefined) row.staff_seen_at = patch.staffSeenAt || null;
   if (patch.answers !== undefined) {
     row.answers_enc = encryptAnswers(patch.answers);
     row.answers = null;
@@ -159,6 +161,19 @@ async function deleteRow(id, firmId) {
   const sb = getSupabaseAdmin();
   const { error } = await sb.from('service_inquiries').delete().eq('id', id).eq('firm_id', firmId);
   if (error) throw error;
+}
+
+/** Solicitações activas ainda não abertas pela equipa (badge Solicitações). */
+async function countUnseenByFirm(firmId) {
+  const sb = getSupabaseAdmin();
+  const { count, error } = await sb
+    .from('service_inquiries')
+    .select('id', { count: 'exact', head: true })
+    .eq('firm_id', firmId)
+    .is('staff_seen_at', null)
+    .not('status', 'in', '(COMPLETED,CANCELLED)');
+  if (error) throw error;
+  return Number(count || 0);
 }
 
 /** Repontar todas as ServiceInquiries de um Lead para o Client resultante da conversão (secção 3.2 da spec). */
@@ -184,6 +199,7 @@ module.exports = {
   createRow,
   updateRow,
   deleteRow,
+  countUnseenByFirm,
   reassignLeadToClient,
   map,
 };

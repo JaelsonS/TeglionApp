@@ -66,6 +66,9 @@ export function createContabilServiceInquiriesApi(api: AxiosInstance) {
         .get('/contabil/service-inquiries', { params })
         .then((r) => r.data as { items: ServiceInquiryListItem[] }),
 
+    getUnseenCount: () =>
+      api.get('/contabil/service-inquiries/unseen-count').then((r) => r.data as { count: number }),
+
     getById: (id: string) =>
       api.get(`/contabil/service-inquiries/${encodeURIComponent(id)}`).then(
         (r) =>

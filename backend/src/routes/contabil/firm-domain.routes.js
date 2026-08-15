@@ -559,6 +559,11 @@ router.patch(
 router.post('/leads/:id/convert-to-client', requirePermission(PERMISSIONS.FIRM_LEADS_MANAGE), leadsController.convertToClient);
 
 router.get('/service-inquiries', requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE), serviceInquiriesController.list);
+router.get(
+  '/service-inquiries/unseen-count',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  serviceInquiriesController.countUnseen,
+);
 router.get('/service-inquiries/:id', requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE), serviceInquiriesController.getDetail);
 router.get(
   '/service-inquiries/:id/documents/:documentId/download',

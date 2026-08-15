@@ -157,6 +157,12 @@ export function ServiceInquiriesWorkspace() {
     enabled: Boolean(selectedId),
   })
 
+  // getById marca staff_seen_at no servidor — actualiza o badge da tab Solicitações.
+  useEffect(() => {
+    if (!detailQuery.isSuccess || !selectedId) return
+    void qc.invalidateQueries({ queryKey: ['contabil-service-inquiries', 'unseen-count'] })
+  }, [detailQuery.isSuccess, selectedId, qc])
+
   const selectedService = useMemo(
     () => services.find((s) => s.id === detailQuery.data?.inquiry.serviceId),
     [services, detailQuery.data],
