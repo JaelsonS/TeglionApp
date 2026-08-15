@@ -16,10 +16,9 @@ function resetMocks() {
   mock.restoreAll();
 }
 
-/** Etiquetas firm-wide: stubs para não bater na Supabase nos testes de equipa. */
+/** I/O de etiquetas: só stubs de rede — mapLinkRowsToTagsByKey fica real (puro). */
 function mockTags() {
   mock.method(firmInquiryTagsRepository, 'listLinksForFirmUsers', async () => []);
-  mock.method(firmInquiryTagsRepository, 'mapLinkRowsToTagsByKey', () => new Map());
   mock.method(firmInquiryTagsRepository, 'resolveAllowedTagIds', async () => []);
   mock.method(firmInquiryTagsRepository, 'replaceLinksForFirmUser', async () => {});
 }
