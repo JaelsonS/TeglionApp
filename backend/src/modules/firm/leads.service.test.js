@@ -21,11 +21,10 @@ function mockAudit() {
   mock.method(auditRepository, 'writeAuditLog', async () => {});
 }
 
-/** Etiquetas firm-wide: stubs para não bater na Supabase nos testes de leads. */
+/** I/O de etiquetas: só stubs de rede — mapLinkRowsToTagsByKey fica real (puro). */
 function mockTags() {
   mock.method(firmInquiryTagsRepository, 'listLinksForLeads', async () => []);
   mock.method(firmInquiryTagsRepository, 'listLinksForClients', async () => []);
-  mock.method(firmInquiryTagsRepository, 'mapLinkRowsToTagsByKey', () => new Map());
   mock.method(firmInquiryTagsRepository, 'resolveAllowedTagIds', async () => []);
   mock.method(firmInquiryTagsRepository, 'replaceLinksForLead', async () => {});
   mock.method(firmInquiryTagsRepository, 'copyLeadTagsToClient', async () => {});
@@ -154,6 +153,7 @@ test('convertToClient: repoints service_inquiries e consultations do Lead para o
   resetMocks();
   mockAudit();
   mockTags();
+
   mock.method(leadsRepository, 'findByIdForFirm', async () => ({
     id: 'lead-1',
     status: 'NEW',
@@ -162,20 +162,68 @@ test('convertToClient: repoints service_inquiries e consultations do Lead para o
     phone: null,
     taxId: null,
   }));
-  mock.method(clientsRepository, 'createClient', async (args) => ({ id: 'client-novo', ...args }));
-  mock.method(leadsRepository, 'markConverted', async (id, firmId, clientId) => ({ id, status: 'CONVERTED', convertedClientId: clientId }));
-  mock.method(serviceInquiriesRepository, 'reassignLeadToClient', async () => [{ id: 'inquiry-1' }]);
+
+  let createdClientArgs = null;
+  mock.method(clientsRepository, 'createClient', async (args) => {
+    createdClientArgs = args;
+    return { id: 'client-novo', ...args };
+  });
+
+  mock.method(leadsRepository, 'markConverted', async (id, firmId, clientId) => ({
+    id,
+    firmId,
+    status: 'CONVERTED',
+    convertedClientId: clientId,
+  }));
+
+  let inquiriesReassignArgs = null;
+  mock.method(serviceInquiriesRepository, 'reassignLeadToClient', async (firmId, leadId, clientId) => {
+    inquiriesReassignArgs = { firmId, leadId, clientId };
+    return [{ id: 'inquiry-1' }, { id: 'inquiry-2' }];
+  });
+
   let consultationsReassignArgs = null;
   mock.method(consultationsRepository, 'reassignLeadToClient', async (firmId, leadId, clientId) => {
     consultationsReassignArgs = { firmId, leadId, clientId };
     return [{ id: 'consultation-1' }];
   });
 
-  const result = await leadsService.convertToClient({ firmId: FIRM_ID, id: 'lead-1', actor: { id: 'staff-1' } });
+  let tagsCopyArgs = null;
+  mock.method(firmInquiryTagsRepository, 'copyLeadTagsToClient', async (firmId, leadId, clientId) => {
+    tagsCopyArgs = { firmId, leadId, clientId };
+  });
+  mock.method(firmInquiryTagsRepository, 'listLinksForClients', async () => [
+    {
+      client_id: 'client-novo',
+      firm_inquiry_tags: { id: 'tag-vip', name: 'VIP', color_hex: '#112233' },
+    },
+  ]);
 
+  const result = await leadsService.convertToClient({
+    firmId: FIRM_ID,
+    id: 'lead-1',
+    actor: { id: 'staff-1' },
+  });
+
+  assert.deepEqual(createdClientArgs, {
+    firmId: FIRM_ID,
+    displayName: 'Hugo',
+    email: 'hugo@x.com',
+    phone: null,
+    taxId: null,
+    metadata: {},
+    assignedStaffId: null,
+  });
+  assert.deepEqual(inquiriesReassignArgs, { firmId: FIRM_ID, leadId: 'lead-1', clientId: 'client-novo' });
   assert.deepEqual(consultationsReassignArgs, { firmId: FIRM_ID, leadId: 'lead-1', clientId: 'client-novo' });
+  assert.deepEqual(tagsCopyArgs, { firmId: FIRM_ID, leadId: 'lead-1', clientId: 'client-novo' });
+
+  assert.equal(result.lead.status, 'CONVERTED');
+  assert.equal(result.lead.convertedClientId, 'client-novo');
+  assert.equal(result.client.id, 'client-novo');
+  assert.equal(result.serviceInquiriesReassigned, 2);
   assert.equal(result.consultationsReassigned, 1);
-  assert.equal(result.serviceInquiriesReassigned, 1);
+  assert.deepEqual(result.client.tags, [{ id: 'tag-vip', name: 'VIP', colorHex: '#112233' }]);
 });
 
 resetMocks();
