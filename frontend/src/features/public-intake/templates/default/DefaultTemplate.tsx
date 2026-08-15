@@ -30,9 +30,15 @@ export function DefaultTemplate({ config, ctx }: Props) {
   const hasServiceSection = sections.some((s) => s.type === 'services' || s.type === 'bookingServices')
   const showEmptyServices = hasServiceSection && ctx.services.length === 0
   const firstServiceKey = sections.find((s) => s.type === 'services' || s.type === 'bookingServices')?.key
+  const pageBg = String(config.theme?.backgroundColor || '').trim()
+  const pageBgStyle = /^#[0-9a-f]{6}$/i.test(pageBg) ? pageBg : undefined
 
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className="min-h-screen bg-background"
+      style={pageBgStyle ? { backgroundColor: pageBgStyle } : undefined}
+      data-public-page-bg={pageBgStyle || undefined}
+    >
       {sections.map((section) => {
         switch (section.type) {
           case 'header':
