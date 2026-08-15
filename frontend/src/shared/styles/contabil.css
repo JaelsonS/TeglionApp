@@ -1286,6 +1286,52 @@
     @apply overflow-hidden rounded-lg border border-border/70 bg-card;
   }
 
+  /* Desktop: painel preenche altura e a tabela faz scroll interno */
+  @media (min-width: 1280px) {
+    .cb-clients-page {
+      @apply flex min-h-0 flex-1 flex-col;
+    }
+
+    .cb-clients-page .cb-clients-panel {
+      @apply flex min-h-0 flex-1 flex-col;
+    }
+
+    .cb-clients-page .cb-clients-table-wrap {
+      @apply min-h-0 flex-1 overflow-auto;
+    }
+  }
+
+  /*
+   * Tablet/mobile: NÃO prender o scroll dentro do painel.
+   * overflow:auto na tabela + overflow-hidden no painel engolia o pan vertical
+   * (iPad/iPhone) — scroll deve ser o da página (.cb-firm-content-wrap).
+   */
+  @media (max-width: 1279px) {
+    .cb-clients-page {
+      flex: none;
+      height: auto;
+      min-height: 0;
+    }
+
+    .cb-clients-page .cb-clients-panel {
+      overflow: visible;
+      height: auto;
+    }
+
+    .cb-clients-page .cb-clients-table-wrap,
+    .cb-clients-page .cb-table-scroll {
+      flex: none;
+      max-height: none;
+      overflow-x: auto;
+      overflow-y: visible;
+      overscroll-x: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .cb-clients-page .cb-clients-grid {
+      overflow: visible;
+    }
+  }
   .cb-clients-panel-hd {
     @apply border-b border-border/60 px-4 py-3.5;
   }
@@ -1323,7 +1369,7 @@
   }
 
   .cb-clients-table-wrap {
-    @apply min-h-0 flex-1 overflow-auto;
+    @apply min-h-0 w-full max-w-full;
   }
 
   .cb-clients-table {
@@ -2681,8 +2727,18 @@
   }
 
   /* Configurações — hub com nav lateral + um painel de cada vez */
-  .cb-settings-layout-page {
-    @apply w-full min-w-0 max-w-full overflow-x-hidden;
+  /* Tablet/mobile: Definições também scrollam na página (nav horizontal + painel). */
+  @media (max-width: 1279px) {
+    .cb-settings-layout-page {
+      flex: none;
+      height: auto;
+      min-height: 0;
+    }
+
+    .cb-settings-hub-main {
+      overflow: visible;
+      min-height: 0;
+    }
   }
 
   .cb-settings-page {
