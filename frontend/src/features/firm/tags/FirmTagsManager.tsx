@@ -25,7 +25,7 @@ export function FirmTagsManager({ compact = false, onTagsChanged }: Props) {
     queryKey: ['firm-inquiry-tags'],
     queryFn: () => contabilInquiryTagsApi.list().then((r) => r.items),
   })
-  const firmTags = tagsQuery.data || []
+  const firmTags = Array.isArray(tagsQuery.data) ? tagsQuery.data : []
 
   const [newTagName, setNewTagName] = useState('')
   const [newTagColor, setNewTagColor] = useState(SUGGESTED_TAG_COLORS[0])

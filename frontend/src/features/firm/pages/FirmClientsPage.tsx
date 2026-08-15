@@ -144,7 +144,7 @@ export function FirmClientsPage() {
     queryKey: ['firm-inquiry-tags'],
     queryFn: () => contabilInquiryTagsApi.list().then((r) => r.items),
   })
-  const firmTags = tagsQuery.data || []
+  const firmTags = Array.isArray(tagsQuery.data) ? tagsQuery.data : []
 
   const regimeOptions = useMemo(() => {
     const set = new Set<string>()
