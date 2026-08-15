@@ -245,6 +245,34 @@ export function ServiceIntakePortalPage() {
       </header>
 
       <div className="rounded-2xl border border-border/50 bg-card p-6 shadow-sm">
+        {pendingDocs || pendingQuestions ? (
+          <div className="mb-4 space-y-3 rounded-lg border border-border/40 bg-muted/20 p-3">
+            <p className="text-xs font-medium text-muted-foreground">
+              Complete a verificação abaixo antes de enviar documentos ou respostas.
+            </p>
+            {pendingDocs ? (
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Verificação (envio de documentos)</p>
+                <TurnstileField
+                  action={TURNSTILE_ACTIONS.PORTAL_UPLOAD}
+                  fieldRef={uploadTsRef}
+                  onTokenChange={(t) => setTokens((prev) => ({ ...prev, upload: t }))}
+                />
+              </div>
+            ) : null}
+            {pendingQuestions ? (
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Verificação (respostas)</p>
+                <TurnstileField
+                  action={TURNSTILE_ACTIONS.PORTAL_REPLY}
+                  fieldRef={replyTsRef}
+                  onTokenChange={(t) => setTokens((prev) => ({ ...prev, reply: t }))}
+                />
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
         {checklist.length === 0 ? (
           <p className="text-sm text-muted-foreground">Não há documentos pendentes para este pedido.</p>
         ) : (
@@ -262,28 +290,6 @@ export function ServiceIntakePortalPage() {
             ))}
           </ul>
         )}
-
-        {pendingDocs ? (
-          <div className="mt-4 space-y-1">
-            <p className="text-xs text-muted-foreground">Verificação de segurança (envio de documentos)</p>
-            <TurnstileField
-              action={TURNSTILE_ACTIONS.PORTAL_UPLOAD}
-              fieldRef={uploadTsRef}
-              onTokenChange={(t) => setTokens((prev) => ({ ...prev, upload: t }))}
-            />
-          </div>
-        ) : null}
-
-        {pendingQuestions ? (
-          <div className="mt-4 space-y-1">
-            <p className="text-xs text-muted-foreground">Verificação de segurança (respostas)</p>
-            <TurnstileField
-              action={TURNSTILE_ACTIONS.PORTAL_REPLY}
-              fieldRef={replyTsRef}
-              onTokenChange={(t) => setTokens((prev) => ({ ...prev, reply: t }))}
-            />
-          </div>
-        ) : null}
 
         {allReceived ? (
           <p className="mt-4 rounded-lg bg-emerald-50 p-3 text-center text-sm font-medium text-emerald-800">

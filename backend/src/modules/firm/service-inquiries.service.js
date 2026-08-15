@@ -56,6 +56,41 @@ function mapLinkRowsToTagsByInquiry(linkRows) {
 const VALID_STATUSES = ['LEAD_CAPTURED', 'NEW', 'CONTACTED', 'DOCS_REQUESTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
 const TERMINAL_STATUSES = new Set(['COMPLETED', 'CANCELLED']);
 
+/** Chave estável para evitar pedidos de documento duplicados (tag ou título normalizado). */
+function documentDedupeKey({ tag, title }) {
+  const t = String(tag || '')
+    .trim()
+    .toLowerCase();
+  if (t && !t.startsWith('pend_')) return `tag:${t}`;
+  return `title:${String(title || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()}`;
+}
+
+/** Mantém o primeiro de cada documento; ignora repetições por tag/título. */
+function dedupeDocumentRequests(items) {
+  const seen = new Set();
+  const out = [];
+  for (const item of items || []) {
+    if (item.kind && item.kind !== 'document') {
+      out.push(item);
+      continue;
+    }
+    const key = documentDedupeKey(item);
+    if (!key || key === 'title:') {
+      out.push(item);
+      continue;
+    }
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
+  }
+  return out;
+}
+
 // Ciclo de vida do access_token do mini-portal (ver especificação da sessão, v8):
 // tecto generoso desde a submissão (cobre um processo lento sem expirar por engano),
 // apertado para uma janela curta assim que a ServiceInquiry fica concluída/cancelada.
@@ -353,7 +388,7 @@ async function addServiceInquiryRequestsBatch({ firmId, inquiryId, actor, payloa
   if (!rawItems.length) throw new AppError('Adicione pelo menos um pedido', 400);
   if (rawItems.length > 20) throw new AppError('Máximo 20 itens por envio', 400);
 
-  const normalized = [];
+  const validated = [];
   for (const item of rawItems) {
     const kind = String(item?.kind || '');
     if (!REQUEST_KINDS.has(kind)) throw new AppError('kind deve ser "document" ou "question"', 400);
@@ -362,7 +397,33 @@ async function addServiceInquiryRequestsBatch({ firmId, inquiryId, actor, payloa
     const instructions = item?.instructions ? String(item.instructions).trim().slice(0, 2000) : null;
     const explicitTag = item?.tag ? String(item.tag).trim().slice(0, 60) : null;
     const tag = kind === 'document' ? explicitTag || `pend_${crypto.randomUUID()}` : null;
-    normalized.push({ kind, title, instructions, tag });
+    validated.push({ kind, title, instructions, tag, explicitTag });
+  }
+
+  const existing = await serviceInquiryRequestsRepository.listByInquiry(inquiry.id, firmId);
+  const existingKeys = new Set(
+    existing.filter((r) => r.kind === 'document').map((r) => documentDedupeKey(r)),
+  );
+
+  const normalized = [];
+  for (const item of validated) {
+    if (item.kind === 'document') {
+      const key = documentDedupeKey({ tag: item.explicitTag || null, title: item.title });
+      if (existingKeys.has(key) || normalized.some((n) => n.kind === 'document' && documentDedupeKey(n) === key)) {
+        continue;
+      }
+      existingKeys.add(key);
+    }
+    normalized.push({
+      kind: item.kind,
+      title: item.title,
+      instructions: item.instructions,
+      tag: item.tag,
+    });
+  }
+
+  if (!normalized.length) {
+    throw new AppError('Esses documentos já foram pedidos ao cliente', 409, { code: 'DUPLICATE_REQUESTS' });
   }
 
   const created = await serviceInquiryRequestsRepository.createMany(
@@ -585,18 +646,34 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
   }
 
   // Materializa checklist imediata (base + condicionais das respostas) para o portal /pedidos.
+  // Não recria tags/títulos já presentes (ex.: re-submit ou lead parcial).
   if (immediateDocs.length) {
-    await serviceInquiryRequestsRepository.createMany(
+    const already = await serviceInquiryRequestsRepository.listByInquiry(inquiry.id, firm.id);
+    const existingKeys = new Set(
+      already.filter((r) => r.kind === 'document').map((r) => documentDedupeKey(r)),
+    );
+    const toCreate = dedupeDocumentRequests(
       immediateDocs.map((doc) => ({
-        firmId: firm.id,
-        serviceInquiryId: inquiry.id,
         kind: 'document',
         tag: doc.tag,
         title: doc.title || doc.tag,
         instructions: doc.instructions || null,
-        createdBy: null,
       })),
-    );
+    ).filter((doc) => !existingKeys.has(documentDedupeKey(doc)));
+
+    if (toCreate.length) {
+      await serviceInquiryRequestsRepository.createMany(
+        toCreate.map((doc) => ({
+          firmId: firm.id,
+          serviceInquiryId: inquiry.id,
+          kind: 'document',
+          tag: doc.tag,
+          title: doc.title,
+          instructions: doc.instructions || null,
+          createdBy: null,
+        })),
+      );
+    }
   }
 
   const resolvedTagIds = resolveTagIdsFromRules(service.intakeTagRules, answers);
@@ -680,11 +757,13 @@ async function getByAccessToken(token) {
 
   const service = await accountingServicesRepository.findByIdForFirm(inquiry.serviceId, inquiry.firmId);
   const requests = await serviceInquiryRequestsRepository.listByInquiry(inquiry.id, inquiry.firmId);
+  // Portal: esconde duplicados legados (mesmo documento pedido 2×).
+  const checklist = dedupeDocumentRequests(requests.map(toChecklistItem));
 
   return {
     serviceName: interpolateServiceTemplate(service?.name) || null,
     status: inquiry.status,
-    checklist: requests.map(toChecklistItem),
+    checklist,
   };
 }
 

@@ -12,7 +12,12 @@ const DOCUMENT_CATALOG = {
   iban: 'Comprovativo de IBAN (reembolso IRS)',
   cartao_cidadao_conjuge: 'Cartão de Cidadão (cônjuge)',
   nif_conjuge: 'NIF do cônjuge',
-  cc_dependentes: 'Cartão de Cidadão / NIF dos dependentes',
+  cc_dependentes: 'Comprovativos dos dependentes',
+  // Aliases legados (título usado como tag no catálogo antigo)
+  'caderneta predial': 'Caderneta predial',
+  'comprovativos dos dependentes': 'Comprovativos dos dependentes',
+  'cartão de cidadão ou passaporte': 'Cartão de Cidadão ou Passaporte',
+  'cartao de cidadao ou passaporte': 'Cartão de Cidadão ou Passaporte',
   recibos_vencimento: 'Recibos de vencimento do ano',
   declaracao_entidade: 'Declaração de rendimentos da entidade patronal',
   recibos_verdes: 'Recibos verdes / faturação categoria B',
@@ -123,7 +128,14 @@ const IRS_MODELO3_INTAKE_FORM = {
 
 /** Títulos amigáveis para tags condicionais (quando não estão na base). */
 function titleForTag(tag) {
-  return DOCUMENT_CATALOG[tag] || tag;
+  const raw = String(tag || '').trim();
+  if (!raw) return raw;
+  if (DOCUMENT_CATALOG[raw]) return DOCUMENT_CATALOG[raw];
+  const normalized = raw
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+  return DOCUMENT_CATALOG[normalized] || DOCUMENT_CATALOG[raw.toLowerCase()] || raw;
 }
 
 module.exports = {

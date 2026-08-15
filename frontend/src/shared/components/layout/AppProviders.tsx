@@ -55,6 +55,8 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
 export function RouteCookieBanner() {
   const { pathname } = useLocation()
+  // Mini-portal /pedidos: sem banner — cobre o Turnstile e bloqueia a verificação.
+  if (pathname.startsWith('/pedidos/')) return null
   const marketing = isLightweightPublicRoute(pathname) || isPublicIntakeRoute(pathname)
 
   return (

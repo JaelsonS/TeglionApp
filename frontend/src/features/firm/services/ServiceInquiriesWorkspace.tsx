@@ -286,10 +286,53 @@ export function ServiceInquiriesWorkspace() {
 
   const sendDraftBatch = async () => {
     if (!selectedId || draftItems.length === 0) return
+    const checklist = detailQuery.data?.checklist || []
+    const existingKeys = new Set(
+      checklist
+        .filter((c) => c.kind === 'document')
+        .map((c) => {
+          const tag = String(c.tag || '')
+            .trim()
+            .toLowerCase()
+          if (tag && !tag.startsWith('pend_')) return `tag:${tag}`
+          return `title:${String(c.title || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/\s+/g, ' ')
+            .trim()}`
+        }),
+    )
+    const uniqueItems = draftItems.filter((item) => {
+      if (item.kind !== 'document') return true
+      const tag = String(item.tag || '')
+        .trim()
+        .toLowerCase()
+      const key =
+        tag && !tag.startsWith('pend_')
+          ? `tag:${tag}`
+          : `title:${String(item.title || '')
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .toLowerCase()
+              .replace(/\s+/g, ' ')
+              .trim()}`
+      if (existingKeys.has(key)) return false
+      existingKeys.add(key)
+      return true
+    })
+    if (uniqueItems.length === 0) {
+      toast.message('Esses documentos já estão nas pendências — o cliente já foi notificado.')
+      setDraftItems([])
+      return
+    }
+    if (uniqueItems.length < draftItems.length) {
+      toast.message('Alguns documentos já tinham sido pedidos e foram ignorados.')
+    }
     setSendingBatch(true)
     try {
       await contabilServiceInquiriesApi.addRequestsBatch(selectedId, {
-        items: draftItems.map(({ kind, title, tag, instructions }) => ({
+        items: uniqueItems.map(({ kind, title, tag, instructions }) => ({
           kind,
           title,
           tag,
@@ -298,8 +341,8 @@ export function ServiceInquiriesWorkspace() {
       })
       setDraftItems([])
       toast.success(
-        draftItems.length > 1
-          ? `${draftItems.length} pedidos enviados ao cliente`
+        uniqueItems.length > 1
+          ? `${uniqueItems.length} pedidos enviados ao cliente`
           : 'Pedido enviado ao cliente',
       )
       await invalidateLists()

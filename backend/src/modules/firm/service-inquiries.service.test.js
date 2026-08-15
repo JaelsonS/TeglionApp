@@ -20,6 +20,7 @@ function resetMocks() {
   mock.method(firmInquiryTagsRepository, 'listLinksForInquiries', async () => []);
   mock.method(firmInquiryTagsRepository, 'listByFirm', async () => []);
   mock.method(firmInquiryTagsRepository, 'replaceLinksForInquiry', async () => []);
+  mock.method(serviceInquiryRequestsRepository, 'listByInquiry', async () => []);
 }
 
 function mockAudit() {
