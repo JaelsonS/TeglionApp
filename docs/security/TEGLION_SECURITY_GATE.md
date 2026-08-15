@@ -3,6 +3,10 @@
 **Branch obrigatória:** `staging` apenas.  
 **Ambiente:** staging (`xscriwhchdblmwmpglby` / `https://teglion-api-staging.onrender.com`).
 
+## Veredito global (2026-08-15)
+
+**NO-GO para `main` / produção.** Fatias Cursor (código + static + isolation + smoke HTTP Turnstile) avançaram; **Burp HTTP**, **Stripe Test Mode E2E**, e itens **PENDENTE JAELSON** mantêm o gate global aberto. Contadora em prod diária → sem GO falso.
+
 ## Convenção
 
 | Coluna / cor | Significado |
@@ -83,7 +87,7 @@
 | P2.02 | Infra CF/Render/TLS | ⚪ | 🟡 | — | 🌐 EXTERNO | — |
 | P2.03 | Backup / DR | 🟢 | 🔴 PENDENTE JAELSON | — | 👤 confirma drill | Docs + drill 2026-08-13 em `BACKUP_RESTORE.md` / R2 |
 | P2.04 | Logging / Monitoring | 🟢 | 🔴 PENDENTE JAELSON | — | 👤 Sentry/alertas | `logSanitizationMiddleware` (JWT/password/email/…); Sentry 5xx |
-| P1.28 | Public intake forms | 🟢 | 🟡 | — | 🛡️ Burp + deploy | Crypto/phone/leaks + portal Turnstile upload/reply — ver `PUBLIC_SURFACE_AUDIT.md` |
+| P1.28 | Public intake forms | 🟢 | 🟡 | — | 🛡️ Burp browser | Turnstile **fail-closed** em staging (smoke 2026-08-15): POSTs sem token → `403 TURNSTILE_MISSING` em intake/lead, submit e newsletter; ver secção deploy abaixo + `PUBLIC_SURFACE_AUDIT.md` |
 | P3.01 | Hardening | ⚪ | 🔴 PENDENTE JAELSON | — | 👤+🌐 | — |
 
 ---
@@ -155,9 +159,26 @@ P1.17 (só manual), P2.01, P2.02, P3.01
 
 ---
 
+## Deploy staging + smoke (2026-08-15) — PR #47
+
+**Merge:** `fix/firm-tags-turnstile-public-ux` → `staging` (`206c322`). CI validate PASS.
+
+| Check | Resultado |
+| --- | --- |
+| API `GET /api/public/health` | `200` `{"ok":true}` |
+| FE `https://staging.teglion.com` | `200` |
+| POST intake/lead sem Turnstile | `403` `TURNSTILE_MISSING` |
+| POST submit sem Turnstile | `403` `TURNSTILE_MISSING` |
+| POST newsletter sem Turnstile | `403` `TURNSTILE_MISSING` |
+| Migration tag links | já aplicada no Supabase staging |
+
+**UAT manual (Jaelson):** Definições → Etiquetas; Client Hub chips; filtro clientes; tags equipa; Solicitações sync; intake público com widget Turnstile OK (não só 403); frase de destaque no editor público.
+
+**Não fecha o gate global** — falta Burp + Stripe E2E + decisões Jaelson (tabela-mestre).
+
+---
+
 ## Playbooks
 
 - `docs/security/BURP_P0_HTTP_PLAYBOOK.md`
 - `docs/security/seed-staging-demo-ops.js`
-
-Sem commit / push / correções nesta etapa.
