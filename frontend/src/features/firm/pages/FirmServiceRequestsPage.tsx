@@ -8,10 +8,11 @@ import { ServicesCatalogWorkspace } from '@/features/firm/services/ServicesCatal
 import { countServicePublishStats } from '@/features/firm/services/servicePublishState'
 import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
 import { AskMayaButton } from '@/features/maya'
+import { useFirmServiceInquiriesUnseen } from '@/features/firm/FirmSidebar'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { Button } from '@/shared/components/ui/button'
 import { useAuth } from '@/shared/hooks/useAuth'
-import { contabilAccountingServicesApi, contabilServiceInquiriesApi } from '@/infrastructure/api'
+import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { cn } from '@/shared/lib/utils'
 import type { AccountingService } from '@/shared/types/contabil'
 
@@ -60,17 +61,11 @@ export function FirmServiceRequestsPage() {
     queryKey: ['contabil-accounting-services', 'catalog-tab'],
     queryFn: () => contabilAccountingServicesApi.list(),
   })
-  const inquiriesUnseenQuery = useQuery({
-    queryKey: ['contabil-service-inquiries', 'unseen-count'],
-    queryFn: () => contabilServiceInquiriesApi.getUnseenCount(),
-    staleTime: 15_000,
-    refetchInterval: 60_000,
-  })
+  const unseenInquiries = useFirmServiceInquiriesUnseen()
 
   const allServices = (servicesQuery.data?.items ?? []) as AccountingService[]
   const nonIrs = allServices.filter((s) => !isIrsService(s))
   const stats = countServicePublishStats(nonIrs)
-  const unseenInquiries = inquiriesUnseenQuery.data?.count ?? 0
   const publicUrl =
     typeof window !== 'undefined' && firmSlug
       ? `${window.location.origin}/${encodeURIComponent(firmSlug)}`
@@ -112,7 +107,7 @@ export function FirmServiceRequestsPage() {
                 {tab.label}
                 {tab.id === 'inquiries' && unseenInquiries > 0 ? (
                   <span
-                    className="ml-1.5 rounded-full bg-brand/15 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-brand"
+                    className="cb-firm-nav-item-badge ml-1.5"
                     aria-label={`${unseenInquiries} solicitações por ver`}
                   >
                     {unseenInquiries > 99 ? '99+' : unseenInquiries}

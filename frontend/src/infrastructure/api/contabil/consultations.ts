@@ -11,6 +11,11 @@ export function createContabilConsultationsApi(api: AxiosInstance) {
     update: (id: string, payload: Record<string, unknown>) =>
       api.patch(`/contabil/consultations/${encodeURIComponent(id)}`, payload).then((r) => r.data),
 
+    getAttentionCount: () =>
+      api
+        .get('/contabil/consultations/attention-count')
+        .then((r) => r.data as { count: number; upcoming: number; pendingPayment: number }),
+
     getBookingSettings: () => api.get('/contabil/booking-settings').then((r) => r.data),
 
     patchBookingSettings: (payload: Record<string, unknown>) =>

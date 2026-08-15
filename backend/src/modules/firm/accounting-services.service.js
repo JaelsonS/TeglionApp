@@ -3,6 +3,7 @@ const { AppError } = require('../../middlewares/error.middleware');
 const { mapDbError } = require('../../utils/db-error');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-catalog');
+const { titleForTag } = require('../../data/irs-modelo3-intake');
 const { BOOKING_TIMEZONES } = require('../booking/booking.service');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
 
@@ -275,7 +276,12 @@ function resolveRequiredDocuments(service, answers) {
       if (!chosenIds.includes(option.id)) continue;
       for (const tag of option.documentTags || []) {
         if (!conditionalByTag.has(tag)) {
-          conditionalByTag.set(tag, { tag, title: tag, instructions: null, timing: 'immediate' });
+          conditionalByTag.set(tag, {
+            tag,
+            title: titleForTag(tag),
+            instructions: null,
+            timing: 'immediate',
+          });
         }
       }
     }

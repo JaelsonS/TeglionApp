@@ -45,8 +45,8 @@ import {
 } from './sectionEditors'
 
 const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
-  header: 'Cabeçalho',
-  hero: 'Destaque (Hero)',
+  header: '1. Barra do topo',
+  hero: '2. Destaque principal',
   about: 'Sobre o escritório',
   services: 'Consultorias com agendamento',
   bookingServices: 'Outros serviços',
@@ -55,6 +55,19 @@ const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
   faq: 'Perguntas frequentes',
   contact: 'Contactos',
   footer: 'Rodapé',
+}
+
+const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
+  header: 'Só as cores da barra. O texto vem do «Nome na barra do topo» acima.',
+  hero: 'Foto, título grande, frase, parágrafo e botões — abaixo da barra.',
+  about: 'Bloco opcional com texto e foto institucional.',
+  services: 'Título da grelha de serviços com marcação (vêm do Catálogo).',
+  bookingServices: 'Título da lista de outros serviços publicados.',
+  features: 'Lista de pontos fortes do escritório.',
+  process: 'Passos «como funciona».',
+  faq: 'Perguntas e respostas.',
+  contact: 'O que mostrar (email, telefone, morada).',
+  footer: 'Cores do rodapé. O nome usa o da barra do topo.',
 }
 
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -79,6 +92,24 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const [savingSlug, setSavingSlug] = useState(false)
   const [publicDisplayName, setPublicDisplayName] = useState(bundle.publicProfile.displayName ?? '')
   const [savingDisplayName, setSavingDisplayName] = useState(false)
+  /** Por secção (key). Ausente = aberto por defeito em header/hero. */
+  const [sectionOpenState, setSectionOpenState] = useState<Record<string, boolean>>({})
+
+  const isSectionEditorOpen = (section: PublicSiteSection) => {
+    if (Object.prototype.hasOwnProperty.call(sectionOpenState, section.key)) {
+      return sectionOpenState[section.key]
+    }
+    return section.type === 'header' || section.type === 'hero'
+  }
+
+  const toggleSectionOpen = (section: PublicSiteSection) => {
+    setSectionOpenState((prev) => {
+      const currently = Object.prototype.hasOwnProperty.call(prev, section.key)
+        ? prev[section.key]
+        : section.type === 'header' || section.type === 'hero'
+      return { ...prev, [section.key]: !currently }
+    })
+  }
 
   useEffect(() => {
     setSlugDraft(firmSlug)
@@ -309,29 +340,24 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-950">
-        <p className="font-semibold">Como configurar a página pública</p>
-        <ol className="mt-2 list-decimal space-y-1 pl-4 text-caption leading-relaxed text-sky-900/90">
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-950">
+        <p className="font-semibold">Mapa rápido da página</p>
+        <ul className="mt-2 space-y-1.5 text-caption leading-relaxed text-emerald-900/90">
           <li>
-            Em cada secção (Cabeçalho, Destaque, Sobre, etc.) escolha a <strong>cor</strong> ao lado do campo —
-            fundo, título, texto ou botão.
+            <strong>Nome na barra do topo</strong> → texto pequeno na barra (não é o título grande).
           </li>
           <li>
-            No Destaque pode usar <strong>foto de capa</strong> ou só uma <strong>cor de fundo</strong>.
+            <strong>Destaque principal</strong> → foto + <em>título grande</em> + frase + parágrafo + botões
+            (escreva um título diferente do nome da barra).
           </li>
           <li>
-            Em Redes sociais, o link já vem pré-preenchido — basta o nome de utilizador; no WhatsApp basta o
-            número.
+            Nas outras secções edite títulos, textos e imagens; active/desactive com a caixa à esquerda.
           </li>
           <li>
-            <strong>Guardar rascunho</strong> e depois <strong>Publicar</strong> para os clientes verem em{' '}
-            {firmSlug ? <span className="font-medium">teglion.com/{firmSlug}</span> : 'o link público'}.
+            <strong>Guardar rascunho</strong> → <strong>Pré-visualizar</strong> → <strong>Publicar</strong> quando
+            estiver pronto.
           </li>
-        </ol>
-        <p className="mt-2 text-caption text-sky-900/80">
-          Sem publicar, o link público continua com a versão anterior. Use <strong>Pré-visualizar</strong> para
-          abrir o rascunho numa nova aba.
-        </p>
+        </ul>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/50 bg-muted/20 p-4">
@@ -398,12 +424,12 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             <>
               <div className="flex flex-wrap items-end gap-2 pt-1">
                 <label className="min-w-[14rem] flex-1 space-y-1 text-xs">
-                  <span className="font-medium text-muted-foreground">Nome na página pública (redes)</span>
+                  <span className="font-medium text-muted-foreground">Nome na barra do topo</span>
                   <Input
                     className="h-9 text-sm"
                     value={publicDisplayName}
                     onChange={(e: FormChangeEvent) => setPublicDisplayName(e.target.value)}
-                    placeholder={bundle.firm.name || 'Como aparece no site'}
+                    placeholder={bundle.firm.name || 'Como aparece na barra'}
                     maxLength={120}
                   />
                 </label>
@@ -420,7 +446,8 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 </Button>
               </div>
               <p className="text-caption text-muted-foreground">
-                Diferente do nome interno do escritório. Se vazio, usa «{bundle.firm.name}».
+                Este é o texto da <strong>barra superior</strong> (e rodapé). O título grande abaixo da foto
+                edita-se em «2. Destaque principal». Se vazio, usa «{bundle.firm.name}».
               </p>
             </>
           ) : null}
@@ -458,17 +485,44 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
           {draft.sections
             .slice()
             .sort((a, b) => a.order - b.order)
-            .map((section, index, sorted) => (
+            .map((section, index, sorted) => {
+              const isOpen = isSectionEditorOpen(section)
+              return (
               <div key={section.key} className="rounded-xl border border-border/50 p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <Label className="flex items-center gap-2 text-sm font-semibold">
-                    <Checkbox
-                      checked={section.enabled}
-                      onCheckedChange={(v: boolean | 'indeterminate') => toggleSection(section.key, v === true)}
-                    />
-                    {SECTION_LABELS[section.type]}
-                  </Label>
-                  <div className="flex items-center gap-1">
+                <div className="mb-1 flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <Label className="flex items-center gap-2 text-sm font-semibold">
+                      <Checkbox
+                        checked={section.enabled}
+                        onCheckedChange={(v: boolean | 'indeterminate') => {
+                          const on = v === true
+                          toggleSection(section.key, on)
+                          if (on) {
+                            setSectionOpenState((prev) => ({ ...prev, [section.key]: true }))
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="text-left hover:underline"
+                        onClick={() => toggleSectionOpen(section)}
+                      >
+                        {SECTION_LABELS[section.type]}
+                      </button>
+                    </Label>
+                    <p className="mt-1 pl-7 text-[11px] text-muted-foreground">{SECTION_HINTS[section.type]}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => toggleSectionOpen(section)}
+                      aria-label={isOpen ? 'Fechar secção' : 'Abrir secção'}
+                    >
+                      {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </Button>
                     <Button
                       type="button"
                       variant="ghost"
@@ -493,10 +547,12 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                     </Button>
                   </div>
                 </div>
-                {section.enabled ? (
+                {section.enabled && isOpen ? (
+                  <div className="mt-3 border-t border-border/40 pt-3">
                   <SectionEditorSwitch
                     section={section}
                     onChange={(content) => patchSectionContent(section.key, content)}
+                    publicDisplayName={previewFirmName}
                     services={previewServices}
                     imageUrl={
                       section.type === 'hero'
@@ -511,9 +567,11 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                     }
                     onRemoveImage={() => removeSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero')}
                   />
+                  </div>
                 ) : null}
               </div>
-            ))}
+              )
+            })}
 
           <div className="rounded-xl border border-border/50 p-4">
             <Label className="text-sm font-semibold">Agendamento</Label>
@@ -728,6 +786,7 @@ function SectionEditorSwitch({
   onUploadImage,
   onRemoveImage,
   services,
+  publicDisplayName,
 }: {
   section: PublicSiteSection
   onChange: (content: PublicSiteSection['content']) => void
@@ -736,6 +795,7 @@ function SectionEditorSwitch({
   onUploadImage: (file: File) => void
   onRemoveImage: () => void
   services: PublicFirmServiceSummary[]
+  publicDisplayName?: string
 }) {
   switch (section.type) {
     case 'hero':
@@ -748,6 +808,7 @@ function SectionEditorSwitch({
           onUploadImage={onUploadImage}
           onRemoveImage={onRemoveImage}
           services={services}
+          publicDisplayName={publicDisplayName}
         />
       )
     case 'about':
@@ -778,10 +839,11 @@ function SectionEditorSwitch({
         <ChromeSectionEditor
           content={section.content}
           onChange={onChange}
-          title="Cabeçalho"
+          title="Barra do topo"
           showTitleField
-          titleFieldLabel="Texto do cabeçalho (esquerda)"
-          titlePlaceholder="Ex.: Maya Contabilidade"
+          titleFieldLabel="Texto curto na barra (opcional)"
+          titlePlaceholder="Deixe vazio → usa o Nome na barra do topo"
+          titleHint="Quase nunca precisa alterar. O nome principal define-se acima em «Nome na barra do topo». O título grande edita-se em «2. Destaque principal»."
         />
       )
     case 'footer':

@@ -132,29 +132,36 @@ export function HeroSection({
   const titleColor = hexStyle(content.titleColor)
   const taglineColor = hexStyle(content.taglineColor)
   const bioColor = hexStyle(content.bioColor)
-  const heroTitle = String(content.title || '').trim() || ctx.firmName
+  // Título de destaque ≠ nome do header. Sem fallback para firmName (evita duplicar).
+  const heroTitle = String(content.title || '').trim()
   return (
     <section
       className={bg ? 'border-b border-black/5' : 'border-b border-border/40 bg-gradient-to-b from-primary/10 to-card/40'}
       style={bg ? { backgroundColor: bg } : undefined}
     >
       {heroPhotoUrl ? (
-        <img src={heroPhotoUrl} alt={heroTitle} className="h-48 w-full object-cover sm:h-64" />
+        <img
+          src={heroPhotoUrl}
+          alt={heroTitle || ctx.firmName}
+          className="h-48 w-full object-cover sm:h-64"
+        />
       ) : null}
       <div className="mx-auto max-w-2xl px-4 py-10 text-center lg:max-w-4xl">
         {ctx.logoUrl ? (
           <img
             src={ctx.logoUrl}
-            alt={heroTitle}
+            alt={ctx.firmName}
             className="mx-auto mb-4 h-20 w-20 rounded-full border-2 border-primary/30 object-cover shadow-sm"
           />
         ) : null}
-        <h1
-          className={titleColor ? 'text-2xl font-bold sm:text-3xl' : 'text-2xl font-bold text-[hsl(var(--brand-text,var(--primary)))] sm:text-3xl'}
-          style={titleColor ? { color: titleColor } : undefined}
-        >
-          {heroTitle}
-        </h1>
+        {heroTitle ? (
+          <h1
+            className={titleColor ? 'text-2xl font-bold sm:text-3xl' : 'text-2xl font-bold text-[hsl(var(--brand-text,var(--primary)))] sm:text-3xl'}
+            style={titleColor ? { color: titleColor } : undefined}
+          >
+            {heroTitle}
+          </h1>
+        ) : null}
         {content.tagline ? (
           <p
             className={

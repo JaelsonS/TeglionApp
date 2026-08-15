@@ -149,6 +149,38 @@ async function updateConsultation(id, firmId, patch) {
   return mapConsultation(data);
 }
 
+async function countAttentionByFirm(firmId, { upcomingDays = 14 } = {}) {
+  const sb = getSupabaseAdmin();
+  const now = new Date();
+  const until = new Date(now.getTime() + Math.max(1, Number(upcomingDays) || 14) * 24 * 60 * 60 * 1000);
+  const fromIso = now.toISOString();
+  const toIso = until.toISOString();
+
+  const [upcomingRes, pendingPayRes] = await Promise.all([
+    sb
+      .from('consultations')
+      .select('id', { count: 'exact', head: true })
+      .eq('firm_id', firmId)
+      .eq('status', 'SCHEDULED')
+      .gte('scheduled_at', fromIso)
+      .lte('scheduled_at', toIso),
+    sb
+      .from('consultations')
+      .select('id', { count: 'exact', head: true })
+      .eq('firm_id', firmId)
+      .eq('status', 'PENDING_PAYMENT'),
+  ]);
+  if (upcomingRes.error) throw upcomingRes.error;
+  if (pendingPayRes.error) throw pendingPayRes.error;
+  const upcoming = Number(upcomingRes.count || 0);
+  const pendingPayment = Number(pendingPayRes.count || 0);
+  return {
+    count: upcoming + pendingPayment,
+    upcoming,
+    pendingPayment,
+  };
+}
+
 async function listExpiredPaymentHolds({ beforeIso, limit = 50 } = {}) {
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
@@ -169,5 +201,6 @@ module.exports = {
   findByIdForFirm,
   reassignLeadToClient,
   updateConsultation,
+  countAttentionByFirm,
   listExpiredPaymentHolds,
 };

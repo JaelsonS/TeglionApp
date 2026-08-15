@@ -37,6 +37,8 @@ function mockNoise() {
   mock.method(contabilNotifications, 'notifyLeadIntakeReceived', async () => ({ ok: true }));
   mock.method(contabilNotifications, 'notifyFirmIntakeSubmitted', async () => ({ ok: true }));
   mock.method(contabilNotifications, 'notifyFirmIntakeDocumentReceived', async () => ({ ok: true }));
+  mock.method(contabilNotifications, 'notifyLeadIntakeChecklist', async () => ({ ok: true }));
+  mock.method(serviceInquiriesRepository, 'findOpenLeadCapture', async () => null);
   mock.method(serviceInquiryRequestsRepository, 'createMany', async (rows) =>
     rows.map((r, i) => ({ id: `req-${i}`, ...r, status: 'PENDING' })),
   );
@@ -107,7 +109,7 @@ test('submitPublicIntake: rejeita sem email', async () => {
   );
 });
 
-test('submitPublicIntake: identidade nova (Lead) -> IN_PROGRESS sem checklist automática de documentos', async () => {
+test('submitPublicIntake: identidade nova (Lead) -> materializa docs immediate e DOCS_REQUESTED', async () => {
   resetMocks();
   mockNoise();
   mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
@@ -125,8 +127,10 @@ test('submitPublicIntake: identidade nova (Lead) -> IN_PROGRESS sem checklist au
     created = args;
     return { id: 'inquiry-1', accessToken: args.accessToken, ...args };
   });
-  mock.method(serviceInquiryRequestsRepository, 'createMany', async () => {
-    throw new Error('não deve materializar documentos na submissão pública');
+  let checklistRows = null;
+  mock.method(serviceInquiryRequestsRepository, 'createMany', async (rows) => {
+    checklistRows = rows;
+    return rows.map((r, i) => ({ id: `req-${i}`, ...r, status: 'PENDING' }));
   });
 
   const { inquiry, requiredDocuments } = await serviceInquiriesService.submitPublicIntake({
@@ -137,12 +141,14 @@ test('submitPublicIntake: identidade nova (Lead) -> IN_PROGRESS sem checklist au
 
   assert.equal(created.leadId, 'lead-novo');
   assert.equal(created.clientId, null);
-  assert.equal(created.status, 'IN_PROGRESS');
+  assert.equal(created.status, 'DOCS_REQUESTED');
   assert.equal(created.accessToken.length, 64);
   assert.ok(created.accessTokenExpiresAt, 'devia definir um tecto de expiração já na criação');
   const daysUntilExpiry = (new Date(created.accessTokenExpiresAt).getTime() - Date.now()) / (24 * 60 * 60 * 1000);
   assert.ok(daysUntilExpiry > 170 && daysUntilExpiry <= 180, 'tecto inicial devia ser ~180 dias');
   assert.equal(requiredDocuments.length, 1, 'sugestões continuam disponíveis para a equipa');
+  assert.equal(checklistRows.length, 1);
+  assert.equal(checklistRows[0].tag, 'cc');
   assert.equal(inquiry.id, 'inquiry-1');
 });
 
@@ -167,7 +173,7 @@ test('submitPublicIntake: sem documentos exigidos -> status IN_PROGRESS logo à 
   assert.equal(created.status, 'IN_PROGRESS');
 });
 
-test('submitPublicIntake: documentos do serviço NÃO são materializados automaticamente (equipa decide depois)', async () => {
+test('submitPublicIntake: materializa só docs immediate; manual fica para a equipa pedir depois', async () => {
   resetMocks();
   mockNoise();
   mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
@@ -186,10 +192,10 @@ test('submitPublicIntake: documentos do serviço NÃO são materializados automa
     status: args.status,
     ...args,
   }));
-  let createManyCalled = false;
-  mock.method(serviceInquiryRequestsRepository, 'createMany', async () => {
-    createManyCalled = true;
-    return [];
+  let checklistRows = [];
+  mock.method(serviceInquiryRequestsRepository, 'createMany', async (rows) => {
+    checklistRows = rows;
+    return rows.map((r, i) => ({ id: `req-${i}`, ...r, status: 'PENDING' }));
   });
 
   const { inquiry, requiredDocuments } = await serviceInquiriesService.submitPublicIntake({
@@ -198,8 +204,9 @@ test('submitPublicIntake: documentos do serviço NÃO são materializados automa
     payload: { name: 'Carla', email: 'carla@x.com' },
   });
 
-  assert.equal(createManyCalled, false);
-  assert.equal(inquiry.status, 'IN_PROGRESS');
+  assert.equal(checklistRows.length, 1);
+  assert.equal(checklistRows[0].tag, 'cc');
+  assert.equal(inquiry.status, 'DOCS_REQUESTED');
   assert.equal(requiredDocuments.length, 2);
 });
 

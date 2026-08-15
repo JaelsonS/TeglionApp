@@ -1,6 +1,11 @@
 /**
  * Catálogo nacional de consultorias contabilísticas — inserido por escritório com is_active=false.
  */
+const {
+  IRS_MODELO3_BASE_DOCUMENTS,
+  IRS_MODELO3_INTAKE_FORM,
+} = require('./irs-modelo3-intake');
+
 const CONSULTING_SERVICES_CATALOG = [
   {
     catalogKey: 'consultoria-individual',
@@ -164,63 +169,13 @@ const CONSULTING_SERVICES_CATALOG = [
     catalogKey: 'irs-modelo-3',
     name: 'Declaração IRS Modelo 3',
     description:
-      'Preparação e entrega da declaração anual de IRS (Modelo 3) — campanha do ano fiscal. Inclui recolha de documentos e submissão nas Finanças.',
+      'Preparação e entrega da declaração anual de IRS (Modelo 3). Formulário completo: situação familiar, anexos e documentos pedidos automaticamente conforme as respostas.',
     durationMinutes: 120,
     priceCents: 12000,
     category: 'IRS',
     requiresBooking: false,
-    documentRequirements: [
-      { tag: 'cartao_cidadao', title: 'Cartão de Cidadão' },
-      { tag: 'efatura_export', title: 'Exportação e-fatura / despesas' },
-    ],
-    intakeForm: {
-      irsConfig: {
-        taxYear: null,
-        anexos: ['A', 'B', 'F', 'H'],
-      },
-      questions: [
-        {
-          label: 'Teve rendimentos de trabalho dependente?',
-          type: 'yes_no',
-          options: [
-            { label: 'Sim', documentTags: ['Recibos de vencimento'] },
-            { label: 'Não', documentTags: [] },
-          ],
-        },
-        {
-          label: 'Teve rendimentos como trabalhador independente?',
-          type: 'yes_no',
-          options: [
-            { label: 'Sim', documentTags: ['Recibos verdes'] },
-            { label: 'Não', documentTags: [] },
-          ],
-        },
-        {
-          label: 'Teve rendimentos prediais?',
-          type: 'yes_no',
-          options: [
-            { label: 'Sim', documentTags: ['Caderneta predial'] },
-            { label: 'Não', documentTags: [] },
-          ],
-        },
-        {
-          label: 'Teve mais-valias com venda de imóveis?',
-          type: 'yes_no',
-          options: [
-            { label: 'Sim', documentTags: ['Escritura / mais-valias'] },
-            { label: 'Não', documentTags: [] },
-          ],
-        },
-        {
-          label: 'Pretende usufruir de benefícios fiscais?',
-          type: 'yes_no',
-          options: [
-            { label: 'Sim', documentTags: ['Comprovativos benefícios'] },
-            { label: 'Não', documentTags: [] },
-          ],
-        },
-      ],
-    },
+    documentRequirements: IRS_MODELO3_BASE_DOCUMENTS,
+    intakeForm: IRS_MODELO3_INTAKE_FORM,
   },
   {
     catalogKey: 'irs-anexo-a',

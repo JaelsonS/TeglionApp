@@ -196,7 +196,7 @@ export function ServiceIntakePublicPage() {
           turnstileToken,
         ),
       )
-      setLeadAccessToken(res.accessToken)
+      setLeadAccessToken(res.intakeToken)
       setStep(2)
     } catch (err) {
       turnstileRef.current?.reset()
@@ -231,7 +231,7 @@ export function ServiceIntakePublicPage() {
             answers,
             website: website || undefined,
             scheduledAt: scheduledAt || undefined,
-            leadAccessToken: leadAccessToken || undefined,
+            intakeToken: leadAccessToken || undefined,
           },
           turnstileToken,
         ),
