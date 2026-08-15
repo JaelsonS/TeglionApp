@@ -463,7 +463,8 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
 
   let existingInquiry = null;
   let identity = null;
-  const leadToken = payload?.leadAccessToken ? String(payload.leadAccessToken).trim() : '';
+  // Aceita intakeToken (novo) e leadAccessToken (legado FE).
+  const leadToken = String(payload?.intakeToken || payload?.leadAccessToken || '').trim();
   if (leadToken) {
     existingInquiry = await serviceInquiriesRepository.findByAccessToken(leadToken);
     if (
@@ -499,6 +500,16 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
       taxId,
       source: 'PUBLIC_FORM',
       createdBy: null,
+    });
+  }
+
+  // Defesa: se o FE perdeu o token (ex. sanitize accessToken), reutiliza o lead parcial.
+  if (!existingInquiry) {
+    existingInquiry = await serviceInquiriesRepository.findOpenLeadCapture({
+      firmId: firm.id,
+      serviceId: service.id,
+      leadId: identity.type === 'LEAD' ? identity.id : null,
+      clientId: identity.type === 'CLIENT' ? identity.id : null,
     });
   }
 
@@ -539,11 +550,10 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
   }
 
   const requiredDocuments = accountingServicesService.resolveRequiredDocuments(service, answers);
-  // Documentos do serviço ficam como SUGESTÕES para a equipa em Solicitações.
-  // Não materializamos checklist nem pedimos documentos ao cliente na submissão —
-  // a contadora decide o que pedir depois (pedido multi-item + email com link).
+  const { immediate: immediateDocs } = accountingServicesService.splitDocumentsByTiming(requiredDocuments);
   const submittedAt = new Date().toISOString();
-  const initialStatus = 'IN_PROGRESS';
+  // Com documentos immediate → DOCS_REQUESTED; senão IN_PROGRESS.
+  const initialStatus = immediateDocs.length ? 'DOCS_REQUESTED' : 'IN_PROGRESS';
 
   let inquiry;
   if (existingInquiry) {
@@ -574,6 +584,21 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
     inquiry.consultationId = bookedConsultation.id;
   }
 
+  // Materializa checklist imediata (base + condicionais das respostas) para o portal /pedidos.
+  if (immediateDocs.length) {
+    await serviceInquiryRequestsRepository.createMany(
+      immediateDocs.map((doc) => ({
+        firmId: firm.id,
+        serviceInquiryId: inquiry.id,
+        kind: 'document',
+        tag: doc.tag,
+        title: doc.title || doc.tag,
+        instructions: doc.instructions || null,
+        createdBy: null,
+      })),
+    );
+  }
+
   const resolvedTagIds = resolveTagIdsFromRules(service.intakeTagRules, answers);
   if (resolvedTagIds.length) {
     const firmTags = await firmInquiryTagsRepository.listByFirm(firm.id);
@@ -595,6 +620,7 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
       serviceId: service.id,
       identityType: identity.type,
       suggestedDocuments: requiredDocuments.length,
+      checklistDocuments: immediateDocs.length,
       booking: Boolean(bookedConsultation),
       paymentRequired: Boolean(service.paymentRequired),
       tagsApplied: resolvedTagIds.length,
@@ -602,14 +628,27 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
   });
 
   if (email && !checkoutUrl) {
-    void contabilNotifications
-      .notifyLeadIntakeReceived({
-        toEmail: email,
-        toName: name,
-        firmName: firm.name,
-        serviceName: interpolateServiceTemplate(service.name),
-      })
-      .catch(() => {});
+    if (immediateDocs.length && inquiry.accessToken) {
+      void contabilNotifications
+        .notifyLeadIntakeChecklist({
+          toEmail: email,
+          toName: name,
+          firmName: firm.name,
+          serviceName: interpolateServiceTemplate(service.name),
+          accessToken: inquiry.accessToken,
+          documents: immediateDocs,
+        })
+        .catch(() => {});
+    } else {
+      void contabilNotifications
+        .notifyLeadIntakeReceived({
+          toEmail: email,
+          toName: name,
+          firmName: firm.name,
+          serviceName: interpolateServiceTemplate(service.name),
+        })
+        .catch(() => {});
+    }
   }
   const staffEmail = await resolveStaffNotifyEmail(firm.id, firm);
   if (staffEmail && !checkoutUrl) {

@@ -100,13 +100,17 @@ export type PublicIntakeSubmitPayload = {
   answers: Record<string, string | string[]>
   website?: string
   scheduledAt?: string
+  /** Token do passo 1 (lead). Preferir `intakeToken`. */
+  intakeToken?: string
+  /** @deprecated Use intakeToken — mantido para clients antigos. */
   leadAccessToken?: string
   turnstileToken?: string
 }
 
 export type PublicIntakeSubmitResult = {
   ok: true
-  accessToken: string
+  /** Token opaco do portal `/pedidos/:token` (não é JWT). */
+  intakeToken: string
   documentsRequired: number
   bookingConfirmed: boolean
   bookingPendingPayment?: boolean
@@ -245,7 +249,7 @@ export function createContabilPublicApi(api: AxiosInstance) {
           `/public/firms/${encodeURIComponent(firmSlug)}/services/${encodeURIComponent(serviceSlug)}/intake/lead`,
           payload,
         )
-        .then((r) => r.data as { ok: true; accessToken: string }),
+        .then((r) => r.data as { ok: true; intakeToken: string }),
 
     getIntakeByToken: (token: string) =>
       api.get(`/public/service-inquiries/${encodeURIComponent(token)}`).then((r) => r.data as PublicIntakeChecklist),

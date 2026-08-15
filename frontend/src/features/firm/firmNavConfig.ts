@@ -22,7 +22,7 @@ export type FirmNavItemConfig = {
   labelDefault: string
   icon: LucideIcon
   end?: boolean
-  badgeKey?: 'messages'
+  badgeKey?: 'messages' | 'serviceInquiries' | 'consultations' | 'documents' | 'tasks' | 'obligations'
 }
 
 export type FirmNavGroupConfig = {
@@ -63,6 +63,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         labelDefault: 'Obrigações dos Clientes',
         icon: ClipboardCheck,
         end: false,
+        badgeKey: 'obligations',
       },
     ],
   },
@@ -77,12 +78,14 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         labelDefault: 'Tarefas',
         icon: ListChecks,
         end: false,
+        badgeKey: 'tasks',
       },
       {
         to: '/app/firm/agenda',
         labelKey: 'contabil.firm.nav.consultations',
         labelDefault: 'Agendamentos',
         icon: CalendarCheck,
+        badgeKey: 'consultations',
       },
       {
         to: '/app/firm/irs',
@@ -95,6 +98,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         labelKey: 'contabil.firm.nav.services',
         labelDefault: 'Serviços',
         icon: ClipboardList,
+        badgeKey: 'serviceInquiries',
       },
       {
         to: '/app/firm/fiscal-calendar',
@@ -115,6 +119,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         labelDefault: 'Documentos',
         icon: Inbox,
         end: false,
+        badgeKey: 'documents',
       },
       {
         to: '/app/firm/messages',
@@ -224,6 +229,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     labelDefault: 'Documentos',
     icon: Inbox,
     end: false,
+    badgeKey: 'documents',
   },
   {
     to: '/app/firm/messages',
@@ -238,12 +244,14 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     labelDefault: 'Tarefas',
     icon: ListChecks,
     end: false,
+    badgeKey: 'tasks',
   },
   {
     to: '/app/firm/agenda',
     labelKey: 'contabil.firm.nav.consultations',
     labelDefault: 'Agendamentos',
     icon: CalendarCheck,
+    badgeKey: 'consultations',
   },
   {
     to: '/app/firm/fiscal-calendar',
@@ -268,6 +276,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     labelKey: 'contabil.firm.nav.services',
     labelDefault: 'Serviços',
     icon: ClipboardList,
+    badgeKey: 'serviceInquiries',
   },
   {
     to: '/app/firm/tasks/obligations',
@@ -275,6 +284,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     labelDefault: 'Obrigações dos Clientes',
     icon: ClipboardCheck,
     end: false,
+    badgeKey: 'obligations',
   },
 ]
 

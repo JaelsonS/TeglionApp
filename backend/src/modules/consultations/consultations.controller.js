@@ -16,6 +16,16 @@ exports.list = async (req, res, next) => {
   }
 };
 
+exports.attentionCount = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const data = await consultationsService.getAttentionCount({ firmId });
+    return res.json(data);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.create = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);

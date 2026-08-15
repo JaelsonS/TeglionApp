@@ -279,14 +279,16 @@ async function captureLead(req, res, next) {
   try {
     assertValid(req);
     if (req.body?.website) {
-      return res.status(201).json({ ok: true, accessToken: 'honeypot' });
+      // `intakeToken` (não accessToken): response-sanitize remove accessToken e
+      // partia o fluxo lead→submit, criando solicitações duplicadas.
+      return res.status(201).json({ ok: true, intakeToken: 'honeypot' });
     }
     const { accessToken } = await serviceInquiriesService.capturePublicLead({
       firmSlug: String(req.params.firmSlug || '').trim(),
       serviceSlug: String(req.params.serviceSlug || '').trim(),
       payload: req.body || {},
     });
-    return res.status(201).json({ ok: true, accessToken });
+    return res.status(201).json({ ok: true, intakeToken: accessToken });
   } catch (err) {
     return next(err);
   }
@@ -315,7 +317,8 @@ async function submitIntake(req, res, next) {
     });
     return res.status(201).json({
       ok: true,
-      accessToken: inquiry.accessToken,
+      // Token opaco do portal público — NÃO usar a chave `accessToken` (sanitize).
+      intakeToken: inquiry.accessToken,
       documentsRequired: requiredDocuments.length,
       bookingConfirmed: Boolean(consultation) && consultation.status === 'SCHEDULED',
       bookingPendingPayment: Boolean(consultation) && consultation.status === 'PENDING_PAYMENT',

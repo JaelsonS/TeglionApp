@@ -443,6 +443,7 @@ router.delete('/accounting-services/:id', requirePermission(PERMISSIONS.FIRM_ACC
 router.get('/booking-settings', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), bookingSettingsController.get);
 router.patch('/booking-settings', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), bookingSettingsController.patch);
 
+router.get('/consultations/attention-count', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), consultationsController.attentionCount);
 router.get('/consultations', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), consultationsController.list);
 router.post('/consultations', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), consultationsController.create);
 router.patch('/consultations/:id', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), consultationsController.update);

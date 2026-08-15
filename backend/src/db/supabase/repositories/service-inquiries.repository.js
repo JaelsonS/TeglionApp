@@ -130,6 +130,29 @@ async function findByAccessToken(token) {
   return isAccessTokenActive(inquiry) ? inquiry : null;
 }
 
+/**
+ * Lead parcial aberto (LEAD_CAPTURED) do mesmo contacto + serviço —
+ * usado se o submit chega sem intakeToken (ex. sanitize antigo).
+ */
+async function findOpenLeadCapture({ firmId, serviceId, leadId, clientId }) {
+  if (!firmId || !serviceId) return null;
+  if (!leadId && !clientId) return null;
+  const sb = getSupabaseAdmin();
+  let q = sb
+    .from('service_inquiries')
+    .select('*')
+    .eq('firm_id', firmId)
+    .eq('service_id', serviceId)
+    .eq('status', 'LEAD_CAPTURED')
+    .order('created_at', { ascending: false })
+    .limit(1);
+  if (leadId) q = q.eq('lead_id', leadId);
+  else q = q.eq('client_id', clientId);
+  const { data, error } = await q.maybeSingle();
+  if (error) throw error;
+  return map(data);
+}
+
 async function updateRow(id, firmId, patch) {
   const sb = getSupabaseAdmin();
   const row = { updated_at: new Date().toISOString() };
@@ -193,6 +216,7 @@ module.exports = {
   listByFirm,
   findByIdForFirm,
   findByAccessToken,
+  findOpenLeadCapture,
   isAccessTokenActive,
   encryptAnswers,
   decryptAnswers,

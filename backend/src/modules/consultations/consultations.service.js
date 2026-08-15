@@ -38,6 +38,10 @@ async function listConsultations({ firmId, clientId, from, to }) {
   return enriched;
 }
 
+async function getAttentionCount({ firmId }) {
+  return consultationsRepository.countAttentionByFirm(firmId);
+}
+
 async function createConsultation({ firmId, clientId, staffId, title, scheduledAt, durationMinutes, notes }) {
   const client = await clientsRepository.findClientById(firmId, clientId);
   if (!client) throw new AppError('Cliente não encontrado', 404);
@@ -89,4 +93,4 @@ async function updateConsultation({ firmId, id, patch }) {
   return { consultation };
 }
 
-module.exports = { listConsultations, createConsultation, updateConsultation };
+module.exports = { listConsultations, createConsultation, updateConsultation, getAttentionCount };

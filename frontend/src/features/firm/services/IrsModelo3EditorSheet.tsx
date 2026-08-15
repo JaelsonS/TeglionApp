@@ -33,80 +33,115 @@ import type { FormChangeEvent } from '@/shared/types/react-events'
 type PaymentMethod = ServicePaymentMethodId
 
 const DOC_SUGGESTIONS = [
-  'Recibos de vencimento',
-  'Certidão',
-  'Recibos verdes',
-  'Caderneta predial',
-  'Contrato de arrendamento',
-  'Escritura / mais-valias',
-  'Comprovativos benefícios',
-  'Cartão de Cidadão',
+  'recibos_vencimento',
+  'recibos_verdes',
+  'caderneta_predial',
+  'contrato_arrendamento',
+  'escritura_venda',
+  'donativos',
+  'cartao_cidadao',
+  'efatura',
 ]
 
-const ANEXOS: {
-  id: IrsAnexoId
-  title: string
-  subtitle: string
-  Icon: typeof User
-}[] = [
-  { id: 'A', title: 'Anexo A', subtitle: 'Dependente', Icon: User },
-  { id: 'B', title: 'Anexo B', subtitle: 'Independente / recibos verdes', Icon: Briefcase },
-  { id: 'C', title: 'Anexo C', subtitle: 'Capital', Icon: PiggyBank },
-  { id: 'F', title: 'Anexo F', subtitle: 'Prediais', Icon: Home },
-  { id: 'G', title: 'Anexo G', subtitle: 'Mais-valias imóveis', Icon: TrendingUp },
-  { id: 'H', title: 'Anexo H', subtitle: 'Benefícios fiscais', Icon: Landmark },
-  { id: 'J', title: 'Anexo J', subtitle: 'Não residentes', Icon: Globe2 },
-  { id: 'JOVEM', title: 'IRS Jovem', subtitle: 'Regime IRS Jovem', Icon: Sparkles },
-]
-
+/** Espelha as perguntas yes_no do catálogo IRS Modelo 3 (docs condicionais). */
 const DEFAULT_QUESTIONS: IntakeQuestion[] = [
   {
-    id: 'q_dep',
-    label: 'Teve rendimentos de trabalho dependente?',
+    id: 'q_dependentes',
+    label: 'Tem dependentes a cargo (filhos ou outros)?',
     type: 'yes_no',
-    required: false,
+    required: true,
     options: [
-      { id: 'sim', label: 'Sim', documentTags: ['Recibos de vencimento'] },
+      { id: 'sim', label: 'Sim', documentTags: ['cc_dependentes'] },
+      { id: 'nao', label: 'Não', documentTags: [] },
+    ],
+  },
+  {
+    id: 'q_dep',
+    label: 'Teve rendimentos de trabalho dependente (salário, pensão)?',
+    type: 'yes_no',
+    required: true,
+    options: [
+      { id: 'sim', label: 'Sim', documentTags: ['recibos_vencimento', 'declaracao_entidade'] },
       { id: 'nao', label: 'Não', documentTags: [] },
     ],
   },
   {
     id: 'q_ind',
-    label: 'Teve rendimentos como trabalhador independente?',
+    label: 'Teve rendimentos como trabalhador independente (recibos verdes / categoria B)?',
     type: 'yes_no',
-    required: false,
+    required: true,
     options: [
-      { id: 'sim', label: 'Sim', documentTags: ['Recibos verdes'] },
+      { id: 'sim', label: 'Sim', documentTags: ['recibos_verdes', 'ss_independente', 'atividade_at'] },
+      { id: 'nao', label: 'Não', documentTags: [] },
+    ],
+  },
+  {
+    id: 'q_capitais',
+    label: 'Teve rendimentos de capitais (juros, dividendos, etc.)?',
+    type: 'yes_no',
+    required: true,
+    options: [
+      { id: 'sim', label: 'Sim', documentTags: ['extratos_capitais'] },
       { id: 'nao', label: 'Não', documentTags: [] },
     ],
   },
   {
     id: 'q_pred',
-    label: 'Teve rendimentos prediais?',
+    label: 'Teve rendimentos prediais (arrendamento)?',
     type: 'yes_no',
-    required: false,
+    required: true,
     options: [
-      { id: 'sim', label: 'Sim', documentTags: ['Caderneta predial'] },
+      { id: 'sim', label: 'Sim', documentTags: ['caderneta_predial', 'contrato_arrendamento', 'despesas_prediais'] },
       { id: 'nao', label: 'Não', documentTags: [] },
     ],
   },
   {
     id: 'q_mv',
-    label: 'Teve mais-valias com venda de imóveis?',
+    label: 'Teve mais-valias com venda de imóveis ou valores mobiliários?',
     type: 'yes_no',
-    required: false,
+    required: true,
     options: [
-      { id: 'sim', label: 'Sim', documentTags: ['Escritura / mais-valias'] },
+      { id: 'sim', label: 'Sim', documentTags: ['escritura_compra', 'escritura_venda', 'despesas_mais_valias'] },
+      { id: 'nao', label: 'Não', documentTags: [] },
+    ],
+  },
+  {
+    id: 'q_exterior',
+    label: 'Teve rendimentos obtidos no estrangeiro ou é não residente?',
+    type: 'yes_no',
+    required: true,
+    options: [
+      { id: 'sim', label: 'Sim', documentTags: ['docs_exterior'] },
       { id: 'nao', label: 'Não', documentTags: [] },
     ],
   },
   {
     id: 'q_ben',
-    label: 'Pretende usufruir de benefícios fiscais?',
+    label: 'Pretende usufruir de benefícios fiscais (donativos, PPR, etc.)?',
+    type: 'yes_no',
+    required: true,
+    options: [
+      { id: 'sim', label: 'Sim', documentTags: ['donativos', 'ppr_pensoes'] },
+      { id: 'nao', label: 'Não', documentTags: [] },
+    ],
+  },
+  {
+    id: 'q_habitacao',
+    label: 'Tem crédito à habitação própria permanente?',
+    type: 'yes_no',
+    required: true,
+    options: [
+      { id: 'sim', label: 'Sim', documentTags: ['creditos_habitacao'] },
+      { id: 'nao', label: 'Não', documentTags: [] },
+    ],
+  },
+  {
+    id: 'q_jovem',
+    label: 'É elegível / quer aplicar o regime IRS Jovem?',
     type: 'yes_no',
     required: false,
     options: [
-      { id: 'sim', label: 'Sim', documentTags: ['Comprovativos benefícios'] },
+      { id: 'sim', label: 'Sim', documentTags: ['irs_jovem'] },
       { id: 'nao', label: 'Não', documentTags: [] },
     ],
   },
