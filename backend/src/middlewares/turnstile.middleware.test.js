@@ -51,7 +51,7 @@ test('requireTurnstile: exige action na factory', () => {
   assert.throws(() => requireTurnstile({}), /action/);
 });
 
-test('requireTurnstile: staging FRONTEND_URL sem token → skip UAT', async () => {
+test('requireTurnstile: staging com secret e sem token → fail closed (TURNSTILE_MISSING)', async () => {
   const previousSecret = env.TURNSTILE_SECRET_KEY;
   const previousFrontend = env.FRONTEND_URL;
   const previousProd = env.isProduction;
@@ -61,13 +61,12 @@ test('requireTurnstile: staging FRONTEND_URL sem token → skip UAT', async () =
   try {
     const mw = requireTurnstile({ action: 'login-firm' });
     let nextErr;
-    let nextCalled = false;
     await mw({ body: {} }, {}, (err) => {
       nextErr = err;
-      nextCalled = true;
     });
-    assert.equal(nextCalled, true);
-    assert.equal(nextErr, undefined);
+    assert.ok(nextErr instanceof AppError);
+    assert.equal(nextErr.code, 'TURNSTILE_MISSING');
+    assert.equal(nextErr.statusCode, 403);
   } finally {
     env.TURNSTILE_SECRET_KEY = previousSecret;
     env.FRONTEND_URL = previousFrontend;

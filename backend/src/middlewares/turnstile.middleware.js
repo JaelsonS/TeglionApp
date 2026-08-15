@@ -1,6 +1,10 @@
 /**
  * Middleware Cloudflare Turnstile (Managed) — Siteverify obrigatório.
  * Replay: confiar no Siteverify (tokens single-use / TTL 5 min). Sem Redis.
+ *
+ * Política: com TURNSTILE_SECRET_KEY definido, o token é sempre obrigatório
+ * (staging e produção). Sem secret: skip só em não-produção (dev/CI local);
+ * em produção → fail closed.
  */
 const { AppError } = require('./error.middleware');
 const { clientIp } = require('../utils/client-ip');
@@ -9,17 +13,6 @@ const {
   verifyTurnstileToken,
 } = require('../services/turnstile/turnstile.service');
 const { env } = require('../config/env');
-const { logger } = require('../utils/logger');
-
-/** Staging SPA builds often ship without VITE_TURNSTILE_SITE_KEY — do not block UAT. */
-function isStagingFrontendUrl(url) {
-  try {
-    const host = new URL(String(url || '')).hostname.toLowerCase();
-    return host === 'staging.teglion.com' || host === 'www.staging.teglion.com';
-  } catch {
-    return false;
-  }
-}
 
 /**
  * @param {{ action: string }} options
@@ -47,13 +40,6 @@ function requireTurnstile({ action } = {}) {
       }
 
       const token = extractTurnstileToken(req);
-      if (!token && isStagingFrontendUrl(env.FRONTEND_URL)) {
-        logger.warn(
-          '[Turnstile] token ausente — skip em staging (defina VITE_TURNSTILE_SITE_KEY no Vercel staging)',
-        );
-        return next();
-      }
-
       await verifyTurnstileToken({
         token,
         expectedAction,
@@ -74,4 +60,4 @@ function requireTurnstile({ action } = {}) {
   };
 }
 
-module.exports = { requireTurnstile, isStagingFrontendUrl };
+module.exports = { requireTurnstile };

@@ -50,6 +50,7 @@ export async function patchClient(
     taxId?: string | null
     assignedStaffId?: string | null
     metadata?: Partial<ClientFiscalProfile>
+    tagIds?: string[]
   },
 ): Promise<{ client: ClientHubResponse['client']; changes: unknown[] }> {
   return contabilClientsApi.patch(clientId, payload) as Promise<{

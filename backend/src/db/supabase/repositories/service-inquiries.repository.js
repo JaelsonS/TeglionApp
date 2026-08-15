@@ -42,7 +42,7 @@ function map(row) {
   };
 }
 
-async function listByFirm(firmId, { status, serviceId, limit = 200, offset = 0 } = {}) {
+async function listByFirm(firmId, { status, serviceId, leadId, limit = 200, offset = 0 } = {}) {
   const sb = getSupabaseAdmin();
   let q = sb
     .from('service_inquiries')
@@ -52,6 +52,7 @@ async function listByFirm(firmId, { status, serviceId, limit = 200, offset = 0 }
     .range(offset, offset + limit - 1);
   if (status) q = q.eq('status', status);
   if (serviceId) q = q.eq('service_id', serviceId);
+  if (leadId) q = q.eq('lead_id', leadId);
   const { data, error } = await q;
   if (error) throw error;
   return (data || []).map(map);

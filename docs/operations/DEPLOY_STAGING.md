@@ -67,7 +67,12 @@ Duplicar o Web Service de produção com nome `teglion-api-staging`:
 | `STRIPE_SECRET_KEY` | `sk_test_…` |
 | `STRIPE_WEBHOOK_SECRET` | webhook endpoint staging |
 
-**Turnstile em staging:** o backend pode ter `TURNSTILE_SECRET_KEY`, mas o build Vercel de staging **tem** de definir `VITE_TURNSTILE_SITE_KEY` (sitekey pública Cloudflare, com hostname `staging.teglion.com` permitido). Sem a sitekey no frontend o widget não aparece e o login falhava com `TURNSTILE_MISSING`. Há um skip temporário no API quando `FRONTEND_URL` é `https://staging.teglion.com` e o token falta — mesmo assim configura a sitekey no Vercel.
+**Turnstile em staging (obrigatório, fail closed):**
+
+1. Cloudflare Turnstile: sitekey + secret do **mesmo** widget; hostnames permitidos incluem `staging.teglion.com` (e `www.staging.teglion.com` se usado).
+2. Vercel staging: `VITE_TURNSTILE_SITE_KEY` = sitekey pública.
+3. API staging (Render): `TURNSTILE_SECRET_KEY` + `TURNSTILE_EXPECTED_HOSTNAMES=staging.teglion.com,www.staging.teglion.com`.
+4. Sem token válido o API responde `403 TURNSTILE_MISSING` / `TURNSTILE_FAILED` — **não há skip em staging**. Dev/CI local sem secret continua a fazer skip só em não-produção.
 
 Branch de deploy do ambiente staging: **`staging`** (sempre alinhada ao que está em QA). Trabalho de fase em `feature/fase-N` → PR para `staging` → UAT → PR `staging`→`main`. Ver [GIT_WORKFLOW.md](./GIT_WORKFLOW.md).
 

@@ -412,7 +412,15 @@ router.post(
   requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
   clientsController.unhideActivity,
 );
-router.patch('/clients/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.patch);
+router.patch(
+  '/clients/:id',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  [
+    body('tagIds').optional().isArray(),
+    body('tagIds.*').optional().isUUID(),
+  ],
+  clientsController.patch,
+);
 router.delete('/clients/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.archive);
 router.get('/clients/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.getById);
 
@@ -491,7 +499,15 @@ router.post('/team', requirePermission(PERMISSIONS.USERS_CREATE), teamController
 router.get('/team/permissions', requirePermission(PERMISSIONS.FIRM_MEMBER_PERMISSION_MANAGE), teamPermissionsController.getByMember);
 router.get('/team/:id/permissions', requirePermission(PERMISSIONS.FIRM_MEMBER_PERMISSION_MANAGE), teamPermissionsController.getByMember);
 router.get('/team/:id', requirePermission(PERMISSIONS.USERS_READ), teamController.getById);
-router.patch('/team/:id', requirePermission(PERMISSIONS.USERS_UPDATE), teamController.patch);
+router.patch(
+  '/team/:id',
+  requirePermission(PERMISSIONS.USERS_UPDATE),
+  [
+    body('tagIds').optional().isArray(),
+    body('tagIds.*').optional().isUUID(),
+  ],
+  teamController.patch,
+);
 router.post('/team/:id/deactivate', requirePermission(PERMISSIONS.USERS_DELETE), teamController.deactivate);
 router.post('/team/:id/reactivate', requirePermission(PERMISSIONS.USERS_UPDATE), teamController.reactivate);
 router.post('/team/:id/resend-invite', requirePermission(PERMISSIONS.FIRM_INVITES_MANAGE), teamInvitesController.resendForMember);
@@ -554,6 +570,8 @@ router.patch(
     body('name').optional().isString().trim().isLength({ min: 1, max: 140 }),
     body('email').optional({ nullable: true }).isEmail(),
     body('status').optional().isString().trim(),
+    body('tagIds').optional().isArray(),
+    body('tagIds.*').optional().isUUID(),
   ],
   leadsController.patch,
 );

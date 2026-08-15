@@ -1,6 +1,12 @@
 import type { ClientFiscalProfile } from '@/infrastructure/api/contabil/types'
 
 /** Cliente do escritório (portal + gestão). */
+export type ClientEntityTag = {
+  id: string
+  name: string
+  colorHex: string
+}
+
 export type Client = {
   _id: string
   id?: string
@@ -21,6 +27,7 @@ export type Client = {
   vatRegime?: string | null
   companyType?: 'Lda' | 'SA' | 'ENI' | string | null
   fiscalProfile?: ClientFiscalProfile | null
+  tags?: ClientEntityTag[]
   nextObligation?: {
     id: string
     title?: string

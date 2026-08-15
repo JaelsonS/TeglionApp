@@ -347,8 +347,8 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             <strong>Nome na barra do topo</strong> → texto pequeno na barra (não é o título grande).
           </li>
           <li>
-            <strong>Destaque principal</strong> → foto + <em>título grande</em> + frase + parágrafo + botões
-            (escreva um título diferente do nome da barra).
+            <strong>Destaque principal</strong> → <em>título grande</em> + <em>frase de destaque</em> +
+            parágrafo + foto + botões (os textos aparecem primeiro na edição).
           </li>
           <li>
             Nas outras secções edite títulos, textos e imagens; active/desactive com a caixa à esquerda.
