@@ -14,6 +14,16 @@ exports.list = async (req, res, next) => {
   }
 };
 
+exports.countUnseen = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const result = await serviceInquiriesService.countUnseen({ firmId });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.getDetail = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);

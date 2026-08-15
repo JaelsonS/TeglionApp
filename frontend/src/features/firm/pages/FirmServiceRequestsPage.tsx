@@ -60,16 +60,17 @@ export function FirmServiceRequestsPage() {
     queryKey: ['contabil-accounting-services', 'catalog-tab'],
     queryFn: () => contabilAccountingServicesApi.list(),
   })
-  const inquiriesQuery = useQuery({
-    queryKey: ['contabil-service-inquiries', 'services-hub-kpis'],
-    queryFn: () => contabilServiceInquiriesApi.list({ status: 'NEW' }),
-    staleTime: 30_000,
+  const inquiriesUnseenQuery = useQuery({
+    queryKey: ['contabil-service-inquiries', 'unseen-count'],
+    queryFn: () => contabilServiceInquiriesApi.getUnseenCount(),
+    staleTime: 15_000,
+    refetchInterval: 60_000,
   })
 
   const allServices = (servicesQuery.data?.items ?? []) as AccountingService[]
   const nonIrs = allServices.filter((s) => !isIrsService(s))
   const stats = countServicePublishStats(nonIrs)
-  const newInquiries = inquiriesQuery.data?.items?.length ?? 0
+  const unseenInquiries = inquiriesUnseenQuery.data?.count ?? 0
   const publicUrl =
     typeof window !== 'undefined' && firmSlug
       ? `${window.location.origin}/${encodeURIComponent(firmSlug)}`
@@ -109,9 +110,12 @@ export function FirmServiceRequestsPage() {
                 className={cn('cb-tasks-tab', activeTab === tab.id && 'cb-tasks-tab-active')}
               >
                 {tab.label}
-                {tab.id === 'inquiries' && newInquiries > 0 ? (
-                  <span className="ml-1.5 rounded-full bg-brand/15 px-1.5 py-0.5 text-[10px] font-bold text-brand">
-                    {newInquiries}
+                {tab.id === 'inquiries' && unseenInquiries > 0 ? (
+                  <span
+                    className="ml-1.5 rounded-full bg-brand/15 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-brand"
+                    aria-label={`${unseenInquiries} solicitações por ver`}
+                  >
+                    {unseenInquiries > 99 ? '99+' : unseenInquiries}
                   </span>
                 ) : null}
               </button>
@@ -130,7 +134,7 @@ export function FirmServiceRequestsPage() {
                 { label: 'Activos', value: String(stats.active) },
                 { label: 'Publicados', value: String(stats.published) },
                 { label: 'Só internos', value: String(stats.internal) },
-                { label: 'Pedidos novos', value: String(newInquiries) },
+                { label: 'Por ver', value: String(unseenInquiries) },
               ].map((kpi) => (
                 <div key={kpi.label} className="rounded-lg border border-border/60 bg-card px-3 py-2">
                   <p className="text-caption font-medium text-muted-foreground">{kpi.label}</p>
@@ -138,9 +142,9 @@ export function FirmServiceRequestsPage() {
                 </div>
               ))}
             </div>
-            {newInquiries > 0 ? (
+            {unseenInquiries > 0 ? (
               <p className="mt-2 text-sm text-muted-foreground">
-                Tem pedidos novos da página pública —{' '}
+                Tem pedidos por ver da página pública —{' '}
                 <button
                   type="button"
                   className="font-medium text-brand underline-offset-2 hover:underline"

@@ -94,6 +94,11 @@ async function list({ firmId, status, serviceId, tagId }) {
   return { items: enriched };
 }
 
+async function countUnseen({ firmId }) {
+  const count = await serviceInquiriesRepository.countUnseenByFirm(firmId);
+  return { count };
+}
+
 /** Forma comum do item de checklist devolvida ao staff e ao mini-portal — um
  * pedido (documento ou pergunta em texto), da tabela service_inquiry_requests. */
 function toChecklistItem(request) {
@@ -112,8 +117,15 @@ function toChecklistItem(request) {
 }
 
 async function getById({ firmId, id }) {
-  const inquiry = await serviceInquiriesRepository.findByIdForFirm(id, firmId);
+  let inquiry = await serviceInquiriesRepository.findByIdForFirm(id, firmId);
   if (!inquiry) throw new AppError('Solicitação não encontrada', 404);
+
+  // Abrir o detalhe marca como vista → o badge em Solicitações diminui.
+  if (!inquiry.staffSeenAt) {
+    inquiry = await serviceInquiriesRepository.updateRow(id, firmId, {
+      staffSeenAt: new Date().toISOString(),
+    });
+  }
 
   const service = await accountingServicesRepository.findByIdForFirm(inquiry.serviceId, firmId);
   const requesterName = await requesterNameForInquiry(inquiry);
@@ -539,6 +551,8 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
       answers,
       submittedAt,
       status: initialStatus,
+      // Submissão completa = nova atenção mesmo se a equipa já tinha aberto o lead parcial.
+      staffSeenAt: null,
     });
   } else {
     const accessToken = crypto.randomBytes(32).toString('hex');
@@ -665,6 +679,9 @@ async function recordDocumentDelivery({ token, tag, file }) {
 
   await serviceInquiryRequestsRepository.markAnswered(request.id, inquiry.firmId, { documentId: deliveredDoc.id });
 
+  // Nova entrega do cliente → volta a contar no badge até a equipa reabrir.
+  await serviceInquiriesRepository.updateRow(inquiry.id, inquiry.firmId, { staffSeenAt: null });
+
   await auditRepository.writeAuditLog({
     firmId: inquiry.firmId,
     actorRole: 'PUBLIC',
@@ -732,6 +749,8 @@ async function recordTextReply({ token, requestId, textReply }) {
   if (!reply) throw new AppError('Resposta é obrigatória', 400);
 
   await serviceInquiryRequestsRepository.markAnswered(request.id, inquiry.firmId, { textReply: reply });
+
+  await serviceInquiriesRepository.updateRow(inquiry.id, inquiry.firmId, { staffSeenAt: null });
 
   await auditRepository.writeAuditLog({
     firmId: inquiry.firmId,
@@ -883,6 +902,7 @@ async function confirmConsultation({ firmId, inquiryId, actor }) {
 
 module.exports = {
   list,
+  countUnseen,
   getById,
   create,
   update,
