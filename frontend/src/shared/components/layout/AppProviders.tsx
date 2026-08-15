@@ -55,9 +55,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
 export function RouteCookieBanner() {
   const { pathname } = useLocation()
-  // Captação pública (/pedidos, /:slug/servicos/…): o banner cobre o Turnstile e
-  // impede a verificação Cloudflare — nunca sobrepor o widget de segurança.
+  // Captação pública e auth com Turnstile: o banner cobre o widget Cloudflare
+  // e dispara error-callback («verificação não concluiu»).
   if (isPublicIntakeRoute(pathname)) return null
+  if (pathname.startsWith('/auth')) return null
   const marketing = isLightweightPublicRoute(pathname)
 
   return (

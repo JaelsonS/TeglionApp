@@ -174,6 +174,8 @@ P1.17 (só manual), P2.01, P2.02, P3.01
 
 **UAT manual (Jaelson):** Definições → Etiquetas; Client Hub chips; filtro clientes; tags equipa; Solicitações sync; intake público com widget Turnstile OK (não só 403); frase de destaque no editor público.
 
+**Turnstile widget no login (2026-08-15):** sitekey presente no bundle staging (`0x4AAAAA…`). Erro «verificação não concluiu» = `error-callback` do widget (domínio Cloudflare / overlay). Código: banner cookies desactivado em `/auth` + mensagem com hint de hostname. **Confirmar no painel Cloudflare** que `staging.teglion.com` está nos hostnames do widget — MANUAL JAELSON.
+
 **Não fecha o gate global** — falta Burp + Stripe E2E + decisões Jaelson (tabela-mestre).
 
 ---
@@ -181,4 +183,5 @@ P1.17 (só manual), P2.01, P2.02, P3.01
 ## Playbooks
 
 - `docs/security/BURP_P0_HTTP_PLAYBOOK.md`
+- `docs/security/BURP_PUBLIC_PORTAL_PLAYBOOK.md`
 - `docs/security/seed-staging-demo-ops.js`

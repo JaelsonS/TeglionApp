@@ -215,7 +215,9 @@ export function TurnstileField({ action, onTokenChange, className, fieldRef }: P
       <div ref={containerRef} />
       {status === 'error' ? (
         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-destructive">
-          <span>A verificação não concluiu. Actualize ou tente de novo.</span>
+          <span>
+            A verificação não concluiu. Actualize ou tente de novo.
+          </span>
           <button
             type="button"
             className="font-semibold underline"

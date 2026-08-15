@@ -29,6 +29,7 @@ import type { FirmBookingSettings } from '@/shared/types/contabil'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { resolveFirmBrandingCssVars } from '@/shared/utils/firmBranding'
 import { DefaultTemplate } from '@/features/public-intake/templates/default/DefaultTemplate'
+import { AskMayaButton } from '@/features/maya'
 import {
   DEFAULT_PRIVACY_TEMPLATE,
   DEFAULT_TERMS_TEMPLATE,
@@ -45,8 +46,8 @@ import {
 } from './sectionEditors'
 
 const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
-  header: '1. Barra do topo',
-  hero: '2. Destaque principal',
+  header: 'Barra do topo',
+  hero: 'Destaque principal',
   about: 'Sobre o escritório',
   services: 'Consultorias com agendamento',
   bookingServices: 'Outros serviços',
@@ -58,16 +59,16 @@ const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
 }
 
 const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
-  header: 'Só as cores da barra. O texto vem do «Nome na barra do topo» acima.',
-  hero: 'Foto, título grande, frase, parágrafo e botões — abaixo da barra.',
-  about: 'Bloco opcional com texto e foto institucional.',
-  services: 'Título da grelha de serviços com marcação (vêm do Catálogo).',
-  bookingServices: 'Título da lista de outros serviços publicados.',
-  features: 'Lista de pontos fortes do escritório.',
-  process: 'Passos «como funciona».',
-  faq: 'Perguntas e respostas.',
-  contact: 'O que mostrar (email, telefone, morada).',
-  footer: 'Cores do rodapé. O nome usa o da barra do topo.',
+  header: 'Cores da barra',
+  hero: 'Foto, título, frase e botões',
+  about: 'Texto e foto institucional',
+  services: 'Título da grelha (Catálogo)',
+  bookingServices: 'Título dos outros serviços',
+  features: 'Pontos fortes',
+  process: 'Passos do processo',
+  faq: 'Perguntas e respostas',
+  contact: 'Email, telefone, morada',
+  footer: 'Cores do rodapé',
 }
 
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -340,24 +341,14 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-950">
-        <p className="font-semibold">Mapa rápido da página</p>
-        <ul className="mt-2 space-y-1.5 text-caption leading-relaxed text-emerald-900/90">
-          <li>
-            <strong>Nome na barra do topo</strong> → texto pequeno na barra (não é o título grande).
-          </li>
-          <li>
-            <strong>Destaque principal</strong> → <em>título grande</em> + <em>frase de destaque</em> +
-            parágrafo + foto + botões (os textos aparecem primeiro na edição).
-          </li>
-          <li>
-            Nas outras secções edite títulos, textos e imagens; active/desactive com a caixa à esquerda.
-          </li>
-          <li>
-            <strong>Guardar rascunho</strong> → <strong>Pré-visualizar</strong> → <strong>Publicar</strong> quando
-            estiver pronto.
-          </li>
-        </ul>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 space-y-1">
+          <h2 className="text-base font-semibold text-foreground">Página pública</h2>
+          <p className="text-sm text-muted-foreground">
+            Configure o site na ordem do visitante e publique quando estiver pronto.
+          </p>
+        </div>
+        <AskMayaButton intentId="public-page" />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/50 bg-muted/20 p-4">
@@ -416,40 +407,30 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               teglion.com/{firmSlug} <ExternalLink className="h-3 w-3" />
             </a>
           ) : null}
-          <p className="text-caption text-muted-foreground">
-            Ao alterar o link, o endereço antigo deixa de funcionar. Só o responsável do escritório pode
-            editar.
-          </p>
           {canEditLink ? (
-            <>
-              <div className="flex flex-wrap items-end gap-2 pt-1">
-                <label className="min-w-[14rem] flex-1 space-y-1 text-xs">
-                  <span className="font-medium text-muted-foreground">Nome na barra do topo</span>
-                  <Input
-                    className="h-9 text-sm"
-                    value={publicDisplayName}
-                    onChange={(e: FormChangeEvent) => setPublicDisplayName(e.target.value)}
-                    placeholder={bundle.firm.name || 'Como aparece na barra'}
-                    maxLength={120}
-                  />
-                </label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-9"
-                  disabled={savingDisplayName}
-                  onClick={() => void onSavePublicDisplayName()}
-                >
-                  {savingDisplayName ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-                  Guardar nome
-                </Button>
-              </div>
-              <p className="text-caption text-muted-foreground">
-                Este é o texto da <strong>barra superior</strong> (e rodapé). O título grande abaixo da foto
-                edita-se em «2. Destaque principal». Se vazio, usa «{bundle.firm.name}».
-              </p>
-            </>
+            <div className="flex flex-wrap items-end gap-2 pt-1">
+              <label className="min-w-[14rem] flex-1 space-y-1 text-xs">
+                <span className="font-medium text-muted-foreground">Nome na barra do topo</span>
+                <Input
+                  className="h-9 text-sm"
+                  value={publicDisplayName}
+                  onChange={(e: FormChangeEvent) => setPublicDisplayName(e.target.value)}
+                  placeholder={bundle.firm.name || 'Como aparece na barra'}
+                  maxLength={120}
+                />
+              </label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9"
+                disabled={savingDisplayName}
+                onClick={() => void onSavePublicDisplayName()}
+              >
+                {savingDisplayName ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+                Guardar nome
+              </Button>
+            </div>
           ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
@@ -507,7 +488,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                         className="text-left hover:underline"
                         onClick={() => toggleSectionOpen(section)}
                       >
-                        {SECTION_LABELS[section.type]}
+                        {index + 1}. {SECTION_LABELS[section.type]}
                       </button>
                     </Label>
                     <p className="mt-1 pl-7 text-[11px] text-muted-foreground">{SECTION_HINTS[section.type]}</p>
@@ -606,12 +587,9 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
           </div>
 
           <div className="rounded-xl border border-border/50 p-4 space-y-4">
-            <div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <Label className="text-sm font-semibold">Termos, privacidade e reclamações</Label>
-              <p className="mt-1 text-caption text-muted-foreground">
-                Aplicam-se a toda a página pública (não por serviço). Os modelos são referência para adaptar —
-                a Teglion não presta aconselhamento jurídico e não se responsabiliza pelo conteúdo.
-              </p>
+              <AskMayaButton intentId="public-page" />
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
@@ -645,10 +623,6 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 onChange={(e: FormChangeEvent) => setDraft({ ...draft, privacyText: e.target.value || null })}
               />
             </label>
-            <p className="text-caption text-muted-foreground">
-              Modelo de referência para o escritório adaptar; a Teglion não presta aconselhamento jurídico e não se
-              responsabiliza pelo conteúdo.
-            </p>
             <label className="block space-y-1 text-sm">
               <span className="font-medium">Livro de Reclamações — link</span>
               <Input

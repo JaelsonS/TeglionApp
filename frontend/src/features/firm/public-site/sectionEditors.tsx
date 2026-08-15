@@ -229,7 +229,7 @@ export function HeroEditor({
   onUploadImage,
   onRemoveImage,
   services,
-  publicDisplayName,
+  publicDisplayName: _publicDisplayName,
 }: {
   content: PublicSiteHeroContent
   onChange: (next: PublicSiteHeroContent) => void
@@ -238,7 +238,7 @@ export function HeroEditor({
   onUploadImage: (file: File) => void
   onRemoveImage: () => void
   services: PublicFirmServiceSummary[]
-  /** Nome do header — só para contrastar na ajuda (não é o H1). */
+  /** Nome do header — disponível para a Maya / callers; UI limpa sem parede de texto. */
   publicDisplayName?: string
 }) {
   const addCta = () => {
@@ -264,31 +264,33 @@ export function HeroEditor({
     onChange({ ...content, ctas: content.ctas.filter((c) => c.id !== id) })
   }
 
-  const headerNameHint = publicDisplayName?.trim() || 'o nome da barra do topo'
-
   return (
     <div className="space-y-5">
-      <div className="rounded-lg border border-amber-200/80 bg-amber-50/70 px-3 py-2 text-[12px] leading-relaxed text-amber-950">
-        <p>
-          Bloco grande abaixo da barra: <strong>título</strong>, <strong>frase de destaque</strong>, parágrafo,
-          foto e botões. Os campos de texto estão <strong>já a seguir</strong> — a foto vem depois.
-        </p>
-        <p className="mt-1.5 text-amber-900/85">
-          Na pré-visualização: título = texto escuro grande · frase de destaque = linha colorida (ex. dourada) ·
-          não use o mesmo texto que «{headerNameHint}» na barra.
-        </p>
+      <div className="space-y-2 rounded-lg border border-border/40 bg-muted/10 p-3">
+        <p className="text-sm font-semibold">1. Imagem de capa</p>
+        <ImagePickerField
+          label="Foto (recomendado 16:9)"
+          imageUrl={imageUrl}
+          uploading={uploadingImage}
+          onUpload={onUploadImage}
+          onRemove={onRemoveImage}
+          cropAspect={16 / 9}
+          cropTitle="Recortar foto de capa"
+        />
+        <InlineColorField
+          id="hero-bg"
+          label="Cor de fundo"
+          value={content.backgroundColor}
+          fallback="#e8f0ec"
+          onChange={(v) => onChange({ ...content, backgroundColor: v })}
+        />
       </div>
 
       <div className="space-y-2 rounded-lg border border-brand/25 bg-brand/[0.03] p-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <Label htmlFor="hero-title" className="text-sm font-semibold">
-              1. Título grande
-            </Label>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
-              Texto principal abaixo da foto (H1). Diferente do nome na barra do topo.
-            </p>
-          </div>
+          <Label htmlFor="hero-title" className="text-sm font-semibold">
+            2. Título grande
+          </Label>
           <InlineColorField
             id="hero-title-color"
             label="Cor do título"
@@ -303,23 +305,13 @@ export function HeroEditor({
           placeholder="Ex.: Contabilidade clara para o seu negócio"
           maxLength={120}
         />
-        {!String(content.title || '').trim() ? (
-          <p className="text-[11px] font-medium text-amber-800">
-            Sem título a página fica sem o texto grande abaixo da foto.
-          </p>
-        ) : null}
       </div>
 
       <div className="space-y-2 rounded-lg border border-brand/25 bg-brand/[0.03] p-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <Label htmlFor="hero-tagline" className="text-sm font-semibold">
-              2. Frase de destaque
-            </Label>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
-              Linha sob o título — a que aparece a cor (ex. dourado) na pré-visualização.
-            </p>
-          </div>
+          <Label htmlFor="hero-tagline" className="text-sm font-semibold">
+            3. Frase de destaque
+          </Label>
           <InlineColorField
             id="hero-tagline-color"
             label="Cor da frase"
@@ -338,12 +330,9 @@ export function HeroEditor({
 
       <div className="space-y-2 rounded-lg border border-border/40 p-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <Label htmlFor="hero-bio" className="text-sm font-semibold">
-              3. Parágrafo
-            </Label>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">Texto um pouco mais longo sobre o escritório.</p>
-          </div>
+          <Label htmlFor="hero-bio" className="text-sm font-semibold">
+            4. Parágrafo
+          </Label>
           <InlineColorField
             id="hero-bio-color"
             label="Cor do texto"
@@ -362,35 +351,9 @@ export function HeroEditor({
         />
       </div>
 
-      <div className="space-y-2 rounded-lg border border-border/40 bg-muted/10 p-3">
-        <p className="text-sm font-semibold">4. Imagem de capa</p>
-        <p className="text-[11px] text-muted-foreground">
-          Foto larga no topo do destaque. Opcional — pode usar só uma cor de fundo.
-        </p>
-        <ImagePickerField
-          label="Foto (recomendado 16:9)"
-          imageUrl={imageUrl}
-          uploading={uploadingImage}
-          onUpload={onUploadImage}
-          onRemove={onRemoveImage}
-          cropAspect={16 / 9}
-          cropTitle="Recortar foto de capa"
-        />
-        <InlineColorField
-          id="hero-bg"
-          label="Cor de fundo (atrás do texto)"
-          value={content.backgroundColor}
-          fallback="#e8f0ec"
-          onChange={(v) => onChange({ ...content, backgroundColor: v })}
-        />
-      </div>
-
       <div className="space-y-2 rounded-lg border border-border/40 p-3">
         <div className="flex items-center justify-between gap-2">
-          <div>
-            <Label className="text-sm font-semibold">5. Botões</Label>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">Até 3 botões (Agendar, WhatsApp, etc.).</p>
-          </div>
+          <Label className="text-sm font-semibold">5. Botões</Label>
           {content.ctas.length < 3 ? (
             <Button type="button" variant="outline" size="sm" onClick={addCta}>
               <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar botão
