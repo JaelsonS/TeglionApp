@@ -6,6 +6,7 @@ export type AppDataChangedDetail = {
     | 'appointments'
     | 'appointment-requests'
     | 'service-requests'
+    | 'service-inquiries'
     | 'reports'
     | 'branding'
     | 'internal-messages'

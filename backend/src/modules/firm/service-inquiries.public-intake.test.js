@@ -237,8 +237,13 @@ test('submitPublicIntake: nome do serviço com {{ano_fiscal}} chega interpolado 
   resetMocks();
   mockNoise();
   mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  // Sem docs immediate → notifyLeadIntakeReceived (não checklist).
   mock.method(accountingServicesRepository, 'listByFirm', async () => [
-    { ...SERVICE, name: 'Declaração de IRS {{ano_fiscal}}' },
+    {
+      ...SERVICE,
+      name: 'Declaração de IRS {{ano_fiscal}}',
+      documentRequirements: [],
+    },
   ]);
   mock.method(leadsService, 'resolveIdentity', async () => ({ type: 'LEAD', id: 'lead-novo' }));
   mock.method(serviceInquiriesRepository, 'createRow', async (args) => ({ id: 'inquiry-5', ...args }));
@@ -579,9 +584,9 @@ test('recordDocumentDelivery: entrega parcial não avança o estado', async () =
     { id: 'req-iban', kind: 'document', tag: 'iban', title: 'Comprovativo de IBAN', status: 'PENDING', createdBy: null },
   ]);
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
-  let updateCalled = false;
-  mock.method(serviceInquiriesRepository, 'updateRow', async () => {
-    updateCalled = true;
+  const statusPatches = [];
+  mock.method(serviceInquiriesRepository, 'updateRow', async (_id, _firmId, patch) => {
+    statusPatches.push(patch);
     return {};
   });
   mock.method(firmsRepository, 'findFirmById', async () => FIRM);
@@ -594,7 +599,9 @@ test('recordDocumentDelivery: entrega parcial não avança o estado', async () =
   });
 
   assert.equal(result.allComplete, false);
-  assert.equal(updateCalled, false);
+  // staffSeenAt é limpo em cada entrega (badge); estado NÃO deve avançar.
+  assert.ok(statusPatches.some((p) => p && 'staffSeenAt' in p));
+  assert.ok(!statusPatches.some((p) => p && p.status === 'IN_PROGRESS'));
 });
 
 test('recordDocumentDelivery: última entrega completa a checklist e avança DOCS_REQUESTED -> IN_PROGRESS', async () => {
@@ -864,6 +871,7 @@ test('recordTextReply: marca ANSWERED, audita e notifica a equipa', async () => 
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
   mock.method(firmsRepository, 'findFirmById', async () => FIRM);
   mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana' }));
+  mock.method(serviceInquiriesRepository, 'updateRow', async () => ({}));
 
   const result = await serviceInquiriesService.recordTextReply({
     token: 'x',

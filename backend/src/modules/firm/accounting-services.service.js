@@ -157,7 +157,16 @@ function normalizeBookingOverrides(value) {
 }
 
 const INTAKE_QUESTION_TYPES = new Set([
-  'text', 'email', 'phone', 'tax_id', 'date', 'single_choice', 'multiple_choice', 'yes_no',
+  'text',
+  'short_text',
+  'long_text',
+  'email',
+  'phone',
+  'tax_id',
+  'date',
+  'single_choice',
+  'multiple_choice',
+  'yes_no',
 ]);
 const CHOICE_TYPES = new Set(['single_choice', 'multiple_choice', 'yes_no']);
 
