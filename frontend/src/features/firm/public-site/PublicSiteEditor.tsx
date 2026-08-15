@@ -351,7 +351,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
         <AskMayaButton intentId="public-page" />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/50 bg-muted/20 p-4">
+      <div className="flex flex-col gap-3 rounded-xl border border-border/50 bg-muted/20 p-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div className="min-w-0 flex-1 space-y-2">
           <p className="text-sm font-medium">
             {siteQuery.data?.publishedAt
@@ -461,8 +461,8 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
-        <div className="space-y-4">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,420px)]">
+        <div className="order-1 min-w-0 space-y-4">
           {draft.sections
             .slice()
             .sort((a, b) => a.order - b.order)
@@ -671,10 +671,12 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
           </div>
         </div>
 
-        <div className="lg:sticky lg:top-4 lg:self-start">
-          <p className="mb-2 text-caption font-semibold uppercase tracking-wide text-muted-foreground">Pré-visualização</p>
+        <div className="order-2 min-w-0 lg:sticky lg:top-4 lg:self-start">
+          <p className="mb-2 text-caption font-semibold uppercase tracking-wide text-muted-foreground">
+            Pré-visualização
+          </p>
           <div
-            className="max-h-[80vh] overflow-y-auto rounded-xl border border-border/50"
+            className="max-h-[min(70vh,36rem)] overflow-y-auto overscroll-y-contain rounded-xl border border-border/50 lg:max-h-[80vh]"
             style={resolveFirmBrandingCssVars({
               primaryColor: draft.theme.primaryColor,
               secondaryColor: draft.theme.secondaryColor,
