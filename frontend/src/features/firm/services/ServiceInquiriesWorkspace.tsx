@@ -45,6 +45,7 @@ const SUGGESTED_TAG_COLORS = ['#0F2942', '#B45309', '#1B6B4A', '#9A3412', '#4755
 
 const HISTORY_ACTION_LABELS: Record<string, string> = {
   'service_inquiry.created': 'Solicitação criada',
+  'service_inquiry.lead_captured': 'Contacto capturado (formulário iniciado)',
   'service_inquiry.submitted': 'Formulário submetido pelo cliente',
   'service_inquiry.status_changed': 'Estado alterado',
   'service_inquiry.token_revoked': 'Link do cliente revogado',
@@ -52,6 +53,7 @@ const HISTORY_ACTION_LABELS: Record<string, string> = {
   'service_inquiry.document_delivered': 'Documento recebido',
   'service_inquiry.request_answered': 'Resposta recebida do cliente',
   'service_inquiry.consultation_confirmed': 'Agendamento confirmado e cliente notificado',
+  'service_inquiry.deleted': 'Solicitação apagada',
 }
 
 function historyItemLabel(item: ServiceInquiryHistoryItem): string {
