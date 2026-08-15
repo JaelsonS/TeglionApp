@@ -19,6 +19,12 @@ function isCloudflareTestSecret(secret) {
 }
 
 function extractTurnstileToken(req) {
+  const headerToken =
+    req?.get?.('x-turnstile-token') ||
+    req?.get?.('cf-turnstile-response') ||
+    '';
+  if (String(headerToken || '').trim()) return String(headerToken).trim();
+
   const body = req?.body;
   if (!body || typeof body !== 'object') return '';
   const raw =

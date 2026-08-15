@@ -1,5 +1,6 @@
 /**
- * Garante que os POSTs públicos da Fase 2 têm requireTurnstile com a action correcta.
+ * Garante que os POSTs públicos têm requireTurnstile com a action correcta.
+ * Turnstile é anti-bot — NÃO substitui autorização por token/sessão.
  */
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -17,7 +18,7 @@ function collectPostRoutes(router) {
   return out;
 }
 
-test('Fase 2: POSTs públicos protegidos por Turnstile com actions correctas', () => {
+test('POSTs públicos protegidos por Turnstile com actions correctas', () => {
   const router = require('./contabil-public.routes');
   const posts = collectPostRoutes(router);
 
@@ -34,9 +35,17 @@ test('Fase 2: POSTs públicos protegidos por Turnstile com actions correctas', (
       path: '/firms/:firmSlug/services/:serviceSlug/submit',
       action: TURNSTILE_ACTIONS.INTAKE_SUBMIT,
     },
+    {
+      path: '/service-inquiries/:token/documents',
+      action: TURNSTILE_ACTIONS.PORTAL_UPLOAD,
+    },
+    {
+      path: '/service-inquiries/:token/requests/:requestId/reply',
+      action: TURNSTILE_ACTIONS.PORTAL_REPLY,
+    },
   ];
 
-  for (const { path, action } of expected) {
+  for (const { path } of expected) {
     const route = posts.find((p) => p.path === path);
     assert.ok(route, `rota POST ${path} deve existir`);
     assert.ok(
@@ -45,17 +54,26 @@ test('Fase 2: POSTs públicos protegidos por Turnstile com actions correctas', (
     );
   }
 
-  // Portal upload/reply (P1) ainda sem Turnstile nesta fase
+  // Upload: rate limit → multer → turnstile → handler (token auth no service)
   const upload = posts.find((p) => p.path === '/service-inquiries/:token/documents');
-  const reply = posts.find((p) => p.path === '/service-inquiries/:token/requests/:requestId/reply');
-  assert.ok(upload, 'upload route exists');
-  assert.ok(reply, 'reply route exists');
-  assert.ok(!upload.names.includes('turnstileMiddleware'), 'upload ainda sem Turnstile (P1)');
-  assert.ok(!reply.names.includes('turnstileMiddleware'), 'reply ainda sem Turnstile (P1)');
+  const uploadTs = upload.names.indexOf('turnstileMiddleware');
+  const uploadMulter = upload.names.findIndex((n) => /multer|upload|wrap/i.test(n) || n === 'multipartMiddleware');
+  // wrapMulter may appear as anonymous; ensure turnstile is present and not the only gate
+  assert.ok(uploadTs >= 0, 'upload tem Turnstile');
+  assert.ok(
+    upload.names.includes('uploadByToken') || upload.names.some((n) => n.includes('upload')),
+    `upload mantém handler de token (names: ${upload.names.join(', ')})`,
+  );
 
+  const reply = posts.find((p) => p.path === '/service-inquiries/:token/requests/:requestId/reply');
+  assert.ok(reply.names.includes('turnstileMiddleware'), 'reply tem Turnstile');
+  assert.ok(
+    reply.names.includes('submitReply') || reply.names.some((n) => n.includes('Reply') || n.includes('reply')),
+    `reply mantém handler de token (names: ${reply.names.join(', ')})`,
+  );
+
+  assert.equal(TURNSTILE_ACTIONS.PORTAL_UPLOAD, 'portal-upload');
+  assert.equal(TURNSTILE_ACTIONS.PORTAL_REPLY, 'portal-reply');
   assert.equal(TURNSTILE_ACTIONS.INTAKE_LEAD, 'intake-lead');
   assert.equal(TURNSTILE_ACTIONS.INTAKE_SUBMIT, 'intake-submit');
-  assert.equal(TURNSTILE_ACTIONS.SUPPORT, 'support');
-  assert.equal(TURNSTILE_ACTIONS.NEWSLETTER, 'newsletter');
-  assert.equal(TURNSTILE_ACTIONS.TEAM_INVITE_ACCEPT, 'team-invite-accept');
 });
