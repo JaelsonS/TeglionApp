@@ -46,8 +46,7 @@ export function normalizePublicSiteSectionsOrder(sections: PublicSiteSection[]):
 }
 
 /**
- * Reordena após drag-and-drop.
- * Barra do topo fica sempre primeiro; rodapé sempre por último.
+ * Reordena após drag-and-drop (qualquer secção, ordem livre do utilizador).
  */
 export function reorderPublicSiteSections(
   sections: PublicSiteSection[],
@@ -57,19 +56,12 @@ export function reorderPublicSiteSections(
   if (activeKey === overKey) return reindexPublicSiteSectionsOrder(sections)
 
   const sorted = reindexPublicSiteSectionsOrder(sections)
-  const active = sorted.find((s) => s.key === activeKey)
-  const over = sorted.find((s) => s.key === overKey)
-  if (!active || !over) return sorted
+  const activeIndex = sorted.findIndex((s) => s.key === activeKey)
+  const overIndex = sorted.findIndex((s) => s.key === overKey)
+  if (activeIndex === -1 || overIndex === -1) return sorted
 
-  // Header e footer não se movem
-  if (active.type === 'header' || active.type === 'footer') return sorted
-  // Não colocar nada antes do header nem depois do footer
-  if (over.type === 'header' || over.type === 'footer') return sorted
-
-  const without = sorted.filter((s) => s.key !== activeKey)
-  const overIndex = without.findIndex((s) => s.key === overKey)
-  if (overIndex === -1) return sorted
-
-  const next = [...without.slice(0, overIndex), active, ...without.slice(overIndex)]
+  const next = [...sorted]
+  const [moved] = next.splice(activeIndex, 1)
+  next.splice(overIndex, 0, moved)
   return next.map((section, index) => ({ ...section, order: index }))
 }

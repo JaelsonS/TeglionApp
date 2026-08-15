@@ -182,7 +182,7 @@ export function FirmSettingsPage() {
                   <p className="cb-settings-hub-panel-sub">
                     {activeTab === 'identidade' && 'Logótipo no menu, portal do cliente e comunicações.'}
                     {activeTab === 'pagina-publica' &&
-                      'O que aparece na sua página pública partilhável — a Maya explica cada passo.'}
+                      'Configure o site partilhável: identidade, secções, cores e publicação.'}
                     {activeTab === 'escritorio' && 'Nome e contactos do escritório.'}
                     {activeTab === 'pagamentos' &&
                       'Stripe Connect — receber pagamentos dos clientes na conta do escritório.'}

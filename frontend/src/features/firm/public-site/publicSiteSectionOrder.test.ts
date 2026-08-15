@@ -36,7 +36,7 @@ describe('publicSiteSectionOrder', () => {
     expect(out.map((s) => s.type)).toEqual(['hero', 'faq', 'contact'])
   })
 
-  it('reorder moves middle section and pins header/footer', () => {
+  it('reorder moves any section freely including header/footer', () => {
     const input = [
       fakeSection('header', 0),
       fakeSection('hero', 1),
@@ -47,10 +47,7 @@ describe('publicSiteSectionOrder', () => {
     const moved = reorderPublicSiteSections(input, 'sec_faq', 'sec_hero')
     expect(moved.map((s) => s.type)).toEqual(['header', 'faq', 'hero', 'contact', 'footer'])
 
-    const blockedHeader = reorderPublicSiteSections(input, 'sec_header', 'sec_faq')
-    expect(blockedHeader.map((s) => s.type)).toEqual(['header', 'hero', 'faq', 'contact', 'footer'])
-
-    const blockedOntoFooter = reorderPublicSiteSections(input, 'sec_hero', 'sec_footer')
-    expect(blockedOntoFooter.map((s) => s.type)).toEqual(['header', 'hero', 'faq', 'contact', 'footer'])
+    const headerDown = reorderPublicSiteSections(input, 'sec_header', 'sec_faq')
+    expect(headerDown.map((s) => s.type)).toEqual(['hero', 'faq', 'header', 'contact', 'footer'])
   })
 })

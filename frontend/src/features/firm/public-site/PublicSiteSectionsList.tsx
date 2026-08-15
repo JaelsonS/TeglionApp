@@ -14,11 +14,10 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { ChevronDown, GripVertical } from 'lucide-react'
+import { ChevronRight, GripVertical } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 import { Checkbox } from '@/shared/components/ui/checkbox'
-import { Label } from '@/shared/components/ui/label'
 import type { PublicSiteSection } from '@/shared/types/firmPublicSite'
 import { cn } from '@/shared/lib/utils'
 
@@ -55,10 +54,8 @@ function SortableSectionCard({
   onToggleEnabled: (enabled: boolean) => void
   children: ReactNode
 }) {
-  const pinned = section.type === 'header' || section.type === 'footer'
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: section.key,
-    disabled: pinned,
   })
 
   const style = {
@@ -71,46 +68,64 @@ function SortableSectionCard({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'rounded-xl border border-border/50 bg-card p-4',
+        'rounded-xl border border-border/50 bg-card',
         isDragging && 'z-10 opacity-90 shadow-md ring-1 ring-brand/30',
       )}
     >
-      <div className="mb-1 flex items-start gap-2">
+      <div className="flex items-stretch gap-0">
+        {/* Único controlo de ordem: arrastar */}
         <button
           type="button"
           className={cn(
-            'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground',
-            pinned
-              ? 'cursor-not-allowed opacity-40'
-              : 'cursor-grab touch-none hover:bg-muted hover:text-foreground active:cursor-grabbing',
+            'flex w-10 shrink-0 cursor-grab touch-none flex-col items-center justify-center gap-0.5 border-r border-border/40 text-muted-foreground',
+            'hover:bg-muted/60 hover:text-foreground active:cursor-grabbing',
           )}
-          aria-label={pinned ? 'Posição fixa' : 'Arrastar para reordenar'}
-          disabled={pinned}
-          {...(pinned ? {} : { ...attributes, ...listeners })}
+          aria-label={`Arrastar para reordenar: ${meta.label}`}
+          title="Arrastar para mudar a ordem"
+          {...attributes}
+          {...listeners}
         >
-          <GripVertical className="h-4 w-4" />
+          <GripVertical className="h-5 w-4" aria-hidden />
         </button>
 
-        <div className="min-w-0 flex-1">
-          <Label className="flex items-center gap-2 text-sm font-semibold">
+        <div className="min-w-0 flex-1 p-3">
+          <div className="flex items-center gap-2">
             <Checkbox
               checked={section.enabled}
               onCheckedChange={(v: boolean | 'indeterminate') => onToggleEnabled(v === true)}
+              aria-label={`Activar ${meta.label}`}
             />
-            <button type="button" className="flex min-w-0 flex-1 items-center gap-2 text-left" onClick={onToggleOpen}>
-              <span className="truncate">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-foreground">
                 {index + 1}. {meta.label}
-              </span>
-              <ChevronDown
-                className={cn('ml-auto h-4 w-4 shrink-0 text-muted-foreground transition-transform', open && 'rotate-180')}
+              </p>
+              <p className="text-[11px] text-muted-foreground">{meta.hint}</p>
+            </div>
+            {/* Único controlo de edição: abrir / fechar */}
+            <button
+              type="button"
+              onClick={onToggleOpen}
+              className={cn(
+                'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border/50 text-muted-foreground',
+                'hover:bg-muted hover:text-foreground',
+                open && 'border-brand/30 bg-brand/5 text-foreground',
+              )}
+              aria-expanded={open}
+              aria-label={open ? `Fechar ${meta.label}` : `Abrir ${meta.label}`}
+              title={open ? 'Fechar opções' : 'Abrir opções'}
+            >
+              <ChevronRight
+                className={cn('h-4 w-4 transition-transform duration-200', open && 'rotate-90')}
+                aria-hidden
               />
             </button>
-          </Label>
-          <p className="mt-1 pl-7 text-[11px] text-muted-foreground">{meta.hint}</p>
+          </div>
         </div>
       </div>
 
-      {section.enabled && open ? <div className="mt-3 border-t border-border/40 pt-3">{children}</div> : null}
+      {section.enabled && open ? (
+        <div className="border-t border-border/40 px-3 pb-3 pt-3">{children}</div>
+      ) : null}
     </div>
   )
 }

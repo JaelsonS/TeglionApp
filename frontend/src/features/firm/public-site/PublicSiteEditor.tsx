@@ -28,7 +28,6 @@ import type { FirmBookingSettings } from '@/shared/types/contabil'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { resolveFirmBrandingCssVars } from '@/shared/utils/firmBranding'
 import { DefaultTemplate } from '@/features/public-intake/templates/default/DefaultTemplate'
-import { AskMayaButton } from '@/features/maya'
 import {
   DEFAULT_PRIVACY_TEMPLATE,
   DEFAULT_TERMS_TEMPLATE,
@@ -357,16 +356,6 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1">
-          <h2 className="text-base font-semibold text-foreground">Página pública</h2>
-          <p className="text-sm text-muted-foreground">
-            Arraste as secções para definir a ordem do visitante e publique quando estiver pronto.
-          </p>
-        </div>
-        <AskMayaButton intentId="public-page" />
-      </div>
-
       {/* Passo 1 — Identidade + publicar */}
       <section className="space-y-3 rounded-xl border border-border/50 bg-muted/20 p-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">1 · Identidade</p>
@@ -496,8 +485,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             </button>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            Arraste pelo ícone à esquerda para reordenar. Clique no nome para abrir ou fechar. Barra do topo e
-            rodapé ficam fixos.
+            À esquerda: arrastar para mudar a ordem. À direita: abrir as opções da secção.
           </p>
           <PublicSiteSectionsList
             sections={sortedSections}
@@ -574,7 +562,6 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
           <div className="rounded-xl border border-border/50 p-4 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <Label className="text-sm font-semibold">Termos, privacidade e reclamações</Label>
-              <AskMayaButton intentId="public-page" />
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
