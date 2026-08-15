@@ -48,6 +48,7 @@ import {
   reindexPublicSiteSectionsOrder,
   reorderPublicSiteSections,
 } from './publicSiteSectionOrder'
+import { applyPageBackgroundColor, parsePublicSiteHex } from './publicSitePageBackground'
 
 const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
   header: 'Barra do topo',
@@ -649,7 +650,8 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             Pré-visualização
           </p>
           <div
-            className="max-h-[min(70vh,36rem)] overflow-y-auto overscroll-y-contain rounded-xl border border-border/50 bg-background lg:max-h-[80vh]"
+            key={`preview-bg-${draft.theme.backgroundColor || 'default'}-${draft.theme.surfaceColor || 'surface'}`}
+            className="max-h-[min(70vh,36rem)] overflow-y-auto overscroll-y-contain rounded-xl border border-border/50 lg:max-h-[80vh]"
             style={{
               ...resolveFirmBrandingCssVars({
                 primaryColor: draft.theme.primaryColor,
@@ -659,9 +661,9 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 surfaceColor: draft.theme.surfaceColor,
                 mutedTextColor: draft.theme.mutedTextColor,
               }),
-              ...(isValidHex(draft.theme.backgroundColor || '')
-                ? { backgroundColor: draft.theme.backgroundColor!.trim() }
-                : {}),
+              ...(parsePublicSiteHex(draft.theme.backgroundColor)
+                ? { backgroundColor: parsePublicSiteHex(draft.theme.backgroundColor)! }
+                : { backgroundColor: 'hsl(var(--background))' }),
             }}
           >
             <DefaultTemplate
@@ -845,15 +847,28 @@ function PageThemeColors({
   const bgInvalid = bg.trim() !== '' && !isValidHex(bg)
   const surfaceInvalid = surface.trim() !== '' && !isValidHex(surface)
 
-  const patchTheme = (patch: Partial<PublicSiteConfig['theme']>) => {
-    onChange({ ...draft, theme: { ...draft.theme, ...patch } })
+  const setPageBackground = (value: string | null) => {
+    const prev = parsePublicSiteHex(draft.theme.backgroundColor)
+    const nextParsed = parsePublicSiteHex(value)
+    const hadSectionBgs = draft.sections.some((s) => {
+      const c = s.content as { backgroundColor?: string | null }
+      return Boolean(c?.backgroundColor)
+    })
+    const next = applyPageBackgroundColor(draft, value)
+    onChange(next)
+    if (hadSectionBgs && nextParsed && nextParsed !== prev) {
+      toast.message('Fundos das secções limpos', {
+        description: 'Assim a cor da página aparece no preview. Pode voltar a colorir cada bloco nas secções.',
+      })
+    }
   }
 
   return (
     <div className="rounded-xl border border-border/50 bg-card p-3">
       <p className="text-xs font-semibold text-foreground">Fundo da página</p>
       <p className="mt-0.5 text-[11px] text-muted-foreground">
-        Altera já na pré-visualização. Cores de cada bloco continuam nas secções.
+        Esta cor pinta a página inteira no preview. Se um bloco tiver cor própria, essa cor sobrepõe-se — ao
+        mudar aqui, limpamos os fundos dos blocos para a alteração se ver de imediato.
       </p>
       <div className="mt-2 grid gap-3 sm:grid-cols-2">
         <div className="space-y-1">
@@ -865,13 +880,13 @@ function PageThemeColors({
               type="color"
               aria-label="Fundo da página"
               value={isValidHex(bg) ? bg : '#faf9f7'}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => patchTheme({ backgroundColor: e.target.value })}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setPageBackground(e.target.value)}
               className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
             />
             <Input
               id="ps-page-bg"
               value={bg}
-              onChange={(e: FormChangeEvent) => patchTheme({ backgroundColor: e.target.value.trim() || null })}
+              onChange={(e: FormChangeEvent) => setPageBackground(e.target.value.trim() || null)}
               placeholder="#faf9f7"
               className={bgInvalid ? 'h-9 border-destructive' : 'h-9'}
             />
@@ -886,13 +901,23 @@ function PageThemeColors({
               type="color"
               aria-label="Fundo dos cartões"
               value={isValidHex(surface) ? surface : '#ffffff'}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => patchTheme({ surfaceColor: e.target.value })}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                onChange({
+                  ...draft,
+                  theme: { ...draft.theme, surfaceColor: parsePublicSiteHex(e.target.value) },
+                })
+              }
               className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
             />
             <Input
               id="ps-surface"
               value={surface}
-              onChange={(e: FormChangeEvent) => patchTheme({ surfaceColor: e.target.value.trim() || null })}
+              onChange={(e: FormChangeEvent) =>
+                onChange({
+                  ...draft,
+                  theme: { ...draft.theme, surfaceColor: parsePublicSiteHex(e.target.value) },
+                })
+              }
               placeholder="#ffffff"
               className={surfaceInvalid ? 'h-9 border-destructive' : 'h-9'}
             />

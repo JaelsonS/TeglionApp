@@ -30,15 +30,23 @@ export function DefaultTemplate({ config, ctx }: Props) {
   const hasServiceSection = sections.some((s) => s.type === 'services' || s.type === 'bookingServices')
   const showEmptyServices = hasServiceSection && ctx.services.length === 0
   const firstServiceKey = sections.find((s) => s.type === 'services' || s.type === 'bookingServices')?.key
-  const pageBg = String(config.theme?.backgroundColor || '').trim()
-  const pageBgStyle = /^#[0-9a-f]{6}$/i.test(pageBg) ? pageBg : undefined
+  const pageBgRaw = String(config.theme?.backgroundColor || '').trim()
+  const pageBg = /^#[0-9a-f]{6}$/i.test(pageBgRaw) ? pageBgRaw : null
 
   return (
     <div
-      className="min-h-screen bg-background"
-      style={pageBgStyle ? { backgroundColor: pageBgStyle } : undefined}
-      data-public-page-bg={pageBgStyle || undefined}
+      className={pageBg ? 'relative min-h-full' : 'relative min-h-full bg-background'}
+      style={pageBg ? { backgroundColor: pageBg } : undefined}
+      data-public-page-bg={pageBg || undefined}
     >
+      {/* Camada de fundo explícita — garante que a cor se vê mesmo com secções transparentes */}
+      {pageBg ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{ backgroundColor: pageBg }}
+        />
+      ) : null}
       {sections.map((section) => {
         switch (section.type) {
           case 'header':
