@@ -9,6 +9,7 @@
 2. **Telefone com país** no form público de serviço.
 3. **Leak `storageKey`** no JSON do site público (path incluía `firmId`) → só `id`/`alt`/`url`.
 4. **Draft sem preview** no GET do serviço → só `published` ou settings legado.
+5. **Portal `/pedidos/:token`** — Turnstile `portal-upload` / `portal-reply` **além** de token + rate limit + validação (não substitui autorização).
 
 ## Controlos já presentes (PASS code review)
 
@@ -23,10 +24,27 @@
 
 | Severidade | Item | Estado |
 | --- | --- | --- |
-| HIGH residual | Upload/reply no portal **sem** Turnstile (token = única barreira) | Documentado; fix opcional |
+| — | Portal upload/reply **com** Turnstile (`portal-upload` / `portal-reply`) + token + RL + validação ficheiro | Código nesta PR |
 | MEDIUM | `consultationId` UUID no submit (preciso para return URL + token) | Aceite com token opaco |
 | MEDIUM | Enumeração de slugs | Esperado para marketing; RL only |
-| — | Burp: CORS, CSRF portal, fuzz upload, Turnstile live | 🛡️ Pendente |
+| — | Burp: CORS, CSRF portal, fuzz upload, Turnstile live, token swap | 🛡️ Pendente |
+
+## Cadeia obrigatória portal (upload/reply)
+
+```
+Rate limit → (multer se upload) → Turnstile action correcta → token opaco válido
+→ tag/requestId do mesmo inquiry/firm → magic bytes / MIME / tamanho → gravação
+```
+
+Turnstile **não** substitui o token. Token inválido / de outro pedido → 404 genérico.
+
+### Checklist Burp (Jaelson)
+
+1. Pedido A token → trocar por token B no path → sem dados A/B cruzados  
+2. Pedido A → alterar `requestId` / `tag` de outro inquiry → rejeitar  
+3. Upload: MIME/ext/tamanho/polyglot → rejeitar  
+4. Reply: spam → rate limit  
+5. POST sem Turnstile (prod/staging com secret) → 403  
 
 ## Não afirmar
 

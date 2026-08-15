@@ -179,13 +179,17 @@ router.get(
 router.post(
   '/service-inquiries/:token/documents',
   intakeUploadLimiter,
+  // Multer primeiro: FormData precisa de ser parseado para o Turnstile ler o token no body.
+  // Autorização continua a ser o token opaco (handler) — Turnstile é camada anti-bot, não substituto.
   uploadSingle('file'),
+  requireTurnstile({ action: TURNSTILE_ACTIONS.PORTAL_UPLOAD }),
   serviceIntakeController.tokenValidators,
   serviceIntakeController.uploadByToken,
 );
 router.post(
   '/service-inquiries/:token/requests/:requestId/reply',
   intakeUploadLimiter,
+  requireTurnstile({ action: TURNSTILE_ACTIONS.PORTAL_REPLY }),
   serviceIntakeController.replyValidators,
   serviceIntakeController.submitReply,
 );

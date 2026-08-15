@@ -83,7 +83,7 @@
 | P2.02 | Infra CF/Render/TLS | ⚪ | 🟡 | — | 🌐 EXTERNO | — |
 | P2.03 | Backup / DR | 🟢 | 🔴 PENDENTE JAELSON | — | 👤 confirma drill | Docs + drill 2026-08-13 em `BACKUP_RESTORE.md` / R2 |
 | P2.04 | Logging / Monitoring | 🟢 | 🔴 PENDENTE JAELSON | — | 👤 Sentry/alertas | `logSanitizationMiddleware` (JWT/password/email/…); Sentry 5xx |
-| P1.28 | Public intake forms | 🟢 | 🟡 | — | 🛡️ Burp + deploy | Ver `PUBLIC_SURFACE_AUDIT.md` — **não** 100%; leaks HIGH mitigados nesta PR |
+| P1.28 | Public intake forms | 🟢 | 🟡 | — | 🛡️ Burp + deploy | Crypto/phone/leaks + portal Turnstile upload/reply — ver `PUBLIC_SURFACE_AUDIT.md` |
 | P3.01 | Hardening | ⚪ | 🔴 PENDENTE JAELSON | — | 👤+🌐 | — |
 
 ---

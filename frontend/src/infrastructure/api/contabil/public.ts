@@ -1,6 +1,7 @@
 import type { AxiosInstance } from 'axios'
 import type { IntakeForm } from '@/shared/types/contabil'
 import type { PublicSiteConfig } from '@/shared/types/firmPublicSite'
+import { withTurnstileToken } from '@/shared/security/withTurnstileToken'
 
 export type PublicFirmServiceSummary = {
   slug: string
@@ -249,20 +250,28 @@ export function createContabilPublicApi(api: AxiosInstance) {
     getIntakeByToken: (token: string) =>
       api.get(`/public/service-inquiries/${encodeURIComponent(token)}`).then((r) => r.data as PublicIntakeChecklist),
 
-    uploadIntakeDocument: (token: string, tag: string, file: File) => {
+    uploadIntakeDocument: (token: string, tag: string, file: File, turnstileToken?: string) => {
       const form = new FormData()
       form.append('tag', tag)
       form.append('file', file)
+      const ts = String(turnstileToken || '').trim()
+      if (ts) form.append('turnstileToken', ts)
       return api
         .post(`/public/service-inquiries/${encodeURIComponent(token)}/documents`, form)
         .then((r) => r.data as { allComplete: boolean; checklist: IntakeChecklistItem[] })
     },
 
-    submitIntakeReply: (token: string, requestId: string, textReply: string) =>
+    submitIntakeReply: (
+      token: string,
+      requestId: string,
+      textReply: string,
+      turnstileToken?: string,
+    ) =>
       api
-        .post(`/public/service-inquiries/${encodeURIComponent(token)}/requests/${encodeURIComponent(requestId)}/reply`, {
-          textReply,
-        })
+        .post(
+          `/public/service-inquiries/${encodeURIComponent(token)}/requests/${encodeURIComponent(requestId)}/reply`,
+          withTurnstileToken({ textReply }, turnstileToken),
+        )
         .then((r) => r.data as { checklist: IntakeChecklistItem[] }),
   }
 }
