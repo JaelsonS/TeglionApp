@@ -1,6 +1,6 @@
 /**
  * Contadores de atenção do sidebar do escritório — uma query por badge-key.
- * Mensagens já existiam; alargamos a Solicitações, Agenda, Documentos, Tarefas e Obrigações.
+ * Agenda = só PENDING_PAYMENT (holds à espera de pagamento), não reuniões SCHEDULED.
  */
 import { useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'

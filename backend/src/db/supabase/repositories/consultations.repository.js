@@ -149,34 +149,24 @@ async function updateConsultation(id, firmId, patch) {
   return mapConsultation(data);
 }
 
-async function countAttentionByFirm(firmId, { upcomingDays = 14 } = {}) {
+/**
+ * Badge vermelho do sidebar = só o que precisa de acção da equipa.
+ * Não conta SCHEDULED futuras (são reuniões normais, não alertas — o
+ * calendário já as mostra na semana certa; contar 14 dias gerava "6"
+ * com a semana actual vazia).
+ */
+async function countAttentionByFirm(firmId) {
   const sb = getSupabaseAdmin();
-  const now = new Date();
-  const until = new Date(now.getTime() + Math.max(1, Number(upcomingDays) || 14) * 24 * 60 * 60 * 1000);
-  const fromIso = now.toISOString();
-  const toIso = until.toISOString();
-
-  const [upcomingRes, pendingPayRes] = await Promise.all([
-    sb
-      .from('consultations')
-      .select('id', { count: 'exact', head: true })
-      .eq('firm_id', firmId)
-      .eq('status', 'SCHEDULED')
-      .gte('scheduled_at', fromIso)
-      .lte('scheduled_at', toIso),
-    sb
-      .from('consultations')
-      .select('id', { count: 'exact', head: true })
-      .eq('firm_id', firmId)
-      .eq('status', 'PENDING_PAYMENT'),
-  ]);
-  if (upcomingRes.error) throw upcomingRes.error;
+  const pendingPayRes = await sb
+    .from('consultations')
+    .select('id', { count: 'exact', head: true })
+    .eq('firm_id', firmId)
+    .eq('status', 'PENDING_PAYMENT');
   if (pendingPayRes.error) throw pendingPayRes.error;
-  const upcoming = Number(upcomingRes.count || 0);
   const pendingPayment = Number(pendingPayRes.count || 0);
   return {
-    count: upcoming + pendingPayment,
-    upcoming,
+    count: pendingPayment,
+    upcoming: 0,
     pendingPayment,
   };
 }

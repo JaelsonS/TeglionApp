@@ -45,6 +45,8 @@ export function AgendaWorkspace() {
   const [view, setView] = useState<AgendaViewMode>('week')
   const [anchor, setAnchor] = useState(() => startOfWeekMonday(new Date()))
   const [items, setItems] = useState<Consultation[]>([])
+  /** Próximas reuniões (14 dias) — independente da semana/mês no grelha. */
+  const [upcomingItems, setUpcomingItems] = useState<Consultation[]>([])
   const [clients, setClients] = useState<Client[]>([])
   const [staff, setStaff] = useState<{ id: string; fullName?: string; email?: string }[]>([])
   const [services, setServices] = useState<AccountingService[]>([])
@@ -78,8 +80,13 @@ export function AgendaWorkspace() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [consRes, clientRes, cfgRes, staffRes] = await Promise.all([
+      const upcomingFrom = new Date().toISOString()
+      const upcomingTo = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+      const [consRes, upcomingRes, clientRes, cfgRes, staffRes] = await Promise.all([
         contabilConsultationsApi.list({ from: range.from, to: range.to }) as Promise<{
+          items?: Consultation[]
+        }>,
+        contabilConsultationsApi.list({ from: upcomingFrom, to: upcomingTo }) as Promise<{
           items?: Consultation[]
         }>,
         contabilClientsApi.list({ page: 1, limit: 200 }) as Promise<{ items?: Client[] }>,
@@ -90,6 +97,7 @@ export function AgendaWorkspace() {
         contabilFirmApi.listStaff() as Promise<{ items?: { id: string; fullName?: string; email?: string }[] }>,
       ])
       setItems(consRes.items || [])
+      setUpcomingItems(upcomingRes.items || [])
       setClients(clientRes.items || [])
       setStaff(staffRes.items || [])
       setServices(cfgRes.services || [])
@@ -378,6 +386,7 @@ export function AgendaWorkspace() {
             <AgendaSidebar
               anchor={anchor}
               items={calendarItems}
+              upcomingItems={visibleAgendaItems(upcomingItems)}
               staff={staffForSidebar}
               clientName={clientName}
               onPickDay={(d) => {
