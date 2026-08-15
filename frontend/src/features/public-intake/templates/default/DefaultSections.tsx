@@ -593,7 +593,7 @@ export function FooterSection({
   const text = hexStyle(content?.textColor)
   return (
     <footer
-      className={bg ? 'border-t border-black/5' : 'border-t border-border/40 bg-card/40'}
+      className={bg ? 'border-t border-black/5' : 'border-t border-border/40 bg-transparent'}
       style={bg ? { backgroundColor: bg } : undefined}
     >
       {entries.length > 0 ? (
