@@ -114,9 +114,9 @@ export function ServiceInquiriesWorkspace() {
 
   const tagsQuery = useQuery({
     queryKey: ['firm-inquiry-tags'],
-    queryFn: () => contabilInquiryTagsApi.list(),
+    queryFn: () => contabilInquiryTagsApi.list().then((r) => r.items),
   })
-  const firmTags = tagsQuery.data?.items ?? []
+  const firmTags = Array.isArray(tagsQuery.data) ? tagsQuery.data : []
 
   const listQuery = useQuery({
     queryKey: ['service-inquiries', serviceFilter, tagFilter],
@@ -588,7 +588,7 @@ export function ServiceInquiriesWorkspace() {
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Etiquetas</p>
                 <FirmEntityTagsEditor
-                  selectedTags={detailQuery.data.inquiry.tags || []}
+                  selectedTags={Array.isArray(detailQuery.data.inquiry.tags) ? detailQuery.data.inquiry.tags : []}
                   disabled={savingInquiryTags}
                   onToggle={(tagId) => void toggleInquiryTag(tagId)}
                 />

@@ -72,6 +72,7 @@ export function FirmConnectPaymentsSection() {
   const ready = Boolean(account?.readyForCharges || account?.chargesEnabled)
   const canStart = Boolean(data?.canStartOnboarding)
   const configured = Boolean(data?.configured)
+  const paymentsAllowed = Boolean(data?.paymentsOnlineAllowed)
   const termsOutdated = Boolean(account && data?.terms && !data.terms.accepted)
   const pendingCopy = connectPendingSummary({
     disabledReason: account?.requirementsDisabledReason,
@@ -161,7 +162,15 @@ export function FirmConnectPaymentsSection() {
             <p className="font-medium">{statusLabel(account?.onboardingStatus, ready)}</p>
             {!configured ? (
               <p className="mt-1 text-muted-foreground">
-                Os pagamentos online ainda não estão disponíveis neste ambiente.
+                A Stripe Connect ainda não está activa neste ambiente (falta configuração no servidor).
+                Enquanto isso, o botão «Ligar» não aparece — contacte o suporte Teglion / AfDigital para
+                activar os pagamentos online em staging ou produção.
+              </p>
+            ) : null}
+            {configured && !paymentsAllowed ? (
+              <p className="mt-1 text-muted-foreground">
+                O plano actual do escritório não inclui pagamentos online. Actualize o plano ou fale com o
+                suporte.
               </p>
             ) : null}
             {account ? (
@@ -170,9 +179,9 @@ export function FirmConnectPaymentsSection() {
                 <li>Transferir para o banco: {account.payoutsEnabled ? 'activo' : 'ainda não'}</li>
                 <li>Dados enviados à Stripe: {account.detailsSubmitted ? 'sim' : 'em falta'}</li>
               </ul>
-            ) : configured ? (
+            ) : configured && paymentsAllowed ? (
               <p className="mt-1 text-muted-foreground">
-                Ainda não associou a conta Stripe do escritório.
+                Ainda não associou a conta Stripe do escritório. Use o botão abaixo para começar.
               </p>
             ) : null}
             {!ready && account ? (
@@ -265,10 +274,16 @@ export function FirmConnectPaymentsSection() {
           </Button>
         ) : null}
 
-        {configured && !canStart ? (
+        {configured && paymentsAllowed && !canStart ? (
           <p className="text-sm text-muted-foreground">
-            Só o responsável (dono) do escritório pode gerir esta ligação.
+            Só o responsável (dono) do escritório pode ligar ou gerir a Stripe Connect.
           </p>
+        ) : null}
+
+        {!configured ? (
+          <Button type="button" variant="outline" asChild>
+            <a href="/app/firm/settings?tab=ajuda">Ir para Ajuda e suporte</a>
+          </Button>
         ) : null}
       </div>
 

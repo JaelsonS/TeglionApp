@@ -7,10 +7,18 @@ import { cn } from '@/shared/lib/utils'
 import { tagTextColor, type FirmEntityTag } from './firmTagUtils'
 
 type Props = {
-  selectedTags: FirmEntityTag[]
+  selectedTags: FirmEntityTag[] | null | undefined
   disabled?: boolean
   onToggle: (tagId: string) => void
   emptyHintHref?: string
+}
+
+function asTagList(value: unknown): FirmEntityTag[] {
+  if (Array.isArray(value)) return value as FirmEntityTag[]
+  if (value && typeof value === 'object' && Array.isArray((value as { items?: unknown }).items)) {
+    return (value as { items: FirmEntityTag[] }).items
+  }
+  return []
 }
 
 export function FirmEntityTagsEditor({
@@ -23,8 +31,9 @@ export function FirmEntityTagsEditor({
     queryKey: ['firm-inquiry-tags'],
     queryFn: () => contabilInquiryTagsApi.list().then((r) => r.items),
   })
-  const firmTags = tagsQuery.data || []
-  const activeIds = new Set(selectedTags.map((t) => t.id))
+  const firmTags = asTagList(tagsQuery.data)
+  const selected = asTagList(selectedTags)
+  const activeIds = new Set(selected.map((t) => t.id))
 
   if (firmTags.length === 0) {
     return (
