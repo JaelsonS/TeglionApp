@@ -101,7 +101,7 @@ export function HeaderSection({
   const headerLabel = String(content?.title || '').trim() || ctx.firmName
   return (
     <header
-      className={bg ? 'border-b border-black/5' : 'border-b border-primary/20 bg-primary/5'}
+      className={bg ? 'border-b border-black/5' : 'border-b border-primary/20 bg-transparent'}
       style={bg ? { backgroundColor: bg } : undefined}
     >
       <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-4 lg:max-w-4xl">
@@ -136,7 +136,7 @@ export function HeroSection({
   const heroTitle = String(content.title || '').trim()
   return (
     <section
-      className={bg ? 'border-b border-black/5' : 'border-b border-border/40 bg-gradient-to-b from-primary/10 to-card/40'}
+      className={bg ? 'border-b border-black/5' : 'border-b border-border/40 bg-transparent'}
       style={bg ? { backgroundColor: bg } : undefined}
     >
       {heroPhotoUrl ? (

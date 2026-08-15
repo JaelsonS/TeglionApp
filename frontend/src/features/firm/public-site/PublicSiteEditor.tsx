@@ -656,20 +656,26 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
           </div>
         </div>
 
-        <div className="order-2 min-w-0 lg:sticky lg:top-4 lg:self-start">
-          <p className="mb-2 text-caption font-semibold uppercase tracking-wide text-muted-foreground">
+        <div className="order-2 min-w-0 space-y-3 lg:sticky lg:top-4 lg:self-start">
+          <PageThemeColors draft={draft} onChange={setDraft} />
+          <p className="text-caption font-semibold uppercase tracking-wide text-muted-foreground">
             Pré-visualização
           </p>
           <div
-            className="max-h-[min(70vh,36rem)] overflow-y-auto overscroll-y-contain rounded-xl border border-border/50 lg:max-h-[80vh]"
-            style={resolveFirmBrandingCssVars({
-              primaryColor: draft.theme.primaryColor,
-              secondaryColor: draft.theme.secondaryColor,
-              textColor: draft.theme.textColor,
-              backgroundColor: draft.theme.backgroundColor,
-              surfaceColor: draft.theme.surfaceColor,
-              mutedTextColor: draft.theme.mutedTextColor,
-            })}
+            className="max-h-[min(70vh,36rem)] overflow-y-auto overscroll-y-contain rounded-xl border border-border/50 bg-background lg:max-h-[80vh]"
+            style={{
+              ...resolveFirmBrandingCssVars({
+                primaryColor: draft.theme.primaryColor,
+                secondaryColor: draft.theme.secondaryColor,
+                textColor: draft.theme.textColor,
+                backgroundColor: draft.theme.backgroundColor,
+                surfaceColor: draft.theme.surfaceColor,
+                mutedTextColor: draft.theme.mutedTextColor,
+              }),
+              ...(isValidHex(draft.theme.backgroundColor || '')
+                ? { backgroundColor: draft.theme.backgroundColor!.trim() }
+                : {}),
+            }}
           >
             <DefaultTemplate
               config={draft}
@@ -839,81 +845,84 @@ function whatsappDisplayNumber(url: string | null | undefined): string {
   return raw.replace(/\D/g, '')
 }
 
-function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (next: PublicSiteConfig) => void }) {
+function PageThemeColors({
+  draft,
+  onChange,
+}: {
+  draft: PublicSiteConfig
+  onChange: (next: PublicSiteConfig) => void
+}) {
   const theme = draft.theme
   const bg = theme.backgroundColor || ''
   const surface = theme.surfaceColor || ''
   const bgInvalid = bg.trim() !== '' && !isValidHex(bg)
   const surfaceInvalid = surface.trim() !== '' && !isValidHex(surface)
 
+  const patchTheme = (patch: Partial<PublicSiteConfig['theme']>) => {
+    onChange({ ...draft, theme: { ...draft.theme, ...patch } })
+  }
+
+  return (
+    <div className="rounded-xl border border-border/50 bg-card p-3">
+      <p className="text-xs font-semibold text-foreground">Fundo da página</p>
+      <p className="mt-0.5 text-[11px] text-muted-foreground">
+        Altera já na pré-visualização. Cores de cada bloco continuam nas secções.
+      </p>
+      <div className="mt-2 grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1">
+          <Label htmlFor="ps-page-bg" className="text-[11px]">
+            Página
+          </Label>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              aria-label="Fundo da página"
+              value={isValidHex(bg) ? bg : '#faf9f7'}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => patchTheme({ backgroundColor: e.target.value })}
+              className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
+            />
+            <Input
+              id="ps-page-bg"
+              value={bg}
+              onChange={(e: FormChangeEvent) => patchTheme({ backgroundColor: e.target.value.trim() || null })}
+              placeholder="#faf9f7"
+              className={bgInvalid ? 'h-9 border-destructive' : 'h-9'}
+            />
+          </div>
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="ps-surface" className="text-[11px]">
+            Cartões
+          </Label>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              aria-label="Fundo dos cartões"
+              value={isValidHex(surface) ? surface : '#ffffff'}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => patchTheme({ surfaceColor: e.target.value })}
+              className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
+            />
+            <Input
+              id="ps-surface"
+              value={surface}
+              onChange={(e: FormChangeEvent) => patchTheme({ surfaceColor: e.target.value.trim() || null })}
+              placeholder="#ffffff"
+              className={surfaceInvalid ? 'h-9 border-destructive' : 'h-9'}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (next: PublicSiteConfig) => void }) {
   const setSocial = (key: keyof PublicSiteConfig['socialLinks'], value: string | null) => {
     onChange({ ...draft, socialLinks: { ...draft.socialLinks, [key]: value } })
   }
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-border/50 p-4">
-        <Label className="text-sm font-semibold">Fundo geral da página</Label>
-        <p className="mt-1 text-caption text-muted-foreground">
-          Cor de base por detrás de todas as secções. As cores de cada bloco (cabeçalho, destaque, botões, etc.)
-          escolhem-se dentro da própria secção, acima.
-        </p>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="ps-page-bg">Fundo da página</Label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                aria-label="Fundo da página"
-                value={isValidHex(bg) ? bg : '#faf9f7'}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  onChange({ ...draft, theme: { ...draft.theme, backgroundColor: e.target.value } })
-                }
-                className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
-              />
-              <Input
-                id="ps-page-bg"
-                value={bg}
-                onChange={(e: FormChangeEvent) =>
-                  onChange({
-                    ...draft,
-                    theme: { ...draft.theme, backgroundColor: e.target.value.trim() || null },
-                  })
-                }
-                placeholder="#faf9f7"
-                className={bgInvalid ? 'border-destructive' : undefined}
-              />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="ps-surface">Fundo dos cartões (serviços / FAQ)</Label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                aria-label="Fundo dos cartões"
-                value={isValidHex(surface) ? surface : '#ffffff'}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  onChange({ ...draft, theme: { ...draft.theme, surfaceColor: e.target.value } })
-                }
-                className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
-              />
-              <Input
-                id="ps-surface"
-                value={surface}
-                onChange={(e: FormChangeEvent) =>
-                  onChange({
-                    ...draft,
-                    theme: { ...draft.theme, surfaceColor: e.target.value.trim() || null },
-                  })
-                }
-                placeholder="#ffffff"
-                className={surfaceInvalid ? 'border-destructive' : undefined}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="rounded-xl border border-border/50 p-4">
         <Label className="text-sm font-semibold">Redes sociais</Label>
         <p className="mt-1 text-caption text-muted-foreground">
