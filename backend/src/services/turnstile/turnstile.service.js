@@ -45,13 +45,32 @@ function hostnameAllowed(hostname, expectedHostnames) {
 }
 
 /**
+ * Skip Turnstile só em test/development local.
+ * Staging e produção (NODE_ENV=production no Render, ou FRONTEND_URL de deploy)
+ * → fail closed sem secret — nunca o mesmo caminho de «não-produção → skip».
+ */
+function mustEnforceTurnstile() {
+  if (env.isProduction) return true;
+  const front = String(env.FRONTEND_URL || '')
+    .trim()
+    .toLowerCase();
+  if (!front) return false;
+  try {
+    const host = new URL(front).hostname.replace(/^www\./, '');
+    return host === 'staging.teglion.com' || host === 'teglion.com';
+  } catch {
+    return false;
+  }
+}
+
+/**
  * @param {{ token: string, expectedAction: string, remoteip?: string|null }} params
  * @returns {Promise<{ success: true, action: string, hostname: string }>}
  */
 async function verifyTurnstileToken({ token, expectedAction, remoteip }) {
   const secret = env.TURNSTILE_SECRET_KEY;
   if (!secret) {
-    if (env.isProduction) {
+    if (mustEnforceTurnstile()) {
       throw new AppError('Verificação de segurança indisponível.', 403, { code: 'TURNSTILE_UNAVAILABLE' }, 'TURNSTILE_UNAVAILABLE');
     }
     return { success: true, action: expectedAction, hostname: 'dev-skip' };
@@ -144,4 +163,5 @@ module.exports = {
   verifyTurnstileToken,
   hostnameAllowed,
   isCloudflareTestSecret,
+  mustEnforceTurnstile,
 };

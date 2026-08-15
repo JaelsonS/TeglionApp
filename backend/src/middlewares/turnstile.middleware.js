@@ -2,16 +2,17 @@
  * Middleware Cloudflare Turnstile (Managed) — Siteverify obrigatório.
  * Replay: confiar no Siteverify (tokens single-use / TTL 5 min). Sem Redis.
  *
- * Política: com TURNSTILE_SECRET_KEY definido, o token é sempre obrigatório
- * (staging e produção). Sem secret: skip só em não-produção (dev/CI local);
- * em produção → fail closed.
+ * Política:
+ * - Com TURNSTILE_SECRET_KEY: token sempre obrigatório (staging + produção).
+ * - Sem secret: fail closed em produção/staging (mustEnforceTurnstile).
+ * - Skip só em test/development local (CI unitário / Mac) — nunca em staging.
+ *
+ * Importa o módulo (não destructuring) para os unit tests poderem mockar
+ * `verifyTurnstileToken` sem rede Cloudflare.
  */
 const { AppError } = require('./error.middleware');
 const { clientIp } = require('../utils/client-ip');
-const {
-  extractTurnstileToken,
-  verifyTurnstileToken,
-} = require('../services/turnstile/turnstile.service');
+const turnstileService = require('../services/turnstile/turnstile.service');
 const { env } = require('../config/env');
 
 /**
@@ -25,22 +26,20 @@ function requireTurnstile({ action } = {}) {
 
   return async function turnstileMiddleware(req, res, next) {
     try {
-      // Produção sem secret: fail closed (mesmo sem token no body).
-      if (env.isProduction && !env.TURNSTILE_SECRET_KEY) {
-        return next(
-          new AppError('Verificação de segurança indisponível.', 403, {
-            code: 'TURNSTILE_UNAVAILABLE',
-          }, 'TURNSTILE_UNAVAILABLE'),
-        );
-      }
-
-      // Dev/test sem secret: skip (permite CI e local sem widget).
       if (!env.TURNSTILE_SECRET_KEY) {
+        if (turnstileService.mustEnforceTurnstile()) {
+          return next(
+            new AppError('Verificação de segurança indisponível.', 403, {
+              code: 'TURNSTILE_UNAVAILABLE',
+            }, 'TURNSTILE_UNAVAILABLE'),
+          );
+        }
+        // test / development local sem secret: skip controlado.
         return next();
       }
 
-      const token = extractTurnstileToken(req);
-      await verifyTurnstileToken({
+      const token = turnstileService.extractTurnstileToken(req);
+      await turnstileService.verifyTurnstileToken({
         token,
         expectedAction,
         remoteip: clientIp(req),

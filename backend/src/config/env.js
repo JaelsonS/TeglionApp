@@ -431,7 +431,9 @@ if (env.TURNSTILE_SECRET_KEY) {
     `${BRAND.logPrefix}[WARN] TURNSTILE_SECRET_KEY ausente — rotas protegidas por Turnstile falham fechado (403).`,
   );
 } else {
-  console.log(`${BRAND.logPrefix} Turnstile: desactivado (sem TURNSTILE_SECRET_KEY — skip em não-produção)`);
+  console.log(
+    `${BRAND.logPrefix} Turnstile: sem secret — skip só em test/development local; staging/prod fail closed`,
+  );
 }
 
 module.exports = { env };
