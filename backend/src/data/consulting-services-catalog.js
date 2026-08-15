@@ -44,7 +44,7 @@ const CONSULTING_SERVICES_CATALOG = [
           label: 'Tem rendimentos prediais (arrendamento)?',
           type: 'yes_no',
           options: [
-            { label: 'Sim', documentTags: ['Caderneta predial'] },
+            { label: 'Sim', documentTags: ['caderneta_predial'] },
             { label: 'Não', documentTags: [] },
           ],
         },
@@ -52,7 +52,7 @@ const CONSULTING_SERVICES_CATALOG = [
           label: 'Tem dependentes a cargo?',
           type: 'yes_no',
           options: [
-            { label: 'Sim', documentTags: ['Comprovativos dos dependentes'] },
+            { label: 'Sim', documentTags: ['cc_dependentes'] },
             { label: 'Não', documentTags: [] },
           ],
         },

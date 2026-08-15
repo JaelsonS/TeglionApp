@@ -39,6 +39,7 @@ function mockNoise() {
   mock.method(contabilNotifications, 'notifyFirmIntakeDocumentReceived', async () => ({ ok: true }));
   mock.method(contabilNotifications, 'notifyLeadIntakeChecklist', async () => ({ ok: true }));
   mock.method(serviceInquiriesRepository, 'findOpenLeadCapture', async () => null);
+  mock.method(serviceInquiryRequestsRepository, 'listByInquiry', async () => []);
   mock.method(serviceInquiryRequestsRepository, 'createMany', async (rows) =>
     rows.map((r, i) => ({ id: `req-${i}`, ...r, status: 'PENDING' })),
   );

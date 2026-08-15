@@ -3,12 +3,16 @@ import { useCallback, useEffect, useId, useRef, useState, type MutableRefObject 
 import { getTurnstileSiteKey, isTurnstileEnabled, type TurnstileAction } from '@/shared/security/turnstile'
 
 type TurnstileApi = {
+  ready: (cb: () => void) => void
   render: (
     container: HTMLElement,
     options: {
       sitekey: string
       action?: string
       theme?: 'auto' | 'light' | 'dark'
+      appearance?: 'always' | 'execute' | 'interaction-only'
+      retry?: 'auto' | 'never'
+      'refresh-expired'?: 'auto' | 'manual' | 'never'
       callback?: (token: string) => void
       'expired-callback'?: () => void
       'error-callback'?: () => void
@@ -82,6 +86,8 @@ export function TurnstileField({ action, onTokenChange, className, fieldRef }: P
   const containerRef = useRef<HTMLDivElement | null>(null)
   const widgetIdRef = useRef<string | null>(null)
   const [token, setToken] = useState('')
+  const [status, setStatus] = useState<'idle' | 'ready' | 'error'>('idle')
+  const [retryTick, setRetryTick] = useState(0)
   const reactId = useId()
 
   const setTokenSafe = useCallback(
@@ -119,10 +125,24 @@ export function TurnstileField({ action, onTokenChange, className, fieldRef }: P
     if (!enabled || !sitekey || !containerRef.current) return
 
     let cancelled = false
+    setStatus('idle')
 
     void (async () => {
       try {
         await loadTurnstileScript()
+        if (cancelled || !containerRef.current || !window.turnstile) return
+
+        await new Promise<void>((resolve) => {
+          if (!window.turnstile) {
+            resolve()
+            return
+          }
+          if (typeof window.turnstile.ready === 'function') {
+            window.turnstile.ready(() => resolve())
+            return
+          }
+          resolve()
+        })
         if (cancelled || !containerRef.current || !window.turnstile) return
 
         if (widgetIdRef.current) {
@@ -139,22 +159,39 @@ export function TurnstileField({ action, onTokenChange, className, fieldRef }: P
           sitekey,
           action,
           theme: 'light',
+          retry: 'auto',
+          'refresh-expired': 'auto',
           callback: (t) => {
-            if (!cancelled) setTokenSafe(String(t || ''))
+            if (!cancelled) {
+              setStatus('ready')
+              setTokenSafe(String(t || ''))
+            }
           },
           'expired-callback': () => {
-            if (!cancelled) setTokenSafe('')
+            if (!cancelled) {
+              setStatus('idle')
+              setTokenSafe('')
+            }
           },
           'error-callback': () => {
-            if (!cancelled) setTokenSafe('')
+            if (!cancelled) {
+              setStatus('error')
+              setTokenSafe('')
+            }
           },
           'timeout-callback': () => {
-            if (!cancelled) setTokenSafe('')
+            if (!cancelled) {
+              setStatus('error')
+              setTokenSafe('')
+            }
           },
         })
         widgetIdRef.current = id
       } catch {
-        if (!cancelled) setTokenSafe('')
+        if (!cancelled) {
+          setStatus('error')
+          setTokenSafe('')
+        }
       }
     })()
 
@@ -169,13 +206,28 @@ export function TurnstileField({ action, onTokenChange, className, fieldRef }: P
         widgetIdRef.current = null
       }
     }
-  }, [enabled, sitekey, action, setTokenSafe, reactId])
+  }, [enabled, sitekey, action, setTokenSafe, reactId, retryTick])
 
   if (!enabled) return null
 
   return (
     <div className={className} data-turnstile-action={action}>
       <div ref={containerRef} />
+      {status === 'error' ? (
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-destructive">
+          <span>A verificação não concluiu. Actualize ou tente de novo.</span>
+          <button
+            type="button"
+            className="font-semibold underline"
+            onClick={() => {
+              setTokenSafe('')
+              setRetryTick((n) => n + 1)
+            }}
+          >
+            Tentar novamente
+          </button>
+        </div>
+      ) : null}
     </div>
   )
 }
