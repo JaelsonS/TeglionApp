@@ -147,6 +147,20 @@ async function getPublicFirmSite(req, res, next) {
       res.set('X-Robots-Tag', 'noindex');
     }
 
+    // storageKey contém firmId no path — nunca expor no JSON público (só url assinada).
+    const publicImages = {
+      hero: (config.images?.hero || []).map((img) => ({
+        id: img.id || null,
+        alt: img.alt || '',
+        url: img.url || null,
+      })),
+      institutional: (config.images?.institutional || []).map((img) => ({
+        id: img.id || null,
+        alt: img.alt || '',
+        url: img.url || null,
+      })),
+    };
+
     return res.json({
       firmName: resolvePublicFirmName(firm),
       logoUrl,
@@ -154,7 +168,7 @@ async function getPublicFirmSite(req, res, next) {
       templateKey: site.templateKey || 'default',
       seo: config.seo,
       theme: config.theme,
-      images: config.images,
+      images: publicImages,
       socialLinks: config.socialLinks,
       sections: config.sections,
       showPrices: config.showPrices !== false,
@@ -191,7 +205,8 @@ async function getPublicService(req, res, next) {
     let theme = null;
     try {
       const site = await firmPublicSiteService.getSite(firm.id);
-      const config = site.published || site.draft;
+      // Nunca servir draft sem preview token — só published ou legado settings.
+      const config = site.published || firmPublicSiteService.buildConfigFromLegacySettings(firm);
       showPrices = config?.showPrices !== false;
       termsText = config?.termsText || null;
       privacyText = config?.privacyText || null;
