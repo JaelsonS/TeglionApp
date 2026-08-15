@@ -44,6 +44,7 @@ import {
   ProcessEditor,
   ServicesHeadingEditor,
 } from './sectionEditors'
+import { normalizePublicSiteSectionsOrder } from './publicSiteSectionOrder'
 
 const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
   header: 'Barra do topo',
@@ -142,6 +143,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
       const incoming = siteQuery.data.draft
       setDraft({
         ...incoming,
+        sections: normalizePublicSiteSectionsOrder(incoming.sections || []),
         theme: {
           primaryColor: incoming.theme?.primaryColor ?? null,
           secondaryColor: incoming.theme?.secondaryColor ?? null,
@@ -166,27 +168,6 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const toggleSection = (key: string, enabled: boolean) => {
     if (!draft) return
     setDraft({ ...draft, sections: draft.sections.map((s) => (s.key === key ? { ...s, enabled } : s)) })
-  }
-
-  /** Troca a `order` com o vizinho na direcção pedida — reordena dentro da
-   * lista completa (não só as secções activas), para uma secção desligada
-   * já ficar na posição certa se for religada mais tarde. */
-  const moveSection = (key: string, direction: 'up' | 'down') => {
-    if (!draft) return
-    const sorted = [...draft.sections].sort((a, b) => a.order - b.order)
-    const index = sorted.findIndex((s) => s.key === key)
-    const targetIndex = direction === 'up' ? index - 1 : index + 1
-    if (index === -1 || targetIndex < 0 || targetIndex >= sorted.length) return
-    const current = sorted[index]
-    const neighbor = sorted[targetIndex]
-    setDraft({
-      ...draft,
-      sections: draft.sections.map((s) => {
-        if (s.key === current.key) return { ...s, order: neighbor.order }
-        if (s.key === neighbor.key) return { ...s, order: current.order }
-        return s
-      }),
-    })
   }
 
   const [uploadingImageKey, setUploadingImageKey] = useState<string | null>(null)
@@ -240,8 +221,15 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     if (!draft) return
     setSaving(true)
     try {
-      const result = await firmPublicSiteApi.saveDraft(draft)
-      setDraft(result.draft)
+      const normalized = {
+        ...draft,
+        sections: normalizePublicSiteSectionsOrder(draft.sections),
+      }
+      const result = await firmPublicSiteApi.saveDraft(normalized)
+      setDraft({
+        ...result.draft,
+        sections: normalizePublicSiteSectionsOrder(result.draft.sections || []),
+      })
       toast.success('Rascunho guardado.')
     } catch (err) {
       toast.error('Não foi possível guardar', { description: getErrorMessage(err) })
@@ -253,9 +241,14 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const onPreview = async () => {
     setPreviewing(true)
     try {
-      // Guarda o rascunho actual primeiro — a pré-visualização tem de reflectir
-      // o que está no ecrã, não a última vez que "Guardar rascunho" foi clicado.
-      if (draft) await firmPublicSiteApi.saveDraft(draft)
+      if (draft) {
+        const normalized = {
+          ...draft,
+          sections: normalizePublicSiteSectionsOrder(draft.sections),
+        }
+        await firmPublicSiteApi.saveDraft(normalized)
+        setDraft(normalized)
+      }
       const { previewToken } = await firmPublicSiteApi.regeneratePreviewToken()
       window.open(`/${encodeURIComponent(firmSlug)}?preview=${encodeURIComponent(previewToken)}`, '_blank', 'noopener,noreferrer')
     } catch (err) {
@@ -268,7 +261,14 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const onPublish = async () => {
     setPublishing(true)
     try {
-      if (draft) await firmPublicSiteApi.saveDraft(draft)
+      if (draft) {
+        const normalized = {
+          ...draft,
+          sections: normalizePublicSiteSectionsOrder(draft.sections),
+        }
+        await firmPublicSiteApi.saveDraft(normalized)
+        setDraft(normalized)
+      }
       await firmPublicSiteApi.publish()
       toast.success('Página pública publicada.')
       setConfirmPublishOpen(false)
@@ -338,6 +338,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const booking = bookingQuery.data?.booking
   const previewFirmName =
     publicDisplayName.trim() || bundle.publicProfile.displayName?.trim() || bundle.firm.name
+  const sortedSections = normalizePublicSiteSectionsOrder(draft.sections)
 
   return (
     <div className="space-y-6">
@@ -351,7 +352,10 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
         <AskMayaButton intentId="public-page" />
       </div>
 
-      <div className="flex flex-col gap-3 rounded-xl border border-border/50 bg-muted/20 p-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+      {/* Passo 1 — Identidade + publicar */}
+      <section className="space-y-3 rounded-xl border border-border/50 bg-muted/20 p-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">1 · Identidade</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1 space-y-2">
           <p className="text-sm font-medium">
             {siteQuery.data?.publishedAt
@@ -459,14 +463,15 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             </Button>
           ) : null}
         </div>
-      </div>
+        </div>
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,420px)]">
         <div className="order-1 min-w-0 space-y-4">
-          {draft.sections
-            .slice()
-            .sort((a, b) => a.order - b.order)
-            .map((section, index, sorted) => {
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            2 · Secções do site (ordem do visitante)
+          </p>
+          {sortedSections.map((section, index) => {
               const isOpen = isSectionEditorOpen(section)
               return (
               <div key={section.key} className="rounded-xl border border-border/50 p-4">
@@ -504,28 +509,6 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                     >
                       {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      disabled={index === 0}
-                      onClick={() => moveSection(section.key, 'up')}
-                      aria-label="Mover para cima"
-                    >
-                      <ChevronUp className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      disabled={index === sorted.length - 1}
-                      onClick={() => moveSection(section.key, 'down')}
-                      aria-label="Mover para baixo"
-                    >
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
                   </div>
                 </div>
                 {section.enabled && isOpen ? (
@@ -554,6 +537,9 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               )
             })}
 
+          <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            3 · Complementos
+          </p>
           <div className="rounded-xl border border-border/50 p-4">
             <Label className="text-sm font-semibold">Agendamento</Label>
             <p className="mt-1 text-caption text-muted-foreground">

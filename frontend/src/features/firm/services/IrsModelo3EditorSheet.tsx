@@ -392,9 +392,9 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
             </label>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-2">
-            {/* Anexos */}
-            <section className="flex flex-col overflow-hidden rounded-2xl border border-brand/15 bg-card shadow-sm">
+          <div className="grid items-start gap-4 lg:grid-cols-2">
+            {/* Anexos — sticky só em desktop (≥1280); tablet/mobile iguais */}
+            <section className="flex flex-col overflow-hidden rounded-2xl border border-brand/15 bg-card shadow-sm xl:sticky xl:top-0 xl:z-[1] xl:self-start xl:overflow-visible">
               <div className="border-b border-brand/10 bg-brand/[0.04] px-4 py-3">
                 <h3 className="text-base font-semibold text-foreground">Anexos</h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">
@@ -433,7 +433,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
             </section>
 
             {/* Perguntas + Pagamento */}
-            <div className="flex flex-col gap-4">
+            <div className="flex min-w-0 flex-col gap-4">
               <section className="overflow-hidden rounded-2xl border border-brand/15 bg-card shadow-sm">
                 <div className="border-b border-brand/10 bg-sky-500/[0.06] px-4 py-3">
                   <h3 className="text-base font-semibold">Perguntas</h3>
