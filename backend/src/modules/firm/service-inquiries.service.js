@@ -284,10 +284,12 @@ async function update({ firmId, id, actor, payload }) {
     : existing;
 
   if (Array.isArray(payload?.tagIds)) {
-    const firmTags = await firmInquiryTagsRepository.listByFirm(firmId);
-    const allowed = new Set(firmTags.map((t) => t.id));
-    const tagIds = payload.tagIds.map(String).filter((tid) => allowed.has(tid));
+    const tagIds = await firmInquiryTagsRepository.resolveAllowedTagIds(firmId, payload.tagIds);
     await firmInquiryTagsRepository.replaceLinksForInquiry(firmId, id, tagIds);
+    // Sincroniza etiquetas no lead ligado (biblioteca firm-wide).
+    if (existing.leadId) {
+      await firmInquiryTagsRepository.replaceLinksForLead(firmId, existing.leadId, tagIds);
+    }
   }
 
   if (patch.status && patch.status !== existing.status) {
@@ -678,11 +680,12 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
 
   const resolvedTagIds = resolveTagIdsFromRules(service.intakeTagRules, answers);
   if (resolvedTagIds.length) {
-    const firmTags = await firmInquiryTagsRepository.listByFirm(firm.id);
-    const allowed = new Set(firmTags.map((t) => t.id));
-    const tagIds = resolvedTagIds.filter((tid) => allowed.has(tid));
+    const tagIds = await firmInquiryTagsRepository.resolveAllowedTagIds(firm.id, resolvedTagIds);
     if (tagIds.length) {
       await firmInquiryTagsRepository.replaceLinksForInquiry(firm.id, inquiry.id, tagIds);
+      if (inquiry.leadId) {
+        await firmInquiryTagsRepository.replaceLinksForLead(firm.id, inquiry.leadId, tagIds);
+      }
     }
   }
 

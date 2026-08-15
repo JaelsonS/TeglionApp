@@ -269,41 +269,24 @@ export function HeroEditor({
   return (
     <div className="space-y-5">
       <div className="rounded-lg border border-amber-200/80 bg-amber-50/70 px-3 py-2 text-[12px] leading-relaxed text-amber-950">
-        Esta zona é o <strong>bloco grande</strong> abaixo da barra do topo (foto + textos + botões). O título
-        aqui deve ser uma <strong>frase de destaque</strong>, diferente de «{headerNameHint}».
-      </div>
-
-      <div className="space-y-2 rounded-lg border border-border/40 bg-muted/10 p-3">
-        <p className="text-sm font-semibold">1. Imagem de capa</p>
-        <p className="text-[11px] text-muted-foreground">
-          Foto larga no topo do destaque. Opcional — pode usar só uma cor de fundo.
+        <p>
+          Bloco grande abaixo da barra: <strong>título</strong>, <strong>frase de destaque</strong>, parágrafo,
+          foto e botões. Os campos de texto estão <strong>já a seguir</strong> — a foto vem depois.
         </p>
-        <ImagePickerField
-          label="Foto (recomendado 16:9)"
-          imageUrl={imageUrl}
-          uploading={uploadingImage}
-          onUpload={onUploadImage}
-          onRemove={onRemoveImage}
-          cropAspect={16 / 9}
-          cropTitle="Recortar foto de capa"
-        />
-        <InlineColorField
-          id="hero-bg"
-          label="Cor de fundo (atrás do texto)"
-          value={content.backgroundColor}
-          fallback="#e8f0ec"
-          onChange={(v) => onChange({ ...content, backgroundColor: v })}
-        />
+        <p className="mt-1.5 text-amber-900/85">
+          Na pré-visualização: título = texto escuro grande · frase de destaque = linha colorida (ex. dourada) ·
+          não use o mesmo texto que «{headerNameHint}» na barra.
+        </p>
       </div>
 
-      <div className="space-y-2 rounded-lg border border-border/40 p-3">
+      <div className="space-y-2 rounded-lg border border-brand/25 bg-brand/[0.03] p-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
             <Label htmlFor="hero-title" className="text-sm font-semibold">
-              2. Título de destaque
+              1. Título grande
             </Label>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
-              Frase grande abaixo da foto — não é o nome do escritório no header.
+              Texto principal abaixo da foto (H1). Diferente do nome na barra do topo.
             </p>
           </div>
           <InlineColorField
@@ -322,16 +305,20 @@ export function HeroEditor({
         />
         {!String(content.title || '').trim() ? (
           <p className="text-[11px] font-medium text-amber-800">
-            Sem título de destaque a página fica sem o texto grande abaixo da foto.
+            Sem título a página fica sem o texto grande abaixo da foto.
           </p>
         ) : null}
       </div>
 
-      <div className="space-y-2 rounded-lg border border-border/40 p-3">
+      <div className="space-y-2 rounded-lg border border-brand/25 bg-brand/[0.03] p-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
-            <Label className="text-sm font-semibold">3. Frase curta (subtítulo)</Label>
-            <p className="mt-0.5 text-[11px] text-muted-foreground">Uma linha sob o título.</p>
+            <Label htmlFor="hero-tagline" className="text-sm font-semibold">
+              2. Frase de destaque
+            </Label>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              Linha sob o título — a que aparece a cor (ex. dourado) na pré-visualização.
+            </p>
           </div>
           <InlineColorField
             id="hero-tagline-color"
@@ -341,9 +328,10 @@ export function HeroEditor({
           />
         </div>
         <Input
+          id="hero-tagline"
           value={content.tagline}
           onChange={(e: FormChangeEvent) => onChange({ ...content, tagline: e.target.value })}
-          placeholder="Ex.: Apoio fiscal para freelancers e PME no Norte"
+          placeholder="Ex.: Fiscalidade moderna para negócios e profissionais em Lisboa"
           maxLength={160}
         />
       </div>
@@ -351,7 +339,9 @@ export function HeroEditor({
       <div className="space-y-2 rounded-lg border border-border/40 p-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
-            <Label className="text-sm font-semibold">4. Parágrafo</Label>
+            <Label htmlFor="hero-bio" className="text-sm font-semibold">
+              3. Parágrafo
+            </Label>
             <p className="mt-0.5 text-[11px] text-muted-foreground">Texto um pouco mais longo sobre o escritório.</p>
           </div>
           <InlineColorField
@@ -363,11 +353,35 @@ export function HeroEditor({
           />
         </div>
         <Textarea
+          id="hero-bio"
           value={content.bio}
           onChange={(e: FormChangeEvent) => onChange({ ...content, bio: e.target.value })}
           rows={4}
           maxLength={2000}
           placeholder="Quem ajudam, como trabalham, em que região…"
+        />
+      </div>
+
+      <div className="space-y-2 rounded-lg border border-border/40 bg-muted/10 p-3">
+        <p className="text-sm font-semibold">4. Imagem de capa</p>
+        <p className="text-[11px] text-muted-foreground">
+          Foto larga no topo do destaque. Opcional — pode usar só uma cor de fundo.
+        </p>
+        <ImagePickerField
+          label="Foto (recomendado 16:9)"
+          imageUrl={imageUrl}
+          uploading={uploadingImage}
+          onUpload={onUploadImage}
+          onRemove={onRemoveImage}
+          cropAspect={16 / 9}
+          cropTitle="Recortar foto de capa"
+        />
+        <InlineColorField
+          id="hero-bg"
+          label="Cor de fundo (atrás do texto)"
+          value={content.backgroundColor}
+          fallback="#e8f0ec"
+          onChange={(v) => onChange({ ...content, backgroundColor: v })}
         />
       </div>
 

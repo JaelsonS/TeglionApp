@@ -9,6 +9,12 @@ export type TeamDepartment = {
     isDefault?: boolean
 }
 
+export type TeamMemberTag = {
+    id: string
+    name: string
+    colorHex: string
+}
+
 export type TeamMember = {
     id: string
     email: string
@@ -21,6 +27,7 @@ export type TeamMember = {
     inviteStatus?: 'PENDING' | 'ACCEPTED' | 'REVOKED' | string
     emailConfirmedAt?: string | null
     department?: TeamDepartment | null
+    tags?: TeamMemberTag[]
 }
 
 export type TeamPermissionsView = {

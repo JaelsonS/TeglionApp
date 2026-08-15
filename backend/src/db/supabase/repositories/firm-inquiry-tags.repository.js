@@ -12,6 +12,15 @@ function mapTag(row) {
   };
 }
 
+function mapEmbeddedTag(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    name: row.name,
+    colorHex: row.color_hex || '#0F2942',
+  };
+}
+
 async function listByFirm(firmId) {
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
@@ -86,12 +95,95 @@ async function listLinksForInquiries(firmId, inquiryIds) {
 }
 
 async function replaceLinksForInquiry(firmId, inquiryId, tagIds) {
+  return replaceEntityLinks({
+    firmId,
+    table: 'service_inquiry_tag_links',
+    entityColumn: 'service_inquiry_id',
+    entityId: inquiryId,
+    tagIds,
+  });
+}
+
+async function listLinksForClients(firmId, clientIds) {
+  if (!clientIds?.length) return [];
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from('client_tag_links')
+    .select('client_id, tag_id, firm_inquiry_tags(id, name, color_hex)')
+    .eq('firm_id', firmId)
+    .in('client_id', clientIds);
+  if (error) throw error;
+  return data || [];
+}
+
+async function replaceLinksForClient(firmId, clientId, tagIds) {
+  return replaceEntityLinks({
+    firmId,
+    table: 'client_tag_links',
+    entityColumn: 'client_id',
+    entityId: clientId,
+    tagIds,
+  });
+}
+
+async function listLinksForLeads(firmId, leadIds) {
+  if (!leadIds?.length) return [];
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from('lead_tag_links')
+    .select('lead_id, tag_id, firm_inquiry_tags(id, name, color_hex)')
+    .eq('firm_id', firmId)
+    .in('lead_id', leadIds);
+  if (error) throw error;
+  return data || [];
+}
+
+async function replaceLinksForLead(firmId, leadId, tagIds) {
+  return replaceEntityLinks({
+    firmId,
+    table: 'lead_tag_links',
+    entityColumn: 'lead_id',
+    entityId: leadId,
+    tagIds,
+  });
+}
+
+async function listLinksForFirmUsers(firmId, firmUserIds) {
+  if (!firmUserIds?.length) return [];
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from('firm_user_tag_links')
+    .select('firm_user_id, tag_id, firm_inquiry_tags(id, name, color_hex)')
+    .eq('firm_id', firmId)
+    .in('firm_user_id', firmUserIds);
+  if (error) throw error;
+  return data || [];
+}
+
+async function replaceLinksForFirmUser(firmId, firmUserId, tagIds) {
+  return replaceEntityLinks({
+    firmId,
+    table: 'firm_user_tag_links',
+    entityColumn: 'firm_user_id',
+    entityId: firmUserId,
+    tagIds,
+  });
+}
+
+/** Copia etiquetas do lead para o cliente (conversão). */
+async function copyLeadTagsToClient(firmId, leadId, clientId) {
+  const rows = await listLinksForLeads(firmId, [leadId]);
+  const tagIds = rows.map((r) => r.tag_id).filter(Boolean);
+  return replaceLinksForClient(firmId, clientId, tagIds);
+}
+
+async function replaceEntityLinks({ firmId, table, entityColumn, entityId, tagIds }) {
   const sb = getSupabaseAdmin();
   const { error: delError } = await sb
-    .from('service_inquiry_tag_links')
+    .from(table)
     .delete()
     .eq('firm_id', firmId)
-    .eq('service_inquiry_id', inquiryId);
+    .eq(entityColumn, entityId);
   if (delError) throw delError;
 
   const unique = [...new Set((tagIds || []).filter(Boolean))];
@@ -99,12 +191,32 @@ async function replaceLinksForInquiry(firmId, inquiryId, tagIds) {
 
   const rows = unique.map((tagId) => ({
     firm_id: firmId,
-    service_inquiry_id: inquiryId,
+    [entityColumn]: entityId,
     tag_id: tagId,
   }));
-  const { data, error } = await sb.from('service_inquiry_tag_links').insert(rows).select('tag_id');
+  const { data, error } = await sb.from(table).insert(rows).select('tag_id');
   if (error) throw error;
   return (data || []).map((r) => r.tag_id);
+}
+
+function mapLinkRowsToTagsByKey(linkRows, entityKey) {
+  const byEntity = new Map();
+  for (const row of linkRows || []) {
+    const entityId = row[entityKey];
+    const tag = mapEmbeddedTag(row.firm_inquiry_tags);
+    if (!entityId || !tag) continue;
+    const list = byEntity.get(entityId) || [];
+    list.push(tag);
+    byEntity.set(entityId, list);
+  }
+  return byEntity;
+}
+
+/** Filtra tagIds para os que existem no catálogo do escritório. */
+async function resolveAllowedTagIds(firmId, tagIds) {
+  const firmTags = await module.exports.listByFirm(firmId);
+  const allowed = new Set(firmTags.map((t) => t.id));
+  return [...new Set((tagIds || []).map(String).filter((tid) => allowed.has(tid)))];
 }
 
 module.exports = {
@@ -115,4 +227,14 @@ module.exports = {
   removeRow,
   listLinksForInquiries,
   replaceLinksForInquiry,
+  listLinksForClients,
+  replaceLinksForClient,
+  listLinksForLeads,
+  replaceLinksForLead,
+  listLinksForFirmUsers,
+  replaceLinksForFirmUser,
+  copyLeadTagsToClient,
+  mapLinkRowsToTagsByKey,
+  mapEmbeddedTag,
+  resolveAllowedTagIds,
 };

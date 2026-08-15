@@ -19,8 +19,10 @@ function band(w) {
 
 /**
  * Login via fetch no browser (cookies + Origin correctos).
- * Evita Turnstile no widget (headless deixa «Entrar» disabled).
- * Em staging o backend faz skip Turnstile sem token.
+ * Não passa pelo widget Turnstile no DOM. Em staging/prod com
+ * TURNSTILE_SECRET_KEY o API exige token — este helper só funciona se o
+ * ambiente de QA usar keys de teste Cloudflare (always-pass) ou se o login
+ * for feito manualmente no browser com widget válido.
  */
 async function tryLogin(page) {
   if (!EMAIL || !PASSWORD) return false

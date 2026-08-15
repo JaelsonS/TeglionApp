@@ -22,7 +22,13 @@ export const teamManagementApi = {
                 },
         ),
 
-    patchMember: (memberId: string, payload: Partial<Pick<TeamMember, 'fullName' | 'email' | 'role' | 'jobTitle'>> & { departmentId?: string | null }) =>
+    patchMember: (
+        memberId: string,
+        payload: Partial<Pick<TeamMember, 'fullName' | 'email' | 'role' | 'jobTitle'>> & {
+            departmentId?: string | null
+            tagIds?: string[]
+        },
+    ) =>
         api.patch(`/contabil/team/${encodeURIComponent(memberId)}`, payload).then((r) => r.data as { member: TeamMember }),
 
     deactivateMember: (memberId: string) =>

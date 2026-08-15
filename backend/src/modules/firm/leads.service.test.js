@@ -6,6 +6,7 @@ const clientsRepository = require('../../db/supabase/repositories/clients.reposi
 const leadsRepository = require('../../db/supabase/repositories/leads.repository');
 const serviceInquiriesRepository = require('../../db/supabase/repositories/service-inquiries.repository');
 const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
+const firmInquiryTagsRepository = require('../../db/supabase/repositories/firm-inquiry-tags.repository');
 const auditRepository = require('../../db/supabase/repositories/contabil/audit.repository');
 const leadsService = require('./leads.service');
 
@@ -18,6 +19,16 @@ function resetMocks() {
 // Nunca deixar um teste tocar a Supabase real de produção — audit_logs é sempre mockado.
 function mockAudit() {
   mock.method(auditRepository, 'writeAuditLog', async () => {});
+}
+
+/** Etiquetas firm-wide: stubs para não bater na Supabase nos testes de leads. */
+function mockTags() {
+  mock.method(firmInquiryTagsRepository, 'listLinksForLeads', async () => []);
+  mock.method(firmInquiryTagsRepository, 'listLinksForClients', async () => []);
+  mock.method(firmInquiryTagsRepository, 'mapLinkRowsToTagsByKey', () => new Map());
+  mock.method(firmInquiryTagsRepository, 'resolveAllowedTagIds', async () => []);
+  mock.method(firmInquiryTagsRepository, 'replaceLinksForLead', async () => {});
+  mock.method(firmInquiryTagsRepository, 'copyLeadTagsToClient', async () => {});
 }
 
 test('resolveIdentity: NIF match em clients tem prioridade sobre tudo', async () => {
@@ -126,6 +137,7 @@ test('update: transição para estado inválido é rejeitada', async () => {
 test('update: salto directo NEW -> CONVERTED é permitido (não é linear obrigatório)', async () => {
   resetMocks();
   mockAudit();
+  mockTags();
   mock.method(leadsRepository, 'findByIdForFirm', async () => ({ id: 'lead-1', status: 'NEW' }));
   mock.method(leadsRepository, 'updateRow', async (id, firmId, patch) => ({ id, status: patch.status }));
 
@@ -141,6 +153,7 @@ test('update: salto directo NEW -> CONVERTED é permitido (não é linear obriga
 test('convertToClient: repoints service_inquiries e consultations do Lead para o Client novo (Fase 3a)', async () => {
   resetMocks();
   mockAudit();
+  mockTags();
   mock.method(leadsRepository, 'findByIdForFirm', async () => ({
     id: 'lead-1',
     status: 'NEW',

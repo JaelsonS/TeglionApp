@@ -1810,7 +1810,7 @@
   }
 
   .cb-chat-filter-chip-active {
-    @apply border-brand bg-brand text-primary-foreground shadow-sm hover:bg-brand;
+    @apply border-brand bg-brand text-white shadow-sm hover:border-brand hover:bg-brand/90 hover:text-white;
   }
 
   .cb-chat-conv-list {
@@ -2432,11 +2432,11 @@
   }
 
   .cb-docs-requests-chip {
-    @apply rounded-md border border-transparent px-2.5 py-1 text-caption font-medium text-muted-foreground transition hover:bg-muted/50;
+    @apply rounded-md border border-transparent px-2.5 py-1 text-caption font-medium text-muted-foreground transition hover:bg-muted/50 hover:text-foreground;
   }
 
   .cb-docs-requests-chip-active {
-    @apply border-brand bg-brand text-primary-foreground;
+    @apply border-brand bg-brand text-white shadow-sm hover:border-brand hover:bg-brand/90 hover:text-white;
   }
 
   /* Serviços */
@@ -2581,11 +2581,13 @@
   }
 
   .cb-services-chip {
-    @apply rounded-md border border-transparent px-2.5 py-1 text-caption font-medium text-muted-foreground transition hover:bg-muted/50;
+    @apply rounded-md border border-transparent px-2.5 py-1 text-caption font-medium text-muted-foreground transition hover:bg-muted/50 hover:text-foreground;
   }
 
+  /* Não usar text-primary-foreground aqui: no hover o fundo claro herdado do
+     chip base apagava o texto. Manter contraste explícito no estado activo. */
   .cb-services-chip-active {
-    @apply border-brand/30 bg-brand text-primary-foreground;
+    @apply border-brand bg-brand text-white shadow-sm hover:border-brand hover:bg-brand/90 hover:text-white;
   }
 
   .cb-services-body {
@@ -3166,11 +3168,11 @@
   }
 
   .cb-alerts-chip {
-    @apply inline-flex items-center gap-1 rounded-md border border-transparent px-2.5 py-1 cb-text-caption font-medium text-muted-foreground transition hover:bg-muted/50;
+    @apply inline-flex items-center gap-1 rounded-md border border-transparent px-2.5 py-1 cb-text-caption font-medium text-muted-foreground transition hover:bg-muted/50 hover:text-foreground;
   }
 
   .cb-alerts-chip-active {
-    @apply border-brand/30 bg-brand text-primary-foreground;
+    @apply border-brand bg-brand text-white shadow-sm hover:border-brand hover:bg-brand/90 hover:text-white;
   }
 
   .cb-alerts-chip-count {

@@ -139,4 +139,5 @@ export type ClientPatchPayload = {
   taxId?: string | null
   assignedStaffId?: string | null
   metadata?: Partial<ClientFiscalProfile>
+  tagIds?: string[]
 }

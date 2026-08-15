@@ -16,6 +16,7 @@ import {
   Send,
   X,
 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import {
@@ -30,6 +31,7 @@ import {
 import { FirmScrollPage } from '@/features/firm/FirmPageLayout'
 import { CreateCompanyWizard } from '@/features/firm/components/CreateCompanyWizard'
 import { FirmClientBulkInviteDialog } from '@/features/firm/components/FirmClientBulkInviteDialog'
+import { FirmTagBadge } from '@/features/firm/tags/FirmTagBadge'
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
@@ -43,7 +45,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
 import { Input } from '@/shared/components/ui/input'
-import { contabilClientsApi } from '@/infrastructure/api'
+import { contabilClientsApi, contabilInquiryTagsApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
 import type { Client } from '@/shared/types/clients'
 import { cn } from '@/shared/lib/utils'
@@ -84,6 +86,7 @@ export function FirmClientsPage() {
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('todos')
   const [regimeFilter, setRegimeFilter] = useState<RegimeFilter>('todos')
   const [estadoFilter, setEstadoFilter] = useState<EstadoFilter>('ativos')
+  const [tagFilter, setTagFilter] = useState('')
   const [view, setView] = useState<'list' | 'grid'>(() =>
     typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches ? 'grid' : 'list',
   )
@@ -135,7 +138,13 @@ export function FirmClientsPage() {
 
   useEffect(() => {
     setPage(1)
-  }, [search, typeFilter, regimeFilter, estadoFilter])
+  }, [search, typeFilter, regimeFilter, estadoFilter, tagFilter])
+
+  const tagsQuery = useQuery({
+    queryKey: ['firm-inquiry-tags'],
+    queryFn: () => contabilInquiryTagsApi.list().then((r) => r.items),
+  })
+  const firmTags = tagsQuery.data || []
 
   const regimeOptions = useMemo(() => {
     const set = new Set<string>()
@@ -176,9 +185,11 @@ export function FirmClientsPage() {
         if (!inactive) return false
       }
 
+      if (tagFilter && !(c.tags || []).some((t) => t.id === tagFilter)) return false
+
       return true
     })
-  }, [items, search, typeFilter, regimeFilter, estadoFilter])
+  }, [items, search, typeFilter, regimeFilter, estadoFilter, tagFilter])
 
   const activeCount = useMemo(
     () => items.filter((c) => !c.status || c.status === 'ACTIVE').length,
@@ -311,6 +322,22 @@ export function FirmClientsPage() {
             <option value="todos">Estado: Todos</option>
           </select>
 
+          {firmTags.length > 0 ? (
+            <select
+              className="cb-clients-filter"
+              value={tagFilter}
+              onChange={(e) => setTagFilter(e.target.value)}
+              aria-label="Filtrar por etiqueta"
+            >
+              <option value="">Etiqueta: Todas</option>
+              {firmTags.map((t) => (
+                <option key={t.id} value={t.id}>
+                  Etiqueta: {t.name}
+                </option>
+              ))}
+            </select>
+          ) : null}
+
           <div className={cn('cb-clients-view-toggle', isMobile && 'hidden')}>
             <button
               type="button"
@@ -394,6 +421,9 @@ export function FirmClientsPage() {
                       {resolveCompanyType(c)}
                     </span>
                     <span className={cn(estadoPill(c).className)}>{estadoPill(c).label}</span>
+                    {(c.tags || []).slice(0, 3).map((t) => (
+                      <FirmTagBadge key={t.id} tag={t} />
+                    ))}
                   </div>
                 </button>
               ))
@@ -460,6 +490,13 @@ export function FirmClientsPage() {
                             <div className="cb-clients-company-meta min-w-0">
                               <p className="cb-clients-company-name">{c.fullName || c.name}</p>
                               <p className="cb-clients-company-nif">NIF {formatNifDisplay(c.taxId)}</p>
+                              {(c.tags || []).length > 0 ? (
+                                <div className="mt-1 flex flex-wrap gap-1">
+                                  {(c.tags || []).slice(0, 3).map((t) => (
+                                    <FirmTagBadge key={t.id} tag={t} />
+                                  ))}
+                                </div>
+                              ) : null}
                             </div>
                           </button>
                         </td>

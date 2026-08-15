@@ -1,13 +1,18 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, MessageSquare, Pencil } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { CompanyAvatar, formatNifDisplay } from '@/features/firm/clients/clientCompanyAvatar'
 import { FirmClientInviteButton } from '@/features/firm/components/FirmClientInviteButton'
 import { FirmClientAccessManager } from '@/features/firm/components/FirmClientAccessManager'
 import { operationalStatusLabel } from '@/features/firm/client-hub/clientHubUtils'
+import { FirmEntityTagsEditor } from '@/features/firm/tags/FirmEntityTagsEditor'
 import { Button } from '@/shared/components/ui/button'
 import type { ClientHubResponse } from '@/infrastructure/api/contabil/types'
 import type { Client } from '@/shared/types/clients'
+import { usePatchClient } from '@/shared/hooks/queries/useClientHub'
+import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 
 type Props = {
@@ -22,6 +27,23 @@ type Props = {
 export function ClientHubHeader({ hub, displayName, clientId, onBack, onEdit, onAccessChanged }: Props) {
   const { client, summary, counts } = hub
   const clientForAvatar = { ...client, _id: client._id || client.id || clientId, name: displayName } as Client
+  const patch = usePatchClient(clientId)
+  const [savingTags, setSavingTags] = useState(false)
+  const tags = client.tags || []
+
+  const toggleTag = async (tagId: string) => {
+    const current = new Set(tags.map((t) => t.id))
+    if (current.has(tagId)) current.delete(tagId)
+    else current.add(tagId)
+    setSavingTags(true)
+    try {
+      await patch.mutateAsync({ tagIds: [...current] })
+    } catch (err) {
+      toast.error('Erro ao actualizar etiquetas', { description: getErrorMessage(err) })
+    } finally {
+      setSavingTags(false)
+    }
+  }
 
   return (
     <header className="cb-client-hub-header">
@@ -54,6 +76,9 @@ export function ClientHubHeader({ hub, displayName, clientId, onBack, onEdit, on
             {hub.client.fiscalProfile?.legalForm ? (
               <p className="mt-0.5 text-xs text-muted-foreground">{hub.client.fiscalProfile.legalForm}</p>
             ) : null}
+            <div className="mt-2">
+              <FirmEntityTagsEditor selectedTags={tags} disabled={savingTags} onToggle={(id) => void toggleTag(id)} />
+            </div>
           </div>
         </div>
 

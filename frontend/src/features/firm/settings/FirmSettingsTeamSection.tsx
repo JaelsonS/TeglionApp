@@ -4,6 +4,8 @@ import { KeyRound, MailPlus, Pencil, ShieldCheck, UserPlus, Users } from 'lucide
 import { toast } from 'sonner'
 
 import { teamManagementApi } from '@/infrastructure/api/contabil/teamManagement'
+import { FirmEntityTagsEditor } from '@/features/firm/tags/FirmEntityTagsEditor'
+import { FirmTagBadge } from '@/features/firm/tags/FirmTagBadge'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
@@ -224,6 +226,23 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
         },
         onError: (err) => toast.error(getErrorMessage(err)),
     })
+
+    const [savingMemberTags, setSavingMemberTags] = useState(false)
+
+    const toggleMemberTag = async (memberId: string, tagId: string, currentTags: TeamSettingsMember['tags']) => {
+        const current = new Set((currentTags || []).map((t) => t.id))
+        if (current.has(tagId)) current.delete(tagId)
+        else current.add(tagId)
+        setSavingMemberTags(true)
+        try {
+            await teamManagementApi.patchMember(memberId, { tagIds: [...current] })
+            await invalidate()
+        } catch (err) {
+            toast.error(getErrorMessage(err))
+        } finally {
+            setSavingMemberTags(false)
+        }
+    }
 
     const toggleMemberMutation = useMutation({
         mutationFn: ({ memberId, active }: { memberId: string; active: boolean }) =>
@@ -644,6 +663,13 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                     {m.isCurrentUser ? (
                                         <span className="ml-2 text-xs font-normal text-muted-foreground">(você)</span>
                                     ) : null}
+                                    {(m.tags || []).length > 0 ? (
+                                        <div className="mt-1 flex flex-wrap gap-1">
+                                            {(m.tags || []).map((t) => (
+                                                <FirmTagBadge key={t.id} tag={t} />
+                                            ))}
+                                        </div>
+                                    ) : null}
                                 </td>
                                 <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">{m.email}</td>
                                 <td className="px-4 py-3 text-xs text-muted-foreground">
@@ -773,6 +799,24 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                 ))}
                         </select>
                     </div>
+                    {editingMemberId ? (
+                        <div className="mt-3 space-y-1.5">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                Etiquetas
+                            </p>
+                            <FirmEntityTagsEditor
+                                selectedTags={
+                                    members.find((m) => m.id === editingMemberId)?.tags || []
+                                }
+                                disabled={savingMemberTags || !canManageTeam}
+                                onToggle={(tagId) => {
+                                    const member = members.find((m) => m.id === editingMemberId)
+                                    if (!member) return
+                                    void toggleMemberTag(member.id, tagId, member.tags)
+                                }}
+                            />
+                        </div>
+                    ) : null}
                     <div className="mt-3 flex gap-2">
                         <Button type="button" size="sm" onClick={() => updateMemberMutation.mutate()}>
                             Guardar alterações
