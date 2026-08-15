@@ -300,6 +300,8 @@ export type DocumentRequirement = {
 
 export type IntakeQuestionType =
   | 'text'
+  | 'short_text'
+  | 'long_text'
   | 'email'
   | 'phone'
   | 'tax_id'

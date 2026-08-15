@@ -43,6 +43,22 @@ const DOC_SUGGESTIONS = [
   'efatura',
 ]
 
+const ANEXOS: {
+  id: IrsAnexoId
+  title: string
+  subtitle: string
+  Icon: typeof User
+}[] = [
+  { id: 'A', title: 'Anexo A', subtitle: 'Dependente', Icon: User },
+  { id: 'B', title: 'Anexo B', subtitle: 'Independente / recibos verdes', Icon: Briefcase },
+  { id: 'C', title: 'Anexo C', subtitle: 'Capital', Icon: PiggyBank },
+  { id: 'F', title: 'Anexo F', subtitle: 'Prediais', Icon: Home },
+  { id: 'G', title: 'Anexo G', subtitle: 'Mais-valias imóveis', Icon: TrendingUp },
+  { id: 'H', title: 'Anexo H', subtitle: 'Benefícios fiscais', Icon: Landmark },
+  { id: 'J', title: 'Anexo J', subtitle: 'Não residentes', Icon: Globe2 },
+  { id: 'JOVEM', title: 'IRS Jovem', subtitle: 'Regime IRS Jovem', Icon: Sparkles },
+]
+
 /** Espelha as perguntas yes_no do catálogo IRS Modelo 3 (docs condicionais). */
 const DEFAULT_QUESTIONS: IntakeQuestion[] = [
   {

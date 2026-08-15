@@ -241,6 +241,7 @@ test('getById: monta o checklist a partir de service_inquiry_requests (não reca
     clientId: null,
     status: 'DOCS_REQUESTED',
     answers: { q1: 'sim' },
+    staffSeenAt: '2026-01-01T00:00:00.000Z',
   }));
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({ id: 'service-1', name: 'IRS 2026' }));
   mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana' }));
@@ -298,6 +299,7 @@ test('getById: sugere documentos "manual" activados pelas respostas mas ainda n�
     clientId: null,
     status: 'IN_PROGRESS',
     answers: { casado: 'sim' },
+    staffSeenAt: '2026-01-01T00:00:00.000Z',
   }));
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
     id: 'service-1',
@@ -330,6 +332,7 @@ test('getById: documento "manual" já pedido (existe no checklist) deixa de ser 
     clientId: null,
     status: 'IN_PROGRESS',
     answers: { casado: 'sim' },
+    staffSeenAt: '2026-01-01T00:00:00.000Z',
   }));
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
     id: 'service-1',
