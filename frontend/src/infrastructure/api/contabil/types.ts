@@ -2,6 +2,12 @@
 
 export type ClientOperationalStatus = 'ativo' | 'atencao' | 'critico'
 
+export type ContabilEntityTag = {
+  id: string
+  name: string
+  colorHex: string
+}
+
 export type ContabilClient = {
   _id: string
   id?: string
@@ -19,6 +25,7 @@ export type ContabilClient = {
   pendingDocuments?: number
   openTasks?: number
   lastLoginAt?: string | null
+  tags?: ContabilEntityTag[]
   nextObligation?: {
     id: string
     title?: string

@@ -174,7 +174,9 @@ export function ServicesCatalogWorkspace({
                   onClick={() => setFilter(mode)}
                   className={cn(
                     'rounded-full px-2.5 py-1 text-xs font-semibold transition',
-                    filter === mode ? 'bg-brand text-primary-foreground' : 'bg-muted/40 text-muted-foreground',
+                    filter === mode
+                      ? 'bg-brand text-white hover:bg-brand/90 hover:text-white'
+                      : 'bg-muted/40 text-muted-foreground hover:text-foreground',
                   )}
                 >
                   {mode === 'active' ? 'Activos' : mode === 'inactive' ? 'Inactivos' : 'Todos'}

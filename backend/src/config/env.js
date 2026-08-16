@@ -170,7 +170,8 @@ function resolveTurnstileExpectedHostnames() {
     .map((h) => h.trim().toLowerCase().replace(/\.$/, ''))
     .filter(Boolean);
   if (raw.length > 0) return raw;
-  return ['www.teglion.com', 'teglion.com'];
+  // Defaults: prod + staging (Render staging usa NODE_ENV=production).
+  return ['www.teglion.com', 'teglion.com', 'staging.teglion.com', 'www.staging.teglion.com'];
 }
 
 const env = {
@@ -431,7 +432,9 @@ if (env.TURNSTILE_SECRET_KEY) {
     `${BRAND.logPrefix}[WARN] TURNSTILE_SECRET_KEY ausente — rotas protegidas por Turnstile falham fechado (403).`,
   );
 } else {
-  console.log(`${BRAND.logPrefix} Turnstile: desactivado (sem TURNSTILE_SECRET_KEY — skip em não-produção)`);
+  console.log(
+    `${BRAND.logPrefix} Turnstile: sem secret — skip só em test/development local; staging/prod fail closed`,
+  );
 }
 
 module.exports = { env };

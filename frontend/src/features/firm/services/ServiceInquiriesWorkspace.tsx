@@ -20,9 +20,16 @@ import type {
   ServiceInquiryChecklistItem,
   ServiceInquiryHistoryItem,
   ServiceInquiryRequestKind,
-  ServiceInquiryTag,
 } from '@/infrastructure/api/contabil/serviceInquiries'
-import type { FirmInquiryTag } from '@/infrastructure/api/contabil/inquiryTags'
+import { FirmEntityTagsEditor } from '@/features/firm/tags/FirmEntityTagsEditor'
+import { FirmTagBadge } from '@/features/firm/tags/FirmTagBadge'
+import { FirmTagsManager } from '@/features/firm/tags/FirmTagsManager'
+import { tagTextColor } from '@/features/firm/tags/firmTagUtils'
+import {
+  NotifyClientChannelsDialog,
+  type NotifyChannel,
+} from '@/features/firm/services/NotifyClientChannelsDialog'
+import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 import type { AccountingService, IntakeQuestion } from '@/shared/types/contabil'
@@ -41,10 +48,9 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_ORDER = ['LEAD_CAPTURED', 'NEW', 'CONTACTED', 'DOCS_REQUESTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']
 const TERMINAL_STATUSES = new Set(['COMPLETED', 'CANCELLED'])
 
-const SUGGESTED_TAG_COLORS = ['#0F2942', '#B45309', '#1B6B4A', '#9A3412', '#475569', '#854D0E']
-
 const HISTORY_ACTION_LABELS: Record<string, string> = {
   'service_inquiry.created': 'Solicitação criada',
+  'service_inquiry.lead_captured': 'Contacto capturado (formulário iniciado)',
   'service_inquiry.submitted': 'Formulário submetido pelo cliente',
   'service_inquiry.status_changed': 'Estado alterado',
   'service_inquiry.token_revoked': 'Link do cliente revogado',
@@ -52,6 +58,8 @@ const HISTORY_ACTION_LABELS: Record<string, string> = {
   'service_inquiry.document_delivered': 'Documento recebido',
   'service_inquiry.request_answered': 'Resposta recebida do cliente',
   'service_inquiry.consultation_confirmed': 'Agendamento confirmado e cliente notificado',
+  'service_inquiry.client_notified': 'Cliente notificado pela equipa',
+  'service_inquiry.deleted': 'Solicitação apagada',
 }
 
 function historyItemLabel(item: ServiceInquiryHistoryItem): string {
@@ -71,28 +79,6 @@ function answerDisplay(question: IntakeQuestion | undefined, value: string | str
   if (!question?.options) return Array.isArray(value) ? value.join(', ') : String(value)
   const resolve = (v: string) => question.options?.find((o) => (o.id ?? o.label) === v)?.label ?? v
   return Array.isArray(value) ? value.map(resolve).join(', ') : resolve(value)
-}
-
-function tagTextColor(hex: string) {
-  const raw = hex.replace('#', '')
-  if (raw.length !== 6) return '#fff'
-  const r = parseInt(raw.slice(0, 2), 16)
-  const g = parseInt(raw.slice(2, 4), 16)
-  const b = parseInt(raw.slice(4, 6), 16)
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-  return luminance > 0.62 ? '#0F172A' : '#FFFFFF'
-}
-
-function InquiryTagBadge({ tag }: { tag: ServiceInquiryTag | FirmInquiryTag }) {
-  return (
-    <span
-      className="inline-flex max-w-[10rem] items-center truncate rounded-full px-2 py-0.5 text-caption font-semibold"
-      style={{ backgroundColor: tag.colorHex, color: tagTextColor(tag.colorHex) }}
-      title={tag.name}
-    >
-      {tag.name}
-    </span>
-  )
 }
 
 function formatSubmittedAt(iso: string | null | undefined) {
@@ -117,11 +103,11 @@ export function ServiceInquiriesWorkspace() {
   const [sendingBatch, setSendingBatch] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [tagsOpen, setTagsOpen] = useState(false)
-  const [newTagName, setNewTagName] = useState('')
-  const [newTagColor, setNewTagColor] = useState(SUGGESTED_TAG_COLORS[0])
-  const [savingTag, setSavingTag] = useState(false)
   const [savingInquiryTags, setSavingInquiryTags] = useState(false)
   const [confirmingBooking, setConfirmingBooking] = useState(false)
+  const [notifyDialog, setNotifyDialog] = useState<null | 'received' | 'docs'>(null)
+  const [notifyingClient, setNotifyingClient] = useState(false)
+  const [confirmAction, setConfirmAction] = useState<null | 'revoke' | 'delete'>(null)
 
   useEffect(() => {
     setDraftItems([])
@@ -137,9 +123,9 @@ export function ServiceInquiriesWorkspace() {
 
   const tagsQuery = useQuery({
     queryKey: ['firm-inquiry-tags'],
-    queryFn: () => contabilInquiryTagsApi.list(),
+    queryFn: () => contabilInquiryTagsApi.list().then((r) => r.items),
   })
-  const firmTags = tagsQuery.data?.items ?? []
+  const firmTags = Array.isArray(tagsQuery.data) ? tagsQuery.data : []
 
   const listQuery = useQuery({
     queryKey: ['service-inquiries', serviceFilter, tagFilter],
@@ -156,6 +142,12 @@ export function ServiceInquiriesWorkspace() {
     queryFn: () => contabilServiceInquiriesApi.getById(selectedId!),
     enabled: Boolean(selectedId),
   })
+
+  // getById marca staff_seen_at no servidor — actualiza o badge da tab Solicitações.
+  useEffect(() => {
+    if (!detailQuery.isSuccess || !selectedId) return
+    void qc.invalidateQueries({ queryKey: ['contabil-service-inquiries', 'unseen-count'] })
+  }, [detailQuery.isSuccess, selectedId, qc])
 
   const selectedService = useMemo(
     () => services.find((s) => s.id === detailQuery.data?.inquiry.serviceId),
@@ -210,16 +202,10 @@ export function ServiceInquiriesWorkspace() {
 
   const revokeToken = async () => {
     if (!selectedId) return
-    if (
-      !window.confirm(
-        'Revogar o link do cliente? Esta ação não pode ser desfeita — o cliente deixa de conseguir aceder à solicitação por esse link.',
-      )
-    ) {
-      return
-    }
     try {
       await contabilServiceInquiriesApi.revokeToken(selectedId)
       toast.success('Link revogado')
+      setConfirmAction(null)
       await invalidateLists()
     } catch (err) {
       toast.error('Erro ao revogar link', { description: getErrorMessage(err) })
@@ -228,11 +214,11 @@ export function ServiceInquiriesWorkspace() {
 
   const deleteInquiry = async () => {
     if (!selectedId) return
-    if (!window.confirm('Apagar esta solicitação? Esta ação não pode ser desfeita.')) return
     setDeleting(true)
     try {
       await contabilServiceInquiriesApi.remove(selectedId)
       toast.success('Solicitação apagada')
+      setConfirmAction(null)
       setSelectedId(null)
       await qc.invalidateQueries({ queryKey: ['service-inquiries'] })
     } catch (err) {
@@ -276,29 +262,104 @@ export function ServiceInquiriesWorkspace() {
     setDraftItems((prev) => prev.filter((i) => i.key !== key))
   }
 
-  const sendDraftBatch = async () => {
+  const sendDraftBatch = async (channels: NotifyChannel[]) => {
     if (!selectedId || draftItems.length === 0) return
+    const checklist = detailQuery.data?.checklist || []
+    const existingKeys = new Set(
+      checklist
+        .filter((c) => c.kind === 'document')
+        .map((c) => {
+          const tag = String(c.tag || '')
+            .trim()
+            .toLowerCase()
+          if (tag && !tag.startsWith('pend_')) return `tag:${tag}`
+          return `title:${String(c.title || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .replace(/\s+/g, ' ')
+            .trim()}`
+        }),
+    )
+    const uniqueItems = draftItems.filter((item) => {
+      if (item.kind !== 'document') return true
+      const tag = String(item.tag || '')
+        .trim()
+        .toLowerCase()
+      const key =
+        tag && !tag.startsWith('pend_')
+          ? `tag:${tag}`
+          : `title:${String(item.title || '')
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .toLowerCase()
+              .replace(/\s+/g, ' ')
+              .trim()}`
+      if (existingKeys.has(key)) return false
+      existingKeys.add(key)
+      return true
+    })
+    if (uniqueItems.length === 0) {
+      toast.message('Esses documentos já estão nas pendências.')
+      setDraftItems([])
+      setNotifyDialog(null)
+      return
+    }
+    if (uniqueItems.length < draftItems.length) {
+      toast.message('Alguns documentos já tinham sido pedidos e foram ignorados.')
+    }
     setSendingBatch(true)
     try {
-      await contabilServiceInquiriesApi.addRequestsBatch(selectedId, {
-        items: draftItems.map(({ kind, title, tag, instructions }) => ({
+      const result = await contabilServiceInquiriesApi.addRequestsBatch(selectedId, {
+        items: uniqueItems.map(({ kind, title, tag, instructions }) => ({
           kind,
           title,
           tag,
           instructions,
         })),
+        notifyChannels: channels,
       })
       setDraftItems([])
+      setNotifyDialog(null)
+      const wa = (result.delivery as { whatsappUrl?: string | null } | undefined)?.whatsappUrl
+      if (wa && channels.includes('whatsapp')) {
+        window.open(wa, '_blank', 'noopener,noreferrer')
+      }
       toast.success(
-        draftItems.length > 1
-          ? `${draftItems.length} pedidos enviados ao cliente`
-          : 'Pedido enviado ao cliente',
+        channels.length === 0
+          ? uniqueItems.length > 1
+            ? `${uniqueItems.length} pedidos guardados (sem notificar)`
+            : 'Pedido guardado (sem notificar)'
+          : uniqueItems.length > 1
+            ? `${uniqueItems.length} pedidos guardados e cliente notificado`
+            : 'Pedido guardado e cliente notificado',
       )
       await invalidateLists()
     } catch (err) {
       toast.error('Erro ao enviar pedido', { description: getErrorMessage(err) })
     } finally {
       setSendingBatch(false)
+    }
+  }
+
+  const notifyClient = async (purpose: 'received' | 'checklist', channels: NotifyChannel[]) => {
+    if (!selectedId) return
+    setNotifyingClient(true)
+    try {
+      const result = await contabilServiceInquiriesApi.notifyClient(selectedId, {
+        purpose,
+        notifyChannels: channels,
+      })
+      setNotifyDialog(null)
+      if (result.delivery?.whatsappUrl && channels.includes('whatsapp')) {
+        window.open(result.delivery.whatsappUrl, '_blank', 'noopener,noreferrer')
+      }
+      toast.success(purpose === 'received' ? 'Cliente notificado da recepção' : 'Cliente notificado dos documentos')
+      await invalidateLists()
+    } catch (err) {
+      toast.error('Erro ao notificar', { description: getErrorMessage(err) })
+    } finally {
+      setNotifyingClient(false)
     }
   }
 
@@ -309,36 +370,6 @@ export function ServiceInquiriesWorkspace() {
       window.open(url, '_blank', 'noopener,noreferrer')
     } catch (err) {
       toast.error('Erro ao abrir documento', { description: getErrorMessage(err) })
-    }
-  }
-
-  const createTag = async () => {
-    if (!newTagName.trim()) return
-    setSavingTag(true)
-    try {
-      await contabilInquiryTagsApi.create({ name: newTagName.trim(), colorHex: newTagColor })
-      setNewTagName('')
-      toast.success('Etiqueta criada')
-      await qc.invalidateQueries({ queryKey: ['firm-inquiry-tags'] })
-    } catch (err) {
-      toast.error('Não foi possível criar etiqueta', { description: getErrorMessage(err) })
-    } finally {
-      setSavingTag(false)
-    }
-  }
-
-  const removeTag = async (tag: FirmInquiryTag) => {
-    if (!window.confirm(`Apagar a etiqueta “${tag.name}”? Será removida das solicitações.`)) return
-    try {
-      await contabilInquiryTagsApi.remove(tag.id)
-      if (tagFilter === tag.id) setTagFilter('')
-      toast.success('Etiqueta apagada')
-      await Promise.all([
-        qc.invalidateQueries({ queryKey: ['firm-inquiry-tags'] }),
-        qc.invalidateQueries({ queryKey: ['service-inquiries'] }),
-      ])
-    } catch (err) {
-      toast.error('Erro ao apagar etiqueta', { description: getErrorMessage(err) })
     }
   }
 
@@ -384,7 +415,7 @@ export function ServiceInquiriesWorkspace() {
         </p>
         <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={() => setTagsOpen(true)}>
           <Settings2 className="mr-1.5 h-3.5 w-3.5" />
-          Gerir etiquetas
+          Etiquetas do escritório
         </Button>
       </div>
 
@@ -506,7 +537,7 @@ export function ServiceInquiriesWorkspace() {
                   </span>
                   <span className="hidden max-w-[12rem] flex-wrap justify-end gap-1 md:flex">
                     {(item.tags || []).slice(0, 3).map((t) => (
-                      <InquiryTagBadge key={t.id} tag={t} />
+                      <FirmTagBadge key={t.id} tag={t} />
                     ))}
                   </span>
                   <span className="shrink-0 text-xs text-muted-foreground">
@@ -533,60 +564,24 @@ export function ServiceInquiriesWorkspace() {
 
       <Sheet open={tagsOpen} onOpenChange={setTagsOpen}>
         <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
-          <SheetHiddenTitle>Gerir etiquetas</SheetHiddenTitle>
-          <div className="space-y-5 py-4">
+          <SheetHiddenTitle>Etiquetas do escritório</SheetHiddenTitle>
+          <div className="space-y-4 py-4">
             <div>
-              <h2 className="text-lg font-bold">Etiquetas das solicitações</h2>
-              <div className="mt-2 space-y-2 rounded-xl border border-sky-200/80 bg-sky-50/80 px-3 py-3 text-sm text-sky-950">
-                <p className="font-medium text-brand">Para que servem?</p>
-                <p>
-                  São <strong>rótulos da equipa</strong> para organizar pedidos (ex.: «Urgente», «Fácil»,
-                  «Agendar»). Não são vistas pelo cliente.
-                </p>
-                <p>
-                  Depois de criar, abra uma solicitação e marque as etiquetas. Pode filtrar a lista por
-                  etiqueta.
-                </p>
-                <p className="text-xs text-sky-900/80">
-                  Em breve: regras automáticas no Catálogo («se o cliente responder X → aplicar esta
-                  etiqueta»).
-                </p>
-              </div>
+              <h2 className="text-lg font-bold">Etiquetas do escritório</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Use as mesmas etiquetas em clientes, leads, solicitações e equipa. Também em{' '}
+                <Link to="/app/firm/settings?tab=etiquetas" className="font-medium text-brand underline-offset-2 hover:underline">
+                  Definições
+                </Link>
+                .
+              </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {SUGGESTED_TAG_COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  aria-label={`Cor ${c}`}
-                  onClick={() => setNewTagColor(c)}
-                  className={cn('h-7 w-7 rounded-full border-2', newTagColor === c ? 'border-foreground' : 'border-transparent')}
-                  style={{ backgroundColor: c }}
-                />
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Input
-                className="h-10 rounded-xl"
-                placeholder="Ex.: Atenção, Fácil, Agendamento…"
-                value={newTagName}
-                onChange={(e: FormChangeEvent) => setNewTagName(e.target.value)}
-              />
-              <Button type="button" className="shrink-0 rounded-full" disabled={savingTag || !newTagName.trim()} onClick={() => void createTag()}>
-                {savingTag ? '…' : 'Criar'}
-              </Button>
-            </div>
-            <ul className="space-y-2">
-              {firmTags.map((tag) => (
-                <li key={tag.id} className="flex items-center justify-between gap-2 rounded-lg border border-border/50 px-3 py-2">
-                  <InquiryTagBadge tag={tag} />
-                  <Button type="button" size="sm" variant="ghost" className="text-destructive" onClick={() => void removeTag(tag)}>
-                    Apagar
-                  </Button>
-                </li>
-              ))}
-              {!firmTags.length ? <p className="text-sm text-muted-foreground">Ainda sem etiquetas — crie a primeira acima.</p> : null}
-            </ul>
+            <FirmTagsManager
+              compact
+              onTagsChanged={() => {
+                void qc.invalidateQueries({ queryKey: ['service-inquiries'] })
+              }}
+            />
           </div>
         </SheetContent>
       </Sheet>
@@ -627,30 +622,11 @@ export function ServiceInquiriesWorkspace() {
 
               <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Etiquetas</p>
-                <div className="flex flex-wrap gap-2">
-                  {firmTags.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Crie etiquetas em “Gerir etiquetas”.</p>
-                  ) : (
-                    firmTags.map((tag) => {
-                      const active = (detailQuery.data?.inquiry.tags || []).some((t) => t.id === tag.id)
-                      return (
-                        <button
-                          key={tag.id}
-                          type="button"
-                          disabled={savingInquiryTags}
-                          onClick={() => void toggleInquiryTag(tag.id)}
-                          className={cn(
-                            'rounded-full px-2.5 py-1 text-caption font-semibold transition',
-                            active ? 'ring-2 ring-offset-1 ring-brand/50' : 'opacity-55 hover:opacity-100',
-                          )}
-                          style={{ backgroundColor: tag.colorHex, color: tagTextColor(tag.colorHex) }}
-                        >
-                          {tag.name}
-                        </button>
-                      )
-                    })
-                  )}
-                </div>
+                <FirmEntityTagsEditor
+                  selectedTags={Array.isArray(detailQuery.data.inquiry.tags) ? detailQuery.data.inquiry.tags : []}
+                  disabled={savingInquiryTags}
+                  onToggle={(tagId) => void toggleInquiryTag(tagId)}
+                />
               </div>
 
               {detailQuery.data.inquiry.consultation ? (
@@ -695,10 +671,19 @@ export function ServiceInquiriesWorkspace() {
               </label>
 
               <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="rounded-full"
+                  disabled={notifyingClient || (!contact?.email && !contact?.phone)}
+                  onClick={() => setNotifyDialog('received')}
+                >
+                  Confirmar e notificar cliente
+                </Button>
                 {detailQuery.data.inquiry.accessTokenRevokedAt ? (
                   <p className="text-xs text-muted-foreground">Link do cliente já revogado.</p>
                 ) : (
-                  <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={() => void revokeToken()}>
+                  <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={() => setConfirmAction('revoke')}>
                     Revogar link do cliente
                   </Button>
                 )}
@@ -708,7 +693,7 @@ export function ServiceInquiriesWorkspace() {
                   variant="outline"
                   className="rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive"
                   disabled={deleting}
-                  onClick={() => void deleteInquiry()}
+                  onClick={() => setConfirmAction('delete')}
                 >
                   {deleting ? 'A apagar…' : 'Apagar solicitação'}
                 </Button>
@@ -839,7 +824,7 @@ export function ServiceInquiriesWorkspace() {
                       </ul>
                     ) : (
                       <p className="text-xs text-muted-foreground">
-                        Adicione documentos e perguntas; o cliente recebe um único email com tudo.
+                        Adicione documentos e perguntas; ao enviar escolhe por onde notificar o cliente.
                       </p>
                     )}
                     <div className="flex flex-wrap items-center gap-2">
@@ -882,13 +867,11 @@ export function ServiceInquiriesWorkspace() {
                       type="button"
                       className="w-full rounded-full sm:w-auto"
                       disabled={sendingBatch || draftItems.length === 0}
-                      onClick={() => void sendDraftBatch()}
+                      onClick={() => setNotifyDialog('docs')}
                     >
-                      {sendingBatch
-                        ? 'A enviar…'
-                        : draftItems.length > 1
-                          ? `Enviar pedido ao cliente (${draftItems.length})`
-                          : 'Enviar pedido ao cliente'}
+                      {draftItems.length > 1
+                        ? `Enviar pedido ao cliente (${draftItems.length})`
+                        : 'Enviar pedido ao cliente'}
                     </Button>
                   </div>
                 ) : null}
@@ -917,6 +900,51 @@ export function ServiceInquiriesWorkspace() {
           )}
         </SheetContent>
       </Sheet>
+
+      <NotifyClientChannelsDialog
+        open={notifyDialog === 'received'}
+        onOpenChange={(open) => !open && setNotifyDialog(null)}
+        title="Notificar que recebeu o pedido"
+        description="O cliente ainda não foi avisado automaticamente. Escolha os canais — só enviamos o que seleccionar."
+        hasEmail={Boolean(contact?.email)}
+        hasPhone={Boolean(contact?.phone)}
+        confirmLabel="Confirmar e notificar"
+        loading={notifyingClient}
+        onConfirm={(channels) => void notifyClient('received', channels)}
+      />
+      <NotifyClientChannelsDialog
+        open={notifyDialog === 'docs'}
+        onOpenChange={(open) => !open && setNotifyDialog(null)}
+        title="Como notificar o cliente?"
+        description="Os pedidos ficam guardados na solicitação. Escolha email, SMS e/ou WhatsApp para avisar o cliente — ou só guarde sem enviar."
+        hasEmail={Boolean(contact?.email)}
+        hasPhone={Boolean(contact?.phone)}
+        confirmLabel="Guardar e notificar"
+        allowSaveWithoutNotify
+        loading={sendingBatch}
+        onConfirm={(channels) => void sendDraftBatch(channels)}
+      />
+
+      <ConfirmDialog
+        open={confirmAction === 'revoke'}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        variant="destructive"
+        testId="inquiry-revoke-link"
+        title="Revogar o link do cliente?"
+        description="Esta acção não pode ser desfeita — o cliente deixa de conseguir aceder à solicitação por esse link."
+        confirmLabel="Sim, revogar"
+        onConfirm={revokeToken}
+      />
+      <ConfirmDialog
+        open={confirmAction === 'delete'}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        variant="destructive"
+        testId="inquiry-delete"
+        title="Apagar esta solicitação?"
+        description="Esta acção não pode ser desfeita. Documentos e pendências associados serão removidos."
+        confirmLabel="Sim, apagar"
+        onConfirm={deleteInquiry}
+      />
     </div>
   )
 }

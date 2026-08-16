@@ -3,7 +3,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env.local'
 
 const bcrypt = require('bcryptjs');
 const axios = require('axios');
-const { isSupabaseConfigured, getSupabaseAdmin } = require('../src/db/supabase/client');
+const { isSupabaseConfigured, getSupabaseAdmin, assertServiceRoleKey } = require('../src/db/supabase/client');
 const { signAccessToken } = require('../src/config/jwt');
 const firmsRepository = require('../src/db/supabase/repositories/firms.repository');
 const firmUsersRepository = require('../src/db/supabase/repositories/firm-users.repository');
@@ -455,6 +455,14 @@ async function main() {
     printReport();
     process.exit(1);
   }
+
+  const keyCheck = assertServiceRoleKey();
+  if (!keyCheck.ok) {
+    fail('Supabase service_role', keyCheck.message);
+    printReport();
+    process.exit(1);
+  }
+  pass('Supabase service_role', `JWT/API key role=${keyCheck.role}`);
 
   let ctx = null;
   try {

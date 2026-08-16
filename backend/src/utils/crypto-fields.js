@@ -1,27 +1,15 @@
 const crypto = require('crypto');
 const { env } = require('../config/env');
 const { logger } = require('./logger');
+const { resolveEncryptionKeyBuffer, cryptoFieldsMessage } = require('./crypto-fields.resolve');
 
 const PREFIX = 'enc:v1:';
-
-const CRYPTO_FIELDS_MESSAGES = {
-  requiredEncryptionKey: 'DATA_ENCRYPTION_KEY é obrigatório para criptografia de dados sensíveis',
-  invalidEncryptionKeyLength: 'DATA_ENCRYPTION_KEY deve ter 32 bytes em base64',
-};
-
-function cryptoFieldsMessage(key) {
-  return CRYPTO_FIELDS_MESSAGES[key] || key;
-}
 
 function getKey() {
   if (!env.DATA_ENCRYPTION_KEY) {
     throw new Error(cryptoFieldsMessage('requiredEncryptionKey'));
   }
-  const key = Buffer.from(env.DATA_ENCRYPTION_KEY, 'base64');
-  if (key.length !== 32) {
-    throw new Error(cryptoFieldsMessage('invalidEncryptionKeyLength'));
-  }
-  return key;
+  return resolveEncryptionKeyBuffer(env.DATA_ENCRYPTION_KEY);
 }
 
 function isEncrypted(value) {
@@ -74,4 +62,5 @@ module.exports = {
   encryptField,
   decryptField,
   isEncrypted,
+  resolveEncryptionKeyBuffer,
 };

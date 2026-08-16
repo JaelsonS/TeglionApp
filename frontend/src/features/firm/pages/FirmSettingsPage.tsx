@@ -8,6 +8,7 @@ import {
   ImageIcon,
   Info,
   Shield,
+  Tag,
   User,
   Users,
 } from 'lucide-react'
@@ -22,6 +23,7 @@ import { FirmSettingsFirmSection } from '@/features/firm/settings/FirmSettingsFi
 import { PublicSiteEditor } from '@/features/firm/public-site/PublicSiteEditor'
 import { FirmSettingsProfileSection } from '@/features/firm/settings/FirmSettingsProfileSection'
 import { FirmSettingsTeamSection } from '@/features/firm/settings/FirmSettingsTeamSection'
+import { FirmSettingsTagsSection } from '@/features/firm/settings/FirmSettingsTagsSection'
 import { FirmSettingsNotificationsSection } from '@/features/firm/settings/FirmSettingsNotificationsSection'
 import { FirmConnectPaymentsSection } from '@/features/firm/settings/FirmConnectPaymentsSection'
 import { FirmAboutPanel, FirmHelpSupportPanel } from '@/features/firm/support/FirmSupportPanels'
@@ -36,6 +38,7 @@ const TABS = [
   { id: 'pagamentos', label: 'Pagamentos', shortLabel: 'Pagamentos', icon: CreditCard, danger: false },
   { id: 'perfil', label: 'O seu perfil', shortLabel: 'Perfil', icon: User, danger: false },
   { id: 'equipa', label: 'Equipa', shortLabel: 'Equipa', icon: Users, danger: false },
+  { id: 'etiquetas', label: 'Etiquetas', shortLabel: 'Tags', icon: Tag, danger: false },
   { id: 'notificacoes', label: 'Notificações', shortLabel: 'Avisos', icon: Shield, danger: false },
   { id: 'ajuda', label: 'Ajuda e suporte', shortLabel: 'Ajuda', icon: HelpCircle, danger: false },
   { id: 'sobre', label: 'Sobre o Teglion', shortLabel: 'Sobre', icon: Info, danger: false },
@@ -179,12 +182,14 @@ export function FirmSettingsPage() {
                   <p className="cb-settings-hub-panel-sub">
                     {activeTab === 'identidade' && 'Logótipo no menu, portal do cliente e comunicações.'}
                     {activeTab === 'pagina-publica' &&
-                      'O que aparece na sua página pública partilhável — a Maya explica cada passo.'}
+                      'Configure o site partilhável: identidade, secções, cores e publicação.'}
                     {activeTab === 'escritorio' && 'Nome e contactos do escritório.'}
                     {activeTab === 'pagamentos' &&
                       'Stripe Connect — receber pagamentos dos clientes na conta do escritório.'}
                     {activeTab === 'perfil' && 'Os seus dados de acesso e segurança.'}
                     {activeTab === 'equipa' && 'Colaboradores, cargos e departamentos.'}
+                    {activeTab === 'etiquetas' &&
+                      'Biblioteca do escritório — clientes, leads, solicitações e equipa.'}
                     {activeTab === 'notificacoes' && 'Alertas push e preferências de aviso.'}
                     {activeTab === 'ajuda' &&
                       'Maya, WhatsApp, email e telefone — suporte humano e assistente.'}
@@ -225,6 +230,8 @@ export function FirmSettingsPage() {
               ) : null}
 
               {activeTab === 'equipa' ? <FirmSettingsTeamSection bundle={bundle} /> : null}
+
+              {activeTab === 'etiquetas' ? <FirmSettingsTagsSection /> : null}
 
               {activeTab === 'notificacoes' ? <FirmSettingsNotificationsSection /> : null}
 

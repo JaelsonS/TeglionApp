@@ -48,6 +48,7 @@ async function findByIdForInquiry(id, serviceInquiryId, firmId) {
 /** Encontra o pedido PENDING de um documento pela tag — usado pelo upload do mini-portal. */
 async function findPendingDocumentByTag(serviceInquiryId, firmId, tag) {
   const sb = getSupabaseAdmin();
+  // limit(1): se houver duplicados legados com a mesma tag, maybeSingle() rebenta.
   const { data, error } = await sb
     .from('service_inquiry_requests')
     .select('*')
@@ -56,6 +57,8 @@ async function findPendingDocumentByTag(serviceInquiryId, firmId, tag) {
     .eq('kind', 'document')
     .eq('tag', tag)
     .eq('status', 'PENDING')
+    .order('created_at', { ascending: true })
+    .limit(1)
     .maybeSingle();
   if (error) throw error;
   return map(data);

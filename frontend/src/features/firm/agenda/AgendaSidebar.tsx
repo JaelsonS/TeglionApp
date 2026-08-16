@@ -14,6 +14,8 @@ type StaffMember = {
 type Props = {
   anchor: Date
   items: Consultation[]
+  /** Fonte das «Próximas reuniões» (ex.: janela de 14 dias). Default: `items`. */
+  upcomingItems?: Consultation[]
   staff: StaffMember[]
   clientName: (item: Consultation) => string
   onPickDay: (day: Date) => void
@@ -47,6 +49,7 @@ const UPCOMING_DOT = ['bg-sky-500', 'bg-amber-500', 'bg-emerald-500', 'bg-violet
 export function AgendaSidebar({
   anchor,
   items,
+  upcomingItems,
   staff,
   clientName,
   onPickDay,
@@ -55,8 +58,8 @@ export function AgendaSidebar({
   onViewAllTeam,
 }: Props) {
   const now = new Date()
-  const upcoming = [...items]
-    .filter((c) => new Date(c.scheduledAt) >= now && c.status !== 'CANCELLED')
+  const upcoming = [...(upcomingItems ?? items)]
+    .filter((c) => new Date(c.scheduledAt) >= now && c.status !== 'CANCELLED' && c.status !== 'NO_SHOW')
     .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
     .slice(0, 5)
 

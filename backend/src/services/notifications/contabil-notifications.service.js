@@ -709,4 +709,5 @@ module.exports = {
   inviteUrl,
   teamInviteUrl,
   staffEmailConfirmUrl,
+  serviceIntakeAccessUrl,
 };

@@ -104,6 +104,8 @@ const DEFAULT_BOOKING_OVERRIDE: FirmBookingSettings = {
 
 const QUESTION_TYPE_LABELS: Record<IntakeQuestionType, string> = {
   text: 'Texto livre',
+  short_text: 'Texto curto',
+  long_text: 'Texto longo',
   email: 'Email',
   phone: 'Telefone',
   tax_id: 'NIF',

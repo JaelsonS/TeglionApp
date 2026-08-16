@@ -170,19 +170,21 @@ export function ChromeSectionEditor({
   showTitleField = false,
   titleFieldLabel = 'Texto desta zona',
   titlePlaceholder,
+  titleHint,
 }: {
   content: PublicSiteChromeContent
   onChange: (next: PublicSiteChromeContent) => void
   title: string
-  /** Cabeçalho: permite marca curta diferente do H1 do hero. */
+  /** Cabeçalho: override opcional do nome público. */
   showTitleField?: boolean
   titleFieldLabel?: string
   titlePlaceholder?: string
+  titleHint?: string
 }) {
   return (
     <div className="space-y-3">
       <p className="text-caption text-muted-foreground">
-        Escolha as cores só desta zona ({title}). Deixe em branco para usar o padrão da página.
+        Cores só desta zona ({title}). Em branco = padrão da página.
       </p>
       {showTitleField ? (
         <div className="space-y-2">
@@ -191,25 +193,26 @@ export function ChromeSectionEditor({
             id={`${title}-label`}
             value={content.title || ''}
             onChange={(e: FormChangeEvent) => onChange({ ...content, title: e.target.value })}
-            placeholder={titlePlaceholder || 'Ex.: Maya Contabilidade'}
+            placeholder={titlePlaceholder || 'Deixe vazio para usar o nome público'}
             maxLength={120}
           />
           <p className="text-[11px] text-muted-foreground">
-            Se ficar vazio, usa o «Nome na página pública». Pode ser diferente do título em destaque (H1).
+            {titleHint ||
+              'Opcional. Se vazio, a barra do topo usa o «Nome na barra do topo» definido acima.'}
           </p>
         </div>
       ) : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <InlineColorField
           id={`${title}-bg`}
-          label="Fundo desta zona (não é a cor do botão)"
+          label="Cor de fundo da barra"
           value={content.backgroundColor}
           fallback="#f0f4f1"
           onChange={(v) => onChange({ ...content, backgroundColor: v })}
         />
         <InlineColorField
           id={`${title}-text`}
-          label="Cor do texto desta zona"
+          label="Cor do texto na barra"
           value={content.textColor}
           onChange={(v) => onChange({ ...content, textColor: v })}
         />
@@ -226,6 +229,7 @@ export function HeroEditor({
   onUploadImage,
   onRemoveImage,
   services,
+  publicDisplayName: _publicDisplayName,
 }: {
   content: PublicSiteHeroContent
   onChange: (next: PublicSiteHeroContent) => void
@@ -234,6 +238,8 @@ export function HeroEditor({
   onUploadImage: (file: File) => void
   onRemoveImage: () => void
   services: PublicFirmServiceSummary[]
+  /** Nome do header — disponível para a Maya / callers; UI limpa sem parede de texto. */
+  publicDisplayName?: string
 }) {
   const addCta = () => {
     onChange({
@@ -259,15 +265,11 @@ export function HeroEditor({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="space-y-2 rounded-lg border border-border/40 bg-muted/10 p-3">
-        <p className="text-caption font-medium">Fundo da secção de destaque</p>
-        <p className="text-[11px] text-muted-foreground">
-          Cor ou foto do bloco atrás do texto. Para mudar a cor do botão em si, use «Cor do botão (call-to-action)»
-          abaixo em cada botão — não este fundo.
-        </p>
+        <p className="text-sm font-semibold">1. Imagem de capa</p>
         <ImagePickerField
-          label="Foto de capa (opcional)"
+          label="Foto (recomendado 16:9)"
           imageUrl={imageUrl}
           uploading={uploadingImage}
           onUpload={onUploadImage}
@@ -277,16 +279,18 @@ export function HeroEditor({
         />
         <InlineColorField
           id="hero-bg"
-          label="Fundo da secção (atrás do texto)"
+          label="Cor de fundo"
           value={content.backgroundColor}
           fallback="#e8f0ec"
           onChange={(v) => onChange({ ...content, backgroundColor: v })}
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 rounded-lg border border-brand/25 bg-brand/[0.03] p-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
-          <Label htmlFor="hero-title">Título em destaque (H1)</Label>
+          <Label htmlFor="hero-title" className="text-sm font-semibold">
+            2. Título grande
+          </Label>
           <InlineColorField
             id="hero-title-color"
             label="Cor do título"
@@ -301,14 +305,13 @@ export function HeroEditor({
           placeholder="Ex.: Contabilidade clara para o seu negócio"
           maxLength={120}
         />
-        <p className="text-[11px] text-muted-foreground">
-          Independente do texto do cabeçalho. Vazio → usa o «Nome na página pública».
-        </p>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 rounded-lg border border-brand/25 bg-brand/[0.03] p-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
-          <Label>Frase de destaque</Label>
+          <Label htmlFor="hero-tagline" className="text-sm font-semibold">
+            3. Frase de destaque
+          </Label>
           <InlineColorField
             id="hero-tagline-color"
             label="Cor da frase"
@@ -317,16 +320,19 @@ export function HeroEditor({
           />
         </div>
         <Input
+          id="hero-tagline"
           value={content.tagline}
           onChange={(e: FormChangeEvent) => onChange({ ...content, tagline: e.target.value })}
-          placeholder="Ex.: Contabilidade & Finanças para empreendedores, empresas e particulares"
+          placeholder="Ex.: Fiscalidade moderna para negócios e profissionais em Lisboa"
           maxLength={160}
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 rounded-lg border border-border/40 p-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
-          <Label>Sobre o escritório (no destaque)</Label>
+          <Label htmlFor="hero-bio" className="text-sm font-semibold">
+            4. Parágrafo
+          </Label>
           <InlineColorField
             id="hero-bio-color"
             label="Cor do texto"
@@ -336,17 +342,18 @@ export function HeroEditor({
           />
         </div>
         <Textarea
+          id="hero-bio"
           value={content.bio}
           onChange={(e: FormChangeEvent) => onChange({ ...content, bio: e.target.value })}
           rows={4}
           maxLength={2000}
-          placeholder="Um parágrafo curto sobre a sua forma de trabalhar."
+          placeholder="Quem ajudam, como trabalham, em que região…"
         />
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label>Botões de destaque (máx. 3)</Label>
+      <div className="space-y-2 rounded-lg border border-border/40 p-3">
+        <div className="flex items-center justify-between gap-2">
+          <Label className="text-sm font-semibold">5. Botões</Label>
           {content.ctas.length < 3 ? (
             <Button type="button" variant="outline" size="sm" onClick={addCta}>
               <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar botão
@@ -354,7 +361,7 @@ export function HeroEditor({
           ) : null}
         </div>
         {content.ctas.map((cta, index) => (
-          <div key={cta.id} className="space-y-2 rounded-lg border border-border/50 p-3">
+          <div key={cta.id} className="space-y-2 rounded-lg border border-border/50 bg-muted/5 p-3">
             <div className="flex flex-wrap items-center gap-2">
               <Input
                 value={cta.label}
@@ -417,18 +424,13 @@ export function HeroEditor({
               </Button>
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
-              <div className="space-y-1">
-                <InlineColorField
-                  id={`cta-bg-${cta.id}`}
-                  label="Cor do botão (call-to-action)"
-                  value={cta.backgroundColor}
-                  fallback={cta.style === 'secondary' ? '#c9a24b' : '#12352a'}
-                  onChange={(v) => patchCta(cta.id, { backgroundColor: v })}
-                />
-                <p className="text-[10px] text-muted-foreground">
-                  Cor do botão em si — diferente do «Fundo da secção» acima.
-                </p>
-              </div>
+              <InlineColorField
+                id={`cta-bg-${cta.id}`}
+                label="Cor do botão"
+                value={cta.backgroundColor}
+                fallback={cta.style === 'secondary' ? '#c9a24b' : '#12352a'}
+                onChange={(v) => patchCta(cta.id, { backgroundColor: v })}
+              />
               <InlineColorField
                 id={`cta-text-${cta.id}`}
                 label="Cor do texto do botão"

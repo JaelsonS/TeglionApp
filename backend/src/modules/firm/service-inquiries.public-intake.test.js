@@ -37,6 +37,9 @@ function mockNoise() {
   mock.method(contabilNotifications, 'notifyLeadIntakeReceived', async () => ({ ok: true }));
   mock.method(contabilNotifications, 'notifyFirmIntakeSubmitted', async () => ({ ok: true }));
   mock.method(contabilNotifications, 'notifyFirmIntakeDocumentReceived', async () => ({ ok: true }));
+  mock.method(contabilNotifications, 'notifyLeadIntakeChecklist', async () => ({ ok: true }));
+  mock.method(serviceInquiriesRepository, 'findOpenLeadCapture', async () => null);
+  mock.method(serviceInquiryRequestsRepository, 'listByInquiry', async () => []);
   mock.method(serviceInquiryRequestsRepository, 'createMany', async (rows) =>
     rows.map((r, i) => ({ id: `req-${i}`, ...r, status: 'PENDING' })),
   );
@@ -107,7 +110,7 @@ test('submitPublicIntake: rejeita sem email', async () => {
   );
 });
 
-test('submitPublicIntake: identidade nova (Lead) -> IN_PROGRESS sem checklist automática de documentos', async () => {
+test('submitPublicIntake: identidade nova (Lead) -> materializa docs immediate e DOCS_REQUESTED', async () => {
   resetMocks();
   mockNoise();
   mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
@@ -125,8 +128,10 @@ test('submitPublicIntake: identidade nova (Lead) -> IN_PROGRESS sem checklist au
     created = args;
     return { id: 'inquiry-1', accessToken: args.accessToken, ...args };
   });
-  mock.method(serviceInquiryRequestsRepository, 'createMany', async () => {
-    throw new Error('não deve materializar documentos na submissão pública');
+  let checklistRows = null;
+  mock.method(serviceInquiryRequestsRepository, 'createMany', async (rows) => {
+    checklistRows = rows;
+    return rows.map((r, i) => ({ id: `req-${i}`, ...r, status: 'PENDING' }));
   });
 
   const { inquiry, requiredDocuments } = await serviceInquiriesService.submitPublicIntake({
@@ -137,12 +142,14 @@ test('submitPublicIntake: identidade nova (Lead) -> IN_PROGRESS sem checklist au
 
   assert.equal(created.leadId, 'lead-novo');
   assert.equal(created.clientId, null);
-  assert.equal(created.status, 'IN_PROGRESS');
+  assert.equal(created.status, 'DOCS_REQUESTED');
   assert.equal(created.accessToken.length, 64);
   assert.ok(created.accessTokenExpiresAt, 'devia definir um tecto de expiração já na criação');
   const daysUntilExpiry = (new Date(created.accessTokenExpiresAt).getTime() - Date.now()) / (24 * 60 * 60 * 1000);
   assert.ok(daysUntilExpiry > 170 && daysUntilExpiry <= 180, 'tecto inicial devia ser ~180 dias');
   assert.equal(requiredDocuments.length, 1, 'sugestões continuam disponíveis para a equipa');
+  assert.equal(checklistRows.length, 1);
+  assert.equal(checklistRows[0].tag, 'cc');
   assert.equal(inquiry.id, 'inquiry-1');
 });
 
@@ -167,7 +174,7 @@ test('submitPublicIntake: sem documentos exigidos -> status IN_PROGRESS logo à 
   assert.equal(created.status, 'IN_PROGRESS');
 });
 
-test('submitPublicIntake: documentos do serviço NÃO são materializados automaticamente (equipa decide depois)', async () => {
+test('submitPublicIntake: materializa só docs immediate; manual fica para a equipa pedir depois', async () => {
   resetMocks();
   mockNoise();
   mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
@@ -186,10 +193,10 @@ test('submitPublicIntake: documentos do serviço NÃO são materializados automa
     status: args.status,
     ...args,
   }));
-  let createManyCalled = false;
-  mock.method(serviceInquiryRequestsRepository, 'createMany', async () => {
-    createManyCalled = true;
-    return [];
+  let checklistRows = [];
+  mock.method(serviceInquiryRequestsRepository, 'createMany', async (rows) => {
+    checklistRows = rows;
+    return rows.map((r, i) => ({ id: `req-${i}`, ...r, status: 'PENDING' }));
   });
 
   const { inquiry, requiredDocuments } = await serviceInquiriesService.submitPublicIntake({
@@ -198,8 +205,9 @@ test('submitPublicIntake: documentos do serviço NÃO são materializados automa
     payload: { name: 'Carla', email: 'carla@x.com' },
   });
 
-  assert.equal(createManyCalled, false);
-  assert.equal(inquiry.status, 'IN_PROGRESS');
+  assert.equal(checklistRows.length, 1);
+  assert.equal(checklistRows[0].tag, 'cc');
+  assert.equal(inquiry.status, 'DOCS_REQUESTED');
   assert.equal(requiredDocuments.length, 2);
 });
 
@@ -226,19 +234,23 @@ test('submitPublicIntake: só documentos "manual" pendentes -> status IN_PROGRES
   assert.equal(created.status, 'IN_PROGRESS');
 });
 
-test('submitPublicIntake: nome do serviço com {{ano_fiscal}} chega interpolado ao email do cliente e da equipa', async () => {
+test('submitPublicIntake: nome do serviço com {{ano_fiscal}} chega interpolado ao email da equipa (cliente sem auto-email)', async () => {
   resetMocks();
   mockNoise();
   mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
   mock.method(accountingServicesRepository, 'listByFirm', async () => [
-    { ...SERVICE, name: 'Declaração de IRS {{ano_fiscal}}' },
+    {
+      ...SERVICE,
+      name: 'Declaração de IRS {{ano_fiscal}}',
+      documentRequirements: [],
+    },
   ]);
   mock.method(leadsService, 'resolveIdentity', async () => ({ type: 'LEAD', id: 'lead-novo' }));
   mock.method(serviceInquiriesRepository, 'createRow', async (args) => ({ id: 'inquiry-5', ...args }));
   mock.method(firmUsersRepository, 'findFirmOwnerEmail', async () => 'dona@x.com');
-  let leadEmailArgs = null;
-  mock.method(contabilNotifications, 'notifyLeadIntakeReceived', async (args) => {
-    leadEmailArgs = args;
+  let leadEmailCalled = false;
+  mock.method(contabilNotifications, 'notifyLeadIntakeReceived', async () => {
+    leadEmailCalled = true;
     return { ok: true };
   });
   let staffEmailArgs = null;
@@ -255,9 +267,8 @@ test('submitPublicIntake: nome do serviço com {{ano_fiscal}} chega interpolado 
   await new Promise((resolve) => setImmediate(resolve));
 
   const expectedYear = new Date().getFullYear() - 1;
-  assert.equal(leadEmailArgs.serviceName, `Declaração de IRS ${expectedYear}`);
+  assert.equal(leadEmailCalled, false);
   assert.equal(staffEmailArgs.serviceName, `Declaração de IRS ${expectedYear}`);
-  assert.equal(leadEmailArgs.accessToken, undefined, 'email de obrigado não inclui link de documentos');
 });
 
 test('submitPublicIntake: identidade batida em Client existente -> clientId (não cria Lead)', async () => {
@@ -572,9 +583,9 @@ test('recordDocumentDelivery: entrega parcial não avança o estado', async () =
     { id: 'req-iban', kind: 'document', tag: 'iban', title: 'Comprovativo de IBAN', status: 'PENDING', createdBy: null },
   ]);
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
-  let updateCalled = false;
-  mock.method(serviceInquiriesRepository, 'updateRow', async () => {
-    updateCalled = true;
+  const statusPatches = [];
+  mock.method(serviceInquiriesRepository, 'updateRow', async (_id, _firmId, patch) => {
+    statusPatches.push(patch);
     return {};
   });
   mock.method(firmsRepository, 'findFirmById', async () => FIRM);
@@ -587,7 +598,9 @@ test('recordDocumentDelivery: entrega parcial não avança o estado', async () =
   });
 
   assert.equal(result.allComplete, false);
-  assert.equal(updateCalled, false);
+  // staffSeenAt é limpo em cada entrega (badge); estado NÃO deve avançar.
+  assert.ok(statusPatches.some((p) => p && 'staffSeenAt' in p));
+  assert.ok(!statusPatches.some((p) => p && p.status === 'IN_PROGRESS'));
 });
 
 test('recordDocumentDelivery: última entrega completa a checklist e avança DOCS_REQUESTED -> IN_PROGRESS', async () => {
@@ -857,6 +870,7 @@ test('recordTextReply: marca ANSWERED, audita e notifica a equipa', async () => 
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
   mock.method(firmsRepository, 'findFirmById', async () => FIRM);
   mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana' }));
+  mock.method(serviceInquiriesRepository, 'updateRow', async () => ({}));
 
   const result = await serviceInquiriesService.recordTextReply({
     token: 'x',

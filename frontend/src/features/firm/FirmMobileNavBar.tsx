@@ -10,7 +10,7 @@ import {
   isFirmNavItemActive,
   type FirmNavItemConfig,
 } from '@/features/firm/firmNavConfig'
-import { useFirmMessagesUnread } from '@/features/firm/FirmSidebar'
+import { resolveFirmNavBadge, useFirmNavBadgeCounts } from '@/features/firm/useFirmNavBadges'
 import { cn } from '@/shared/lib/utils'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/components/ui/sheet'
 
@@ -90,13 +90,12 @@ export function FirmMobileNavBar() {
   const { t } = useTranslation('common')
   const location = useLocation()
   const [moreOpen, setMoreOpen] = useState(false)
-  const messagesUnread = useFirmMessagesUnread()
+  const counts = useFirmNavBadgeCounts()
 
   const labelFor = (item: FirmNavItemConfig) =>
     t(item.labelKey, { defaultValue: item.labelDefault })
 
-  const badgeFor = (item: FirmNavItemConfig) =>
-    item.badgeKey === 'messages' ? messagesUnread : undefined
+  const badgeFor = (item: FirmNavItemConfig) => resolveFirmNavBadge(item, counts)
 
   const moreActive = FIRM_NAV_MOBILE_MORE.some((item) =>
     isFirmNavItemActive(item, location.pathname, location.search, FIRM_NAV_DRAWER_ITEMS),

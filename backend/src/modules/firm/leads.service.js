@@ -3,6 +3,7 @@ const leadsRepository = require('../../db/supabase/repositories/leads.repository
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const serviceInquiriesRepository = require('../../db/supabase/repositories/service-inquiries.repository');
 const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
+const firmInquiryTagsRepository = require('../../db/supabase/repositories/firm-inquiry-tags.repository');
 const auditRepository = require('../../db/supabase/repositories/contabil/audit.repository');
 
 const VALID_STATUSES = ['NEW', 'CONTACTED', 'QUALIFIED', 'CONVERTED', 'DISMISSED'];
@@ -55,16 +56,28 @@ async function resolveIdentity(firmId, { name, email, phone, taxId, source, crea
   return { type: 'LEAD', id: created.id };
 }
 
+async function attachTagsToLeads(firmId, leads) {
+  if (!leads?.length) return leads || [];
+  const leadIds = leads.map((l) => l.id);
+  const linkRows = await firmInquiryTagsRepository.listLinksForLeads(firmId, leadIds);
+  const tagsByLead = firmInquiryTagsRepository.mapLinkRowsToTagsByKey(linkRows, 'lead_id');
+  return leads.map((lead) => ({
+    ...lead,
+    tags: tagsByLead.get(lead.id) || [],
+  }));
+}
+
 async function list({ firmId, status }) {
   if (status && !VALID_STATUSES.includes(status)) throw new AppError('Estado inválido', 400);
   const items = await leadsRepository.listByFirm(firmId, { status });
-  return { items };
+  return { items: await attachTagsToLeads(firmId, items) };
 }
 
 async function getById({ firmId, id }) {
   const lead = await leadsRepository.findByIdForFirm(id, firmId);
   if (!lead) throw new AppError('Lead não encontrado', 404);
-  return { lead };
+  const [withTags] = await attachTagsToLeads(firmId, [lead]);
+  return { lead: withTags };
 }
 
 async function create({ firmId, actor, payload }) {
@@ -143,7 +156,20 @@ async function update({ firmId, id, actor, payload }) {
     patch.status = payload.status;
   }
 
-  const lead = await leadsRepository.updateRow(id, firmId, patch);
+  const lead =
+    Object.keys(patch).length > 0
+      ? await leadsRepository.updateRow(id, firmId, patch)
+      : existing;
+
+  if (Array.isArray(payload?.tagIds)) {
+    const tagIds = await firmInquiryTagsRepository.resolveAllowedTagIds(firmId, payload.tagIds);
+    await firmInquiryTagsRepository.replaceLinksForLead(firmId, id, tagIds);
+    // Reflecte nas solicitações ainda ligadas a este lead.
+    const linkedInquiries = await serviceInquiriesRepository.listByFirm(firmId, { leadId: id });
+    for (const inquiry of linkedInquiries || []) {
+      await firmInquiryTagsRepository.replaceLinksForInquiry(firmId, inquiry.id, tagIds);
+    }
+  }
 
   if (patch.status && patch.status !== existing.status) {
     await auditRepository.writeAuditLog({
@@ -157,7 +183,8 @@ async function update({ firmId, id, actor, payload }) {
     });
   }
 
-  return { lead };
+  const [withTags] = await attachTagsToLeads(firmId, [lead]);
+  return { lead: withTags };
 }
 
 /**
@@ -186,6 +213,7 @@ async function convertToClient({ firmId, id, actor }) {
   const converted = await leadsRepository.markConverted(id, firmId, client.id);
   const reassigned = await serviceInquiriesRepository.reassignLeadToClient(firmId, id, client.id);
   const consultationsReassigned = await consultationsRepository.reassignLeadToClient(firmId, id, client.id);
+  await firmInquiryTagsRepository.copyLeadTagsToClient(firmId, id, client.id);
 
   await auditRepository.writeAuditLog({
     firmId,
@@ -201,9 +229,13 @@ async function convertToClient({ firmId, id, actor }) {
     },
   });
 
+  const tagLinkRows = await firmInquiryTagsRepository.listLinksForClients(firmId, [client.id]);
+  const tags =
+    firmInquiryTagsRepository.mapLinkRowsToTagsByKey(tagLinkRows, 'client_id').get(client.id) || [];
+
   return {
     lead: converted,
-    client,
+    client: { ...client, tags },
     serviceInquiriesReassigned: reassigned.length,
     consultationsReassigned: consultationsReassigned.length,
   };

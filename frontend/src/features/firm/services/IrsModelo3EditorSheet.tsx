@@ -27,20 +27,21 @@ import type {
   IntakeForm,
   IntakeQuestion,
   IrsAnexoId,
+  IrsAnexoLabel,
 } from '@/shared/types/contabil'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 
 type PaymentMethod = ServicePaymentMethodId
 
 const DOC_SUGGESTIONS = [
-  'Recibos de vencimento',
-  'Certidão',
-  'Recibos verdes',
-  'Caderneta predial',
-  'Contrato de arrendamento',
-  'Escritura / mais-valias',
-  'Comprovativos benefícios',
-  'Cartão de Cidadão',
+  'recibos_vencimento',
+  'recibos_verdes',
+  'caderneta_predial',
+  'contrato_arrendamento',
+  'escritura_venda',
+  'donativos',
+  'cartao_cidadao',
+  'efatura',
 ]
 
 const ANEXOS: {
@@ -59,54 +60,105 @@ const ANEXOS: {
   { id: 'JOVEM', title: 'IRS Jovem', subtitle: 'Regime IRS Jovem', Icon: Sparkles },
 ]
 
+/** Espelha as perguntas yes_no do catálogo IRS Modelo 3 (docs condicionais). */
 const DEFAULT_QUESTIONS: IntakeQuestion[] = [
   {
-    id: 'q_dep',
-    label: 'Teve rendimentos de trabalho dependente?',
+    id: 'q_dependentes',
+    label: 'Tem dependentes a cargo (filhos ou outros)?',
     type: 'yes_no',
-    required: false,
+    required: true,
     options: [
-      { id: 'sim', label: 'Sim', documentTags: ['Recibos de vencimento'] },
+      { id: 'sim', label: 'Sim', documentTags: ['cc_dependentes'] },
+      { id: 'nao', label: 'Não', documentTags: [] },
+    ],
+  },
+  {
+    id: 'q_dep',
+    label: 'Teve rendimentos de trabalho dependente (salário, pensão)?',
+    type: 'yes_no',
+    required: true,
+    options: [
+      { id: 'sim', label: 'Sim', documentTags: ['recibos_vencimento', 'declaracao_entidade'] },
       { id: 'nao', label: 'Não', documentTags: [] },
     ],
   },
   {
     id: 'q_ind',
-    label: 'Teve rendimentos como trabalhador independente?',
+    label: 'Teve rendimentos como trabalhador independente (recibos verdes / categoria B)?',
     type: 'yes_no',
-    required: false,
+    required: true,
     options: [
-      { id: 'sim', label: 'Sim', documentTags: ['Recibos verdes'] },
+      { id: 'sim', label: 'Sim', documentTags: ['recibos_verdes', 'ss_independente', 'atividade_at'] },
+      { id: 'nao', label: 'Não', documentTags: [] },
+    ],
+  },
+  {
+    id: 'q_capitais',
+    label: 'Teve rendimentos de capitais (juros, dividendos, etc.)?',
+    type: 'yes_no',
+    required: true,
+    options: [
+      { id: 'sim', label: 'Sim', documentTags: ['extratos_capitais'] },
       { id: 'nao', label: 'Não', documentTags: [] },
     ],
   },
   {
     id: 'q_pred',
-    label: 'Teve rendimentos prediais?',
+    label: 'Teve rendimentos prediais (arrendamento)?',
     type: 'yes_no',
-    required: false,
+    required: true,
     options: [
-      { id: 'sim', label: 'Sim', documentTags: ['Caderneta predial'] },
+      { id: 'sim', label: 'Sim', documentTags: ['caderneta_predial', 'contrato_arrendamento', 'despesas_prediais'] },
       { id: 'nao', label: 'Não', documentTags: [] },
     ],
   },
   {
     id: 'q_mv',
-    label: 'Teve mais-valias com venda de imóveis?',
+    label: 'Teve mais-valias com venda de imóveis ou valores mobiliários?',
     type: 'yes_no',
-    required: false,
+    required: true,
     options: [
-      { id: 'sim', label: 'Sim', documentTags: ['Escritura / mais-valias'] },
+      { id: 'sim', label: 'Sim', documentTags: ['escritura_compra', 'escritura_venda', 'despesas_mais_valias'] },
+      { id: 'nao', label: 'Não', documentTags: [] },
+    ],
+  },
+  {
+    id: 'q_exterior',
+    label: 'Teve rendimentos obtidos no estrangeiro ou é não residente?',
+    type: 'yes_no',
+    required: true,
+    options: [
+      { id: 'sim', label: 'Sim', documentTags: ['docs_exterior'] },
       { id: 'nao', label: 'Não', documentTags: [] },
     ],
   },
   {
     id: 'q_ben',
-    label: 'Pretende usufruir de benefícios fiscais?',
+    label: 'Pretende usufruir de benefícios fiscais (donativos, PPR, etc.)?',
+    type: 'yes_no',
+    required: true,
+    options: [
+      { id: 'sim', label: 'Sim', documentTags: ['donativos', 'ppr_pensoes'] },
+      { id: 'nao', label: 'Não', documentTags: [] },
+    ],
+  },
+  {
+    id: 'q_habitacao',
+    label: 'Tem crédito à habitação própria permanente?',
+    type: 'yes_no',
+    required: true,
+    options: [
+      { id: 'sim', label: 'Sim', documentTags: ['creditos_habitacao'] },
+      { id: 'nao', label: 'Não', documentTags: [] },
+    ],
+  },
+  {
+    id: 'q_jovem',
+    label: 'É elegível / quer aplicar o regime IRS Jovem?',
     type: 'yes_no',
     required: false,
     options: [
-      { id: 'sim', label: 'Sim', documentTags: ['Comprovativos benefícios'] },
+      { id: 'sim', label: 'Sim', documentTags: ['irs_jovem'] },
       { id: 'nao', label: 'Não', documentTags: [] },
     ],
   },
@@ -140,9 +192,27 @@ function buildIntakeForm(
   questions: EditorQuestion[],
   anexos: IrsAnexoId[],
   taxYear: number | null,
+  anexoLabels: Partial<Record<IrsAnexoId, IrsAnexoLabel>>,
 ): IntakeForm {
+  const cleanedLabels: Partial<Record<IrsAnexoId, IrsAnexoLabel>> = {}
+  for (const id of anexos) {
+    const entry = anexoLabels[id]
+    if (!entry) continue
+    const title = String(entry.title || '').trim()
+    const subtitle = String(entry.subtitle || '').trim()
+    if (title || subtitle) {
+      cleanedLabels[id] = {
+        ...(title ? { title } : {}),
+        ...(subtitle ? { subtitle } : {}),
+      }
+    }
+  }
   return {
-    irsConfig: { taxYear, anexos },
+    irsConfig: {
+      taxYear,
+      anexos,
+      ...(Object.keys(cleanedLabels).length ? { anexoLabels: cleanedLabels } : {}),
+    },
     questions: questions.map((q) => ({
       id: q.id,
       label: q.label,
@@ -198,6 +268,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
   const [durationMinutes, setDurationMinutes] = useState(120)
   const [priceEuros, setPriceEuros] = useState(120)
   const [anexos, setAnexos] = useState<IrsAnexoId[]>(['A', 'B', 'F', 'H'])
+  const [anexoLabels, setAnexoLabels] = useState<Partial<Record<IrsAnexoId, IrsAnexoLabel>>>({})
   const [questions, setQuestions] = useState<EditorQuestion[]>(() => toEditorQuestions(null))
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank_transfer')
   const [paymentRequired, setPaymentRequired] = useState(false)
@@ -216,6 +287,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
           ? (service.intakeForm!.irsConfig!.anexos as IrsAnexoId[])
           : ['A', 'B', 'F', 'H'],
       )
+      setAnexoLabels(service.intakeForm?.irsConfig?.anexoLabels || {})
       setQuestions(toEditorQuestions(service.intakeForm))
       setPaymentMethod(service.paymentMethod || 'bank_transfer')
       setPaymentRequired(Boolean(service.paymentRequired))
@@ -225,6 +297,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
       setDurationMinutes(120)
       setPriceEuros(120)
       setAnexos(['A', 'B', 'F', 'H'])
+      setAnexoLabels({})
       setQuestions(toEditorQuestions(null))
       setPaymentMethod('bank_transfer')
       setPaymentRequired(false)
@@ -233,6 +306,13 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
 
   const toggleAnexo = (id: IrsAnexoId) => {
     setAnexos((prev) => (prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]))
+  }
+
+  const patchAnexoLabel = (id: IrsAnexoId, patch: IrsAnexoLabel) => {
+    setAnexoLabels((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], ...patch },
+    }))
   }
 
   const updateQuestion = (id: string, patch: Partial<EditorQuestion>) => {
@@ -257,7 +337,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
     }
 
     const intakeForm = {
-      ...buildIntakeForm(questions, anexos, yearNum),
+      ...buildIntakeForm(questions, anexos, yearNum, anexoLabels),
       pageOptions: service?.intakeForm?.pageOptions || { showFirmLogo: true },
     }
     const payload = {
@@ -341,59 +421,97 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
             </label>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-2">
-            {/* Anexos */}
-            <section className="flex flex-col overflow-hidden rounded-2xl border border-brand/15 bg-card shadow-sm">
-              <div className="border-b border-brand/10 bg-brand/[0.04] px-4 py-3">
+          <div className="grid items-start gap-4 lg:grid-cols-2">
+            {/*
+              Anexos: scroll interno em todos os viewports (lista + tip).
+              Sticky só em xl+, com max-h abaixo da altura do dialog para não cortar IRS Jovem.
+            */}
+            <section
+              className={cn(
+                'flex flex-col overflow-hidden rounded-2xl border border-brand/15 bg-card shadow-sm',
+                'max-h-[min(24rem,55dvh)]',
+                'md:max-h-[min(28rem,60dvh)]',
+                'xl:sticky xl:top-2 xl:z-[1] xl:max-h-[min(36rem,calc(92dvh-13rem))] xl:self-start',
+              )}
+            >
+              <div className="shrink-0 border-b border-brand/10 bg-brand/[0.04] px-4 py-3">
                 <h3 className="text-base font-semibold text-foreground">Anexos</h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  Selecione os anexos aplicáveis a este serviço.
+                  Active os anexos e edite os nomes como a lógica do escritório — título e descrição são
+                  livres.
                 </p>
               </div>
-              <ul className="divide-y divide-border/40">
-                {ANEXOS.map(({ id, title, subtitle, Icon }) => {
-                  const on = anexos.includes(id)
-                  return (
-                    <li key={id} className="flex items-center gap-3 px-4 py-3">
-                      <span
-                        className={cn(
-                          'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
-                          on ? 'bg-brand text-primary-foreground' : 'bg-muted text-muted-foreground',
-                        )}
-                      >
-                        <Icon className="h-4 w-4" />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold">{title}</p>
-                        <p className="text-xs text-muted-foreground">{subtitle}</p>
-                      </div>
-                      <Toggle checked={on} onChange={() => toggleAnexo(id)} label={title} />
-                    </li>
-                  )
-                })}
-              </ul>
-              <div className="m-3 flex gap-2 rounded-xl border border-sky-200/80 bg-sky-50 px-3 py-2.5 text-xs text-sky-950">
-                <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" />
-                <p>
-                  Os anexos podem ser ajustados mais tarde. Poderá adicionar ou remover anexos a qualquer
-                  momento.
-                </p>
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
+                <ul className="divide-y divide-border/40">
+                  {ANEXOS.map(({ id, title, subtitle, Icon }) => {
+                    const on = anexos.includes(id)
+                    const custom = anexoLabels[id]
+                    const titleValue = custom?.title ?? title
+                    const subtitleValue = custom?.subtitle ?? subtitle
+                    return (
+                      <li key={id} className="flex items-start gap-3 px-4 py-3">
+                        <span
+                          className={cn(
+                            'mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
+                            on ? 'bg-brand text-primary-foreground' : 'bg-muted text-muted-foreground',
+                          )}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <div className="min-w-0 flex-1 space-y-1.5">
+                          <Input
+                            value={titleValue}
+                            onChange={(e: FormChangeEvent) => patchAnexoLabel(id, { title: e.target.value })}
+                            placeholder={title}
+                            className="h-8 text-sm font-semibold"
+                            aria-label={`Nome do ${title}`}
+                          />
+                          <Input
+                            value={subtitleValue}
+                            onChange={(e: FormChangeEvent) => patchAnexoLabel(id, { subtitle: e.target.value })}
+                            placeholder={subtitle}
+                            className="h-8 text-xs"
+                            aria-label={`Descrição do ${title}`}
+                          />
+                        </div>
+                        <Toggle checked={on} onChange={() => toggleAnexo(id)} label={titleValue || title} />
+                      </li>
+                    )
+                  })}
+                </ul>
+                <div className="m-3 flex gap-2 rounded-xl border border-sky-200/80 bg-sky-50 px-3 py-2.5 text-xs text-sky-950">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" />
+                  <p>
+                    Os anexos podem ser ajustados mais tarde. Poderá adicionar ou remover anexos a qualquer
+                    momento.
+                  </p>
+                </div>
               </div>
             </section>
 
             {/* Perguntas + Pagamento */}
-            <div className="flex flex-col gap-4">
+            <div className="flex min-w-0 flex-col gap-4">
               <section className="overflow-hidden rounded-2xl border border-brand/15 bg-card shadow-sm">
                 <div className="border-b border-brand/10 bg-sky-500/[0.06] px-4 py-3">
                   <h3 className="text-base font-semibold">Perguntas</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Responda às perguntas seguintes. Se responder Sim, será pedido o documento indicado.
+                    Edite o texto das perguntas. Se a resposta for Sim, será pedido o documento indicado.
                   </p>
                 </div>
                 <ul className="divide-y divide-border/40">
                   {questions.map((q) => (
                     <li key={q.id} className="space-y-3 px-4 py-4">
-                      <p className="text-sm font-medium leading-snug">{q.label}</p>
+                      <label className="block space-y-1">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Pergunta
+                        </span>
+                        <Input
+                          value={q.label}
+                          onChange={(e: FormChangeEvent) => updateQuestion(q.id, { label: e.target.value })}
+                          className="text-sm font-medium"
+                          placeholder="Texto da pergunta"
+                        />
+                      </label>
                       <div className="flex flex-wrap gap-4">
                         {(['Sim', 'Não'] as const).map((label) => {
                           const yes = label === 'Sim'

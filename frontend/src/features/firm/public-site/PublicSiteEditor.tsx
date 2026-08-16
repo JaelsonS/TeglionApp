@@ -1,6 +1,6 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronDown, ChevronUp, ExternalLink, Eye, Facebook, Globe, Instagram, Linkedin, Loader2, MessageCircle, Save, Trash2, Upload } from 'lucide-react'
+import { ExternalLink, Eye, Facebook, Globe, Instagram, Linkedin, Loader2, MessageCircle, Save, Trash2, Upload } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { toast } from 'sonner'
@@ -16,7 +16,6 @@ import {
   AlertDialogTitle,
 } from '@/shared/components/ui/alert-dialog'
 import { Button } from '@/shared/components/ui/button'
-import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { firmPublicSiteApi } from '@/infrastructure/api/contabil/firmPublicSite'
@@ -43,10 +42,17 @@ import {
   ProcessEditor,
   ServicesHeadingEditor,
 } from './sectionEditors'
+import { PublicSiteSectionsList } from './PublicSiteSectionsList'
+import {
+  normalizePublicSiteSectionsOrder,
+  reindexPublicSiteSectionsOrder,
+  reorderPublicSiteSections,
+} from './publicSiteSectionOrder'
+import { applyPageBackgroundColor, parsePublicSiteHex } from './publicSitePageBackground'
 
 const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
-  header: 'Cabeçalho',
-  hero: 'Destaque (Hero)',
+  header: 'Barra do topo',
+  hero: 'Destaque principal',
   about: 'Sobre o escritório',
   services: 'Consultorias com agendamento',
   bookingServices: 'Outros serviços',
@@ -55,6 +61,19 @@ const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
   faq: 'Perguntas frequentes',
   contact: 'Contactos',
   footer: 'Rodapé',
+}
+
+const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
+  header: 'Cores da barra',
+  hero: 'Foto, título, frase e botões',
+  about: 'Texto e foto institucional',
+  services: 'Título da grelha (Catálogo)',
+  bookingServices: 'Título dos outros serviços',
+  features: 'Pontos fortes',
+  process: 'Passos do processo',
+  faq: 'Perguntas e respostas',
+  contact: 'Email, telefone, morada',
+  footer: 'Cores do rodapé',
 }
 
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -79,6 +98,24 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const [savingSlug, setSavingSlug] = useState(false)
   const [publicDisplayName, setPublicDisplayName] = useState(bundle.publicProfile.displayName ?? '')
   const [savingDisplayName, setSavingDisplayName] = useState(false)
+  /** Por secção (key). Ausente = aberto por defeito em header/hero. */
+  const [sectionOpenState, setSectionOpenState] = useState<Record<string, boolean>>({})
+
+  const isSectionEditorOpen = (section: PublicSiteSection) => {
+    if (Object.prototype.hasOwnProperty.call(sectionOpenState, section.key)) {
+      return sectionOpenState[section.key]
+    }
+    return section.type === 'header' || section.type === 'hero'
+  }
+
+  const toggleSectionOpen = (section: PublicSiteSection) => {
+    setSectionOpenState((prev) => {
+      const currently = Object.prototype.hasOwnProperty.call(prev, section.key)
+        ? prev[section.key]
+        : section.type === 'header' || section.type === 'hero'
+      return { ...prev, [section.key]: !currently }
+    })
+  }
 
   useEffect(() => {
     setSlugDraft(firmSlug)
@@ -110,6 +147,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
       const incoming = siteQuery.data.draft
       setDraft({
         ...incoming,
+        sections: reindexPublicSiteSectionsOrder(incoming.sections || []),
         theme: {
           primaryColor: incoming.theme?.primaryColor ?? null,
           secondaryColor: incoming.theme?.secondaryColor ?? null,
@@ -134,27 +172,6 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const toggleSection = (key: string, enabled: boolean) => {
     if (!draft) return
     setDraft({ ...draft, sections: draft.sections.map((s) => (s.key === key ? { ...s, enabled } : s)) })
-  }
-
-  /** Troca a `order` com o vizinho na direcção pedida — reordena dentro da
-   * lista completa (não só as secções activas), para uma secção desligada
-   * já ficar na posição certa se for religada mais tarde. */
-  const moveSection = (key: string, direction: 'up' | 'down') => {
-    if (!draft) return
-    const sorted = [...draft.sections].sort((a, b) => a.order - b.order)
-    const index = sorted.findIndex((s) => s.key === key)
-    const targetIndex = direction === 'up' ? index - 1 : index + 1
-    if (index === -1 || targetIndex < 0 || targetIndex >= sorted.length) return
-    const current = sorted[index]
-    const neighbor = sorted[targetIndex]
-    setDraft({
-      ...draft,
-      sections: draft.sections.map((s) => {
-        if (s.key === current.key) return { ...s, order: neighbor.order }
-        if (s.key === neighbor.key) return { ...s, order: current.order }
-        return s
-      }),
-    })
   }
 
   const [uploadingImageKey, setUploadingImageKey] = useState<string | null>(null)
@@ -204,12 +221,18 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     return draft.images[slot].find((img) => img.id === id)?.url || null
   }
 
+  const withReindexedSections = (config: PublicSiteConfig): PublicSiteConfig => ({
+    ...config,
+    sections: reindexPublicSiteSectionsOrder(config.sections),
+  })
+
   const onSaveDraft = async () => {
     if (!draft) return
     setSaving(true)
     try {
-      const result = await firmPublicSiteApi.saveDraft(draft)
-      setDraft(result.draft)
+      const normalized = withReindexedSections(draft)
+      const result = await firmPublicSiteApi.saveDraft(normalized)
+      setDraft(withReindexedSections(result.draft))
       toast.success('Rascunho guardado.')
     } catch (err) {
       toast.error('Não foi possível guardar', { description: getErrorMessage(err) })
@@ -221,9 +244,11 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const onPreview = async () => {
     setPreviewing(true)
     try {
-      // Guarda o rascunho actual primeiro — a pré-visualização tem de reflectir
-      // o que está no ecrã, não a última vez que "Guardar rascunho" foi clicado.
-      if (draft) await firmPublicSiteApi.saveDraft(draft)
+      if (draft) {
+        const normalized = withReindexedSections(draft)
+        await firmPublicSiteApi.saveDraft(normalized)
+        setDraft(normalized)
+      }
       const { previewToken } = await firmPublicSiteApi.regeneratePreviewToken()
       window.open(`/${encodeURIComponent(firmSlug)}?preview=${encodeURIComponent(previewToken)}`, '_blank', 'noopener,noreferrer')
     } catch (err) {
@@ -236,7 +261,11 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const onPublish = async () => {
     setPublishing(true)
     try {
-      if (draft) await firmPublicSiteApi.saveDraft(draft)
+      if (draft) {
+        const normalized = withReindexedSections(draft)
+        await firmPublicSiteApi.saveDraft(normalized)
+        setDraft(normalized)
+      }
       await firmPublicSiteApi.publish()
       toast.success('Página pública publicada.')
       setConfirmPublishOpen(false)
@@ -283,7 +312,10 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     setResetting(true)
     try {
       const result = await firmPublicSiteApi.reset()
-      setDraft(result.draft)
+      setDraft({
+        ...result.draft,
+        sections: normalizePublicSiteSectionsOrder(result.draft.sections || []),
+      })
       setConfirmResetOpen(false)
       toast.success('Página apagada. Pode configurar de novo do zero.')
       void siteQuery.refetch()
@@ -292,6 +324,21 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     } finally {
       setResetting(false)
     }
+  }
+
+  const onReorderSections = (activeKey: string, overKey: string) => {
+    setDraft((prev) => {
+      if (!prev) return prev
+      return { ...prev, sections: reorderPublicSiteSections(prev.sections, activeKey, overKey) }
+    })
+  }
+
+  const onApplyRecommendedOrder = () => {
+    setDraft((prev) => {
+      if (!prev) return prev
+      return { ...prev, sections: normalizePublicSiteSectionsOrder(prev.sections) }
+    })
+    toast.success('Ordem recomendada aplicada.')
   }
 
   if (siteQuery.isLoading || !draft) {
@@ -306,35 +353,14 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const booking = bookingQuery.data?.booking
   const previewFirmName =
     publicDisplayName.trim() || bundle.publicProfile.displayName?.trim() || bundle.firm.name
+  const sortedSections = reindexPublicSiteSectionsOrder(draft.sections)
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-sky-200 bg-sky-50/80 px-4 py-3 text-sm text-sky-950">
-        <p className="font-semibold">Como configurar a página pública</p>
-        <ol className="mt-2 list-decimal space-y-1 pl-4 text-caption leading-relaxed text-sky-900/90">
-          <li>
-            Em cada secção (Cabeçalho, Destaque, Sobre, etc.) escolha a <strong>cor</strong> ao lado do campo —
-            fundo, título, texto ou botão.
-          </li>
-          <li>
-            No Destaque pode usar <strong>foto de capa</strong> ou só uma <strong>cor de fundo</strong>.
-          </li>
-          <li>
-            Em Redes sociais, o link já vem pré-preenchido — basta o nome de utilizador; no WhatsApp basta o
-            número.
-          </li>
-          <li>
-            <strong>Guardar rascunho</strong> e depois <strong>Publicar</strong> para os clientes verem em{' '}
-            {firmSlug ? <span className="font-medium">teglion.com/{firmSlug}</span> : 'o link público'}.
-          </li>
-        </ol>
-        <p className="mt-2 text-caption text-sky-900/80">
-          Sem publicar, o link público continua com a versão anterior. Use <strong>Pré-visualizar</strong> para
-          abrir o rascunho numa nova aba.
-        </p>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/50 bg-muted/20 p-4">
+      {/* Passo 1 — Identidade + publicar */}
+      <section className="space-y-3 rounded-xl border border-border/50 bg-muted/20 p-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">1 · Identidade</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1 space-y-2">
           <p className="text-sm font-medium">
             {siteQuery.data?.publishedAt
@@ -390,39 +416,30 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               teglion.com/{firmSlug} <ExternalLink className="h-3 w-3" />
             </a>
           ) : null}
-          <p className="text-caption text-muted-foreground">
-            Ao alterar o link, o endereço antigo deixa de funcionar. Só o responsável do escritório pode
-            editar.
-          </p>
           {canEditLink ? (
-            <>
-              <div className="flex flex-wrap items-end gap-2 pt-1">
-                <label className="min-w-[14rem] flex-1 space-y-1 text-xs">
-                  <span className="font-medium text-muted-foreground">Nome na página pública (redes)</span>
-                  <Input
-                    className="h-9 text-sm"
-                    value={publicDisplayName}
-                    onChange={(e: FormChangeEvent) => setPublicDisplayName(e.target.value)}
-                    placeholder={bundle.firm.name || 'Como aparece no site'}
-                    maxLength={120}
-                  />
-                </label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-9"
-                  disabled={savingDisplayName}
-                  onClick={() => void onSavePublicDisplayName()}
-                >
-                  {savingDisplayName ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-                  Guardar nome
-                </Button>
-              </div>
-              <p className="text-caption text-muted-foreground">
-                Diferente do nome interno do escritório. Se vazio, usa «{bundle.firm.name}».
-              </p>
-            </>
+            <div className="flex flex-wrap items-end gap-2 pt-1">
+              <label className="min-w-[14rem] flex-1 space-y-1 text-xs">
+                <span className="font-medium text-muted-foreground">Nome na barra do topo</span>
+                <Input
+                  className="h-9 text-sm"
+                  value={publicDisplayName}
+                  onChange={(e: FormChangeEvent) => setPublicDisplayName(e.target.value)}
+                  placeholder={bundle.firm.name || 'Como aparece na barra'}
+                  maxLength={120}
+                />
+              </label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9"
+                disabled={savingDisplayName}
+                onClick={() => void onSavePublicDisplayName()}
+              >
+                {savingDisplayName ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+                Guardar nome
+              </Button>
+            </div>
           ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
@@ -451,70 +468,66 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             </Button>
           ) : null}
         </div>
-      </div>
+        </div>
+      </section>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
-        <div className="space-y-4">
-          {draft.sections
-            .slice()
-            .sort((a, b) => a.order - b.order)
-            .map((section, index, sorted) => (
-              <div key={section.key} className="rounded-xl border border-border/50 p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <Label className="flex items-center gap-2 text-sm font-semibold">
-                    <Checkbox
-                      checked={section.enabled}
-                      onCheckedChange={(v: boolean | 'indeterminate') => toggleSection(section.key, v === true)}
-                    />
-                    {SECTION_LABELS[section.type]}
-                  </Label>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      disabled={index === 0}
-                      onClick={() => moveSection(section.key, 'up')}
-                      aria-label="Mover para cima"
-                    >
-                      <ChevronUp className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      disabled={index === sorted.length - 1}
-                      onClick={() => moveSection(section.key, 'down')}
-                      aria-label="Mover para baixo"
-                    >
-                      <ChevronDown className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                {section.enabled ? (
-                  <SectionEditorSwitch
-                    section={section}
-                    onChange={(content) => patchSectionContent(section.key, content)}
-                    services={previewServices}
-                    imageUrl={
-                      section.type === 'hero'
-                        ? resolveSectionImageUrl(section, 'hero')
-                        : section.type === 'about'
-                          ? resolveSectionImageUrl(section, 'institutional')
-                          : null
-                    }
-                    uploadingImage={uploadingImageKey === section.key}
-                    onUploadImage={(file: File) =>
-                      void uploadSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero', file)
-                    }
-                    onRemoveImage={() => removeSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero')}
-                  />
-                ) : null}
-              </div>
-            ))}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,420px)]">
+        <div className="order-1 min-w-0 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              2 · Secções do site
+            </p>
+            <button
+              type="button"
+              className="text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+              onClick={onApplyRecommendedOrder}
+            >
+              Ordem recomendada
+            </button>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            À esquerda: arrastar para mudar a ordem. À direita: abrir as opções da secção.
+          </p>
+          <PublicSiteSectionsList
+            sections={sortedSections}
+            labels={SECTION_LABELS}
+            hints={SECTION_HINTS}
+            isOpen={isSectionEditorOpen}
+            onToggleOpen={toggleSectionOpen}
+            onToggleEnabled={(key, enabled) => {
+              toggleSection(key, enabled)
+              if (enabled) {
+                setSectionOpenState((prev) => ({ ...prev, [key]: true }))
+              }
+            }}
+            onReorder={onReorderSections}
+            renderEditor={(section) => (
+              <SectionEditorSwitch
+                section={section}
+                onChange={(content) => patchSectionContent(section.key, content)}
+                publicDisplayName={previewFirmName}
+                services={previewServices}
+                imageUrl={
+                  section.type === 'hero'
+                    ? resolveSectionImageUrl(section, 'hero')
+                    : section.type === 'about'
+                      ? resolveSectionImageUrl(section, 'institutional')
+                      : null
+                }
+                uploadingImage={uploadingImageKey === section.key}
+                onUploadImage={(file: File) =>
+                  void uploadSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero', file)
+                }
+                onRemoveImage={() =>
+                  removeSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero')
+                }
+              />
+            )}
+          />
 
+          <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            3 · Complementos
+          </p>
           <div className="rounded-xl border border-border/50 p-4">
             <Label className="text-sm font-semibold">Agendamento</Label>
             <p className="mt-1 text-caption text-muted-foreground">
@@ -548,12 +561,8 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
           </div>
 
           <div className="rounded-xl border border-border/50 p-4 space-y-4">
-            <div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <Label className="text-sm font-semibold">Termos, privacidade e reclamações</Label>
-              <p className="mt-1 text-caption text-muted-foreground">
-                Aplicam-se a toda a página pública (não por serviço). Os modelos são referência para adaptar —
-                a Teglion não presta aconselhamento jurídico e não se responsabiliza pelo conteúdo.
-              </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
@@ -587,10 +596,6 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 onChange={(e: FormChangeEvent) => setDraft({ ...draft, privacyText: e.target.value || null })}
               />
             </label>
-            <p className="text-caption text-muted-foreground">
-              Modelo de referência para o escritório adaptar; a Teglion não presta aconselhamento jurídico e não se
-              responsabiliza pelo conteúdo.
-            </p>
             <label className="block space-y-1 text-sm">
               <span className="font-medium">Livro de Reclamações — link</span>
               <Input
@@ -639,18 +644,27 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
           </div>
         </div>
 
-        <div className="lg:sticky lg:top-4 lg:self-start">
-          <p className="mb-2 text-caption font-semibold uppercase tracking-wide text-muted-foreground">Pré-visualização</p>
+        <div className="order-2 min-w-0 space-y-3 lg:sticky lg:top-4 lg:self-start">
+          <PageThemeColors draft={draft} onChange={setDraft} />
+          <p className="text-caption font-semibold uppercase tracking-wide text-muted-foreground">
+            Pré-visualização
+          </p>
           <div
-            className="max-h-[80vh] overflow-y-auto rounded-xl border border-border/50"
-            style={resolveFirmBrandingCssVars({
-              primaryColor: draft.theme.primaryColor,
-              secondaryColor: draft.theme.secondaryColor,
-              textColor: draft.theme.textColor,
-              backgroundColor: draft.theme.backgroundColor,
-              surfaceColor: draft.theme.surfaceColor,
-              mutedTextColor: draft.theme.mutedTextColor,
-            })}
+            key={`preview-bg-${draft.theme.backgroundColor || 'default'}-${draft.theme.surfaceColor || 'surface'}`}
+            className="max-h-[min(70vh,36rem)] overflow-y-auto overscroll-y-contain rounded-xl border border-border/50 lg:max-h-[80vh]"
+            style={{
+              ...resolveFirmBrandingCssVars({
+                primaryColor: draft.theme.primaryColor,
+                secondaryColor: draft.theme.secondaryColor,
+                textColor: draft.theme.textColor,
+                backgroundColor: draft.theme.backgroundColor,
+                surfaceColor: draft.theme.surfaceColor,
+                mutedTextColor: draft.theme.mutedTextColor,
+              }),
+              ...(parsePublicSiteHex(draft.theme.backgroundColor)
+                ? { backgroundColor: parsePublicSiteHex(draft.theme.backgroundColor)! }
+                : { backgroundColor: 'hsl(var(--background))' }),
+            }}
           >
             <DefaultTemplate
               config={draft}
@@ -728,6 +742,7 @@ function SectionEditorSwitch({
   onUploadImage,
   onRemoveImage,
   services,
+  publicDisplayName,
 }: {
   section: PublicSiteSection
   onChange: (content: PublicSiteSection['content']) => void
@@ -736,6 +751,7 @@ function SectionEditorSwitch({
   onUploadImage: (file: File) => void
   onRemoveImage: () => void
   services: PublicFirmServiceSummary[]
+  publicDisplayName?: string
 }) {
   switch (section.type) {
     case 'hero':
@@ -748,6 +764,7 @@ function SectionEditorSwitch({
           onUploadImage={onUploadImage}
           onRemoveImage={onRemoveImage}
           services={services}
+          publicDisplayName={publicDisplayName}
         />
       )
     case 'about':
@@ -778,10 +795,11 @@ function SectionEditorSwitch({
         <ChromeSectionEditor
           content={section.content}
           onChange={onChange}
-          title="Cabeçalho"
+          title="Barra do topo"
           showTitleField
-          titleFieldLabel="Texto do cabeçalho (esquerda)"
-          titlePlaceholder="Ex.: Maya Contabilidade"
+          titleFieldLabel="Texto curto na barra (opcional)"
+          titlePlaceholder="Deixe vazio → usa o Nome na barra do topo"
+          titleHint="Quase nunca precisa alterar. O nome principal define-se acima em «Nome na barra do topo». O título grande edita-se em «2. Destaque principal»."
         />
       )
     case 'footer':
@@ -816,81 +834,107 @@ function whatsappDisplayNumber(url: string | null | undefined): string {
   return raw.replace(/\D/g, '')
 }
 
-function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (next: PublicSiteConfig) => void }) {
+function PageThemeColors({
+  draft,
+  onChange,
+}: {
+  draft: PublicSiteConfig
+  onChange: (next: PublicSiteConfig) => void
+}) {
   const theme = draft.theme
   const bg = theme.backgroundColor || ''
   const surface = theme.surfaceColor || ''
   const bgInvalid = bg.trim() !== '' && !isValidHex(bg)
   const surfaceInvalid = surface.trim() !== '' && !isValidHex(surface)
 
+  const setPageBackground = (value: string | null) => {
+    const prev = parsePublicSiteHex(draft.theme.backgroundColor)
+    const nextParsed = parsePublicSiteHex(value)
+    const hadSectionBgs = draft.sections.some((s) => {
+      const c = s.content as { backgroundColor?: string | null }
+      return Boolean(c?.backgroundColor)
+    })
+    const next = applyPageBackgroundColor(draft, value)
+    onChange(next)
+    if (hadSectionBgs && nextParsed && nextParsed !== prev) {
+      toast.message('Fundos das secções limpos', {
+        description: 'Assim a cor da página aparece no preview. Pode voltar a colorir cada bloco nas secções.',
+      })
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-border/50 bg-card p-3">
+      <p className="text-xs font-semibold text-foreground">Fundo da página</p>
+      <p className="mt-0.5 text-[11px] text-muted-foreground">
+        Esta cor pinta a página inteira no preview. Se um bloco tiver cor própria, essa cor sobrepõe-se — ao
+        mudar aqui, limpamos os fundos dos blocos para a alteração se ver de imediato.
+      </p>
+      <div className="mt-2 grid gap-3 sm:grid-cols-2">
+        <div className="space-y-1">
+          <Label htmlFor="ps-page-bg" className="text-[11px]">
+            Página
+          </Label>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              aria-label="Fundo da página"
+              value={isValidHex(bg) ? bg : '#faf9f7'}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setPageBackground(e.target.value)}
+              className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
+            />
+            <Input
+              id="ps-page-bg"
+              value={bg}
+              onChange={(e: FormChangeEvent) => setPageBackground(e.target.value.trim() || null)}
+              placeholder="#faf9f7"
+              className={bgInvalid ? 'h-9 border-destructive' : 'h-9'}
+            />
+          </div>
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="ps-surface" className="text-[11px]">
+            Cartões
+          </Label>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              aria-label="Fundo dos cartões"
+              value={isValidHex(surface) ? surface : '#ffffff'}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                onChange({
+                  ...draft,
+                  theme: { ...draft.theme, surfaceColor: parsePublicSiteHex(e.target.value) },
+                })
+              }
+              className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
+            />
+            <Input
+              id="ps-surface"
+              value={surface}
+              onChange={(e: FormChangeEvent) =>
+                onChange({
+                  ...draft,
+                  theme: { ...draft.theme, surfaceColor: parsePublicSiteHex(e.target.value) },
+                })
+              }
+              placeholder="#ffffff"
+              className={surfaceInvalid ? 'h-9 border-destructive' : 'h-9'}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (next: PublicSiteConfig) => void }) {
   const setSocial = (key: keyof PublicSiteConfig['socialLinks'], value: string | null) => {
     onChange({ ...draft, socialLinks: { ...draft.socialLinks, [key]: value } })
   }
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-border/50 p-4">
-        <Label className="text-sm font-semibold">Fundo geral da página</Label>
-        <p className="mt-1 text-caption text-muted-foreground">
-          Cor de base por detrás de todas as secções. As cores de cada bloco (cabeçalho, destaque, botões, etc.)
-          escolhem-se dentro da própria secção, acima.
-        </p>
-        <div className="mt-3 grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="ps-page-bg">Fundo da página</Label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                aria-label="Fundo da página"
-                value={isValidHex(bg) ? bg : '#faf9f7'}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  onChange({ ...draft, theme: { ...draft.theme, backgroundColor: e.target.value } })
-                }
-                className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
-              />
-              <Input
-                id="ps-page-bg"
-                value={bg}
-                onChange={(e: FormChangeEvent) =>
-                  onChange({
-                    ...draft,
-                    theme: { ...draft.theme, backgroundColor: e.target.value.trim() || null },
-                  })
-                }
-                placeholder="#faf9f7"
-                className={bgInvalid ? 'border-destructive' : undefined}
-              />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="ps-surface">Fundo dos cartões (serviços / FAQ)</Label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                aria-label="Fundo dos cartões"
-                value={isValidHex(surface) ? surface : '#ffffff'}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  onChange({ ...draft, theme: { ...draft.theme, surfaceColor: e.target.value } })
-                }
-                className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
-              />
-              <Input
-                id="ps-surface"
-                value={surface}
-                onChange={(e: FormChangeEvent) =>
-                  onChange({
-                    ...draft,
-                    theme: { ...draft.theme, surfaceColor: e.target.value.trim() || null },
-                  })
-                }
-                placeholder="#ffffff"
-                className={surfaceInvalid ? 'border-destructive' : undefined}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="rounded-xl border border-border/50 p-4">
         <Label className="text-sm font-semibold">Redes sociais</Label>
         <p className="mt-1 text-caption text-muted-foreground">

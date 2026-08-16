@@ -412,7 +412,15 @@ router.post(
   requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
   clientsController.unhideActivity,
 );
-router.patch('/clients/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.patch);
+router.patch(
+  '/clients/:id',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  [
+    body('tagIds').optional().isArray(),
+    body('tagIds.*').optional().isUUID(),
+  ],
+  clientsController.patch,
+);
 router.delete('/clients/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.archive);
 router.get('/clients/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.getById);
 
@@ -443,6 +451,7 @@ router.delete('/accounting-services/:id', requirePermission(PERMISSIONS.FIRM_ACC
 router.get('/booking-settings', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), bookingSettingsController.get);
 router.patch('/booking-settings', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), bookingSettingsController.patch);
 
+router.get('/consultations/attention-count', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), consultationsController.attentionCount);
 router.get('/consultations', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), consultationsController.list);
 router.post('/consultations', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), consultationsController.create);
 router.patch('/consultations/:id', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), consultationsController.update);
@@ -490,7 +499,15 @@ router.post('/team', requirePermission(PERMISSIONS.USERS_CREATE), teamController
 router.get('/team/permissions', requirePermission(PERMISSIONS.FIRM_MEMBER_PERMISSION_MANAGE), teamPermissionsController.getByMember);
 router.get('/team/:id/permissions', requirePermission(PERMISSIONS.FIRM_MEMBER_PERMISSION_MANAGE), teamPermissionsController.getByMember);
 router.get('/team/:id', requirePermission(PERMISSIONS.USERS_READ), teamController.getById);
-router.patch('/team/:id', requirePermission(PERMISSIONS.USERS_UPDATE), teamController.patch);
+router.patch(
+  '/team/:id',
+  requirePermission(PERMISSIONS.USERS_UPDATE),
+  [
+    body('tagIds').optional().isArray(),
+    body('tagIds.*').optional().isUUID(),
+  ],
+  teamController.patch,
+);
 router.post('/team/:id/deactivate', requirePermission(PERMISSIONS.USERS_DELETE), teamController.deactivate);
 router.post('/team/:id/reactivate', requirePermission(PERMISSIONS.USERS_UPDATE), teamController.reactivate);
 router.post('/team/:id/resend-invite', requirePermission(PERMISSIONS.FIRM_INVITES_MANAGE), teamInvitesController.resendForMember);
@@ -553,12 +570,19 @@ router.patch(
     body('name').optional().isString().trim().isLength({ min: 1, max: 140 }),
     body('email').optional({ nullable: true }).isEmail(),
     body('status').optional().isString().trim(),
+    body('tagIds').optional().isArray(),
+    body('tagIds.*').optional().isUUID(),
   ],
   leadsController.patch,
 );
 router.post('/leads/:id/convert-to-client', requirePermission(PERMISSIONS.FIRM_LEADS_MANAGE), leadsController.convertToClient);
 
 router.get('/service-inquiries', requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE), serviceInquiriesController.list);
+router.get(
+  '/service-inquiries/unseen-count',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  serviceInquiriesController.countUnseen,
+);
 router.get('/service-inquiries/:id', requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE), serviceInquiriesController.getDetail);
 router.get(
   '/service-inquiries/:id/documents/:documentId/download',
@@ -606,6 +630,8 @@ router.post(
     body('items.*.title').isString().trim().isLength({ min: 1, max: 300 }),
     body('items.*.instructions').optional({ nullable: true }).isString().trim().isLength({ max: 2000 }),
     body('items.*.tag').optional({ nullable: true }).isString().trim().isLength({ max: 60 }),
+    body('notifyChannels').optional().isArray({ max: 3 }),
+    body('notifyChannels.*').optional().isString().isIn(['email', 'sms', 'whatsapp']),
   ],
   serviceInquiriesController.addRequestsBatch,
 );
@@ -615,12 +641,24 @@ router.post(
   serviceInquiriesController.confirmConsultation,
 );
 router.post(
+  '/service-inquiries/:id/notify-client',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  [
+    body('purpose').optional().isString().isIn(['received', 'checklist']),
+    body('notifyChannels').isArray({ min: 1, max: 3 }),
+    body('notifyChannels.*').isString().isIn(['email', 'sms', 'whatsapp']),
+  ],
+  serviceInquiriesController.notifyClient,
+);
+router.post(
   '/service-inquiries/:id/requests',
   requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
   [
     body('kind').isString().isIn(['document', 'question']),
     body('title').isString().trim().isLength({ min: 1, max: 300 }),
     body('instructions').optional({ nullable: true }).isString().trim().isLength({ max: 2000 }),
+    body('notifyChannels').optional().isArray({ max: 3 }),
+    body('notifyChannels.*').optional().isString().isIn(['email', 'sms', 'whatsapp']),
   ],
   serviceInquiriesController.addRequest,
 );

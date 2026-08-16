@@ -1,6 +1,7 @@
 import type { AxiosInstance } from 'axios'
 import type { IntakeForm } from '@/shared/types/contabil'
 import type { PublicSiteConfig } from '@/shared/types/firmPublicSite'
+import { withTurnstileToken } from '@/shared/security/withTurnstileToken'
 
 export type PublicFirmServiceSummary = {
   slug: string
@@ -99,13 +100,17 @@ export type PublicIntakeSubmitPayload = {
   answers: Record<string, string | string[]>
   website?: string
   scheduledAt?: string
+  /** Token do passo 1 (lead). Preferir `intakeToken`. */
+  intakeToken?: string
+  /** @deprecated Use intakeToken — mantido para clients antigos. */
   leadAccessToken?: string
   turnstileToken?: string
 }
 
 export type PublicIntakeSubmitResult = {
   ok: true
-  accessToken: string
+  /** Token opaco do portal `/pedidos/:token` (não é JWT). */
+  intakeToken: string
   documentsRequired: number
   bookingConfirmed: boolean
   bookingPendingPayment?: boolean
@@ -244,25 +249,33 @@ export function createContabilPublicApi(api: AxiosInstance) {
           `/public/firms/${encodeURIComponent(firmSlug)}/services/${encodeURIComponent(serviceSlug)}/intake/lead`,
           payload,
         )
-        .then((r) => r.data as { ok: true; accessToken: string }),
+        .then((r) => r.data as { ok: true; intakeToken: string }),
 
     getIntakeByToken: (token: string) =>
       api.get(`/public/service-inquiries/${encodeURIComponent(token)}`).then((r) => r.data as PublicIntakeChecklist),
 
-    uploadIntakeDocument: (token: string, tag: string, file: File) => {
+    uploadIntakeDocument: (token: string, tag: string, file: File, turnstileToken?: string) => {
       const form = new FormData()
       form.append('tag', tag)
       form.append('file', file)
+      const ts = String(turnstileToken || '').trim()
+      if (ts) form.append('turnstileToken', ts)
       return api
         .post(`/public/service-inquiries/${encodeURIComponent(token)}/documents`, form)
         .then((r) => r.data as { allComplete: boolean; checklist: IntakeChecklistItem[] })
     },
 
-    submitIntakeReply: (token: string, requestId: string, textReply: string) =>
+    submitIntakeReply: (
+      token: string,
+      requestId: string,
+      textReply: string,
+      turnstileToken?: string,
+    ) =>
       api
-        .post(`/public/service-inquiries/${encodeURIComponent(token)}/requests/${encodeURIComponent(requestId)}/reply`, {
-          textReply,
-        })
+        .post(
+          `/public/service-inquiries/${encodeURIComponent(token)}/requests/${encodeURIComponent(requestId)}/reply`,
+          withTurnstileToken({ textReply }, turnstileToken),
+        )
         .then((r) => r.data as { checklist: IntakeChecklistItem[] }),
   }
 }

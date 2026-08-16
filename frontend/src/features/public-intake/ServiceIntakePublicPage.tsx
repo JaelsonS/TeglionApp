@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
+import { PhoneNumberInputLazyWrapper as PhoneNumberInput } from '@/shared/components/ui/phone-input-lazy'
 import {
   Dialog,
   DialogContent,
@@ -195,7 +196,7 @@ export function ServiceIntakePublicPage() {
           turnstileToken,
         ),
       )
-      setLeadAccessToken(res.accessToken)
+      setLeadAccessToken(res.intakeToken)
       setStep(2)
     } catch (err) {
       turnstileRef.current?.reset()
@@ -230,7 +231,7 @@ export function ServiceIntakePublicPage() {
             answers,
             website: website || undefined,
             scheduledAt: scheduledAt || undefined,
-            leadAccessToken: leadAccessToken || undefined,
+            intakeToken: leadAccessToken || undefined,
           },
           turnstileToken,
         ),
@@ -372,7 +373,14 @@ export function ServiceIntakePublicPage() {
               </label>
               <label className="space-y-1 text-sm">
                 <span className="font-medium">Telefone</span>
-                <Input className="h-10 rounded-lg" value={phone} onChange={(e: FormChangeEvent) => setPhone(e.target.value)} />
+                <PhoneNumberInput
+                  defaultCountry="PT"
+                  value={phone || undefined}
+                  onChange={(v) => setPhone(v || '')}
+                  placeholder="+351 …"
+                  className="h-10 rounded-lg"
+                  inputClassName="h-10 rounded-lg"
+                />
               </label>
             </div>
 

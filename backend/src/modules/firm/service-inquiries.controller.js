@@ -14,6 +14,16 @@ exports.list = async (req, res, next) => {
   }
 };
 
+exports.countUnseen = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const result = await serviceInquiriesService.countUnseen({ firmId });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.getDetail = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);
@@ -108,6 +118,22 @@ exports.confirmConsultation = async (req, res, next) => {
       firmId,
       inquiryId,
       actor: req.user,
+    });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.notifyClient = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const inquiryId = parseEntityId(req.params.id, 'id');
+    const result = await serviceInquiriesService.notifyClient({
+      firmId,
+      inquiryId,
+      actor: req.user,
+      payload: req.body || {},
     });
     return res.json(result);
   } catch (err) {

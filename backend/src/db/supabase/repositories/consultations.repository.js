@@ -149,6 +149,28 @@ async function updateConsultation(id, firmId, patch) {
   return mapConsultation(data);
 }
 
+/**
+ * Badge vermelho do sidebar = só o que precisa de acção da equipa.
+ * Não conta SCHEDULED futuras (são reuniões normais, não alertas — o
+ * calendário já as mostra na semana certa; contar 14 dias gerava "6"
+ * com a semana actual vazia).
+ */
+async function countAttentionByFirm(firmId) {
+  const sb = getSupabaseAdmin();
+  const pendingPayRes = await sb
+    .from('consultations')
+    .select('id', { count: 'exact', head: true })
+    .eq('firm_id', firmId)
+    .eq('status', 'PENDING_PAYMENT');
+  if (pendingPayRes.error) throw pendingPayRes.error;
+  const pendingPayment = Number(pendingPayRes.count || 0);
+  return {
+    count: pendingPayment,
+    upcoming: 0,
+    pendingPayment,
+  };
+}
+
 async function listExpiredPaymentHolds({ beforeIso, limit = 50 } = {}) {
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
@@ -169,5 +191,6 @@ module.exports = {
   findByIdForFirm,
   reassignLeadToClient,
   updateConsultation,
+  countAttentionByFirm,
   listExpiredPaymentHolds,
 };

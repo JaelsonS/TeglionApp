@@ -1,8 +1,5 @@
-import { useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { isAxiosError } from 'axios'
 
 import {
   FIRM_NAV_FLAT,
@@ -11,61 +8,23 @@ import {
   type FirmNavGroupConfig,
   type FirmNavItemConfig,
 } from '@/features/firm/firmNavConfig'
+import {
+  resolveFirmNavBadge,
+  useFirmNavBadgeCounts,
+} from '@/features/firm/useFirmNavBadges'
 import { cn } from '@/shared/lib/utils'
 import { useFirmBranding } from '@/shared/hooks/useFirmBranding'
-import { contabilMessagesApi, toPublicAssetUrl } from '@/infrastructure/api'
-import { onAppDataChanged } from '@/shared/utils/appEvents'
-import { useAuth } from '@/shared/hooks/useAuth'
+import { toPublicAssetUrl } from '@/infrastructure/api'
 import { FirmSidebarHeader } from '@/shared/components/layout/FirmSidebarHeader'
+
+export {
+  useFirmMessagesUnread,
+  useFirmServiceInquiriesUnseen,
+  FIRM_INQUIRIES_UNSEEN_QUERY_KEY,
+} from '@/features/firm/useFirmNavBadges'
 
 function navTestId(to: string) {
   return `firm-sidebar-${to.replace(/\//g, '-')}`
-}
-
-const FIRM_MESSAGES_UNREAD_KEY = 'firm-messages-unread'
-
-/** Uma única query partilhada (sidebar + mobile nav) — evita polling duplicado. */
-export function useFirmMessagesUnread() {
-  const { user } = useAuth()
-  const qc = useQueryClient()
-
-  const query = useQuery({
-    queryKey: [FIRM_MESSAGES_UNREAD_KEY, user?.id],
-    queryFn: () => contabilMessagesApi.getUnreadSummary(),
-    enabled: Boolean(user?.id),
-    staleTime: 120_000,
-    refetchInterval: (q) => {
-      if (document.visibilityState !== 'visible') return false
-      if (isAxiosError(q.state.error) && q.state.error.response?.status === 429) return false
-      return false
-    },
-    retry: (failureCount, error) => {
-      if (isAxiosError(error) && error.response?.status === 429) return false
-      return failureCount < 1
-    },
-  })
-
-  useEffect(() => {
-    if (!user?.id) return
-    return onAppDataChanged((detail) => {
-      if (
-        !detail.scope ||
-        detail.scope === 'messages' ||
-        detail.scope === 'internal-messages' ||
-        detail.scope === 'document-requests' ||
-        detail.scope === 'live'
-      ) {
-        void qc.invalidateQueries({ queryKey: [FIRM_MESSAGES_UNREAD_KEY, user.id] })
-      }
-    })
-  }, [qc, user?.id])
-
-  return query.data?.total ?? 0
-}
-
-function resolveBadge(item: FirmNavItemConfig, messagesUnread: number) {
-  if (item.badgeKey === 'messages') return messagesUnread
-  return undefined
 }
 
 function NavItem({
@@ -95,7 +54,7 @@ function NavItem({
       </span>
       <span className="cb-firm-nav-item-label">{label}</span>
       {badge && badge > 0 ? (
-        <span className="cb-firm-nav-item-badge" aria-label={`${badge} não lidas`}>
+        <span className="cb-firm-nav-item-badge" aria-label={`${badge} por ver`}>
           {badge > 99 ? '99+' : badge}
         </span>
       ) : null}
@@ -106,12 +65,12 @@ function NavItem({
 function NavGroup({
   group,
   labelFor,
-  messagesUnread,
+  counts,
   onItemClick,
 }: {
   group: FirmNavGroupConfig
   labelFor: (item: FirmNavItemConfig) => string
-  messagesUnread: number
+  counts: ReturnType<typeof useFirmNavBadgeCounts>
   onItemClick?: () => void
 }) {
   const { t } = useTranslation('common')
@@ -126,7 +85,7 @@ function NavGroup({
             <NavItem
               item={item}
               label={labelFor(item)}
-              badge={resolveBadge(item, messagesUnread)}
+              badge={resolveFirmNavBadge(item, counts)}
               onClick={onItemClick}
             />
           </li>
@@ -146,7 +105,7 @@ export function FirmSidebar({
 }) {
   const { t } = useTranslation('common')
   const { firm, firmLogoUrl } = useFirmBranding()
-  const messagesUnread = useFirmMessagesUnread()
+  const counts = useFirmNavBadgeCounts()
 
   const fullLogoUrl = firmLogoUrl || toPublicAssetUrl(firm?.branding?.logoUrl)
   const subtitle = t('contabil.firm.subtitle', { defaultValue: 'Escritório' })
@@ -164,7 +123,7 @@ export function FirmSidebar({
           key={group.id}
           group={group}
           labelFor={labelFor}
-          messagesUnread={messagesUnread}
+          counts={counts}
           onItemClick={onItemClick}
         />
       ))}

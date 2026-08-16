@@ -10,7 +10,8 @@ import {
   isFirmNavItemActive,
   type FirmNavItemConfig,
 } from '@/features/firm/firmNavConfig'
-import { FirmSidebar, useFirmMessagesUnread } from '@/features/firm/FirmSidebar'
+import { FirmSidebar } from '@/features/firm/FirmSidebar'
+import { resolveFirmNavBadge, useFirmNavBadgeCounts } from '@/features/firm/useFirmNavBadges'
 import { FirmSidebarHeader } from '@/shared/components/layout/FirmSidebarHeader'
 import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
 import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
@@ -66,7 +67,7 @@ function RailIconLink({
 export function FirmTabletRail() {
   const { t } = useTranslation('common')
   const { firm, firmLogoUrl } = useFirmBranding()
-  const messagesUnread = useFirmMessagesUnread()
+  const counts = useFirmNavBadgeCounts()
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const fullLogoUrl = firmLogoUrl || toPublicAssetUrl(firm?.branding?.logoUrl)
@@ -77,9 +78,7 @@ export function FirmTabletRail() {
   const labelFor = (item: FirmNavItemConfig) =>
     t(item.labelKey, { defaultValue: item.labelDefault })
 
-  const badgeFor = (item: FirmNavItemConfig) =>
-    item.badgeKey === 'messages' ? messagesUnread : undefined
-
+  const badgeFor = (item: FirmNavItemConfig) => resolveFirmNavBadge(item, counts)
   return (
     <>
       <div className="cb-firm-icon-rail" data-testid="firm-tablet-rail">

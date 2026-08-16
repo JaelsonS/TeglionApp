@@ -4,6 +4,7 @@
 const { AppError } = require('../../middlewares/error.middleware');
 const { getRepository } = require('../../db/supabase/repositories');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
+const firmInquiryTagsRepository = require('../../db/supabase/repositories/firm-inquiry-tags.repository');
 const messagesRepository = require('../../db/supabase/repositories/messages.repository');
 const activityService = require('../../services/activity/activity.service');
 const { resolveFiscalProfile } = require('../../utils/client-metadata');
@@ -77,7 +78,7 @@ async function getClientHub({ firmId, clientId }) {
   const now = new Date();
   const repo = getRepository();
 
-  const [obligations, tasks, documents, messages, activities, unreadClient, clientAlerts, alertsUnread] =
+  const [obligations, tasks, documents, messages, activities, unreadClient, clientAlerts, alertsUnread, tagLinkRows] =
     await Promise.all([
     repo.listObligations({ firmId, clientId }),
     repo.listClientTasks({ firmId, clientId }),
@@ -87,7 +88,10 @@ async function getClientHub({ firmId, clientId }) {
     messagesRepository.countUnreadForClient(firmId, clientId),
     broadcastsRepository.listPublishedForClient(firmId, clientId, { limit: 6 }),
     broadcastsRepository.countUnreadForClient(firmId, clientId),
+    firmInquiryTagsRepository.listLinksForClients(firmId, [clientId]),
   ]);
+  const tags =
+    firmInquiryTagsRepository.mapLinkRowsToTagsByKey(tagLinkRows, 'client_id').get(clientId) || [];
 
   const activeObligations = obligations.filter((o) => !['DELIVERED', 'CANCELLED'].includes(o.status));
   const overdueObligations = activeObligations.filter((o) => new Date(o.dueDate) < now || o.status === 'OVERDUE');
@@ -128,6 +132,7 @@ async function getClientHub({ firmId, clientId }) {
   return {
     client: {
       ...client,
+      tags,
       fiscalProfile: resolveFiscalProfile(client.metadata),
     },
     summary: {

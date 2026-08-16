@@ -4,6 +4,7 @@ const { mock } = require('node:test');
 
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
 const authRefreshSessionsRepository = require('../../db/supabase/repositories/auth-refresh-sessions.repository');
+const firmInquiryTagsRepository = require('../../db/supabase/repositories/firm-inquiry-tags.repository');
 const securityAudit = require('../../services/audit/security-audit.service');
 const teamService = require('./team.service');
 
@@ -13,6 +14,13 @@ const STAFF = { id: 'staff-1', role: 'FIRM_STAFF' };
 
 function resetMocks() {
   mock.restoreAll();
+}
+
+/** I/O de etiquetas: só stubs de rede — mapLinkRowsToTagsByKey fica real (puro). */
+function mockTags() {
+  mock.method(firmInquiryTagsRepository, 'listLinksForFirmUsers', async () => []);
+  mock.method(firmInquiryTagsRepository, 'resolveAllowedTagIds', async () => []);
+  mock.method(firmInquiryTagsRepository, 'replaceLinksForFirmUser', async () => {});
 }
 
 function baseMember(overrides = {}) {
@@ -28,6 +36,7 @@ function baseMember(overrides = {}) {
 
 test('deactivateMember: revoga todas as sessões de refresh do membro desativado', async () => {
   resetMocks();
+  mockTags();
   const member = baseMember();
   mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => member);
   mock.method(firmUsersRepository, 'listFirmUsers', async () => [member]);
@@ -46,6 +55,7 @@ test('deactivateMember: revoga todas as sessões de refresh do membro desativado
 
 test('deactivateMember: sinaliza sessionsRevoked no registo de auditoria', async () => {
   resetMocks();
+  mockTags();
   const member = baseMember();
   mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => member);
   mock.method(firmUsersRepository, 'listFirmUsers', async () => [member]);
@@ -156,6 +166,7 @@ test('SEC-H1: staff NÃO pode alterar role STAFF→CONSULTANT sem FIRM_MEMBER_RO
 
 test('SEC-H1: owner PODE promover staff a FIRM_OWNER', async () => {
   resetMocks();
+  mockTags();
   let current = baseMember({ id: 'member-2', role: 'FIRM_STAFF' });
   mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => current);
   mock.method(firmUsersRepository, 'updateFirmMember', async (_firmId, _id, patch) => {

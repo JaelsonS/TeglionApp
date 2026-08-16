@@ -13,10 +13,36 @@ const firmInquiryTagsRepository = require('../../db/supabase/repositories/firm-i
 const accountingServicesService = require('./accounting-services.service');
 const leadsService = require('./leads.service');
 const bookingService = require('../booking/booking.service');
+const consultationsService = require('../consultations/consultations.service');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
 const contabilNotifications = require('../../services/notifications/contabil-notifications.service');
+const { normalizePhone } = require('../../services/email/brevo-sms.service');
 const auditRepository = require('../../db/supabase/repositories/contabil/audit.repository');
 const { interpolateServiceTemplate } = require('../../utils/service-text-template');
+
+/** Estados de consulta que ainda ocupam a Agenda / slot. */
+const ACTIVE_CONSULTATION_STATUSES = new Set(['PENDING_PAYMENT', 'SCHEDULED']);
+
+/**
+ * Ao apagar/cancelar uma solicitação, cancela a consulta ligada para não
+ * ficar órfã na Agenda.
+ */
+async function cancelLinkedConsultation({ firmId, consultationId, reason }) {
+  if (!consultationId) return null;
+  const existing = await consultationsRepository.findByIdForFirm(consultationId, firmId).catch(() => null);
+  if (!existing) return null;
+  if (!ACTIVE_CONSULTATION_STATUSES.has(existing.status)) return null;
+  const { consultation } = await consultationsService.updateConsultation({
+    firmId,
+    id: consultationId,
+    patch: {
+      status: 'CANCELLED',
+      cancelReason: reason || 'service_inquiry_closed',
+      holdExpiresAt: null,
+    },
+  });
+  return consultation;
+}
 
 /** Regras do serviço: [{ questionId, equals, tagId }] → tagIds a aplicar. */
 function resolveTagIdsFromRules(rules, answers) {
@@ -56,6 +82,41 @@ function mapLinkRowsToTagsByInquiry(linkRows) {
 const VALID_STATUSES = ['LEAD_CAPTURED', 'NEW', 'CONTACTED', 'DOCS_REQUESTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'];
 const TERMINAL_STATUSES = new Set(['COMPLETED', 'CANCELLED']);
 
+/** Chave estável para evitar pedidos de documento duplicados (tag ou título normalizado). */
+function documentDedupeKey({ tag, title }) {
+  const t = String(tag || '')
+    .trim()
+    .toLowerCase();
+  if (t && !t.startsWith('pend_')) return `tag:${t}`;
+  return `title:${String(title || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()}`;
+}
+
+/** Mantém o primeiro de cada documento; ignora repetições por tag/título. */
+function dedupeDocumentRequests(items) {
+  const seen = new Set();
+  const out = [];
+  for (const item of items || []) {
+    if (item.kind && item.kind !== 'document') {
+      out.push(item);
+      continue;
+    }
+    const key = documentDedupeKey(item);
+    if (!key || key === 'title:') {
+      out.push(item);
+      continue;
+    }
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
+  }
+  return out;
+}
+
 // Ciclo de vida do access_token do mini-portal (ver especificação da sessão, v8):
 // tecto generoso desde a submissão (cobre um processo lento sem expirar por engano),
 // apertado para uma janela curta assim que a ServiceInquiry fica concluída/cancelada.
@@ -94,6 +155,11 @@ async function list({ firmId, status, serviceId, tagId }) {
   return { items: enriched };
 }
 
+async function countUnseen({ firmId }) {
+  const count = await serviceInquiriesRepository.countUnseenByFirm(firmId);
+  return { count };
+}
+
 /** Forma comum do item de checklist devolvida ao staff e ao mini-portal — um
  * pedido (documento ou pergunta em texto), da tabela service_inquiry_requests. */
 function toChecklistItem(request) {
@@ -112,8 +178,15 @@ function toChecklistItem(request) {
 }
 
 async function getById({ firmId, id }) {
-  const inquiry = await serviceInquiriesRepository.findByIdForFirm(id, firmId);
+  let inquiry = await serviceInquiriesRepository.findByIdForFirm(id, firmId);
   if (!inquiry) throw new AppError('Solicitação não encontrada', 404);
+
+  // Abrir o detalhe marca como vista → o badge em Solicitações diminui.
+  if (!inquiry.staffSeenAt) {
+    inquiry = await serviceInquiriesRepository.updateRow(id, firmId, {
+      staffSeenAt: new Date().toISOString(),
+    });
+  }
 
   const service = await accountingServicesRepository.findByIdForFirm(inquiry.serviceId, firmId);
   const requesterName = await requesterNameForInquiry(inquiry);
@@ -237,10 +310,12 @@ async function update({ firmId, id, actor, payload }) {
     : existing;
 
   if (Array.isArray(payload?.tagIds)) {
-    const firmTags = await firmInquiryTagsRepository.listByFirm(firmId);
-    const allowed = new Set(firmTags.map((t) => t.id));
-    const tagIds = payload.tagIds.map(String).filter((tid) => allowed.has(tid));
+    const tagIds = await firmInquiryTagsRepository.resolveAllowedTagIds(firmId, payload.tagIds);
     await firmInquiryTagsRepository.replaceLinksForInquiry(firmId, id, tagIds);
+    // Sincroniza etiquetas no lead ligado (biblioteca firm-wide).
+    if (existing.leadId) {
+      await firmInquiryTagsRepository.replaceLinksForLead(firmId, existing.leadId, tagIds);
+    }
   }
 
   if (patch.status && patch.status !== existing.status) {
@@ -253,6 +328,13 @@ async function update({ firmId, id, actor, payload }) {
       entityId: id,
       metadata: { from: existing.status, to: patch.status },
     });
+    if (patch.status === 'CANCELLED' && existing.consultationId) {
+      await cancelLinkedConsultation({
+        firmId,
+        consultationId: existing.consultationId,
+        reason: 'service_inquiry_cancelled',
+      }).catch(() => {});
+    }
   }
 
   const linkRows = await firmInquiryTagsRepository.listLinksForInquiries(firmId, [id]);
@@ -271,6 +353,15 @@ async function remove({ firmId, id, actor }) {
   const existing = await serviceInquiriesRepository.findByIdForFirm(id, firmId);
   if (!existing) throw new AppError('Solicitação não encontrada', 404);
 
+  // Cancela a consulta antes de apagar a solicitação — senão fica órfã na Agenda.
+  if (existing.consultationId) {
+    await cancelLinkedConsultation({
+      firmId,
+      consultationId: existing.consultationId,
+      reason: 'service_inquiry_deleted',
+    }).catch(() => {});
+  }
+
   await serviceInquiriesRepository.deleteRow(id, firmId);
 
   await auditRepository.writeAuditLog({
@@ -280,7 +371,11 @@ async function remove({ firmId, id, actor }) {
     action: 'service_inquiry.deleted',
     entityType: 'service_inquiry',
     entityId: id,
-    metadata: { status: existing.status, serviceId: existing.serviceId },
+    metadata: {
+      status: existing.status,
+      serviceId: existing.serviceId,
+      consultationId: existing.consultationId || null,
+    },
   });
 
   return { ok: true };
@@ -321,9 +416,12 @@ async function addServiceInquiryRequest({ firmId, inquiryId, actor, payload }) {
     firmId,
     inquiryId,
     actor,
-    payload: { items: [payload] },
+    payload: {
+      items: [payload],
+      notifyChannels: payload?.notifyChannels,
+    },
   });
-  return { request: result.requests[0] };
+  return { request: result.requests[0], delivery: result.delivery };
 }
 
 /**
@@ -341,7 +439,7 @@ async function addServiceInquiryRequestsBatch({ firmId, inquiryId, actor, payloa
   if (!rawItems.length) throw new AppError('Adicione pelo menos um pedido', 400);
   if (rawItems.length > 20) throw new AppError('Máximo 20 itens por envio', 400);
 
-  const normalized = [];
+  const validated = [];
   for (const item of rawItems) {
     const kind = String(item?.kind || '');
     if (!REQUEST_KINDS.has(kind)) throw new AppError('kind deve ser "document" ou "question"', 400);
@@ -350,7 +448,33 @@ async function addServiceInquiryRequestsBatch({ firmId, inquiryId, actor, payloa
     const instructions = item?.instructions ? String(item.instructions).trim().slice(0, 2000) : null;
     const explicitTag = item?.tag ? String(item.tag).trim().slice(0, 60) : null;
     const tag = kind === 'document' ? explicitTag || `pend_${crypto.randomUUID()}` : null;
-    normalized.push({ kind, title, instructions, tag });
+    validated.push({ kind, title, instructions, tag, explicitTag });
+  }
+
+  const existing = await serviceInquiryRequestsRepository.listByInquiry(inquiry.id, firmId);
+  const existingKeys = new Set(
+    existing.filter((r) => r.kind === 'document').map((r) => documentDedupeKey(r)),
+  );
+
+  const normalized = [];
+  for (const item of validated) {
+    if (item.kind === 'document') {
+      const key = documentDedupeKey({ tag: item.explicitTag || null, title: item.title });
+      if (existingKeys.has(key) || normalized.some((n) => n.kind === 'document' && documentDedupeKey(n) === key)) {
+        continue;
+      }
+      existingKeys.add(key);
+    }
+    normalized.push({
+      kind: item.kind,
+      title: item.title,
+      instructions: item.instructions,
+      tag: item.tag,
+    });
+  }
+
+  if (!normalized.length) {
+    throw new AppError('Esses documentos já foram pedidos ao cliente', 409, { code: 'DUPLICATE_REQUESTS' });
   }
 
   const created = await serviceInquiryRequestsRepository.createMany(
@@ -383,25 +507,26 @@ async function addServiceInquiryRequestsBatch({ firmId, inquiryId, actor, payloa
     },
   });
 
-  const { name: requesterName, email: requesterEmail } = await requesterContactForInquiry(inquiry);
-  if (requesterEmail && inquiry.accessToken) {
+  const notifyChannels = parseNotifyChannels(payload?.notifyChannels);
+  let delivery = { skipped: true, reason: 'no_channels', channels: [] };
+  if (notifyChannels.length && inquiry.accessToken) {
+    const contact = await requesterContactForInquiry(inquiry);
     const [service, firm] = await Promise.all([
       accountingServicesRepository.findByIdForFirm(inquiry.serviceId, firmId),
       firmsRepository.findFirmById(firmId).catch(() => null),
     ]);
-    void contabilNotifications
-      .notifyLeadNewRequest({
-        toEmail: requesterEmail,
-        toName: requesterName,
-        firmName: firm?.name,
-        serviceName: interpolateServiceTemplate(service?.name),
-        accessToken: inquiry.accessToken,
-        items: created.map((r) => ({ title: r.title, kind: r.kind })),
-      })
-      .catch(() => {});
+    delivery = await dispatchClientNotify({
+      channels: notifyChannels,
+      contact,
+      firmName: firm?.name,
+      serviceName: interpolateServiceTemplate(service?.name),
+      accessToken: inquiry.accessToken,
+      purpose: 'new_request',
+      items: created.map((r) => ({ title: r.title, kind: r.kind })),
+    });
   }
 
-  return { requests: created.map(toChecklistItem) };
+  return { requests: created.map(toChecklistItem), delivery };
 }
 
 async function resolveStaffNotifyEmail(firmId, firm) {
@@ -421,24 +546,136 @@ async function requesterNameForInquiry(inquiry) {
   return null;
 }
 
-/** Nome + email de contacto — usado para notificar o submissor de um pedido novo. */
+/** Contacto do submissor — email/SMS/WhatsApp sob escolha da equipa (custo). */
 async function requesterContactForInquiry(inquiry) {
   if (inquiry.leadId) {
     const lead = await leadsRepository.findByIdForFirm(inquiry.leadId, inquiry.firmId);
-    return { name: lead?.name || null, email: lead?.email || null };
+    return {
+      name: lead?.name || null,
+      email: lead?.email || null,
+      phone: lead?.phone || null,
+    };
   }
   if (inquiry.clientId) {
     const client = await clientsRepository.findClientById(inquiry.firmId, inquiry.clientId);
-    return { name: client?.displayName || client?.name || null, email: client?.email || null };
+    return {
+      name: client?.displayName || client?.name || null,
+      email: client?.email || null,
+      phone: client?.phone || null,
+    };
   }
-  return { name: null, email: null };
+  return { name: null, email: null, phone: null };
+}
+
+const NOTIFY_CHANNELS = new Set(['email', 'sms', 'whatsapp']);
+
+function parseNotifyChannels(raw) {
+  if (!Array.isArray(raw)) return [];
+  return [...new Set(raw.map((c) => String(c || '').trim().toLowerCase()).filter((c) => NOTIFY_CHANNELS.has(c)))];
+}
+
+function whatsappDeepLink(phone, text) {
+  const normalized = normalizePhone(phone);
+  if (!normalized) return null;
+  const digits = String(normalized).replace(/\D/g, '');
+  if (!digits) return null;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(String(text || '').slice(0, 600))}`;
+}
+
+/**
+ * Envia ao cliente só pelos canais escolhidos pela contadora (sem auto-spam).
+ * WhatsApp = deep link (sem API); email/SMS via Brevo.
+ */
+async function dispatchClientNotify({
+  channels,
+  contact,
+  firmName,
+  serviceName,
+  accessToken,
+  purpose,
+  items,
+}) {
+  const selected = parseNotifyChannels(channels);
+  if (!selected.length) return { skipped: true, reason: 'no_channels', channels: [] };
+
+  const delivery = { email: null, sms: null, whatsappUrl: null, channels: selected };
+  const firm = firmName || 'o escritório';
+  const svc = serviceName || 'serviço';
+  const accessUrl = accessToken ? contabilNotifications.serviceIntakeAccessUrl(accessToken) : null;
+
+  if (selected.includes('email') && contact.email) {
+    if (purpose === 'received') {
+      delivery.email = await contabilNotifications.notifyLeadIntakeReceived({
+        toEmail: contact.email,
+        toName: contact.name,
+        firmName,
+        serviceName,
+      });
+    } else if (purpose === 'checklist' && accessToken) {
+      delivery.email = await contabilNotifications.notifyLeadIntakeChecklist({
+        toEmail: contact.email,
+        toName: contact.name,
+        firmName,
+        serviceName,
+        accessToken,
+        documents: items || [],
+      });
+    } else if (purpose === 'new_request' && accessToken) {
+      delivery.email = await contabilNotifications.notifyLeadNewRequest({
+        toEmail: contact.email,
+        toName: contact.name,
+        firmName,
+        serviceName,
+        accessToken,
+        items: items || [],
+      });
+    }
+  }
+
+  if (selected.includes('sms') && contact.phone) {
+    let smsText = '';
+    if (purpose === 'received') {
+      smsText = `${firm} recebeu o seu pedido de ${svc}. Em breve contactamos. Teglion`;
+    } else if (accessUrl) {
+      smsText =
+        purpose === 'checklist'
+          ? `${firm}: envie docs do pedido (${svc}). ${accessUrl}`
+          : `${firm}: precisamos de mais info (${svc}). ${accessUrl}`;
+    }
+    if (smsText) {
+      delivery.sms = await contabilNotifications.notifyClientSms({
+        phone: contact.phone,
+        message: smsText,
+      });
+    }
+  }
+
+  if (selected.includes('whatsapp') && contact.phone) {
+    let waText = '';
+    if (purpose === 'received') {
+      waText = `Olá${contact.name ? ` ${contact.name}` : ''}, o escritório ${firm} confirma que recebeu o seu pedido de ${svc}.`;
+    } else if (accessUrl) {
+      const list = (items || [])
+        .map((i) => i.title || i.tag)
+        .filter(Boolean)
+        .slice(0, 5)
+        .join(', ');
+      waText = list
+        ? `Olá${contact.name ? ` ${contact.name}` : ''}, ${firm} pede: ${list}. Abrir: ${accessUrl}`
+        : `Olá${contact.name ? ` ${contact.name}` : ''}, ${firm} precisa de mais informação sobre ${svc}. Abrir: ${accessUrl}`;
+    }
+    delivery.whatsappUrl = whatsappDeepLink(contact.phone, waText);
+  }
+
+  return delivery;
 }
 
 /**
  * Submissão pública do formulário de um Service (vertical slice IRS — ver
  * especificação da sessão, secção 5). Resolve o Firm pelo slug, resolve
  * identidade (Lead ou Client existente), cria a ServiceInquiry com as
- * respostas e um access_token para o mini-portal, e notifica submissor+equipa.
+ * respostas e um access_token para o mini-portal, e notifica a equipa.
+ * O cliente só é notificado quando a contadora escolhe canais em Solicitações.
  * Nunca revela ao chamador se bateu em Lead novo/existente ou Client.
  */
 async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
@@ -451,7 +688,8 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
 
   let existingInquiry = null;
   let identity = null;
-  const leadToken = payload?.leadAccessToken ? String(payload.leadAccessToken).trim() : '';
+  // Aceita intakeToken (novo) e leadAccessToken (legado FE).
+  const leadToken = String(payload?.intakeToken || payload?.leadAccessToken || '').trim();
   if (leadToken) {
     existingInquiry = await serviceInquiriesRepository.findByAccessToken(leadToken);
     if (
@@ -487,6 +725,16 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
       taxId,
       source: 'PUBLIC_FORM',
       createdBy: null,
+    });
+  }
+
+  // Defesa: se o FE perdeu o token (ex. sanitize accessToken), reutiliza o lead parcial.
+  if (!existingInquiry) {
+    existingInquiry = await serviceInquiriesRepository.findOpenLeadCapture({
+      firmId: firm.id,
+      serviceId: service.id,
+      leadId: identity.type === 'LEAD' ? identity.id : null,
+      clientId: identity.type === 'CLIENT' ? identity.id : null,
     });
   }
 
@@ -527,11 +775,10 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
   }
 
   const requiredDocuments = accountingServicesService.resolveRequiredDocuments(service, answers);
-  // Documentos do serviço ficam como SUGESTÕES para a equipa em Solicitações.
-  // Não materializamos checklist nem pedimos documentos ao cliente na submissão —
-  // a contadora decide o que pedir depois (pedido multi-item + email com link).
+  const { immediate: immediateDocs } = accountingServicesService.splitDocumentsByTiming(requiredDocuments);
   const submittedAt = new Date().toISOString();
-  const initialStatus = 'IN_PROGRESS';
+  // Com documentos immediate → DOCS_REQUESTED; senão IN_PROGRESS.
+  const initialStatus = immediateDocs.length ? 'DOCS_REQUESTED' : 'IN_PROGRESS';
 
   let inquiry;
   if (existingInquiry) {
@@ -539,6 +786,8 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
       answers,
       submittedAt,
       status: initialStatus,
+      // Submissão completa = nova atenção mesmo se a equipa já tinha aberto o lead parcial.
+      staffSeenAt: null,
     });
   } else {
     const accessToken = crypto.randomBytes(32).toString('hex');
@@ -560,13 +809,45 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
     inquiry.consultationId = bookedConsultation.id;
   }
 
+  // Materializa checklist imediata (base + condicionais das respostas) para o portal /pedidos.
+  // Não recria tags/títulos já presentes (ex.: re-submit ou lead parcial).
+  if (immediateDocs.length) {
+    const already = await serviceInquiryRequestsRepository.listByInquiry(inquiry.id, firm.id);
+    const existingKeys = new Set(
+      already.filter((r) => r.kind === 'document').map((r) => documentDedupeKey(r)),
+    );
+    const toCreate = dedupeDocumentRequests(
+      immediateDocs.map((doc) => ({
+        kind: 'document',
+        tag: doc.tag,
+        title: doc.title || doc.tag,
+        instructions: doc.instructions || null,
+      })),
+    ).filter((doc) => !existingKeys.has(documentDedupeKey(doc)));
+
+    if (toCreate.length) {
+      await serviceInquiryRequestsRepository.createMany(
+        toCreate.map((doc) => ({
+          firmId: firm.id,
+          serviceInquiryId: inquiry.id,
+          kind: 'document',
+          tag: doc.tag,
+          title: doc.title,
+          instructions: doc.instructions || null,
+          createdBy: null,
+        })),
+      );
+    }
+  }
+
   const resolvedTagIds = resolveTagIdsFromRules(service.intakeTagRules, answers);
   if (resolvedTagIds.length) {
-    const firmTags = await firmInquiryTagsRepository.listByFirm(firm.id);
-    const allowed = new Set(firmTags.map((t) => t.id));
-    const tagIds = resolvedTagIds.filter((tid) => allowed.has(tid));
+    const tagIds = await firmInquiryTagsRepository.resolveAllowedTagIds(firm.id, resolvedTagIds);
     if (tagIds.length) {
       await firmInquiryTagsRepository.replaceLinksForInquiry(firm.id, inquiry.id, tagIds);
+      if (inquiry.leadId) {
+        await firmInquiryTagsRepository.replaceLinksForLead(firm.id, inquiry.leadId, tagIds);
+      }
     }
   }
 
@@ -581,22 +862,15 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
       serviceId: service.id,
       identityType: identity.type,
       suggestedDocuments: requiredDocuments.length,
+      checklistDocuments: immediateDocs.length,
       booking: Boolean(bookedConsultation),
       paymentRequired: Boolean(service.paymentRequired),
       tagsApplied: resolvedTagIds.length,
     },
   });
 
-  if (email && !checkoutUrl) {
-    void contabilNotifications
-      .notifyLeadIntakeReceived({
-        toEmail: email,
-        toName: name,
-        firmName: firm.name,
-        serviceName: interpolateServiceTemplate(service.name),
-      })
-      .catch(() => {});
-  }
+  // Cliente NÃO é notificado automaticamente (custo + controlo da contadora).
+  // A equipa confirma em Solicitações e escolhe canais (email / SMS / WhatsApp).
   const staffEmail = await resolveStaffNotifyEmail(firm.id, firm);
   if (staffEmail && !checkoutUrl) {
     void contabilNotifications
@@ -627,11 +901,13 @@ async function getByAccessToken(token) {
 
   const service = await accountingServicesRepository.findByIdForFirm(inquiry.serviceId, inquiry.firmId);
   const requests = await serviceInquiryRequestsRepository.listByInquiry(inquiry.id, inquiry.firmId);
+  // Portal: esconde duplicados legados (mesmo documento pedido 2×).
+  const checklist = dedupeDocumentRequests(requests.map(toChecklistItem));
 
   return {
     serviceName: interpolateServiceTemplate(service?.name) || null,
     status: inquiry.status,
-    checklist: requests.map(toChecklistItem),
+    checklist,
   };
 }
 
@@ -664,6 +940,9 @@ async function recordDocumentDelivery({ token, tag, file }) {
   });
 
   await serviceInquiryRequestsRepository.markAnswered(request.id, inquiry.firmId, { documentId: deliveredDoc.id });
+
+  // Nova entrega do cliente → volta a contar no badge até a equipa reabrir.
+  await serviceInquiriesRepository.updateRow(inquiry.id, inquiry.firmId, { staffSeenAt: null });
 
   await auditRepository.writeAuditLog({
     firmId: inquiry.firmId,
@@ -732,6 +1011,8 @@ async function recordTextReply({ token, requestId, textReply }) {
   if (!reply) throw new AppError('Resposta é obrigatória', 400);
 
   await serviceInquiryRequestsRepository.markAnswered(request.id, inquiry.firmId, { textReply: reply });
+
+  await serviceInquiriesRepository.updateRow(inquiry.id, inquiry.firmId, { staffSeenAt: null });
 
   await auditRepository.writeAuditLog({
     firmId: inquiry.firmId,
@@ -881,8 +1162,74 @@ async function confirmConsultation({ firmId, inquiryId, actor }) {
   };
 }
 
+/**
+ * Contadora confirma recepção (ou reenvia checklist) e escolhe canais.
+ * purpose: 'received' | 'checklist'
+ */
+async function notifyClient({ firmId, inquiryId, actor, payload }) {
+  const inquiry = await serviceInquiriesRepository.findByIdForFirm(inquiryId, firmId);
+  if (!inquiry) throw new AppError('Solicitação não encontrada', 404);
+
+  const purpose = String(payload?.purpose || 'received').trim().toLowerCase();
+  if (purpose !== 'received' && purpose !== 'checklist') {
+    throw new AppError('purpose deve ser "received" ou "checklist"', 400);
+  }
+
+  const channels = parseNotifyChannels(payload?.notifyChannels);
+  if (!channels.length) {
+    throw new AppError('Escolha pelo menos um canal (email, sms ou whatsapp)', 400);
+  }
+
+  const contact = await requesterContactForInquiry(inquiry);
+  const [service, firm] = await Promise.all([
+    accountingServicesRepository.findByIdForFirm(inquiry.serviceId, firmId),
+    firmsRepository.findFirmById(firmId).catch(() => null),
+  ]);
+
+  let items = [];
+  if (purpose === 'checklist') {
+    const checklist = await serviceInquiryRequestsRepository.listByInquiry(inquiry.id, firmId);
+    items = checklist
+      .filter((r) => r.kind === 'document' && r.status !== 'ANSWERED' && !r.documentId)
+      .map((r) => ({ title: r.title, tag: r.tag, kind: r.kind }));
+    if (!items.length) {
+      throw new AppError('Não há documentos pendentes para notificar', 400);
+    }
+    if (!inquiry.accessToken) {
+      throw new AppError('Esta solicitação não tem link de acesso ao cliente', 409);
+    }
+  }
+
+  const delivery = await dispatchClientNotify({
+    channels,
+    contact,
+    firmName: firm?.name,
+    serviceName: interpolateServiceTemplate(service?.name),
+    accessToken: inquiry.accessToken,
+    purpose,
+    items,
+  });
+
+  if (purpose === 'received' && inquiry.status === 'NEW') {
+    await serviceInquiriesRepository.updateRow(inquiry.id, firmId, { status: 'CONTACTED' });
+  }
+
+  await auditRepository.writeAuditLog({
+    firmId,
+    actorRole: 'FIRM',
+    actorId: actor?.id,
+    action: 'service_inquiry.client_notified',
+    entityType: 'service_inquiry',
+    entityId: inquiry.id,
+    metadata: { purpose, channels, whatsappUrl: Boolean(delivery.whatsappUrl) },
+  });
+
+  return { ok: true, delivery, contact: { email: Boolean(contact.email), phone: Boolean(contact.phone) } };
+}
+
 module.exports = {
   list,
+  countUnseen,
   getById,
   create,
   update,
@@ -891,6 +1238,7 @@ module.exports = {
   addServiceInquiryRequest,
   addServiceInquiryRequestsBatch,
   confirmConsultation,
+  notifyClient,
   capturePublicLead,
   submitPublicIntake,
   getByAccessToken,

@@ -1,25 +1,19 @@
 /**
  * Middleware Cloudflare Turnstile (Managed) — Siteverify obrigatório.
  * Replay: confiar no Siteverify (tokens single-use / TTL 5 min). Sem Redis.
+ *
+ * Política:
+ * - Com TURNSTILE_SECRET_KEY: token sempre obrigatório (staging + produção).
+ * - Sem secret: fail closed em produção/staging (mustEnforceTurnstile).
+ * - Skip só em test/development local (CI unitário / Mac) — nunca em staging.
+ *
+ * Importa o módulo (não destructuring) para os unit tests poderem mockar
+ * `verifyTurnstileToken` sem rede Cloudflare.
  */
 const { AppError } = require('./error.middleware');
 const { clientIp } = require('../utils/client-ip');
-const {
-  extractTurnstileToken,
-  verifyTurnstileToken,
-} = require('../services/turnstile/turnstile.service');
+const turnstileService = require('../services/turnstile/turnstile.service');
 const { env } = require('../config/env');
-const { logger } = require('../utils/logger');
-
-/** Staging SPA builds often ship without VITE_TURNSTILE_SITE_KEY — do not block UAT. */
-function isStagingFrontendUrl(url) {
-  try {
-    const host = new URL(String(url || '')).hostname.toLowerCase();
-    return host === 'staging.teglion.com' || host === 'www.staging.teglion.com';
-  } catch {
-    return false;
-  }
-}
 
 /**
  * @param {{ action: string }} options
@@ -32,29 +26,20 @@ function requireTurnstile({ action } = {}) {
 
   return async function turnstileMiddleware(req, res, next) {
     try {
-      // Produção sem secret: fail closed (mesmo sem token no body).
-      if (env.isProduction && !env.TURNSTILE_SECRET_KEY) {
-        return next(
-          new AppError('Verificação de segurança indisponível.', 403, {
-            code: 'TURNSTILE_UNAVAILABLE',
-          }, 'TURNSTILE_UNAVAILABLE'),
-        );
-      }
-
-      // Dev/test sem secret: skip (permite CI e local sem widget).
       if (!env.TURNSTILE_SECRET_KEY) {
+        if (turnstileService.mustEnforceTurnstile()) {
+          return next(
+            new AppError('Verificação de segurança indisponível.', 403, {
+              code: 'TURNSTILE_UNAVAILABLE',
+            }, 'TURNSTILE_UNAVAILABLE'),
+          );
+        }
+        // test / development local sem secret: skip controlado.
         return next();
       }
 
-      const token = extractTurnstileToken(req);
-      if (!token && isStagingFrontendUrl(env.FRONTEND_URL)) {
-        logger.warn(
-          '[Turnstile] token ausente — skip em staging (defina VITE_TURNSTILE_SITE_KEY no Vercel staging)',
-        );
-        return next();
-      }
-
-      await verifyTurnstileToken({
+      const token = turnstileService.extractTurnstileToken(req);
+      await turnstileService.verifyTurnstileToken({
         token,
         expectedAction,
         remoteip: clientIp(req),
@@ -74,4 +59,4 @@ function requireTurnstile({ action } = {}) {
   };
 }
 
-module.exports = { requireTurnstile, isStagingFrontendUrl };
+module.exports = { requireTurnstile };

@@ -147,6 +147,20 @@ async function getPublicFirmSite(req, res, next) {
       res.set('X-Robots-Tag', 'noindex');
     }
 
+    // storageKey contém firmId no path — nunca expor no JSON público (só url assinada).
+    const publicImages = {
+      hero: (config.images?.hero || []).map((img) => ({
+        id: img.id || null,
+        alt: img.alt || '',
+        url: img.url || null,
+      })),
+      institutional: (config.images?.institutional || []).map((img) => ({
+        id: img.id || null,
+        alt: img.alt || '',
+        url: img.url || null,
+      })),
+    };
+
     return res.json({
       firmName: resolvePublicFirmName(firm),
       logoUrl,
@@ -154,7 +168,7 @@ async function getPublicFirmSite(req, res, next) {
       templateKey: site.templateKey || 'default',
       seo: config.seo,
       theme: config.theme,
-      images: config.images,
+      images: publicImages,
       socialLinks: config.socialLinks,
       sections: config.sections,
       showPrices: config.showPrices !== false,
@@ -191,7 +205,8 @@ async function getPublicService(req, res, next) {
     let theme = null;
     try {
       const site = await firmPublicSiteService.getSite(firm.id);
-      const config = site.published || site.draft;
+      // Nunca servir draft sem preview token — só published ou legado settings.
+      const config = site.published || firmPublicSiteService.buildConfigFromLegacySettings(firm);
       showPrices = config?.showPrices !== false;
       termsText = config?.termsText || null;
       privacyText = config?.privacyText || null;
@@ -264,14 +279,16 @@ async function captureLead(req, res, next) {
   try {
     assertValid(req);
     if (req.body?.website) {
-      return res.status(201).json({ ok: true, accessToken: 'honeypot' });
+      // `intakeToken` (não accessToken): response-sanitize remove accessToken e
+      // partia o fluxo lead→submit, criando solicitações duplicadas.
+      return res.status(201).json({ ok: true, intakeToken: 'honeypot' });
     }
     const { accessToken } = await serviceInquiriesService.capturePublicLead({
       firmSlug: String(req.params.firmSlug || '').trim(),
       serviceSlug: String(req.params.serviceSlug || '').trim(),
       payload: req.body || {},
     });
-    return res.status(201).json({ ok: true, accessToken });
+    return res.status(201).json({ ok: true, intakeToken: accessToken });
   } catch (err) {
     return next(err);
   }
@@ -300,7 +317,8 @@ async function submitIntake(req, res, next) {
     });
     return res.status(201).json({
       ok: true,
-      accessToken: inquiry.accessToken,
+      // Token opaco do portal público — NÃO usar a chave `accessToken` (sanitize).
+      intakeToken: inquiry.accessToken,
       documentsRequired: requiredDocuments.length,
       bookingConfirmed: Boolean(consultation) && consultation.status === 'SCHEDULED',
       bookingPendingPayment: Boolean(consultation) && consultation.status === 'PENDING_PAYMENT',

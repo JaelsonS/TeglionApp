@@ -89,17 +89,18 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
           <p className="text-xs text-muted-foreground">Nome interno / legal — usado na app e na facturação.</p>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="firm-public-display-name">Nome na página pública (redes)</Label>
+          <Label htmlFor="firm-public-display-name">Nome na barra do topo (página pública)</Label>
           <Input
             id="firm-public-display-name"
             value={publicDisplayName}
             onChange={(e: FormChangeEvent) => setPublicDisplayName(e.target.value)}
             disabled={!canEdit || saving}
-            placeholder={name.trim() || 'Como aparece no site e redes'}
+            placeholder={name.trim() || 'Como aparece na barra do site'}
             maxLength={120}
           />
           <p className="text-xs text-muted-foreground">
-            Se ficar vazio, a página pública usa o nome do escritório acima.
+            Texto da barra superior do site público. O título grande abaixo da foto edita-se em Definições → Página
+            pública → Destaque principal. Se vazio, usa o nome do escritório acima.
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">

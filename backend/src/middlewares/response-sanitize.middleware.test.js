@@ -21,3 +21,13 @@ test('stripSensitiveValue remove password e hashes', () => {
   assert.equal(out.items[0].refreshToken, undefined);
   assert.equal(out.items[0].name, 'ok');
 });
+
+test('stripSensitiveValue remove accessToken JWT mas preserva intakeToken do portal', () => {
+  const out = stripSensitiveValue({
+    ok: true,
+    accessToken: 'jwt-must-go',
+    intakeToken: 'portal-opaque-ok',
+  });
+  assert.equal(out.accessToken, undefined);
+  assert.equal(out.intakeToken, 'portal-opaque-ok');
+});

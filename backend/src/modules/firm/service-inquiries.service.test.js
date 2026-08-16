@@ -19,7 +19,12 @@ function resetMocks() {
   mock.restoreAll();
   mock.method(firmInquiryTagsRepository, 'listLinksForInquiries', async () => []);
   mock.method(firmInquiryTagsRepository, 'listByFirm', async () => []);
+  mock.method(firmInquiryTagsRepository, 'resolveAllowedTagIds', async (_firmId, tagIds) =>
+    [...new Set((tagIds || []).map(String))],
+  );
   mock.method(firmInquiryTagsRepository, 'replaceLinksForInquiry', async () => []);
+  mock.method(firmInquiryTagsRepository, 'replaceLinksForLead', async () => []);
+  mock.method(serviceInquiryRequestsRepository, 'listByInquiry', async () => []);
 }
 
 function mockAudit() {
@@ -29,7 +34,11 @@ function mockAudit() {
 function mockTags() {
   mock.method(firmInquiryTagsRepository, 'listLinksForInquiries', async () => []);
   mock.method(firmInquiryTagsRepository, 'listByFirm', async () => []);
+  mock.method(firmInquiryTagsRepository, 'resolveAllowedTagIds', async (_firmId, tagIds) =>
+    [...new Set((tagIds || []).map(String))],
+  );
   mock.method(firmInquiryTagsRepository, 'replaceLinksForInquiry', async () => []);
+  mock.method(firmInquiryTagsRepository, 'replaceLinksForLead', async () => []);
 }
 
 test('create: rejeita quando nem leadId nem clientId são indicados', async () => {
@@ -241,6 +250,7 @@ test('getById: monta o checklist a partir de service_inquiry_requests (não reca
     clientId: null,
     status: 'DOCS_REQUESTED',
     answers: { q1: 'sim' },
+    staffSeenAt: '2026-01-01T00:00:00.000Z',
   }));
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({ id: 'service-1', name: 'IRS 2026' }));
   mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana' }));
@@ -298,6 +308,7 @@ test('getById: sugere documentos "manual" activados pelas respostas mas ainda n�
     clientId: null,
     status: 'IN_PROGRESS',
     answers: { casado: 'sim' },
+    staffSeenAt: '2026-01-01T00:00:00.000Z',
   }));
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
     id: 'service-1',
@@ -330,6 +341,7 @@ test('getById: documento "manual" já pedido (existe no checklist) deixa de ser 
     clientId: null,
     status: 'IN_PROGRESS',
     answers: { casado: 'sim' },
+    staffSeenAt: '2026-01-01T00:00:00.000Z',
   }));
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
     id: 'service-1',
@@ -488,7 +500,7 @@ test('addServiceInquiryRequest: tag explícita (aceitar sugestão) é preservada
   assert.equal(created.tag, 'certidao_casamento');
 });
 
-test('addServiceInquiryRequest: audita e notifica o submissor quando há email, reaproveitando o mesmo token', async () => {
+test('addServiceInquiryRequest: audita e não notifica sem notifyChannels', async () => {
   resetMocks();
   mock.method(auditRepository, 'writeAuditLog', async () => {});
   mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
@@ -507,9 +519,9 @@ test('addServiceInquiryRequest: audita e notifica o submissor quando há email, 
     rows.map((args, i) => ({ id: `req-${i + 1}`, ...args, status: 'PENDING' })),
   );
 
-  let notifyArgs = null;
-  mock.method(contabilNotifications, 'notifyLeadNewRequest', async (args) => {
-    notifyArgs = args;
+  let notifyCalled = false;
+  mock.method(contabilNotifications, 'notifyLeadNewRequest', async () => {
+    notifyCalled = true;
     return { ok: true };
   });
 
@@ -521,12 +533,48 @@ test('addServiceInquiryRequest: audita e notifica o submissor quando há email, 
   });
 
   await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(notifyCalled, false);
+});
+
+test('addServiceInquiryRequest: notifica quando notifyChannels inclui email', async () => {
+  resetMocks();
+  mock.method(auditRepository, 'writeAuditLog', async () => {});
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM_ID,
+    serviceId: 'service-1',
+    status: 'IN_PROGRESS',
+    leadId: 'lead-1',
+    clientId: null,
+    accessToken: 'b'.repeat(64),
+  }));
+  mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana', email: 'ana@x.com', phone: null }));
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({ id: 'service-1', name: 'IRS 2026' }));
+  mock.method(firmsRepository, 'findFirmById', async () => ({ id: FIRM_ID, name: 'Escritório X' }));
+  mock.method(serviceInquiryRequestsRepository, 'createMany', async (rows) =>
+    rows.map((args, i) => ({ id: `req-${i + 1}`, ...args, status: 'PENDING' })),
+  );
+
+  let notifyArgs = null;
+  mock.method(contabilNotifications, 'notifyLeadNewRequest', async (args) => {
+    notifyArgs = args;
+    return { ok: true };
+  });
+
+  await serviceInquiriesService.addServiceInquiryRequest({
+    firmId: FIRM_ID,
+    inquiryId: 'inquiry-1',
+    actor: { id: 'staff-1' },
+    payload: { kind: 'question', title: 'Tem dependentes a cargo?', notifyChannels: ['email'] },
+  });
+
+  await new Promise((resolve) => setImmediate(resolve));
   assert.equal(notifyArgs.toEmail, 'ana@x.com');
   assert.equal(notifyArgs.accessToken, 'b'.repeat(64));
   assert.equal(notifyArgs.items?.[0]?.title, 'Tem dependentes a cargo?');
 });
 
-test('addServiceInquiryRequestsBatch: cria vários itens e notifica uma vez', async () => {
+test('addServiceInquiryRequestsBatch: cria vários itens e notifica só com canais', async () => {
   resetMocks();
   mockAudit();
   mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
@@ -557,6 +605,7 @@ test('addServiceInquiryRequestsBatch: cria vários itens e notifica uma vez', as
     inquiryId: 'inquiry-1',
     actor: { id: 'staff-1' },
     payload: {
+      notifyChannels: ['email'],
       items: [
         { kind: 'document', title: 'Certidão de casamento', tag: 'certidao' },
         { kind: 'question', title: 'NIF do cônjuge?' },
@@ -566,8 +615,8 @@ test('addServiceInquiryRequestsBatch: cria vários itens e notifica uma vez', as
 
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(result.requests.length, 2);
-  assert.equal(notifyArgs.items.length, 2);
-  assert.equal(notifyArgs.items[0].title, 'Certidão de casamento');
+  assert.equal(notifyArgs.toEmail, 'ana@x.com');
+  assert.equal(notifyArgs.items?.length, 2);
 });
 
 test('remove: solicitação inexistente devolve 404, nunca chega a chamar deleteRow', async () => {
@@ -609,4 +658,74 @@ test('remove: caminho feliz — apaga e regista auditoria', async () => {
   assert.deepEqual(deletedArgs, { id: 'inquiry-1', firmId: FIRM_ID });
   assert.equal(auditArgs.action, 'service_inquiry.deleted');
   assert.equal(auditArgs.entityId, 'inquiry-1');
+});
+
+test('remove: cancela consulta ligada activa antes de apagar a solicitação', async () => {
+  resetMocks();
+  mockAudit();
+  const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
+  const consultationsService = require('../consultations/consultations.service');
+
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
+    id: 'inquiry-1',
+    status: 'NEW',
+    serviceId: 'service-1',
+    consultationId: 'c-1',
+  }));
+  mock.method(serviceInquiriesRepository, 'deleteRow', async () => {});
+  mock.method(consultationsRepository, 'findByIdForFirm', async () => ({
+    id: 'c-1',
+    status: 'SCHEDULED',
+    firmId: FIRM_ID,
+  }));
+  let cancelPatch = null;
+  mock.method(consultationsService, 'updateConsultation', async ({ id, patch }) => {
+    cancelPatch = { id, patch };
+    return { consultation: { id, ...patch } };
+  });
+
+  await serviceInquiriesService.remove({ firmId: FIRM_ID, id: 'inquiry-1', actor: { id: 'staff-1' } });
+
+  assert.equal(cancelPatch.id, 'c-1');
+  assert.equal(cancelPatch.patch.status, 'CANCELLED');
+  assert.equal(cancelPatch.patch.cancelReason, 'service_inquiry_deleted');
+});
+
+test('update: CANCELLED cancela consulta ligada activa', async () => {
+  resetMocks();
+  mockAudit();
+  mockTags();
+  const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
+  const consultationsService = require('../consultations/consultations.service');
+
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
+    id: 'inquiry-1',
+    status: 'IN_PROGRESS',
+    consultationId: 'c-2',
+  }));
+  mock.method(serviceInquiriesRepository, 'updateRow', async (_id, _firmId, patch) => ({
+    id: 'inquiry-1',
+    status: patch.status,
+    consultationId: 'c-2',
+  }));
+  mock.method(consultationsRepository, 'findByIdForFirm', async () => ({
+    id: 'c-2',
+    status: 'PENDING_PAYMENT',
+  }));
+  let cancelPatch = null;
+  mock.method(consultationsService, 'updateConsultation', async ({ id, patch }) => {
+    cancelPatch = { id, patch };
+    return { consultation: { id, ...patch } };
+  });
+
+  await serviceInquiriesService.update({
+    firmId: FIRM_ID,
+    id: 'inquiry-1',
+    actor: { id: 'staff-1' },
+    payload: { status: 'CANCELLED' },
+  });
+
+  assert.equal(cancelPatch.id, 'c-2');
+  assert.equal(cancelPatch.patch.status, 'CANCELLED');
+  assert.equal(cancelPatch.patch.cancelReason, 'service_inquiry_cancelled');
 });

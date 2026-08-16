@@ -3,6 +3,7 @@ const { AppError } = require('../../middlewares/error.middleware');
 const { mapDbError } = require('../../utils/db-error');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-catalog');
+const { titleForTag } = require('../../data/irs-modelo3-intake');
 const { BOOKING_TIMEZONES } = require('../booking/booking.service');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
 
@@ -156,7 +157,16 @@ function normalizeBookingOverrides(value) {
 }
 
 const INTAKE_QUESTION_TYPES = new Set([
-  'text', 'email', 'phone', 'tax_id', 'date', 'single_choice', 'multiple_choice', 'yes_no',
+  'text',
+  'short_text',
+  'long_text',
+  'email',
+  'phone',
+  'tax_id',
+  'date',
+  'single_choice',
+  'multiple_choice',
+  'yes_no',
 ]);
 const CHOICE_TYPES = new Set(['single_choice', 'multiple_choice', 'yes_no']);
 
@@ -240,7 +250,27 @@ function normalizeIntakeForm(value) {
     const anexos = Array.isArray(value.irsConfig.anexos)
       ? [...new Set(value.irsConfig.anexos.map((a) => String(a).toUpperCase()).filter((a) => ALLOWED_ANEXOS.has(a)))]
       : [];
-    irsConfig = { taxYear, anexos };
+    const anexoLabels = {};
+    const rawLabels = value.irsConfig.anexoLabels;
+    if (rawLabels && typeof rawLabels === 'object') {
+      for (const id of ALLOWED_ANEXOS) {
+        const entry = rawLabels[id] ?? rawLabels[String(id).toLowerCase()];
+        if (!entry || typeof entry !== 'object') continue;
+        const title = entry.title != null ? String(entry.title).trim().slice(0, 80) : '';
+        const subtitle = entry.subtitle != null ? String(entry.subtitle).trim().slice(0, 160) : '';
+        if (title || subtitle) {
+          anexoLabels[id] = {
+            ...(title ? { title } : {}),
+            ...(subtitle ? { subtitle } : {}),
+          };
+        }
+      }
+    }
+    irsConfig = {
+      taxYear,
+      anexos,
+      ...(Object.keys(anexoLabels).length ? { anexoLabels } : {}),
+    };
   }
 
   // Aspecto da página pública do serviço (ex.: mostrar o logótipo do
@@ -275,7 +305,12 @@ function resolveRequiredDocuments(service, answers) {
       if (!chosenIds.includes(option.id)) continue;
       for (const tag of option.documentTags || []) {
         if (!conditionalByTag.has(tag)) {
-          conditionalByTag.set(tag, { tag, title: tag, instructions: null, timing: 'immediate' });
+          conditionalByTag.set(tag, {
+            tag,
+            title: titleForTag(tag),
+            instructions: null,
+            timing: 'immediate',
+          });
         }
       }
     }

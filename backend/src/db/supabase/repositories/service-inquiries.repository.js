@@ -38,10 +38,11 @@ function map(row) {
     createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    staffSeenAt: row.staff_seen_at || null,
   };
 }
 
-async function listByFirm(firmId, { status, serviceId, limit = 200, offset = 0 } = {}) {
+async function listByFirm(firmId, { status, serviceId, leadId, limit = 200, offset = 0 } = {}) {
   const sb = getSupabaseAdmin();
   let q = sb
     .from('service_inquiries')
@@ -51,6 +52,7 @@ async function listByFirm(firmId, { status, serviceId, limit = 200, offset = 0 }
     .range(offset, offset + limit - 1);
   if (status) q = q.eq('status', status);
   if (serviceId) q = q.eq('service_id', serviceId);
+  if (leadId) q = q.eq('lead_id', leadId);
   const { data, error } = await q;
   if (error) throw error;
   return (data || []).map(map);
@@ -129,6 +131,29 @@ async function findByAccessToken(token) {
   return isAccessTokenActive(inquiry) ? inquiry : null;
 }
 
+/**
+ * Lead parcial aberto (LEAD_CAPTURED) do mesmo contacto + serviço —
+ * usado se o submit chega sem intakeToken (ex. sanitize antigo).
+ */
+async function findOpenLeadCapture({ firmId, serviceId, leadId, clientId }) {
+  if (!firmId || !serviceId) return null;
+  if (!leadId && !clientId) return null;
+  const sb = getSupabaseAdmin();
+  let q = sb
+    .from('service_inquiries')
+    .select('*')
+    .eq('firm_id', firmId)
+    .eq('service_id', serviceId)
+    .eq('status', 'LEAD_CAPTURED')
+    .order('created_at', { ascending: false })
+    .limit(1);
+  if (leadId) q = q.eq('lead_id', leadId);
+  else q = q.eq('client_id', clientId);
+  const { data, error } = await q.maybeSingle();
+  if (error) throw error;
+  return map(data);
+}
+
 async function updateRow(id, firmId, patch) {
   const sb = getSupabaseAdmin();
   const row = { updated_at: new Date().toISOString() };
@@ -139,6 +164,7 @@ async function updateRow(id, firmId, patch) {
   if (patch.accessTokenExpiresAt !== undefined) row.access_token_expires_at = patch.accessTokenExpiresAt || null;
   if (patch.accessTokenRevokedAt !== undefined) row.access_token_revoked_at = patch.accessTokenRevokedAt || null;
   if (patch.submittedAt !== undefined) row.submitted_at = patch.submittedAt || null;
+  if (patch.staffSeenAt !== undefined) row.staff_seen_at = patch.staffSeenAt || null;
   if (patch.answers !== undefined) {
     row.answers_enc = encryptAnswers(patch.answers);
     row.answers = null;
@@ -161,6 +187,19 @@ async function deleteRow(id, firmId) {
   if (error) throw error;
 }
 
+/** Solicitações activas ainda não abertas pela equipa (badge Solicitações). */
+async function countUnseenByFirm(firmId) {
+  const sb = getSupabaseAdmin();
+  const { count, error } = await sb
+    .from('service_inquiries')
+    .select('id', { count: 'exact', head: true })
+    .eq('firm_id', firmId)
+    .is('staff_seen_at', null)
+    .not('status', 'in', '(COMPLETED,CANCELLED)');
+  if (error) throw error;
+  return Number(count || 0);
+}
+
 /** Repontar todas as ServiceInquiries de um Lead para o Client resultante da conversão (secção 3.2 da spec). */
 async function reassignLeadToClient(firmId, leadId, clientId) {
   const sb = getSupabaseAdmin();
@@ -178,12 +217,14 @@ module.exports = {
   listByFirm,
   findByIdForFirm,
   findByAccessToken,
+  findOpenLeadCapture,
   isAccessTokenActive,
   encryptAnswers,
   decryptAnswers,
   createRow,
   updateRow,
   deleteRow,
+  countUnseenByFirm,
   reassignLeadToClient,
   map,
 };

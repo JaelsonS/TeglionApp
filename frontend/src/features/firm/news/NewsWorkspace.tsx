@@ -270,6 +270,7 @@ export function NewsWorkspace() {
         title="Eliminar notícia?"
         description="Esta acção não pode ser anulada. O artigo deixa de aparecer no portal do cliente."
         confirmLabel="Eliminar"
+        variant="destructive"
         testId="firm-news-delete"
         onConfirm={async () => {
           await confirmDelete()

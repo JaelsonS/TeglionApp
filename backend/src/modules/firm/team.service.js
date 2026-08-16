@@ -1,6 +1,7 @@
 const { AppError } = require('../../middlewares/error.middleware');
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
 const departmentsRepository = require('../../db/supabase/repositories/departments.repository');
+const firmInquiryTagsRepository = require('../../db/supabase/repositories/firm-inquiry-tags.repository');
 const securityAudit = require('../../services/audit/security-audit.service');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const authRefreshSessionsRepository = require('../../db/supabase/repositories/auth-refresh-sessions.repository');
@@ -74,13 +75,24 @@ async function assertDepartmentBelongsToFirm(firmId, departmentId) {
     return dep;
 }
 
+async function attachTagsToMembers(firmId, members) {
+    if (!members?.length) return members || [];
+    const ids = members.map((m) => m.id);
+    const linkRows = await firmInquiryTagsRepository.listLinksForFirmUsers(firmId, ids);
+    const tagsByUser = firmInquiryTagsRepository.mapLinkRowsToTagsByKey(linkRows, 'firm_user_id');
+    return members.map((m) => ({
+        ...m,
+        tags: tagsByUser.get(m.id) || [],
+    }));
+}
+
 async function listMembers(firmId) {
     const [members, departments] = await Promise.all([
         firmUsersRepository.listFirmUsers(firmId, { activeOnly: false }),
         departmentsRepository.listDepartments(firmId, { activeOnly: false }),
     ]);
     const depMap = new Map(departments.map((d) => [String(d.id), d]));
-    return members.map((m) => {
+    const withDept = members.map((m) => {
         const department = m.departmentId ? depMap.get(String(m.departmentId)) || null : null;
         return {
             ...m,
@@ -88,6 +100,7 @@ async function listMembers(firmId) {
             departmentName: department?.name || null,
         };
     });
+    return attachTagsToMembers(firmId, withDept);
 }
 
 async function getMember(firmId, memberId) {
@@ -97,11 +110,14 @@ async function getMember(firmId, memberId) {
     if (member.departmentId) {
         department = await departmentsRepository.findDepartmentById(firmId, member.departmentId);
     }
-    return {
-        ...member,
-        department,
-        departmentName: department?.name || null,
-    };
+    const [withTags] = await attachTagsToMembers(firmId, [
+        {
+            ...member,
+            department,
+            departmentName: department?.name || null,
+        },
+    ]);
+    return withTags;
 }
 
 async function createMember({ firmId, actor, payload, req }) {
@@ -224,25 +240,35 @@ async function updateMember({ firmId, memberId, actor, payload, req }) {
         patch.departmentId = departmentId;
     }
 
-    if (Object.keys(patch).length === 0) {
+    if (Object.keys(patch).length === 0 && !Array.isArray(payload.tagIds)) {
         return getMember(firmId, memberId);
     }
 
-    const updated = await firmUsersRepository.updateFirmMember(firmId, memberId, patch);
+    const updated =
+        Object.keys(patch).length > 0
+            ? await firmUsersRepository.updateFirmMember(firmId, memberId, patch)
+            : current;
 
-    await securityAudit.recordTeamMutation({
-        action: 'team.member.updated',
-        actor,
-        firmId,
-        targetUserId: updated.id,
-        metadata: {
-            changedFields: Object.keys(patch),
-            role: updated.role,
-            jobTitle: updated.jobTitle,
-            departmentId: updated.departmentId,
-        },
-        req,
-    });
+    if (Array.isArray(payload.tagIds)) {
+        const tagIds = await firmInquiryTagsRepository.resolveAllowedTagIds(firmId, payload.tagIds);
+        await firmInquiryTagsRepository.replaceLinksForFirmUser(firmId, memberId, tagIds);
+    }
+
+    if (Object.keys(patch).length > 0) {
+        await securityAudit.recordTeamMutation({
+            action: 'team.member.updated',
+            actor,
+            firmId,
+            targetUserId: updated.id,
+            metadata: {
+                changedFields: Object.keys(patch),
+                role: updated.role,
+                jobTitle: updated.jobTitle,
+                departmentId: updated.departmentId,
+            },
+            req,
+        });
+    }
 
     return getMember(firmId, updated.id);
 }

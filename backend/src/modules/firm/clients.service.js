@@ -1,5 +1,6 @@
 const { AppError } = require('../../middlewares/error.middleware');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
+const firmInquiryTagsRepository = require('../../db/supabase/repositories/firm-inquiry-tags.repository');
 const { getSupabaseAdmin } = require('../../db/supabase/client');
 const activityService = require('../../services/activity/activity.service');
 const clientHubService = require('./client-hub.service');
@@ -114,10 +115,12 @@ async function listClients({ firmId, page = 1, limit = 50, includeInactive = fal
 
   const now = new Date();
   const clientIds = items.map((c) => c.id);
-  const { obligationsByClient, taskCountByClient, pendingDocsByClient } = await fetchListEnrichment(
-    firmId,
-    clientIds
-  );
+  const [{ obligationsByClient, taskCountByClient, pendingDocsByClient }, tagLinkRows] =
+    await Promise.all([
+      fetchListEnrichment(firmId, clientIds),
+      firmInquiryTagsRepository.listLinksForClients(firmId, clientIds),
+    ]);
+  const tagsByClient = firmInquiryTagsRepository.mapLinkRowsToTagsByKey(tagLinkRows, 'client_id');
 
   const enriched = items.map((c) => {
     const rawObs = obligationsByClient.get(c.id) || [];
@@ -135,6 +138,7 @@ async function listClients({ firmId, page = 1, limit = 50, includeInactive = fal
 
     return {
       ...c,
+      tags: tagsByClient.get(c.id) || [],
       operationalStatus: operationalStatus(obs, now),
       pendingDocuments: pendingDocsByClient.get(c.id) || 0,
       openTasks: taskCountByClient.get(c.id) || 0,
@@ -225,9 +229,13 @@ async function createClient({ firmId, displayName, email, phone, taxId, metadata
 async function getClient({ firmId, clientId }) {
   const client = await clientsRepository.findClientById(firmId, clientId);
   if (!client) throw new AppError('Cliente não encontrado', 404);
+  const tagLinkRows = await firmInquiryTagsRepository.listLinksForClients(firmId, [clientId]);
+  const tags =
+    firmInquiryTagsRepository.mapLinkRowsToTagsByKey(tagLinkRows, 'client_id').get(clientId) || [];
   return {
     client: {
       ...client,
+      tags,
       fiscalProfile: resolveFiscalProfile(client.metadata),
     },
   };
@@ -289,7 +297,19 @@ async function updateClient({ firmId, clientId, patch, actor }) {
     throw new AppError('Nome da empresa é obrigatório', 400);
   }
 
-  const client = await clientsRepository.updateClient(clientId, firmId, repoPatch);
+  const client =
+    Object.keys(repoPatch).length > 0
+      ? await clientsRepository.updateClient(clientId, firmId, repoPatch)
+      : existing;
+
+  if (Array.isArray(patch.tagIds)) {
+    const tagIds = await firmInquiryTagsRepository.resolveAllowedTagIds(firmId, patch.tagIds);
+    await firmInquiryTagsRepository.replaceLinksForClient(firmId, clientId, tagIds);
+  }
+
+  const tagLinkRows = await firmInquiryTagsRepository.listLinksForClients(firmId, [clientId]);
+  const tags =
+    firmInquiryTagsRepository.mapLinkRowsToTagsByKey(tagLinkRows, 'client_id').get(clientId) || [];
 
   const metaChanges = metadataPatch
     ? diffMetadata(existing.metadata, client.metadata)
@@ -328,6 +348,7 @@ async function updateClient({ firmId, clientId, patch, actor }) {
   return {
     client: {
       ...client,
+      tags,
       fiscalProfile: resolveFiscalProfile(client.metadata),
     },
     changes: allChanges,
