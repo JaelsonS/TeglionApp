@@ -431,8 +431,18 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
           </div>
 
           <div className="grid items-start gap-4 lg:grid-cols-2">
-            {/* Anexos — sticky em xl+ com scroll interno (lista longa não fica cortada) */}
-            <section className="flex max-h-none flex-col overflow-hidden rounded-2xl border border-brand/15 bg-card shadow-sm xl:sticky xl:top-0 xl:z-[1] xl:max-h-[calc(100dvh-10rem)] xl:self-start">
+            {/*
+              Anexos: scroll interno em todos os viewports (lista + tip).
+              Sticky só em xl+, com max-h abaixo da altura do dialog para não cortar IRS Jovem.
+            */}
+            <section
+              className={cn(
+                'flex flex-col overflow-hidden rounded-2xl border border-brand/15 bg-card shadow-sm',
+                'max-h-[min(24rem,55dvh)]',
+                'md:max-h-[min(28rem,60dvh)]',
+                'xl:sticky xl:top-2 xl:z-[1] xl:max-h-[min(36rem,calc(92dvh-13rem))] xl:self-start',
+              )}
+            >
               <div className="shrink-0 border-b border-brand/10 bg-brand/[0.04] px-4 py-3">
                 <h3 className="text-base font-semibold text-foreground">Anexos</h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">
@@ -440,49 +450,51 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
                   livres.
                 </p>
               </div>
-              <ul className="min-h-0 flex-1 divide-y divide-border/40 overflow-y-auto overscroll-contain">
-                {ANEXOS.map(({ id, title, subtitle, Icon }) => {
-                  const on = anexos.includes(id)
-                  const custom = anexoLabels[id]
-                  const titleValue = custom?.title ?? title
-                  const subtitleValue = custom?.subtitle ?? subtitle
-                  return (
-                    <li key={id} className="flex items-start gap-3 px-4 py-3">
-                      <span
-                        className={cn(
-                          'mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
-                          on ? 'bg-brand text-primary-foreground' : 'bg-muted text-muted-foreground',
-                        )}
-                      >
-                        <Icon className="h-4 w-4" />
-                      </span>
-                      <div className="min-w-0 flex-1 space-y-1.5">
-                        <Input
-                          value={titleValue}
-                          onChange={(e: FormChangeEvent) => patchAnexoLabel(id, { title: e.target.value })}
-                          placeholder={title}
-                          className="h-8 text-sm font-semibold"
-                          aria-label={`Nome do ${title}`}
-                        />
-                        <Input
-                          value={subtitleValue}
-                          onChange={(e: FormChangeEvent) => patchAnexoLabel(id, { subtitle: e.target.value })}
-                          placeholder={subtitle}
-                          className="h-8 text-xs"
-                          aria-label={`Descrição do ${title}`}
-                        />
-                      </div>
-                      <Toggle checked={on} onChange={() => toggleAnexo(id)} label={titleValue || title} />
-                    </li>
-                  )
-                })}
-              </ul>
-              <div className="m-3 mt-0 flex shrink-0 gap-2 rounded-xl border border-sky-200/80 bg-sky-50 px-3 py-2.5 text-xs text-sky-950">
-                <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" />
-                <p>
-                  Os anexos podem ser ajustados mais tarde. Poderá adicionar ou remover anexos a qualquer
-                  momento.
-                </p>
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]">
+                <ul className="divide-y divide-border/40">
+                  {ANEXOS.map(({ id, title, subtitle, Icon }) => {
+                    const on = anexos.includes(id)
+                    const custom = anexoLabels[id]
+                    const titleValue = custom?.title ?? title
+                    const subtitleValue = custom?.subtitle ?? subtitle
+                    return (
+                      <li key={id} className="flex items-start gap-3 px-4 py-3">
+                        <span
+                          className={cn(
+                            'mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
+                            on ? 'bg-brand text-primary-foreground' : 'bg-muted text-muted-foreground',
+                          )}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <div className="min-w-0 flex-1 space-y-1.5">
+                          <Input
+                            value={titleValue}
+                            onChange={(e: FormChangeEvent) => patchAnexoLabel(id, { title: e.target.value })}
+                            placeholder={title}
+                            className="h-8 text-sm font-semibold"
+                            aria-label={`Nome do ${title}`}
+                          />
+                          <Input
+                            value={subtitleValue}
+                            onChange={(e: FormChangeEvent) => patchAnexoLabel(id, { subtitle: e.target.value })}
+                            placeholder={subtitle}
+                            className="h-8 text-xs"
+                            aria-label={`Descrição do ${title}`}
+                          />
+                        </div>
+                        <Toggle checked={on} onChange={() => toggleAnexo(id)} label={titleValue || title} />
+                      </li>
+                    )
+                  })}
+                </ul>
+                <div className="m-3 flex gap-2 rounded-xl border border-sky-200/80 bg-sky-50 px-3 py-2.5 text-xs text-sky-950">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" />
+                  <p>
+                    Os anexos podem ser ajustados mais tarde. Poderá adicionar ou remover anexos a qualquer
+                    momento.
+                  </p>
+                </div>
               </div>
             </section>
 
