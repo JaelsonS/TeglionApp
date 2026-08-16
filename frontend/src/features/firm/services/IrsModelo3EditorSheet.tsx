@@ -379,17 +379,8 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
 
         <div className="shrink-0 border-b border-brand/15 bg-gradient-to-r from-brand/[0.08] via-sky-500/[0.06] to-transparent px-5 py-4 pr-12">
           <p className="text-xs font-semibold uppercase tracking-wide text-brand/80">Serviços › IRS</p>
-          <label className="mt-2 block space-y-1">
-            <span className="sr-only">Nome do serviço</span>
-            <Input
-              value={name}
-              onChange={(e: FormChangeEvent) => setName(e.target.value)}
-              className="h-auto rounded-xl border-brand/20 bg-card/80 px-3 py-2 text-xl font-semibold tracking-tight text-foreground shadow-none focus-visible:ring-brand/30"
-              placeholder="Declaração IRS Modelo 3"
-              aria-label="Nome do serviço"
-            />
-          </label>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <h2 className="mt-1 text-xl font-semibold tracking-tight text-foreground">{displayTitle}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             Anexos, perguntas e pagamento — o ano fiscal é definido pelo escritório. Para banner, logótipo,
             publicação completa e apagar, use <span className="font-medium text-foreground">Editar</span> na
             lista IRS.
