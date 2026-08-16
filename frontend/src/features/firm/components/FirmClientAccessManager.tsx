@@ -113,6 +113,7 @@ export function FirmClientAccessManager({
           title="Revogar acesso ao Teglion?"
           description="Este cliente perderá o acesso atual ao Teglion. Os dados, documentos, histórico, agendamentos, mensagens e demais informações permanecerão preservados. Pode gerar um novo convite a qualquer momento."
           confirmLabel="Revogar acesso"
+          variant="destructive"
           onConfirm={handleRevoke}
         />
       </>

@@ -25,6 +25,11 @@ import { FirmEntityTagsEditor } from '@/features/firm/tags/FirmEntityTagsEditor'
 import { FirmTagBadge } from '@/features/firm/tags/FirmTagBadge'
 import { FirmTagsManager } from '@/features/firm/tags/FirmTagsManager'
 import { tagTextColor } from '@/features/firm/tags/firmTagUtils'
+import {
+  NotifyClientChannelsDialog,
+  type NotifyChannel,
+} from '@/features/firm/services/NotifyClientChannelsDialog'
+import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 import type { AccountingService, IntakeQuestion } from '@/shared/types/contabil'
@@ -53,6 +58,7 @@ const HISTORY_ACTION_LABELS: Record<string, string> = {
   'service_inquiry.document_delivered': 'Documento recebido',
   'service_inquiry.request_answered': 'Resposta recebida do cliente',
   'service_inquiry.consultation_confirmed': 'Agendamento confirmado e cliente notificado',
+  'service_inquiry.client_notified': 'Cliente notificado pela equipa',
   'service_inquiry.deleted': 'Solicitação apagada',
 }
 
@@ -99,6 +105,9 @@ export function ServiceInquiriesWorkspace() {
   const [tagsOpen, setTagsOpen] = useState(false)
   const [savingInquiryTags, setSavingInquiryTags] = useState(false)
   const [confirmingBooking, setConfirmingBooking] = useState(false)
+  const [notifyDialog, setNotifyDialog] = useState<null | 'received' | 'docs'>(null)
+  const [notifyingClient, setNotifyingClient] = useState(false)
+  const [confirmAction, setConfirmAction] = useState<null | 'revoke' | 'delete'>(null)
 
   useEffect(() => {
     setDraftItems([])
@@ -193,16 +202,10 @@ export function ServiceInquiriesWorkspace() {
 
   const revokeToken = async () => {
     if (!selectedId) return
-    if (
-      !window.confirm(
-        'Revogar o link do cliente? Esta ação não pode ser desfeita — o cliente deixa de conseguir aceder à solicitação por esse link.',
-      )
-    ) {
-      return
-    }
     try {
       await contabilServiceInquiriesApi.revokeToken(selectedId)
       toast.success('Link revogado')
+      setConfirmAction(null)
       await invalidateLists()
     } catch (err) {
       toast.error('Erro ao revogar link', { description: getErrorMessage(err) })
@@ -211,11 +214,11 @@ export function ServiceInquiriesWorkspace() {
 
   const deleteInquiry = async () => {
     if (!selectedId) return
-    if (!window.confirm('Apagar esta solicitação? Esta ação não pode ser desfeita.')) return
     setDeleting(true)
     try {
       await contabilServiceInquiriesApi.remove(selectedId)
       toast.success('Solicitação apagada')
+      setConfirmAction(null)
       setSelectedId(null)
       await qc.invalidateQueries({ queryKey: ['service-inquiries'] })
     } catch (err) {
@@ -259,7 +262,7 @@ export function ServiceInquiriesWorkspace() {
     setDraftItems((prev) => prev.filter((i) => i.key !== key))
   }
 
-  const sendDraftBatch = async () => {
+  const sendDraftBatch = async (channels: NotifyChannel[]) => {
     if (!selectedId || draftItems.length === 0) return
     const checklist = detailQuery.data?.checklist || []
     const existingKeys = new Set(
@@ -297,8 +300,9 @@ export function ServiceInquiriesWorkspace() {
       return true
     })
     if (uniqueItems.length === 0) {
-      toast.message('Esses documentos já estão nas pendências — o cliente já foi notificado.')
+      toast.message('Esses documentos já estão nas pendências.')
       setDraftItems([])
+      setNotifyDialog(null)
       return
     }
     if (uniqueItems.length < draftItems.length) {
@@ -306,25 +310,56 @@ export function ServiceInquiriesWorkspace() {
     }
     setSendingBatch(true)
     try {
-      await contabilServiceInquiriesApi.addRequestsBatch(selectedId, {
+      const result = await contabilServiceInquiriesApi.addRequestsBatch(selectedId, {
         items: uniqueItems.map(({ kind, title, tag, instructions }) => ({
           kind,
           title,
           tag,
           instructions,
         })),
+        notifyChannels: channels,
       })
       setDraftItems([])
+      setNotifyDialog(null)
+      const wa = (result.delivery as { whatsappUrl?: string | null } | undefined)?.whatsappUrl
+      if (wa && channels.includes('whatsapp')) {
+        window.open(wa, '_blank', 'noopener,noreferrer')
+      }
       toast.success(
-        uniqueItems.length > 1
-          ? `${uniqueItems.length} pedidos enviados ao cliente`
-          : 'Pedido enviado ao cliente',
+        channels.length === 0
+          ? uniqueItems.length > 1
+            ? `${uniqueItems.length} pedidos guardados (sem notificar)`
+            : 'Pedido guardado (sem notificar)'
+          : uniqueItems.length > 1
+            ? `${uniqueItems.length} pedidos guardados e cliente notificado`
+            : 'Pedido guardado e cliente notificado',
       )
       await invalidateLists()
     } catch (err) {
       toast.error('Erro ao enviar pedido', { description: getErrorMessage(err) })
     } finally {
       setSendingBatch(false)
+    }
+  }
+
+  const notifyClient = async (purpose: 'received' | 'checklist', channels: NotifyChannel[]) => {
+    if (!selectedId) return
+    setNotifyingClient(true)
+    try {
+      const result = await contabilServiceInquiriesApi.notifyClient(selectedId, {
+        purpose,
+        notifyChannels: channels,
+      })
+      setNotifyDialog(null)
+      if (result.delivery?.whatsappUrl && channels.includes('whatsapp')) {
+        window.open(result.delivery.whatsappUrl, '_blank', 'noopener,noreferrer')
+      }
+      toast.success(purpose === 'received' ? 'Cliente notificado da recepção' : 'Cliente notificado dos documentos')
+      await invalidateLists()
+    } catch (err) {
+      toast.error('Erro ao notificar', { description: getErrorMessage(err) })
+    } finally {
+      setNotifyingClient(false)
     }
   }
 
@@ -636,10 +671,19 @@ export function ServiceInquiriesWorkspace() {
               </label>
 
               <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="rounded-full"
+                  disabled={notifyingClient || (!contact?.email && !contact?.phone)}
+                  onClick={() => setNotifyDialog('received')}
+                >
+                  Confirmar e notificar cliente
+                </Button>
                 {detailQuery.data.inquiry.accessTokenRevokedAt ? (
                   <p className="text-xs text-muted-foreground">Link do cliente já revogado.</p>
                 ) : (
-                  <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={() => void revokeToken()}>
+                  <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={() => setConfirmAction('revoke')}>
                     Revogar link do cliente
                   </Button>
                 )}
@@ -649,7 +693,7 @@ export function ServiceInquiriesWorkspace() {
                   variant="outline"
                   className="rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive"
                   disabled={deleting}
-                  onClick={() => void deleteInquiry()}
+                  onClick={() => setConfirmAction('delete')}
                 >
                   {deleting ? 'A apagar…' : 'Apagar solicitação'}
                 </Button>
@@ -780,7 +824,7 @@ export function ServiceInquiriesWorkspace() {
                       </ul>
                     ) : (
                       <p className="text-xs text-muted-foreground">
-                        Adicione documentos e perguntas; o cliente recebe um único email com tudo.
+                        Adicione documentos e perguntas; ao enviar escolhe por onde notificar o cliente.
                       </p>
                     )}
                     <div className="flex flex-wrap items-center gap-2">
@@ -823,13 +867,11 @@ export function ServiceInquiriesWorkspace() {
                       type="button"
                       className="w-full rounded-full sm:w-auto"
                       disabled={sendingBatch || draftItems.length === 0}
-                      onClick={() => void sendDraftBatch()}
+                      onClick={() => setNotifyDialog('docs')}
                     >
-                      {sendingBatch
-                        ? 'A enviar…'
-                        : draftItems.length > 1
-                          ? `Enviar pedido ao cliente (${draftItems.length})`
-                          : 'Enviar pedido ao cliente'}
+                      {draftItems.length > 1
+                        ? `Enviar pedido ao cliente (${draftItems.length})`
+                        : 'Enviar pedido ao cliente'}
                     </Button>
                   </div>
                 ) : null}
@@ -858,6 +900,51 @@ export function ServiceInquiriesWorkspace() {
           )}
         </SheetContent>
       </Sheet>
+
+      <NotifyClientChannelsDialog
+        open={notifyDialog === 'received'}
+        onOpenChange={(open) => !open && setNotifyDialog(null)}
+        title="Notificar que recebeu o pedido"
+        description="O cliente ainda não foi avisado automaticamente. Escolha os canais — só enviamos o que seleccionar."
+        hasEmail={Boolean(contact?.email)}
+        hasPhone={Boolean(contact?.phone)}
+        confirmLabel="Confirmar e notificar"
+        loading={notifyingClient}
+        onConfirm={(channels) => void notifyClient('received', channels)}
+      />
+      <NotifyClientChannelsDialog
+        open={notifyDialog === 'docs'}
+        onOpenChange={(open) => !open && setNotifyDialog(null)}
+        title="Como notificar o cliente?"
+        description="Os pedidos ficam guardados na solicitação. Escolha email, SMS e/ou WhatsApp para avisar o cliente — ou só guarde sem enviar."
+        hasEmail={Boolean(contact?.email)}
+        hasPhone={Boolean(contact?.phone)}
+        confirmLabel="Guardar e notificar"
+        allowSaveWithoutNotify
+        loading={sendingBatch}
+        onConfirm={(channels) => void sendDraftBatch(channels)}
+      />
+
+      <ConfirmDialog
+        open={confirmAction === 'revoke'}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        variant="destructive"
+        testId="inquiry-revoke-link"
+        title="Revogar o link do cliente?"
+        description="Esta acção não pode ser desfeita — o cliente deixa de conseguir aceder à solicitação por esse link."
+        confirmLabel="Sim, revogar"
+        onConfirm={revokeToken}
+      />
+      <ConfirmDialog
+        open={confirmAction === 'delete'}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        variant="destructive"
+        testId="inquiry-delete"
+        title="Apagar esta solicitação?"
+        description="Esta acção não pode ser desfeita. Documentos e pendências associados serão removidos."
+        confirmLabel="Sim, apagar"
+        onConfirm={deleteInquiry}
+      />
     </div>
   )
 }

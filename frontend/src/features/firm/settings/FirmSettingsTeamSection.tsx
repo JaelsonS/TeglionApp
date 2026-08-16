@@ -937,6 +937,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                         : 'Confirma excluir colaborador?'
                 }
                 confirmLabel={excludeMemberMutation.isPending ? 'A excluir...' : 'Excluir colaborador'}
+                variant="destructive"
                 onConfirm={async () => {
                     if (!excludeMember) return
                     await excludeMemberMutation.mutateAsync(excludeMember)

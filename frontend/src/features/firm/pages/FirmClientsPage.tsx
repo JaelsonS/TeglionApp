@@ -620,6 +620,7 @@ export function FirmClientsPage() {
             : ''
         }
         confirmLabel="Remover da carteira"
+        variant="destructive"
         onConfirm={async () => {
           if (!archiveTarget) return
           await contabilClientsApi.archive(archiveTarget._id)

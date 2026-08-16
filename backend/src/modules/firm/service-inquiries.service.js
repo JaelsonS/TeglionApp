@@ -15,6 +15,7 @@ const leadsService = require('./leads.service');
 const bookingService = require('../booking/booking.service');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
 const contabilNotifications = require('../../services/notifications/contabil-notifications.service');
+const { normalizePhone } = require('../../services/email/brevo-sms.service');
 const auditRepository = require('../../db/supabase/repositories/contabil/audit.repository');
 const { interpolateServiceTemplate } = require('../../utils/service-text-template');
 
@@ -370,9 +371,12 @@ async function addServiceInquiryRequest({ firmId, inquiryId, actor, payload }) {
     firmId,
     inquiryId,
     actor,
-    payload: { items: [payload] },
+    payload: {
+      items: [payload],
+      notifyChannels: payload?.notifyChannels,
+    },
   });
-  return { request: result.requests[0] };
+  return { request: result.requests[0], delivery: result.delivery };
 }
 
 /**
@@ -458,25 +462,26 @@ async function addServiceInquiryRequestsBatch({ firmId, inquiryId, actor, payloa
     },
   });
 
-  const { name: requesterName, email: requesterEmail } = await requesterContactForInquiry(inquiry);
-  if (requesterEmail && inquiry.accessToken) {
+  const notifyChannels = parseNotifyChannels(payload?.notifyChannels);
+  let delivery = { skipped: true, reason: 'no_channels', channels: [] };
+  if (notifyChannels.length && inquiry.accessToken) {
+    const contact = await requesterContactForInquiry(inquiry);
     const [service, firm] = await Promise.all([
       accountingServicesRepository.findByIdForFirm(inquiry.serviceId, firmId),
       firmsRepository.findFirmById(firmId).catch(() => null),
     ]);
-    void contabilNotifications
-      .notifyLeadNewRequest({
-        toEmail: requesterEmail,
-        toName: requesterName,
-        firmName: firm?.name,
-        serviceName: interpolateServiceTemplate(service?.name),
-        accessToken: inquiry.accessToken,
-        items: created.map((r) => ({ title: r.title, kind: r.kind })),
-      })
-      .catch(() => {});
+    delivery = await dispatchClientNotify({
+      channels: notifyChannels,
+      contact,
+      firmName: firm?.name,
+      serviceName: interpolateServiceTemplate(service?.name),
+      accessToken: inquiry.accessToken,
+      purpose: 'new_request',
+      items: created.map((r) => ({ title: r.title, kind: r.kind })),
+    });
   }
 
-  return { requests: created.map(toChecklistItem) };
+  return { requests: created.map(toChecklistItem), delivery };
 }
 
 async function resolveStaffNotifyEmail(firmId, firm) {
@@ -496,24 +501,136 @@ async function requesterNameForInquiry(inquiry) {
   return null;
 }
 
-/** Nome + email de contacto — usado para notificar o submissor de um pedido novo. */
+/** Contacto do submissor — email/SMS/WhatsApp sob escolha da equipa (custo). */
 async function requesterContactForInquiry(inquiry) {
   if (inquiry.leadId) {
     const lead = await leadsRepository.findByIdForFirm(inquiry.leadId, inquiry.firmId);
-    return { name: lead?.name || null, email: lead?.email || null };
+    return {
+      name: lead?.name || null,
+      email: lead?.email || null,
+      phone: lead?.phone || null,
+    };
   }
   if (inquiry.clientId) {
     const client = await clientsRepository.findClientById(inquiry.firmId, inquiry.clientId);
-    return { name: client?.displayName || client?.name || null, email: client?.email || null };
+    return {
+      name: client?.displayName || client?.name || null,
+      email: client?.email || null,
+      phone: client?.phone || null,
+    };
   }
-  return { name: null, email: null };
+  return { name: null, email: null, phone: null };
+}
+
+const NOTIFY_CHANNELS = new Set(['email', 'sms', 'whatsapp']);
+
+function parseNotifyChannels(raw) {
+  if (!Array.isArray(raw)) return [];
+  return [...new Set(raw.map((c) => String(c || '').trim().toLowerCase()).filter((c) => NOTIFY_CHANNELS.has(c)))];
+}
+
+function whatsappDeepLink(phone, text) {
+  const normalized = normalizePhone(phone);
+  if (!normalized) return null;
+  const digits = String(normalized).replace(/\D/g, '');
+  if (!digits) return null;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(String(text || '').slice(0, 600))}`;
+}
+
+/**
+ * Envia ao cliente só pelos canais escolhidos pela contadora (sem auto-spam).
+ * WhatsApp = deep link (sem API); email/SMS via Brevo.
+ */
+async function dispatchClientNotify({
+  channels,
+  contact,
+  firmName,
+  serviceName,
+  accessToken,
+  purpose,
+  items,
+}) {
+  const selected = parseNotifyChannels(channels);
+  if (!selected.length) return { skipped: true, reason: 'no_channels', channels: [] };
+
+  const delivery = { email: null, sms: null, whatsappUrl: null, channels: selected };
+  const firm = firmName || 'o escritório';
+  const svc = serviceName || 'serviço';
+  const accessUrl = accessToken ? contabilNotifications.serviceIntakeAccessUrl(accessToken) : null;
+
+  if (selected.includes('email') && contact.email) {
+    if (purpose === 'received') {
+      delivery.email = await contabilNotifications.notifyLeadIntakeReceived({
+        toEmail: contact.email,
+        toName: contact.name,
+        firmName,
+        serviceName,
+      });
+    } else if (purpose === 'checklist' && accessToken) {
+      delivery.email = await contabilNotifications.notifyLeadIntakeChecklist({
+        toEmail: contact.email,
+        toName: contact.name,
+        firmName,
+        serviceName,
+        accessToken,
+        documents: items || [],
+      });
+    } else if (purpose === 'new_request' && accessToken) {
+      delivery.email = await contabilNotifications.notifyLeadNewRequest({
+        toEmail: contact.email,
+        toName: contact.name,
+        firmName,
+        serviceName,
+        accessToken,
+        items: items || [],
+      });
+    }
+  }
+
+  if (selected.includes('sms') && contact.phone) {
+    let smsText = '';
+    if (purpose === 'received') {
+      smsText = `${firm} recebeu o seu pedido de ${svc}. Em breve contactamos. Teglion`;
+    } else if (accessUrl) {
+      smsText =
+        purpose === 'checklist'
+          ? `${firm}: envie docs do pedido (${svc}). ${accessUrl}`
+          : `${firm}: precisamos de mais info (${svc}). ${accessUrl}`;
+    }
+    if (smsText) {
+      delivery.sms = await contabilNotifications.notifyClientSms({
+        phone: contact.phone,
+        message: smsText,
+      });
+    }
+  }
+
+  if (selected.includes('whatsapp') && contact.phone) {
+    let waText = '';
+    if (purpose === 'received') {
+      waText = `Olá${contact.name ? ` ${contact.name}` : ''}, o escritório ${firm} confirma que recebeu o seu pedido de ${svc}.`;
+    } else if (accessUrl) {
+      const list = (items || [])
+        .map((i) => i.title || i.tag)
+        .filter(Boolean)
+        .slice(0, 5)
+        .join(', ');
+      waText = list
+        ? `Olá${contact.name ? ` ${contact.name}` : ''}, ${firm} pede: ${list}. Abrir: ${accessUrl}`
+        : `Olá${contact.name ? ` ${contact.name}` : ''}, ${firm} precisa de mais informação sobre ${svc}. Abrir: ${accessUrl}`;
+    }
+    delivery.whatsappUrl = whatsappDeepLink(contact.phone, waText);
+  }
+
+  return delivery;
 }
 
 /**
  * Submissão pública do formulário de um Service (vertical slice IRS — ver
  * especificação da sessão, secção 5). Resolve o Firm pelo slug, resolve
  * identidade (Lead ou Client existente), cria a ServiceInquiry com as
- * respostas e um access_token para o mini-portal, e notifica submissor+equipa.
+ * respostas e um access_token para o mini-portal, e notifica a equipa.
+ * O cliente só é notificado quando a contadora escolhe canais em Solicitações.
  * Nunca revela ao chamador se bateu em Lead novo/existente ou Client.
  */
 async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
@@ -707,29 +824,8 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
     },
   });
 
-  if (email && !checkoutUrl) {
-    if (immediateDocs.length && inquiry.accessToken) {
-      void contabilNotifications
-        .notifyLeadIntakeChecklist({
-          toEmail: email,
-          toName: name,
-          firmName: firm.name,
-          serviceName: interpolateServiceTemplate(service.name),
-          accessToken: inquiry.accessToken,
-          documents: immediateDocs,
-        })
-        .catch(() => {});
-    } else {
-      void contabilNotifications
-        .notifyLeadIntakeReceived({
-          toEmail: email,
-          toName: name,
-          firmName: firm.name,
-          serviceName: interpolateServiceTemplate(service.name),
-        })
-        .catch(() => {});
-    }
-  }
+  // Cliente NÃO é notificado automaticamente (custo + controlo da contadora).
+  // A equipa confirma em Solicitações e escolhe canais (email / SMS / WhatsApp).
   const staffEmail = await resolveStaffNotifyEmail(firm.id, firm);
   if (staffEmail && !checkoutUrl) {
     void contabilNotifications
@@ -1021,6 +1117,71 @@ async function confirmConsultation({ firmId, inquiryId, actor }) {
   };
 }
 
+/**
+ * Contadora confirma recepção (ou reenvia checklist) e escolhe canais.
+ * purpose: 'received' | 'checklist'
+ */
+async function notifyClient({ firmId, inquiryId, actor, payload }) {
+  const inquiry = await serviceInquiriesRepository.findByIdForFirm(inquiryId, firmId);
+  if (!inquiry) throw new AppError('Solicitação não encontrada', 404);
+
+  const purpose = String(payload?.purpose || 'received').trim().toLowerCase();
+  if (purpose !== 'received' && purpose !== 'checklist') {
+    throw new AppError('purpose deve ser "received" ou "checklist"', 400);
+  }
+
+  const channels = parseNotifyChannels(payload?.notifyChannels);
+  if (!channels.length) {
+    throw new AppError('Escolha pelo menos um canal (email, sms ou whatsapp)', 400);
+  }
+
+  const contact = await requesterContactForInquiry(inquiry);
+  const [service, firm] = await Promise.all([
+    accountingServicesRepository.findByIdForFirm(inquiry.serviceId, firmId),
+    firmsRepository.findFirmById(firmId).catch(() => null),
+  ]);
+
+  let items = [];
+  if (purpose === 'checklist') {
+    const checklist = await serviceInquiryRequestsRepository.listByInquiry(inquiry.id, firmId);
+    items = checklist
+      .filter((r) => r.kind === 'document' && r.status !== 'ANSWERED' && !r.documentId)
+      .map((r) => ({ title: r.title, tag: r.tag, kind: r.kind }));
+    if (!items.length) {
+      throw new AppError('Não há documentos pendentes para notificar', 400);
+    }
+    if (!inquiry.accessToken) {
+      throw new AppError('Esta solicitação não tem link de acesso ao cliente', 409);
+    }
+  }
+
+  const delivery = await dispatchClientNotify({
+    channels,
+    contact,
+    firmName: firm?.name,
+    serviceName: interpolateServiceTemplate(service?.name),
+    accessToken: inquiry.accessToken,
+    purpose,
+    items,
+  });
+
+  if (purpose === 'received' && inquiry.status === 'NEW') {
+    await serviceInquiriesRepository.updateRow(inquiry.id, firmId, { status: 'CONTACTED' });
+  }
+
+  await auditRepository.writeAuditLog({
+    firmId,
+    actorRole: 'FIRM',
+    actorId: actor?.id,
+    action: 'service_inquiry.client_notified',
+    entityType: 'service_inquiry',
+    entityId: inquiry.id,
+    metadata: { purpose, channels, whatsappUrl: Boolean(delivery.whatsappUrl) },
+  });
+
+  return { ok: true, delivery, contact: { email: Boolean(contact.email), phone: Boolean(contact.phone) } };
+}
+
 module.exports = {
   list,
   countUnseen,
@@ -1032,6 +1193,7 @@ module.exports = {
   addServiceInquiryRequest,
   addServiceInquiryRequestsBatch,
   confirmConsultation,
+  notifyClient,
   capturePublicLead,
   submitPublicIntake,
   getByAccessToken,

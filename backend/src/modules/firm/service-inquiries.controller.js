@@ -125,6 +125,22 @@ exports.confirmConsultation = async (req, res, next) => {
   }
 };
 
+exports.notifyClient = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const inquiryId = parseEntityId(req.params.id, 'id');
+    const result = await serviceInquiriesService.notifyClient({
+      firmId,
+      inquiryId,
+      actor: req.user,
+      payload: req.body || {},
+    });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.downloadDocument = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);

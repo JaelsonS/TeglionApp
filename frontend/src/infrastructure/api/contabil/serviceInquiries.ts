@@ -106,16 +106,32 @@ export function createContabilServiceInquiriesApi(api: AxiosInstance) {
       id: string,
       payload: {
         items: Array<{ kind: ServiceInquiryRequestKind; title: string; instructions?: string; tag?: string }>
+        notifyChannels?: Array<'email' | 'sms' | 'whatsapp'>
       },
     ) =>
       api
         .post(`/contabil/service-inquiries/${encodeURIComponent(id)}/requests/batch`, payload)
-        .then((r) => r.data as { requests: ServiceInquiryChecklistItem[] }),
+        .then((r) => r.data as { requests: ServiceInquiryChecklistItem[]; delivery?: Record<string, unknown> }),
 
     confirmConsultation: (id: string) =>
       api
         .post(`/contabil/service-inquiries/${encodeURIComponent(id)}/confirm-consultation`)
         .then((r) => r.data as { ok: boolean; emailed: boolean; consultation: { id: string; scheduledAt: string; status: string } }),
+
+    notifyClient: (
+      id: string,
+      payload: { purpose: 'received' | 'checklist'; notifyChannels: Array<'email' | 'sms' | 'whatsapp'> },
+    ) =>
+      api
+        .post(`/contabil/service-inquiries/${encodeURIComponent(id)}/notify-client`, payload)
+        .then(
+          (r) =>
+            r.data as {
+              ok: boolean
+              delivery: { whatsappUrl?: string | null; channels?: string[] }
+              contact: { email: boolean; phone: boolean }
+            },
+        ),
   }
 }
 

@@ -500,7 +500,7 @@ test('addServiceInquiryRequest: tag explícita (aceitar sugestão) é preservada
   assert.equal(created.tag, 'certidao_casamento');
 });
 
-test('addServiceInquiryRequest: audita e notifica o submissor quando há email, reaproveitando o mesmo token', async () => {
+test('addServiceInquiryRequest: audita e não notifica sem notifyChannels', async () => {
   resetMocks();
   mock.method(auditRepository, 'writeAuditLog', async () => {});
   mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
@@ -519,9 +519,9 @@ test('addServiceInquiryRequest: audita e notifica o submissor quando há email, 
     rows.map((args, i) => ({ id: `req-${i + 1}`, ...args, status: 'PENDING' })),
   );
 
-  let notifyArgs = null;
-  mock.method(contabilNotifications, 'notifyLeadNewRequest', async (args) => {
-    notifyArgs = args;
+  let notifyCalled = false;
+  mock.method(contabilNotifications, 'notifyLeadNewRequest', async () => {
+    notifyCalled = true;
     return { ok: true };
   });
 
@@ -533,12 +533,48 @@ test('addServiceInquiryRequest: audita e notifica o submissor quando há email, 
   });
 
   await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(notifyCalled, false);
+});
+
+test('addServiceInquiryRequest: notifica quando notifyChannels inclui email', async () => {
+  resetMocks();
+  mock.method(auditRepository, 'writeAuditLog', async () => {});
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
+    id: 'inquiry-1',
+    firmId: FIRM_ID,
+    serviceId: 'service-1',
+    status: 'IN_PROGRESS',
+    leadId: 'lead-1',
+    clientId: null,
+    accessToken: 'b'.repeat(64),
+  }));
+  mock.method(leadsRepository, 'findByIdForFirm', async () => ({ name: 'Ana', email: 'ana@x.com', phone: null }));
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({ id: 'service-1', name: 'IRS 2026' }));
+  mock.method(firmsRepository, 'findFirmById', async () => ({ id: FIRM_ID, name: 'Escritório X' }));
+  mock.method(serviceInquiryRequestsRepository, 'createMany', async (rows) =>
+    rows.map((args, i) => ({ id: `req-${i + 1}`, ...args, status: 'PENDING' })),
+  );
+
+  let notifyArgs = null;
+  mock.method(contabilNotifications, 'notifyLeadNewRequest', async (args) => {
+    notifyArgs = args;
+    return { ok: true };
+  });
+
+  await serviceInquiriesService.addServiceInquiryRequest({
+    firmId: FIRM_ID,
+    inquiryId: 'inquiry-1',
+    actor: { id: 'staff-1' },
+    payload: { kind: 'question', title: 'Tem dependentes a cargo?', notifyChannels: ['email'] },
+  });
+
+  await new Promise((resolve) => setImmediate(resolve));
   assert.equal(notifyArgs.toEmail, 'ana@x.com');
   assert.equal(notifyArgs.accessToken, 'b'.repeat(64));
   assert.equal(notifyArgs.items?.[0]?.title, 'Tem dependentes a cargo?');
 });
 
-test('addServiceInquiryRequestsBatch: cria vários itens e notifica uma vez', async () => {
+test('addServiceInquiryRequestsBatch: cria vários itens e notifica só com canais', async () => {
   resetMocks();
   mockAudit();
   mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
@@ -569,6 +605,7 @@ test('addServiceInquiryRequestsBatch: cria vários itens e notifica uma vez', as
     inquiryId: 'inquiry-1',
     actor: { id: 'staff-1' },
     payload: {
+      notifyChannels: ['email'],
       items: [
         { kind: 'document', title: 'Certidão de casamento', tag: 'certidao' },
         { kind: 'question', title: 'NIF do cônjuge?' },
@@ -578,8 +615,8 @@ test('addServiceInquiryRequestsBatch: cria vários itens e notifica uma vez', as
 
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(result.requests.length, 2);
-  assert.equal(notifyArgs.items.length, 2);
-  assert.equal(notifyArgs.items[0].title, 'Certidão de casamento');
+  assert.equal(notifyArgs.toEmail, 'ana@x.com');
+  assert.equal(notifyArgs.items?.length, 2);
 });
 
 test('remove: solicitação inexistente devolve 404, nunca chega a chamar deleteRow', async () => {

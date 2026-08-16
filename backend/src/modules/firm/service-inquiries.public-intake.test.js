@@ -234,11 +234,10 @@ test('submitPublicIntake: só documentos "manual" pendentes -> status IN_PROGRES
   assert.equal(created.status, 'IN_PROGRESS');
 });
 
-test('submitPublicIntake: nome do serviço com {{ano_fiscal}} chega interpolado ao email do cliente e da equipa', async () => {
+test('submitPublicIntake: nome do serviço com {{ano_fiscal}} chega interpolado ao email da equipa (cliente sem auto-email)', async () => {
   resetMocks();
   mockNoise();
   mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
-  // Sem docs immediate → notifyLeadIntakeReceived (não checklist).
   mock.method(accountingServicesRepository, 'listByFirm', async () => [
     {
       ...SERVICE,
@@ -249,9 +248,9 @@ test('submitPublicIntake: nome do serviço com {{ano_fiscal}} chega interpolado 
   mock.method(leadsService, 'resolveIdentity', async () => ({ type: 'LEAD', id: 'lead-novo' }));
   mock.method(serviceInquiriesRepository, 'createRow', async (args) => ({ id: 'inquiry-5', ...args }));
   mock.method(firmUsersRepository, 'findFirmOwnerEmail', async () => 'dona@x.com');
-  let leadEmailArgs = null;
-  mock.method(contabilNotifications, 'notifyLeadIntakeReceived', async (args) => {
-    leadEmailArgs = args;
+  let leadEmailCalled = false;
+  mock.method(contabilNotifications, 'notifyLeadIntakeReceived', async () => {
+    leadEmailCalled = true;
     return { ok: true };
   });
   let staffEmailArgs = null;
@@ -268,9 +267,8 @@ test('submitPublicIntake: nome do serviço com {{ano_fiscal}} chega interpolado 
   await new Promise((resolve) => setImmediate(resolve));
 
   const expectedYear = new Date().getFullYear() - 1;
-  assert.equal(leadEmailArgs.serviceName, `Declaração de IRS ${expectedYear}`);
+  assert.equal(leadEmailCalled, false);
   assert.equal(staffEmailArgs.serviceName, `Declaração de IRS ${expectedYear}`);
-  assert.equal(leadEmailArgs.accessToken, undefined, 'email de obrigado não inclui link de documentos');
 });
 
 test('submitPublicIntake: identidade batida em Client existente -> clientId (não cria Lead)', async () => {
