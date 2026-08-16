@@ -6,6 +6,7 @@ import { contabilInquiryTagsApi } from '@/infrastructure/api'
 import type { FirmInquiryTag } from '@/infrastructure/api/contabil/inquiryTags'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
+import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 import type { FormChangeEvent } from '@/shared/types/react-events'
@@ -30,6 +31,7 @@ export function FirmTagsManager({ compact = false, onTagsChanged }: Props) {
   const [newTagName, setNewTagName] = useState('')
   const [newTagColor, setNewTagColor] = useState(SUGGESTED_TAG_COLORS[0])
   const [savingTag, setSavingTag] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<FirmInquiryTag | null>(null)
 
   const invalidate = async () => {
     await qc.invalidateQueries({ queryKey: ['firm-inquiry-tags'] })
@@ -48,23 +50,6 @@ export function FirmTagsManager({ compact = false, onTagsChanged }: Props) {
       toast.error('Não foi possível criar etiqueta', { description: getErrorMessage(err) })
     } finally {
       setSavingTag(false)
-    }
-  }
-
-  const removeTag = async (tag: FirmInquiryTag) => {
-    if (
-      !window.confirm(
-        `Apagar a etiqueta “${tag.name}”? Será removida de clientes, leads, solicitações e equipa.`,
-      )
-    ) {
-      return
-    }
-    try {
-      await contabilInquiryTagsApi.remove(tag.id)
-      toast.success('Etiqueta apagada')
-      await invalidate()
-    } catch (err) {
-      toast.error('Erro ao apagar etiqueta', { description: getErrorMessage(err) })
     }
   }
 
@@ -126,7 +111,7 @@ export function FirmTagsManager({ compact = false, onTagsChanged }: Props) {
               size="sm"
               variant="ghost"
               className="text-destructive"
-              onClick={() => void removeTag(tag)}
+              onClick={() => setDeleteTarget(tag)}
             >
               Apagar
             </Button>
@@ -136,6 +121,27 @@ export function FirmTagsManager({ compact = false, onTagsChanged }: Props) {
           <p className="text-sm text-muted-foreground">Ainda sem etiquetas — crie a primeira acima.</p>
         ) : null}
       </ul>
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        variant="destructive"
+        testId="tag-delete"
+        title={`Apagar «${deleteTarget?.name || 'etiqueta'}»?`}
+        description="Será removida de clientes, leads, solicitações e equipa. Esta acção não pode ser desfeita."
+        confirmLabel="Sim, apagar"
+        onConfirm={async () => {
+          if (!deleteTarget) return
+          try {
+            await contabilInquiryTagsApi.remove(deleteTarget.id)
+            toast.success('Etiqueta apagada')
+            setDeleteTarget(null)
+            await invalidate()
+          } catch (err) {
+            toast.error('Erro ao apagar etiqueta', { description: getErrorMessage(err) })
+          }
+        }}
+      />
     </div>
   )
 }

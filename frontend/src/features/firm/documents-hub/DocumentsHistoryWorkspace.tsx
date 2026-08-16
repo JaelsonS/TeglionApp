@@ -231,6 +231,7 @@ export function DocumentsHistoryWorkspace() {
         title="Apagar submissões seleccionadas?"
         description={`Serão removidos ${documentIdsToDelete.length} ficheiro(s) de ${selectedRows.length} linha(s) seleccionada(s). Esta acção não pode ser desfeita.`}
         confirmLabel={deleting ? 'A apagar…' : 'Sim, apagar'}
+        variant="destructive"
         onConfirm={handleDelete}
       />
 

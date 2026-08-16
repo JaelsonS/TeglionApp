@@ -350,8 +350,17 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
 
         <div className="shrink-0 border-b border-brand/15 bg-gradient-to-r from-brand/[0.08] via-sky-500/[0.06] to-transparent px-5 py-4 pr-12">
           <p className="text-xs font-semibold uppercase tracking-wide text-brand/80">Serviços › IRS</p>
-          <h2 className="mt-1 text-xl font-semibold tracking-tight text-foreground">{displayTitle}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <label className="mt-2 block space-y-1">
+            <span className="sr-only">Nome do serviço</span>
+            <Input
+              value={name}
+              onChange={(e: FormChangeEvent) => setName(e.target.value)}
+              className="h-auto rounded-xl border-brand/20 bg-card/80 px-3 py-2 text-xl font-semibold tracking-tight text-foreground shadow-none focus-visible:ring-brand/30"
+              placeholder="Declaração IRS Modelo 3"
+              aria-label="Nome do serviço"
+            />
+          </label>
+          <p className="mt-2 text-sm text-muted-foreground">
             Anexos, perguntas e pagamento — o ano fiscal é definido pelo escritório. Para banner, logótipo,
             publicação completa e apagar, use <span className="font-medium text-foreground">Editar</span> na
             lista IRS.
@@ -393,15 +402,15 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
           </div>
 
           <div className="grid items-start gap-4 lg:grid-cols-2">
-            {/* Anexos — sticky só em desktop (≥1280); tablet/mobile iguais */}
-            <section className="flex flex-col overflow-hidden rounded-2xl border border-brand/15 bg-card shadow-sm xl:sticky xl:top-0 xl:z-[1] xl:self-start xl:overflow-visible">
-              <div className="border-b border-brand/10 bg-brand/[0.04] px-4 py-3">
+            {/* Anexos — sticky em xl+ com scroll interno (lista longa não fica cortada) */}
+            <section className="flex max-h-none flex-col overflow-hidden rounded-2xl border border-brand/15 bg-card shadow-sm xl:sticky xl:top-0 xl:z-[1] xl:max-h-[calc(100dvh-10rem)] xl:self-start">
+              <div className="shrink-0 border-b border-brand/10 bg-brand/[0.04] px-4 py-3">
                 <h3 className="text-base font-semibold text-foreground">Anexos</h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   Selecione os anexos aplicáveis a este serviço.
                 </p>
               </div>
-              <ul className="divide-y divide-border/40">
+              <ul className="min-h-0 flex-1 divide-y divide-border/40 overflow-y-auto overscroll-contain">
                 {ANEXOS.map(({ id, title, subtitle, Icon }) => {
                   const on = anexos.includes(id)
                   return (
@@ -423,7 +432,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
                   )
                 })}
               </ul>
-              <div className="m-3 flex gap-2 rounded-xl border border-sky-200/80 bg-sky-50 px-3 py-2.5 text-xs text-sky-950">
+              <div className="m-3 mt-0 flex shrink-0 gap-2 rounded-xl border border-sky-200/80 bg-sky-50 px-3 py-2.5 text-xs text-sky-950">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" />
                 <p>
                   Os anexos podem ser ajustados mais tarde. Poderá adicionar ou remover anexos a qualquer

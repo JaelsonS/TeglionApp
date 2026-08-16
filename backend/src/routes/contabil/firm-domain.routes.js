@@ -630,6 +630,8 @@ router.post(
     body('items.*.title').isString().trim().isLength({ min: 1, max: 300 }),
     body('items.*.instructions').optional({ nullable: true }).isString().trim().isLength({ max: 2000 }),
     body('items.*.tag').optional({ nullable: true }).isString().trim().isLength({ max: 60 }),
+    body('notifyChannels').optional().isArray({ max: 3 }),
+    body('notifyChannels.*').optional().isString().isIn(['email', 'sms', 'whatsapp']),
   ],
   serviceInquiriesController.addRequestsBatch,
 );
@@ -639,12 +641,24 @@ router.post(
   serviceInquiriesController.confirmConsultation,
 );
 router.post(
+  '/service-inquiries/:id/notify-client',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  [
+    body('purpose').optional().isString().isIn(['received', 'checklist']),
+    body('notifyChannels').isArray({ min: 1, max: 3 }),
+    body('notifyChannels.*').isString().isIn(['email', 'sms', 'whatsapp']),
+  ],
+  serviceInquiriesController.notifyClient,
+);
+router.post(
   '/service-inquiries/:id/requests',
   requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
   [
     body('kind').isString().isIn(['document', 'question']),
     body('title').isString().trim().isLength({ min: 1, max: 300 }),
     body('instructions').optional({ nullable: true }).isString().trim().isLength({ max: 2000 }),
+    body('notifyChannels').optional().isArray({ max: 3 }),
+    body('notifyChannels.*').optional().isString().isIn(['email', 'sms', 'whatsapp']),
   ],
   serviceInquiriesController.addRequest,
 );

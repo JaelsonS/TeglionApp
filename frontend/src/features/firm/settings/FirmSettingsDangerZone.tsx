@@ -89,6 +89,7 @@ export function FirmSettingsDangerZone({ bundle }: Props) {
         title="Confirmar encerramento"
         description={`Esta acção é irreversível para o acesso diário. Para confirmar, escreva o nome exacto do escritório: ${firmName}`}
         confirmLabel={closing ? 'A encerrar…' : 'Encerrar definitivamente'}
+        variant="destructive"
         testId="firm-close-account"
         onConfirm={onConfirmClose}
       >

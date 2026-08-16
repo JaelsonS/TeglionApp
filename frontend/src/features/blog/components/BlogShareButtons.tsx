@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { Check, Link2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 import {
   buildBlogShareCaption,
@@ -80,7 +81,10 @@ export function BlogShareButtons({ post, className, compact = false }: Props) {
       setCopied(true)
       window.setTimeout(() => setCopied(false), 2000)
     } catch {
-      window.prompt('Copie o link:', text)
+      toast.message('Copie o texto abaixo', {
+        description: text,
+        duration: 12000,
+      })
     }
   }, [post])
 

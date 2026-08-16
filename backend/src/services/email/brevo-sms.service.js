@@ -26,13 +26,17 @@ async function sendSms({ to, message }) {
   const recipient = normalizePhone(to);
   if (!recipient || !message) return { skipped: true };
 
+  // Transacional + texto curto (≤320 ≈ 2 SMS) reduz risco de bloqueio Brevo.
+  const content = String(message).replace(/\s+/g, ' ').trim().slice(0, 320);
+  if (!content) return { skipped: true };
+
   const sender = env.BREVO_SMS_SENDER || 'Teglion';
   await axios.post(
     BREVO_SMS_URL,
     {
       sender,
       recipient,
-      content: String(message).slice(0, 160),
+      content,
       type: 'transactional',
     },
     {

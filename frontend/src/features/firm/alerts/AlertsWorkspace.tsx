@@ -384,6 +384,7 @@ export function AlertsWorkspace() {
         title="Apagar este comunicado?"
         description={`«${deleteTarget?.title}» será removido permanentemente. Esta acção não pode ser desfeita.`}
         confirmLabel="Sim, apagar"
+        variant="destructive"
         onConfirm={async () => {
           if (!deleteTarget) return
           await remove.mutateAsync(deleteTarget.id)
