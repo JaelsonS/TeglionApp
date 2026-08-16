@@ -326,10 +326,17 @@ export type IntakeQuestion = {
 
 export type IrsAnexoId = 'A' | 'B' | 'C' | 'F' | 'G' | 'H' | 'J' | 'JOVEM'
 
+export type IrsAnexoLabel = {
+  title?: string | null
+  subtitle?: string | null
+}
+
 export type IrsServiceConfig = {
   /** Ano fiscal da declaração — definido pelo escritório (ex.: 2026). */
   taxYear?: number | null
   anexos?: IrsAnexoId[]
+  /** Nomes/descrições personalizados por anexo (lógica do escritório). */
+  anexoLabels?: Partial<Record<IrsAnexoId, IrsAnexoLabel>>
 }
 
 export type IntakeForm = {

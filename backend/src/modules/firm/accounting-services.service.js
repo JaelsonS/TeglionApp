@@ -250,7 +250,27 @@ function normalizeIntakeForm(value) {
     const anexos = Array.isArray(value.irsConfig.anexos)
       ? [...new Set(value.irsConfig.anexos.map((a) => String(a).toUpperCase()).filter((a) => ALLOWED_ANEXOS.has(a)))]
       : [];
-    irsConfig = { taxYear, anexos };
+    const anexoLabels = {};
+    const rawLabels = value.irsConfig.anexoLabels;
+    if (rawLabels && typeof rawLabels === 'object') {
+      for (const id of ALLOWED_ANEXOS) {
+        const entry = rawLabels[id] ?? rawLabels[String(id).toLowerCase()];
+        if (!entry || typeof entry !== 'object') continue;
+        const title = entry.title != null ? String(entry.title).trim().slice(0, 80) : '';
+        const subtitle = entry.subtitle != null ? String(entry.subtitle).trim().slice(0, 160) : '';
+        if (title || subtitle) {
+          anexoLabels[id] = {
+            ...(title ? { title } : {}),
+            ...(subtitle ? { subtitle } : {}),
+          };
+        }
+      }
+    }
+    irsConfig = {
+      taxYear,
+      anexos,
+      ...(Object.keys(anexoLabels).length ? { anexoLabels } : {}),
+    };
   }
 
   // Aspecto da página pública do serviço (ex.: mostrar o logótipo do
