@@ -27,6 +27,7 @@ import type {
   IntakeForm,
   IntakeQuestion,
   IrsAnexoId,
+  IrsAnexoLabel,
 } from '@/shared/types/contabil'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 
@@ -191,9 +192,27 @@ function buildIntakeForm(
   questions: EditorQuestion[],
   anexos: IrsAnexoId[],
   taxYear: number | null,
+  anexoLabels: Partial<Record<IrsAnexoId, IrsAnexoLabel>>,
 ): IntakeForm {
+  const cleanedLabels: Partial<Record<IrsAnexoId, IrsAnexoLabel>> = {}
+  for (const id of anexos) {
+    const entry = anexoLabels[id]
+    if (!entry) continue
+    const title = String(entry.title || '').trim()
+    const subtitle = String(entry.subtitle || '').trim()
+    if (title || subtitle) {
+      cleanedLabels[id] = {
+        ...(title ? { title } : {}),
+        ...(subtitle ? { subtitle } : {}),
+      }
+    }
+  }
   return {
-    irsConfig: { taxYear, anexos },
+    irsConfig: {
+      taxYear,
+      anexos,
+      ...(Object.keys(cleanedLabels).length ? { anexoLabels: cleanedLabels } : {}),
+    },
     questions: questions.map((q) => ({
       id: q.id,
       label: q.label,
@@ -249,6 +268,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
   const [durationMinutes, setDurationMinutes] = useState(120)
   const [priceEuros, setPriceEuros] = useState(120)
   const [anexos, setAnexos] = useState<IrsAnexoId[]>(['A', 'B', 'F', 'H'])
+  const [anexoLabels, setAnexoLabels] = useState<Partial<Record<IrsAnexoId, IrsAnexoLabel>>>({})
   const [questions, setQuestions] = useState<EditorQuestion[]>(() => toEditorQuestions(null))
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank_transfer')
   const [paymentRequired, setPaymentRequired] = useState(false)
@@ -267,6 +287,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
           ? (service.intakeForm!.irsConfig!.anexos as IrsAnexoId[])
           : ['A', 'B', 'F', 'H'],
       )
+      setAnexoLabels(service.intakeForm?.irsConfig?.anexoLabels || {})
       setQuestions(toEditorQuestions(service.intakeForm))
       setPaymentMethod(service.paymentMethod || 'bank_transfer')
       setPaymentRequired(Boolean(service.paymentRequired))
@@ -276,6 +297,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
       setDurationMinutes(120)
       setPriceEuros(120)
       setAnexos(['A', 'B', 'F', 'H'])
+      setAnexoLabels({})
       setQuestions(toEditorQuestions(null))
       setPaymentMethod('bank_transfer')
       setPaymentRequired(false)
@@ -284,6 +306,13 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
 
   const toggleAnexo = (id: IrsAnexoId) => {
     setAnexos((prev) => (prev.includes(id) ? prev.filter((a) => a !== id) : [...prev, id]))
+  }
+
+  const patchAnexoLabel = (id: IrsAnexoId, patch: IrsAnexoLabel) => {
+    setAnexoLabels((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], ...patch },
+    }))
   }
 
   const updateQuestion = (id: string, patch: Partial<EditorQuestion>) => {
@@ -308,7 +337,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
     }
 
     const intakeForm = {
-      ...buildIntakeForm(questions, anexos, yearNum),
+      ...buildIntakeForm(questions, anexos, yearNum, anexoLabels),
       pageOptions: service?.intakeForm?.pageOptions || { showFirmLogo: true },
     }
     const payload = {
@@ -398,27 +427,43 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
               <div className="border-b border-brand/10 bg-brand/[0.04] px-4 py-3">
                 <h3 className="text-base font-semibold text-foreground">Anexos</h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  Selecione os anexos aplicáveis a este serviço.
+                  Active os anexos e edite os nomes como a lógica do escritório — título e descrição são
+                  livres.
                 </p>
               </div>
               <ul className="divide-y divide-border/40">
                 {ANEXOS.map(({ id, title, subtitle, Icon }) => {
                   const on = anexos.includes(id)
+                  const custom = anexoLabels[id]
+                  const titleValue = custom?.title ?? title
+                  const subtitleValue = custom?.subtitle ?? subtitle
                   return (
-                    <li key={id} className="flex items-center gap-3 px-4 py-3">
+                    <li key={id} className="flex items-start gap-3 px-4 py-3">
                       <span
                         className={cn(
-                          'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
+                          'mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
                           on ? 'bg-brand text-primary-foreground' : 'bg-muted text-muted-foreground',
                         )}
                       >
                         <Icon className="h-4 w-4" />
                       </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold">{title}</p>
-                        <p className="text-xs text-muted-foreground">{subtitle}</p>
+                      <div className="min-w-0 flex-1 space-y-1.5">
+                        <Input
+                          value={titleValue}
+                          onChange={(e: FormChangeEvent) => patchAnexoLabel(id, { title: e.target.value })}
+                          placeholder={title}
+                          className="h-8 text-sm font-semibold"
+                          aria-label={`Nome do ${title}`}
+                        />
+                        <Input
+                          value={subtitleValue}
+                          onChange={(e: FormChangeEvent) => patchAnexoLabel(id, { subtitle: e.target.value })}
+                          placeholder={subtitle}
+                          className="h-8 text-xs"
+                          aria-label={`Descrição do ${title}`}
+                        />
                       </div>
-                      <Toggle checked={on} onChange={() => toggleAnexo(id)} label={title} />
+                      <Toggle checked={on} onChange={() => toggleAnexo(id)} label={titleValue || title} />
                     </li>
                   )
                 })}
@@ -438,13 +483,23 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
                 <div className="border-b border-brand/10 bg-sky-500/[0.06] px-4 py-3">
                   <h3 className="text-base font-semibold">Perguntas</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Responda às perguntas seguintes. Se responder Sim, será pedido o documento indicado.
+                    Edite o texto das perguntas. Se a resposta for Sim, será pedido o documento indicado.
                   </p>
                 </div>
                 <ul className="divide-y divide-border/40">
                   {questions.map((q) => (
                     <li key={q.id} className="space-y-3 px-4 py-4">
-                      <p className="text-sm font-medium leading-snug">{q.label}</p>
+                      <label className="block space-y-1">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          Pergunta
+                        </span>
+                        <Input
+                          value={q.label}
+                          onChange={(e: FormChangeEvent) => updateQuestion(q.id, { label: e.target.value })}
+                          className="text-sm font-medium"
+                          placeholder="Texto da pergunta"
+                        />
+                      </label>
                       <div className="flex flex-wrap gap-4">
                         {(['Sim', 'Não'] as const).map((label) => {
                           const yes = label === 'Sim'
