@@ -115,16 +115,20 @@ function waitForTurnstileReady(): Promise<void> {
       reject(new Error('Turnstile API missing'))
       return
     }
+    // Com `render=explicit`, a API já está utilizável após o script —
+    // `turnstile.ready()` dispara aviso/race se o script acabou de carregar.
+    // Só usamos ready() como fallback se existir e resolver depressa.
+    if (typeof window.turnstile.render === 'function') {
+      resolve()
+      return
+    }
     let settled = false
     const done = () => {
       if (settled) return
       settled = true
       resolve()
     }
-    const timer = window.setTimeout(() => {
-      // ready() por vezes não dispara; a API já está utilizável.
-      done()
-    }, READY_TIMEOUT_MS)
+    const timer = window.setTimeout(done, READY_TIMEOUT_MS)
     try {
       if (typeof window.turnstile.ready === 'function') {
         window.turnstile.ready(() => {
@@ -302,19 +306,25 @@ export function TurnstileField({ action, onTokenChange, className, fieldRef }: P
     <div className={className} data-turnstile-action={action}>
       <div ref={containerRef} />
       {status === 'error' ? (
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-destructive">
-          <span>A verificação não concluiu. Actualize ou tente de novo.</span>
-          <button
-            type="button"
-            className="font-semibold underline"
-            onClick={() => {
-              autoRetryRef.current = 0
-              publishToken('')
-              setRetryTick((n) => n + 1)
-            }}
-          >
-            Tentar novamente
-          </button>
+        <div className="mt-2 space-y-1 text-xs text-destructive">
+          <div className="flex flex-wrap items-center gap-2">
+            <span>A verificação não concluiu. Actualize ou tente de novo.</span>
+            <button
+              type="button"
+              className="font-semibold underline"
+              onClick={() => {
+                autoRetryRef.current = 0
+                publishToken('')
+                setRetryTick((n) => n + 1)
+              }}
+            >
+              Tentar novamente
+            </button>
+          </div>
+          <p className="text-muted-foreground">
+            Se persistir: janela anónima sem extensões (bloqueadores / Tag Assistant), ou limpe cookies de
+            staging.teglion.com.
+          </p>
         </div>
       ) : null}
     </div>
