@@ -28,6 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog'
+import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { AskMayaButton } from '@/features/maya'
 import { PageHeader } from '@/shared/design-system'
 import { cn } from '@/shared/lib/utils'
@@ -48,13 +49,15 @@ export function AgendaWorkspace() {
   /** Próximas reuniões (14 dias) — independente da semana/mês no grelha. */
   const [upcomingItems, setUpcomingItems] = useState<Consultation[]>([])
   const [clients, setClients] = useState<Client[]>([])
+  const [selectedEvent, setSelectedEvent] = useState<Consultation | null>(null)
+  const [confirmCancelEvent, setConfirmCancelEvent] = useState(false)
+  const [cancellingEvent, setCancellingEvent] = useState(false)
   const [staff, setStaff] = useState<{ id: string; fullName?: string; email?: string }[]>([])
   const [services, setServices] = useState<AccountingService[]>([])
   const [booking, setBooking] = useState<FirmBookingSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [showForm, setShowForm] = useState(false)
-  const [selectedEvent, setSelectedEvent] = useState<Consultation | null>(null)
 
   const [clientId, setClientId] = useState('')
   const [title, setTitle] = useState('Consulta fiscal')
@@ -214,6 +217,25 @@ export function AgendaWorkspace() {
     setView('day')
     setAnchor(startOfDay(when))
   }, [])
+
+  const cancelSelectedEvent = async () => {
+    if (!selectedEvent) return
+    setCancellingEvent(true)
+    try {
+      await contabilConsultationsApi.update(selectedEvent._id, {
+        status: 'CANCELLED',
+        cancelReason: 'cancelled_by_firm',
+      })
+      toast.success('Agendamento cancelado')
+      setConfirmCancelEvent(false)
+      setSelectedEvent(null)
+      await load()
+    } catch (err) {
+      toast.error('Erro ao cancelar', { description: getErrorMessage(err) })
+    } finally {
+      setCancellingEvent(false)
+    }
+  }
 
   const calendarItems = useMemo(() => visibleAgendaItems(items), [items])
 
@@ -459,10 +481,34 @@ export function AgendaWorkspace() {
                   Pagamento confirmado via Stripe (o dinheiro foi para a conta Connect do escritório).
                 </p>
               ) : null}
+              {selectedEvent.status === 'PENDING_PAYMENT' || selectedEvent.status === 'SCHEDULED' ? (
+                <div className="pt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full rounded-full border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    disabled={cancellingEvent}
+                    onClick={() => setConfirmCancelEvent(true)}
+                  >
+                    Cancelar agendamento
+                  </Button>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmCancelEvent}
+        onOpenChange={(open) => !open && setConfirmCancelEvent(false)}
+        variant="destructive"
+        testId="agenda-cancel-event"
+        title="Cancelar este agendamento?"
+        description="O horário fica livre na agenda. Esta acção não apaga o histórico — o evento passa a Cancelado."
+        confirmLabel={cancellingEvent ? 'A cancelar…' : 'Sim, cancelar'}
+        onConfirm={cancelSelectedEvent}
+      />
 
       <p className="cb-agenda-foot">Teglion — Consultorias / Agenda</p>
     </div>
