@@ -659,3 +659,73 @@ test('remove: caminho feliz — apaga e regista auditoria', async () => {
   assert.equal(auditArgs.action, 'service_inquiry.deleted');
   assert.equal(auditArgs.entityId, 'inquiry-1');
 });
+
+test('remove: cancela consulta ligada activa antes de apagar a solicitação', async () => {
+  resetMocks();
+  mockAudit();
+  const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
+  const consultationsService = require('../consultations/consultations.service');
+
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
+    id: 'inquiry-1',
+    status: 'NEW',
+    serviceId: 'service-1',
+    consultationId: 'c-1',
+  }));
+  mock.method(serviceInquiriesRepository, 'deleteRow', async () => {});
+  mock.method(consultationsRepository, 'findByIdForFirm', async () => ({
+    id: 'c-1',
+    status: 'SCHEDULED',
+    firmId: FIRM_ID,
+  }));
+  let cancelPatch = null;
+  mock.method(consultationsService, 'updateConsultation', async ({ id, patch }) => {
+    cancelPatch = { id, patch };
+    return { consultation: { id, ...patch } };
+  });
+
+  await serviceInquiriesService.remove({ firmId: FIRM_ID, id: 'inquiry-1', actor: { id: 'staff-1' } });
+
+  assert.equal(cancelPatch.id, 'c-1');
+  assert.equal(cancelPatch.patch.status, 'CANCELLED');
+  assert.equal(cancelPatch.patch.cancelReason, 'service_inquiry_deleted');
+});
+
+test('update: CANCELLED cancela consulta ligada activa', async () => {
+  resetMocks();
+  mockAudit();
+  mockTags();
+  const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
+  const consultationsService = require('../consultations/consultations.service');
+
+  mock.method(serviceInquiriesRepository, 'findByIdForFirm', async () => ({
+    id: 'inquiry-1',
+    status: 'IN_PROGRESS',
+    consultationId: 'c-2',
+  }));
+  mock.method(serviceInquiriesRepository, 'updateRow', async (_id, _firmId, patch) => ({
+    id: 'inquiry-1',
+    status: patch.status,
+    consultationId: 'c-2',
+  }));
+  mock.method(consultationsRepository, 'findByIdForFirm', async () => ({
+    id: 'c-2',
+    status: 'PENDING_PAYMENT',
+  }));
+  let cancelPatch = null;
+  mock.method(consultationsService, 'updateConsultation', async ({ id, patch }) => {
+    cancelPatch = { id, patch };
+    return { consultation: { id, ...patch } };
+  });
+
+  await serviceInquiriesService.update({
+    firmId: FIRM_ID,
+    id: 'inquiry-1',
+    actor: { id: 'staff-1' },
+    payload: { status: 'CANCELLED' },
+  });
+
+  assert.equal(cancelPatch.id, 'c-2');
+  assert.equal(cancelPatch.patch.status, 'CANCELLED');
+  assert.equal(cancelPatch.patch.cancelReason, 'service_inquiry_cancelled');
+});

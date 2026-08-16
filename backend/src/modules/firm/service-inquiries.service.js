@@ -13,11 +13,36 @@ const firmInquiryTagsRepository = require('../../db/supabase/repositories/firm-i
 const accountingServicesService = require('./accounting-services.service');
 const leadsService = require('./leads.service');
 const bookingService = require('../booking/booking.service');
+const consultationsService = require('../consultations/consultations.service');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
 const contabilNotifications = require('../../services/notifications/contabil-notifications.service');
 const { normalizePhone } = require('../../services/email/brevo-sms.service');
 const auditRepository = require('../../db/supabase/repositories/contabil/audit.repository');
 const { interpolateServiceTemplate } = require('../../utils/service-text-template');
+
+/** Estados de consulta que ainda ocupam a Agenda / slot. */
+const ACTIVE_CONSULTATION_STATUSES = new Set(['PENDING_PAYMENT', 'SCHEDULED']);
+
+/**
+ * Ao apagar/cancelar uma solicitação, cancela a consulta ligada para não
+ * ficar órfã na Agenda.
+ */
+async function cancelLinkedConsultation({ firmId, consultationId, reason }) {
+  if (!consultationId) return null;
+  const existing = await consultationsRepository.findByIdForFirm(consultationId, firmId).catch(() => null);
+  if (!existing) return null;
+  if (!ACTIVE_CONSULTATION_STATUSES.has(existing.status)) return null;
+  const { consultation } = await consultationsService.updateConsultation({
+    firmId,
+    id: consultationId,
+    patch: {
+      status: 'CANCELLED',
+      cancelReason: reason || 'service_inquiry_closed',
+      holdExpiresAt: null,
+    },
+  });
+  return consultation;
+}
 
 /** Regras do serviço: [{ questionId, equals, tagId }] → tagIds a aplicar. */
 function resolveTagIdsFromRules(rules, answers) {
@@ -303,6 +328,13 @@ async function update({ firmId, id, actor, payload }) {
       entityId: id,
       metadata: { from: existing.status, to: patch.status },
     });
+    if (patch.status === 'CANCELLED' && existing.consultationId) {
+      await cancelLinkedConsultation({
+        firmId,
+        consultationId: existing.consultationId,
+        reason: 'service_inquiry_cancelled',
+      }).catch(() => {});
+    }
   }
 
   const linkRows = await firmInquiryTagsRepository.listLinksForInquiries(firmId, [id]);
@@ -321,6 +353,15 @@ async function remove({ firmId, id, actor }) {
   const existing = await serviceInquiriesRepository.findByIdForFirm(id, firmId);
   if (!existing) throw new AppError('Solicitação não encontrada', 404);
 
+  // Cancela a consulta antes de apagar a solicitação — senão fica órfã na Agenda.
+  if (existing.consultationId) {
+    await cancelLinkedConsultation({
+      firmId,
+      consultationId: existing.consultationId,
+      reason: 'service_inquiry_deleted',
+    }).catch(() => {});
+  }
+
   await serviceInquiriesRepository.deleteRow(id, firmId);
 
   await auditRepository.writeAuditLog({
@@ -330,7 +371,11 @@ async function remove({ firmId, id, actor }) {
     action: 'service_inquiry.deleted',
     entityType: 'service_inquiry',
     entityId: id,
-    metadata: { status: existing.status, serviceId: existing.serviceId },
+    metadata: {
+      status: existing.status,
+      serviceId: existing.serviceId,
+      consultationId: existing.consultationId || null,
+    },
   });
 
   return { ok: true };
