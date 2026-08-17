@@ -154,6 +154,11 @@ export type PublicSiteChromeContent = {
   title?: string
   backgroundColor?: string | null
   textColor?: string | null
+  /** Menu Serviços / Áreas / Contactos. Omissão = visível. */
+  showNav?: boolean
+  showServicesLink?: boolean
+  showAreasMenu?: boolean
+  showContactLink?: boolean
 }
 
 export type PublicSiteEmptyContent = PublicSiteChromeContent

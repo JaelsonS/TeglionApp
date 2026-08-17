@@ -12,3 +12,8 @@ export function useAuth() {
   }
   return ctx
 }
+
+/** Landing e rotas leves não têm AuthProvider. */
+export function useAuthOptional() {
+  return useContext(AuthContext)
+}

@@ -405,6 +405,7 @@ export function ChromeSectionEditor({
   titleFieldLabel = 'Texto desta zona',
   titlePlaceholder,
   titleHint,
+  showNavControls = false,
 }: {
   content: PublicSiteChromeContent
   onChange: (next: PublicSiteChromeContent) => void
@@ -414,7 +415,10 @@ export function ChromeSectionEditor({
   titleFieldLabel?: string
   titlePlaceholder?: string
   titleHint?: string
+  /** Cabeçalho: ligar/desligar Serviços, Áreas e Contactos. */
+  showNavControls?: boolean
 }) {
+  const navOn = content.showNav !== false
   return (
     <div className="space-y-3">
       <p className="text-caption text-muted-foreground">
@@ -434,6 +438,54 @@ export function ChromeSectionEditor({
             {titleHint ||
               'Opcional. Se vazio, a barra do topo usa o «Nome na barra do topo» definido acima.'}
           </p>
+        </div>
+      ) : null}
+      {showNavControls ? (
+        <div className="space-y-2 rounded-xl border border-border/70 bg-muted/20 p-3">
+          <p className="text-sm font-medium text-foreground">Links na barra do topo</p>
+          <p className="text-[11px] text-muted-foreground">
+            Serviços e Contactos saltam para as secções da página. Áreas abre o menu das categorias do
+            catálogo público (o campo «Grupo na página pública» de cada serviço). Sem serviços
+            publicados, Áreas não aparece mesmo que esteja ligado.
+          </p>
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={navOn}
+              onCheckedChange={(v: boolean | 'indeterminate') =>
+                onChange({ ...content, showNav: v === true })
+              }
+            />
+            Mostrar menu de navegação
+          </label>
+          <div className={navOn ? 'space-y-2 pl-6' : 'pointer-events-none space-y-2 pl-6 opacity-50'}>
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={content.showServicesLink !== false}
+                onCheckedChange={(v: boolean | 'indeterminate') =>
+                  onChange({ ...content, showServicesLink: v === true })
+                }
+              />
+              Serviços
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={content.showAreasMenu !== false}
+                onCheckedChange={(v: boolean | 'indeterminate') =>
+                  onChange({ ...content, showAreasMenu: v === true })
+                }
+              />
+              Áreas
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={content.showContactLink !== false}
+                onCheckedChange={(v: boolean | 'indeterminate') =>
+                  onChange({ ...content, showContactLink: v === true })
+                }
+              />
+              Contactos
+            </label>
+          </div>
         </div>
       ) : null}
       <div className="grid gap-3 sm:grid-cols-2">

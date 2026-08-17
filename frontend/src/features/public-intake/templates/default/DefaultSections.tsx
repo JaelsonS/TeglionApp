@@ -96,6 +96,12 @@ export function HeaderSection({
     : 'text-sm font-medium text-[hsl(var(--brand-text,var(--muted-foreground)))] hover:text-[hsl(var(--brand-text,var(--foreground)))]'
   const groups = uniquePublicServiceGroups(ctx.services)
   const homeHref = `/${encodeURIComponent(ctx.firmSlug)}`
+  const showNav = content?.showNav !== false
+  const showServicesLink = content?.showServicesLink !== false
+  const showAreasMenu = content?.showAreasMenu !== false
+  const showContactLink = content?.showContactLink !== false
+  const hasNav =
+    showNav && (showServicesLink || (showAreasMenu && groups.length > 0) || showContactLink)
 
   return (
     <header
@@ -111,49 +117,55 @@ export function HeaderSection({
         <Link to={homeHref} className={labelClass} style={labelStyle}>
           {headerLabel}
         </Link>
-        <nav
-          className="ml-auto flex min-w-0 items-center gap-1 overflow-x-auto text-sm"
-          aria-label="Navegação do site"
-        >
-          <a href="#servicos" className={`shrink-0 rounded-lg px-2.5 py-1.5 ${navClass}`} style={labelStyle}>
-            Serviços
-          </a>
-          {groups.length > 0 ? (
-            <details className="group relative shrink-0">
-              <summary
-                className={`flex cursor-pointer list-none items-center gap-1 rounded-lg px-2.5 py-1.5 marker:content-none ${navClass}`}
-                style={labelStyle}
-              >
-                Áreas
-                <ChevronDown className="h-3.5 w-3.5 opacity-70 transition group-open:rotate-180" aria-hidden />
-              </summary>
-              <div className="absolute right-0 z-30 mt-1 max-h-[70vh] w-64 overflow-y-auto rounded-xl border border-border/70 bg-card p-2 shadow-lg">
-                {groups.map((group) => (
-                  <details key={group.heading || 'outros'} className="rounded-lg">
-                    <summary className="cursor-pointer list-none rounded-md px-2 py-1.5 text-sm font-semibold text-foreground marker:content-none hover:bg-muted/60">
-                      {group.heading}
-                    </summary>
-                    <ul className="pb-1 pl-1">
-                      {group.items.slice(0, 12).map((service) => (
-                        <li key={service.slug}>
-                          <Link
-                            to={`/${encodeURIComponent(ctx.firmSlug)}/servicos/${encodeURIComponent(service.slug)}`}
-                            className="block rounded-md px-2 py-1 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-                          >
-                            {service.name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
-                ))}
-              </div>
-            </details>
-          ) : null}
-          <a href="#contactos" className={`shrink-0 rounded-lg px-2.5 py-1.5 ${navClass}`} style={labelStyle}>
-            Contactos
-          </a>
-        </nav>
+        {hasNav ? (
+          <nav
+            className="ml-auto flex min-w-0 items-center gap-1 overflow-x-auto text-sm"
+            aria-label="Navegação do site"
+          >
+            {showServicesLink ? (
+              <a href="#servicos" className={`shrink-0 rounded-lg px-2.5 py-1.5 ${navClass}`} style={labelStyle}>
+                Serviços
+              </a>
+            ) : null}
+            {showAreasMenu && groups.length > 0 ? (
+              <details className="group relative shrink-0">
+                <summary
+                  className={`flex cursor-pointer list-none items-center gap-1 rounded-lg px-2.5 py-1.5 marker:content-none ${navClass}`}
+                  style={labelStyle}
+                >
+                  Áreas
+                  <ChevronDown className="h-3.5 w-3.5 opacity-70 transition group-open:rotate-180" aria-hidden />
+                </summary>
+                <div className="absolute right-0 z-30 mt-1 max-h-[70vh] w-64 overflow-y-auto rounded-xl border border-border/70 bg-card p-2 shadow-lg">
+                  {groups.map((group) => (
+                    <details key={group.heading || 'outros'} className="rounded-lg">
+                      <summary className="cursor-pointer list-none rounded-md px-2 py-1.5 text-sm font-semibold text-foreground marker:content-none hover:bg-muted/60">
+                        {group.heading}
+                      </summary>
+                      <ul className="pb-1 pl-1">
+                        {group.items.slice(0, 12).map((service) => (
+                          <li key={service.slug}>
+                            <Link
+                              to={`/${encodeURIComponent(ctx.firmSlug)}/servicos/${encodeURIComponent(service.slug)}`}
+                              className="block rounded-md px-2 py-1 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                            >
+                              {service.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  ))}
+                </div>
+              </details>
+            ) : null}
+            {showContactLink ? (
+              <a href="#contactos" className={`shrink-0 rounded-lg px-2.5 py-1.5 ${navClass}`} style={labelStyle}>
+                Contactos
+              </a>
+            ) : null}
+          </nav>
+        ) : null}
       </div>
     </header>
   )

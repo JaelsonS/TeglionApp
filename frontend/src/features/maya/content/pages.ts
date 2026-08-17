@@ -705,6 +705,28 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     topicIds: ['portal-home', 'portal-messages'],
     primaryIntentId: 'portal-home',
   },
+  {
+    id: 'landing-home',
+    pathPrefix: '/',
+    exact: true,
+    where: 'página do Teglion',
+    summary:
+      'Aqui apresenta-se o Teglion: a plataforma para escritórios de contabilidade em Portugal. Eu explico o produto, o trial de 14 dias, a página pública, o portal do cliente — e se quiser uma pessoa, abro o WhatsApp da AfDigital.',
+    audience: 'Quem está a conhecer o Teglion',
+    goal: 'Perceber se o Teglion serve o escritório e começar o trial ou falar connosco.',
+    firstTimeHint:
+      'Se só tem um minuto: o Teglion organiza clientes, documentos, prazos e captação. Evoluímos o sistema todos os dias. Comece grátis 14 dias, ou fale com uma pessoa no WhatsApp.',
+    topicIds: [
+      'landing-what',
+      'landing-daily',
+      'landing-trial',
+      'landing-page',
+      'landing-portal',
+      'landing-pricing',
+      'landing-human',
+    ],
+    primaryIntentId: 'landing-what',
+  },
 ]
 
 export const MAYA_CLIENT_CATALOG_INTENT_IDS = [
@@ -718,6 +740,16 @@ export const MAYA_CLIENT_CATALOG_INTENT_IDS = [
   'portal-account',
   'portal-maya',
   'portal-firm-contact',
+] as const
+
+export const MAYA_LANDING_CATALOG_INTENT_IDS = [
+  'landing-what',
+  'landing-daily',
+  'landing-trial',
+  'landing-page',
+  'landing-portal',
+  'landing-pricing',
+  'landing-human',
 ] as const
 
 /** Intents de «outras áreas» — módulos, não campos. */

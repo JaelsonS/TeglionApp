@@ -205,6 +205,10 @@ function normalizeSectionContent(type, raw) {
         title: content.title ? String(content.title).trim().slice(0, 120) : '',
         backgroundColor: normalizeOptionalHex(content.backgroundColor),
         textColor: normalizeOptionalHex(content.textColor),
+        showNav: content.showNav !== false,
+        showServicesLink: content.showServicesLink !== false,
+        showAreasMenu: content.showAreasMenu !== false,
+        showContactLink: content.showContactLink !== false,
       };
     case 'footer':
       return {
