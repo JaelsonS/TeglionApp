@@ -562,7 +562,7 @@ export function ServiceFullEditorSheet({
                   Configure o que oferece, como o cliente solicita, e publique na página pública.
                 </p>
               </div>
-              <AskMayaButton intentId="service" />
+              <AskMayaButton intentId="service-editor" />
             </div>
             <p
               className={cn(

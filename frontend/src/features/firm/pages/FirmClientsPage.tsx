@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Archive,
   Building2,
@@ -78,6 +78,14 @@ function normalizeRegimeLabel(v?: string | null) {
 
 export function FirmClientsPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const openCreate = searchParams.get('create') === '1'
+  const setOpenCreate = (open: boolean) => {
+    const next = new URLSearchParams(searchParams)
+    if (open) next.set('create', '1')
+    else next.delete('create')
+    setSearchParams(next, { replace: true })
+  }
 
   const [items, setItems] = useState<Client[]>([])
   const [total, setTotal] = useState(0)
@@ -96,7 +104,6 @@ export function FirmClientsPage() {
     Record<string, { name: string; email?: string | null }>
   >({})
   const [bulkInviteOpen, setBulkInviteOpen] = useState(false)
-  const [openCreate, setOpenCreate] = useState(false)
   const [archiveTarget, setArchiveTarget] = useState<Client | null>(null)
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false,
@@ -261,7 +268,7 @@ export function FirmClientsPage() {
             }
             testId="firm-clients-header"
             secondary={
-              <AskMayaButton intentId="clients" />
+              <AskMayaButton />
             }
             right={
               <Button size="sm" variant="primary" onClick={() => setOpenCreate(true)}>

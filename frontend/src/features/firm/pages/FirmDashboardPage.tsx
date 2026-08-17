@@ -35,6 +35,7 @@ import {
   type PeriodScope,
 } from '@/features/firm/dashboard/firmDashboardUtils'
 import { AgencyPromoCard } from '@/shared/components/agency/AgencyPromoCard'
+import { AskMayaButton } from '@/features/maya'
 import { Button } from '@/shared/components/ui/button'
 import { EmptyState, PageHeader, SkeletonCard } from '@/shared/design-system'
 import { useFirmDashboard } from '@/shared/hooks/queries/useFirmDashboard'
@@ -206,10 +207,13 @@ export function FirmDashboardPage() {
             </div>
           }
           right={
-            <Button type="button" size="sm" variant="outline" onClick={() => navigate(firmTasksPath('manual'))}>
-              <Plus className="h-4 w-4" />
-              Nova tarefa
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <AskMayaButton intentId="tour" />
+              <Button type="button" size="sm" variant="outline" onClick={() => navigate(firmTasksPath('manual'))}>
+                <Plus className="h-4 w-4" />
+                Nova tarefa
+              </Button>
+            </div>
           }
         />
 

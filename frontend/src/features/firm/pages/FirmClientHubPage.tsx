@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useMemo } from 'react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   AlertTriangle,
   CalendarClock,
@@ -24,7 +24,11 @@ import { ClientHubActivityHistoryPanel } from '@/features/firm/client-hub/Client
 import { ClientHubHistory } from '@/features/firm/client-hub/ClientHubHistory'
 import { deriveRiskReason } from '@/features/firm/client-hub/clientHubUtils'
 import { ClientHubOverviewMetrics } from '@/features/firm/client-hub/ClientHubOverviewMetrics'
-import { CLIENT_HUB_SECTIONS, type ClientHubSection } from '@/features/firm/client-hub/sections'
+import {
+  CLIENT_HUB_SECTIONS,
+  isClientHubSection,
+  type ClientHubSection,
+} from '@/features/firm/client-hub/sections'
 import { Button } from '@/shared/components/ui/button'
 import { SegmentedControl, Skeleton, SkeletonCard } from '@/shared/design-system'
 import { useClientHub, useHideClientActivity, usePatchClient } from '@/shared/hooks/queries/useClientHub'
@@ -34,7 +38,9 @@ import { cn } from '@/shared/lib/utils'
 export function FirmClientHubPage() {
   const { clientId } = useParams<{ clientId: string }>()
   const navigate = useNavigate()
-  const [section, setSection] = useState<ClientHubSection>('overview')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const rawSection = searchParams.get('section')
+  const section: ClientHubSection = isClientHubSection(rawSection) ? rawSection : 'overview'
 
   const { data: hub, isLoading, isError, refetch, isFetching } = useClientHub(clientId)
   const patch = usePatchClient(clientId || '')
@@ -81,6 +87,13 @@ export function FirmClientHubPage() {
     label: s.label,
     icon: s.icon,
   }))
+
+  function setSection(id: ClientHubSection) {
+    const next = new URLSearchParams(searchParams)
+    if (id === 'overview') next.delete('section')
+    else next.set('section', id)
+    setSearchParams(next, { replace: true })
+  }
 
   function onSectionChange(id: ClientHubSection) {
     setSection(id)
