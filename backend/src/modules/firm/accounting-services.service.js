@@ -66,12 +66,16 @@ const DOCUMENT_TIMINGS = new Set(['immediate', 'manual']);
 function normalizeDocumentRequirements(value) {
   if (value === undefined) return undefined;
   if (!Array.isArray(value)) throw new AppError('document_requirements deve ser uma lista', 400);
-  return value.slice(0, 50).map((item) => ({
-    tag: String(item?.tag || '').trim().slice(0, 60),
-    title: String(item?.title || '').trim().slice(0, 200),
-    instructions: item?.instructions != null ? String(item.instructions).trim().slice(0, 2000) : null,
-    timing: DOCUMENT_TIMINGS.has(item?.timing) ? item.timing : 'immediate',
-  })).filter((item) => item.tag && item.title);
+  return value.slice(0, 50).map((item) => {
+    const alwaysRequired = item?.alwaysRequired !== false;
+    return {
+      tag: String(item?.tag || '').trim().slice(0, 60),
+      title: String(item?.title || '').trim().slice(0, 200),
+      instructions: item?.instructions != null ? String(item.instructions).trim().slice(0, 2000) : null,
+      timing: DOCUMENT_TIMINGS.has(item?.timing) ? item.timing : 'immediate',
+      ...(alwaysRequired ? {} : { alwaysRequired: false }),
+    };
+  }).filter((item) => item.tag && item.title);
 }
 
 const TIME_RE = /^\d{1,2}:\d{2}$/;
@@ -313,6 +317,8 @@ function normalizeIntakeForm(value) {
  * Junta os documentos base do Service (sempre exigidos) com os documentos
  * condicionais activados pelas respostas (resposta→tag, via intake_form).
  * Base tem sempre prioridade sobre título/instruções em caso de tag repetida.
+ * Documentos com `alwaysRequired: false` só entram quando uma opção os activa
+ * — omissão do campo = comportamento actual (sempre pedido).
  */
 function resolveRequiredDocuments(service, answers) {
   const answersMap = answers && typeof answers === 'object' ? answers : {};
@@ -339,14 +345,18 @@ function resolveRequiredDocuments(service, answers) {
 
   const merged = new Map(conditionalByTag);
   for (const req of service?.documentRequirements || []) {
-    if (req?.tag) {
-      merged.set(req.tag, {
-        tag: req.tag,
-        title: req.title,
-        instructions: req.instructions || null,
-        timing: req.timing === 'manual' ? 'manual' : 'immediate',
-      });
+    if (!req?.tag) continue;
+    const mapped = {
+      tag: req.tag,
+      title: req.title,
+      instructions: req.instructions || null,
+      timing: req.timing === 'manual' ? 'manual' : 'immediate',
+    };
+    if (req.alwaysRequired === false) {
+      if (merged.has(req.tag)) merged.set(req.tag, mapped);
+      continue;
     }
+    merged.set(req.tag, mapped);
   }
   return Array.from(merged.values());
 }

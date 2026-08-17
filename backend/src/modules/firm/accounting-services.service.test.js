@@ -336,6 +336,67 @@ test('resolveRequiredDocuments: multiple_choice com várias respostas activa vá
   assert.deepEqual(tags, ['caderneta_predial', 'recibos_vencimento']);
 });
 
+test('resolveRequiredDocuments: consultoria fiscal — opções não escolhidas não pedem os seus docs', () => {
+  const service = {
+    documentRequirements: [
+      { tag: 'docs_irs', title: 'Documentos de IRS', alwaysRequired: false },
+      { tag: 'docs_iva', title: 'Documentos de IVA', alwaysRequired: false },
+      { tag: 'docs_irc', title: 'Documentos de IRC', alwaysRequired: false },
+      { tag: 'docs_emp', title: 'Consultoria empresarial', alwaysRequired: false },
+    ],
+    intakeForm: {
+      questions: [
+        {
+          id: 'q_servicos',
+          type: 'multiple_choice',
+          options: [
+            { id: 'irs', documentTags: ['docs_irs'] },
+            { id: 'iva', documentTags: ['docs_iva'] },
+            { id: 'irc', documentTags: ['docs_irc'] },
+            { id: 'emp', documentTags: ['docs_emp'] },
+          ],
+        },
+      ],
+    },
+  };
+  const none = accountingServicesService.resolveRequiredDocuments(service, {});
+  assert.deepEqual(none, []);
+
+  const selected = accountingServicesService.resolveRequiredDocuments(service, {
+    q_servicos: ['irs', 'iva'],
+  });
+  assert.deepEqual(
+    selected.map((d) => d.tag).sort(),
+    ['docs_irs', 'docs_iva'],
+  );
+  assert.equal(selected.find((d) => d.tag === 'docs_irs').title, 'Documentos de IRS');
+});
+
+test('normalizeDocumentRequirements: alwaysRequired omisso continua a ser documento de base', async () => {
+  resetMocks();
+  let created = null;
+  mock.method(accountingServicesRepository, 'createRow', async (args) => {
+    created = args;
+    return { id: 'svc-1', ...args };
+  });
+
+  await accountingServicesService.create({
+    firmId: 'firm-x',
+    payload: {
+      name: 'Consultoria',
+      durationMinutes: 60,
+      documentRequirements: [
+        { tag: 'base', title: 'Cartão de cidadão' },
+        { tag: 'iva', title: 'Documentos de IVA', alwaysRequired: false },
+      ],
+    },
+  });
+
+  const docs = created.documentRequirements;
+  assert.equal(docs.find((d) => d.tag === 'base').alwaysRequired, undefined);
+  assert.equal(docs.find((d) => d.tag === 'iva').alwaysRequired, false);
+});
+
 test('normalizeDocumentRequirements (via create): timing "manual" é preservado; omitido ou inválido cai para "immediate"', async () => {
   resetMocks();
   let created = null;

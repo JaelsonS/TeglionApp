@@ -408,7 +408,10 @@ export function ServiceFullEditorSheet({
     const title = rawTitle.trim()
     if (!title) return
     const tag = slugifyTag(title, documentRequirements.length)
-    setDocumentRequirements((prev) => [...prev, { tag, title, instructions: '', timing: 'immediate' }])
+    setDocumentRequirements((prev) => [
+      ...prev,
+      { tag, title, instructions: '', timing: 'immediate', alwaysRequired: false },
+    ])
     setQuestions((prev) =>
       prev.map((q, i) => {
         if (i !== qIndex) return q
@@ -766,7 +769,7 @@ export function ServiceFullEditorSheet({
               <div className="space-y-4">
                 <SectionCard
                   title="Documentos necessários"
-                  description="Documentos que este serviço pede ao cliente. Podem ser pedidos logo ou ficar como sugestão."
+                  description="Documentos de base deste serviço (sempre pedidos). Os que ligar a uma opção do formulário só são pedidos se o cliente escolher essa opção."
                 >
                   {documentRequirements.length === 0 ? (
                     <p className="text-xs text-muted-foreground">Nenhum documento configurado ainda.</p>
@@ -791,6 +794,11 @@ export function ServiceFullEditorSheet({
                               updateRequirement(index, { instructions: e.target.value })
                             }
                           />
+                          {req.alwaysRequired === false ? (
+                            <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-medium text-muted-foreground">
+                              Só se escolher a opção
+                            </span>
+                          ) : null}
                           <select
                             className="h-9 shrink-0 rounded-lg border border-brand/20 bg-background px-2 text-xs"
                             value={req.timing ?? 'immediate'}
@@ -830,7 +838,7 @@ export function ServiceFullEditorSheet({
 
                 <SectionCard
                   title="Formulário de perguntas"
-                  description="Nome, email, telefone e NIF já são pedidos automaticamente no topo da página pública — use este formulário só para perguntas próprias deste serviço."
+                  description="Nome, email, telefone e NIF já são pedidos automaticamente. Use perguntas próprias deste serviço — por exemplo «É casado(a)?» ou, em escolha múltipla, «Quais serviços pretende solicitar?»."
                 >
                   <label className="flex items-start gap-2 text-sm">
                     <Checkbox
@@ -851,7 +859,7 @@ export function ServiceFullEditorSheet({
                       <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-brand/20 px-4 py-8 text-center">
                         <FileQuestion className="h-7 w-7 text-muted-foreground/40" />
                         <p className="text-sm text-muted-foreground">
-                          Ainda sem perguntas. Adicione a primeira (ex.: “É casado(a)?”).
+                          Ainda sem perguntas. Ex.: “É casado(a)?” ou “Quais serviços pretende solicitar?”.
                         </p>
                         <Button type="button" size="sm" className="rounded-full bg-brand" onClick={addQuestion}>
                           <Plus className="mr-1 h-3.5 w-3.5" /> Adicionar pergunta
@@ -909,13 +917,20 @@ export function ServiceFullEditorSheet({
                               </p>
                             ) : null}
 
+                            {q.type === 'multiple_choice' ? (
+                              <p className="text-[11px] text-muted-foreground">
+                                O cliente pode marcar várias opções (ex.: IRS, IVA, IRC). Cada opção pode pedir
+                                documentos diferentes — continua a ser um único pedido.
+                              </p>
+                            ) : null}
+
                             {q.options ? (
                               <div className="ml-2 space-y-2 border-l-2 border-brand/20 pl-3">
                                 {q.options.map((opt, oIndex) => (
                                   <div key={opt.id ?? oIndex} className="space-y-1.5">
                                     <div className="flex items-center gap-2">
                                       <Input
-                                        placeholder="Opção"
+                                        placeholder={q.type === 'multiple_choice' ? 'Ex.: IRS' : 'Opção'}
                                         className="h-8 min-w-[140px] flex-1 rounded-lg text-xs"
                                         value={opt.label}
                                         onChange={(e: FormChangeEvent) =>
