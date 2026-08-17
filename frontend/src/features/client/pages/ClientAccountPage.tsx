@@ -5,7 +5,6 @@ import { Bell, HelpCircle, LogOut, MessageSquare, Smartphone, UserRound } from '
 import { ClientPushOptIn } from '@/features/client/ClientPushOptIn'
 import { useClientPortalContext } from '@/features/client/ClientPortalLayout'
 import { AskMayaButton } from '@/features/maya'
-import { AgencyCredit } from '@/shared/components/agency/AgencyCredit'
 import { PwaInstallBanner } from '@/shared/components/pwa/PwaInstallBanner'
 import { PageHeader } from '@/shared/components/portal-cliente/PageHeader'
 import { Button } from '@/shared/components/ui/button'
@@ -109,7 +108,6 @@ export function ClientAccountPage() {
       </section>
 
       <section className="cb-card-padded space-y-3">
-        <AgencyCredit surface="client" nameOnly className="text-left" />
         <p className="text-xs leading-relaxed text-muted-foreground">
           Teglion é o produto. A AfDigital — Soluções Tecnológicas desenvolve e opera a plataforma. O contrato e os
           dados fiscais são com o seu escritório.

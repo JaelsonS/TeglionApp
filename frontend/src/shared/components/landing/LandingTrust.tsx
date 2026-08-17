@@ -21,6 +21,13 @@ export function LandingTrust() {
     >
       <div className="landing-container">
         <FadeInView className="mx-auto max-w-3xl text-center">
+          <img
+            src="/branding/afdigital-office.png"
+            alt="Sala de reuniões da AfDigital — Soluções Tecnológicas"
+            className="mx-auto mb-8 w-full max-w-2xl rounded-2xl object-cover shadow-[0_12px_40px_rgba(15,41,66,0.12)]"
+            width={1280}
+            height={720}
+          />
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#C9932E]">
             Transparência e confiança
           </p>

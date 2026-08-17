@@ -83,7 +83,6 @@ export function ClientDashboardPage() {
   return (
     <div data-testid="client-dashboard-page" className="space-y-6">
       <header className="space-y-1">
-        <p className="cb-text-label text-brand">Portal do cliente</p>
         <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           Olá, {greetingName(user?.fullName)}
         </h1>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { clusterPublicServices } from './clusterPublicServices'
+import { clusterPublicServices, uniquePublicServiceGroups } from './clusterPublicServices'
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
 
 function svc(slug: string, publicGroup?: string | null): PublicFirmServiceSummary {
@@ -34,5 +34,18 @@ describe('clusterPublicServices', () => {
   it('trims blank group names to ungrouped', () => {
     const out = clusterPublicServices([svc('a', '  '), svc('b', 'IRS')])
     expect(out.map((c) => c.heading)).toEqual([null, 'IRS'])
+  })
+})
+
+describe('uniquePublicServiceGroups', () => {
+  it('skips services without slug and buckets the rest', () => {
+    const out = uniquePublicServiceGroups([
+      { ...svc('irs-1', 'IRS') },
+      { ...svc('', 'IRS'), slug: '' },
+      { ...svc('iva-1', 'IVA') },
+      { ...svc('irs-2', 'IRS') },
+    ])
+    expect(out.map((c) => c.heading)).toEqual(['IRS', 'IVA'])
+    expect(out[0].items.map((i) => i.slug)).toEqual(['irs-1', 'irs-2'])
   })
 })

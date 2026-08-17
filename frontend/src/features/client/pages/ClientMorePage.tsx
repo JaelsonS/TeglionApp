@@ -4,9 +4,7 @@ import { ArrowRight } from 'lucide-react'
 import { CLIENT_NAV_MORE, clientNavBadgeFor } from '@/features/client/clientPortalNav'
 import { useClientNavBadges } from '@/features/client/useClientNavBadges'
 import { AskMayaButton } from '@/features/maya'
-import { AgencyCredit } from '@/shared/components/agency/AgencyCredit'
 import { PageHeader } from '@/shared/components/portal-cliente/PageHeader'
-import { cn } from '@/shared/lib/utils'
 
 export function ClientMorePage() {
   const badges = useClientNavBadges()
@@ -56,10 +54,6 @@ export function ClientMorePage() {
           )
         })}
       </nav>
-
-      <p className={cn('pt-4 text-center')}>
-        <AgencyCredit surface="client" nameOnly />
-      </p>
     </div>
   )
 }
