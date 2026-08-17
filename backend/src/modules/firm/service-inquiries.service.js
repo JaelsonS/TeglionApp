@@ -745,6 +745,23 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
   let paymentPublicToken = null;
   let holdExpiresAt = null;
   if (service.requiresBooking && payload?.scheduledAt) {
+    const holdToken = String(payload?.holdToken || '').trim();
+    if (service.intakeStartMode === 'calendar') {
+      await bookingService.assertAnonymousHold({
+        firmId: firm.id,
+        serviceId: service.id,
+        holdToken,
+        scheduledAt: payload.scheduledAt,
+      });
+    } else if (holdToken) {
+      await bookingService.assertAnonymousHold({
+        firmId: firm.id,
+        serviceId: service.id,
+        holdToken,
+        scheduledAt: payload.scheduledAt,
+      });
+    }
+    const ignoreHoldToken = holdToken || undefined;
     if (service.paymentRequired) {
       const connectPaymentsService = require('../connect/connect-payments.service');
       const paid = await connectPaymentsService.bookAndPayAsClient({
@@ -757,6 +774,7 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
         serviceSlug: service.slug || serviceSlug,
         customerEmail: email,
         customerName: name,
+        ignoreHoldToken,
       });
       bookedConsultation = paid.consultation;
       checkoutUrl = paid.checkoutUrl;
@@ -769,8 +787,12 @@ async function submitPublicIntake({ firmSlug, serviceSlug, payload }) {
         leadId: identity.type === 'LEAD' ? identity.id : undefined,
         serviceId: service.id,
         scheduledAt: payload.scheduledAt,
+        ignoreHoldToken,
       });
       bookedConsultation = booked.consultation;
+    }
+    if (holdToken) {
+      await bookingService.releaseAnonymousHold({ firmId: firm.id, holdToken }).catch(() => false);
     }
   }
 

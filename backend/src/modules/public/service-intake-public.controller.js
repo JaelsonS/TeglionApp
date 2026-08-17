@@ -240,6 +240,7 @@ async function getPublicService(req, res, next) {
       imageUrl: (await accountingServicesService.resolveServiceImageUrl(service.imageStorageKey || service.imageUrl)) || null,
       intakeForm: service.intakeForm || { questions: [] },
       requiresBooking: service.requiresBooking === true,
+      intakeStartMode: service.requiresBooking && service.intakeStartMode === 'calendar' ? 'calendar' : 'form',
       paymentRequired: service.paymentRequired === true,
       priceCents: service.priceCents,
       priceTaxMode: service.priceTaxMode || null,
@@ -277,6 +278,38 @@ async function getPublicSlots(req, res, next) {
       toIso,
     });
     return res.json({ slots });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+async function holdPublicSlot(req, res, next) {
+  try {
+    assertValid(req);
+    if (req.body?.website) {
+      return res.status(201).json({ ok: true, holdToken: 'honeypot', expiresAt: null, scheduledAt: null });
+    }
+    const { firm, service } = await resolvePublicService(
+      String(req.params.firmSlug || '').trim(),
+      String(req.params.serviceSlug || '').trim(),
+    );
+    if (!service.requiresBooking) {
+      throw new AppError('Este serviço não tem agendamento', 400);
+    }
+    if (service.intakeStartMode !== 'calendar') {
+      throw new AppError('Este serviço inicia pelo formulário', 400);
+    }
+    const held = await bookingService.createAnonymousHold({
+      firmId: firm.id,
+      serviceId: service.id,
+      scheduledAt: req.body?.scheduledAt,
+    });
+    return res.status(201).json({
+      ok: true,
+      holdToken: held.holdToken,
+      expiresAt: held.expiresAt,
+      scheduledAt: held.scheduledAt,
+    });
   } catch (err) {
     return next(err);
   }
@@ -416,6 +449,7 @@ const submitValidators = [
   body('phone').optional({ nullable: true }).isString().trim().isLength({ max: 40 }),
   body('taxId').optional({ nullable: true }).isString().trim().isLength({ max: 40 }),
   body('scheduledAt').optional({ nullable: true }).isISO8601(),
+  body('holdToken').optional({ nullable: true }).isString().trim().isLength({ min: 32, max: 128 }),
   body('leadAccessToken').optional({ nullable: true }).isString().trim().isLength({ min: 32, max: 128 }),
 ];
 
@@ -426,6 +460,12 @@ const captureLeadValidators = [
   body('email').isString().trim().isLength({ min: 3, max: 200 }),
   body('phone').optional({ nullable: true }).isString().trim().isLength({ max: 40 }),
   body('taxId').optional({ nullable: true }).isString().trim().isLength({ max: 40 }),
+];
+
+const holdSlotValidators = [
+  param('firmSlug').isString().trim().isLength({ min: 2, max: 64 }),
+  param('serviceSlug').isString().trim().isLength({ min: 1, max: 80 }),
+  body('scheduledAt').isISO8601(),
 ];
 
 const slotsValidators = [
@@ -453,6 +493,7 @@ module.exports = {
   getPublicFirmSite,
   getPublicService,
   getPublicSlots,
+  holdPublicSlot,
   captureLead,
   submitIntake,
   getBookingPaymentStatus,
@@ -465,6 +506,7 @@ module.exports = {
   captureLeadValidators,
   submitValidators,
   slotsValidators,
+  holdSlotValidators,
   tokenValidators,
   replyValidators,
   bookingPaymentStatusValidators,

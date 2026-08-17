@@ -887,4 +887,108 @@ test('recordTextReply: marca ANSWERED, audita e notifica a equipa', async () => 
   assert.equal(notifyArgs.requestTitle, 'Tem dependentes a cargo?');
 });
 
-resetMocks();
+test('submitPublicIntake: agenda-primeiro sem holdToken devolve 409 e não cria inquiry', async () => {
+  resetMocks();
+  mockNoise();
+  const bookableService = { ...SERVICE, requiresBooking: true, intakeStartMode: 'calendar' };
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [bookableService]);
+  mock.method(leadsService, 'resolveIdentity', async () => ({ type: 'LEAD', id: 'lead-cal' }));
+  mock.method(bookingService, 'assertAnonymousHold', async () => {
+    const err = new Error('A reserva deste horário expirou. Escolha novamente.');
+    err.statusCode = 409;
+    throw err;
+  });
+  mock.method(bookingService, 'bookAsClient', async () => {
+    throw new Error('não devia reservar sem hold válido');
+  });
+  mock.method(serviceInquiriesRepository, 'createRow', async () => {
+    throw new Error('não devia criar inquiry sem hold');
+  });
+
+  await assert.rejects(
+    () =>
+      serviceInquiriesService.submitPublicIntake({
+        firmSlug: 'x',
+        serviceSlug: 'irs-2026',
+        payload: { name: 'Ana', email: 'ana@x.com', scheduledAt: '2026-09-10T10:00:00.000Z' },
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 409);
+      return true;
+    },
+  );
+});
+
+test('submitPublicIntake: agenda-primeiro com hold válido ignora o próprio hold e liberta o token', async () => {
+  resetMocks();
+  mockNoise();
+  const bookableService = { ...SERVICE, requiresBooking: true, intakeStartMode: 'calendar' };
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [bookableService]);
+  mock.method(leadsService, 'resolveIdentity', async () => ({ type: 'LEAD', id: 'lead-cal' }));
+  let asserted = null;
+  mock.method(bookingService, 'assertAnonymousHold', async (args) => {
+    asserted = args;
+    return { id: 'hold-1' };
+  });
+  let bookArgs = null;
+  mock.method(bookingService, 'bookAsClient', async (args) => {
+    bookArgs = args;
+    return { consultation: { id: 'consultation-cal' }, service: bookableService };
+  });
+  let released = null;
+  mock.method(bookingService, 'releaseAnonymousHold', async (args) => {
+    released = args;
+    return true;
+  });
+  mock.method(serviceInquiriesRepository, 'createRow', async (args) => ({ id: 'inquiry-cal', ...args }));
+  mock.method(serviceInquiriesRepository, 'updateRow', async () => ({}));
+
+  const token = 'b'.repeat(64);
+  const { consultation } = await serviceInquiriesService.submitPublicIntake({
+    firmSlug: 'x',
+    serviceSlug: 'irs-2026',
+    payload: {
+      name: 'Ana',
+      email: 'ana@x.com',
+      scheduledAt: '2026-09-10T10:00:00.000Z',
+      holdToken: token,
+    },
+  });
+
+  assert.equal(asserted.firmId, FIRM.id);
+  assert.equal(asserted.serviceId, bookableService.id);
+  assert.equal(asserted.holdToken, token);
+  assert.equal(bookArgs.ignoreHoldToken, token);
+  assert.equal(bookArgs.leadId, 'lead-cal');
+  assert.equal(released.holdToken, token);
+  assert.equal(consultation.id, 'consultation-cal');
+});
+
+test('submitPublicIntake: formulário-primeiro continua sem exigir holdToken', async () => {
+  resetMocks();
+  mockNoise();
+  const bookableService = { ...SERVICE, requiresBooking: true, intakeStartMode: 'form' };
+  mock.method(firmsRepository, 'findFirmBySlugOrLabel', async () => FIRM);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [bookableService]);
+  mock.method(leadsService, 'resolveIdentity', async () => ({ type: 'CLIENT', id: 'client-1' }));
+  mock.method(bookingService, 'assertAnonymousHold', async () => {
+    throw new Error('formulário-primeiro não deve validar hold');
+  });
+  mock.method(bookingService, 'bookAsClient', async (args) => {
+    assert.equal(args.ignoreHoldToken, undefined);
+    return { consultation: { id: 'consultation-form' }, service: bookableService };
+  });
+  mock.method(serviceInquiriesRepository, 'createRow', async (args) => ({ id: 'inquiry-form', ...args }));
+  mock.method(serviceInquiriesRepository, 'updateRow', async () => ({}));
+
+  const { consultation } = await serviceInquiriesService.submitPublicIntake({
+    firmSlug: 'x',
+    serviceSlug: 'irs-2026',
+    payload: { name: 'Dora', email: 'dora@x.com', scheduledAt: '2026-09-10T10:00:00.000Z' },
+  });
+
+  assert.equal(consultation.id, 'consultation-form');
+});
+

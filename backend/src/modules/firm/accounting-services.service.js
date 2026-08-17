@@ -26,6 +26,11 @@ function normalizePublicGroup(value) {
   return trimmed || null;
 }
 
+function normalizeIntakeStartMode(value) {
+  if (value === undefined) return undefined;
+  return String(value).trim() === 'calendar' ? 'calendar' : 'form';
+}
+
 function normalizeSortOrder(value) {
   if (value === undefined) return undefined;
   const n = Number(value);
@@ -479,6 +484,7 @@ async function create({ firmId, payload }) {
     isPubliclyListed,
     requiresBooking: payload?.requiresBooking === true,
     publicGroup: normalizePublicGroup(payload?.publicGroup) ?? null,
+    intakeStartMode: normalizeIntakeStartMode(payload?.intakeStartMode) ?? 'form',
     documentRequirements: normalizeDocumentRequirements(payload?.documentRequirements) || [],
     intakeForm,
     bookingOverrides: normalizeBookingOverrides(payload?.bookingOverrides) || null,
@@ -518,6 +524,9 @@ async function update({ firmId, id, payload }) {
   if (payload?.requiresBooking !== undefined) patch.requiresBooking = Boolean(payload.requiresBooking);
   if (payload?.publicGroup !== undefined) patch.publicGroup = normalizePublicGroup(payload.publicGroup);
   if (payload?.sortOrder !== undefined) patch.sortOrder = normalizeSortOrder(payload.sortOrder);
+  if (payload?.intakeStartMode !== undefined) {
+    patch.intakeStartMode = normalizeIntakeStartMode(payload.intakeStartMode);
+  }
   if (payload?.documentRequirements !== undefined) {
     patch.documentRequirements = normalizeDocumentRequirements(payload.documentRequirements);
   }
@@ -607,6 +616,7 @@ async function duplicate({ firmId, id }) {
     isPubliclyListed: false,
     requiresBooking: existing.requiresBooking,
     publicGroup: existing.publicGroup,
+    intakeStartMode: existing.intakeStartMode,
     documentRequirements: existing.documentRequirements,
     intakeForm: existing.intakeForm,
     bookingOverrides: existing.bookingOverrides,
@@ -755,6 +765,7 @@ module.exports = {
   normalizeBookingOverrides,
   normalizePublicGroup,
   normalizeSortOrder,
+  normalizeIntakeStartMode,
   resolveRequiredDocuments,
   splitDocumentsByTiming,
   assertFormReadyForPublish,

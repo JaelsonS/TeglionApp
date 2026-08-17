@@ -17,6 +17,7 @@ import {
 import { toast } from 'sonner'
 
 import { ServiceFormPreview } from '@/features/firm/agenda/ServiceFormPreview'
+import { IntakeStartModeFields } from '@/features/firm/services/IntakeStartModeFields'
 import {
   ServicePaymentMethodsPanel,
   type ServicePaymentMethodId,
@@ -187,6 +188,7 @@ export function ServiceFullEditorSheet({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('bank_transfer')
   const [paymentRequired, setPaymentRequired] = useState(false)
   const [requiresBooking, setRequiresBooking] = useState(false)
+  const [intakeStartMode, setIntakeStartMode] = useState<'form' | 'calendar'>('form')
 
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [imageStorageKey, setImageStorageKey] = useState<string | null>(null)
@@ -236,6 +238,7 @@ export function ServiceFullEditorSheet({
       setPaymentMethod(service.paymentMethod || 'bank_transfer')
       setPaymentRequired(Boolean(service.paymentRequired))
       setRequiresBooking(Boolean(service.requiresBooking))
+      setIntakeStartMode(service.intakeStartMode === 'calendar' ? 'calendar' : 'form')
       setImageUrl(service.imageUrl ?? null)
       setImageStorageKey(service.imageStorageKey ?? null)
       setSlug(service.slug || '')
@@ -256,6 +259,7 @@ export function ServiceFullEditorSheet({
       setIsActive(true)
       setPaymentMethod('bank_transfer')
       setRequiresBooking(false)
+      setIntakeStartMode('form')
       setImageUrl(null)
       setImageStorageKey(null)
       setSlug('')
@@ -480,6 +484,7 @@ export function ServiceFullEditorSheet({
       priceTaxMode: priceTaxMode || null,
       isActive,
       requiresBooking,
+      intakeStartMode: requiresBooking ? intakeStartMode : 'form',
       slug: slug.trim() || null,
       isPubliclyListed,
       publicGroup: publicGroup.trim() || null,
@@ -664,6 +669,11 @@ export function ServiceFullEditorSheet({
                       </span>
                     </span>
                   </label>
+                  <IntakeStartModeFields
+                    requiresBooking={requiresBooking}
+                    value={intakeStartMode}
+                    onChange={setIntakeStartMode}
+                  />
                 </SectionCard>
 
                 <section className="overflow-hidden rounded-2xl border border-brand/15 bg-card shadow-sm">
@@ -1131,6 +1141,7 @@ export function ServiceFullEditorSheet({
                     description={description}
                     onDescriptionChange={setDescription}
                     requiresBooking={requiresBooking}
+                    intakeStartMode={intakeStartMode}
                     intakeForm={draftIntakeForm}
                     imageUrl={imageUrl}
                   />

@@ -628,3 +628,10 @@ test('normalizeSortOrder: rejeita valores inválidos', () => {
     (err) => err.statusCode === 400,
   );
 });
+
+test('normalizeIntakeStartMode: default é formulário primeiro', () => {
+  assert.equal(accountingServicesService.normalizeIntakeStartMode(undefined), undefined);
+  assert.equal(accountingServicesService.normalizeIntakeStartMode('form'), 'form');
+  assert.equal(accountingServicesService.normalizeIntakeStartMode('calendar'), 'calendar');
+  assert.equal(accountingServicesService.normalizeIntakeStartMode('outro'), 'form');
+});

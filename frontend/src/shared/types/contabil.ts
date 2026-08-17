@@ -368,6 +368,8 @@ export type AccountingService = {
   isPubliclyListed?: boolean
   publicGroup?: string | null
   requiresBooking?: boolean
+  /** form = dados primeiro (default). calendar = horários primeiro. Só aplica se requiresBooking. */
+  intakeStartMode?: 'form' | 'calendar'
   documentRequirements?: DocumentRequirement[]
   intakeForm?: IntakeForm | null
   /** Substitui, campo a campo, as regras gerais do escritório (firm.settings.booking) só para este serviço. null/undefined = usa as regras gerais. */

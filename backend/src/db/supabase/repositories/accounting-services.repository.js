@@ -20,6 +20,7 @@ function map(row) {
     isPubliclyListed: Boolean(row.is_publicly_listed),
     requiresBooking: Boolean(row.requires_booking),
     publicGroup: row.public_group ? String(row.public_group) : null,
+    intakeStartMode: row.intake_start_mode === 'calendar' ? 'calendar' : 'form',
     documentRequirements: Array.isArray(row.document_requirements) ? row.document_requirements : [],
     intakeForm: row.intake_form || null,
     intakeTagRules: Array.isArray(row.intake_tag_rules) ? row.intake_tag_rules : [],
@@ -72,6 +73,7 @@ async function createRow({
   isPubliclyListed,
   requiresBooking,
   publicGroup,
+  intakeStartMode,
   documentRequirements,
   intakeForm,
   bookingOverrides,
@@ -98,6 +100,7 @@ async function createRow({
       is_publicly_listed: isPubliclyListed === true,
       requires_booking: requiresBooking === true,
       public_group: publicGroup || null,
+      intake_start_mode: intakeStartMode === 'calendar' ? 'calendar' : 'form',
       document_requirements: Array.isArray(documentRequirements) ? documentRequirements : [],
       intake_form: intakeForm || null,
       booking_overrides: bookingOverrides || null,
@@ -145,6 +148,9 @@ async function updateRow(id, firmId, patch) {
   if (patch.isPubliclyListed !== undefined) row.is_publicly_listed = Boolean(patch.isPubliclyListed);
   if (patch.requiresBooking !== undefined) row.requires_booking = Boolean(patch.requiresBooking);
   if (patch.publicGroup !== undefined) row.public_group = patch.publicGroup || null;
+  if (patch.intakeStartMode !== undefined) {
+    row.intake_start_mode = patch.intakeStartMode === 'calendar' ? 'calendar' : 'form';
+  }
   if (patch.documentRequirements !== undefined) {
     row.document_requirements = Array.isArray(patch.documentRequirements) ? patch.documentRequirements : [];
   }

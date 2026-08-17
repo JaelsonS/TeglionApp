@@ -151,6 +151,13 @@ router.get(
   serviceIntakeController.getPublicSlots,
 );
 router.post(
+  '/firms/:firmSlug/services/:serviceSlug/intake/hold',
+  serviceSubmitLimiter,
+  requireTurnstile({ action: TURNSTILE_ACTIONS.INTAKE_HOLD }),
+  serviceIntakeController.holdSlotValidators,
+  serviceIntakeController.holdPublicSlot,
+);
+router.post(
   '/firms/:firmSlug/services/:serviceSlug/intake/lead',
   serviceSubmitLimiter,
   requireTurnstile({ action: TURNSTILE_ACTIONS.INTAKE_LEAD }),
