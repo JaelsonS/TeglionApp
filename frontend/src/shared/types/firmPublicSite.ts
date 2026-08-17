@@ -16,7 +16,13 @@ export type PublicSiteSectionType =
   | 'contact'
   | 'footer'
 
-export type PublicSiteCtaTargetType = 'booking' | 'whatsapp' | 'service-detail' | 'contact-form' | 'external-url'
+export type PublicSiteCtaTargetType =
+  | 'booking'
+  | 'whatsapp'
+  | 'service-detail'
+  | 'contact-form'
+  | 'external-url'
+  | 'phone'
 
 export type PublicSiteCta = {
   id: string
@@ -30,6 +36,7 @@ export type PublicSiteCta = {
     type: PublicSiteCtaTargetType
     serviceId?: string
     url?: string
+    phone?: string
   }
 }
 
@@ -93,6 +100,7 @@ export type PublicSiteAboutContent = {
   heading: string
   body: string
   imageIds: string[]
+  ctas?: PublicSiteCta[]
   backgroundColor?: string | null
   headingColor?: string | null
   bodyColor?: string | null
@@ -101,6 +109,7 @@ export type PublicSiteAboutContent = {
 export type PublicSiteServicesContent = {
   heading: string
   mode: 'auto'
+  ctas?: PublicSiteCta[]
   backgroundColor?: string | null
   headingColor?: string | null
 }
@@ -127,6 +136,7 @@ export type PublicSiteContactContent = {
   showEmail: boolean
   showPhone: boolean
   showAddress: boolean
+  ctas?: PublicSiteCta[]
   backgroundColor?: string | null
   textColor?: string | null
 }

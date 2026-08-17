@@ -165,6 +165,9 @@ async function getPublicFirmSite(req, res, next) {
 
     const showTeglionCredit = await entitlements.showTeglionBranding(firm.id);
 
+    const publicSlugs = items.map((s) => s.slug).filter(Boolean);
+    const publicSections = firmPublicSiteService.filterPublicCtas(config.sections, publicSlugs);
+
     return res.json({
       firmName: resolvePublicFirmName(firm),
       logoUrl,
@@ -174,7 +177,7 @@ async function getPublicFirmSite(req, res, next) {
       theme: config.theme,
       images: publicImages,
       socialLinks: config.socialLinks,
-      sections: config.sections,
+      sections: publicSections,
       showPrices: config.showPrices !== false,
       termsText: config.termsText || null,
       privacyText: config.privacyText || null,

@@ -5,6 +5,7 @@ const { mock } = require('node:test');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
 const firmPublicSitesRepository = require('../../db/supabase/repositories/firm-public-sites.repository');
+const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
 const firmPublicSiteService = require('./firm-public-site.service');
 
@@ -322,6 +323,7 @@ test('saveDraft: rejeita quem não é FIRM_OWNER', async () => {
 test('saveDraft: normaliza o config e grava via repository', async () => {
   resetMocks();
   mock.method(firmUsersRepository, 'findFirmUserById', async () => OWNER);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => []);
   let savedConfig = null;
   mock.method(firmPublicSitesRepository, 'upsertDraft', async (firmId, config) => {
     savedConfig = config;
@@ -334,6 +336,41 @@ test('saveDraft: normaliza o config e grava via repository', async () => {
 
   assert.equal(savedConfig.sections.find((s) => s.type === 'hero').content.tagline, 'Novo slogan');
   assert.equal(result.draftUpdatedAt, '2026-08-11T00:00:00Z');
+});
+
+test('saveDraft: descarta CTA de serviço de outro tenant antes de gravar', async () => {
+  resetMocks();
+  mock.method(firmUsersRepository, 'findFirmUserById', async () => OWNER);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [
+    { id: 'svc-own', slug: 'irs-2026' },
+  ]);
+  let savedConfig = null;
+  mock.method(firmPublicSitesRepository, 'upsertDraft', async (_firmId, config) => {
+    savedConfig = config;
+    return { draft: config, draftUpdatedAt: '2026-08-17T00:00:00Z' };
+  });
+
+  await firmPublicSiteService.saveDraft('firm-1', 'user-1', {
+    sections: [
+      {
+        type: 'about',
+        content: {
+          heading: 'Sobre',
+          ctas: [
+            { label: 'Nosso', target: { type: 'service-detail', serviceId: 'irs-2026' } },
+            { label: 'Alheio', target: { type: 'service-detail', serviceId: 'slug-de-outro' } },
+            { label: 'Ligar', target: { type: 'phone', phone: '+351 912 345 678' } },
+          ],
+        },
+      },
+    ],
+  });
+
+  const ctas = savedConfig.sections.find((s) => s.type === 'about').content.ctas;
+  assert.deepEqual(
+    ctas.map((c) => c.label),
+    ['Nosso', 'Ligar'],
+  );
 });
 
 test('publishSite: rejeita quem não é FIRM_OWNER', async () => {
@@ -505,4 +542,100 @@ test('getSite: uma imagem cujo ficheiro já não existe no storage não rebenta 
 
   assert.equal(result.draft.images.hero[0].url, null);
   assert.equal(result.draft.images.hero[0].id, 'img_1', 'o resto da referência da imagem mantém-se intacto');
+});
+
+test('normalizeSiteConfig: aceita CTA phone e ignora número inválido', () => {
+  const config = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'contact',
+        content: {
+          ctas: [
+            { label: 'Ligar agora', target: { type: 'phone', phone: '+351 912 345 678' } },
+            { label: 'Inválido', target: { type: 'phone', phone: '12' } },
+          ],
+        },
+      },
+    ],
+  });
+  const ctas = config.sections.find((s) => s.type === 'contact').content.ctas;
+  assert.equal(ctas.length, 2);
+  assert.equal(ctas[0].target.type, 'phone');
+  assert.equal(ctas[0].target.phone, '+351 912 345 678');
+  assert.equal(ctas[1].target.phone, undefined);
+});
+
+test('normalizeSiteConfig: about/services guardam ctas; páginas antigas ficam com lista vazia', () => {
+  const legacy = firmPublicSiteService.normalizeSiteConfig({
+    sections: [{ type: 'about', content: { heading: 'Sobre', body: 'Texto' } }],
+  });
+  assert.deepEqual(legacy.sections[0].content.ctas, []);
+
+  const withCta = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'services',
+        content: {
+          heading: 'Consultoria Fiscal',
+          ctas: [{ label: 'Agendar', target: { type: 'service-detail', serviceId: 'consultoria-2026' } }],
+        },
+      },
+    ],
+  });
+  assert.equal(withCta.sections[0].content.ctas[0].target.serviceId, 'consultoria-2026');
+});
+
+test('sanitizeSiteCtasForFirm: descarta serviço de outro escritório e reescreve UUID para slug', () => {
+  const config = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'hero',
+        content: {
+          ctas: [
+            { label: 'Nosso', target: { type: 'service-detail', serviceId: 'irs-2026' } },
+            { label: 'Alheio', target: { type: 'service-detail', serviceId: 'slug-de-outro' } },
+            { label: 'Por id', target: { type: 'service-detail', serviceId: 'svc-uuid' } },
+          ],
+        },
+      },
+      {
+        type: 'about',
+        content: {
+          heading: 'Sobre',
+          ctas: [{ label: 'Ver lista', target: { type: 'booking' } }],
+        },
+      },
+    ],
+  });
+  const sanitized = firmPublicSiteService.sanitizeSiteCtasForFirm(config, [
+    { id: 'svc-uuid', slug: 'consultoria-iva' },
+    { id: 'other', slug: 'irs-2026' },
+  ]);
+  const heroCtas = sanitized.sections.find((s) => s.type === 'hero').content.ctas;
+  const aboutCtas = sanitized.sections.find((s) => s.type === 'about').content.ctas;
+  assert.deepEqual(
+    heroCtas.map((c) => c.target.serviceId),
+    ['irs-2026', 'consultoria-iva'],
+  );
+  assert.equal(aboutCtas[0].target.type, 'booking');
+});
+
+test('filterPublicCtas: esconde serviço despublicado e mantém booking genérico', () => {
+  const sections = [
+    {
+      type: 'hero',
+      content: {
+        ctas: [
+          { label: 'Público', target: { type: 'service-detail', serviceId: 'irs-2026' } },
+          { label: 'Privado', target: { type: 'service-detail', serviceId: 'interno' } },
+          { label: 'Agenda', target: { type: 'booking' } },
+        ],
+      },
+    },
+  ];
+  const filtered = firmPublicSiteService.filterPublicCtas(sections, ['irs-2026']);
+  assert.deepEqual(
+    filtered[0].content.ctas.map((c) => c.label),
+    ['Público', 'Agenda'],
+  );
 });

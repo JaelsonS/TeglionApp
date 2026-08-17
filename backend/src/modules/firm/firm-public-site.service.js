@@ -3,12 +3,13 @@ const { AppError } = require('../../middlewares/error.middleware');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
 const firmPublicSitesRepository = require('../../db/supabase/repositories/firm-public-sites.repository');
+const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
 
 const SECTION_TYPES = new Set([
   'header', 'hero', 'about', 'services', 'bookingServices', 'features', 'process', 'faq', 'contact', 'footer',
 ]);
-const CTA_TYPES = new Set(['booking', 'whatsapp', 'service-detail', 'contact-form', 'external-url']);
+const CTA_TYPES = new Set(['booking', 'whatsapp', 'service-detail', 'contact-form', 'external-url', 'phone']);
 const SOCIAL_LINK_KEYS = ['instagram', 'facebook', 'linkedin', 'whatsapp', 'website'];
 const MAX_SECTIONS = 20;
 const MAX_ITEMS = 30;
@@ -59,6 +60,19 @@ function normalizeOptionalHex(value) {
   return normalizeHexOrNull(trimmed);
 }
 
+function normalizePhoneOrNull(value) {
+  if (value == null) return null;
+  const trimmed = String(value).trim().slice(0, 24);
+  if (!trimmed) return null;
+  const digits = trimmed.replace(/\D/g, '');
+  if (digits.length < 8 || digits.length > 15) return null;
+  return trimmed;
+}
+
+function normalizeCtas(raw) {
+  return Array.isArray(raw) ? raw.slice(0, 3).map(normalizeCta).filter(Boolean) : [];
+}
+
 function normalizeCta(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const type = String(raw?.target?.type || raw?.type || '');
@@ -70,6 +84,10 @@ function normalizeCta(raw) {
   if (type === 'external-url') {
     const url = raw.target?.url ? String(raw.target.url).trim() : '';
     if (/^https:\/\//i.test(url)) target.url = url.slice(0, 500);
+  }
+  if (type === 'phone') {
+    const phone = normalizePhoneOrNull(raw.target?.phone);
+    if (phone) target.phone = phone;
   }
   return {
     id: String(raw.id || generateStableId('cta_')).slice(0, 80),
@@ -98,7 +116,7 @@ function normalizeSectionContent(type, raw) {
         tagline: content.tagline ? String(content.tagline).trim().slice(0, 160) : '',
         bio: content.bio ? String(content.bio).trim().slice(0, 2000) : '',
         imageIds: Array.isArray(content.imageIds) ? content.imageIds.slice(0, 5).map((id) => String(id).slice(0, 80)) : [],
-        ctas: Array.isArray(content.ctas) ? content.ctas.slice(0, 3).map(normalizeCta).filter(Boolean) : [],
+        ctas: normalizeCtas(content.ctas),
         backgroundColor: normalizeOptionalHex(content.backgroundColor),
         titleColor: normalizeOptionalHex(content.titleColor),
         taglineColor: normalizeOptionalHex(content.taglineColor),
@@ -111,6 +129,7 @@ function normalizeSectionContent(type, raw) {
         heading: content.heading ? String(content.heading).trim().slice(0, 160) : '',
         body: content.body ? String(content.body).trim().slice(0, 4000) : '',
         imageIds: Array.isArray(content.imageIds) ? content.imageIds.slice(0, 5).map((id) => String(id).slice(0, 80)) : [],
+        ctas: normalizeCtas(content.ctas),
         backgroundColor: normalizeOptionalHex(content.backgroundColor),
         headingColor: normalizeOptionalHex(content.headingColor),
         bodyColor: normalizeOptionalHex(content.bodyColor),
@@ -120,6 +139,7 @@ function normalizeSectionContent(type, raw) {
       return {
         heading: content.heading ? String(content.heading).trim().slice(0, 160) : '',
         mode: 'auto',
+        ctas: normalizeCtas(content.ctas),
         backgroundColor: normalizeOptionalHex(content.backgroundColor),
         headingColor: normalizeOptionalHex(content.headingColor),
       };
@@ -176,6 +196,7 @@ function normalizeSectionContent(type, raw) {
         showEmail: content.showEmail !== false,
         showPhone: content.showPhone !== false,
         showAddress: content.showAddress !== false,
+        ctas: normalizeCtas(content.ctas),
         backgroundColor: normalizeOptionalHex(content.backgroundColor),
         textColor: normalizeOptionalHex(content.textColor),
       };
@@ -455,9 +476,73 @@ async function uploadImage(firmId, actorUserId, { slot, file }) {
   return { id: generateStableId('img_'), storageKey: uploaded.path, alt: '', url };
 }
 
+function resolveFirmServiceSlug(ref, services) {
+  const value = String(ref || '').trim();
+  if (!value) return null;
+  const bySlug = services.find((s) => s.slug === value);
+  if (bySlug?.slug) return bySlug.slug;
+  const byId = services.find((s) => String(s.id) === value);
+  return byId?.slug || null;
+}
+
+function bindCtaToFirmServices(cta, services) {
+  const type = cta?.target?.type;
+  if (type !== 'service-detail' && !(type === 'booking' && cta.target?.serviceId)) return cta;
+  if (type === 'booking' && !cta.target?.serviceId) return cta;
+  const slug = resolveFirmServiceSlug(cta.target.serviceId, services);
+  if (!slug) return null;
+  return { ...cta, target: { ...cta.target, serviceId: slug } };
+}
+
+/** Descarta botões que apontam para serviços de outro escritório; reescreve UUID para slug. */
+function sanitizeSiteCtasForFirm(config, services) {
+  const list = Array.isArray(services) ? services : [];
+  return {
+    ...config,
+    sections: (config.sections || []).map((section) => {
+      if (!Array.isArray(section.content?.ctas)) return section;
+      return {
+        ...section,
+        content: {
+          ...section.content,
+          ctas: section.content.ctas.map((cta) => bindCtaToFirmServices(cta, list)).filter(Boolean),
+        },
+      };
+    }),
+  };
+}
+
+function isPublicCtaAllowed(cta, publicSlugs) {
+  const type = cta?.target?.type;
+  if (type === 'service-detail') {
+    return Boolean(cta.target.serviceId) && publicSlugs.has(cta.target.serviceId);
+  }
+  if (type === 'booking' && cta.target?.serviceId) {
+    return publicSlugs.has(cta.target.serviceId);
+  }
+  return true;
+}
+
+/** Remove da resposta pública botões para serviços despublicados / inexistentes. */
+function filterPublicCtas(sections, publicSlugs) {
+  const allowed = publicSlugs instanceof Set ? publicSlugs : new Set(publicSlugs || []);
+  return (sections || []).map((section) => {
+    if (!Array.isArray(section.content?.ctas)) return section;
+    return {
+      ...section,
+      content: {
+        ...section.content,
+        ctas: section.content.ctas.filter((cta) => isPublicCtaAllowed(cta, allowed)),
+      },
+    };
+  });
+}
+
 async function saveDraft(firmId, actorUserId, rawConfig) {
   await assertOwner(firmId, actorUserId, 'Apenas o dono do escritório pode editar a página pública.');
-  const config = normalizeSiteConfig(rawConfig);
+  const normalized = normalizeSiteConfig(rawConfig);
+  const services = await accountingServicesRepository.listByFirm(firmId);
+  const config = sanitizeSiteCtasForFirm(normalized, services);
   const updated = await firmPublicSitesRepository.upsertDraft(firmId, config, actorUserId);
   return { draft: updated.draft, draftUpdatedAt: updated.draftUpdatedAt };
 }
@@ -552,4 +637,6 @@ module.exports = {
   buildConfigFromLegacySettings,
   isPreviewTokenValid,
   resolveConfigImages,
+  sanitizeSiteCtasForFirm,
+  filterPublicCtas,
 };

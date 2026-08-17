@@ -28,14 +28,6 @@ import type {
 } from '@/shared/types/firmPublicSite'
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
 
-const CTA_TARGET_OPTIONS: { value: PublicSiteCta['target']['type']; label: string }[] = [
-  { value: 'external-url', label: 'Link externo' },
-  { value: 'booking', label: 'Ver serviços' },
-  { value: 'service-detail', label: 'Um serviço específico' },
-  { value: 'contact-form', label: 'Secção de contactos' },
-  { value: 'whatsapp', label: 'WhatsApp' },
-]
-
 const HEX_RE = /^#[0-9a-f]{6}$/i
 
 function generateStableId(prefix: string): string {
@@ -92,6 +84,213 @@ export function InlineColorField({
           </Button>
         ) : null}
       </div>
+    </div>
+  )
+}
+
+const CTA_TARGET_OPTIONS: { value: PublicSiteCta['target']['type']; label: string }[] = [
+  { value: 'service-detail', label: 'Abrir serviço' },
+  { value: 'phone', label: 'Ligar para o escritório' },
+  { value: 'booking', label: 'Ver serviços' },
+  { value: 'contact-form', label: 'Secção de contactos' },
+  { value: 'whatsapp', label: 'WhatsApp' },
+  { value: 'external-url', label: 'Link externo' },
+]
+
+function emptyCtaTarget(
+  type: PublicSiteCta['target']['type'],
+  services: PublicFirmServiceSummary[],
+  officePhone?: string | null,
+): PublicSiteCta['target'] {
+  if (type === 'external-url') return { type, url: '' }
+  if (type === 'service-detail') return { type, serviceId: services[0]?.slug }
+  if (type === 'phone') return { type, phone: officePhone || '' }
+  return { type }
+}
+
+export function SectionCtasEditor({
+  ctas,
+  onChange,
+  services,
+  officePhone,
+}: {
+  ctas: PublicSiteCta[]
+  onChange: (ctas: PublicSiteCta[]) => void
+  services: PublicFirmServiceSummary[]
+  officePhone?: string | null
+}) {
+  const addCta = () => {
+    onChange([
+      ...ctas,
+      {
+        id: generateStableId('cta_'),
+        label: '',
+        style: 'primary',
+        backgroundColor: null,
+        textColor: null,
+        target: emptyCtaTarget(services[0]?.slug ? 'service-detail' : 'phone', services, officePhone),
+      },
+    ])
+  }
+
+  const patchCta = (id: string, patch: Partial<PublicSiteCta>) => {
+    onChange(ctas.map((c) => (c.id === id ? { ...c, ...patch } : c)))
+  }
+
+  return (
+    <div className="space-y-2 rounded-lg border border-border/40 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <Label className="text-sm font-semibold">Botões</Label>
+        {ctas.length < 3 ? (
+          <Button type="button" variant="outline" size="sm" onClick={addCta}>
+            <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar botão
+          </Button>
+        ) : null}
+      </div>
+      {ctas.length === 0 ? (
+        <p className="text-caption text-muted-foreground">
+          Opcional. Ex.: «Agendar consultoria» (abre um serviço) ou «Ligar agora».
+        </p>
+      ) : null}
+      {ctas.map((cta, index) => {
+        const unpublished =
+          cta.target.type === 'service-detail' &&
+          Boolean(cta.target.serviceId) &&
+          !services.some((s) => s.slug === cta.target.serviceId)
+        return (
+          <div key={cta.id} className="space-y-2 rounded-lg border border-border/50 bg-muted/5 p-3">
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-caption font-medium text-muted-foreground">Botão {index + 1}</p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={() => onChange(ctas.filter((c) => c.id !== cta.id))}
+                aria-label="Remover botão"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label className="text-caption text-muted-foreground">Texto</Label>
+                <Input
+                  value={cta.label}
+                  onChange={(e: FormChangeEvent) => patchCta(cta.id, { label: e.target.value })}
+                  placeholder="Ex.: Agendar consultoria"
+                  maxLength={80}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-caption text-muted-foreground">Ação</Label>
+                <select
+                  className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                  value={cta.target.type}
+                  onChange={(e) =>
+                    patchCta(cta.id, {
+                      target: emptyCtaTarget(e.target.value as PublicSiteCta['target']['type'], services, officePhone),
+                    })
+                  }
+                >
+                  {CTA_TARGET_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {cta.target.type === 'service-detail' ? (
+                <div className="space-y-1 sm:col-span-2">
+                  <Label className="text-caption text-muted-foreground">Serviço</Label>
+                  {services.length > 0 ? (
+                    <select
+                      className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                      value={cta.target.serviceId || ''}
+                      onChange={(e) =>
+                        patchCta(cta.id, { target: { type: 'service-detail', serviceId: e.target.value } })
+                      }
+                    >
+                      {services.map((s) => (
+                        <option key={s.slug} value={s.slug}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="text-caption text-muted-foreground">
+                      Ainda não há serviços públicos. Publique um serviço para o ligar a este botão.
+                    </p>
+                  )}
+                </div>
+              ) : null}
+              {cta.target.type === 'phone' ? (
+                <div className="space-y-1 sm:col-span-2">
+                  <Label className="text-caption text-muted-foreground">Telefone</Label>
+                  <Input
+                    value={cta.target.phone || ''}
+                    onChange={(e: FormChangeEvent) =>
+                      patchCta(cta.id, { target: { type: 'phone', phone: e.target.value } })
+                    }
+                    placeholder={officePhone || '+351 …'}
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Vazio = usa o telefone do escritório. No telemóvel abre a chamada.
+                  </p>
+                </div>
+              ) : null}
+              {cta.target.type === 'external-url' ? (
+                <div className="space-y-1 sm:col-span-2">
+                  <Label className="text-caption text-muted-foreground">Ligação</Label>
+                  <Input
+                    value={cta.target.url || ''}
+                    onChange={(e: FormChangeEvent) =>
+                      patchCta(cta.id, { target: { type: 'external-url', url: e.target.value } })
+                    }
+                    placeholder="https://…"
+                  />
+                </div>
+              ) : null}
+            </div>
+            {unpublished ? (
+              <p className="text-caption text-amber-800">
+                Este serviço não está público — o botão não aparece na página até o publicar.
+              </p>
+            ) : null}
+            {cta.label.trim() ? (
+              <p className="text-caption text-muted-foreground">
+                Pré-visualização:{' '}
+                <span
+                  className="inline-flex items-center rounded-lg bg-primary px-3 py-1 text-xs font-medium text-primary-foreground"
+                  style={
+                    cta.backgroundColor || cta.textColor
+                      ? { backgroundColor: cta.backgroundColor || undefined, color: cta.textColor || '#ffffff' }
+                      : undefined
+                  }
+                >
+                  {cta.label.trim()}
+                </span>
+              </p>
+            ) : null}
+            <div className="grid gap-2 sm:grid-cols-2">
+              <InlineColorField
+                id={`cta-bg-${cta.id}`}
+                label="Cor do botão"
+                value={cta.backgroundColor}
+                fallback={cta.style === 'secondary' ? '#c9a24b' : '#12352a'}
+                onChange={(v) => patchCta(cta.id, { backgroundColor: v })}
+              />
+              <InlineColorField
+                id={`cta-text-${cta.id}`}
+                label="Cor do texto do botão"
+                value={cta.textColor}
+                fallback="#ffffff"
+                onChange={(v) => patchCta(cta.id, { textColor: v })}
+              />
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -264,6 +463,7 @@ export function HeroEditor({
   onUploadImage,
   onRemoveImage,
   services,
+  officePhone,
   publicDisplayName: _publicDisplayName,
 }: {
   content: PublicSiteHeroContent
@@ -273,32 +473,10 @@ export function HeroEditor({
   onUploadImage: (file: File) => void
   onRemoveImage: () => void
   services: PublicFirmServiceSummary[]
+  officePhone?: string | null
   /** Nome do header — disponível para a Maya / callers; UI limpa sem parede de texto. */
   publicDisplayName?: string
 }) {
-  const addCta = () => {
-    onChange({
-      ...content,
-      ctas: [
-        ...content.ctas,
-        {
-          id: generateStableId('cta_'),
-          label: '',
-          style: 'primary',
-          backgroundColor: null,
-          textColor: null,
-          target: { type: 'external-url', url: '' },
-        } as PublicSiteCta,
-      ],
-    })
-  }
-  const patchCta = (id: string, patch: Partial<PublicSiteCta>) => {
-    onChange({ ...content, ctas: content.ctas.map((c) => (c.id === id ? { ...c, ...patch } : c)) })
-  }
-  const removeCta = (id: string) => {
-    onChange({ ...content, ctas: content.ctas.filter((c) => c.id !== id) })
-  }
-
   const imageFit = normalizeHeroImageFit(content.imageFit)
   const imagePosition = normalizeHeroImagePosition(content.imagePosition)
 
@@ -454,97 +632,12 @@ export function HeroEditor({
         />
       </div>
 
-      <div className="space-y-2 rounded-lg border border-border/40 p-3">
-        <div className="flex items-center justify-between gap-2">
-          <Label className="text-sm font-semibold">5. Botões</Label>
-          {content.ctas.length < 3 ? (
-            <Button type="button" variant="outline" size="sm" onClick={addCta}>
-              <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar botão
-            </Button>
-          ) : null}
-        </div>
-        {content.ctas.map((cta, index) => (
-          <div key={cta.id} className="space-y-2 rounded-lg border border-border/50 bg-muted/5 p-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <Input
-                value={cta.label}
-                onChange={(e: FormChangeEvent) => patchCta(cta.id, { label: e.target.value })}
-                placeholder={`Texto do botão ${index + 1}`}
-                className="flex-1 basis-40"
-                maxLength={80}
-              />
-              <select
-                className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-                value={cta.target.type}
-                onChange={(e) =>
-                  patchCta(cta.id, {
-                    target:
-                      e.target.value === 'external-url'
-                        ? { type: 'external-url', url: '' }
-                        : e.target.value === 'service-detail'
-                          ? { type: 'service-detail', serviceId: services[0]?.slug }
-                          : { type: e.target.value as PublicSiteCta['target']['type'] },
-                  })
-                }
-              >
-                {CTA_TARGET_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              {cta.target.type === 'external-url' ? (
-                <Input
-                  value={cta.target.url || ''}
-                  onChange={(e: FormChangeEvent) =>
-                    patchCta(cta.id, { target: { type: 'external-url', url: e.target.value } })
-                  }
-                  placeholder="https://…"
-                  className="w-40"
-                />
-              ) : null}
-              {cta.target.type === 'service-detail' ? (
-                services.length > 0 ? (
-                  <select
-                    className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-                    value={cta.target.serviceId || ''}
-                    onChange={(e) =>
-                      patchCta(cta.id, { target: { type: 'service-detail', serviceId: e.target.value } })
-                    }
-                  >
-                    {services.map((s) => (
-                      <option key={s.slug} value={s.slug}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <span className="text-caption text-muted-foreground">Sem serviços públicos ainda</span>
-                )
-              ) : null}
-              <Button type="button" variant="ghost" size="icon" onClick={() => removeCta(cta.id)} aria-label="Remover botão">
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <InlineColorField
-                id={`cta-bg-${cta.id}`}
-                label="Cor do botão"
-                value={cta.backgroundColor}
-                fallback={cta.style === 'secondary' ? '#c9a24b' : '#12352a'}
-                onChange={(v) => patchCta(cta.id, { backgroundColor: v })}
-              />
-              <InlineColorField
-                id={`cta-text-${cta.id}`}
-                label="Cor do texto do botão"
-                value={cta.textColor}
-                fallback="#ffffff"
-                onChange={(v) => patchCta(cta.id, { textColor: v })}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
+      <SectionCtasEditor
+        ctas={content.ctas || []}
+        services={services}
+        officePhone={officePhone}
+        onChange={(ctas) => onChange({ ...content, ctas })}
+      />
     </div>
   )
 }
@@ -556,6 +649,8 @@ export function AboutEditor({
   uploadingImage,
   onUploadImage,
   onRemoveImage,
+  services,
+  officePhone,
 }: {
   content: PublicSiteAboutContent
   onChange: (next: PublicSiteAboutContent) => void
@@ -563,6 +658,8 @@ export function AboutEditor({
   uploadingImage: boolean
   onUploadImage: (file: File) => void
   onRemoveImage: () => void
+  services: PublicFirmServiceSummary[]
+  officePhone?: string | null
 }) {
   return (
     <div className="space-y-4">
@@ -620,6 +717,12 @@ export function AboutEditor({
           maxLength={4000}
         />
       </div>
+      <SectionCtasEditor
+        ctas={content.ctas || []}
+        services={services}
+        officePhone={officePhone}
+        onChange={(ctas) => onChange({ ...content, ctas })}
+      />
     </div>
   )
 }
@@ -628,10 +731,14 @@ export function ServicesHeadingEditor({
   content,
   onChange,
   placeholder,
+  services,
+  officePhone,
 }: {
   content: PublicSiteServicesContent
   onChange: (next: PublicSiteServicesContent) => void
   placeholder: string
+  services: PublicFirmServiceSummary[]
+  officePhone?: string | null
 }) {
   return (
     <div className="space-y-3">
@@ -663,6 +770,12 @@ export function ServicesHeadingEditor({
           cada um.
         </p>
       </div>
+      <SectionCtasEditor
+        ctas={content.ctas || []}
+        services={services}
+        officePhone={officePhone}
+        onChange={(ctas) => onChange({ ...content, ctas })}
+      />
     </div>
   )
 }
@@ -833,7 +946,17 @@ export function FaqEditor({ content, onChange }: { content: PublicSiteFaqContent
   )
 }
 
-export function ContactEditor({ content, onChange }: { content: PublicSiteContactContent; onChange: (next: PublicSiteContactContent) => void }) {
+export function ContactEditor({
+  content,
+  onChange,
+  services,
+  officePhone,
+}: {
+  content: PublicSiteContactContent
+  onChange: (next: PublicSiteContactContent) => void
+  services: PublicFirmServiceSummary[]
+  officePhone?: string | null
+}) {
   return (
     <div className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-2">
@@ -874,6 +997,12 @@ export function ContactEditor({ content, onChange }: { content: PublicSiteContac
         Mostrar morada
       </label>
       <p className="text-caption text-muted-foreground">Editar os valores em Definições → Escritório.</p>
+      <SectionCtasEditor
+        ctas={content.ctas || []}
+        services={services}
+        officePhone={officePhone}
+        onChange={(ctas) => onChange({ ...content, ctas })}
+      />
     </div>
   )
 }

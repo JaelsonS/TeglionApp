@@ -26,6 +26,7 @@ import type {
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
 import { clusterPublicServices } from '@/features/public-intake/clusterPublicServices'
 import { PublicSiteHeroBanner } from '@/features/public-intake/PublicSiteHeroBanner'
+import { PublicSiteCtaButtons } from '@/features/public-intake/PublicSiteCtaButtons'
 import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
 import { priceTaxModeCaption } from '@/shared/utils/priceTaxMode'
 
@@ -73,24 +74,6 @@ function formatPrice(cents: number) {
 function hexStyle(color?: string | null): string | undefined {
   const v = String(color || '').trim()
   return /^#[0-9a-f]{6}$/i.test(v) ? v : undefined
-}
-
-function resolveCtaHref(cta: PublicSiteHeroContent['ctas'][number], ctx: PublicSiteRenderContext, socialLinks: PublicSiteSocialLinks) {
-  switch (cta.target.type) {
-    case 'booking':
-    case 'service-detail':
-      return cta.target.serviceId
-        ? `/${encodeURIComponent(ctx.firmSlug)}/servicos/${encodeURIComponent(cta.target.serviceId)}`
-        : '#servicos'
-    case 'whatsapp':
-      return socialLinks.whatsapp || '#contactos'
-    case 'contact-form':
-      return '#contactos'
-    case 'external-url':
-      return cta.target.url || '#'
-    default:
-      return '#'
-  }
 }
 
 export function HeaderSection({
@@ -188,54 +171,25 @@ export function HeroSection({
             {content.bio}
           </p>
         ) : null}
-        {content.ctas.length > 0 ? (
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-            {content.ctas.map((cta) => {
-              const isExternal =
-                cta.target.type === 'external-url' || cta.target.type === 'whatsapp'
-              const isServiceLink =
-                cta.target.type === 'booking' || cta.target.type === 'service-detail'
-              const openBlank =
-                isExternal || (Boolean(ctx.openInternalLinksInNewTab) && isServiceLink)
-              const btnBg = hexStyle(cta.backgroundColor)
-              const btnText = hexStyle(cta.textColor)
-              const custom = Boolean(btnBg || btnText)
-              return (
-                <a
-                  key={cta.id}
-                  href={resolveCtaHref(cta, ctx, socialLinks)}
-                  target={openBlank ? '_blank' : undefined}
-                  rel={openBlank ? 'noopener noreferrer' : undefined}
-                  className={
-                    custom
-                      ? 'inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium shadow-sm transition hover:opacity-90'
-                      : cta.style === 'secondary'
-                        ? 'inline-flex items-center rounded-lg border-2 border-secondary bg-secondary/15 px-4 py-2 text-sm font-medium text-[hsl(var(--secondary))] transition hover:bg-secondary/25'
-                        : 'inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90'
-                  }
-                  style={
-                    custom
-                      ? {
-                          backgroundColor: btnBg || (cta.style === 'secondary' ? undefined : '#12352a'),
-                          color: btnText || '#ffffff',
-                          border: cta.style === 'secondary' && !btnBg ? undefined : undefined,
-                        }
-                      : undefined
-                  }
-                >
-                  {cta.label}
-                </a>
-              )
-            })}
-          </div>
-        ) : null}
+        <PublicSiteCtaButtons ctas={content.ctas} ctx={ctx} socialLinks={socialLinks} />
       </div>
     </section>
   )
 }
 
-export function AboutSection({ content, images }: { content: PublicSiteAboutContent; images: PublicSiteConfig['images'] }) {
-  if (!content.heading && !content.body) return null
+export function AboutSection({
+  content,
+  images,
+  ctx,
+  socialLinks,
+}: {
+  content: PublicSiteAboutContent
+  images: PublicSiteConfig['images']
+  ctx: PublicSiteRenderContext
+  socialLinks: PublicSiteSocialLinks
+}) {
+  const hasCtas = (content.ctas?.length ?? 0) > 0
+  if (!content.heading && !content.body && !hasCtas && content.imageIds.length === 0) return null
   const photoUrl = resolveFirstImageUrl(content.imageIds, images)
   const bg = hexStyle(content.backgroundColor)
   const headingColor = hexStyle(content.headingColor)
@@ -269,6 +223,12 @@ export function AboutSection({ content, images }: { content: PublicSiteAboutCont
             {content.body}
           </p>
         ) : null}
+        <PublicSiteCtaButtons
+          ctas={content.ctas}
+          ctx={ctx}
+          socialLinks={socialLinks}
+          className="flex flex-wrap gap-2"
+        />
       </div>
     </section>
   )
@@ -338,9 +298,18 @@ function ServiceCard({
   )
 }
 
-export function ServicesSection({ content, ctx }: { content: PublicSiteServicesContent; ctx: PublicSiteRenderContext }) {
+export function ServicesSection({
+  content,
+  ctx,
+  socialLinks,
+}: {
+  content: PublicSiteServicesContent
+  ctx: PublicSiteRenderContext
+  socialLinks: PublicSiteSocialLinks
+}) {
   const items = ctx.services.filter((s) => s.requiresBooking)
-  if (items.length === 0) return null
+  const hasCtas = (content.ctas?.length ?? 0) > 0
+  if (items.length === 0 && !hasCtas) return null
   const bg = hexStyle(content.backgroundColor)
   const headingColor = hexStyle(content.headingColor)
   return (
@@ -377,14 +346,29 @@ export function ServicesSection({ content, ctx }: { content: PublicSiteServicesC
             </ul>
           </div>
         ))}
+        <PublicSiteCtaButtons
+          ctas={content.ctas}
+          ctx={ctx}
+          socialLinks={socialLinks}
+          className="flex flex-wrap gap-2"
+        />
       </div>
     </section>
   )
 }
 
-export function BookingServicesSection({ content, ctx }: { content: PublicSiteServicesContent; ctx: PublicSiteRenderContext }) {
+export function BookingServicesSection({
+  content,
+  ctx,
+  socialLinks,
+}: {
+  content: PublicSiteServicesContent
+  ctx: PublicSiteRenderContext
+  socialLinks: PublicSiteSocialLinks
+}) {
   const items = ctx.services.filter((s) => !s.requiresBooking)
-  if (items.length === 0) return null
+  const hasCtas = (content.ctas?.length ?? 0) > 0
+  if (items.length === 0 && !hasCtas) return null
   const bg = hexStyle(content.backgroundColor)
   const headingColor = hexStyle(content.headingColor)
   return (
@@ -421,6 +405,12 @@ export function BookingServicesSection({ content, ctx }: { content: PublicSiteSe
             </ul>
           </div>
         ))}
+        <PublicSiteCtaButtons
+          ctas={content.ctas}
+          ctx={ctx}
+          socialLinks={socialLinks}
+          className="flex flex-wrap gap-2"
+        />
       </div>
     </section>
   )
@@ -562,13 +552,24 @@ export function FaqSection({ content }: { content: PublicSiteFaqContent }) {
   )
 }
 
-export function ContactSection({ content, ctx }: { content: PublicSiteContactContent; ctx: PublicSiteRenderContext }) {
+export function ContactSection({
+  content,
+  ctx,
+  socialLinks,
+}: {
+  content: PublicSiteContactContent
+  ctx: PublicSiteRenderContext
+  socialLinks: PublicSiteSocialLinks
+}) {
   const rows = [
     content.showEmail && ctx.contact.email ? { key: 'email', icon: Mail, label: ctx.contact.email, href: `mailto:${ctx.contact.email}` } : null,
-    content.showPhone && ctx.contact.phone ? { key: 'phone', icon: Phone, label: ctx.contact.phone, href: null } : null,
+    content.showPhone && ctx.contact.phone
+      ? { key: 'phone', icon: Phone, label: ctx.contact.phone, href: `tel:${ctx.contact.phone.replace(/[^\d+]/g, '')}` }
+      : null,
     content.showAddress && ctx.contact.address ? { key: 'address', icon: MapPin, label: ctx.contact.address, href: null } : null,
   ].filter((r): r is NonNullable<typeof r> => Boolean(r))
-  if (rows.length === 0) return null
+  const hasCtas = (content.ctas?.length ?? 0) > 0
+  if (rows.length === 0 && !hasCtas) return null
   const bg = hexStyle(content.backgroundColor)
   const text = hexStyle(content.textColor)
   return (
@@ -592,6 +593,12 @@ export function ContactSection({ content, ctx }: { content: PublicSiteContactCon
             </p>
           ),
         )}
+        <PublicSiteCtaButtons
+          ctas={content.ctas}
+          ctx={ctx}
+          socialLinks={socialLinks}
+          className="flex flex-wrap items-center justify-center gap-2 pt-2"
+        />
       </div>
     </section>
   )
