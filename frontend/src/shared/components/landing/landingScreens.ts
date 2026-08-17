@@ -2,7 +2,6 @@ const BASE = '/landing/screens'
 export const LANDING_SCREENS = {
   dashboard: `${BASE}/dashboard.png`,
   portalCliente: `${BASE}/portal-cliente.png`,
-  portalClienteServicos: `${BASE}/portal-cliente-servicos.png`,
   empresas: `${BASE}/empresas.png`,
   documentosFicheiros: `${BASE}/documentos-ficheiros.png`,
   documentosArquivos: `${BASE}/documentos-arquivos.png`,
@@ -21,18 +20,6 @@ export const LANDING_CAROUSEL_SLIDES: {
   src: string
   alt: string
 }[] = [
-  {
-    title: 'Portal do cliente',
-    copy: 'Início com o próximo passo, pedidos, mensagens e prazos — o cliente vê o que precisa de si agora.',
-    src: LANDING_SCREENS.portalCliente,
-    alt: 'Portal do cliente Teglion no início, com próximo passo e resumo',
-  },
-  {
-    title: 'Serviços e agenda',
-    copy: 'O cliente agenda consultorias ou pede serviços sem sair do portal.',
-    src: LANDING_SCREENS.portalClienteServicos,
-    alt: 'Agenda de consultorias no portal do cliente',
-  },
   {
     title: 'Painel operacional',
     copy: 'Fecha o mês com prazos e pendências à vista — sem abrir dez separadores.',
