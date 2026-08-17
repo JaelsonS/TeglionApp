@@ -36,6 +36,8 @@ export type MayaIntent = {
   steps: string[]
   deepLink: string
   relatedIntents: string[]
+  /** Omissão = escritório. `client` = portal do cliente (Maya própria). */
+  surface?: 'firm' | 'client'
   fields?: MayaFieldHelp[]
   nextSteps?: MayaNextStep[]
   commonProblems?: MayaProblem[]

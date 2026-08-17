@@ -152,6 +152,12 @@ const ClientUpdatesPage = lazy(() =>
 const ClientAccountPage = lazy(() =>
   import('@/features/client/pages/ClientAccountPage').then((m) => ({ default: m.ClientAccountPage })),
 )
+const ClientServicesPage = lazy(() =>
+  import('@/features/client/pages/ClientServicesPage').then((m) => ({ default: m.ClientServicesPage })),
+)
+const ClientMorePage = lazy(() =>
+  import('@/features/client/pages/ClientMorePage').then((m) => ({ default: m.ClientMorePage })),
+)
 const NotFoundPage = lazy(() => import('@/features/NotFoundPage').then((m) => ({ default: m.NotFoundPage })))
 const ClientNoAccessPage = lazy(() =>
   import('@/features/client/ClientNoAccessPage').then((m) => ({ default: m.ClientNoAccessPage })),
@@ -283,6 +289,8 @@ export function ContabilAppRouter() {
             >
               <Route index element={<ClientDashboardPage />} />
               <Route path="requests" element={<ClientRequestsPage />} />
+              <Route path="services" element={<ClientServicesPage />} />
+              <Route path="more" element={<ClientMorePage />} />
               <Route path="messages" element={<ClientMessagesPage />} />
               <Route path="documents" element={<ClientDocumentsPage />} />
               <Route path="archive" element={<ClientArchivePage />} />
@@ -291,7 +299,7 @@ export function ContabilAppRouter() {
               <Route path="updates" element={<ClientUpdatesPage />} />
               <Route path="alerts" element={<Navigate to="/app/client/updates" replace />} />
               <Route path="news" element={<Navigate to="/app/client/updates?tab=news" replace />} />
-              <Route path="booking" element={<Navigate to="/app/client/agenda?view=consultoria" replace />} />
+              <Route path="booking" element={<Navigate to="/app/client/services" replace />} />
               <Route path="account" element={<ClientAccountPage />} />
             </Route>
           </Route>

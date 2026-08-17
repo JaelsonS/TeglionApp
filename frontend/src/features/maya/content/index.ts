@@ -6,6 +6,7 @@ import { IRS_INTENTS } from '@/features/maya/content/intents/irs'
 import { OPS_INTENTS } from '@/features/maya/content/intents/operations'
 import { SERVICE_INTENTS } from '@/features/maya/content/intents/services'
 import { SETTINGS_INTENTS } from '@/features/maya/content/intents/settings'
+import { PORTAL_CLIENT_INTENTS } from '@/features/maya/content/intents/portalClient'
 import type { MayaIntent } from '@/features/maya/content/types'
 
 export const MAYA_INTENTS: MayaIntent[] = [
@@ -17,6 +18,7 @@ export const MAYA_INTENTS: MayaIntent[] = [
   ...OPS_INTENTS,
   ...COMMS_INTENTS,
   ...SETTINGS_INTENTS,
+  ...PORTAL_CLIENT_INTENTS,
 ]
 
 /** Intent sugerido por módulo / ecrã (compatível com a Maya v1). */
@@ -47,7 +49,7 @@ export function getMayaIntent(id: string): MayaIntent | undefined {
   return INTENT_BY_ID.get(id)
 }
 
-export { MAYA_PAGES, MAYA_CATALOG_INTENT_IDS } from '@/features/maya/content/pages'
+export { MAYA_PAGES, MAYA_CATALOG_INTENT_IDS, MAYA_CLIENT_CATALOG_INTENT_IDS } from '@/features/maya/content/pages'
 export { resolveMayaPage } from '@/features/maya/content/resolvePage'
 export type {
   MayaFieldHelp,

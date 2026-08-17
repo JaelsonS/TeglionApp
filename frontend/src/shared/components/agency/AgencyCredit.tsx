@@ -6,15 +6,17 @@ import { cn } from '@/shared/lib/utils'
 type Props = {
   surface: 'client' | 'firm'
   className?: string
+  /** Só o nome da agência, sem o prefixo «Desenvolvido por». */
+  nameOnly?: boolean
 }
 
-export function AgencyCredit({ surface, className }: Props) {
+export function AgencyCredit({ surface, className, nameOnly = false }: Props) {
   return (
     <p className={cn('text-center text-[11px] leading-relaxed text-muted-foreground', className)}>
-      {AGENCY.creditLabel}{' '}
+      {nameOnly ? null : <>{AGENCY.creditLabel}{' '}</>}
       <AgencyNameLink
         className="text-foreground/80 hover:text-brand"
-        aria-label={`${AGENCY.creditLabel} ${AGENCY.displayName}`}
+        aria-label={nameOnly ? AGENCY.displayName : `${AGENCY.creditLabel} ${AGENCY.displayName}`}
         onClick={() => trackProductEvent('agency_click', { surface, placement: 'credit' })}
       />
     </p>

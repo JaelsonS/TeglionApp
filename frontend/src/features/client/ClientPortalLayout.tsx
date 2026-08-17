@@ -1,10 +1,11 @@
 /**
- * Layout do portal cliente — contexto de branding + shell adaptativo (sidebar / drawer).
+ * Layout do portal cliente — branding + chrome adaptativo (tab bar / rail / sidebar).
  */
 import { createContext, useContext, useEffect, useMemo } from 'react'
 import { Navigate } from 'react-router-dom'
 
 import { ClientPortalShell } from '@/features/client/ClientPortalShell'
+import { MayaAssistant } from '@/features/maya'
 import { PageLoading } from '@/shared/design-system'
 import { LiveEventsProvider } from '@/shared/providers/LiveEventsProvider'
 import { useAuth } from '@/shared/hooks/useAuth'
@@ -56,6 +57,7 @@ export function ClientPortalLayout() {
     <ClientPortalContext.Provider value={value}>
       <LiveEventsProvider scope="client">
         <ClientPortalShell />
+        <MayaAssistant />
       </LiveEventsProvider>
     </ClientPortalContext.Provider>
   )

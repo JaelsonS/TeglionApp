@@ -8,6 +8,7 @@ import {
 import {
   getMayaIntent,
   MAYA_CATALOG_INTENT_IDS,
+  MAYA_CLIENT_CATALOG_INTENT_IDS,
   MAYA_INTENTS,
   MAYA_MODULE_INTENT,
   MAYA_PAGES,
@@ -112,15 +113,26 @@ describe('mayaContent', () => {
     }
   })
 
-  it('keeps deep links inside the firm app', () => {
+  it('keeps deep links inside the matching app', () => {
     for (const intent of MAYA_INTENTS) {
-      expect(intent.deepLink.startsWith('/app/firm/'), intent.id).toBe(true)
+      if (intent.surface === 'client') {
+        expect(intent.deepLink.startsWith('/app/client'), intent.id).toBe(true)
+      } else {
+        expect(intent.deepLink.startsWith('/app/firm/'), intent.id).toBe(true)
+      }
     }
   })
 
   it('resolves catalog area intents', () => {
     for (const id of MAYA_CATALOG_INTENT_IDS) {
       expect(getMayaIntent(id), id).toBeTruthy()
+    }
+  })
+
+  it('resolves client catalog intents', () => {
+    for (const id of MAYA_CLIENT_CATALOG_INTENT_IDS) {
+      expect(getMayaIntent(id), id).toBeTruthy()
+      expect(getMayaIntent(id)?.surface).toBe('client')
     }
   })
 
@@ -159,6 +171,13 @@ describe('resolveMayaPage', () => {
       resolveMayaPage('/app/firm/services', new URLSearchParams('tab=central'))?.id,
     ).toBe('services-central')
     expect(resolveMayaPage('/app/firm/services', new URLSearchParams())?.id).toBe('services')
+  })
+
+  it('maps client portal screens', () => {
+    expect(resolveMayaPage('/app/client', new URLSearchParams())?.id).toBe('portal-home')
+    expect(resolveMayaPage('/app/client/services', new URLSearchParams())?.id).toBe('portal-services')
+    expect(resolveMayaPage('/app/client/agenda', new URLSearchParams())?.id).toBe('portal-deadlines')
+    expect(resolveMayaPage('/app/client/account', new URLSearchParams())?.id).toBe('portal-account')
   })
 
   it('maps client hub as more specific than the list', () => {
