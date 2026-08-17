@@ -1,9 +1,12 @@
 import type { ReactNode } from 'react'
 
-import { PageHeader as DsPageHeader } from '@/shared/design-system/PageHeader'
 import { cn } from '@/shared/lib/utils'
 
-/** Cabeçalho do portal cliente — delega tipografia ao design system. */
+/**
+ * Cabeçalho de conteúdo do portal cliente.
+ * O título visível fica só na barra de cima do shell — aqui o H1 é para leitores
+ * de ecrã; no conteúdo ficam o subtítulo e as acções (Maya, etc.).
+ */
 export function PageHeader({
   title,
   subtitle,
@@ -17,18 +20,35 @@ export function PageHeader({
   actions?: ReactNode
   className?: string
 }) {
+  const hasBody = Boolean(subtitle || actions || breadcrumb)
+
   return (
-    <div className={cn('mb-4 md:mb-6', className)}>
-      {breadcrumb ? (
-        <p className="cb-text-label mb-1.5 hidden text-muted-foreground md:block">{breadcrumb}</p>
+    <div className={cn(hasBody ? 'mb-4 md:mb-6' : undefined, className)}>
+      <h1 className="sr-only" data-testid="client-page-header">
+        {title}
+      </h1>
+      {hasBody ? (
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            {breadcrumb ? (
+              <p className="cb-text-label mb-1 text-muted-foreground">{breadcrumb}</p>
+            ) : null}
+            {subtitle ? (
+              <p
+                data-testid="client-page-header-subtitle"
+                className="max-w-3xl text-pretty text-sm leading-relaxed text-muted-foreground"
+              >
+                {subtitle}
+              </p>
+            ) : null}
+          </div>
+          {actions ? (
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
+              {actions}
+            </div>
+          ) : null}
+        </div>
       ) : null}
-      <DsPageHeader
-        title={title}
-        subtitle={subtitle}
-        right={actions}
-        testId="client-page-header"
-        className="mb-0 max-md:[&_h1]:hidden"
-      />
     </div>
   )
 }
