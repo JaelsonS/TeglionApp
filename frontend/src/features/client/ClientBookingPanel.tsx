@@ -27,7 +27,13 @@ function formatEuro(cents: number) {
   return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 }
 
-export function ClientBookingPanel({ t }: { t: ReturnType<typeof getClientHubCopy> }) {
+export function ClientBookingPanel({
+  t,
+  initialServiceId,
+}: {
+  t: ReturnType<typeof getClientHubCopy>
+  initialServiceId?: string
+}) {
   const hubQuery = useClientPortalHub()
   const upcoming = hubQuery.data?.upcomingConsultations || []
 
@@ -51,13 +57,17 @@ export function ClientBookingPanel({ t }: { t: ReturnType<typeof getClientHubCop
       const res = (await clientPortalContabilApi.listBookingServices()) as { items?: AccountingService[] }
       const items = (res.items || []).filter((s) => s.isActive !== false)
       setServices(items)
-      if (items.length) setServiceId((prev) => prev || items[0].id)
+      setServiceId((prev) => {
+        if (prev && items.some((s) => s.id === prev)) return prev
+        if (initialServiceId && items.some((s) => s.id === initialServiceId)) return initialServiceId
+        return items[0]?.id || ''
+      })
     } catch (err) {
       toast.error('Não foi possível carregar serviços', { description: getErrorMessage(err) })
     } finally {
       setLoadingServices(false)
     }
-  }, [])
+  }, [initialServiceId])
 
   const loadSlots = useCallback(async (sid: string) => {
     if (!sid) return

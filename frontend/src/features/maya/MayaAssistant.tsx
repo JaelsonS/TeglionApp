@@ -14,7 +14,7 @@ import { SafeImage } from '@/shared/components/ui/SafeImage'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { cn } from '@/shared/lib/utils'
 import type { AuthUser } from '@/shared/types/auth'
-import { getMayaIntent, MAYA_CATALOG_INTENT_IDS } from '@/features/maya/mayaContent'
+import { getMayaIntent, MAYA_CATALOG_INTENT_IDS, MAYA_CLIENT_CATALOG_INTENT_IDS } from '@/features/maya/mayaContent'
 import { resolveMayaPage } from '@/features/maya/content/resolvePage'
 import type { MayaFieldHelp, MayaIntent, MayaPageGuide, MayaProblem } from '@/features/maya/content/types'
 import { MAYA_OPEN_EVENT, type MayaOpenDetail } from '@/features/maya/openMaya'
@@ -124,7 +124,9 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
     prevPageIdRef.current = pageId
   }, [open, pageId])
 
-  if (!user || user.role === 'CLIENT') return null
+  if (!user) return null
+
+  const isClientSurface = user.role === 'CLIENT'
 
   function closeDialog() {
     setOpen(false)
@@ -170,7 +172,9 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
   const showBack = stack.length > 0
   const subtitle =
     view.kind === 'catalog'
-      ? 'Outras áreas do Teglion'
+      ? isClientSurface
+        ? 'Ajuda deste portal'
+        : 'Outras áreas do Teglion'
       : view.kind === 'field' && activeField
         ? activeField.name
         : view.kind === 'problem' && activeProblem
@@ -181,11 +185,13 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
               ? page.where
               : 'Assistente Teglion'
 
-  const topicIds = page?.topicIds ?? ['tour', 'human-support']
+  const topicIds =
+    page?.topicIds ??
+    (isClientSurface ? ['portal-home', 'portal-maya', 'portal-firm-contact'] : ['tour', 'human-support'])
   const homeIntents = topicIds.map((id) => getMayaIntent(id)).filter((intent): intent is MayaIntent => Boolean(intent))
-  const catalogIntents = MAYA_CATALOG_INTENT_IDS.map((id) => getMayaIntent(id)).filter(
-    (intent): intent is MayaIntent => Boolean(intent),
-  )
+  const catalogIntents = (isClientSurface ? MAYA_CLIENT_CATALOG_INTENT_IDS : MAYA_CATALOG_INTENT_IDS)
+    .map((id) => getMayaIntent(id))
+    .filter((intent): intent is MayaIntent => Boolean(intent))
 
   const fabPosition = cn(
     'fixed z-40',
@@ -319,6 +325,7 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
                 firstName={firstName}
                 page={page}
                 intents={homeIntents}
+                catalogLabel={isClientSurface ? 'Mais ajuda neste portal' : 'Outras áreas do Teglion'}
                 onOpenIntent={(id) => openIntent(id, false)}
                 onOpenCatalog={() => setStack([{ kind: 'catalog' }])}
               />
@@ -327,6 +334,7 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
             {view.kind === 'catalog' ? (
               <MayaCatalog
                 intents={catalogIntents}
+                isClientSurface={isClientSurface}
                 onOpenIntent={(id) => openIntent(id, true)}
               />
             ) : null}
@@ -386,12 +394,14 @@ function MayaHome({
   firstName,
   page,
   intents,
+  catalogLabel,
   onOpenIntent,
   onOpenCatalog,
 }: {
   firstName: string
   page: MayaPageGuide | null
   intents: MayaIntent[]
+  catalogLabel: string
   onOpenIntent: (id: string) => void
   onOpenCatalog: () => void
 }) {
@@ -440,7 +450,7 @@ function MayaHome({
               {intent.title}
             </Chip>
           ))}
-          <Chip onClick={onOpenCatalog}>Outras áreas do Teglion</Chip>
+          <Chip onClick={onOpenCatalog}>{catalogLabel}</Chip>
         </div>
       </div>
     </div>
@@ -449,15 +459,21 @@ function MayaHome({
 
 function MayaCatalog({
   intents,
+  isClientSurface,
   onOpenIntent,
 }: {
   intents: MayaIntent[]
+  isClientSurface: boolean
   onOpenIntent: (id: string) => void
 }) {
   return (
     <div data-testid="maya-catalog">
       <MayaBubble>
-        <p>Estas são as áreas principais do escritório no Teglion. Escolha uma para eu explicar.</p>
+        <p>
+          {isClientSurface
+            ? 'Estas são as áreas principais deste portal. Escolha uma para eu explicar.'
+            : 'Estas são as áreas principais do escritório no Teglion. Escolha uma para eu explicar.'}
+        </p>
       </MayaBubble>
       <div className="mt-4 flex flex-wrap gap-2">
         {intents.map((intent) => (

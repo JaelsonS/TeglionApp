@@ -19,6 +19,13 @@ export type ClientNavItem = {
   icon: LucideIcon
   end?: boolean
   badge?: number
+  /** Quando definido, substitui o isActive do NavLink (ex.: «Mais» cobre Prazos). */
+  active?: boolean
+}
+
+export type ClientNavGroup = {
+  label?: string
+  items: ClientNavItem[]
 }
 
 type Props = {
@@ -27,6 +34,7 @@ type Props = {
   userName?: string
   userEmail?: string
   items: ClientNavItem[]
+  groups?: ClientNavGroup[]
   onLogout?: () => void
   loggingOut?: boolean
   logoutLabel?: string
@@ -43,6 +51,7 @@ export function ClientPortalSidebar({
   userName,
   userEmail,
   items,
+  groups,
   onLogout,
   loggingOut,
   logoutLabel = 'Sair',
@@ -74,26 +83,35 @@ export function ClientPortalSidebar({
         </div>
       </div>
 
-      <nav className="flex shrink-0 flex-col gap-0.5 px-2.5 pt-3" aria-label="Navegação do portal">
-        {items.map(({ to, label, icon: Icon, end, badge }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            onClick={onItemClick}
-            className={({ isActive }) => cn('pc-nav-item', isActive && 'pc-nav-item-active')}
-          >
-            <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
-            <span className="flex-1 truncate">{label}</span>
-            {badge && badge > 0 ? (
-              <span className="pc-nav-badge">{badge > 99 ? '99+' : badge}</span>
+      <nav className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2.5 pt-3" aria-label="Navegação do portal">
+        {(groups && groups.length ? groups : [{ items }]).map((group, index) => (
+          <div key={group.label || `g-${index}`} className="flex flex-col gap-0.5">
+            {group.label ? (
+              <p className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                {group.label}
+              </p>
             ) : null}
-          </NavLink>
+            {group.items.map(({ to, label, icon: Icon, end, badge, active }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                onClick={onItemClick}
+                aria-current={active ? 'page' : undefined}
+                className={({ isActive }) =>
+                  cn('pc-nav-item', (active ?? isActive) && 'pc-nav-item-active')
+                }
+              >
+                <Icon className="h-4 w-4 shrink-0 opacity-80" aria-hidden />
+                <span className="flex-1 truncate">{label}</span>
+                {badge && badge > 0 ? (
+                  <span className="pc-nav-badge">{badge > 99 ? '99+' : badge}</span>
+                ) : null}
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
-
-      {/* Espaço intermédio intencional — o rodapé fica ancorado em baixo, como no mockup */}
-      <div className="pc-sidebar-spacer min-h-4 flex-1" aria-hidden />
 
       <div className="pc-sidebar-footer shrink-0">
         {footer ?? (

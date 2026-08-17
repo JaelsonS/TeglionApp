@@ -37,10 +37,10 @@ export function ClientContactFirmCta({ firmName, onGoMessages, onGoBooking, clas
           type="button"
           className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={onGoBooking}
-          aria-label="Marcar consultoria com o escritório"
+          aria-label="Ver serviços do escritório"
         >
           <CalendarCheck className="h-3.5 w-3.5" aria-hidden />
-          Marcar consultoria
+          Ver serviços
         </button>
       </div>
     </section>
@@ -91,12 +91,12 @@ export function ClientFirstVisitOnboarding({
       </button>
       <p className="pr-8 text-sm font-semibold text-foreground">Bem-vindo ao portal</p>
       <p className="mt-1 text-xs text-muted-foreground">
-        Envie documentos, veja a agenda e fale com o escritório — tudo aqui.
+        Envie o que lhe pedem, veja prazos e fale com o escritório — tudo aqui.
       </p>
       <ol className="mt-3 grid gap-2 sm:grid-cols-2">
         {[
           { label: 'Enviar documentos', onClick: onGoDocuments },
-          { label: 'Ver agenda fiscal', onClick: onGoObligations },
+          { label: 'Ver prazos', onClick: onGoObligations },
           { label: 'Mensagem ao escritório', onClick: onGoMessages },
           ...(onInstallHint ? [{ label: 'Instalar a app', onClick: onInstallHint }] : []),
         ].map((step) => (

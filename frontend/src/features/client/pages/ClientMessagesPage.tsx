@@ -17,7 +17,7 @@ export function ClientMessagesPage() {
     <div className="space-y-6" data-testid="client-messages-page">
       <PageHeader
         title="Mensagens"
-        subtitle="Conversa com o teu contabilista — pedidos formais ficam no separador Pedidos"
+        subtitle="Conversa com o escritório. Pedidos formais de documentos ficam em Pedidos."
       />
       <ClientMessagesPanel t={t} />
     </div>
