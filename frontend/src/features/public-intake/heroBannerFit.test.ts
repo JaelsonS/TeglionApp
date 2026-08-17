@@ -5,9 +5,9 @@ import {
   heroBannerObjectPosition,
   normalizeHeroImageFit,
   normalizeHeroImagePosition,
-} from './publicSiteHeroBanner'
+} from './heroBannerFit'
 
-describe('publicSiteHeroBanner', () => {
+describe('heroBannerFit', () => {
   it('defaults missing fit to cover (páginas existentes)', () => {
     expect(normalizeHeroImageFit(undefined)).toBe('cover')
     expect(normalizeHeroImageFit(null)).toBe('cover')

@@ -7,7 +7,7 @@ import {
   normalizeHeroImagePosition,
   type PublicSiteHeroImageFit,
   type PublicSiteHeroImagePosition,
-} from '@/features/public-intake/publicSiteHeroBanner'
+} from '@/features/public-intake/heroBannerFit'
 import { Button } from '@/shared/components/ui/button'
 import { ImageCropDialog, type ImageCropAspect } from '@/shared/components/media/ImageCropDialog'
 import { Input } from '@/shared/components/ui/input'

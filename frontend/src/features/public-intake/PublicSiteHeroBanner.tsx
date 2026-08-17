@@ -5,7 +5,7 @@ import {
   normalizeHeroImagePosition,
   type PublicSiteHeroImageFit,
   type PublicSiteHeroImagePosition,
-} from '@/features/public-intake/publicSiteHeroBanner'
+} from '@/features/public-intake/heroBannerFit'
 
 type Props = {
   src: string
