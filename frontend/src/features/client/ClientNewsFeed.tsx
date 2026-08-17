@@ -5,6 +5,7 @@ import { ArrowLeft, ExternalLink, FileText, Newspaper, Search } from 'lucide-rea
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
+import { patchNewsFeedSearchParams } from '@/features/client/clientUpdatesSearch'
 import { useClientNewsFeed, clientNewsQueryKey } from '@/shared/hooks/useClientNews'
 import { clientPortalContabilApi } from '@/infrastructure/api'
 import { markNewsArticleRead, isNewsArticleRead, useClientNewsReadVersion } from '@/shared/utils/clientNewsRead'
@@ -55,7 +56,7 @@ export function ClientNewsFeed({ previewMode }: Props) {
       if (id) markNewsArticleRead(id)
       notifyReadChange()
       setActiveSlug(a.slug)
-      setSearchParams({ slug: a.slug }, { replace: true })
+      setSearchParams((prev) => patchNewsFeedSearchParams(prev, a.slug), { replace: true })
       setLoadingArticle(true)
       try {
         const res = (await clientPortalContabilApi.getNewsArticle(a.slug)) as { article: NewsArticle }
@@ -68,7 +69,7 @@ export function ClientNewsFeed({ previewMode }: Props) {
         toast.error('Não foi possível abrir a notícia', { description: getErrorMessage(err) })
         setActiveSlug(null)
         openedSlugRef.current = null
-        setSearchParams({}, { replace: true })
+        setSearchParams((prev) => patchNewsFeedSearchParams(prev, null), { replace: true })
       } finally {
         setLoadingArticle(false)
       }
@@ -99,7 +100,8 @@ export function ClientNewsFeed({ previewMode }: Props) {
           onClick={() => {
             setActiveSlug(null)
             setArticle(null)
-            setSearchParams({}, { replace: true })
+            openedSlugRef.current = null
+            setSearchParams((prev) => patchNewsFeedSearchParams(prev, null), { replace: true })
           }}
         >
           <ArrowLeft className="h-4 w-4" />
