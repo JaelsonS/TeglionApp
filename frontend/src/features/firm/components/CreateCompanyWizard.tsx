@@ -30,6 +30,7 @@ import {
   WizardInput,
   WizardSelect,
 } from '@/features/firm/components/CreateCompanyAddressFields'
+import { AskMayaButton } from '@/features/maya'
 import { Button } from '@/shared/components/ui/button'
 import { Dialog, DialogContent } from '@/shared/components/ui/dialog'
 import { PhoneNumberInputLazyWrapper as PhoneNumberInput } from '@/shared/components/ui/phone-input-lazy'
@@ -338,14 +339,17 @@ export function CreateCompanyWizard({ open, onOpenChange, onCreated }: Props) {
           <div>
             <h2 className="text-base font-semibold text-foreground">{t('clientWizard.title')}</h2>
           </div>
-          <button
-            type="button"
-            className="rounded-md p-1 text-muted-foreground hover:bg-muted/60"
-            onClick={() => onOpenChange(false)}
-            aria-label={t('clientWizard.actions.close')}
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            <AskMayaButton intentId="clients-create" className="h-8" />
+            <button
+              type="button"
+              className="rounded-md p-1 text-muted-foreground hover:bg-muted/60"
+              onClick={() => onOpenChange(false)}
+              aria-label={t('clientWizard.actions.close')}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         <nav className="cb-company-steps" aria-label={t('clientWizard.steps.navLabel')}>
