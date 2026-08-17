@@ -18,7 +18,7 @@ if (!fs.existsSync(STAGING_ENV)) {
 }
 dotenv.config({ path: STAGING_ENV, override: true });
 
-const OWNER_EMAIL = 'jaelsonsilva345@gmail.com';
+const OWNER_EMAIL = 'afdigitalweb.st@gmail.com';
 const FIRM_NAME = 'AfDigital';
 const OWNER_NAME = 'Maya Valentina';
 const DESIRED_SLUG = 'afdigital';
@@ -328,6 +328,24 @@ async function ensureNews(sb, firmId, authorId, authorName, articles) {
   }
 }
 
+async function resolveOwner() {
+  const byEmail = await firmUsersRepository.findFirmUserByEmail(OWNER_EMAIL);
+  if (byEmail) return byEmail;
+
+  const firm = await firmsRepository.findFirmBySlug(DESIRED_SLUG);
+  if (!firm) {
+    throw new Error(`Não encontrei ${OWNER_EMAIL} nem o escritório «${DESIRED_SLUG}» em staging.`);
+  }
+  const users = await firmUsersRepository.listFirmUsers(firm.id, { activeOnly: false });
+  const mapped = users.find((u) => u.role === 'FIRM_OWNER') || users[0];
+  if (!mapped) {
+    throw new Error(`Escritório «${DESIRED_SLUG}» sem utilizadores.`);
+  }
+  const raw = await firmUsersRepository.findFirmUserById(mapped.id, firm.id);
+  if (!raw) throw new Error(`Não foi possível carregar o dono do escritório ${DESIRED_SLUG}.`);
+  return raw;
+}
+
 async function main() {
   dotenv.config({ path: STAGING_ENV, override: true });
   assertStaging();
@@ -335,10 +353,7 @@ async function main() {
     throw new Error('Supabase STAGING não configurado.');
   }
 
-  const owner = await firmUsersRepository.findFirmUserByEmail(OWNER_EMAIL);
-  if (!owner) {
-    throw new Error(`Não encontrei firm_users com ${OWNER_EMAIL} em staging.`);
-  }
+  const owner = await resolveOwner();
   const firmId = owner.firm_id;
   const sb = getSupabaseAdmin();
 
@@ -358,6 +373,7 @@ async function main() {
   await firmUsersRepository.updateFirmMember(firmId, owner.id, {
     fullName: OWNER_NAME,
     jobTitle: 'Sócia-gerente',
+    email: OWNER_EMAIL,
   });
 
   await firmsRepository.mergeSettingsKey(firmId, 'demoSeed', DEMO_SEED);
