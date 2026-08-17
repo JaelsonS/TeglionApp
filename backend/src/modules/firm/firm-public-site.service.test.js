@@ -207,6 +207,35 @@ test('normalizeSiteConfig: header nav links default to visible and can be turned
   assert.equal(headerOff.content.showServicesLink, false);
   assert.equal(headerOff.content.showAreasMenu, false);
   assert.equal(headerOff.content.showContactLink, true);
+  assert.equal(header.content.navLinks.length, 3);
+  assert.equal(header.content.navLinks[0].label, 'Serviços');
+});
+
+test('normalizeSiteConfig: header navLinks aceitam texto, âncora, serviço e https', () => {
+  const config = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'header',
+        content: {
+          navLinks: [
+            { id: 'a', label: '  O que fazemos  ', enabled: true, kind: 'section', sectionId: 'sobre' },
+            { id: 'b', label: 'IRS', enabled: true, kind: 'service', serviceId: 'irs-modelo-3' },
+            { id: 'c', label: 'Site', enabled: true, kind: 'external', url: 'https://afdigital.example/' },
+            { id: 'd', label: 'Mau', enabled: true, kind: 'external', url: 'http://inseguro.example/' },
+            { id: 'e', label: '', enabled: true, kind: 'section', sectionId: 'faq' },
+          ],
+        },
+      },
+    ],
+  });
+  const header = config.sections.find((s) => s.type === 'header');
+  assert.equal(header.content.navLinks.length, 4);
+  assert.equal(header.content.navLinks[0].label, 'O que fazemos');
+  assert.equal(header.content.navLinks[0].sectionId, 'sobre');
+  assert.equal(header.content.navLinks[1].kind, 'service');
+  assert.equal(header.content.navLinks[2].url, 'https://afdigital.example/');
+  assert.equal(header.content.navLinks[3].kind, 'external');
+  assert.equal(header.content.navLinks[3].url, undefined);
 });
 
 test('normalizeSiteConfig: faq filtra entradas sem pergunta ou sem resposta', () => {

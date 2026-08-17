@@ -10,6 +10,17 @@ const SECTION_TYPES = new Set([
   'header', 'hero', 'about', 'services', 'bookingServices', 'features', 'process', 'faq', 'contact', 'footer',
 ]);
 const CTA_TYPES = new Set(['booking', 'whatsapp', 'service-detail', 'contact-form', 'external-url', 'phone']);
+const NAV_LINK_KINDS = new Set(['section', 'areas', 'service', 'external']);
+const NAV_SECTION_IDS = new Set([
+  'servicos',
+  'outros-servicos',
+  'contactos',
+  'sobre',
+  'faq',
+  'como-trabalhamos',
+  'destaques',
+]);
+const MAX_NAV_LINKS = 8;
 const SOCIAL_LINK_KEYS = ['instagram', 'facebook', 'linkedin', 'whatsapp', 'website'];
 const MAX_SECTIONS = 20;
 const MAX_ITEMS = 30;
@@ -97,6 +108,65 @@ function normalizeCta(raw) {
     textColor: normalizeOptionalHex(raw.textColor),
     target,
   };
+}
+
+function defaultNavLinksFromFlags(content) {
+  return [
+    {
+      id: 'nav_services',
+      label: 'Serviços',
+      enabled: content.showServicesLink !== false,
+      kind: 'section',
+      sectionId: 'servicos',
+    },
+    {
+      id: 'nav_areas',
+      label: 'Áreas',
+      enabled: content.showAreasMenu !== false,
+      kind: 'areas',
+    },
+    {
+      id: 'nav_contact',
+      label: 'Contactos',
+      enabled: content.showContactLink !== false,
+      kind: 'section',
+      sectionId: 'contactos',
+    },
+  ];
+}
+
+function normalizeNavLink(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const kind = String(raw.kind || '');
+  if (!NAV_LINK_KINDS.has(kind)) return null;
+  const label = raw.label ? String(raw.label).trim().slice(0, 40) : '';
+  if (!label) return null;
+  const link = {
+    id: String(raw.id || generateStableId('nav_')).slice(0, 80),
+    label,
+    enabled: raw.enabled !== false,
+    kind,
+  };
+  if (kind === 'section') {
+    const sectionId = String(raw.sectionId || 'servicos');
+    link.sectionId = NAV_SECTION_IDS.has(sectionId) ? sectionId : 'servicos';
+  }
+  if (kind === 'external') {
+    const url = raw.url ? String(raw.url).trim() : '';
+    if (/^https:\/\//i.test(url)) link.url = url.slice(0, 500);
+  }
+  if (kind === 'service') {
+    const serviceId = raw.serviceId ? String(raw.serviceId).trim().slice(0, 100) : '';
+    if (serviceId) link.serviceId = serviceId;
+  }
+  return link;
+}
+
+function normalizeNavLinks(content) {
+  if (Array.isArray(content.navLinks) && content.navLinks.length > 0) {
+    return content.navLinks.slice(0, MAX_NAV_LINKS).map(normalizeNavLink).filter(Boolean);
+  }
+  return defaultNavLinksFromFlags(content);
 }
 
 function normalizeHeroImageFit(value) {
@@ -200,16 +270,19 @@ function normalizeSectionContent(type, raw) {
         backgroundColor: normalizeOptionalHex(content.backgroundColor),
         textColor: normalizeOptionalHex(content.textColor),
       };
-    case 'header':
+    case 'header': {
+      const navLinks = normalizeNavLinks(content);
       return {
         title: content.title ? String(content.title).trim().slice(0, 120) : '',
         backgroundColor: normalizeOptionalHex(content.backgroundColor),
         textColor: normalizeOptionalHex(content.textColor),
         showNav: content.showNav !== false,
-        showServicesLink: content.showServicesLink !== false,
-        showAreasMenu: content.showAreasMenu !== false,
-        showContactLink: content.showContactLink !== false,
+        navLinks,
+        showServicesLink: navLinks.some((l) => l.enabled && l.kind === 'section' && l.sectionId === 'servicos'),
+        showAreasMenu: navLinks.some((l) => l.enabled && l.kind === 'areas'),
+        showContactLink: navLinks.some((l) => l.enabled && l.kind === 'section' && l.sectionId === 'contactos'),
       };
+    }
     case 'footer':
       return {
         backgroundColor: normalizeOptionalHex(content.backgroundColor),

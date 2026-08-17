@@ -828,9 +828,10 @@ function SectionEditorSwitch({
           title="Barra do topo"
           showTitleField
           showNavControls
+          services={services}
           titleFieldLabel="Texto curto na barra (opcional)"
           titlePlaceholder="Deixe vazio → usa o Nome na barra do topo"
-          titleHint="Quase nunca precisa alterar. O nome principal define-se acima em «Nome na barra do topo». Os links Serviços, Áreas e Contactos ligam-se abaixo. O título grande edita-se em «2. Destaque principal»."
+          titleHint="Quase nunca precisa alterar. O nome principal define-se acima em «Nome na barra do topo». Os links da barra (texto e destino) editam-se abaixo. O título grande edita-se em «2. Destaque principal»."
         />
       )
     case 'footer':

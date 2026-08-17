@@ -85,11 +85,11 @@ export const LANDING_INTENTS = [
     shortDescription: 'site do escritório',
     surface: 'landing',
     answer:
-      'Cada escritório tem uma página pública no Teglion: marca, serviços, áreas, contactos e pedidos. O cliente escolhe o serviço, preenche o formulário e o pedido chega ao painel — sem perder conversas no WhatsApp. No editor da página, a barra do topo deixa ligar ou desligar os links Serviços, Áreas e Contactos.',
+      'Cada escritório tem uma página pública no Teglion: marca, serviços, áreas, contactos e pedidos. O cliente escolhe o serviço, preenche o formulário e o pedido chega ao painel — sem perder conversas no WhatsApp. No editor, em «1. Barra do topo», o escritório edita o texto de cada link e escolhe se rola nesta página, abre um serviço ou vai para um site https.',
     steps: [
       'Defina o nome e o logótipo',
       'Publique serviços no catálogo',
-      'No editor, em «1. Barra do topo», ligue Serviços, Áreas e Contactos',
+      'No editor, em «1. Barra do topo», edite o texto e o destino de cada link',
       'Partilhe o link da página com os clientes',
     ],
     deepLink: '/#produto',
