@@ -199,6 +199,7 @@ export function ServiceFullEditorSheet({
 
   const [slug, setSlug] = useState('')
   const [isPubliclyListed, setIsPubliclyListed] = useState(false)
+  const [publicGroup, setPublicGroup] = useState('')
 
   const [documentRequirements, setDocumentRequirements] = useState<DocumentRequirement[]>([])
   const [questions, setQuestions] = useState<IntakeQuestion[]>([])
@@ -239,6 +240,7 @@ export function ServiceFullEditorSheet({
       setImageStorageKey(service.imageStorageKey ?? null)
       setSlug(service.slug || '')
       setIsPubliclyListed(Boolean(service.isPubliclyListed))
+      setPublicGroup(service.publicGroup || '')
       setDocumentRequirements(service.documentRequirements ?? [])
       setQuestions(serviceQuestions)
       setFormEnabled(serviceQuestions.length > 0)
@@ -258,6 +260,7 @@ export function ServiceFullEditorSheet({
       setImageStorageKey(null)
       setSlug('')
       setIsPubliclyListed(false)
+      setPublicGroup('')
       setDocumentRequirements([])
       setQuestions([])
       setFormEnabled(false)
@@ -479,6 +482,7 @@ export function ServiceFullEditorSheet({
       requiresBooking,
       slug: slug.trim() || null,
       isPubliclyListed,
+      publicGroup: publicGroup.trim() || null,
       paymentMethod: paymentRequired ? 'stripe_connect' : paymentMethod,
       paymentRequired,
       documentRequirements,
@@ -1020,6 +1024,20 @@ export function ServiceFullEditorSheet({
                     placeholder="ex.: consultoria-fiscal"
                     className="rounded-xl border-brand/20 bg-card font-mono text-xs"
                   />
+                </label>
+                <label className="block space-y-1 text-sm">
+                  <span className="font-medium">Grupo na Página Pública (opcional)</span>
+                  <Input
+                    value={publicGroup}
+                    onChange={(e: FormChangeEvent) => setPublicGroup(e.target.value)}
+                    placeholder="Ex.: Consultoria Fiscal"
+                    maxLength={80}
+                    className="rounded-xl border-brand/20 bg-card"
+                  />
+                  <span className="block text-xs text-muted-foreground">
+                    Serviços com o mesmo nome de grupo aparecem juntos na página pública. Deixe vazio para listar
+                    individualmente.
+                  </span>
                 </label>
                 <label className="flex items-start gap-2 text-sm">
                   <Checkbox

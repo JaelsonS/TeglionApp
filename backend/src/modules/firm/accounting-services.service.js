@@ -19,6 +19,22 @@ function normalizeSlug(value) {
   return slug;
 }
 
+function normalizePublicGroup(value) {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  const trimmed = String(value).trim().slice(0, 80);
+  return trimmed || null;
+}
+
+function normalizeSortOrder(value) {
+  if (value === undefined) return undefined;
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0 || n > 9999) {
+    throw new AppError('Ordem inválida', 400);
+  }
+  return Math.round(n);
+}
+
 /** rótulo público do preço: included | excluded | null (sem frase) */
 function normalizePriceTaxMode(value) {
   if (value === undefined) return undefined;
@@ -462,6 +478,7 @@ async function create({ firmId, payload }) {
     slug,
     isPubliclyListed,
     requiresBooking: payload?.requiresBooking === true,
+    publicGroup: normalizePublicGroup(payload?.publicGroup) ?? null,
     documentRequirements: normalizeDocumentRequirements(payload?.documentRequirements) || [],
     intakeForm,
     bookingOverrides: normalizeBookingOverrides(payload?.bookingOverrides) || null,
@@ -499,6 +516,8 @@ async function update({ firmId, id, payload }) {
   if (payload?.isActive !== undefined) patch.isActive = Boolean(payload.isActive);
   if (payload?.slug !== undefined) patch.slug = normalizeSlug(payload.slug);
   if (payload?.requiresBooking !== undefined) patch.requiresBooking = Boolean(payload.requiresBooking);
+  if (payload?.publicGroup !== undefined) patch.publicGroup = normalizePublicGroup(payload.publicGroup);
+  if (payload?.sortOrder !== undefined) patch.sortOrder = normalizeSortOrder(payload.sortOrder);
   if (payload?.documentRequirements !== undefined) {
     patch.documentRequirements = normalizeDocumentRequirements(payload.documentRequirements);
   }
@@ -587,6 +606,7 @@ async function duplicate({ firmId, id }) {
     slug: null,
     isPubliclyListed: false,
     requiresBooking: existing.requiresBooking,
+    publicGroup: existing.publicGroup,
     documentRequirements: existing.documentRequirements,
     intakeForm: existing.intakeForm,
     bookingOverrides: existing.bookingOverrides,
@@ -733,6 +753,8 @@ module.exports = {
   getCatalogTemplate: () => CONSULTING_SERVICES_CATALOG,
   normalizeIntakeForm,
   normalizeBookingOverrides,
+  normalizePublicGroup,
+  normalizeSortOrder,
   resolveRequiredDocuments,
   splitDocumentsByTiming,
   assertFormReadyForPublish,

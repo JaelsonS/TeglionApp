@@ -611,3 +611,20 @@ test('activateFromCatalog: rejeita sem catalogKeys seleccionadas', async () => {
     },
   );
 });
+
+test('normalizePublicGroup: vazio vira null; texto é cortado', () => {
+  assert.equal(accountingServicesService.normalizePublicGroup(undefined), undefined);
+  assert.equal(accountingServicesService.normalizePublicGroup(null), null);
+  assert.equal(accountingServicesService.normalizePublicGroup('  '), null);
+  assert.equal(accountingServicesService.normalizePublicGroup(' Consultoria Fiscal '), 'Consultoria Fiscal');
+  assert.equal(accountingServicesService.normalizePublicGroup('x'.repeat(90)).length, 80);
+});
+
+test('normalizeSortOrder: rejeita valores inválidos', () => {
+  assert.equal(accountingServicesService.normalizeSortOrder(undefined), undefined);
+  assert.equal(accountingServicesService.normalizeSortOrder(20), 20);
+  assert.throws(
+    () => accountingServicesService.normalizeSortOrder(-1),
+    (err) => err.statusCode === 400,
+  );
+});

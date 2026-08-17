@@ -366,6 +366,7 @@ export type AccountingService = {
   sortOrder?: number
   slug?: string | null
   isPubliclyListed?: boolean
+  publicGroup?: string | null
   requiresBooking?: boolean
   documentRequirements?: DocumentRequirement[]
   intakeForm?: IntakeForm | null

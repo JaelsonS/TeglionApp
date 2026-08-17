@@ -24,6 +24,7 @@ import type {
   PublicSiteSocialLinks,
 } from '@/shared/types/firmPublicSite'
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
+import { clusterPublicServices } from '@/features/public-intake/clusterPublicServices'
 import { PublicSiteHeroBanner } from '@/features/public-intake/PublicSiteHeroBanner'
 import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
 import { priceTaxModeCaption } from '@/shared/utils/priceTaxMode'
@@ -355,18 +356,27 @@ export function ServicesSection({ content, ctx }: { content: PublicSiteServicesC
         >
           {content.heading || 'Serviços com marcação'}
         </h2>
-        <ul className="space-y-3">
-          {items.map((s) => (
-            <li key={s.slug}>
-              <ServiceCard
-                firmSlug={ctx.firmSlug}
-                service={s}
-                showPrices={ctx.showPrices !== false}
-                openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
-              />
-            </li>
-          ))}
-        </ul>
+        {clusterPublicServices(items).map((cluster) => (
+          <div key={cluster.heading || '__ungrouped'} className="space-y-2">
+            {cluster.heading ? (
+              <h3 className="text-sm font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">
+                {cluster.heading}
+              </h3>
+            ) : null}
+            <ul className="space-y-3">
+              {cluster.items.map((s) => (
+                <li key={s.slug}>
+                  <ServiceCard
+                    firmSlug={ctx.firmSlug}
+                    service={s}
+                    showPrices={ctx.showPrices !== false}
+                    openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
     </section>
   )
@@ -390,18 +400,27 @@ export function BookingServicesSection({ content, ctx }: { content: PublicSiteSe
         >
           {content.heading || 'Serviços sob pedido'}
         </h2>
-        <ul className="space-y-3">
-          {items.map((s) => (
-            <li key={s.slug}>
-              <ServiceCard
-                firmSlug={ctx.firmSlug}
-                service={s}
-                showPrices={ctx.showPrices !== false}
-                openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
-              />
-            </li>
-          ))}
-        </ul>
+        {clusterPublicServices(items).map((cluster) => (
+          <div key={cluster.heading || '__ungrouped'} className="space-y-2">
+            {cluster.heading ? (
+              <h3 className="text-sm font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">
+                {cluster.heading}
+              </h3>
+            ) : null}
+            <ul className="space-y-3">
+              {cluster.items.map((s) => (
+                <li key={s.slug}>
+                  <ServiceCard
+                    firmSlug={ctx.firmSlug}
+                    service={s}
+                    showPrices={ctx.showPrices !== false}
+                    openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
     </section>
   )

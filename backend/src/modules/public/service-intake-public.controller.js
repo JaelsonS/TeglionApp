@@ -39,6 +39,7 @@ async function mapPublicServiceSummary(s) {
     priceCents: enriched.priceCents,
     priceTaxMode: enriched.priceTaxMode || null,
     requiresBooking: enriched.requiresBooking === true,
+    publicGroup: enriched.publicGroup || null,
     paymentRequired: enriched.paymentRequired === true,
     imageUrl: enriched.imageUrl || null,
   };

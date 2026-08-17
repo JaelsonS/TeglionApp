@@ -19,6 +19,7 @@ function map(row) {
     slug: row.slug || null,
     isPubliclyListed: Boolean(row.is_publicly_listed),
     requiresBooking: Boolean(row.requires_booking),
+    publicGroup: row.public_group ? String(row.public_group) : null,
     documentRequirements: Array.isArray(row.document_requirements) ? row.document_requirements : [],
     intakeForm: row.intake_form || null,
     intakeTagRules: Array.isArray(row.intake_tag_rules) ? row.intake_tag_rules : [],
@@ -70,6 +71,7 @@ async function createRow({
   slug,
   isPubliclyListed,
   requiresBooking,
+  publicGroup,
   documentRequirements,
   intakeForm,
   bookingOverrides,
@@ -95,6 +97,7 @@ async function createRow({
       slug: slug || null,
       is_publicly_listed: isPubliclyListed === true,
       requires_booking: requiresBooking === true,
+      public_group: publicGroup || null,
       document_requirements: Array.isArray(documentRequirements) ? documentRequirements : [],
       intake_form: intakeForm || null,
       booking_overrides: bookingOverrides || null,
@@ -141,6 +144,7 @@ async function updateRow(id, firmId, patch) {
   if (patch.slug !== undefined) row.slug = patch.slug || null;
   if (patch.isPubliclyListed !== undefined) row.is_publicly_listed = Boolean(patch.isPubliclyListed);
   if (patch.requiresBooking !== undefined) row.requires_booking = Boolean(patch.requiresBooking);
+  if (patch.publicGroup !== undefined) row.public_group = patch.publicGroup || null;
   if (patch.documentRequirements !== undefined) {
     row.document_requirements = Array.isArray(patch.documentRequirements) ? patch.documentRequirements : [];
   }

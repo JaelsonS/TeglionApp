@@ -11,6 +11,7 @@ export type PublicFirmServiceSummary = {
   priceCents: number
   priceTaxMode?: 'included' | 'excluded' | null
   requiresBooking: boolean
+  publicGroup?: string | null
   paymentRequired?: boolean
   imageUrl?: string | null
 }
