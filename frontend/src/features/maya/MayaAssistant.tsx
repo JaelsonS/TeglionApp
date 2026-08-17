@@ -11,10 +11,15 @@ import {
 } from '@/shared/components/ui/dialog'
 import { Chip } from '@/shared/design-system/Chip'
 import { SafeImage } from '@/shared/components/ui/SafeImage'
-import { useAuth } from '@/shared/hooks/useAuth'
+import { useAuthOptional } from '@/shared/hooks/useAuth'
 import { cn } from '@/shared/lib/utils'
 import type { AuthUser } from '@/shared/types/auth'
-import { getMayaIntent, MAYA_CATALOG_INTENT_IDS, MAYA_CLIENT_CATALOG_INTENT_IDS } from '@/features/maya/mayaContent'
+import {
+  getMayaIntent,
+  MAYA_CATALOG_INTENT_IDS,
+  MAYA_CLIENT_CATALOG_INTENT_IDS,
+  MAYA_LANDING_CATALOG_INTENT_IDS,
+} from '@/features/maya/mayaContent'
 import { resolveMayaPage } from '@/features/maya/content/resolvePage'
 import type { MayaFieldHelp, MayaIntent, MayaPageGuide, MayaProblem } from '@/features/maya/content/types'
 import { MAYA_OPEN_EVENT, type MayaOpenDetail } from '@/features/maya/openMaya'
@@ -26,6 +31,8 @@ import {
 
 type MayaAssistantProps = {
   className?: string
+  /** Landing comercial (sem login). */
+  surface?: 'auto' | 'landing'
 }
 
 type MayaView =
@@ -50,8 +57,9 @@ function currentView(stack: MayaView[]): MayaView {
  * Maya — assistente guiada (popup centrado).
  * Sem LLM · sem APIs de negócio · sem acesso a documentos/clientes/tokens.
  */
-export function MayaAssistant({ className }: MayaAssistantProps) {
-  const { user } = useAuth()
+export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProps) {
+  const auth = useAuthOptional()
+  const user = auth?.user ?? null
   const navigate = useNavigate()
   const location = useLocation()
   const titleId = useId()
@@ -59,6 +67,7 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
   const [stack, setStack] = useState<MayaView[]>([])
   const [fabVisible, setFabVisible] = useState(true)
   const pageRef = useRef<MayaPageGuide | null>(null)
+  const isLandingSurface = surface === 'landing'
 
   const page = resolveMayaPage(location.pathname, new URLSearchParams(location.search))
   pageRef.current = page
@@ -124,9 +133,9 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
     prevPageIdRef.current = pageId
   }, [open, pageId])
 
-  if (!user) return null
+  if (!isLandingSurface && !user) return null
 
-  const isClientSurface = user.role === 'CLIENT'
+  const isClientSurface = !isLandingSurface && user?.role === 'CLIENT'
 
   function closeDialog() {
     setOpen(false)
@@ -166,15 +175,30 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
 
   function goToLink(path: string) {
     closeDialog()
+    if (/^https?:\/\//i.test(path)) {
+      window.open(path, '_blank', 'noopener,noreferrer')
+      return
+    }
+    const hashIndex = path.indexOf('#')
+    if (hashIndex >= 0) {
+      const pathname = path.slice(0, hashIndex) || location.pathname
+      const hash = path.slice(hashIndex + 1)
+      if (pathname === location.pathname || pathname === '') {
+        document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        return
+      }
+    }
     navigate(path)
   }
 
   const showBack = stack.length > 0
   const subtitle =
     view.kind === 'catalog'
-      ? isClientSurface
-        ? 'Ajuda deste portal'
-        : 'Outras áreas do Teglion'
+      ? isLandingSurface
+        ? 'O Teglion, com calma'
+        : isClientSurface
+          ? 'Ajuda deste portal'
+          : 'Outras áreas do Teglion'
       : view.kind === 'field' && activeField
         ? activeField.name
         : view.kind === 'problem' && activeProblem
@@ -183,20 +207,33 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
             ? activeIntent.title
             : page
               ? page.where
-              : 'Assistente Teglion'
+              : isLandingSurface
+                ? 'Posso ajudar a conhecer o Teglion'
+                : 'Assistente Teglion'
 
   const topicIds =
     page?.topicIds ??
-    (isClientSurface ? ['portal-home', 'portal-maya', 'portal-firm-contact'] : ['tour', 'human-support'])
+    (isLandingSurface
+      ? [...MAYA_LANDING_CATALOG_INTENT_IDS]
+      : isClientSurface
+        ? ['portal-home', 'portal-maya', 'portal-firm-contact']
+        : ['tour', 'human-support'])
   const homeIntents = topicIds.map((id) => getMayaIntent(id)).filter((intent): intent is MayaIntent => Boolean(intent))
-  const catalogIntents = (isClientSurface ? MAYA_CLIENT_CATALOG_INTENT_IDS : MAYA_CATALOG_INTENT_IDS)
+  const catalogIntents = (
+    isLandingSurface
+      ? MAYA_LANDING_CATALOG_INTENT_IDS
+      : isClientSurface
+        ? MAYA_CLIENT_CATALOG_INTENT_IDS
+        : MAYA_CATALOG_INTENT_IDS
+  )
     .map((id) => getMayaIntent(id))
     .filter((intent): intent is MayaIntent => Boolean(intent))
 
   const fabPosition = cn(
     'fixed z-40',
-    'bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] right-[max(1rem,env(safe-area-inset-right,0px))]',
-    'md:bottom-6 md:right-6',
+    isLandingSurface
+      ? 'bottom-[max(1.25rem,env(safe-area-inset-bottom,0px))] right-[max(1rem,env(safe-area-inset-right,0px))]'
+      : 'bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] right-[max(1rem,env(safe-area-inset-right,0px))] md:bottom-6 md:right-6',
   )
 
   return (
@@ -211,7 +248,11 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
               'ring-2 ring-brand/10',
               'transition hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2',
             )}
-            aria-label="Abrir Maya, assistente virtual do Teglion"
+            aria-label={
+              isLandingSurface
+                ? 'Abrir Maya, assistente do Teglion'
+                : 'Abrir Maya, assistente virtual do Teglion'
+            }
             aria-haspopup="dialog"
             aria-expanded={open}
             title="Maya — assistente Teglion"
@@ -325,7 +366,14 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
                 firstName={firstName}
                 page={page}
                 intents={homeIntents}
-                catalogLabel={isClientSurface ? 'Mais ajuda neste portal' : 'Outras áreas do Teglion'}
+                catalogLabel={
+                  isLandingSurface
+                    ? 'Mais sobre o Teglion'
+                    : isClientSurface
+                      ? 'Mais ajuda neste portal'
+                      : 'Outras áreas do Teglion'
+                }
+                isLandingSurface={isLandingSurface}
                 onOpenIntent={(id) => openIntent(id, false)}
                 onOpenCatalog={() => setStack([{ kind: 'catalog' }])}
               />
@@ -335,6 +383,7 @@ export function MayaAssistant({ className }: MayaAssistantProps) {
               <MayaCatalog
                 intents={catalogIntents}
                 isClientSurface={isClientSurface}
+                isLandingSurface={isLandingSurface}
                 onOpenIntent={(id) => openIntent(id, true)}
               />
             ) : null}
@@ -395,6 +444,7 @@ function MayaHome({
   page,
   intents,
   catalogLabel,
+  isLandingSurface,
   onOpenIntent,
   onOpenCatalog,
 }: {
@@ -402,44 +452,66 @@ function MayaHome({
   page: MayaPageGuide | null
   intents: MayaIntent[]
   catalogLabel: string
+  isLandingSurface?: boolean
   onOpenIntent: (id: string) => void
   onOpenCatalog: () => void
 }) {
   return (
     <div data-testid="maya-home">
       <MayaBubble>
-        <p>
-          Olá{firstName ? `, ${firstName}` : ''}! Eu sou a Maya.
-          {page ? (
-            <>
-              {' '}
-              Está na <span className="font-medium text-foreground">{page.where}</span>.
-            </>
-          ) : (
-            <> Sou a assistente do Teglion.</>
-          )}
-        </p>
-        {page ? (
+        {isLandingSurface ? (
           <>
-            <p className="mt-2">{page.summary}</p>
-            <p className="mt-2 text-muted-foreground">
-              Para quem: {page.audience}. Objectivo: {page.goal}
+            <p>
+              Olá{firstName ? `, ${firstName}` : ''}! Eu sou a Maya. O Teglion é a plataforma para
+              escritórios de contabilidade em Portugal — um produto da AfDigital — Soluções Tecnológicas.
             </p>
-            {page.firstTimeHint ? (
+            <p className="mt-2">
+              {page?.summary ||
+                'Explico o produto, o trial de 14 dias, a página pública e o portal. Evoluímos o sistema todos os dias.'}
+            </p>
+            {page?.firstTimeHint ? (
               <p className="mt-2 text-muted-foreground">{page.firstTimeHint}</p>
             ) : null}
-            {page.emptyHint ? (
-              <p className="mt-2 text-muted-foreground">{page.emptyHint}</p>
-            ) : null}
+            <p className="mt-2 text-caption text-muted-foreground">
+              Se preferir uma pessoa, escolha «Falar com uma pessoa» — abro o WhatsApp.
+            </p>
           </>
         ) : (
-          <p className="mt-2 text-muted-foreground">
-            Escolha uma área abaixo — ou use «Maya» no topo da página para ajuda deste ecrã.
-          </p>
+          <>
+            <p>
+              Olá{firstName ? `, ${firstName}` : ''}! Eu sou a Maya.
+              {page ? (
+                <>
+                  {' '}
+                  Está na <span className="font-medium text-foreground">{page.where}</span>.
+                </>
+              ) : (
+                <> Sou a assistente do Teglion.</>
+              )}
+            </p>
+            {page ? (
+              <>
+                <p className="mt-2">{page.summary}</p>
+                <p className="mt-2 text-muted-foreground">
+                  Para quem: {page.audience}. Objectivo: {page.goal}
+                </p>
+                {page.firstTimeHint ? (
+                  <p className="mt-2 text-muted-foreground">{page.firstTimeHint}</p>
+                ) : null}
+                {page.emptyHint ? (
+                  <p className="mt-2 text-muted-foreground">{page.emptyHint}</p>
+                ) : null}
+              </>
+            ) : (
+              <p className="mt-2 text-muted-foreground">
+                Escolha uma área abaixo — ou use «Maya» no topo da página para ajuda deste ecrã.
+              </p>
+            )}
+            <p className="mt-2 text-caption text-muted-foreground">
+              Não tenho acesso aos seus documentos nem aos dados privados do escritório.
+            </p>
+          </>
         )}
-        <p className="mt-2 text-caption text-muted-foreground">
-          Não tenho acesso aos seus documentos nem aos dados privados do escritório.
-        </p>
       </MayaBubble>
 
       <div className="mt-4">
@@ -460,19 +532,23 @@ function MayaHome({
 function MayaCatalog({
   intents,
   isClientSurface,
+  isLandingSurface,
   onOpenIntent,
 }: {
   intents: MayaIntent[]
   isClientSurface: boolean
+  isLandingSurface?: boolean
   onOpenIntent: (id: string) => void
 }) {
   return (
     <div data-testid="maya-catalog">
       <MayaBubble>
         <p>
-          {isClientSurface
-            ? 'Estas são as áreas principais deste portal. Escolha uma para eu explicar.'
-            : 'Estas são as áreas principais do escritório no Teglion. Escolha uma para eu explicar.'}
+          {isLandingSurface
+            ? 'Escolha o que quer saber sobre o Teglion. Se preferir uma pessoa, há WhatsApp no fim.'
+            : isClientSurface
+              ? 'Estas são as áreas principais deste portal. Escolha uma para eu explicar.'
+              : 'Estas são as áreas principais do escritório no Teglion. Escolha uma para eu explicar.'}
         </p>
       </MayaBubble>
       <div className="mt-4 flex flex-wrap gap-2">

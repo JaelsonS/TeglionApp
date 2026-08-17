@@ -18,11 +18,17 @@ export function PageHeader({
   className?: string
 }) {
   return (
-    <div className={cn('mb-6', className)}>
+    <div className={cn('mb-4 md:mb-6', className)}>
       {breadcrumb ? (
-        <p className="cb-text-label mb-1.5 text-muted-foreground">{breadcrumb}</p>
+        <p className="cb-text-label mb-1.5 hidden text-muted-foreground md:block">{breadcrumb}</p>
       ) : null}
-      <DsPageHeader title={title} subtitle={subtitle} right={actions} testId="client-page-header" />
+      <DsPageHeader
+        title={title}
+        subtitle={subtitle}
+        right={actions}
+        testId="client-page-header"
+        className="mb-0 max-md:[&_h1]:hidden"
+      />
     </div>
   )
 }

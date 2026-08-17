@@ -179,6 +179,36 @@ test('normalizeSiteConfig: header.title e hero.title são independentes e trunca
   assert.equal(Object.prototype.hasOwnProperty.call(config.sections.find((s) => s.type === 'footer')?.content || {}, 'title'), false);
 });
 
+test('normalizeSiteConfig: header nav links default to visible and can be turned off', () => {
+  const defaults = firmPublicSiteService.normalizeSiteConfig({
+    sections: [{ type: 'header', content: { title: 'AfDigital' } }],
+  });
+  const header = defaults.sections.find((s) => s.type === 'header');
+  assert.equal(header.content.showNav, true);
+  assert.equal(header.content.showServicesLink, true);
+  assert.equal(header.content.showAreasMenu, true);
+  assert.equal(header.content.showContactLink, true);
+
+  const off = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'header',
+        content: {
+          title: 'AfDigital',
+          showNav: true,
+          showServicesLink: false,
+          showAreasMenu: false,
+          showContactLink: true,
+        },
+      },
+    ],
+  });
+  const headerOff = off.sections.find((s) => s.type === 'header');
+  assert.equal(headerOff.content.showServicesLink, false);
+  assert.equal(headerOff.content.showAreasMenu, false);
+  assert.equal(headerOff.content.showContactLink, true);
+});
+
 test('normalizeSiteConfig: faq filtra entradas sem pergunta ou sem resposta', () => {
   const config = firmPublicSiteService.normalizeSiteConfig({
     sections: [

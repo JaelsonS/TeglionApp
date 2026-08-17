@@ -9,6 +9,7 @@ import {
   getMayaIntent,
   MAYA_CATALOG_INTENT_IDS,
   MAYA_CLIENT_CATALOG_INTENT_IDS,
+  MAYA_LANDING_CATALOG_INTENT_IDS,
   MAYA_INTENTS,
   MAYA_MODULE_INTENT,
   MAYA_PAGES,
@@ -117,6 +118,15 @@ describe('mayaContent', () => {
     for (const intent of MAYA_INTENTS) {
       if (intent.surface === 'client') {
         expect(intent.deepLink.startsWith('/app/client'), intent.id).toBe(true)
+      } else if (intent.surface === 'landing') {
+        expect(
+          intent.deepLink.startsWith('/app/firm/') ||
+            intent.deepLink.startsWith('/app/client') ||
+            intent.deepLink.startsWith('http') ||
+            intent.deepLink.startsWith('/auth') ||
+            intent.deepLink.startsWith('/#'),
+          intent.id,
+        ).toBe(true)
       } else {
         expect(intent.deepLink.startsWith('/app/firm/'), intent.id).toBe(true)
       }
@@ -134,6 +144,14 @@ describe('mayaContent', () => {
       expect(getMayaIntent(id), id).toBeTruthy()
       expect(getMayaIntent(id)?.surface).toBe('client')
     }
+  })
+
+  it('resolves landing catalog intents', () => {
+    for (const id of MAYA_LANDING_CATALOG_INTENT_IDS) {
+      expect(getMayaIntent(id), id).toBeTruthy()
+      expect(getMayaIntent(id)?.surface).toBe('landing')
+    }
+    expect(getMayaIntent('landing-human')?.deepLink).toMatch(/^https:\/\/wa\.me\//)
   })
 
   it('resolves every page topic', () => {
@@ -178,6 +196,11 @@ describe('resolveMayaPage', () => {
     expect(resolveMayaPage('/app/client/services', new URLSearchParams())?.id).toBe('portal-services')
     expect(resolveMayaPage('/app/client/agenda', new URLSearchParams())?.id).toBe('portal-deadlines')
     expect(resolveMayaPage('/app/client/account', new URLSearchParams())?.id).toBe('portal-account')
+  })
+
+  it('maps the public landing page', () => {
+    expect(resolveMayaPage('/', new URLSearchParams())?.id).toBe('landing-home')
+    expect(resolveMayaPage('/blog', new URLSearchParams())?.id).not.toBe('landing-home')
   })
 
   it('maps client hub as more specific than the list', () => {

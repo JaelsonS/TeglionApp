@@ -1,3 +1,5 @@
+import { advertisingAllowed } from '@/shared/utils/cookieConsent'
+
 /** Measurement ID GA4 — deve coincidir com o snippet em index.html */
 export const GTAG_ID = 'G-JHXZ25T7FJ'
 const ADS_CLIENT = 'ca-pub-8576885038152568'
@@ -84,17 +86,7 @@ export function getGtagId() {
 }
 
 function hasAcceptedCookieConsent() {
-  if (typeof window === 'undefined') return false
-
-  for (let index = 0; index < window.localStorage.length; index += 1) {
-    const key = window.localStorage.key(index)
-    if (!key || !key.startsWith('cookieConsent:')) continue
-    if (window.localStorage.getItem(key) === 'accepted') {
-      return true
-    }
-  }
-
-  return false
+  return advertisingAllowed()
 }
 
 export async function loadAdSenseScript() {

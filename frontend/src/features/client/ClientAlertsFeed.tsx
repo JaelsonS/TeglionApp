@@ -2,12 +2,14 @@ import { useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { AlertTriangle, CheckCircle2, Megaphone, Search } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 import { CategoryBadge, PriorityBadge } from '@/features/firm/alerts/broadcast-ui'
 import { fetchClientAlerts, type ClientAlertItem } from '@/infrastructure/api/contabil/broadcasts'
 import { broadcastQueryKeys } from '@/shared/hooks/queries/useBroadcasts'
 import { clientPortalContabilApi } from '@/infrastructure/api'
 import { formatDateTime } from '@/shared/utils/date'
+import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -16,6 +18,7 @@ import { SkeletonCard } from '@/shared/design-system/Skeleton'
 export function ClientAlertsFeed() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
+  const [pendingId, setPendingId] = useState<string | null>(null)
   const qc = useQueryClient()
 
   const filterKey = JSON.stringify({ search, category })
@@ -33,10 +36,23 @@ export function ClientAlertsFeed() {
   }, [data?.items])
 
   async function markRead(alert: ClientAlertItem, acknowledge = false) {
-    await clientPortalContabilApi.markAlertRead(alert.id, acknowledge)
-    void qc.invalidateQueries({ queryKey: ['contabil', 'alerts'] })
-    void qc.invalidateQueries({ queryKey: broadcastQueryKeys.clientFeed('bell') })
-    void refetch()
+    if (pendingId) return
+    setPendingId(alert.id)
+    try {
+      await clientPortalContabilApi.markAlertRead(alert.id, acknowledge)
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ['contabil', 'alerts'] }),
+        qc.invalidateQueries({ queryKey: ['client', 'alerts'] }),
+        qc.invalidateQueries({ queryKey: broadcastQueryKeys.clientFeed(filterKey) }),
+      ])
+      await refetch()
+    } catch (err) {
+      toast.error('Não foi possível confirmar a leitura', {
+        description: getErrorMessage(err),
+      })
+    } finally {
+      setPendingId(null)
+    }
   }
 
   return (
@@ -53,9 +69,10 @@ export function ClientAlertsFeed() {
                 <Button
                   size="sm"
                   className="mt-3 rounded-full bg-white text-red-700 hover:bg-red-50"
+                  disabled={pendingId === urgentBanner.id}
                   onClick={() => void markRead(urgentBanner, true)}
                 >
-                  Confirmar leitura
+                  {pendingId === urgentBanner.id ? 'A confirmar…' : 'Confirmar leitura'}
                 </Button>
               ) : (
                 <Button
@@ -94,7 +111,7 @@ export function ClientAlertsFeed() {
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Fixados</p>
               <ul className="space-y-2">
                 {pinned.map((a) => (
-                  <AlertCard key={a.id} alert={a} onRead={markRead} pinned />
+                  <AlertCard key={a.id} alert={a} onRead={markRead} pinned pendingId={pendingId} />
                 ))}
               </ul>
             </section>
@@ -108,7 +125,7 @@ export function ClientAlertsFeed() {
           ) : (
             <ul className="space-y-2">
               {items.map((a) => (
-                <AlertCard key={a.id} alert={a} onRead={markRead} />
+                <AlertCard key={a.id} alert={a} onRead={markRead} pendingId={pendingId} />
               ))}
             </ul>
           )}
@@ -122,12 +139,15 @@ function AlertCard({
   alert,
   onRead,
   pinned,
+  pendingId,
 }: {
   alert: ClientAlertItem
   onRead: (a: ClientAlertItem, ack?: boolean) => Promise<void>
   pinned?: boolean
+  pendingId?: string | null
 }) {
   const unread = !alert.isRead || alert.needsAck
+  const busy = pendingId === alert.id
 
   return (
     <li
@@ -174,12 +194,13 @@ function AlertCard({
             size="sm"
             variant={alert.needsAck ? 'default' : 'outline'}
             className="rounded-full h-8"
+            disabled={busy}
             onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation()
               void onRead(alert, alert.needsAck)
             }}
           >
-            {alert.needsAck ? 'Confirmar' : 'Marcar lido'}
+            {busy ? 'A confirmar…' : alert.needsAck ? 'Confirmar' : 'Marcar lido'}
           </Button>
         ) : (
           <span className="inline-flex items-center gap-1 text-xs text-emerald-700">

@@ -175,24 +175,14 @@ export function ClientPortalShell({
         <header className="pc-topbar md:hidden">
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-foreground">{pageLabel}</p>
-            {firm?.name ? (
-              <p className="truncate cb-text-caption text-muted-foreground">{firm.name}</p>
-            ) : null}
           </div>
           <div className="relative z-10 ml-auto flex items-center gap-1.5">
             {!previewMode ? <ClientNotificationCenter /> : null}
           </div>
         </header>
 
-        <header className="pc-topbar-compact hidden md:flex">
-          <div className="min-w-0 flex-1">
-            {firm?.name ? (
-              <p className="truncate font-display text-sm font-semibold text-foreground">{firm.name}</p>
-            ) : (
-              <p className="truncate font-display text-sm font-semibold text-foreground">{pageLabel}</p>
-            )}
-          </div>
-          <div className="relative z-10 ml-auto flex items-center gap-2 xl:hidden">
+        <header className="pc-topbar-compact hidden md:flex xl:hidden">
+          <div className="relative z-10 ml-auto flex items-center gap-2">
             {!previewMode ? <ClientNotificationCenter /> : null}
           </div>
         </header>
