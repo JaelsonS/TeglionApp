@@ -81,6 +81,14 @@ function normalizeCta(raw) {
   };
 }
 
+function normalizeHeroImageFit(value) {
+  return value === 'contain' ? 'contain' : 'cover';
+}
+
+function normalizeHeroImagePosition(value) {
+  return value === 'top' || value === 'bottom' || value === 'center' ? value : 'center';
+}
+
 function normalizeSectionContent(type, raw) {
   const content = raw && typeof raw === 'object' ? raw : {};
   switch (type) {
@@ -95,6 +103,8 @@ function normalizeSectionContent(type, raw) {
         titleColor: normalizeOptionalHex(content.titleColor),
         taglineColor: normalizeOptionalHex(content.taglineColor),
         bioColor: normalizeOptionalHex(content.bioColor),
+        imageFit: normalizeHeroImageFit(content.imageFit),
+        imagePosition: normalizeHeroImagePosition(content.imagePosition),
       };
     case 'about':
       return {

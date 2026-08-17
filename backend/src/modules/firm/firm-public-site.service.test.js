@@ -118,6 +118,39 @@ test('normalizeSiteConfig: cores por secção e por botão', () => {
   assert.equal(header.content.textColor, '#fefefe');
 });
 
+test('normalizeSiteConfig: hero imageFit ausente cai em cover; contain e foco são aceites', () => {
+  const legacy = firmPublicSiteService.normalizeSiteConfig({
+    sections: [{ type: 'hero', content: { tagline: 'Olá', bio: '' } }],
+  });
+  const heroLegacy = legacy.sections.find((s) => s.type === 'hero');
+  assert.equal(heroLegacy.content.imageFit, 'cover');
+  assert.equal(heroLegacy.content.imagePosition, 'center');
+
+  const configured = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'hero',
+        content: {
+          tagline: 'Olá',
+          bio: '',
+          imageFit: 'contain',
+          imagePosition: 'top',
+        },
+      },
+    ],
+  });
+  const hero = configured.sections.find((s) => s.type === 'hero');
+  assert.equal(hero.content.imageFit, 'contain');
+  assert.equal(hero.content.imagePosition, 'top');
+
+  const invalid = firmPublicSiteService.normalizeSiteConfig({
+    sections: [{ type: 'hero', content: { tagline: 'Olá', imageFit: 'stretch', imagePosition: 'left' } }],
+  });
+  const heroInvalid = invalid.sections.find((s) => s.type === 'hero');
+  assert.equal(heroInvalid.content.imageFit, 'cover');
+  assert.equal(heroInvalid.content.imagePosition, 'center');
+});
+
 test('normalizeSiteConfig: header.title e hero.title são independentes e truncados', () => {
   const config = firmPublicSiteService.normalizeSiteConfig({
     sections: [

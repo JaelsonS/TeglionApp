@@ -23,6 +23,10 @@ import type {
   PublicSiteServicesContent,
   PublicSiteSocialLinks,
 } from '@/shared/types/firmPublicSite'
+import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
+import { PublicSiteHeroBanner } from '@/features/public-intake/PublicSiteHeroBanner'
+import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
+import { priceTaxModeCaption } from '@/shared/utils/priceTaxMode'
 
 function resolveFirstImageUrl(imageIds: string[], images: PublicSiteConfig['images']): string | null {
   const id = imageIds[0]
@@ -30,9 +34,6 @@ function resolveFirstImageUrl(imageIds: string[], images: PublicSiteConfig['imag
   const found = [...images.hero, ...images.institutional].find((img) => img.id === id)
   return found?.url || null
 }
-import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
-import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
-import { priceTaxModeCaption } from '@/shared/utils/priceTaxMode'
 
 /**
  * Contexto partilhado por todas as secções — dados que não vivem no
@@ -140,10 +141,12 @@ export function HeroSection({
       style={bg ? { backgroundColor: bg } : undefined}
     >
       {heroPhotoUrl ? (
-        <img
+        <PublicSiteHeroBanner
           src={heroPhotoUrl}
           alt={heroTitle || ctx.firmName}
-          className="h-48 w-full object-cover sm:h-64"
+          fit={content.imageFit}
+          position={content.imagePosition}
+          backgroundColor={content.backgroundColor}
         />
       ) : null}
       <div className="mx-auto max-w-2xl px-4 py-10 text-center lg:max-w-4xl">

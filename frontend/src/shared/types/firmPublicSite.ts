@@ -78,6 +78,15 @@ export type PublicSiteHeroContent = {
   taglineColor?: string | null
   /** Cor do texto «Sobre o escritório» no hero. */
   bioColor?: string | null
+  /**
+   * Enquadramento da foto de capa. Ausente = `cover` (páginas já publicadas).
+   * `cover` = Preencher a faixa 16:9. `contain` = Mostrar a imagem inteira.
+   */
+  imageFit?: 'cover' | 'contain' | null
+  /**
+   * Foco vertical quando `imageFit` é `cover`. Ausente = `center`.
+   */
+  imagePosition?: 'center' | 'top' | 'bottom' | null
 }
 
 export type PublicSiteAboutContent = {

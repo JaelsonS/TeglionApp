@@ -1,6 +1,13 @@
 import { useRef, useState, type ChangeEvent } from 'react'
 import { ImageIcon, Loader2, Plus, Trash2, X } from 'lucide-react'
 
+import { PublicSiteHeroBanner } from '@/features/public-intake/PublicSiteHeroBanner'
+import {
+  normalizeHeroImageFit,
+  normalizeHeroImagePosition,
+  type PublicSiteHeroImageFit,
+  type PublicSiteHeroImagePosition,
+} from '@/features/public-intake/publicSiteHeroBanner'
 import { Button } from '@/shared/components/ui/button'
 import { ImageCropDialog, type ImageCropAspect } from '@/shared/components/media/ImageCropDialog'
 import { Input } from '@/shared/components/ui/input'
@@ -99,6 +106,10 @@ export function ImagePickerField({
   onRemove,
   cropAspect = 16 / 9,
   cropTitle = 'Recortar foto',
+  skipCrop = false,
+  previewFit,
+  previewPosition,
+  previewBackgroundColor,
 }: {
   label: string
   imageUrl: string | null
@@ -107,6 +118,11 @@ export function ImagePickerField({
   onRemove: () => void
   cropAspect?: ImageCropAspect
   cropTitle?: string
+  /** Hero: enviar o ficheiro original. Recorte opcional fica no enquadramento CSS. */
+  skipCrop?: boolean
+  previewFit?: PublicSiteHeroImageFit | null
+  previewPosition?: PublicSiteHeroImagePosition | null
+  previewBackgroundColor?: string | null
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [cropFile, setCropFile] = useState<File | null>(null)
@@ -122,15 +138,29 @@ export function ImagePickerField({
         onChange={(e) => {
           const file = e.target.files?.[0]
           if (file) {
-            setCropFile(file)
-            setCropOpen(true)
+            if (skipCrop) {
+              onUpload(file)
+            } else {
+              setCropFile(file)
+              setCropOpen(true)
+            }
           }
           e.target.value = ''
         }}
       />
       {imageUrl ? (
-        <div className="relative w-full max-w-xs overflow-hidden rounded-lg border border-border/50">
-          <img src={imageUrl} alt="" className="h-32 w-full object-cover" />
+        <div className="relative w-full overflow-hidden rounded-lg border border-border/50">
+          {skipCrop ? (
+            <PublicSiteHeroBanner
+              src={imageUrl}
+              alt=""
+              fit={previewFit}
+              position={previewPosition}
+              backgroundColor={previewBackgroundColor}
+            />
+          ) : (
+            <img src={imageUrl} alt="" className="h-32 w-full object-cover" />
+          )}
           <Button
             type="button"
             variant="destructive"
@@ -148,6 +178,11 @@ export function ImagePickerField({
           Adicionar foto
         </Button>
       )}
+      {imageUrl && skipCrop ? (
+        <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => inputRef.current?.click()}>
+          Substituir foto
+        </Button>
+      ) : null}
       <ImageCropDialog
         open={cropOpen}
         onOpenChange={(next) => {
@@ -264,19 +299,87 @@ export function HeroEditor({
     onChange({ ...content, ctas: content.ctas.filter((c) => c.id !== id) })
   }
 
+  const imageFit = normalizeHeroImageFit(content.imageFit)
+  const imagePosition = normalizeHeroImagePosition(content.imagePosition)
+
   return (
     <div className="space-y-5">
       <div className="space-y-2 rounded-lg border border-border/40 bg-muted/10 p-3">
         <p className="text-sm font-semibold">1. Imagem de capa</p>
         <ImagePickerField
-          label="Foto (recomendado 16:9)"
+          label="Foto (qualquer proporção)"
           imageUrl={imageUrl}
           uploading={uploadingImage}
           onUpload={onUploadImage}
           onRemove={onRemoveImage}
-          cropAspect={16 / 9}
-          cropTitle="Recortar foto de capa"
+          skipCrop
+          previewFit={imageFit}
+          previewPosition={imagePosition}
+          previewBackgroundColor={content.backgroundColor}
         />
+        <p className="text-[11px] text-muted-foreground">
+          A imagem original é guardada. O enquadramento abaixo aplica-se na Página Pública — o
+          preview é o mesmo que o visitante vê.
+        </p>
+        <fieldset className="space-y-2">
+          <legend className="text-caption font-medium text-muted-foreground">Enquadramento</legend>
+          <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border/50 bg-background p-2.5 text-sm has-[:checked]:border-brand/40 has-[:checked]:bg-brand/[0.04]">
+            <input
+              type="radio"
+              name="hero-image-fit"
+              className="mt-0.5"
+              checked={imageFit === 'cover'}
+              onChange={() => onChange({ ...content, imageFit: 'cover' })}
+            />
+            <span>
+              <span className="font-medium">Preencher</span>
+              <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                A foto ocupa toda a faixa. Pode cortar bordas — adequado para fotografias.
+              </span>
+            </span>
+          </label>
+          <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border/50 bg-background p-2.5 text-sm has-[:checked]:border-brand/40 has-[:checked]:bg-brand/[0.04]">
+            <input
+              type="radio"
+              name="hero-image-fit"
+              className="mt-0.5"
+              checked={imageFit === 'contain'}
+              onChange={() => onChange({ ...content, imageFit: 'contain' })}
+            />
+            <span>
+              <span className="font-medium">Mostrar tudo</span>
+              <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                A imagem aparece inteira. A cor de fundo preenche o espaço restante — adequado
+                para cartazes, texto ou logótipos.
+              </span>
+            </span>
+          </label>
+        </fieldset>
+        {imageFit === 'cover' ? (
+          <div className="space-y-1">
+            <p className="text-caption text-muted-foreground">Foco (se a foto for cortada)</p>
+            <div className="flex flex-wrap gap-1.5">
+              {(
+                [
+                  ['top', 'Topo'],
+                  ['center', 'Centro'],
+                  ['bottom', 'Base'],
+                ] as const
+              ).map(([value, label]) => (
+                <Button
+                  key={value}
+                  type="button"
+                  size="sm"
+                  variant={imagePosition === value ? 'primary' : 'outline'}
+                  className="h-8"
+                  onClick={() => onChange({ ...content, imagePosition: value })}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        ) : null}
         <InlineColorField
           id="hero-bg"
           label="Cor de fundo"
