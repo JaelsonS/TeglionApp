@@ -4,7 +4,7 @@
 
 - **Jaelson Silva dos Santos**, NIF 331 759 276, Coimbra, Portugal  
 - CAE 62100 — Programação informática  
-- Contacto: jaelsonsilva345@gmail.com · +351 916 447 990  
+- Contacto: afdigitalweb.st@gmail.com· +351 916 447 990  
 
 ## Documentos (versão actual: `2026.05.22`)
 

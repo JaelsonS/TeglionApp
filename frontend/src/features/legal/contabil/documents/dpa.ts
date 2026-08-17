@@ -19,7 +19,7 @@ export const dpaDocument: LegalDocument = {
       title: '1. Definições',
       paragraphs: [
         '«Dados Pessoais», «Tratamento», «Titular», «Responsável pelo Tratamento» (Controlador), «Subcontratante» (Processador), «Violação de Dados Pessoais» e «Autoridade de Controlo» têm o significado do RGPD.',
-        '«Instruções documentadas» são as configurações, convites a clientes, cargas documentais e demais utilização da Plataforma efectuada pelo Escritório, mais eventuais instruções escritas enviadas para jaelsonsilva345@gmail.com.',
+        '«Instruções documentadas» são as configurações, convites a clientes, cargas documentais e demais utilização da Plataforma efectuada pelo Escritório, mais eventuais instruções escritas enviadas para afdigitalweb.st@gmail.com.',
       ],
     },
     {
@@ -79,7 +79,7 @@ export const dpaDocument: LegalDocument = {
       title: '7. Subcontratantes autorizados (subprocessadores)',
       paragraphs: [
         'O Escritório autoriza o Processador a recorrer aos seguintes tipos de subcontratantes, sujeitos a contrato escrito com cláusulas equivalentes ao art. 28.º RGPD:',
-        'Lista actualizada disponível mediante pedido a jaelsonsilva345@gmail.com. Alterações materiais serão comunicadas com prazo mínimo de 30 dias para objecção fundamentada; na ausência de objecção no prazo, considera-se aceite a continuação do Serviço ou alternativa razoável oferecida.',
+        'Lista actualizada disponível mediante pedido a afdigitalweb.st@gmail.com. Alterações materiais serão comunicadas com prazo mínimo de 30 dias para objecção fundamentada; na ausência de objecção no prazo, considera-se aceite a continuação do Serviço ou alternativa razoável oferecida.',
       ],
       bullets: [
         'Supabase Inc. (ou entidade contratual aplicável) — base de dados PostgreSQL, autenticação e armazenamento de objectos na UE/EEE quando configurado na região europeia.',
@@ -146,7 +146,7 @@ export const dpaDocument: LegalDocument = {
       id: 'contacto-dpa',
       title: '15. Contacto',
       paragraphs: [
-        'Questões sobre tratamento de dados e este DPA: jaelsonsilva345@gmail.com · Política de Privacidade: /privacidade.',
+        'Questões sobre tratamento de dados e este DPA: afdigitalweb.st@gmail.com · Política de Privacidade: /privacidade.',
       ],
     },
   ],

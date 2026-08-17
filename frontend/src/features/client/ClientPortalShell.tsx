@@ -82,9 +82,6 @@ function ClientSidebarFooter({
           {loggingOut ? 'A sair…' : 'Sair'}
         </button>
       ) : null}
-      <div className="border-t border-border/50 px-1 pt-2">
-        <AgencyCredit surface="client" nameOnly className="text-left" />
-      </div>
     </div>
   )
 }
@@ -189,10 +186,11 @@ export function ClientPortalShell({
 
         <header className="pc-topbar-compact hidden md:flex">
           <div className="min-w-0 flex-1">
-            <p className="truncate font-display text-sm font-semibold text-foreground">{pageLabel}</p>
             {firm?.name ? (
-              <p className="truncate text-[11px] text-muted-foreground">{firm.name}</p>
-            ) : null}
+              <p className="truncate font-display text-sm font-semibold text-foreground">{firm.name}</p>
+            ) : (
+              <p className="truncate font-display text-sm font-semibold text-foreground">{pageLabel}</p>
+            )}
           </div>
           <div className="relative z-10 ml-auto flex items-center gap-2 xl:hidden">
             {!previewMode ? <ClientNotificationCenter /> : null}
@@ -211,7 +209,7 @@ export function ClientPortalShell({
           </div>
         </main>
 
-        <footer className="hidden shrink-0 border-t border-border/60 bg-card/80 px-4 py-2 md:block">
+        <footer className="shrink-0 border-t border-border/60 bg-card/80 px-4 py-2 max-md:mb-[4.75rem]">
           <AgencyCredit surface="client" nameOnly />
         </footer>
 

@@ -115,7 +115,7 @@ export const termsDocument: LegalDocument = {
       title: '12. Lei aplicável e foro',
       paragraphs: [
         'Estes Termos regem-se pela lei portuguesa. Para litígios com consumidores aplicam-se as normas imperativas de protecção. Para relações B2B entre Operador e escritório, com renúncia a outro foro salvo imposição legal, é competente o tribunal da comarca de Coimbra, Portugal.',
-        'Questões sobre estes Termos: jaelsonsilva345@gmail.com.',
+        'Questões sobre estes Termos: afdigitalweb.st@gmail.com.',
       ],
     },
   ],

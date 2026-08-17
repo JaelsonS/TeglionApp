@@ -22,3 +22,16 @@ export function clusterPublicServices(items: PublicFirmServiceSummary[]): Public
   }
   return clusters
 }
+
+/** Agrupa todos os serviços com slug por `publicGroup` (para menus dropdown). */
+export function uniquePublicServiceGroups(items: PublicFirmServiceSummary[]): PublicServiceCluster[] {
+  const map = new Map<string, PublicFirmServiceSummary[]>()
+  for (const item of items) {
+    if (!item.slug) continue
+    const heading = String(item.publicGroup || '').trim() || 'Outros'
+    const list = map.get(heading)
+    if (list) list.push(item)
+    else map.set(heading, [item])
+  }
+  return [...map.entries()].map(([heading, groupItems]) => ({ heading, items: groupItems }))
+}

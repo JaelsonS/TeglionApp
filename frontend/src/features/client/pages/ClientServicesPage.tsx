@@ -130,13 +130,24 @@ export function ClientServicesPage() {
           ) : null}
 
           {clusters.map((cluster, index) => (
-            <section key={cluster.heading || `ungrouped-${index}`} className="space-y-3">
-              {cluster.heading ? (
-                <h2 className="font-display text-base font-semibold text-foreground">{cluster.heading}</h2>
-              ) : clusters.length > 1 ? (
-                <h2 className="font-display text-base font-semibold text-foreground">Outros serviços</h2>
-              ) : null}
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <details
+              key={cluster.heading || `ungrouped-${index}`}
+              className="group rounded-2xl border border-border/60 bg-card/60 open:bg-card"
+              open={index === 0 || clusters.length <= 2}
+            >
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 marker:content-none">
+                <h2 className="font-display text-base font-semibold text-foreground">
+                  {cluster.heading
+                    ? cluster.heading
+                    : clusters.length > 1
+                      ? 'Outros serviços'
+                      : 'Catálogo'}
+                </h2>
+                <span className="text-xs font-medium tabular-nums text-muted-foreground">
+                  {cluster.items.length} {cluster.items.length === 1 ? 'serviço' : 'serviços'}
+                </span>
+              </summary>
+              <div className="grid gap-3 px-4 pb-4 sm:grid-cols-2 xl:grid-cols-3">
                 {cluster.items.map((service) => (
                   <article key={service.id} className="pc-service-card">
                     {service.imageUrl ? (
@@ -192,7 +203,7 @@ export function ClientServicesPage() {
                   </article>
                 ))}
               </div>
-            </section>
+            </details>
           ))}
         </>
       )}

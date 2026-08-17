@@ -14,9 +14,9 @@ export const BRAND = {
   },
   emails: {
     /** Caixa real (receber / mailto). */
-    hello: 'jaelsonsilva345@gmail.com',
-    support: 'jaelsonsilva345@gmail.com',
-    commercial: 'jaelsonsilva345@gmail.com',
+    hello: 'afdigitalweb.st@gmail.com',
+    support: 'afdigitalweb.st@gmail.com',
+    commercial: 'afdigitalweb.st@gmail.com',
     /** Remetentes Brevo (só envio — sem inbox). */
     sendContact: 'contato@teglion.com',
     sendSupport: 'suporte@teglion.com',

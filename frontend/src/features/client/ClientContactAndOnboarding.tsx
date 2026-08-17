@@ -80,40 +80,37 @@ export function ClientFirstVisitOnboarding({
   }
 
   return (
-    <section className="relative rounded-2xl border border-border bg-card p-4 shadow-sm">
+    <section className="relative rounded-2xl border border-border/70 bg-muted/20 px-4 py-3">
       <button
         type="button"
-        className="absolute right-2 top-2 rounded-lg p-1.5 text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="absolute right-1.5 top-1.5 rounded-lg p-1.5 text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label="Fechar introdução"
         onClick={dismiss}
       >
         <X className="h-4 w-4" />
       </button>
-      <p className="pr-8 text-sm font-semibold text-foreground">Bem-vindo ao portal</p>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Envie o que lhe pedem, veja prazos e fale com o escritório — tudo aqui.
-      </p>
-      <ol className="mt-3 grid gap-2 sm:grid-cols-2">
+      <p className="pr-8 text-sm font-semibold text-foreground">Primeiros passos</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">Documentos, prazos e mensagens — tudo no mesmo sítio.</p>
+      <div className="mt-3 flex flex-wrap gap-2">
         {[
           { label: 'Enviar documentos', onClick: onGoDocuments },
           { label: 'Ver prazos', onClick: onGoObligations },
           { label: 'Mensagem ao escritório', onClick: onGoMessages },
           ...(onInstallHint ? [{ label: 'Instalar a app', onClick: onInstallHint }] : []),
         ].map((step) => (
-          <li key={step.label}>
-            <button
-              type="button"
-              className="w-full rounded-xl border border-border/80 bg-muted/20 px-3 py-2.5 text-left text-xs font-semibold text-foreground transition hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              onClick={() => {
-                step.onClick()
-                dismiss()
-              }}
-            >
-              {step.label}
-            </button>
-          </li>
+          <button
+            key={step.label}
+            type="button"
+            className="rounded-full border border-border/80 bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-brand/40 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={() => {
+              step.onClick()
+              dismiss()
+            }}
+          >
+            {step.label}
+          </button>
         ))}
-      </ol>
+      </div>
     </section>
   )
 }
