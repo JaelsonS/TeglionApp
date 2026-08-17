@@ -66,13 +66,13 @@ const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
 const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
   header: 'Cores da barra',
   hero: 'Foto, título, frase e botões',
-  about: 'Texto e foto institucional',
-  services: 'Título da grelha (Catálogo)',
-  bookingServices: 'Título dos outros serviços',
+  about: 'Texto, foto e botões',
+  services: 'Título, catálogo e botões',
+  bookingServices: 'Título, catálogo e botões',
   features: 'Pontos fortes',
   process: 'Passos do processo',
   faq: 'Perguntas e respostas',
-  contact: 'Email, telefone, morada',
+  contact: 'Contactos e botões',
   footer: 'Cores do rodapé',
 }
 
@@ -507,6 +507,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 onChange={(content) => patchSectionContent(section.key, content)}
                 publicDisplayName={previewFirmName}
                 services={previewServices}
+                officePhone={bundle.contact?.phone}
                 imageUrl={
                   section.type === 'hero'
                     ? resolveSectionImageUrl(section, 'hero')
@@ -681,6 +682,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 praiseLabel: draft.praiseLabel,
                 praiseContact: draft.praiseContact,
                 openInternalLinksInNewTab: true,
+                showTeglionCredit: true,
               }}
             />
           </div>
@@ -742,6 +744,7 @@ function SectionEditorSwitch({
   onUploadImage,
   onRemoveImage,
   services,
+  officePhone,
   publicDisplayName,
 }: {
   section: PublicSiteSection
@@ -751,6 +754,7 @@ function SectionEditorSwitch({
   onUploadImage: (file: File) => void
   onRemoveImage: () => void
   services: PublicFirmServiceSummary[]
+  officePhone?: string | null
   publicDisplayName?: string
 }) {
   switch (section.type) {
@@ -764,6 +768,7 @@ function SectionEditorSwitch({
           onUploadImage={onUploadImage}
           onRemoveImage={onRemoveImage}
           services={services}
+          officePhone={officePhone}
           publicDisplayName={publicDisplayName}
         />
       )
@@ -776,12 +781,30 @@ function SectionEditorSwitch({
           uploadingImage={uploadingImage}
           onUploadImage={onUploadImage}
           onRemoveImage={onRemoveImage}
+          services={services}
+          officePhone={officePhone}
         />
       )
     case 'services':
-      return <ServicesHeadingEditor content={section.content} onChange={onChange} placeholder="Consultorias com agendamento" />
+      return (
+        <ServicesHeadingEditor
+          content={section.content}
+          onChange={onChange}
+          placeholder="Consultorias com agendamento"
+          services={services}
+          officePhone={officePhone}
+        />
+      )
     case 'bookingServices':
-      return <ServicesHeadingEditor content={section.content} onChange={onChange} placeholder="Outros serviços" />
+      return (
+        <ServicesHeadingEditor
+          content={section.content}
+          onChange={onChange}
+          placeholder="Outros serviços"
+          services={services}
+          officePhone={officePhone}
+        />
+      )
     case 'features':
       return <FeaturesEditor content={section.content} onChange={onChange} />
     case 'process':
@@ -789,7 +812,14 @@ function SectionEditorSwitch({
     case 'faq':
       return <FaqEditor content={section.content} onChange={onChange} />
     case 'contact':
-      return <ContactEditor content={section.content} onChange={onChange} />
+      return (
+        <ContactEditor
+          content={section.content}
+          onChange={onChange}
+          services={services}
+          officePhone={officePhone}
+        />
+      )
     case 'header':
       return (
         <ChromeSectionEditor

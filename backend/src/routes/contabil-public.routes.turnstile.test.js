@@ -28,6 +28,10 @@ test('POSTs públicos protegidos por Turnstile com actions correctas', () => {
     { path: '/blog/newsletter', action: TURNSTILE_ACTIONS.NEWSLETTER },
     { path: '/support', action: TURNSTILE_ACTIONS.SUPPORT },
     {
+      path: '/firms/:firmSlug/services/:serviceSlug/intake/hold',
+      action: TURNSTILE_ACTIONS.INTAKE_HOLD,
+    },
+    {
       path: '/firms/:firmSlug/services/:serviceSlug/intake/lead',
       action: TURNSTILE_ACTIONS.INTAKE_LEAD,
     },
@@ -74,6 +78,7 @@ test('POSTs públicos protegidos por Turnstile com actions correctas', () => {
 
   assert.equal(TURNSTILE_ACTIONS.PORTAL_UPLOAD, 'portal-upload');
   assert.equal(TURNSTILE_ACTIONS.PORTAL_REPLY, 'portal-reply');
+  assert.equal(TURNSTILE_ACTIONS.INTAKE_HOLD, 'intake-hold');
   assert.equal(TURNSTILE_ACTIONS.INTAKE_LEAD, 'intake-lead');
   assert.equal(TURNSTILE_ACTIONS.INTAKE_SUBMIT, 'intake-submit');
 });

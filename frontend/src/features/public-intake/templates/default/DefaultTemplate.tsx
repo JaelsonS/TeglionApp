@@ -1,4 +1,5 @@
 import type { PublicSiteConfig } from '@/shared/types/firmPublicSite'
+import { TeglionPublicCredit } from '@/features/public-intake/TeglionPublicCredit'
 import {
   AboutSection,
   BookingServicesSection,
@@ -62,17 +63,31 @@ export function DefaultTemplate({ config, ctx }: Props) {
               />
             )
           case 'about':
-            return <AboutSection key={section.key} content={section.content} images={config.images} />
+            return (
+              <AboutSection
+                key={section.key}
+                content={section.content}
+                images={config.images}
+                ctx={ctx}
+                socialLinks={config.socialLinks}
+              />
+            )
           case 'services':
           case 'bookingServices': {
-            if (showEmptyServices) {
+            const hasCtas = (section.content.ctas?.length ?? 0) > 0
+            if (showEmptyServices && !hasCtas) {
               if (section.key !== firstServiceKey) return null
               return <EmptyPublicServicesSection key="public-services-empty" />
             }
             return section.type === 'services' ? (
-              <ServicesSection key={section.key} content={section.content} ctx={ctx} />
+              <ServicesSection key={section.key} content={section.content} ctx={ctx} socialLinks={config.socialLinks} />
             ) : (
-              <BookingServicesSection key={section.key} content={section.content} ctx={ctx} />
+              <BookingServicesSection
+                key={section.key}
+                content={section.content}
+                ctx={ctx}
+                socialLinks={config.socialLinks}
+              />
             )
           }
           case 'features':
@@ -82,7 +97,7 @@ export function DefaultTemplate({ config, ctx }: Props) {
           case 'faq':
             return <FaqSection key={section.key} content={section.content} />
           case 'contact':
-            return <ContactSection key={section.key} content={section.content} ctx={ctx} />
+            return <ContactSection key={section.key} content={section.content} ctx={ctx} socialLinks={config.socialLinks} />
           case 'footer':
             return (
               <FooterSection key={section.key} ctx={ctx} socialLinks={config.socialLinks} content={section.content} />
@@ -91,6 +106,7 @@ export function DefaultTemplate({ config, ctx }: Props) {
             return null
         }
       })}
+      <TeglionPublicCredit visible={ctx.showTeglionCredit !== false} />
     </div>
   )
 }

@@ -12,6 +12,13 @@ const OPEN_FEATURES = new Set([
 ]);
 
 /**
+ * Features conhecidas que no modo open continuam bloqueadas.
+ * `hide_teglion_branding` existe para white-label futuro — hoje o crédito
+ * Teglion permanece visível em todos os escritórios.
+ */
+const OPEN_LOCKED = new Set(['hide_teglion_branding']);
+
+/**
  * @param {string} _firmId
  * @param {string} featureKey
  * @returns {Promise<{ allowed: boolean, reason: string, source: string }>}
@@ -20,6 +27,9 @@ async function can(_firmId, featureKey) {
   const key = String(featureKey || '').trim();
   if (!key) {
     return { allowed: false, reason: 'MISSING_FEATURE', source: 'open' };
+  }
+  if (OPEN_LOCKED.has(key)) {
+    return { allowed: false, reason: 'OPEN_MODE_LOCKED', source: 'open' };
   }
   // Modo open: features conhecidas e desconhecidas permitidas para não bloquear o piloto.
   if (OPEN_FEATURES.has(key) || key.length > 0) {
@@ -37,4 +47,10 @@ async function limit(_firmId, _resourceKey) {
   return null;
 }
 
-module.exports = { can, limit, OPEN_FEATURES };
+/** Crédito «Página criada com Teglion» — visível enquanto hide_teglion_branding estiver bloqueado. */
+async function showTeglionBranding(firmId) {
+  const r = await can(firmId, 'hide_teglion_branding');
+  return !r.allowed;
+}
+
+module.exports = { can, limit, showTeglionBranding, OPEN_FEATURES, OPEN_LOCKED };

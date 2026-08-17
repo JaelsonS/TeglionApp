@@ -1,6 +1,7 @@
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
+const crypto = require('crypto');
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -9,6 +10,7 @@ const { AppError } = require('../../middlewares/error.middleware');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
+const bookingHoldsRepository = require('../../db/supabase/repositories/booking-holds.repository');
 const googleCalendarAvailabilityService = require('../integrations/google-calendar/google-calendar-availability.service');
 
 const BOOKING_TIMEZONES = ['Europe/Lisbon', 'Europe/Madrid', 'Atlantic/Azores', 'UTC'];
@@ -23,6 +25,9 @@ const DEFAULT_BOOKING = Object.freeze({
   dayEnd: '17:00',
   timezone: 'Europe/Lisbon',
 });
+
+/** Hold anónimo (agenda primeiro) — mais curto que o hold de pagamento (30 min). */
+const ANON_HOLD_MINUTES = 15;
 
 const TIME_RE = /^\d{1,2}:\d{2}$/;
 
@@ -249,7 +254,7 @@ function consultationBusyRange(c) {
   return { start, end: start + dm * 60 * 1000 };
 }
 
-async function listSlotsForBooking({ firmId, serviceId, fromIso, toIso }) {
+async function listSlotsForBooking({ firmId, serviceId, fromIso, toIso, ignoreHoldToken }) {
   const service = await accountingServicesRepository.findByIdForFirm(serviceId, firmId);
   if (!service || !service.isActive) throw new AppError('Serviço não encontrado', 404);
 
@@ -280,6 +285,18 @@ async function listSlotsForBooking({ firmId, serviceId, fromIso, toIso }) {
     .filter((c) => c.status === 'PENDING_PAYMENT' || c.status === 'SCHEDULED')
     .map(consultationBusyRange);
 
+  const holds = await bookingHoldsRepository.listActiveForFirm(firmId, {
+    from: new Date(fromMs - 48 * 60 * 60 * 1000).toISOString(),
+    to: new Date(toMs + 48 * 60 * 60 * 1000).toISOString(),
+  });
+  const ownToken = typeof ignoreHoldToken === 'string' ? ignoreHoldToken.trim() : '';
+  const blockingHolds = ownToken ? holds.filter((h) => h.holdToken !== ownToken) : holds;
+  busyRanges.push(
+    ...blockingHolds.map((h) =>
+      consultationBusyRange({ scheduledAt: h.scheduledAt, durationMinutes: h.durationMinutes }),
+    ),
+  );
+
   // Junta os horários ocupados dos calendários Google pessoais ligados pela
   // equipa (Fase Hc) — falha aberta (getBusyRangesForFirm nunca lança), uma
   // integração externa opcional nunca pode derrubar a página de agendamento.
@@ -304,7 +321,7 @@ async function listSlotsForBooking({ firmId, serviceId, fromIso, toIso }) {
  * automaticamente convertido em Client — a conversão continua manual
  * (leads.service.js#convertToClient, que repontoa a consultation depois).
  */
-async function bookAsClient({ firmId, clientId, leadId, serviceId, scheduledAt }) {
+async function bookAsClient({ firmId, clientId, leadId, serviceId, scheduledAt, ignoreHoldToken }) {
   if (Boolean(clientId) === Boolean(leadId)) {
     throw new AppError('Indique exactamente um titular (cliente ou lead)', 400);
   }
@@ -319,6 +336,7 @@ async function bookAsClient({ firmId, clientId, leadId, serviceId, scheduledAt }
     serviceId,
     fromIso: new Date(startMs - 120 * 1000).toISOString(),
     toIso: new Date(startMs + 120 * 1000).toISOString(),
+    ignoreHoldToken,
   });
 
   const match = slots.some((iso) => Math.abs(new Date(iso).getTime() - startMs) <= 90 * 1000);
@@ -381,6 +399,83 @@ async function bookAsClient({ firmId, clientId, leadId, serviceId, scheduledAt }
   return { consultation, service };
 }
 
+async function createAnonymousHold({ firmId, serviceId, scheduledAt }) {
+  const service = await accountingServicesRepository.findByIdForFirm(serviceId, firmId);
+  if (!service || !service.isActive || !service.requiresBooking) {
+    throw new AppError('Serviço não encontrado', 404);
+  }
+  await bookingHoldsRepository.deleteExpired();
+  const startMs = new Date(scheduledAt).getTime();
+  if (!Number.isFinite(startMs)) throw new AppError('Data inválida', 400);
+
+  const { slots } = await listSlotsForBooking({
+    firmId,
+    serviceId,
+    fromIso: new Date(startMs - 120 * 1000).toISOString(),
+    toIso: new Date(startMs + 120 * 1000).toISOString(),
+  });
+  const match = slots.some((iso) => Math.abs(new Date(iso).getTime() - startMs) <= 90 * 1000);
+  if (!match) throw new AppError('Este horário já não está disponível', 409);
+
+  const expiresAt = new Date(Date.now() + ANON_HOLD_MINUTES * 60 * 1000).toISOString();
+  const holdToken = crypto.randomBytes(32).toString('hex');
+  try {
+    const hold = await bookingHoldsRepository.createHold({
+      firmId,
+      accountingServiceId: service.id,
+      scheduledAt: new Date(startMs).toISOString(),
+      durationMinutes: service.durationMinutes,
+      holdToken,
+      expiresAt,
+    });
+    return { holdToken: hold.holdToken, expiresAt: hold.expiresAt, scheduledAt: hold.scheduledAt };
+  } catch (err) {
+    if (err?.code === '23P01') {
+      throw new AppError('Este horário já não está disponível', 409);
+    }
+    throw err;
+  }
+}
+
+async function assertAnonymousHold({ firmId, serviceId, holdToken, scheduledAt }) {
+  const token = String(holdToken || '').trim();
+  if (!token || token.length < 32) throw new AppError('A reserva deste horário expirou. Escolha novamente.', 409);
+  const hold = await bookingHoldsRepository.findByToken(token);
+  if (!hold || String(hold.firmId) !== String(firmId) || String(hold.accountingServiceId) !== String(serviceId)) {
+    throw new AppError('A reserva deste horário expirou. Escolha novamente.', 409);
+  }
+  if (new Date(hold.expiresAt).getTime() <= Date.now()) {
+    await bookingHoldsRepository.deleteById(hold.id, firmId);
+    throw new AppError('A reserva deste horário expirou. Escolha novamente.', 409);
+  }
+  const startMs = new Date(scheduledAt).getTime();
+  const holdMs = new Date(hold.scheduledAt).getTime();
+  if (!Number.isFinite(startMs) || Math.abs(startMs - holdMs) > 90 * 1000) {
+    throw new AppError('O horário escolhido já não coincide com a reserva.', 409);
+  }
+  return hold;
+}
+
+async function consumeAnonymousHold({ firmId, serviceId, holdToken, scheduledAt }) {
+  const hold = await assertAnonymousHold({ firmId, serviceId, holdToken, scheduledAt });
+  await bookingHoldsRepository.deleteById(hold.id, firmId);
+  return hold;
+}
+
+/** Liberta o hold depois de a consultation existir — não falha o pedido se já tiver expirado. */
+async function releaseAnonymousHold({ firmId, holdToken }) {
+  const token = String(holdToken || '').trim();
+  if (!token) return false;
+  const hold = await bookingHoldsRepository.findByToken(token);
+  if (!hold || String(hold.firmId) !== String(firmId)) return false;
+  await bookingHoldsRepository.deleteById(hold.id, firmId);
+  return true;
+}
+
+async function expireAnonymousHolds() {
+  return bookingHoldsRepository.deleteExpired();
+}
+
 function defaultBookingSeed() {
   return { ...DEFAULT_BOOKING };
 }
@@ -395,4 +490,10 @@ module.exports = {
   updateBookingSettings,
   listSlotsForBooking,
   bookAsClient,
+  createAnonymousHold,
+  assertAnonymousHold,
+  consumeAnonymousHold,
+  releaseAnonymousHold,
+  expireAnonymousHolds,
+  ANON_HOLD_MINUTES,
 };

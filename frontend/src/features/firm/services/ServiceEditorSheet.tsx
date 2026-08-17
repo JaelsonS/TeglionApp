@@ -7,6 +7,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
 import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
 import { RichTextEditor, DurationMinutesField, EuroInput } from '@/shared/design-system'
+import { IntakeStartModeFields } from '@/features/firm/services/IntakeStartModeFields'
 import {
   ServicePaymentMethodsPanel,
   type ServicePaymentMethodId,
@@ -33,6 +34,9 @@ export function ServiceEditorSheet({ service, open, onOpenChange, onSaved }: Pro
   const [isActive, setIsActive] = useState(service.isActive !== false)
   const [isPubliclyListed, setIsPubliclyListed] = useState(Boolean(service.isPubliclyListed))
   const [requiresBooking, setRequiresBooking] = useState(Boolean(service.requiresBooking))
+  const [intakeStartMode, setIntakeStartMode] = useState<'form' | 'calendar'>(
+    service.intakeStartMode === 'calendar' ? 'calendar' : 'form',
+  )
   const [slug, setSlug] = useState(service.slug || '')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(service.paymentMethod || 'bank_transfer')
   const [paymentRequired, setPaymentRequired] = useState(Boolean(service.paymentRequired))
@@ -48,6 +52,7 @@ export function ServiceEditorSheet({ service, open, onOpenChange, onSaved }: Pro
     setIsActive(service.isActive !== false)
     setIsPubliclyListed(Boolean(service.isPubliclyListed))
     setRequiresBooking(Boolean(service.requiresBooking))
+    setIntakeStartMode(service.intakeStartMode === 'calendar' ? 'calendar' : 'form')
     setSlug(service.slug || '')
     setPaymentMethod(service.paymentMethod || 'bank_transfer')
     setPaymentRequired(Boolean(service.paymentRequired))
@@ -69,6 +74,7 @@ export function ServiceEditorSheet({ service, open, onOpenChange, onSaved }: Pro
         isActive,
         isPubliclyListed,
         requiresBooking,
+        intakeStartMode: requiresBooking ? intakeStartMode : 'form',
         slug: slug.trim() || null,
         paymentMethod: paymentRequired ? 'stripe_connect' : paymentMethod,
         paymentRequired,
@@ -117,6 +123,11 @@ export function ServiceEditorSheet({ service, open, onOpenChange, onSaved }: Pro
               <input type="checkbox" checked={requiresBooking} onChange={(e) => setRequiresBooking(e.target.checked)} />
               Exige agendamento
             </label>
+            <IntakeStartModeFields
+              requiresBooking={requiresBooking}
+              value={intakeStartMode}
+              onChange={setIntakeStartMode}
+            />
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
