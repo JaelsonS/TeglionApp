@@ -20,7 +20,7 @@ export const noticeDocument: LegalDocument = {
         'NIF: 331 759 276',
         'CAE: 62100 — Atividades de programação informática',
         'Sede: Coimbra, Portugal',
-        'E-mail: jaelsonsilva345@gmail.com',
+        'E-mail: afdigitalweb.st@gmail.com',
         'Telefone: +351 916 447 990',
       ],
     },

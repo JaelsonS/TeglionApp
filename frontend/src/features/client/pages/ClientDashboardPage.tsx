@@ -7,7 +7,6 @@ import { ClientHubFallback } from '@/features/client/ClientHubFallback'
 import { getClientHubCopy, toClientHubLocale } from '@/features/client/clientHubI18n'
 import { fetchClientAlerts } from '@/infrastructure/api/contabil/broadcasts'
 import { clientPortalContabilApi } from '@/infrastructure/api'
-import { PageHeader } from '@/shared/components/portal-cliente/PageHeader'
 import { isContabilMode } from '@/shared/config/productMode'
 import { useClientPortalHub } from '@/shared/hooks/queries/useClientPortalHub'
 import { useClientNewsFeed } from '@/shared/hooks/useClientNews'
@@ -19,15 +18,6 @@ import { Skeleton } from '@/shared/design-system'
 function greetingName(fullName?: string) {
   const first = (fullName || '').trim().split(/\s+/)[0]
   return first || 'Olá'
-}
-
-function formatTodayPt() {
-  return new Intl.DateTimeFormat('pt-PT', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date())
 }
 
 function resolveFiscalHealth(hub: {
@@ -63,7 +53,8 @@ export function ClientDashboardPage() {
   })
   const documentRequestsQuery = useQuery({
     queryKey: ['client', 'document-requests', 'count'],
-    queryFn: () => clientPortalContabilApi.listDocumentRequests() as Promise<{ items?: Array<{ status?: string | null }> }>,
+    queryFn: () =>
+      clientPortalContabilApi.listDocumentRequests() as Promise<{ items?: Array<{ status?: string | null }> }>,
     staleTime: 45_000,
   })
 
@@ -91,14 +82,16 @@ export function ClientDashboardPage() {
 
   return (
     <div data-testid="client-dashboard-page" className="space-y-6">
-      <PageHeader
-        title={`Olá, ${greetingName(user?.fullName)} 👋`}
-        subtitle={formatTodayPt()}
-      />
+      <header className="space-y-1">
+        <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          Olá, {greetingName(user?.fullName)}
+        </h1>
+        <p className="text-sm text-muted-foreground">O que precisa de si agora.</p>
+      </header>
 
       {hubQuery.isLoading ? (
         <div className="space-y-4">
-          <Skeleton className="h-36 rounded-2xl" />
+          <Skeleton className="h-40 rounded-2xl" />
           <Skeleton className="h-24 rounded-2xl" />
           <Skeleton className="h-48 rounded-2xl" />
         </div>
@@ -124,9 +117,10 @@ export function ClientDashboardPage() {
           onGoAlerts={() => navigate('/app/client/updates')}
           onGoNews={() => navigate('/app/client/updates?tab=news')}
           onGoRequests={() => navigate('/app/client/requests')}
-          onGoBooking={() => navigate('/app/client/agenda?view=consultoria')}
+          onGoServices={() => navigate('/app/client/services')}
           onOpenObligation={(o) => navigate(`/app/client/agenda?obligation=${o._id}`)}
           onOpenNews={(a) => navigate(`/app/client/updates?tab=news&slug=${encodeURIComponent(a.slug)}`)}
+          onOpenService={(id) => navigate(`/app/client/services?book=${encodeURIComponent(id)}`)}
         />
       ) : null}
     </div>

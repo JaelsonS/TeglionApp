@@ -200,9 +200,28 @@ async function getReadRow(broadcastId, clientId) {
   return data;
 }
 
-async function markRead(broadcastId, clientId, { acknowledged = false } = {}) {
+async function markRead(broadcastId, clientId, { acknowledged = false, firmId, acknowledgedAt = null } = {}) {
   const sb = getSupabaseAdmin();
   const now = new Date().toISOString();
+  const row = {
+    broadcast_id: broadcastId,
+    client_id: clientId,
+    read_at: now,
+  };
+  if (firmId) row.firm_id = firmId;
+  if (acknowledged) row.acknowledged_at = now;
+  else if (acknowledgedAt) row.acknowledged_at = acknowledgedAt;
+
+  if (firmId) {
+    const { data, error } = await sb
+      .from('firm_broadcast_reads')
+      .upsert(row, { onConflict: 'broadcast_id,client_id' })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
   const patch = { read_at: now };
   if (acknowledged) patch.acknowledged_at = now;
   const { data, error } = await sb

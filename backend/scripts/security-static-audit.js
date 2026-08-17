@@ -67,7 +67,7 @@ assertNotIncludes(
 );
 
 const legalService = read('src/modules/legal/legal-consents.service.js');
-if (/jaelsonsilva345@gmail\.com|331759276|\+351916447990/.test(legalService)) {
+if (/afdigitalweb\.st@gmail\.com|331759276|\+351916447990/.test(legalService)) {
   fail('legal-consents.service.js contém PII do operador hardcoded — use LEGAL_OPERATOR_* no ambiente');
 } else {
   pass('Dados do operador legal');

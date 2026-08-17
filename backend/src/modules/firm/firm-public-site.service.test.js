@@ -5,6 +5,7 @@ const { mock } = require('node:test');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
 const firmPublicSitesRepository = require('../../db/supabase/repositories/firm-public-sites.repository');
+const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
 const firmPublicSiteService = require('./firm-public-site.service');
 
@@ -118,6 +119,39 @@ test('normalizeSiteConfig: cores por secção e por botão', () => {
   assert.equal(header.content.textColor, '#fefefe');
 });
 
+test('normalizeSiteConfig: hero imageFit ausente cai em cover; contain e foco são aceites', () => {
+  const legacy = firmPublicSiteService.normalizeSiteConfig({
+    sections: [{ type: 'hero', content: { tagline: 'Olá', bio: '' } }],
+  });
+  const heroLegacy = legacy.sections.find((s) => s.type === 'hero');
+  assert.equal(heroLegacy.content.imageFit, 'cover');
+  assert.equal(heroLegacy.content.imagePosition, 'center');
+
+  const configured = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'hero',
+        content: {
+          tagline: 'Olá',
+          bio: '',
+          imageFit: 'contain',
+          imagePosition: 'top',
+        },
+      },
+    ],
+  });
+  const hero = configured.sections.find((s) => s.type === 'hero');
+  assert.equal(hero.content.imageFit, 'contain');
+  assert.equal(hero.content.imagePosition, 'top');
+
+  const invalid = firmPublicSiteService.normalizeSiteConfig({
+    sections: [{ type: 'hero', content: { tagline: 'Olá', imageFit: 'stretch', imagePosition: 'left' } }],
+  });
+  const heroInvalid = invalid.sections.find((s) => s.type === 'hero');
+  assert.equal(heroInvalid.content.imageFit, 'cover');
+  assert.equal(heroInvalid.content.imagePosition, 'center');
+});
+
 test('normalizeSiteConfig: header.title e hero.title são independentes e truncados', () => {
   const config = firmPublicSiteService.normalizeSiteConfig({
     sections: [
@@ -143,6 +177,65 @@ test('normalizeSiteConfig: header.title e hero.title são independentes e trunca
   assert.equal(hero.content.tagline, 'Frase');
   assert.equal(Object.prototype.hasOwnProperty.call(header.content, 'title'), true);
   assert.equal(Object.prototype.hasOwnProperty.call(config.sections.find((s) => s.type === 'footer')?.content || {}, 'title'), false);
+});
+
+test('normalizeSiteConfig: header nav links default to visible and can be turned off', () => {
+  const defaults = firmPublicSiteService.normalizeSiteConfig({
+    sections: [{ type: 'header', content: { title: 'AfDigital' } }],
+  });
+  const header = defaults.sections.find((s) => s.type === 'header');
+  assert.equal(header.content.showNav, true);
+  assert.equal(header.content.showServicesLink, true);
+  assert.equal(header.content.showAreasMenu, true);
+  assert.equal(header.content.showContactLink, true);
+
+  const off = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'header',
+        content: {
+          title: 'AfDigital',
+          showNav: true,
+          showServicesLink: false,
+          showAreasMenu: false,
+          showContactLink: true,
+        },
+      },
+    ],
+  });
+  const headerOff = off.sections.find((s) => s.type === 'header');
+  assert.equal(headerOff.content.showServicesLink, false);
+  assert.equal(headerOff.content.showAreasMenu, false);
+  assert.equal(headerOff.content.showContactLink, true);
+  assert.equal(header.content.navLinks.length, 3);
+  assert.equal(header.content.navLinks[0].label, 'Serviços');
+});
+
+test('normalizeSiteConfig: header navLinks aceitam texto, âncora, serviço e https', () => {
+  const config = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'header',
+        content: {
+          navLinks: [
+            { id: 'a', label: '  O que fazemos  ', enabled: true, kind: 'section', sectionId: 'sobre' },
+            { id: 'b', label: 'IRS', enabled: true, kind: 'service', serviceId: 'irs-modelo-3' },
+            { id: 'c', label: 'Site', enabled: true, kind: 'external', url: 'https://afdigital.example/' },
+            { id: 'd', label: 'Mau', enabled: true, kind: 'external', url: 'http://inseguro.example/' },
+            { id: 'e', label: '', enabled: true, kind: 'section', sectionId: 'faq' },
+          ],
+        },
+      },
+    ],
+  });
+  const header = config.sections.find((s) => s.type === 'header');
+  assert.equal(header.content.navLinks.length, 4);
+  assert.equal(header.content.navLinks[0].label, 'O que fazemos');
+  assert.equal(header.content.navLinks[0].sectionId, 'sobre');
+  assert.equal(header.content.navLinks[1].kind, 'service');
+  assert.equal(header.content.navLinks[2].url, 'https://afdigital.example/');
+  assert.equal(header.content.navLinks[3].kind, 'external');
+  assert.equal(header.content.navLinks[3].url, undefined);
 });
 
 test('normalizeSiteConfig: faq filtra entradas sem pergunta ou sem resposta', () => {
@@ -289,6 +382,7 @@ test('saveDraft: rejeita quem não é FIRM_OWNER', async () => {
 test('saveDraft: normaliza o config e grava via repository', async () => {
   resetMocks();
   mock.method(firmUsersRepository, 'findFirmUserById', async () => OWNER);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => []);
   let savedConfig = null;
   mock.method(firmPublicSitesRepository, 'upsertDraft', async (firmId, config) => {
     savedConfig = config;
@@ -301,6 +395,41 @@ test('saveDraft: normaliza o config e grava via repository', async () => {
 
   assert.equal(savedConfig.sections.find((s) => s.type === 'hero').content.tagline, 'Novo slogan');
   assert.equal(result.draftUpdatedAt, '2026-08-11T00:00:00Z');
+});
+
+test('saveDraft: descarta CTA de serviço de outro tenant antes de gravar', async () => {
+  resetMocks();
+  mock.method(firmUsersRepository, 'findFirmUserById', async () => OWNER);
+  mock.method(accountingServicesRepository, 'listByFirm', async () => [
+    { id: 'svc-own', slug: 'irs-2026' },
+  ]);
+  let savedConfig = null;
+  mock.method(firmPublicSitesRepository, 'upsertDraft', async (_firmId, config) => {
+    savedConfig = config;
+    return { draft: config, draftUpdatedAt: '2026-08-17T00:00:00Z' };
+  });
+
+  await firmPublicSiteService.saveDraft('firm-1', 'user-1', {
+    sections: [
+      {
+        type: 'about',
+        content: {
+          heading: 'Sobre',
+          ctas: [
+            { label: 'Nosso', target: { type: 'service-detail', serviceId: 'irs-2026' } },
+            { label: 'Alheio', target: { type: 'service-detail', serviceId: 'slug-de-outro' } },
+            { label: 'Ligar', target: { type: 'phone', phone: '+351 912 345 678' } },
+          ],
+        },
+      },
+    ],
+  });
+
+  const ctas = savedConfig.sections.find((s) => s.type === 'about').content.ctas;
+  assert.deepEqual(
+    ctas.map((c) => c.label),
+    ['Nosso', 'Ligar'],
+  );
 });
 
 test('publishSite: rejeita quem não é FIRM_OWNER', async () => {
@@ -472,4 +601,100 @@ test('getSite: uma imagem cujo ficheiro já não existe no storage não rebenta 
 
   assert.equal(result.draft.images.hero[0].url, null);
   assert.equal(result.draft.images.hero[0].id, 'img_1', 'o resto da referência da imagem mantém-se intacto');
+});
+
+test('normalizeSiteConfig: aceita CTA phone e ignora número inválido', () => {
+  const config = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'contact',
+        content: {
+          ctas: [
+            { label: 'Ligar agora', target: { type: 'phone', phone: '+351 912 345 678' } },
+            { label: 'Inválido', target: { type: 'phone', phone: '12' } },
+          ],
+        },
+      },
+    ],
+  });
+  const ctas = config.sections.find((s) => s.type === 'contact').content.ctas;
+  assert.equal(ctas.length, 2);
+  assert.equal(ctas[0].target.type, 'phone');
+  assert.equal(ctas[0].target.phone, '+351 912 345 678');
+  assert.equal(ctas[1].target.phone, undefined);
+});
+
+test('normalizeSiteConfig: about/services guardam ctas; páginas antigas ficam com lista vazia', () => {
+  const legacy = firmPublicSiteService.normalizeSiteConfig({
+    sections: [{ type: 'about', content: { heading: 'Sobre', body: 'Texto' } }],
+  });
+  assert.deepEqual(legacy.sections[0].content.ctas, []);
+
+  const withCta = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'services',
+        content: {
+          heading: 'Consultoria Fiscal',
+          ctas: [{ label: 'Agendar', target: { type: 'service-detail', serviceId: 'consultoria-2026' } }],
+        },
+      },
+    ],
+  });
+  assert.equal(withCta.sections[0].content.ctas[0].target.serviceId, 'consultoria-2026');
+});
+
+test('sanitizeSiteCtasForFirm: descarta serviço de outro escritório e reescreve UUID para slug', () => {
+  const config = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'hero',
+        content: {
+          ctas: [
+            { label: 'Nosso', target: { type: 'service-detail', serviceId: 'irs-2026' } },
+            { label: 'Alheio', target: { type: 'service-detail', serviceId: 'slug-de-outro' } },
+            { label: 'Por id', target: { type: 'service-detail', serviceId: 'svc-uuid' } },
+          ],
+        },
+      },
+      {
+        type: 'about',
+        content: {
+          heading: 'Sobre',
+          ctas: [{ label: 'Ver lista', target: { type: 'booking' } }],
+        },
+      },
+    ],
+  });
+  const sanitized = firmPublicSiteService.sanitizeSiteCtasForFirm(config, [
+    { id: 'svc-uuid', slug: 'consultoria-iva' },
+    { id: 'other', slug: 'irs-2026' },
+  ]);
+  const heroCtas = sanitized.sections.find((s) => s.type === 'hero').content.ctas;
+  const aboutCtas = sanitized.sections.find((s) => s.type === 'about').content.ctas;
+  assert.deepEqual(
+    heroCtas.map((c) => c.target.serviceId),
+    ['irs-2026', 'consultoria-iva'],
+  );
+  assert.equal(aboutCtas[0].target.type, 'booking');
+});
+
+test('filterPublicCtas: esconde serviço despublicado e mantém booking genérico', () => {
+  const sections = [
+    {
+      type: 'hero',
+      content: {
+        ctas: [
+          { label: 'Público', target: { type: 'service-detail', serviceId: 'irs-2026' } },
+          { label: 'Privado', target: { type: 'service-detail', serviceId: 'interno' } },
+          { label: 'Agenda', target: { type: 'booking' } },
+        ],
+      },
+    },
+  ];
+  const filtered = firmPublicSiteService.filterPublicCtas(sections, ['irs-2026']);
+  assert.deepEqual(
+    filtered[0].content.ctas.map((c) => c.label),
+    ['Público', 'Agenda'],
+  );
 });

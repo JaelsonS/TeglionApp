@@ -11,6 +11,7 @@ export type PublicFirmServiceSummary = {
   priceCents: number
   priceTaxMode?: 'included' | 'excluded' | null
   requiresBooking: boolean
+  publicGroup?: string | null
   paymentRequired?: boolean
   imageUrl?: string | null
 }
@@ -19,11 +20,13 @@ export type PublicServiceIntake = {
   firmName: string
   logoUrl?: string | null
   showFirmLogo?: boolean
+  showTeglionCredit?: boolean
   serviceName: string
   description?: string | null
   imageUrl?: string | null
   intakeForm: IntakeForm
   requiresBooking: boolean
+  intakeStartMode?: 'form' | 'calendar'
   paymentRequired?: boolean
   priceCents?: number
   priceTaxMode?: 'included' | 'excluded' | null
@@ -88,6 +91,7 @@ export type PublicFirmSite = {
   praiseUrl?: string | null
   praiseLabel?: string | null
   praiseContact?: string | null
+  showTeglionCredit?: boolean
   contact: PublicFirmContact
   services: PublicFirmServiceSummary[]
 }
@@ -100,6 +104,8 @@ export type PublicIntakeSubmitPayload = {
   answers: Record<string, string | string[]>
   website?: string
   scheduledAt?: string
+  /** Token da reserva temporária (agenda primeiro). */
+  holdToken?: string
   /** Token do passo 1 (lead). Preferir `intakeToken`. */
   intakeToken?: string
   /** @deprecated Use intakeToken — mantido para clients antigos. */
@@ -218,6 +224,18 @@ export function createContabilPublicApi(api: AxiosInstance) {
       api
         .get(`/public/firms/${encodeURIComponent(firmSlug)}/services/${encodeURIComponent(serviceSlug)}/slots`)
         .then((r) => r.data as { slots: string[] }),
+
+    holdPublicSlot: (
+      firmSlug: string,
+      serviceSlug: string,
+      payload: { scheduledAt: string; website?: string; turnstileToken?: string },
+    ) =>
+      api
+        .post(
+          `/public/firms/${encodeURIComponent(firmSlug)}/services/${encodeURIComponent(serviceSlug)}/intake/hold`,
+          payload,
+        )
+        .then((r) => r.data as { ok: true; holdToken: string; expiresAt: string | null; scheduledAt: string | null }),
 
     submitServiceIntake: (firmSlug: string, serviceSlug: string, payload: PublicIntakeSubmitPayload) =>
       api

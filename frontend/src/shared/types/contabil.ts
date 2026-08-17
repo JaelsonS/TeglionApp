@@ -296,6 +296,11 @@ export type DocumentRequirement = {
    * 'manual': fica como sugestão na solicitação, só é pedido quando a
    * contabilista decidir. */
   timing?: DocumentTiming
+  /**
+   * Omissão / true: documento de base, sempre pedido.
+   * false: só entra se uma opção do formulário com esta tag for escolhida.
+   */
+  alwaysRequired?: boolean
 }
 
 export type IntakeQuestionType =
@@ -366,7 +371,10 @@ export type AccountingService = {
   sortOrder?: number
   slug?: string | null
   isPubliclyListed?: boolean
+  publicGroup?: string | null
   requiresBooking?: boolean
+  /** form = dados primeiro (default). calendar = horários primeiro. Só aplica se requiresBooking. */
+  intakeStartMode?: 'form' | 'calendar'
   documentRequirements?: DocumentRequirement[]
   intakeForm?: IntakeForm | null
   /** Substitui, campo a campo, as regras gerais do escritório (firm.settings.booking) só para este serviço. null/undefined = usa as regras gerais. */

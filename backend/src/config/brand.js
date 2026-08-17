@@ -5,9 +5,9 @@ const BRAND = {
   logPrefix: '[Teglion]',
   emails: {
     /** Caixa real (receber / mailto / notificações internas). */
-    hello: 'jaelsonsilva345@gmail.com',
-    support: 'jaelsonsilva345@gmail.com',
-    commercial: 'jaelsonsilva345@gmail.com',
+    hello: 'afdigitalweb.st@gmail.com',
+    support: 'afdigitalweb.st@gmail.com',
+    commercial: 'afdigitalweb.st@gmail.com',
     /**
      * Remetentes Brevo (só envio — domínio autenticado, sem inbox).
      * O From: da app vem de FROM_EMAIL / EMAIL_FROM_* no env.

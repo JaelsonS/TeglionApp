@@ -10,6 +10,8 @@ import {
   PowerOff,
   Search,
   Sparkles,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -103,6 +105,26 @@ export function ServicesCatalogWorkspace({
     setEditingService(s)
     setCatalogHint(hint ?? null)
     setEditorOpen(true)
+  }
+
+  const canReorder = !search.trim()
+  const moveService = async (index: number, direction: -1 | 1) => {
+    const other = index + direction
+    if (other < 0 || other >= firmServices.length) return
+    const ordered = [...firmServices]
+    const [item] = ordered.splice(index, 1)
+    ordered.splice(other, 0, item)
+    setBusyKey(item.id)
+    try {
+      await Promise.all(
+        ordered.map((s, i) => contabilAccountingServicesApi.patch(s.id, { sortOrder: (i + 1) * 10 })),
+      )
+      await onReload()
+    } catch (err) {
+      toast.error('Não foi possível reordenar', { description: getErrorMessage(err) })
+    } finally {
+      setBusyKey(null)
+    }
   }
 
   const activate = async (entry: ConsultingCatalogEntry) => {
@@ -215,7 +237,7 @@ export function ServicesCatalogWorkspace({
               />
             ) : (
               <ul className="divide-y divide-border/40">
-                {firmServices.map((s) => {
+                {firmServices.map((s, index) => {
                   const active = s.isActive !== false
                   const publish = getServicePublishPresentation(s)
                   return (
@@ -247,12 +269,39 @@ export function ServicesCatalogWorkspace({
                         </div>
                         <p className="mt-0.5 text-xs text-muted-foreground">
                           {s.durationMinutes} min · {formatEur(s.priceCents)}
+                          {s.publicGroup ? ` · ${s.publicGroup}` : ''}
                         </p>
                         {publish.id === 'draft' || publish.id === 'ready' ? (
                           <p className="mt-1 text-caption text-amber-800 dark:text-amber-400">{publish.description}</p>
                         ) : null}
                       </div>
                       <div className="flex shrink-0 items-center gap-1">
+                        {canReorder ? (
+                          <>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8"
+                              title="Subir na Página Pública"
+                              disabled={busyKey === s.id || index === 0}
+                              onClick={() => void moveService(index, -1)}
+                            >
+                              <ChevronUp className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8"
+                              title="Descer na Página Pública"
+                              disabled={busyKey === s.id || index === firmServices.length - 1}
+                              onClick={() => void moveService(index, 1)}
+                            >
+                              <ChevronDown className="h-3.5 w-3.5" />
+                            </Button>
+                          </>
+                        ) : null}
                         <Button
                           type="button"
                           size="icon"

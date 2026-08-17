@@ -14,6 +14,7 @@ import { LandingProductCarousel } from '@/shared/components/landing/LandingProdu
 import { LandingPublicOffer } from '@/shared/components/landing/LandingPublicOffer'
 import { LandingSolution } from '@/shared/components/landing/LandingSolution'
 import { LandingTrust } from '@/shared/components/landing/LandingTrust'
+import { LandingSalesMaya } from '@/shared/components/landing/LandingSalesMaya'
 import { applyPageSeo } from '@/shared/utils/seo'
 
 export function LandingPage() {
@@ -43,6 +44,7 @@ export function LandingPage() {
         <LandingCtaFinal />
       </main>
       <LandingFooter />
+      <LandingSalesMaya />
     </div>
   )
 }

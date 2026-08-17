@@ -59,7 +59,7 @@ export const cookiesDocument: LegalDocument = {
     {
       id: 'contacto',
       title: '6. Contacto',
-      paragraphs: ['Questões: jaelsonsilva345@gmail.com · Política de Privacidade: /privacidade.'],
+      paragraphs: ['Questões: afdigitalweb.st@gmail.com · Política de Privacidade: /privacidade.'],
     },
   ],
 }

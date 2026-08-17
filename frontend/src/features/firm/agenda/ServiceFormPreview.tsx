@@ -19,6 +19,7 @@ type Props = {
   description?: string | null
   onDescriptionChange?: (html: string) => void
   requiresBooking: boolean
+  intakeStartMode?: 'form' | 'calendar'
   intakeForm: IntakeForm
   imageUrl?: string | null
 }
@@ -33,9 +34,20 @@ export function ServiceFormPreview({
   description,
   onDescriptionChange,
   requiresBooking,
+  intakeStartMode = 'form',
   intakeForm,
   imageUrl,
 }: Props) {
+  const calendarFirst = requiresBooking && intakeStartMode === 'calendar'
+  const bookingHint = (
+    <p className="border-t border-border/40 pt-3 text-sm text-muted-foreground">
+      <span className="font-medium text-foreground">Horário *</span>
+      {calendarFirst
+        ? ' — o cliente vê a disponibilidade primeiro e só depois preenche os dados.'
+        : ' — o cliente escolhe entre os horários disponíveis do escritório (ou deste serviço, se personalizados)'}
+    </p>
+  )
+
   return (
     <div className="space-y-4">
       <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
@@ -58,6 +70,7 @@ export function ServiceFormPreview({
       </header>
 
       <div className="space-y-3 rounded-2xl border border-border/50 bg-card p-4">
+        {calendarFirst ? bookingHint : null}
         <div className="grid gap-1.5 text-sm text-muted-foreground sm:grid-cols-2">
           <p>Nome *</p>
           <p>NIF</p>
@@ -65,12 +78,7 @@ export function ServiceFormPreview({
           <p>Telefone</p>
         </div>
 
-        {requiresBooking ? (
-          <p className="border-t border-border/40 pt-3 text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">Horário *</span> — o cliente escolhe entre os horários
-            disponíveis do escritório (ou deste serviço, se personalizados)
-          </p>
-        ) : null}
+        {!calendarFirst && requiresBooking ? bookingHint : null}
 
         {intakeForm.questions.length === 0 ? (
           <p className="border-t border-border/40 pt-3 text-sm text-muted-foreground">

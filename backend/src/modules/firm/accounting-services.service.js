@@ -19,6 +19,27 @@ function normalizeSlug(value) {
   return slug;
 }
 
+function normalizePublicGroup(value) {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  const trimmed = String(value).trim().slice(0, 80);
+  return trimmed || null;
+}
+
+function normalizeIntakeStartMode(value) {
+  if (value === undefined) return undefined;
+  return String(value).trim() === 'calendar' ? 'calendar' : 'form';
+}
+
+function normalizeSortOrder(value) {
+  if (value === undefined) return undefined;
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0 || n > 9999) {
+    throw new AppError('Ordem inválida', 400);
+  }
+  return Math.round(n);
+}
+
 /** rótulo público do preço: included | excluded | null (sem frase) */
 function normalizePriceTaxMode(value) {
   if (value === undefined) return undefined;
@@ -45,12 +66,16 @@ const DOCUMENT_TIMINGS = new Set(['immediate', 'manual']);
 function normalizeDocumentRequirements(value) {
   if (value === undefined) return undefined;
   if (!Array.isArray(value)) throw new AppError('document_requirements deve ser uma lista', 400);
-  return value.slice(0, 50).map((item) => ({
-    tag: String(item?.tag || '').trim().slice(0, 60),
-    title: String(item?.title || '').trim().slice(0, 200),
-    instructions: item?.instructions != null ? String(item.instructions).trim().slice(0, 2000) : null,
-    timing: DOCUMENT_TIMINGS.has(item?.timing) ? item.timing : 'immediate',
-  })).filter((item) => item.tag && item.title);
+  return value.slice(0, 50).map((item) => {
+    const alwaysRequired = item?.alwaysRequired !== false;
+    return {
+      tag: String(item?.tag || '').trim().slice(0, 60),
+      title: String(item?.title || '').trim().slice(0, 200),
+      instructions: item?.instructions != null ? String(item.instructions).trim().slice(0, 2000) : null,
+      timing: DOCUMENT_TIMINGS.has(item?.timing) ? item.timing : 'immediate',
+      ...(alwaysRequired ? {} : { alwaysRequired: false }),
+    };
+  }).filter((item) => item.tag && item.title);
 }
 
 const TIME_RE = /^\d{1,2}:\d{2}$/;
@@ -292,6 +317,8 @@ function normalizeIntakeForm(value) {
  * Junta os documentos base do Service (sempre exigidos) com os documentos
  * condicionais activados pelas respostas (resposta→tag, via intake_form).
  * Base tem sempre prioridade sobre título/instruções em caso de tag repetida.
+ * Documentos com `alwaysRequired: false` só entram quando uma opção os activa
+ * — omissão do campo = comportamento actual (sempre pedido).
  */
 function resolveRequiredDocuments(service, answers) {
   const answersMap = answers && typeof answers === 'object' ? answers : {};
@@ -318,14 +345,18 @@ function resolveRequiredDocuments(service, answers) {
 
   const merged = new Map(conditionalByTag);
   for (const req of service?.documentRequirements || []) {
-    if (req?.tag) {
-      merged.set(req.tag, {
-        tag: req.tag,
-        title: req.title,
-        instructions: req.instructions || null,
-        timing: req.timing === 'manual' ? 'manual' : 'immediate',
-      });
+    if (!req?.tag) continue;
+    const mapped = {
+      tag: req.tag,
+      title: req.title,
+      instructions: req.instructions || null,
+      timing: req.timing === 'manual' ? 'manual' : 'immediate',
+    };
+    if (req.alwaysRequired === false) {
+      if (merged.has(req.tag)) merged.set(req.tag, mapped);
+      continue;
     }
+    merged.set(req.tag, mapped);
   }
   return Array.from(merged.values());
 }
@@ -462,6 +493,8 @@ async function create({ firmId, payload }) {
     slug,
     isPubliclyListed,
     requiresBooking: payload?.requiresBooking === true,
+    publicGroup: normalizePublicGroup(payload?.publicGroup) ?? null,
+    intakeStartMode: normalizeIntakeStartMode(payload?.intakeStartMode) ?? 'form',
     documentRequirements: normalizeDocumentRequirements(payload?.documentRequirements) || [],
     intakeForm,
     bookingOverrides: normalizeBookingOverrides(payload?.bookingOverrides) || null,
@@ -499,6 +532,11 @@ async function update({ firmId, id, payload }) {
   if (payload?.isActive !== undefined) patch.isActive = Boolean(payload.isActive);
   if (payload?.slug !== undefined) patch.slug = normalizeSlug(payload.slug);
   if (payload?.requiresBooking !== undefined) patch.requiresBooking = Boolean(payload.requiresBooking);
+  if (payload?.publicGroup !== undefined) patch.publicGroup = normalizePublicGroup(payload.publicGroup);
+  if (payload?.sortOrder !== undefined) patch.sortOrder = normalizeSortOrder(payload.sortOrder);
+  if (payload?.intakeStartMode !== undefined) {
+    patch.intakeStartMode = normalizeIntakeStartMode(payload.intakeStartMode);
+  }
   if (payload?.documentRequirements !== undefined) {
     patch.documentRequirements = normalizeDocumentRequirements(payload.documentRequirements);
   }
@@ -587,6 +625,8 @@ async function duplicate({ firmId, id }) {
     slug: null,
     isPubliclyListed: false,
     requiresBooking: existing.requiresBooking,
+    publicGroup: existing.publicGroup,
+    intakeStartMode: existing.intakeStartMode,
     documentRequirements: existing.documentRequirements,
     intakeForm: existing.intakeForm,
     bookingOverrides: existing.bookingOverrides,
@@ -733,6 +773,9 @@ module.exports = {
   getCatalogTemplate: () => CONSULTING_SERVICES_CATALOG,
   normalizeIntakeForm,
   normalizeBookingOverrides,
+  normalizePublicGroup,
+  normalizeSortOrder,
+  normalizeIntakeStartMode,
   resolveRequiredDocuments,
   splitDocumentsByTiming,
   assertFormReadyForPublish,

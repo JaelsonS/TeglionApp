@@ -16,7 +16,13 @@ export type PublicSiteSectionType =
   | 'contact'
   | 'footer'
 
-export type PublicSiteCtaTargetType = 'booking' | 'whatsapp' | 'service-detail' | 'contact-form' | 'external-url'
+export type PublicSiteCtaTargetType =
+  | 'booking'
+  | 'whatsapp'
+  | 'service-detail'
+  | 'contact-form'
+  | 'external-url'
+  | 'phone'
 
 export type PublicSiteCta = {
   id: string
@@ -30,6 +36,7 @@ export type PublicSiteCta = {
     type: PublicSiteCtaTargetType
     serviceId?: string
     url?: string
+    phone?: string
   }
 }
 
@@ -78,12 +85,22 @@ export type PublicSiteHeroContent = {
   taglineColor?: string | null
   /** Cor do texto «Sobre o escritório» no hero. */
   bioColor?: string | null
+  /**
+   * Enquadramento da foto de capa. Ausente = `cover` (páginas já publicadas).
+   * `cover` = Preencher a faixa 16:9. `contain` = Mostrar a imagem inteira.
+   */
+  imageFit?: 'cover' | 'contain' | null
+  /**
+   * Foco vertical quando `imageFit` é `cover`. Ausente = `center`.
+   */
+  imagePosition?: 'center' | 'top' | 'bottom' | null
 }
 
 export type PublicSiteAboutContent = {
   heading: string
   body: string
   imageIds: string[]
+  ctas?: PublicSiteCta[]
   backgroundColor?: string | null
   headingColor?: string | null
   bodyColor?: string | null
@@ -92,6 +109,7 @@ export type PublicSiteAboutContent = {
 export type PublicSiteServicesContent = {
   heading: string
   mode: 'auto'
+  ctas?: PublicSiteCta[]
   backgroundColor?: string | null
   headingColor?: string | null
 }
@@ -118,6 +136,7 @@ export type PublicSiteContactContent = {
   showEmail: boolean
   showPhone: boolean
   showAddress: boolean
+  ctas?: PublicSiteCta[]
   backgroundColor?: string | null
   textColor?: string | null
 }
@@ -126,6 +145,31 @@ export type PublicSiteContactContent = {
  * Cabeçalho / rodapé.
  * Cores + texto opcional no cabeçalho (no rodapé o texto continua a ser o nome legal/público).
  */
+export type PublicSiteNavLinkKind = 'section' | 'areas' | 'service' | 'external'
+
+/** Âncoras da própria página pública (rolar até à secção). */
+export type PublicSiteNavSectionId =
+  | 'servicos'
+  | 'outros-servicos'
+  | 'contactos'
+  | 'sobre'
+  | 'faq'
+  | 'como-trabalhamos'
+  | 'destaques'
+
+export type PublicSiteNavLink = {
+  id: string
+  label: string
+  enabled: boolean
+  kind: PublicSiteNavLinkKind
+  /** kind=section — id da secção nesta página. */
+  sectionId?: PublicSiteNavSectionId
+  /** kind=external — só https. */
+  url?: string
+  /** kind=service — slug do serviço público. */
+  serviceId?: string
+}
+
 export type PublicSiteChromeContent = {
   /**
    * Texto à esquerda no cabeçalho (marca curta).
@@ -135,6 +179,14 @@ export type PublicSiteChromeContent = {
   title?: string
   backgroundColor?: string | null
   textColor?: string | null
+  /** Menu na barra. Omissão = visível. */
+  showNav?: boolean
+  /** Links editáveis (texto + destino). Se vazio, usa os três atalhos abaixo. */
+  navLinks?: PublicSiteNavLink[]
+  /** Compat: páginas já publicadas sem `navLinks`. */
+  showServicesLink?: boolean
+  showAreasMenu?: boolean
+  showContactLink?: boolean
 }
 
 export type PublicSiteEmptyContent = PublicSiteChromeContent

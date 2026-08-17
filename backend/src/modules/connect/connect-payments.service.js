@@ -61,6 +61,7 @@ async function bookAndPayAsClient({
   serviceSlug,
   customerEmail,
   customerName,
+  ignoreHoldToken,
 }) {
   if (Boolean(clientId) === Boolean(leadId)) {
     throw new AppError('Indique exactamente um titular (cliente ou lead)', 400);
@@ -91,6 +92,7 @@ async function bookAndPayAsClient({
     serviceId,
     fromIso: new Date(startMs - 120 * 1000).toISOString(),
     toIso: new Date(startMs + 120 * 1000).toISOString(),
+    ignoreHoldToken,
   });
   const match = slots.some((iso) => Math.abs(new Date(iso).getTime() - startMs) <= 90 * 1000);
   if (!match) throw new AppError('Este horário já não está disponível', 409);

@@ -1,15 +1,18 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { ClientAlertsFeed } from '@/features/client/ClientAlertsFeed'
 import { ClientNewsFeed } from '@/features/client/ClientNewsFeed'
 import { getClientHubCopy, toClientHubLocale } from '@/features/client/clientHubI18n'
+import {
+  patchUpdatesTabSearchParams,
+  updatesTabFromSearch,
+  type UpdatesTab,
+} from '@/features/client/clientUpdatesSearch'
 import { PageHeader } from '@/shared/components/portal-cliente/PageHeader'
 import { isContabilMode } from '@/shared/config/productMode'
 import { getInitialAppLocale } from '@/shared/i18n/appLocale'
 import { cn } from '@/shared/lib/utils'
-
-type UpdatesTab = 'alerts' | 'news'
 
 /** Alertas + notícias do escritório numa só página. */
 export function ClientUpdatesPage() {
@@ -20,19 +23,16 @@ export function ClientUpdatesPage() {
   )
   const t = useMemo(() => getClientHubCopy(locale), [locale])
 
-  const tab: UpdatesTab =
-    searchParams.get('tab') === 'news' || searchParams.get('tab') === 'noticias' ? 'news' : 'alerts'
+  const urlTab = updatesTabFromSearch(searchParams)
+  const [tab, setTabState] = useState<UpdatesTab>(urlTab)
+
+  useEffect(() => {
+    setTabState(urlTab)
+  }, [urlTab])
 
   const setTab = (next: UpdatesTab) => {
-    setSearchParams(
-      (prev) => {
-        const p = new URLSearchParams(prev)
-        if (next === 'news') p.set('tab', 'news')
-        else p.delete('tab')
-        return p
-      },
-      { replace: true },
-    )
+    setTabState(next)
+    setSearchParams((prev) => patchUpdatesTabSearchParams(prev, next), { replace: true })
   }
 
   return (
@@ -45,6 +45,8 @@ export function ClientUpdatesPage() {
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
+          aria-pressed={tab === 'alerts'}
+          data-testid="client-updates-tab-alerts"
           onClick={() => setTab('alerts')}
           className={cn(
             'rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -57,6 +59,8 @@ export function ClientUpdatesPage() {
         </button>
         <button
           type="button"
+          aria-pressed={tab === 'news'}
+          data-testid="client-updates-tab-news"
           onClick={() => setTab('news')}
           className={cn(
             'rounded-full px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',

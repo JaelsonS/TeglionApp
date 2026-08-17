@@ -675,7 +675,7 @@ export function AgendaServicesCatalogPanel({
     if (!title) return
     const currentReqs = advancedDraft[id]?.documentRequirements ?? []
     const tag = slugifyTag(title, currentReqs.length)
-    const nextReqs = [...currentReqs, { tag, title, instructions: '' }]
+    const nextReqs = [...currentReqs, { tag, title, instructions: '', alwaysRequired: false }]
 
     const currentQuestions = advancedDraft[id]?.intakeForm?.questions ?? []
     const nextQuestions = currentQuestions.map((q, i) => {
@@ -1287,7 +1287,7 @@ export function AgendaServicesCatalogPanel({
                         </span>
                         <p className="cb-text-caption">
                           Nome, email, telefone e NIF já são pedidos automaticamente no topo da página pública —
-                          use este formulário só para perguntas próprias deste serviço (ex.: "É casado(a)?").
+                          use este formulário só para perguntas próprias deste serviço (ex.: "É casado(a)?" ou, em escolha múltipla, "Quais serviços pretende solicitar?").
                         </p>
                         {questions.length === 0 ? null : (
                           <div className="space-y-3">
@@ -1344,13 +1344,20 @@ export function AgendaServicesCatalogPanel({
                                   </p>
                                 ) : null}
 
+                                {q.type === 'multiple_choice' ? (
+                                  <p className="text-[11px] text-muted-foreground">
+                                    O cliente pode marcar várias opções (ex.: IRS, IVA, IRC). Cada opção pode pedir
+                                    documentos diferentes — continua a ser um único pedido.
+                                  </p>
+                                ) : null}
+
                                 {q.options ? (
                                   <div className="ml-2 space-y-2 border-l-2 border-border/30 pl-3">
                                     {q.options.map((opt, oIndex) => (
                                       <div key={oIndex} className="space-y-1.5">
                                         <div className="flex items-center gap-2">
                                           <Input
-                                            placeholder="Opção"
+                                            placeholder={q.type === 'multiple_choice' ? 'Ex.: IRS' : 'Opção'}
                                             className="h-7 min-w-[140px] flex-1 rounded-md text-xs"
                                             value={opt.label}
                                             onChange={(e: FormChangeEvent) =>

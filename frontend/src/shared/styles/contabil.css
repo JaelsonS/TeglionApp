@@ -3300,7 +3300,7 @@
     }
   }
 
-  @media (min-width: 1280px) {
+  @media (min-width: 768px) {
     .pc-shell {
       @apply h-dvh max-h-dvh min-h-0 flex-row;
     }
@@ -3367,11 +3367,17 @@
   }
 
   .pc-topbar {
-    @apply z-30 flex shrink-0 items-center gap-2 border-b border-border/80 bg-card/90 px-3 shadow-[0_1px_0_rgba(15,41,66,0.04)] backdrop-blur-md sm:gap-3 sm:px-4 xl:hidden;
+    /* Sem `display` aqui — `hidden`/`flex` no JSX têm de ganhar, senão há duas barras. */
+    @apply z-30 shrink-0 items-center gap-2 border-b border-border/80 bg-card/90 px-3 shadow-[0_1px_0_rgba(15,41,66,0.04)] backdrop-blur-md sm:gap-3 sm:px-4;
     padding-top: env(safe-area-inset-top, 0px);
     padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
     padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
     min-height: 3.5rem;
+  }
+
+  .pc-topbar-compact {
+    @apply z-30 shrink-0 items-center gap-3 border-b border-border/70 bg-card/95 px-5 py-2.5;
+    min-height: 3.25rem;
   }
 
   .pc-scroll {
@@ -3382,9 +3388,39 @@
 
   .pc-content {
     @apply mx-auto w-full max-w-7xl px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8;
-    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 1.5rem;
     padding-left: max(1rem, env(safe-area-inset-left, 0px));
     padding-right: max(1rem, env(safe-area-inset-right, 0px));
+  }
+
+  @media (min-width: 768px) {
+    .pc-content {
+      padding-bottom: 2rem;
+    }
+  }
+
+  .pc-next-step {
+    @apply rounded-2xl border border-brand/25 bg-card p-5 shadow-[var(--cb-shadow-card)] sm:p-6;
+  }
+
+  .pc-next-step-critical {
+    @apply border-red-200/80 bg-gradient-to-br from-red-50/90 to-card;
+  }
+
+  .pc-next-step-attention {
+    @apply border-amber-200/80 bg-gradient-to-br from-amber-50/70 to-card;
+  }
+
+  .pc-next-step-ok {
+    @apply border-emerald-200/80 bg-gradient-to-br from-emerald-50/70 to-card;
+  }
+
+  .pc-service-card {
+    @apply flex h-full flex-col rounded-2xl border border-border/70 bg-card p-4 shadow-[var(--cb-shadow-card)] transition duration-200 hover:border-brand/30 hover:shadow-[var(--cb-shadow-elevated)];
+  }
+
+  .pc-deadline-row {
+    @apply flex w-full items-center gap-3 rounded-xl border border-border/70 bg-card px-3.5 py-3 text-left transition hover:border-brand/30 hover:bg-brand/[0.03];
   }
 
   .pc-page-title {

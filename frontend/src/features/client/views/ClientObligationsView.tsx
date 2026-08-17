@@ -10,6 +10,13 @@ import {
   getViewSessionId,
 } from '@/shared/components/contabil/DocumentPreviewModal'
 import { getClientHubCopy } from '@/features/client/clientHubI18n'
+import {
+  DEADLINE_BUCKET_LABEL,
+  DEADLINE_BUCKET_ORDER,
+  deadlineBucket,
+  relativeDueLabel,
+  type DeadlineBucket,
+} from '@/features/client/groupClientDeadlines'
 import { EmptyState } from '@/shared/components/portal-cliente/EmptyState'
 import { StatusPill, type StatusPillVariant } from '@/shared/components/portal-cliente/StatusPill'
 import { PortalFadeIn } from '@/shared/components/portal-cliente/PortalMotion'
@@ -152,8 +159,22 @@ export function ClientObligationsView({
         const hay = `${o.title || ''} ${o.type || ''} ${o.accountantNotes || ''} ${o.notes || ''}`.toLowerCase()
         return hay.includes(q)
       })
-      .sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime())
+      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
   }, [filterDateKey, period, query.data?.documents, query.data?.obligations, search])
+
+  const grouped = useMemo(() => {
+    const open = items.filter((o) => o.paymentStatus !== 'PAID')
+    const paid = items.filter((o) => o.paymentStatus === 'PAID')
+    const buckets: Record<DeadlineBucket, ObligationAgendaItem[]> = {
+      overdue: [],
+      thisWeek: [],
+      later: [],
+    }
+    for (const o of open) {
+      buckets[deadlineBucket(o.dueDate)].push(o)
+    }
+    return { buckets, paid }
+  }, [items])
 
   const selected = useMemo(
     () => items.find((o) => o._id === selectedId) || items[items.length - 1] || null,
@@ -238,17 +259,16 @@ export function ClientObligationsView({
             <div className="flex flex-wrap gap-2">
               {(
                 [
-                  ['all', 'Tudo'],
-                  ['month', 'Mês'],
-                  ['quarter', 'Trimestre'],
-                  ['year', 'Ano'],
+                  ['all', 'Em aberto'],
+                  ['month', 'Este mês'],
+                  ['year', 'Este ano'],
                 ] as const
               ).map(([id, label]) => (
                 <button
                   key={id}
                   type="button"
                   className={cn('pc-pill', period === id && 'pc-pill-active')}
-                  onClick={() => setPeriod(id)}
+                  onClick={() => setPeriod(id === 'all' ? 'all' : id)}
                 >
                   {label}
                 </button>
@@ -260,48 +280,78 @@ export function ClientObligationsView({
             {items.length === 0 ? (
               <EmptyState
                 icon={Calendar}
-                title="Agenda sem eventos neste período"
-                description="Quando o escritório enviar obrigações, elas aparecem aqui por ordem cronológica."
+                title="Sem prazos neste período"
+                description="Quando o escritório enviar obrigações, elas aparecem agrupadas: em atraso, esta semana, mais tarde."
               />
             ) : (
-              <ol className="space-y-2">
-                {items.map((o) => {
-                  const Icon = obligationIcon(o.type)
+              <div className="space-y-5">
+                {DEADLINE_BUCKET_ORDER.map((bucket) => {
+                  const list = grouped.buckets[bucket]
+                  if (!list.length) return null
                   return (
-                    <li key={o._id}>
-                      <button
-                        type="button"
-                        className={cn(
-                          'w-full rounded-xl border border-border/70 bg-card p-3 text-left transition hover:border-brand/40 hover:bg-muted/20',
-                          selected?._id === o._id && 'border-brand/40 bg-brand/[0.04]',
-                        )}
-                        onClick={() => selectItem(o._id)}
-                      >
-                        <div className="flex items-start gap-3">
-                          <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-brand">
-                            <Icon className="h-4 w-4" />
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="font-semibold text-foreground">{o.title || `${o.type} enviado`}</p>
-                              <StatusPill variant={o.statusDisplay.variant}>{o.statusDisplay.label}</StatusPill>
-                            </div>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                              {formatPtDate(o.sentAt, 'date')} · {o.type}
-                            </p>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              Prazo {formatPtDate(o.dueDate, 'date')} · Valor {o.amountCents != null ? formatEuro(o.amountCents) : '—'}
-                            </p>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              {o.attachments.length} anexo{o.attachments.length === 1 ? '' : 's'}
-                            </p>
-                          </div>
-                        </div>
-                      </button>
-                    </li>
+                    <section key={bucket} className="space-y-2">
+                      <h3 className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        {DEADLINE_BUCKET_LABEL[bucket]}
+                        <span className="ml-1.5 tabular-nums text-muted-foreground/80">{list.length}</span>
+                      </h3>
+                      <ol className="space-y-2">
+                        {list.map((o) => {
+                          const Icon = obligationIcon(o.type)
+                          return (
+                            <li key={o._id}>
+                              <button
+                                type="button"
+                                className={cn(
+                                  'pc-deadline-row',
+                                  selected?._id === o._id && 'border-brand/40 bg-brand/[0.04]',
+                                )}
+                                onClick={() => selectItem(o._id)}
+                              >
+                                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-brand">
+                                  <Icon className="h-4 w-4" />
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className="flex flex-wrap items-center gap-2">
+                                    <span className="font-semibold text-foreground">{o.title || o.type}</span>
+                                    <StatusPill variant={o.statusDisplay.variant}>{o.statusDisplay.label}</StatusPill>
+                                  </span>
+                                  <span className="mt-0.5 block text-xs text-muted-foreground">
+                                    {relativeDueLabel(o.dueDate)}
+                                    {o.amountCents != null ? ` · ${formatEuro(o.amountCents)}` : ''}
+                                  </span>
+                                </span>
+                              </button>
+                            </li>
+                          )
+                        })}
+                      </ol>
+                    </section>
                   )
                 })}
-              </ol>
+                {grouped.paid.length > 0 ? (
+                  <section className="space-y-2">
+                    <h3 className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Já tratado
+                    </h3>
+                    <ol className="space-y-2">
+                      {grouped.paid.slice(0, 5).map((o) => (
+                        <li key={o._id}>
+                          <button
+                            type="button"
+                            className="pc-deadline-row opacity-80"
+                            onClick={() => selectItem(o._id)}
+                          >
+                            <span className="min-w-0 flex-1">
+                              <span className="font-medium text-foreground">{o.title || o.type}</span>
+                              <span className="mt-0.5 block text-xs text-muted-foreground">Pago</span>
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ol>
+                  </section>
+                ) : null}
+              </div>
             )}
           </div>
         </div>

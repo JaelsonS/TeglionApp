@@ -5,6 +5,7 @@ const { mock } = require('node:test');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const consultationsRepository = require('../../db/supabase/repositories/consultations.repository');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
+const bookingHoldsRepository = require('../../db/supabase/repositories/booking-holds.repository');
 const googleCalendarAvailabilityService = require('../integrations/google-calendar/google-calendar-availability.service');
 const bookingService = require('./booking.service');
 
@@ -14,13 +15,23 @@ const SERVICE = {
   id: 'service-1',
   name: 'Consultoria',
   isActive: true,
+  requiresBooking: true,
   durationMinutes: 60,
   priceCents: 5000,
   currency: 'EUR',
 };
+const HOLD_TOKEN = 'a'.repeat(64);
 
 function resetMocks() {
   mock.restoreAll();
+}
+
+function mockHolds(active = []) {
+  mock.method(bookingHoldsRepository, 'listActiveForFirm', async () => active);
+  mock.method(bookingHoldsRepository, 'deleteExpired', async () => 0);
+  mock.method(bookingHoldsRepository, 'findByToken', async () => null);
+  mock.method(bookingHoldsRepository, 'createHold', async (row) => ({ id: 'hold-1', ...row }));
+  mock.method(bookingHoldsRepository, 'deleteById', async () => {});
 }
 
 function mockAvailability() {
@@ -28,6 +39,7 @@ function mockAvailability() {
   mock.method(firmsRepository, 'findFirmById', async () => FIRM);
   mock.method(consultationsRepository, 'listConsultations', async () => []);
   mock.method(googleCalendarAvailabilityService, 'getBusyRangesForFirm', async () => []);
+  mockHolds();
 }
 
 /** Próximo dia útil ao meio-dia UTC — dentro da janela default (seg-sex 09-17 Lisboa), com
@@ -176,6 +188,7 @@ test('listSlotsForBooking: bookingOverrides do Service restringe os dias, sem af
   mock.method(firmsRepository, 'findFirmById', async () => FIRM); // escritório: seg-sex (default)
   mock.method(consultationsRepository, 'listConsultations', async () => []);
   mock.method(googleCalendarAvailabilityService, 'getBusyRangesForFirm', async () => []);
+  mockHolds();
 
   const now = new Date();
   const from = now.toISOString();
@@ -319,6 +332,7 @@ test('listSlotsForBooking: horário ocupado no Google Calendar ligado não apare
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
   mock.method(firmsRepository, 'findFirmById', async () => FIRM);
   mock.method(consultationsRepository, 'listConsultations', async () => []);
+  mockHolds();
 
   const target = nextWeekdayNoonUtc();
   const targetMs = new Date(target).getTime();
@@ -339,4 +353,215 @@ test('listSlotsForBooking: horário ocupado no Google Calendar ligado não apare
 
   const blocked = slots.some((iso) => Math.abs(new Date(iso).getTime() - targetMs) < 60 * 1000);
   assert.equal(blocked, false, 'o slot coberto pelo evento do Google não devia aparecer como livre');
+});
+
+test('listSlotsForBooking: hold anónimo activo esconde o horário dos outros visitantes', async () => {
+  resetMocks();
+  const target = nextWeekdayNoonUtc();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
+  mock.method(firmsRepository, 'findFirmById', async () => FIRM);
+  mock.method(consultationsRepository, 'listConsultations', async () => []);
+  mock.method(googleCalendarAvailabilityService, 'getBusyRangesForFirm', async () => []);
+  mockHolds([
+    {
+      id: 'hold-1',
+      firmId: FIRM_ID,
+      accountingServiceId: SERVICE.id,
+      scheduledAt: target,
+      durationMinutes: SERVICE.durationMinutes,
+      holdToken: HOLD_TOKEN,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+    },
+  ]);
+
+  const { slots } = await bookingService.listSlotsForBooking({
+    firmId: FIRM_ID,
+    serviceId: SERVICE.id,
+    fromIso: new Date().toISOString(),
+    toIso: new Date(Date.now() + 13 * 24 * 60 * 60 * 1000).toISOString(),
+  });
+
+  const hidden = slots.some((iso) => Math.abs(new Date(iso).getTime() - new Date(target).getTime()) < 60 * 1000);
+  assert.equal(hidden, false);
+});
+
+test('listSlotsForBooking: ignoreHoldToken mostra o horário ao dono da reserva temporária', async () => {
+  resetMocks();
+  const target = nextWeekdayNoonUtc();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
+  mock.method(firmsRepository, 'findFirmById', async () => FIRM);
+  mock.method(consultationsRepository, 'listConsultations', async () => []);
+  mock.method(googleCalendarAvailabilityService, 'getBusyRangesForFirm', async () => []);
+  mockHolds([
+    {
+      id: 'hold-1',
+      firmId: FIRM_ID,
+      accountingServiceId: SERVICE.id,
+      scheduledAt: target,
+      durationMinutes: SERVICE.durationMinutes,
+      holdToken: HOLD_TOKEN,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+    },
+  ]);
+
+  const { slots } = await bookingService.listSlotsForBooking({
+    firmId: FIRM_ID,
+    serviceId: SERVICE.id,
+    fromIso: new Date(new Date(target).getTime() - 120 * 1000).toISOString(),
+    toIso: new Date(new Date(target).getTime() + 120 * 1000).toISOString(),
+    ignoreHoldToken: HOLD_TOKEN,
+  });
+
+  const visible = slots.some((iso) => Math.abs(new Date(iso).getTime() - new Date(target).getTime()) <= 90 * 1000);
+  assert.equal(visible, true);
+});
+
+test('createAnonymousHold: 409 quando o horário já não está livre', async () => {
+  resetMocks();
+  mockAvailability();
+  const scheduledAt = nextWeekdayNoonUtc();
+  mock.method(consultationsRepository, 'listConsultations', async () => [
+    {
+      status: 'SCHEDULED',
+      scheduledAt,
+      durationMinutes: 60,
+    },
+  ]);
+
+  await assert.rejects(
+    () =>
+      bookingService.createAnonymousHold({
+        firmId: FIRM_ID,
+        serviceId: SERVICE.id,
+        scheduledAt,
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 409);
+      return true;
+    },
+  );
+});
+
+test('createAnonymousHold: reserva o slot e devolve token opaco', async () => {
+  resetMocks();
+  mockAvailability();
+  let created = null;
+  mock.method(bookingHoldsRepository, 'createHold', async (row) => {
+    created = row;
+    return { id: 'hold-1', ...row };
+  });
+
+  const scheduledAt = nextWeekdayNoonUtc();
+  const result = await bookingService.createAnonymousHold({
+    firmId: FIRM_ID,
+    serviceId: SERVICE.id,
+    scheduledAt,
+  });
+
+  assert.equal(typeof result.holdToken, 'string');
+  assert.ok(result.holdToken.length >= 32);
+  assert.equal(created.firmId, FIRM_ID);
+  assert.equal(created.accountingServiceId, SERVICE.id);
+  assert.equal(created.durationMinutes, 60);
+});
+
+test('assertAnonymousHold: token de outro escritório é 409 (isolamento)', async () => {
+  resetMocks();
+  mock.method(bookingHoldsRepository, 'findByToken', async () => ({
+    id: 'hold-1',
+    firmId: 'outra-firm',
+    accountingServiceId: SERVICE.id,
+    scheduledAt: nextWeekdayNoonUtc(),
+    durationMinutes: 60,
+    holdToken: HOLD_TOKEN,
+    expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+  }));
+
+  await assert.rejects(
+    () =>
+      bookingService.assertAnonymousHold({
+        firmId: FIRM_ID,
+        serviceId: SERVICE.id,
+        holdToken: HOLD_TOKEN,
+        scheduledAt: nextWeekdayNoonUtc(),
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 409);
+      return true;
+    },
+  );
+});
+
+test('assertAnonymousHold: hold expirado é 409 e apaga a linha', async () => {
+  resetMocks();
+  let deleted = false;
+  mock.method(bookingHoldsRepository, 'findByToken', async () => ({
+    id: 'hold-exp',
+    firmId: FIRM_ID,
+    accountingServiceId: SERVICE.id,
+    scheduledAt: nextWeekdayNoonUtc(),
+    durationMinutes: 60,
+    holdToken: HOLD_TOKEN,
+    expiresAt: new Date(Date.now() - 1000).toISOString(),
+  }));
+  mock.method(bookingHoldsRepository, 'deleteById', async (id, firmId) => {
+    deleted = id === 'hold-exp' && firmId === FIRM_ID;
+  });
+
+  await assert.rejects(
+    () =>
+      bookingService.assertAnonymousHold({
+        firmId: FIRM_ID,
+        serviceId: SERVICE.id,
+        holdToken: HOLD_TOKEN,
+        scheduledAt: nextWeekdayNoonUtc(),
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 409);
+      return true;
+    },
+  );
+  assert.equal(deleted, true);
+});
+
+test('expireAnonymousHolds: delega no repositório', async () => {
+  resetMocks();
+  mock.method(bookingHoldsRepository, 'deleteExpired', async () => 3);
+  assert.equal(await bookingService.expireAnonymousHolds(), 3);
+});
+
+test('bookAsClient: ignoreHoldToken permite confirmar o horário da própria reserva temporária', async () => {
+  resetMocks();
+  const scheduledAt = nextWeekdayNoonUtc();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);
+  mock.method(firmsRepository, 'findFirmById', async () => FIRM);
+  mock.method(consultationsRepository, 'listConsultations', async () => []);
+  mock.method(googleCalendarAvailabilityService, 'getBusyRangesForFirm', async () => []);
+  mockHolds([
+    {
+      id: 'hold-1',
+      firmId: FIRM_ID,
+      accountingServiceId: SERVICE.id,
+      scheduledAt,
+      durationMinutes: SERVICE.durationMinutes,
+      holdToken: HOLD_TOKEN,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+    },
+  ]);
+  let created = null;
+  mock.method(consultationsRepository, 'createConsultation', async (args) => {
+    created = args;
+    return { id: 'consultation-hold', ...args };
+  });
+
+  await bookingService.bookAsClient({
+    firmId: FIRM_ID,
+    leadId: 'lead-1',
+    serviceId: SERVICE.id,
+    scheduledAt,
+    ignoreHoldToken: HOLD_TOKEN,
+  });
+
+  assert.equal(created.leadId, 'lead-1');
+  assert.equal(created.status, 'SCHEDULED');
 });

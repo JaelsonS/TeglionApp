@@ -26,6 +26,8 @@ import type { IntakeQuestion } from '@/shared/types/contabil'
 import type { PublicIntakeSubmitResult } from '@/infrastructure/api/contabil/public'
 import type { FormChangeEvent, FormSubmitEvent } from '@/shared/types/react-events'
 import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
+import { TeglionPublicCredit } from '@/features/public-intake/TeglionPublicCredit'
+import { PublicSlotCalendar } from '@/features/public-intake/PublicSlotCalendar'
 
 function formatScheduledAt(iso: string) {
   return new Date(iso).toLocaleString('pt-PT', {
@@ -114,21 +116,18 @@ export function ServiceIntakePublicPage() {
   const [website, setWebsite] = useState('')
   const [answers, setAnswers] = useState<Answers>({})
   const [scheduledAt, setScheduledAt] = useState('')
+  const [holdToken, setHoldToken] = useState('')
+  const [holdExpiresAt, setHoldExpiresAt] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState<PublicIntakeSubmitResult | null>(null)
-  const [step, setStep] = useState<1 | 2>(1)
+  const [step, setStep] = useState(1)
   const [leadAccessToken, setLeadAccessToken] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [legalDialog, setLegalDialog] = useState<'terms' | 'privacy' | null>(null)
   const [turnstileToken, setTurnstileToken] = useState('')
+  const [nowMs, setNowMs] = useState(() => Date.now())
   const turnstileRef = useRef<TurnstileFieldHandle | null>(null)
   const turnstileOk = !isTurnstileEnabled() || Boolean(turnstileToken)
-  const turnstileAction = step === 1 ? TURNSTILE_ACTIONS.INTAKE_LEAD : TURNSTILE_ACTIONS.INTAKE_SUBMIT
-
-  useEffect(() => {
-    setTurnstileToken('')
-    turnstileRef.current?.reset()
-  }, [step])
 
   const query = useQuery({
     queryKey: ['public-service-intake', firmSlug, serviceSlug],
@@ -137,10 +136,36 @@ export function ServiceIntakePublicPage() {
     retry: false,
   })
 
+  const calendarFirst = Boolean(query.data?.requiresBooking && query.data?.intakeStartMode === 'calendar')
+  const totalSteps = calendarFirst ? 3 : 2
+  const identityStep = calendarFirst ? 2 : 1
+  const questionsStep = calendarFirst ? 3 : 2
+  const calendarStep = calendarFirst ? 1 : 0
+
+  const turnstileAction = calendarFirst
+    ? step === 1
+      ? TURNSTILE_ACTIONS.INTAKE_HOLD
+      : step === 2
+        ? TURNSTILE_ACTIONS.INTAKE_LEAD
+        : TURNSTILE_ACTIONS.INTAKE_SUBMIT
+    : step === 1
+      ? TURNSTILE_ACTIONS.INTAKE_LEAD
+      : TURNSTILE_ACTIONS.INTAKE_SUBMIT
+
+  useEffect(() => {
+    setTurnstileToken('')
+    turnstileRef.current?.reset()
+  }, [step])
+
   const slotsQuery = useQuery({
     queryKey: ['public-service-slots', firmSlug, serviceSlug],
     queryFn: () => contabilPublicApi.getPublicSlots(firmSlug!, serviceSlug!),
-    enabled: Boolean(firmSlug && serviceSlug && query.data?.requiresBooking && step === 2),
+    enabled: Boolean(
+      firmSlug &&
+        serviceSlug &&
+        query.data?.requiresBooking &&
+        (calendarFirst ? step === calendarStep : step === 2),
+    ),
     retry: false,
   })
 
@@ -160,13 +185,59 @@ export function ServiceIntakePublicPage() {
     }
   }, [query.data?.theme])
 
+  useEffect(() => {
+    if (!holdExpiresAt) return
+    const timer = window.setInterval(() => setNowMs(Date.now()), 1000)
+    return () => window.clearInterval(timer)
+  }, [holdExpiresAt])
+
+  const holdExpired = Boolean(holdExpiresAt && new Date(holdExpiresAt).getTime() <= nowMs)
+
+  useEffect(() => {
+    if (!calendarFirst || !holdExpired || step === 1) return
+    setHoldToken('')
+    setHoldExpiresAt(null)
+    setScheduledAt('')
+    setStep(1)
+    toast.error('A reserva temporária expirou. Escolha o horário novamente.')
+    void queryClient.invalidateQueries({ queryKey: ['public-service-slots', firmSlug, serviceSlug] })
+  }, [calendarFirst, holdExpired, step, firmSlug, serviceSlug, queryClient])
+
   const setAnswer = (questionId: string, value: string | string[]) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }))
   }
 
   const needsLegal = Boolean(query.data?.termsText || query.data?.privacyText)
 
-  async function onStep1(e: FormSubmitEvent) {
+  async function onHoldSlot(e: FormSubmitEvent) {
+    e.preventDefault()
+    if (!scheduledAt) {
+      toast.error('Escolha um horário')
+      return
+    }
+    setSubmitting(true)
+    try {
+      const res = await contabilPublicApi.holdPublicSlot(
+        firmSlug!,
+        serviceSlug!,
+        withTurnstileToken({ scheduledAt, website: website || undefined }, turnstileToken),
+      )
+      setHoldToken(res.holdToken)
+      setHoldExpiresAt(res.expiresAt)
+      setScheduledAt(res.scheduledAt || scheduledAt)
+      setStep(2)
+    } catch (err) {
+      turnstileRef.current?.reset()
+      setTurnstileToken('')
+      setScheduledAt('')
+      void queryClient.invalidateQueries({ queryKey: ['public-service-slots', firmSlug, serviceSlug] })
+      toast.error('Não foi possível reservar este horário', { description: getErrorMessage(err) })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function onCaptureLead(e: FormSubmitEvent) {
     e.preventDefault()
     if (!name.trim()) {
       toast.error('Indique o seu nome')
@@ -197,7 +268,7 @@ export function ServiceIntakePublicPage() {
         ),
       )
       setLeadAccessToken(res.intakeToken)
-      setStep(2)
+      setStep(calendarFirst ? 3 : 2)
     } catch (err) {
       turnstileRef.current?.reset()
       setTurnstileToken('')
@@ -217,6 +288,11 @@ export function ServiceIntakePublicPage() {
       toast.error('Escolha um horário')
       return
     }
+    if (calendarFirst && !holdToken) {
+      toast.error('A reserva temporária expirou. Escolha o horário novamente.')
+      setStep(1)
+      return
+    }
     setSubmitting(true)
     try {
       const res = await contabilPublicApi.submitServiceIntake(
@@ -231,6 +307,7 @@ export function ServiceIntakePublicPage() {
             answers,
             website: website || undefined,
             scheduledAt: scheduledAt || undefined,
+            holdToken: calendarFirst ? holdToken || undefined : undefined,
             intakeToken: leadAccessToken || undefined,
           },
           turnstileToken,
@@ -252,7 +329,14 @@ export function ServiceIntakePublicPage() {
       setTurnstileToken('')
       toast.error('Não foi possível enviar o pedido', { description: getErrorMessage(err) })
       if (query.data?.requiresBooking) {
-        setScheduledAt('')
+        if (calendarFirst) {
+          setHoldToken('')
+          setHoldExpiresAt(null)
+          setScheduledAt('')
+          setStep(1)
+        } else {
+          setScheduledAt('')
+        }
         void queryClient.invalidateQueries({ queryKey: ['public-service-slots', firmSlug, serviceSlug] })
       }
     } finally {
@@ -279,6 +363,7 @@ export function ServiceIntakePublicPage() {
   }
 
   const service = query.data
+  const formHandler = calendarFirst ? (step === 1 ? onHoldSlot : step === 2 ? onCaptureLead : onSubmit) : step === 1 ? onCaptureLead : onSubmit
 
   if (result) {
     return (
@@ -292,13 +377,7 @@ export function ServiceIntakePublicPage() {
             A nossa equipa vai analisar e entrar em contacto consigo em breve.
           </p>
           {result.scheduledAt ? (
-            <p
-              className={
-                result.bookingConfirmed
-                  ? 'rounded-lg border border-border/50 bg-muted/40 p-3 text-sm font-medium text-foreground'
-                  : 'rounded-lg border border-border/50 bg-muted/40 p-3 text-sm font-medium text-foreground'
-              }
-            >
+            <p className="rounded-lg border border-border/50 bg-muted/40 p-3 text-sm font-medium text-foreground">
               {result.bookingConfirmed
                 ? `Horário registado: ${formatScheduledAt(result.scheduledAt)}. A equipa confirmará o agendamento em breve.`
                 : `Preferência de horário registada: ${formatScheduledAt(result.scheduledAt)}. Este horário será analisado e confirmado pela equipa.`}
@@ -308,6 +387,76 @@ export function ServiceIntakePublicPage() {
       </div>
     )
   }
+
+  const identityFields = (
+    <>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="space-y-1 text-sm">
+          <span className="font-medium">Nome *</span>
+          <Input className="h-10 rounded-lg" value={name} onChange={(e: FormChangeEvent) => setName(e.target.value)} />
+        </label>
+        <label className="space-y-1 text-sm">
+          <span className="font-medium">NIF</span>
+          <Input className="h-10 rounded-lg" value={taxId} onChange={(e: FormChangeEvent) => setTaxId(e.target.value)} />
+        </label>
+        <label className="space-y-1 text-sm">
+          <span className="font-medium">Email *</span>
+          <Input
+            type="email"
+            className="h-10 rounded-lg"
+            value={email}
+            onChange={(e: FormChangeEvent) => setEmail(e.target.value)}
+          />
+        </label>
+        <label className="space-y-1 text-sm">
+          <span className="font-medium">Telefone</span>
+          <PhoneNumberInput
+            defaultCountry="PT"
+            value={phone || undefined}
+            onChange={(v) => setPhone(v || '')}
+            placeholder="+351 …"
+            className="h-10 rounded-lg"
+            inputClassName="h-10 rounded-lg"
+          />
+        </label>
+      </div>
+
+      {needsLegal ? (
+        <label className="flex items-start gap-2 text-sm">
+          <Checkbox checked={acceptedTerms} onCheckedChange={(v: boolean | 'indeterminate') => setAcceptedTerms(v === true)} className="mt-0.5" />
+          <span>
+            Li e aceito os{' '}
+            {service.termsText ? (
+              <button type="button" className="underline" onClick={() => setLegalDialog('terms')}>
+                Termos de Utilização
+              </button>
+            ) : null}
+            {service.termsText && service.privacyText ? ' e a ' : null}
+            {service.privacyText ? (
+              <button type="button" className="underline" onClick={() => setLegalDialog('privacy')}>
+                Política de Privacidade
+              </button>
+            ) : null}
+            .
+          </span>
+        </label>
+      ) : null}
+    </>
+  )
+
+  const questionsFields = service.intakeForm.questions.map((q, index) => (
+    <div key={q.id ?? index} className="space-y-1.5 border-t border-border/40 pt-4">
+      <span className="text-sm font-medium">
+        {q.label}
+        {q.required ? ' *' : ''}
+      </span>
+      <QuestionField
+        question={q}
+        value={answers[q.id ?? String(index)]}
+        onChange={(value) => setAnswer(q.id ?? String(index), value)}
+      />
+    </div>
+  ))
 
   return (
     <div className="mx-auto min-h-screen max-w-xl bg-background px-4 py-10">
@@ -334,10 +483,7 @@ export function ServiceIntakePublicPage() {
         ) : null}
       </header>
 
-      <form
-        onSubmit={step === 1 ? onStep1 : onSubmit}
-        className="space-y-5 rounded-2xl border border-border/50 bg-card p-6 shadow-sm"
-      >
+      <form onSubmit={formHandler} className="space-y-5 rounded-2xl border border-border/50 bg-card p-6 shadow-sm">
         <input
           type="text"
           name="website"
@@ -349,144 +495,104 @@ export function ServiceIntakePublicPage() {
           className="absolute -left-[9999px] h-0 w-0 opacity-0"
         />
 
-        <p className="text-xs font-medium text-muted-foreground">Etapa {step} de 2</p>
+        <p className="text-xs font-medium text-muted-foreground">
+          Etapa {step} de {totalSteps}
+        </p>
+
+        {calendarFirst && holdExpiresAt && step > 1 && scheduledAt ? (
+          <p className="rounded-lg border border-border/50 bg-muted/40 p-3 text-sm">
+            Horário reservado: {formatScheduledAt(scheduledAt)}.
+            <span className="mt-1 block text-xs text-muted-foreground">
+              Esta reserva temporária expira às{' '}
+              {new Date(holdExpiresAt).toLocaleTimeString('pt-PT', {
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: 'Europe/Lisbon',
+              })}
+              .
+            </span>
+          </p>
+        ) : null}
+
+        {step === identityStep ? identityFields : null}
+
+        {calendarFirst && step === 1 ? (
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Escolha um horário *</p>
+            <PublicSlotCalendar
+              slots={slotsQuery.data?.slots ?? []}
+              loading={slotsQuery.isLoading}
+              value={scheduledAt}
+              onChange={setScheduledAt}
+            />
+          </div>
+        ) : null}
+
+        {!calendarFirst && step === 2 && service.requiresBooking ? (
+          <label className="block space-y-1 text-sm">
+            <span className="font-medium">Horário *</span>
+            {slotsQuery.isLoading ? (
+              <p className="text-sm text-muted-foreground">A carregar horários disponíveis…</p>
+            ) : (slotsQuery.data?.slots.length ?? 0) === 0 ? (
+              <p className="text-sm text-muted-foreground">Sem horários disponíveis de momento.</p>
+            ) : (
+              <select
+                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+              >
+                <option value="">Escolha um horário…</option>
+                {slotsQuery.data?.slots.map((iso) => (
+                  <option key={iso} value={iso}>
+                    {new Date(iso).toLocaleString('pt-PT', {
+                      weekday: 'short',
+                      day: '2-digit',
+                      month: 'short',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      timeZone: 'Europe/Lisbon',
+                    })}
+                  </option>
+                ))}
+              </select>
+            )}
+          </label>
+        ) : null}
+
+        {step === questionsStep ? questionsFields : null}
+
+        <TurnstileField
+          key={turnstileAction}
+          fieldRef={turnstileRef}
+          action={turnstileAction}
+          onTokenChange={setTurnstileToken}
+        />
 
         {step === 1 ? (
-          <>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="space-y-1 text-sm">
-                <span className="font-medium">Nome *</span>
-                <Input className="h-10 rounded-lg" value={name} onChange={(e: FormChangeEvent) => setName(e.target.value)} />
-              </label>
-              <label className="space-y-1 text-sm">
-                <span className="font-medium">NIF</span>
-                <Input className="h-10 rounded-lg" value={taxId} onChange={(e: FormChangeEvent) => setTaxId(e.target.value)} />
-              </label>
-              <label className="space-y-1 text-sm">
-                <span className="font-medium">Email *</span>
-                <Input
-                  type="email"
-                  className="h-10 rounded-lg"
-                  value={email}
-                  onChange={(e: FormChangeEvent) => setEmail(e.target.value)}
-                />
-              </label>
-              <label className="space-y-1 text-sm">
-                <span className="font-medium">Telefone</span>
-                <PhoneNumberInput
-                  defaultCountry="PT"
-                  value={phone || undefined}
-                  onChange={(v) => setPhone(v || '')}
-                  placeholder="+351 …"
-                  className="h-10 rounded-lg"
-                  inputClassName="h-10 rounded-lg"
-                />
-              </label>
-            </div>
-
-            {needsLegal ? (
-              <label className="flex items-start gap-2 text-sm">
-                <Checkbox checked={acceptedTerms} onCheckedChange={(v: boolean | 'indeterminate') => setAcceptedTerms(v === true)} className="mt-0.5" />
-                <span>
-                  Li e aceito os{' '}
-                  {service.termsText ? (
-                    <button type="button" className="underline" onClick={() => setLegalDialog('terms')}>
-                      Termos de Utilização
-                    </button>
-                  ) : null}
-                  {service.termsText && service.privacyText ? ' e a ' : null}
-                  {service.privacyText ? (
-                    <button type="button" className="underline" onClick={() => setLegalDialog('privacy')}>
-                      Política de Privacidade
-                    </button>
-                  ) : null}
-                  .
-                </span>
-              </label>
-            ) : null}
-
-            <TurnstileField
-              key={turnstileAction}
-              fieldRef={turnstileRef}
-              action={turnstileAction}
-              onTokenChange={setTurnstileToken}
-            />
-
-            <Button type="submit" className="w-full rounded-full" disabled={submitting || !turnstileOk}>
-              {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Continuar
-            </Button>
-          </>
+          <Button type="submit" className="w-full rounded-full" disabled={submitting || !turnstileOk}>
+            {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Continuar
+          </Button>
         ) : (
-          <>
-            {service.requiresBooking ? (
-              <label className="block space-y-1 text-sm">
-                <span className="font-medium">Horário *</span>
-                {slotsQuery.isLoading ? (
-                  <p className="text-sm text-muted-foreground">A carregar horários disponíveis…</p>
-                ) : (slotsQuery.data?.slots.length ?? 0) === 0 ? (
-                  <p className="text-sm text-muted-foreground">Sem horários disponíveis de momento.</p>
-                ) : (
-                  <select
-                    className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
-                    value={scheduledAt}
-                    onChange={(e) => setScheduledAt(e.target.value)}
-                  >
-                    <option value="">Escolha um horário…</option>
-                    {slotsQuery.data?.slots.map((iso) => (
-                      <option key={iso} value={iso}>
-                        {new Date(iso).toLocaleString('pt-PT', {
-                          weekday: 'short',
-                          day: '2-digit',
-                          month: 'short',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          timeZone: 'Europe/Lisbon',
-                        })}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              </label>
-            ) : null}
-
-            {service.intakeForm.questions.map((q, index) => (
-              <div key={q.id ?? index} className="space-y-1.5 border-t border-border/40 pt-4">
-                <span className="text-sm font-medium">
-                  {q.label}
-                  {q.required ? ' *' : ''}
-                </span>
-                <QuestionField
-                  question={q}
-                  value={answers[q.id ?? String(index)]}
-                  onChange={(value) => setAnswer(q.id ?? String(index), value)}
-                />
-              </div>
-            ))}
-
-            <TurnstileField
-              key={turnstileAction}
-              fieldRef={turnstileRef}
-              action={turnstileAction}
-              onTokenChange={setTurnstileToken}
-            />
-
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" className="rounded-full" onClick={() => setStep(1)}>
-                Voltar
-              </Button>
-              <Button type="submit" className="flex-1 rounded-full" disabled={submitting || !turnstileOk}>
-                {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                {service.paymentRequired ? 'Continuar para pagamento' : 'Enviar pedido'}
-              </Button>
-            </div>
-            {service.paymentRequired ? (
-              <p className="text-center text-xs text-muted-foreground">
-                O horário fica reservado 30 minutos enquanto conclui o pagamento seguro na Stripe.
-              </p>
-            ) : null}
-          </>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" className="rounded-full" onClick={() => setStep((s) => Math.max(1, s - 1))}>
+              Voltar
+            </Button>
+            <Button type="submit" className="flex-1 rounded-full" disabled={submitting || !turnstileOk}>
+              {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {step === questionsStep
+                ? service.paymentRequired
+                  ? 'Continuar para pagamento'
+                  : 'Enviar pedido'
+                : 'Continuar'}
+            </Button>
+          </div>
         )}
+        {step === questionsStep && service.paymentRequired ? (
+          <p className="text-center text-xs text-muted-foreground">
+            O horário fica reservado 30 minutos enquanto conclui o pagamento seguro na Stripe.
+          </p>
+        ) : null}
       </form>
 
       <Dialog open={Boolean(legalDialog)} onOpenChange={(open: boolean) => !open && setLegalDialog(null)}>
@@ -499,6 +605,7 @@ export function ServiceIntakePublicPage() {
           </div>
         </DialogContent>
       </Dialog>
+      <TeglionPublicCredit visible={service.showTeglionCredit !== false} />
     </div>
   )
 }

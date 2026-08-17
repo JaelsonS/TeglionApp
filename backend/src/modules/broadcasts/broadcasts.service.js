@@ -290,14 +290,21 @@ async function markClientRead({ firmId, clientId, broadcastId, acknowledge = fal
     throw new AppError('Alerta não encontrado', 404);
   }
 
-  const existing = await broadcastsRepository.getReadRow(broadcastId, clientId);
-  if (!existing) throw new AppError('Alerta não disponível para este cliente', 403);
+  if (broadcast.targetType === 'SELECTED') {
+    const ids = broadcast.targetClientIds || [];
+    if (!ids.includes(clientId)) {
+      throw new AppError('Alerta não disponível para este cliente', 403);
+    }
+  }
 
-  const wasRead = Boolean(existing.read_at);
-  const wasAck = Boolean(existing.acknowledged_at);
+  const existing = await broadcastsRepository.getReadRow(broadcastId, clientId);
+  const wasRead = Boolean(existing?.read_at);
+  const wasAck = Boolean(existing?.acknowledged_at);
 
   await broadcastsRepository.markRead(broadcastId, clientId, {
     acknowledged: acknowledge || broadcast.readConfirmationRequired,
+    firmId,
+    acknowledgedAt: existing?.acknowledged_at || null,
   });
 
   if (!wasRead) await broadcastsRepository.incrementBroadcastCounters(broadcastId, { readDelta: 1, firmId });

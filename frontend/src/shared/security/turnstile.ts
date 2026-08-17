@@ -12,6 +12,7 @@ export const TURNSTILE_ACTIONS = {
   REGISTER_CLIENT_INVITE: 'register-client-invite',
   TEAM_INVITE_ACCEPT: 'team-invite-accept',
   INTAKE_LEAD: 'intake-lead',
+  INTAKE_HOLD: 'intake-hold',
   INTAKE_SUBMIT: 'intake-submit',
   SUPPORT: 'support',
   NEWSLETTER: 'newsletter',

@@ -11,23 +11,19 @@ import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/components/ui/button'
 import { SkeletonCard } from '@/shared/design-system/Skeleton'
-
-function formatSlot(iso: string, timezone?: string) {
-  return new Intl.DateTimeFormat('pt-PT', {
-    timeZone: timezone || 'Europe/Lisbon',
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(iso))
-}
+import { formatSlotTime, groupBookingSlots } from '@/features/client/groupBookingSlots'
 
 function formatEuro(cents: number) {
   return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 }
 
-export function ClientBookingPanel({ t }: { t: ReturnType<typeof getClientHubCopy> }) {
+export function ClientBookingPanel({
+  t,
+  initialServiceId,
+}: {
+  t: ReturnType<typeof getClientHubCopy>
+  initialServiceId?: string
+}) {
   const hubQuery = useClientPortalHub()
   const upcoming = hubQuery.data?.upcomingConsultations || []
 
@@ -44,6 +40,10 @@ export function ClientBookingPanel({ t }: { t: ReturnType<typeof getClientHubCop
     () => services.find((s) => s.id === serviceId) || null,
     [services, serviceId],
   )
+  const slotGroups = useMemo(
+    () => groupBookingSlots(slots, bookingMeta?.timezone || 'Europe/Lisbon'),
+    [slots, bookingMeta?.timezone],
+  )
 
   const loadServices = useCallback(async () => {
     setLoadingServices(true)
@@ -51,13 +51,17 @@ export function ClientBookingPanel({ t }: { t: ReturnType<typeof getClientHubCop
       const res = (await clientPortalContabilApi.listBookingServices()) as { items?: AccountingService[] }
       const items = (res.items || []).filter((s) => s.isActive !== false)
       setServices(items)
-      if (items.length) setServiceId((prev) => prev || items[0].id)
+      setServiceId((prev) => {
+        if (prev && items.some((s) => s.id === prev)) return prev
+        if (initialServiceId && items.some((s) => s.id === initialServiceId)) return initialServiceId
+        return items[0]?.id || ''
+      })
     } catch (err) {
       toast.error('Não foi possível carregar serviços', { description: getErrorMessage(err) })
     } finally {
       setLoadingServices(false)
     }
-  }, [])
+  }, [initialServiceId])
 
   const loadSlots = useCallback(async (sid: string) => {
     if (!sid) return
@@ -142,9 +146,7 @@ export function ClientBookingPanel({ t }: { t: ReturnType<typeof getClientHubCop
             ))}
           </ul>
         </section>
-      ) : (
-        <p className="text-sm text-muted-foreground">{t.booking.noMyUpcoming}</p>
-      )}
+      ) : null}
 
       <section className="cb-card-padded space-y-4">
         <div>
@@ -182,22 +184,31 @@ export function ClientBookingPanel({ t }: { t: ReturnType<typeof getClientHubCop
           ) : slots.length === 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">{t.booking.noSlots}</p>
           ) : (
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {slots.map((iso) => (
-                <button
-                  key={iso}
-                  type="button"
-                  className={cn(
-                    'flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition',
-                    selectedSlot === iso
-                      ? 'border-brand bg-brand/10 text-foreground'
-                      : 'border-border/60 bg-muted/20 hover:border-brand/30',
-                  )}
-                  onClick={() => setSelectedSlot(iso)}
-                >
-                  <Clock className="h-3.5 w-3.5 shrink-0 text-brand" />
-                  <span>{formatSlot(iso, bookingMeta?.timezone)}</span>
-                </button>
+            <div className="mt-3 space-y-5">
+              {slotGroups.map((group) => (
+                <div key={group.dateKey}>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {group.heading}
+                  </p>
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+                    {group.slots.map((iso) => (
+                      <button
+                        key={iso}
+                        type="button"
+                        className={cn(
+                          'flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2.5 text-sm font-medium tabular-nums transition',
+                          selectedSlot === iso
+                            ? 'border-brand bg-brand/10 text-foreground'
+                            : 'border-border/60 bg-muted/20 hover:border-brand/30',
+                        )}
+                        onClick={() => setSelectedSlot(iso)}
+                      >
+                        <Clock className="h-3.5 w-3.5 shrink-0 text-brand" />
+                        <span>{formatSlotTime(iso, bookingMeta?.timezone || 'Europe/Lisbon')}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           )}
