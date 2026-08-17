@@ -20,12 +20,14 @@ import type {
   PublicSiteFaqContent,
   PublicSiteFeaturesContent,
   PublicSiteHeroContent,
+  PublicSiteNavLink,
   PublicSiteProcessContent,
   PublicSiteServicesContent,
   PublicSiteSocialLinks,
 } from '@/shared/types/firmPublicSite'
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
 import { clusterPublicServices, uniquePublicServiceGroups } from '@/features/public-intake/clusterPublicServices'
+import { defaultPublicSiteNavLinks } from '@/features/public-intake/publicSiteNavLinks'
 import { PublicSiteHeroBanner } from '@/features/public-intake/PublicSiteHeroBanner'
 import { PublicSiteCtaButtons } from '@/features/public-intake/PublicSiteCtaButtons'
 import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
@@ -97,11 +99,14 @@ export function HeaderSection({
   const groups = uniquePublicServiceGroups(ctx.services)
   const homeHref = `/${encodeURIComponent(ctx.firmSlug)}`
   const showNav = content?.showNav !== false
-  const showServicesLink = content?.showServicesLink !== false
-  const showAreasMenu = content?.showAreasMenu !== false
-  const showContactLink = content?.showContactLink !== false
-  const hasNav =
-    showNav && (showServicesLink || (showAreasMenu && groups.length > 0) || showContactLink)
+  const navLinks = defaultPublicSiteNavLinks(content).filter((link) => link.enabled)
+  const publicSlugs = new Set(ctx.services.map((s) => s.slug).filter(Boolean))
+  const visibleLinks = navLinks.filter((link) => {
+    if (link.kind === 'areas') return groups.length > 0
+    if (link.kind === 'external') return Boolean(link.url)
+    if (link.kind === 'service') return Boolean(link.serviceId && publicSlugs.has(link.serviceId))
+    return Boolean(link.label)
+  })
 
   return (
     <header
@@ -117,57 +122,110 @@ export function HeaderSection({
         <Link to={homeHref} className={labelClass} style={labelStyle}>
           {headerLabel}
         </Link>
-        {hasNav ? (
+        {showNav && visibleLinks.length > 0 ? (
           <nav
             className="ml-auto flex min-w-0 items-center gap-1 overflow-x-auto text-sm"
             aria-label="Navegação do site"
           >
-            {showServicesLink ? (
-              <a href="#servicos" className={`shrink-0 rounded-lg px-2.5 py-1.5 ${navClass}`} style={labelStyle}>
-                Serviços
-              </a>
-            ) : null}
-            {showAreasMenu && groups.length > 0 ? (
-              <details className="group relative shrink-0">
-                <summary
-                  className={`flex cursor-pointer list-none items-center gap-1 rounded-lg px-2.5 py-1.5 marker:content-none ${navClass}`}
-                  style={labelStyle}
-                >
-                  Áreas
-                  <ChevronDown className="h-3.5 w-3.5 opacity-70 transition group-open:rotate-180" aria-hidden />
-                </summary>
-                <div className="absolute right-0 z-30 mt-1 max-h-[70vh] w-64 overflow-y-auto rounded-xl border border-border/70 bg-card p-2 shadow-lg">
-                  {groups.map((group) => (
-                    <details key={group.heading || 'outros'} className="rounded-lg">
-                      <summary className="cursor-pointer list-none rounded-md px-2 py-1.5 text-sm font-semibold text-foreground marker:content-none hover:bg-muted/60">
-                        {group.heading}
-                      </summary>
-                      <ul className="pb-1 pl-1">
-                        {group.items.slice(0, 12).map((service) => (
-                          <li key={service.slug}>
-                            <Link
-                              to={`/${encodeURIComponent(ctx.firmSlug)}/servicos/${encodeURIComponent(service.slug)}`}
-                              className="block rounded-md px-2 py-1 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-                            >
-                              {service.name}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </details>
-                  ))}
-                </div>
-              </details>
-            ) : null}
-            {showContactLink ? (
-              <a href="#contactos" className={`shrink-0 rounded-lg px-2.5 py-1.5 ${navClass}`} style={labelStyle}>
-                Contactos
-              </a>
-            ) : null}
+            {visibleLinks.map((link) => (
+              <HeaderNavItem
+                key={link.id}
+                link={link}
+                ctx={ctx}
+                groups={groups}
+                navClass={navClass}
+                labelStyle={labelStyle}
+              />
+            ))}
           </nav>
         ) : null}
       </div>
     </header>
+  )
+}
+
+function HeaderNavItem({
+  link,
+  ctx,
+  groups,
+  navClass,
+  labelStyle,
+}: {
+  link: PublicSiteNavLink
+  ctx: PublicSiteRenderContext
+  groups: ReturnType<typeof uniquePublicServiceGroups>
+  navClass: string
+  labelStyle?: { color: string }
+}) {
+  if (link.kind === 'areas') {
+    return (
+      <details className="group relative shrink-0">
+        <summary
+          className={`flex cursor-pointer list-none items-center gap-1 rounded-lg px-2.5 py-1.5 marker:content-none ${navClass}`}
+          style={labelStyle}
+        >
+          {link.label}
+          <ChevronDown className="h-3.5 w-3.5 opacity-70 transition group-open:rotate-180" aria-hidden />
+        </summary>
+        <div className="absolute right-0 z-30 mt-1 max-h-[70vh] w-64 overflow-y-auto rounded-xl border border-border/70 bg-card p-2 shadow-lg">
+          {groups.map((group) => (
+            <details key={group.heading || 'outros'} className="rounded-lg">
+              <summary className="cursor-pointer list-none rounded-md px-2 py-1.5 text-sm font-semibold text-foreground marker:content-none hover:bg-muted/60">
+                {group.heading}
+              </summary>
+              <ul className="pb-1 pl-1">
+                {group.items.slice(0, 12).map((service) => (
+                  <li key={service.slug}>
+                    <Link
+                      to={`/${encodeURIComponent(ctx.firmSlug)}/servicos/${encodeURIComponent(service.slug)}`}
+                      className="block rounded-md px-2 py-1 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                    >
+                      {service.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ))}
+        </div>
+      </details>
+    )
+  }
+
+  if (link.kind === 'external' && link.url) {
+    return (
+      <a
+        href={link.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`shrink-0 rounded-lg px-2.5 py-1.5 ${navClass}`}
+        style={labelStyle}
+      >
+        {link.label}
+      </a>
+    )
+  }
+
+  if (link.kind === 'service' && link.serviceId) {
+    const href = `/${encodeURIComponent(ctx.firmSlug)}/servicos/${encodeURIComponent(link.serviceId)}`
+    return (
+      <Link
+        to={href}
+        target={ctx.openInternalLinksInNewTab ? '_blank' : undefined}
+        rel={ctx.openInternalLinksInNewTab ? 'noopener noreferrer' : undefined}
+        className={`shrink-0 rounded-lg px-2.5 py-1.5 ${navClass}`}
+        style={labelStyle}
+      >
+        {link.label}
+      </Link>
+    )
+  }
+
+  const sectionId = link.sectionId || 'servicos'
+  return (
+    <a href={`#${sectionId}`} className={`shrink-0 rounded-lg px-2.5 py-1.5 ${navClass}`} style={labelStyle}>
+      {link.label}
+    </a>
   )
 }
 
@@ -264,6 +322,7 @@ export function AboutSection({
   const bodyColor = hexStyle(content.bodyColor)
   return (
     <section
+      id="sobre"
       className="px-4 py-6"
       style={bg ? { backgroundColor: bg } : undefined}
     >
@@ -440,7 +499,7 @@ export function BookingServicesSection({
   const bg = hexStyle(content.backgroundColor)
   const headingColor = hexStyle(content.headingColor)
   return (
-    <section className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
+    <section id="outros-servicos" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
       <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">
         <h2
           className={
@@ -504,7 +563,7 @@ export function FeaturesSection({ content }: { content: PublicSiteFeaturesConten
   const titleColor = hexStyle(content.titleColor)
   const textColor = hexStyle(content.textColor)
   return (
-    <section className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
+    <section id="destaques" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
       <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">
         <div className="grid gap-4 sm:grid-cols-2">
           {content.items.map((it) => (
@@ -541,7 +600,7 @@ export function ProcessSection({ content }: { content: PublicSiteProcessContent 
   const titleColor = hexStyle(content.titleColor)
   const textColor = hexStyle(content.textColor)
   return (
-    <section className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
+    <section id="como-trabalhamos" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
       <ol className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">
         {content.steps.map((step, index) => (
           <li key={step.id} className="flex gap-3 rounded-xl border border-border/50 bg-card p-4">
@@ -581,7 +640,7 @@ export function FaqSection({ content }: { content: PublicSiteFaqContent }) {
   const titleColor = hexStyle(content.titleColor)
   const textColor = hexStyle(content.textColor)
   return (
-    <section className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
+    <section id="faq" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
       <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">
         <h2
           className={

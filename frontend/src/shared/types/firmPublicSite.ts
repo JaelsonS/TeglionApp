@@ -145,6 +145,31 @@ export type PublicSiteContactContent = {
  * Cabeçalho / rodapé.
  * Cores + texto opcional no cabeçalho (no rodapé o texto continua a ser o nome legal/público).
  */
+export type PublicSiteNavLinkKind = 'section' | 'areas' | 'service' | 'external'
+
+/** Âncoras da própria página pública (rolar até à secção). */
+export type PublicSiteNavSectionId =
+  | 'servicos'
+  | 'outros-servicos'
+  | 'contactos'
+  | 'sobre'
+  | 'faq'
+  | 'como-trabalhamos'
+  | 'destaques'
+
+export type PublicSiteNavLink = {
+  id: string
+  label: string
+  enabled: boolean
+  kind: PublicSiteNavLinkKind
+  /** kind=section — id da secção nesta página. */
+  sectionId?: PublicSiteNavSectionId
+  /** kind=external — só https. */
+  url?: string
+  /** kind=service — slug do serviço público. */
+  serviceId?: string
+}
+
 export type PublicSiteChromeContent = {
   /**
    * Texto à esquerda no cabeçalho (marca curta).
@@ -154,8 +179,11 @@ export type PublicSiteChromeContent = {
   title?: string
   backgroundColor?: string | null
   textColor?: string | null
-  /** Menu Serviços / Áreas / Contactos. Omissão = visível. */
+  /** Menu na barra. Omissão = visível. */
   showNav?: boolean
+  /** Links editáveis (texto + destino). Se vazio, usa os três atalhos abaixo. */
+  navLinks?: PublicSiteNavLink[]
+  /** Compat: páginas já publicadas sem `navLinks`. */
   showServicesLink?: boolean
   showAreasMenu?: boolean
   showContactLink?: boolean

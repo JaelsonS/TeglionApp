@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { MayaAssistant } from '@/features/maya/MayaAssistant'
 import { openMaya } from '@/features/maya/openMaya'
 import { Button } from '@/shared/components/ui/button'
+import { SafeImage } from '@/shared/components/ui/SafeImage'
 import { BRAND } from '@/shared/config/brand'
 import { ensureContabilStyles } from '@/shared/styles/loadContabilStyles'
 
@@ -63,37 +64,49 @@ function LandingExitIntent() {
       aria-modal="true"
       data-testid="landing-exit-intent"
     >
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-background p-5 shadow-xl">
-        <p id="landing-exit-title" className="text-base font-semibold text-foreground">
-          Posso ajudar?
-        </p>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          Sou a Maya. Explico o Teglion em um minuto — ou falo consigo no WhatsApp se preferir uma
-          pessoa da AfDigital.
-        </p>
-        <div className="mt-4 flex flex-col gap-2">
-          <Button
-            type="button"
-            className="rounded-full text-white"
-            onClick={() => {
-              setOpen(false)
-              openMaya('landing-what')
-            }}
-          >
-            Sim, falar com a Maya
-          </Button>
-          <Button type="button" variant="outline" className="rounded-full" asChild>
-            <a href={BRAND.phone.whatsapp} target="_blank" rel="noopener noreferrer">
-              Falar no WhatsApp
-            </a>
-          </Button>
-          <button
-            type="button"
-            className="text-center text-xs text-muted-foreground underline-offset-2 hover:underline"
-            onClick={() => setOpen(false)}
-          >
-            Agora não
-          </button>
+      <div className="w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-background shadow-xl">
+        <div className="flex flex-col items-center bg-gradient-to-br from-brand/[0.12] via-sky-500/[0.06] to-transparent px-5 pb-4 pt-6">
+          <div className="h-24 w-24 overflow-hidden rounded-full bg-card shadow-md ring-2 ring-brand/30 ring-offset-2 ring-offset-background sm:h-28 sm:w-28">
+            <SafeImage
+              src="/maya/maya-avatar.png"
+              alt="Maya"
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <p className="mt-3 text-lg font-semibold tracking-tight text-foreground">Maya</p>
+          <p id="landing-exit-title" className="mt-0.5 text-sm text-muted-foreground">
+            Posso ajudar?
+          </p>
+        </div>
+        <div className="px-5 pb-5 pt-3">
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Explico o Teglion em um minuto — ou falo consigo no WhatsApp se preferir uma pessoa da
+            AfDigital.
+          </p>
+          <div className="mt-4 flex flex-col gap-2">
+            <Button
+              type="button"
+              className="rounded-full text-white"
+              onClick={() => {
+                setOpen(false)
+                openMaya('landing-what')
+              }}
+            >
+              Sim, falar com a Maya
+            </Button>
+            <Button type="button" variant="outline" className="rounded-full" asChild>
+              <a href={BRAND.phone.whatsapp} target="_blank" rel="noopener noreferrer">
+                Falar no WhatsApp
+              </a>
+            </Button>
+            <button
+              type="button"
+              className="text-center text-xs text-muted-foreground underline-offset-2 hover:underline"
+              onClick={() => setOpen(false)}
+            >
+              Agora não
+            </button>
+          </div>
         </div>
       </div>
     </div>

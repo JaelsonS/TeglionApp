@@ -134,10 +134,10 @@ export function MarketingCookieBanner() {
           type="button"
           data-testid="cookie-prefs-icon"
           className={cn(
-            'fixed z-40 flex h-7 w-7 items-center justify-center rounded-full',
-            'bottom-[max(0.65rem,env(safe-area-inset-bottom,0px))] left-[max(0.65rem,env(safe-area-inset-left,0px))]',
-            'border border-border/40 bg-background/70 text-muted-foreground/55 shadow-none',
-            'backdrop-blur-[2px] transition hover:bg-background hover:text-muted-foreground',
+            'fixed z-40 flex h-8 w-8 items-center justify-center rounded-full',
+            'bottom-[max(0.75rem,env(safe-area-inset-bottom,0px))] left-[max(0.75rem,env(safe-area-inset-left,0px))]',
+            'border border-slate-300/80 bg-white text-slate-500 shadow-sm',
+            'transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-700',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
           )}
           aria-label="Gerir cookies"
@@ -148,7 +148,7 @@ export function MarketingCookieBanner() {
             setPrefsOpen(true)
           }}
         >
-          <Cookie className="h-3 w-3" aria-hidden />
+          <Cookie className="h-3.5 w-3.5" aria-hidden />
         </button>
       ) : null}
 

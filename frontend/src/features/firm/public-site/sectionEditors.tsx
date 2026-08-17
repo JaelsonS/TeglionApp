@@ -23,10 +23,19 @@ import type {
   PublicSiteFaqContent,
   PublicSiteFeaturesContent,
   PublicSiteHeroContent,
+  PublicSiteNavLink,
+  PublicSiteNavLinkKind,
+  PublicSiteNavSectionId,
   PublicSiteProcessContent,
   PublicSiteServicesContent,
 } from '@/shared/types/firmPublicSite'
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
+import {
+  defaultPublicSiteNavLinks,
+  emptyPublicSiteNavLink,
+  MAX_PUBLIC_SITE_NAV_LINKS,
+  PUBLIC_SITE_SECTION_ANCHORS,
+} from '@/features/public-intake/publicSiteNavLinks'
 
 const HEX_RE = /^#[0-9a-f]{6}$/i
 
@@ -406,6 +415,7 @@ export function ChromeSectionEditor({
   titlePlaceholder,
   titleHint,
   showNavControls = false,
+  services = [],
 }: {
   content: PublicSiteChromeContent
   onChange: (next: PublicSiteChromeContent) => void
@@ -415,8 +425,9 @@ export function ChromeSectionEditor({
   titleFieldLabel?: string
   titlePlaceholder?: string
   titleHint?: string
-  /** Cabeçalho: ligar/desligar Serviços, Áreas e Contactos. */
+  /** Cabeçalho: texto e destino de cada link. */
   showNavControls?: boolean
+  services?: PublicFirmServiceSummary[]
 }) {
   const navOn = content.showNav !== false
   return (
@@ -441,52 +452,12 @@ export function ChromeSectionEditor({
         </div>
       ) : null}
       {showNavControls ? (
-        <div className="space-y-2 rounded-xl border border-border/70 bg-muted/20 p-3">
-          <p className="text-sm font-medium text-foreground">Links na barra do topo</p>
-          <p className="text-[11px] text-muted-foreground">
-            Serviços e Contactos saltam para as secções da página. Áreas abre o menu das categorias do
-            catálogo público (o campo «Grupo na página pública» de cada serviço). Sem serviços
-            publicados, Áreas não aparece mesmo que esteja ligado.
-          </p>
-          <label className="flex items-center gap-2 text-sm">
-            <Checkbox
-              checked={navOn}
-              onCheckedChange={(v: boolean | 'indeterminate') =>
-                onChange({ ...content, showNav: v === true })
-              }
-            />
-            Mostrar menu de navegação
-          </label>
-          <div className={navOn ? 'space-y-2 pl-6' : 'pointer-events-none space-y-2 pl-6 opacity-50'}>
-            <label className="flex items-center gap-2 text-sm">
-              <Checkbox
-                checked={content.showServicesLink !== false}
-                onCheckedChange={(v: boolean | 'indeterminate') =>
-                  onChange({ ...content, showServicesLink: v === true })
-                }
-              />
-              Serviços
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <Checkbox
-                checked={content.showAreasMenu !== false}
-                onCheckedChange={(v: boolean | 'indeterminate') =>
-                  onChange({ ...content, showAreasMenu: v === true })
-                }
-              />
-              Áreas
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <Checkbox
-                checked={content.showContactLink !== false}
-                onCheckedChange={(v: boolean | 'indeterminate') =>
-                  onChange({ ...content, showContactLink: v === true })
-                }
-              />
-              Contactos
-            </label>
-          </div>
-        </div>
+        <HeaderNavLinksEditor
+          content={content}
+          navOn={navOn}
+          services={services}
+          onChange={onChange}
+        />
       ) : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <InlineColorField
@@ -502,6 +473,213 @@ export function ChromeSectionEditor({
           value={content.textColor}
           onChange={(v) => onChange({ ...content, textColor: v })}
         />
+      </div>
+    </div>
+  )
+}
+
+const NAV_KIND_OPTIONS: { value: PublicSiteNavLinkKind; label: string }[] = [
+  { value: 'section', label: 'Rolar nesta página' },
+  { value: 'areas', label: 'Menu Áreas (catálogo)' },
+  { value: 'service', label: 'Abrir um serviço' },
+  { value: 'external', label: 'Página fora (https)' },
+]
+
+function emptyNavTarget(kind: PublicSiteNavLinkKind, services: PublicFirmServiceSummary[]): Partial<PublicSiteNavLink> {
+  if (kind === 'section') return { kind, sectionId: 'servicos', url: undefined, serviceId: undefined }
+  if (kind === 'areas') return { kind, sectionId: undefined, url: undefined, serviceId: undefined }
+  if (kind === 'service') return { kind, sectionId: undefined, url: undefined, serviceId: services[0]?.slug }
+  return { kind, sectionId: undefined, url: '', serviceId: undefined }
+}
+
+function HeaderNavLinksEditor({
+  content,
+  navOn,
+  services,
+  onChange,
+}: {
+  content: PublicSiteChromeContent
+  navOn: boolean
+  services: PublicFirmServiceSummary[]
+  onChange: (next: PublicSiteChromeContent) => void
+}) {
+  const links = defaultPublicSiteNavLinks(content)
+
+  const setLinks = (navLinks: PublicSiteNavLink[]) => {
+    onChange({ ...content, navLinks })
+  }
+
+  const patchLink = (id: string, patch: Partial<PublicSiteNavLink>) => {
+    setLinks(links.map((link) => (link.id === id ? { ...link, ...patch } : link)))
+  }
+
+  return (
+    <div className="space-y-2 rounded-xl border border-border/70 bg-muted/20 p-3">
+      <p className="text-sm font-medium text-foreground">Links na barra do topo</p>
+      <p className="text-[11px] text-muted-foreground">
+        Edite o texto que o visitante vê. Cada link pode rolar até uma secção desta página, abrir um
+        serviço, abrir o menu Áreas, ou ir para um site https exterior.
+      </p>
+      <label className="flex items-center gap-2 text-sm">
+        <Checkbox
+          checked={navOn}
+          onCheckedChange={(v: boolean | 'indeterminate') =>
+            onChange({ ...content, showNav: v === true, navLinks: links })
+          }
+        />
+        Mostrar menu de navegação
+      </label>
+      <div className={navOn ? 'space-y-3' : 'pointer-events-none space-y-3 opacity-50'}>
+        {links.map((link, index) => (
+          <div key={link.id} className="space-y-2 rounded-lg border border-border/50 bg-background p-2.5">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={link.enabled}
+                onCheckedChange={(v: boolean | 'indeterminate') =>
+                  patchLink(link.id, { enabled: v === true })
+                }
+              />
+              <Input
+                value={link.label}
+                onChange={(e: FormChangeEvent) => patchLink(link.id, { label: e.target.value })}
+                placeholder="Texto do link"
+                maxLength={40}
+                className="h-8"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0 text-muted-foreground"
+                aria-label="Remover link"
+                onClick={() => setLinks(links.filter((item) => item.id !== link.id))}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label className="text-caption text-muted-foreground">Quando clicar</Label>
+                <select
+                  className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                  value={link.kind}
+                  onChange={(e) =>
+                    patchLink(link.id, emptyNavTarget(e.target.value as PublicSiteNavLinkKind, services))
+                  }
+                >
+                  {NAV_KIND_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {link.kind === 'section' ? (
+                <div className="space-y-1">
+                  <Label className="text-caption text-muted-foreground">Secção</Label>
+                  <select
+                    className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                    value={link.sectionId || 'servicos'}
+                    onChange={(e) =>
+                      patchLink(link.id, { sectionId: e.target.value as PublicSiteNavSectionId })
+                    }
+                  >
+                    {PUBLIC_SITE_SECTION_ANCHORS.map((opt) => (
+                      <option key={opt.id} value={opt.id}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
+              {link.kind === 'service' ? (
+                <div className="space-y-1">
+                  <Label className="text-caption text-muted-foreground">Serviço</Label>
+                  {services.length > 0 ? (
+                    <select
+                      className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                      value={link.serviceId || ''}
+                      onChange={(e) => patchLink(link.id, { serviceId: e.target.value })}
+                    >
+                      {services.map((s) => (
+                        <option key={s.slug} value={s.slug}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground">
+                      Publique um serviço para o ligar a este link.
+                    </p>
+                  )}
+                </div>
+              ) : null}
+              {link.kind === 'external' ? (
+                <div className="space-y-1">
+                  <Label className="text-caption text-muted-foreground">Endereço https</Label>
+                  <Input
+                    value={link.url || ''}
+                    onChange={(e: FormChangeEvent) => patchLink(link.id, { url: e.target.value })}
+                    placeholder="https://…"
+                    maxLength={500}
+                    className="h-9"
+                  />
+                </div>
+              ) : null}
+              {link.kind === 'areas' ? (
+                <p className="self-end text-[11px] text-muted-foreground sm:col-span-1">
+                  Abre o menu das categorias do catálogo público.
+                </p>
+              ) : null}
+            </div>
+            {links.length > 1 ? (
+              <div className="flex gap-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-[11px]"
+                  disabled={index === 0}
+                  onClick={() => {
+                    const next = [...links]
+                    const prev = next[index - 1]
+                    next[index - 1] = link
+                    next[index] = prev
+                    setLinks(next)
+                  }}
+                >
+                  Subir
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-[11px]"
+                  disabled={index === links.length - 1}
+                  onClick={() => {
+                    const next = [...links]
+                    const following = next[index + 1]
+                    next[index + 1] = link
+                    next[index] = following
+                    setLinks(next)
+                  }}
+                >
+                  Descer
+                </Button>
+              </div>
+            ) : null}
+          </div>
+        ))}
+        {links.length < MAX_PUBLIC_SITE_NAV_LINKS ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setLinks([...links, emptyPublicSiteNavLink()])}
+          >
+            <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar link
+          </Button>
+        ) : null}
       </div>
     </div>
   )
