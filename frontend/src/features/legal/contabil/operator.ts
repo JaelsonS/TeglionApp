@@ -5,8 +5,8 @@ export const CONTABIL_LEGAL_OPERATOR = {
   nifRaw: '331759276',
   cae: '62100 — Atividades de programação informática',
   address: 'Coimbra, Portugal',
-  email: 'jaelsonsilva345@gmail.com',
+  email: 'afdigitalweb.st@gmail.com',
   phone: '+351 916 447 990',
-  supportEmail: 'jaelsonsilva345@gmail.com',
+  supportEmail: 'afdigitalweb.st@gmail.com',
   jurisdiction: 'Portugal / União Europeia',
 } as const

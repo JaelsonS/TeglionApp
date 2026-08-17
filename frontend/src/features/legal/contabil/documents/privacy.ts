@@ -18,7 +18,7 @@ export const privacyDocument: LegalDocument = {
       title: '1. Identificação do responsável pelo tratamento (Operador)',
       paragraphs: [
         'Responsável pelo tratamento dos dados de registo do escritório, faturação e suporte da Plataforma:',
-        'Jaelson Silva dos Santos · NIF 331 759 276 · Coimbra, Portugal · jaelsonsilva345@gmail.com · +351 916 447 990.',
+        'Jaelson Silva dos Santos · NIF 331 759 276 · Coimbra, Portugal · afdigitalweb.st@gmail.com · +351 916 447 990.',
       ],
     },
     {
@@ -90,7 +90,7 @@ export const privacyDocument: LegalDocument = {
         'Apresentar reclamação à Comissão Nacional de Protecção de Dados (CNPD), www.cnpd.pt.',
       ],
       paragraphs: [
-        'Pedidos relativos a dados tratados pelo escritório: contactar o escritório. Pedidos relativos à conta do escritório ou ao site: jaelsonsilva345@gmail.com.',
+        'Pedidos relativos a dados tratados pelo escritório: contactar o escritório. Pedidos relativos à conta do escritório ou ao site: afdigitalweb.st@gmail.com.',
       ],
     },
     {
