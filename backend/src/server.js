@@ -9,8 +9,6 @@ const {
   stopConnectPaymentSchedulers,
 } = require('./modules/connect/schedulers');
 const { initRateLimitRedis, closeRateLimitRedis } = require('./utils/rate-limit-store');
-const { startJobWorker, registerJobHandler } = require('./jobs/redis-queue');
-const { processFirm } = require('./modules/obligations/schedulers/obligation-reminders.scheduler');
 const { logger } = require('./utils/logger');
 
 const SERVER_MESSAGES = {
@@ -119,11 +117,6 @@ async function bootstrap() {
     startTaskSchedulers();
     startConnectPaymentSchedulers();
 
-    registerJobHandler('obligation-reminders:firm', async ({ firmId }) => {
-      await processFirm(firmId);
-    });
-    const stopJobWorker = startJobWorker();
-
     logger.info('PRODUCTION_READINESS_CHECK', {
       nodeEnv: env.NODE_ENV,
       productMode: env.PRODUCT_MODE,
@@ -156,7 +149,6 @@ async function bootstrap() {
           stopContabilSchedulers();
           stopTaskSchedulers();
           stopConnectPaymentSchedulers();
-          stopJobWorker();
           await closeRateLimitRedis();
           logger.info(serverMessage('shutdownSuccess'));
           clearTimeout(shutdownTimeout);
