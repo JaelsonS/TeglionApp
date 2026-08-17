@@ -8,6 +8,7 @@ import { FirmClientInviteButton } from '@/features/firm/components/FirmClientInv
 import { FirmClientAccessManager } from '@/features/firm/components/FirmClientAccessManager'
 import { operationalStatusLabel } from '@/features/firm/client-hub/clientHubUtils'
 import { FirmEntityTagsEditor } from '@/features/firm/tags/FirmEntityTagsEditor'
+import { AskMayaButton } from '@/features/maya'
 import { Button } from '@/shared/components/ui/button'
 import type { ClientHubResponse } from '@/infrastructure/api/contabil/types'
 import type { Client } from '@/shared/types/clients'
@@ -83,6 +84,7 @@ export function ClientHubHeader({ hub, displayName, clientId, onBack, onEdit, on
         </div>
 
         <div className="cb-client-hub-actions">
+          <AskMayaButton className="h-8" />
           {client.portalAccessStatus === 'ACTIVE' || client.portalAccessStatus === 'REVOKED' ? (
             <FirmClientAccessManager
               clientId={clientId}

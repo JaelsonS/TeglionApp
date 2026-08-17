@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { AskMayaButton } from '@/features/maya'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Dialog, DialogContent, DialogTitle } from '@/shared/components/ui/dialog'
@@ -378,13 +379,18 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
         <DialogTitle className="sr-only">{displayTitle}</DialogTitle>
 
         <div className="shrink-0 border-b border-brand/15 bg-gradient-to-r from-brand/[0.08] via-sky-500/[0.06] to-transparent px-5 py-4 pr-12">
-          <p className="text-xs font-semibold uppercase tracking-wide text-brand/80">Serviços › IRS</p>
-          <h2 className="mt-1 text-xl font-semibold tracking-tight text-foreground">{displayTitle}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Anexos, perguntas e pagamento — o ano fiscal é definido pelo escritório. Para banner, logótipo,
-            publicação completa e apagar, use <span className="font-medium text-foreground">Editar</span> na
-            lista IRS.
-          </p>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand/80">Serviços › IRS</p>
+              <h2 className="mt-1 text-xl font-semibold tracking-tight text-foreground">{displayTitle}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Anexos, perguntas e pagamento — o ano fiscal é definido pelo escritório. Para banner, logótipo,
+                publicação completa e apagar, use <span className="font-medium text-foreground">Editar</span> na
+                lista IRS.
+              </p>
+            </div>
+            <AskMayaButton intentId="irs-modelo3" />
+          </div>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto bg-muted/20 px-4 py-4 sm:px-5">
