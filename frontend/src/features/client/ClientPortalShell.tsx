@@ -172,17 +172,11 @@ export function ClientPortalShell({
       </aside>
 
       <div className="pc-main">
-        <header className="pc-topbar md:hidden">
+        <header className="pc-topbar flex" data-testid="client-portal-topbar">
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-foreground">{pageLabel}</p>
           </div>
-          <div className="relative z-10 ml-auto flex items-center gap-1.5">
-            {!previewMode ? <ClientNotificationCenter /> : null}
-          </div>
-        </header>
-
-        <header className="pc-topbar-compact hidden md:flex xl:hidden">
-          <div className="relative z-10 ml-auto flex items-center gap-2">
+          <div className="relative z-10 ml-auto flex items-center gap-1.5 xl:hidden">
             {!previewMode ? <ClientNotificationCenter /> : null}
           </div>
         </header>

@@ -86,9 +86,7 @@ export function ClientDashboardPage() {
         <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           Olá, {greetingName(user?.fullName)}
         </h1>
-        <p className="text-sm text-muted-foreground">
-          {hub?.firm.name ? `${hub.firm.name} · o que precisa de si agora.` : 'O que precisa de si agora.'}
-        </p>
+        <p className="text-sm text-muted-foreground">O que precisa de si agora.</p>
       </header>
 
       {hubQuery.isLoading ? (

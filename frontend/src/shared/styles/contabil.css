@@ -3367,7 +3367,8 @@
   }
 
   .pc-topbar {
-    @apply z-30 flex shrink-0 items-center gap-2 border-b border-border/80 bg-card/90 px-3 shadow-[0_1px_0_rgba(15,41,66,0.04)] backdrop-blur-md sm:gap-3 sm:px-4;
+    /* Sem `display` aqui — `hidden`/`flex` no JSX têm de ganhar, senão há duas barras. */
+    @apply z-30 shrink-0 items-center gap-2 border-b border-border/80 bg-card/90 px-3 shadow-[0_1px_0_rgba(15,41,66,0.04)] backdrop-blur-md sm:gap-3 sm:px-4;
     padding-top: env(safe-area-inset-top, 0px);
     padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
     padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
@@ -3375,7 +3376,7 @@
   }
 
   .pc-topbar-compact {
-    @apply z-30 flex shrink-0 items-center gap-3 border-b border-border/70 bg-card/95 px-5 py-2.5;
+    @apply z-30 shrink-0 items-center gap-3 border-b border-border/70 bg-card/95 px-5 py-2.5;
     min-height: 3.25rem;
   }
 
