@@ -115,6 +115,7 @@ export function FirmPublicSitePage() {
           praiseUrl: data.praiseUrl,
           praiseLabel: data.praiseLabel,
           praiseContact: data.praiseContact,
+          showTeglionCredit: data.showTeglionCredit !== false,
         }}
       />
     </div>

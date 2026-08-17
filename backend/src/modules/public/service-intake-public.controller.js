@@ -16,6 +16,7 @@ const serviceInquiriesService = require('../firm/service-inquiries.service');
 const firmBrandingService = require('../firm/firm-branding.service');
 const firmPublicSiteService = require('../firm/firm-public-site.service');
 const accountingServicesService = require('../firm/accounting-services.service');
+const entitlements = require('../entitlements/entitlements.service');
 const { interpolateServiceTemplate } = require('../../utils/service-text-template');
 
 /** Resolve Firm + Service publicado pelo par (firmSlug, serviceSlug) — nunca aceita ids crus. */
@@ -161,6 +162,8 @@ async function getPublicFirmSite(req, res, next) {
       })),
     };
 
+    const showTeglionCredit = await entitlements.showTeglionBranding(firm.id);
+
     return res.json({
       firmName: resolvePublicFirmName(firm),
       logoUrl,
@@ -179,6 +182,7 @@ async function getPublicFirmSite(req, res, next) {
       praiseUrl: config.praiseUrl || null,
       praiseLabel: config.praiseLabel || null,
       praiseContact: config.praiseContact || null,
+      showTeglionCredit,
       contact: {
         email: contact.email || null,
         phone: contact.phone || null,
@@ -223,11 +227,13 @@ async function getPublicService(req, res, next) {
     }
 
     const showFirmLogo = service.intakeForm?.pageOptions?.showFirmLogo !== false;
+    const showTeglionCredit = await entitlements.showTeglionBranding(firm.id);
 
     return res.json({
       firmName: resolvePublicFirmName(firm),
       logoUrl: showFirmLogo ? logoUrl : null,
       showFirmLogo,
+      showTeglionCredit,
       serviceName: interpolateServiceTemplate(service.name),
       description: interpolateServiceTemplate(service.description) || null,
       imageUrl: (await accountingServicesService.resolveServiceImageUrl(service.imageStorageKey || service.imageUrl)) || null,

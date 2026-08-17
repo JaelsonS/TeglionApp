@@ -26,6 +26,7 @@ import type { IntakeQuestion } from '@/shared/types/contabil'
 import type { PublicIntakeSubmitResult } from '@/infrastructure/api/contabil/public'
 import type { FormChangeEvent, FormSubmitEvent } from '@/shared/types/react-events'
 import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
+import { TeglionPublicCredit } from '@/features/public-intake/TeglionPublicCredit'
 
 function formatScheduledAt(iso: string) {
   return new Date(iso).toLocaleString('pt-PT', {
@@ -499,6 +500,7 @@ export function ServiceIntakePublicPage() {
           </div>
         </DialogContent>
       </Dialog>
+      <TeglionPublicCredit visible={service.showTeglionCredit !== false} />
     </div>
   )
 }

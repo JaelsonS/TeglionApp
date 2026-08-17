@@ -61,6 +61,8 @@ export type PublicSiteRenderContext = {
    * Na página pública real permanece navegação na mesma aba.
    */
   openInternalLinksInNewTab?: boolean
+  /** Crédito «Página criada com Teglion». Default true. */
+  showTeglionCredit?: boolean
 }
 
 function formatPrice(cents: number) {

@@ -19,6 +19,7 @@ export type PublicServiceIntake = {
   firmName: string
   logoUrl?: string | null
   showFirmLogo?: boolean
+  showTeglionCredit?: boolean
   serviceName: string
   description?: string | null
   imageUrl?: string | null
@@ -88,6 +89,7 @@ export type PublicFirmSite = {
   praiseUrl?: string | null
   praiseLabel?: string | null
   praiseContact?: string | null
+  showTeglionCredit?: boolean
   contact: PublicFirmContact
   services: PublicFirmServiceSummary[]
 }

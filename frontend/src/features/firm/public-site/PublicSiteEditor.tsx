@@ -681,6 +681,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 praiseLabel: draft.praiseLabel,
                 praiseContact: draft.praiseContact,
                 openInternalLinksInNewTab: true,
+                showTeglionCredit: true,
               }}
             />
           </div>

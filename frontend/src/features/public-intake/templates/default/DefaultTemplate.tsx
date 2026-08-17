@@ -1,4 +1,5 @@
 import type { PublicSiteConfig } from '@/shared/types/firmPublicSite'
+import { TeglionPublicCredit } from '@/features/public-intake/TeglionPublicCredit'
 import {
   AboutSection,
   BookingServicesSection,
@@ -91,6 +92,7 @@ export function DefaultTemplate({ config, ctx }: Props) {
             return null
         }
       })}
+      <TeglionPublicCredit visible={ctx.showTeglionCredit !== false} />
     </div>
   )
 }
