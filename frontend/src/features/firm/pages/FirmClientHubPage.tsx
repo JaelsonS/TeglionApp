@@ -122,6 +122,7 @@ export function FirmClientHubPage() {
           clientId={cid}
           onBack={() => navigate('/app/firm/clients')}
           onEdit={() => setSection('profile')}
+          onOpenSection={setSection}
           onAccessChanged={() => void refetch()}
         />
 

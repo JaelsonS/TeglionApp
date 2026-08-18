@@ -7,9 +7,10 @@ export const CLIENT_HUB_INTENTS = [
     title: 'O que é a ficha deste cliente?',
     shortDescription: 'ficha do cliente',
     answer:
-      'Esta é a ficha (hub) de um cliente da carteira do escritório — não é o portal onde o cliente entra. Tabs: Resumo, Perfil, Acessos, Actividade, Obrigações, Documentos, Tarefas e Comunicação. A tab Acessos guarda senhas de portais oficiais (AT, Segurança Social, ViaCTT, IAPMEI, Relatório Único), cifradas; ver uma senha pede a palavra-passe dos Acessos oficiais (única daquele campo). No topo: voltar à lista, etiquetas, convite ou gestão de acesso ao portal, atalho para Mensagens e Editar (abre o Perfil). Os números (obrigações pendentes, documentos por validar, tarefas abertas, mensagens não lidas) são só desta empresa. Não há tab de Solicitações nem de Notas: notas estão no Perfil; pedidos públicos estão em Serviços.',
+      'Esta é a ficha (hub) de um cliente da carteira do escritório — não é o portal onde o cliente entra. Tabs: Resumo, Perfil, Acessos, Actividade, Obrigações, Documentos, Tarefas e Comunicação. A tab Acessos guarda senhas de portais oficiais (AT, Segurança Social, ViaCTT, IAPMEI, Relatório Único), cifradas; ver uma senha pede a palavra-passe dos Acessos oficiais (única daquele campo). No topo: voltar à lista, etiquetas, convite ou gestão de acesso ao portal, atalho para Mensagens e Editar (abre o Perfil). Os números (obrigações pendentes, documentos por validar, tarefas abertas, mensagens não lidas) são só desta empresa — clique para abrir a tab correspondente. Não há tab de Solicitações nem de Notas: notas estão no Perfil; pedidos públicos estão em Serviços.',
     steps: [
       'Comece pelo Resumo para o estado',
+      'Clique nos números do topo (obrigações, documentos, tarefas, mensagens) para abrir a tab correspondente deste cliente',
       'Editar ou tab Perfil para corrigir o cadastro',
       'Documentos, Obrigações, Tarefas e Comunicação para o trabalho corrente',
       'Convide ao portal se ainda não tiver acesso e houver e-mail',
@@ -312,7 +313,7 @@ export const CLIENT_HUB_INTENTS = [
     title: 'Que acções existem na ficha?',
     shortDescription: 'acções do cliente',
     answer:
-      'Na ficha: voltar à lista; etiquetas (ligar/desligar); convite ao portal ou Gerir acesso (revogar / reemitir — revogar não apaga dados); Mensagens; Editar (Perfil, gravação automática); mudar de tab. A tab Acessos guarda senhas de portais oficiais com confirmação da palavra-passe dos Acessos oficiais (única daquele campo). No Resumo, atalhos para obrigações, documentos, tarefas e mensagens. Em Documentos/Obrigações/Tarefas, abrir o módulo completo. Em Actividade, ocultar eventos do feed. Não há nesta ficha: eliminar cliente, criar solicitação, carregar documento, publicar serviço ou enviar IRS. Remover da carteira está no menu ⋯ da lista. A Maya não ensina a contornar permissões da equipa.',
+      'Na ficha: voltar à lista; etiquetas (ligar/desligar); convite ao portal ou Gerir acesso (revogar / reemitir — revogar não apaga dados); Mensagens; Editar (Perfil, gravação automática); mudar de tab. Os números do topo (obrigações, documentos, tarefas, mensagens) abrem a tab desse cliente. A tab Acessos guarda senhas de portais oficiais com confirmação da palavra-passe dos Acessos oficiais (única daquele campo). No Resumo, atalhos para obrigações, documentos, tarefas e mensagens. Em Documentos/Obrigações/Tarefas, abrir o módulo completo. Em Actividade, ocultar eventos do feed. Não há nesta ficha: eliminar cliente, criar solicitação, carregar documento, publicar serviço ou enviar IRS. Remover da carteira está no menu ⋯ da lista. A Maya não ensina a contornar permissões da equipa.',
     steps: [
       'Use o topo para convite, mensagens e editar',
       'Use as tabs para o trabalho do cliente',

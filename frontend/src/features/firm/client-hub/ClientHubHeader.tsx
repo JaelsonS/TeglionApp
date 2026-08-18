@@ -14,6 +14,7 @@ import type { ClientHubResponse } from '@/infrastructure/api/contabil/types'
 import type { Client } from '@/shared/types/clients'
 import { usePatchClient } from '@/shared/hooks/queries/useClientHub'
 import { getErrorMessage } from '@/shared/utils/errors'
+import type { ClientHubSection } from '@/features/firm/client-hub/sections'
 import { cn } from '@/shared/lib/utils'
 
 type Props = {
@@ -23,9 +24,18 @@ type Props = {
   onBack: () => void
   onEdit?: () => void
   onAccessChanged?: () => void
+  onOpenSection?: (section: ClientHubSection) => void
 }
 
-export function ClientHubHeader({ hub, displayName, clientId, onBack, onEdit, onAccessChanged }: Props) {
+export function ClientHubHeader({
+  hub,
+  displayName,
+  clientId,
+  onBack,
+  onEdit,
+  onAccessChanged,
+  onOpenSection,
+}: Props) {
   const { client, summary, counts } = hub
   const clientForAvatar = { ...client, _id: client._id || client.id || clientId, name: displayName } as Client
   const patch = usePatchClient(clientId)
@@ -119,20 +129,28 @@ export function ClientHubHeader({ hub, displayName, clientId, onBack, onEdit, on
           value={counts.obligationsOpen}
           sub="pendentes"
           alert={counts.obligationsOpen > 0}
+          onClick={() => onOpenSection?.('obligations')}
         />
         <HubKpi
           label="Documentos"
           value={counts.documentsPending}
           sub="por validar"
           alert={counts.documentsPending > 0}
+          onClick={() => onOpenSection?.('documents')}
         />
-        <HubKpi label="Tarefas abertas" value={counts.tasksOpen} sub="em curso" />
+        <HubKpi
+          label="Tarefas abertas"
+          value={counts.tasksOpen}
+          sub="em curso"
+          onClick={() => onOpenSection?.('tasks')}
+        />
         <HubKpi
           label="Mensagens"
           value={counts.unreadMessagesFromClient}
           sub="não lidas"
           alert={counts.unreadMessagesFromClient > 0}
           alertClass="text-sky-600"
+          onClick={() => onOpenSection?.('messages')}
         />
       </div>
     </header>
@@ -152,18 +170,25 @@ function HubKpi({
   sub,
   alert,
   alertClass = 'text-orange-600',
+  onClick,
 }: {
   label: string
   value: number
   sub: string
   alert?: boolean
   alertClass?: string
+  onClick?: () => void
 }) {
   return (
-    <div className="cb-client-hub-kpi">
+    <button
+      type="button"
+      className="cb-client-hub-kpi"
+      onClick={onClick}
+      aria-label={`Abrir ${label.toLowerCase()} deste cliente (${value} ${sub})`}
+    >
       <p className="cb-client-hub-kpi-label">{label}</p>
       <p className={cn('cb-client-hub-kpi-val', alert && alertClass)}>{value}</p>
       <p className="cb-client-hub-kpi-sub">{sub}</p>
-    </div>
+    </button>
   )
 }
