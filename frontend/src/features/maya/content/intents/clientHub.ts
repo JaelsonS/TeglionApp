@@ -94,12 +94,12 @@ export const CLIENT_HUB_INTENTS = [
     title: 'O que são os Acessos oficiais?',
     shortDescription: 'senhas AT e Segurança Social',
     answer:
-      'A tab Acessos (Acessos oficiais) na ficha guarda utilizador e senha dos portais do Estado deste cliente: AT / Portal das Finanças, Segurança Social, ViaCTT, IAPMEI e Relatório Único, mais um portal extra se precisar. As senhas não são um hash: ficam cifradas (AES-256-GCM) para a equipa as poder ler de volta. A lista nunca mostra a senha. O olho pede a palavra-passe da sua conta Teglion; a senha do portal fica visível cerca de 30 segundos e a consulta vai para a auditoria. O cliente no portal não vê este bloco. MFA opcional do dono, quando existir, entra nesta mesma confirmação — não substitui o pedido de identidade.',
+      'A tab Acessos guarda utilizador e senha dos portais do Estado desta empresa: AT, Segurança Social, ViaCTT, IAPMEI, Relatório Único, e outro com o nome que escolher. A lista é compacta: uma linha por portal. Copiar utilizador é imediato. Copiar senha (ou o olho) pede a palavra-passe da sua conta Teglion; a senha some em cerca de 30 segundos e a consulta vai para a auditoria. Editar só abre quando clica no lápis. O cliente no portal não vê este bloco.',
     steps: [
       'Abra a ficha do cliente → tab Acessos',
-      'Preencha o utilizador e a senha do portal',
-      'Clique em Guardar e confirme com a sua palavra-passe do Teglion',
-      'Para ver a senha mais tarde, use o olho e volte a confirmar a identidade',
+      'Para copiar a senha, clique no ícone de copiar e confirme a palavra-passe do Teglion',
+      'Para gravar ou mudar dados, abra o lápis, preencha e Guardar (volta a confirmar a identidade)',
+      'Outro portal: botão no fundo, indique o nome que quiser',
     ],
     deepLink: '/app/firm/clients',
     relatedIntents: ['client-hub', 'client-profile', 'client-actions'],
@@ -115,7 +115,7 @@ export const CLIENT_HUB_INTENTS = [
         id: 'hashed-password',
         title: 'A senha não aparece depois de guardar',
         answer:
-          'É normal na lista. Use o olho: o Teglion pede a sua palavra-passe e mostra a senha do portal durante cerca de 30 segundos. Não usamos hash nestas senhas — se usássemos, ninguém as podia ler de volta.',
+          'É normal na lista compacta. Use o ícone de copiar (confirma a palavra-passe do Teglion e copia de imediato) ou o olho para ver cerca de 30 segundos. Não usamos hash nestas senhas — se usássemos, ninguém as podia ler de volta.',
       },
     ],
   }),
