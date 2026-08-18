@@ -299,6 +299,7 @@ const env = {
   TURNSTILE_SECRET_KEY: String(process.env.TURNSTILE_SECRET_KEY || '').trim() || null,
   TURNSTILE_EXPECTED_HOSTNAMES: resolveTurnstileExpectedHostnames(),
 
+  LEGAL_OPERATOR_TRADE_NAME: process.env.LEGAL_OPERATOR_TRADE_NAME || null,
   LEGAL_OPERATOR_NAME: process.env.LEGAL_OPERATOR_NAME || null,
   LEGAL_OPERATOR_NIF: process.env.LEGAL_OPERATOR_NIF || null,
   LEGAL_OPERATOR_EMAIL: process.env.LEGAL_OPERATOR_EMAIL || null,

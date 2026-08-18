@@ -12,6 +12,7 @@ const {
     notifyFirmMemberInvite,
 } = require('../../services/notifications/contabil-notifications.service');
 const { assertActorCanAssignRole } = require('./team.service');
+const entitlements = require('../entitlements/entitlements.service');
 
 const INVITE_TTL_DAYS = 14;
 
@@ -100,6 +101,9 @@ async function createStaffInvite({ firmId, actor, payload, req }) {
             emailConfirmedAt: null,
         });
     } else {
+        const seats = await firmUsersRepository.listFirmUsers(firmId, { activeOnly: false });
+        const usedSeats = seats.filter((u) => u.isActive || u.inviteStatus === 'PENDING').length;
+        await entitlements.assertWithinLimit(firmId, 'max_staff', usedSeats);
         member = await firmUsersRepository.createFirmMember({
             firmId,
             email,
