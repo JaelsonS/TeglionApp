@@ -18,6 +18,7 @@ import {
   formatEurInputFromCents,
   maskEurInput,
   parseEurToCents,
+  periodToDateInput,
   PRIORITY_LABELS,
   TYPE_LABELS,
 } from './obligationOperational'
@@ -73,15 +74,12 @@ export function ObligationCreatePanel({
     if (!tpl) return
     setType(tpl.type)
     setPriority(tpl.defaultPriority)
-    setPeriod(currentPeriod())
-    setDueDate(dueDateFromPeriod(period, tpl.defaultDueDay))
     if (tpl.defaultAmountCents != null) setAmountEur(formatEurInputFromCents(tpl.defaultAmountCents))
     if (tpl.defaultTaskDescription) setAccountantNotes(tpl.defaultTaskDescription)
-  }, [tpl, period])
-
-  useEffect(() => {
-    if (!dueDate && period) setDueDate(dueDateFromPeriod(period, tpl?.defaultDueDay ?? 20))
-  }, [period, dueDate, tpl?.defaultDueDay])
+    setDueDate((prev) => prev || dueDateFromPeriod(period, tpl.defaultDueDay))
+    // Só ao escolher o modelo: período e prazo ficam independentes a partir daí.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [templateId])
 
   if (!open) return null
 
@@ -196,25 +194,27 @@ export function ObligationCreatePanel({
             </label>
           ) : null}
           <label className="space-y-1 text-sm">
-            <span className="font-medium">Período (dia, mês e ano)</span>
+            <span className="font-medium">Período</span>
             <Input
               type="date"
-              value={dueDate || (period.length === 7 ? `${period}-01` : period)}
+              value={periodToDateInput(period)}
               onChange={(e: FormChangeEvent) => {
                 const full = e.target.value
                 if (!full) return
-                setPeriod(full.slice(0, 7))
-                setDueDate(full)
+                setPeriod(full)
               }}
               required
             />
             <p className="text-xs text-muted-foreground">
-              Escolha o dia concreto. O vencimento usa esta data; pode ainda ajustar o prazo ao lado.
+              Mês (e dia) a que a obrigação se refere. Não altera o prazo.
             </p>
           </label>
           <label className="space-y-1 text-sm">
             <span className="font-medium">Prazo</span>
             <Input type="date" value={dueDate} onChange={(e: FormChangeEvent) => setDueDate(e.target.value)} required />
+            <p className="text-xs text-muted-foreground">
+              Data limite de entrega. Independente do período.
+            </p>
           </label>
           <label className="space-y-1 text-sm">
             <span className="font-medium">Valor (EUR)</span>

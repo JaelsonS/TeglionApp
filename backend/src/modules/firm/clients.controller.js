@@ -92,6 +92,8 @@ exports.importSpreadsheet = async (req, res, next) => {
       firmId,
       actorId: String(req.user.id),
       currentPassword: req.body?.currentPassword,
+      stepUpToken: req.body?.stepUpToken,
+      rememberSession: req.body?.rememberSession === true || req.body?.rememberSession === 'true',
       buffer: req.file?.buffer,
     });
     void securityAudit.recordFirmMutation({

@@ -33,19 +33,16 @@ async function requireClient(firmId, clientId) {
 
 function toPublicItem(summary, extras = {}) {
   const meta = portalMeta(summary.portalKey);
-  const title =
-    summary.portalKey === 'CUSTOM'
-      ? summary.label || meta.title
-      : meta.title;
+  const customName = summary.label ? String(summary.label).trim() : '';
   return {
     id: summary.id,
     portalKey: summary.portalKey,
-    title,
-    shortTitle: meta.shortTitle,
+    title: customName || meta.title,
+    shortTitle: customName || meta.shortTitle,
     description: meta.description,
     url: meta.url,
     usernameLabel: meta.usernameLabel,
-    label: summary.label,
+    label: customName || null,
     username: summary.username,
     hasPassword: Boolean(summary.hasPassword),
     updatedAt: summary.updatedAt || null,
@@ -85,20 +82,41 @@ function mergeCatalog(rows) {
 
 async function listOfficialAccesses({ firmId, clientId, actorId }) {
   await requireClient(firmId, clientId);
-  const [rows, hasLocalPassword] = await Promise.all([
+  const [rows, unlock] = await Promise.all([
     accessesRepository.listByClient(firmId, clientId),
-    stepUp.actorHasLocalPassword({ firmId, userId: actorId }),
+    stepUp.getUnlockState({ firmId, userId: actorId }),
   ]);
 
   return {
     items: mergeCatalog(rows),
     security: {
-      hasLocalPassword,
-      stepUpMethods: ['password'],
+      hasLocalPassword: unlock.hasLocalPassword,
+      hasVaultPassword: unlock.hasVaultPassword,
+      canUnlock: unlock.canUnlock,
+      stepUpMethods: ['vault-password'],
       mfaRequired: false,
       revealTtlSeconds: REVEAL_TTL_SECONDS,
     },
   };
+}
+
+function withStepUp(payload, unlock) {
+  if (!unlock?.stepUpToken) return payload;
+  return {
+    ...payload,
+    stepUpToken: unlock.stepUpToken,
+    stepUpExpiresAt: unlock.stepUpExpiresAt || null,
+  };
+}
+
+async function unlockActor({ firmId, actorId, currentPassword, stepUpToken, rememberSession }) {
+  return stepUp.verifyStaffPassword({
+    firmId,
+    userId: actorId,
+    currentPassword,
+    stepUpToken,
+    rememberSession: Boolean(rememberSession),
+  });
 }
 
 async function upsertOfficialAccess({
@@ -107,6 +125,8 @@ async function upsertOfficialAccess({
   actorId,
   actorRole,
   currentPassword,
+  stepUpToken,
+  rememberSession,
   portalKey,
   accessId,
   label,
@@ -115,16 +135,22 @@ async function upsertOfficialAccess({
   req,
 }) {
   await requireClient(firmId, clientId);
-  const actor = await stepUp.verifyStaffPassword({ firmId, userId: actorId, currentPassword });
+  const unlock = await unlockActor({
+    firmId,
+    actorId,
+    currentPassword,
+    stepUpToken,
+    rememberSession,
+  });
+  const actor = unlock.actor;
 
   if (!isPortalKey(portalKey)) {
     throw new AppError('Portal inválido.', 400, { code: 'INVALID_PORTAL' });
   }
 
   const nextUsername = username !== undefined ? trimOrNull(username, MAX_USERNAME_LENGTH) : undefined;
-  const nextLabel =
-    portalKey === 'CUSTOM' ? trimOrNull(label, MAX_LABEL_LENGTH) : null;
-  if (portalKey === 'CUSTOM' && !nextLabel && !accessId) {
+  const nextLabel = label !== undefined ? trimOrNull(label, MAX_LABEL_LENGTH) : undefined;
+  if (portalKey === 'CUSTOM' && !nextLabel && (!accessId || label !== undefined)) {
     throw new AppError('Indique o nome deste portal.', 400, { code: 'LABEL_REQUIRED' });
   }
 
@@ -146,8 +172,8 @@ async function upsertOfficialAccess({
     existing = await accessesRepository.findByPortalKey(firmId, clientId, portalKey);
   }
 
-  if (!existing && nextPassword === undefined) {
-    throw new AppError('Indique a palavra-passe deste portal para gravar o acesso.', 400, {
+  if (!existing && nextPassword === undefined && !nextUsername && !nextLabel) {
+    throw new AppError('Indique o nome, o utilizador ou a palavra-passe deste portal.', 400, {
       code: 'PASSWORD_REQUIRED',
     });
   }
@@ -164,7 +190,7 @@ async function upsertOfficialAccess({
     updatedBy: actorId,
   };
   if (nextUsername !== undefined) patch.username = nextUsername;
-  if (portalKey === 'CUSTOM' && nextLabel !== undefined) patch.label = nextLabel;
+  if (nextLabel !== undefined) patch.label = nextLabel;
   if (nextPassword !== undefined) patch.password = nextPassword;
 
   let saved;
@@ -175,7 +201,7 @@ async function upsertOfficialAccess({
       firmId,
       clientId,
       portalKey,
-      label: nextLabel,
+      label: nextLabel || null,
       username: nextUsername || null,
       password: nextPassword,
       updatedBy: actorId,
@@ -195,7 +221,7 @@ async function upsertOfficialAccess({
     req,
   });
 
-  return { item: toPublicItem(saved) };
+  return withStepUp({ item: toPublicItem(saved) }, unlock);
 }
 
 async function revealOfficialAccess({
@@ -205,10 +231,19 @@ async function revealOfficialAccess({
   actorId,
   actorRole,
   currentPassword,
+  stepUpToken,
+  rememberSession,
   req,
 }) {
   await requireClient(firmId, clientId);
-  const actor = await stepUp.verifyStaffPassword({ firmId, userId: actorId, currentPassword });
+  const unlock = await unlockActor({
+    firmId,
+    actorId,
+    currentPassword,
+    stepUpToken,
+    rememberSession,
+  });
+  const actor = unlock.actor;
   const row = await accessesRepository.findById(firmId, clientId, accessId);
   if (!row) throw new AppError('Acesso não encontrado.', 404, { code: 'ACCESS_NOT_FOUND' });
   if (!row.secret_enc) {
@@ -226,13 +261,16 @@ async function revealOfficialAccess({
     req,
   });
 
-  return {
-    accessId: row.id,
-    portalKey: row.portal_key,
-    username: row.username || null,
-    revealedValue,
-    revealTtlSeconds: REVEAL_TTL_SECONDS,
-  };
+  return withStepUp(
+    {
+      accessId: row.id,
+      portalKey: row.portal_key,
+      username: row.username || null,
+      revealedValue,
+      revealTtlSeconds: REVEAL_TTL_SECONDS,
+    },
+    unlock,
+  );
 }
 
 async function removeOfficialAccess({
@@ -242,10 +280,19 @@ async function removeOfficialAccess({
   actorId,
   actorRole,
   currentPassword,
+  stepUpToken,
+  rememberSession,
   req,
 }) {
   await requireClient(firmId, clientId);
-  const actor = await stepUp.verifyStaffPassword({ firmId, userId: actorId, currentPassword });
+  const unlock = await unlockActor({
+    firmId,
+    actorId,
+    currentPassword,
+    stepUpToken,
+    rememberSession,
+  });
+  const actor = unlock.actor;
   const row = await accessesRepository.findById(firmId, clientId, accessId);
   if (!row) throw new AppError('Acesso não encontrado.', 404, { code: 'ACCESS_NOT_FOUND' });
 
@@ -260,7 +307,7 @@ async function removeOfficialAccess({
     req,
   });
 
-  return { removed: true, accessId };
+  return withStepUp({ removed: true, accessId }, unlock);
 }
 
 module.exports = {

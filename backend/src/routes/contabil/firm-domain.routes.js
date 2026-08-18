@@ -259,6 +259,15 @@ router.post(
   firmSettingsController.changePassword,
 );
 router.post(
+  '/firm/vault-password',
+  requirePermission(PERMISSIONS.FIRM_READ),
+  [
+    body('newPassword').isString().isLength({ min: 10, max: 200 }),
+    body('currentPassword').optional({ values: 'falsy' }).isString().isLength({ min: 1, max: 200 }),
+  ],
+  firmSettingsController.setVaultPassword,
+);
+router.post(
   '/firm/close',
   requireFirmOwner,
   [
@@ -412,7 +421,9 @@ router.put(
   requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
   officialAccessStepUpLimiter,
   [
-    body('currentPassword').isString().isLength({ min: 1, max: 200 }),
+    body('currentPassword').optional({ values: 'falsy' }).isString().isLength({ min: 1, max: 200 }),
+    body('stepUpToken').optional({ values: 'falsy' }).isString().isLength({ min: 20, max: 4000 }),
+    body('rememberSession').optional().isBoolean(),
     body('portalKey').isString().isLength({ min: 2, max: 40 }),
     body('accessId').optional({ nullable: true }).isUUID(),
     body('username').optional({ nullable: true }).isString().isLength({ max: 200 }),
@@ -425,14 +436,22 @@ router.post(
   '/clients/:id/official-accesses/:accessId/reveal',
   requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
   officialAccessStepUpLimiter,
-  [body('currentPassword').isString().isLength({ min: 1, max: 200 })],
+  [
+    body('currentPassword').optional({ values: 'falsy' }).isString().isLength({ min: 1, max: 200 }),
+    body('stepUpToken').optional({ values: 'falsy' }).isString().isLength({ min: 20, max: 4000 }),
+    body('rememberSession').optional().isBoolean(),
+  ],
   officialAccessesController.reveal,
 );
 router.post(
   '/clients/:id/official-accesses/:accessId/remove',
   requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
   officialAccessStepUpLimiter,
-  [body('currentPassword').isString().isLength({ min: 1, max: 200 })],
+  [
+    body('currentPassword').optional({ values: 'falsy' }).isString().isLength({ min: 1, max: 200 }),
+    body('stepUpToken').optional({ values: 'falsy' }).isString().isLength({ min: 20, max: 4000 }),
+    body('rememberSession').optional().isBoolean(),
+  ],
   officialAccessesController.remove,
 );
 router.get(

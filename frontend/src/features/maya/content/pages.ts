@@ -142,7 +142,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     search: { key: 'section', value: 'accesses' },
     where: 'Acessos oficiais deste cliente',
     summary:
-      'Está nas senhas dos portais oficiais desta empresa (AT, Segurança Social, ViaCTT, IAPMEI, Relatório Único). Guardar ou ver uma senha pede a sua palavra-passe do Teglion. O cliente no portal não vê este bloco.',
+      'Está nas senhas dos portais desta empresa. Os nomes AT, SS, ViaCTT, IAPMEI e RU são sugestões e podem ser alterados. Guardar ou ver uma senha pede a palavra-passe dos Acessos oficiais — única daquele campo. O cliente no portal não vê este bloco.',
     audience: 'Equipa do escritório que trata desta empresa nos portais do Estado',
     goal: 'Gravar ou consultar um acesso oficial com confirmação de identidade.',
     firstTimeHint:

@@ -4,7 +4,13 @@ import { Copy, ExternalLink, Eye, EyeOff, KeyRound, Pencil, Plus, Shield, Trash2
 import { toast } from 'sonner'
 
 import { StepUpPasswordDialog } from '@/features/firm/client-hub/StepUpPasswordDialog'
+import { VaultPasswordSetupForm } from '@/features/firm/client-hub/VaultPasswordSetupForm'
 import type { OfficialAccessItem } from '@/features/firm/client-hub/officialAccesses.types'
+import {
+  clearVaultStepUpToken,
+  persistVaultStepUpFromResponse,
+  vaultUnlockPayload,
+} from '@/features/firm/client-hub/vaultStepUpSession'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { PasswordInput } from '@/shared/components/ui/password-input'
@@ -15,6 +21,7 @@ import {
   useRevealOfficialAccess,
   useUpsertOfficialAccess,
 } from '@/shared/hooks/queries/useOfficialAccesses'
+import { useAuth } from '@/shared/hooks/useAuth'
 import { cn } from '@/shared/lib/utils'
 import { getErrorMessage } from '@/shared/utils/errors'
 
@@ -35,8 +42,12 @@ function emptyDraft(item: OfficialAccessItem): Draft {
   return {
     username: item.username || '',
     password: '',
-    label: item.label || '',
+    label: item.label || item.shortTitle || item.title || '',
   }
+}
+
+function displayPortalName(item: OfficialAccessItem) {
+  return item.label || item.shortTitle || item.title
 }
 
 async function copyToClipboard(text: string) {
@@ -100,15 +111,15 @@ function PortalRow({
 }) {
   const [draft, setDraft] = useState(() => emptyDraft(item))
   const fieldId = item.id || item.portalKey
-  const displayName = item.portalKey === 'CUSTOM' ? item.label || item.title : item.shortTitle || item.title
+  const displayName = displayPortalName(item)
 
   useEffect(() => {
     setDraft(emptyDraft(item))
-  }, [item.id, item.username, item.hasPassword, item.updatedAt, item.label])
+  }, [item.id, item.username, item.hasPassword, item.updatedAt, item.label, item.shortTitle, item.title])
 
   const dirty = useMemo(() => {
     const usernameChanged = draft.username.trim() !== (item.username || '')
-    const labelChanged = item.portalKey === 'CUSTOM' && draft.label.trim() !== (item.label || '')
+    const labelChanged = draft.label.trim() !== displayPortalName(item)
     return usernameChanged || Boolean(draft.password) || labelChanged
   }, [draft, item])
 
@@ -187,18 +198,21 @@ function PortalRow({
 
       {expanded ? (
         <div className="space-y-3 border-t border-border/50 px-3 py-3 sm:px-4">
-          {item.portalKey === 'CUSTOM' ? (
-            <FormField label="Nome do portal" htmlFor={`oa-label-${fieldId}`}>
-              <Input
-                id={`oa-label-${fieldId}`}
-                value={draft.label}
-                onChange={(e: FormChangeEvent) => setDraft((d) => ({ ...d, label: e.target.value }))}
-                disabled={disabled}
-                maxLength={80}
-                autoComplete="off"
-              />
-            </FormField>
-          ) : null}
+          <FormField
+            label="Nome do portal"
+            hint="Pode mudar se este cliente não usa AT, SS, ViaCTT, IAPMEI ou RU."
+            htmlFor={`oa-label-${fieldId}`}
+          >
+            <Input
+              id={`oa-label-${fieldId}`}
+              value={draft.label}
+              onChange={(e: FormChangeEvent) => setDraft((d) => ({ ...d, label: e.target.value }))}
+              disabled={disabled}
+              maxLength={80}
+              autoComplete="off"
+              placeholder={item.shortTitle || item.title}
+            />
+          </FormField>
           <FormField label={item.usernameLabel} htmlFor={`oa-user-${fieldId}`}>
             <Input
               id={`oa-user-${fieldId}`}
@@ -248,6 +262,7 @@ function PortalRow({
 }
 
 export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string }) {
+  const { user } = useAuth()
   const { data, isLoading, isError, refetch } = useOfficialAccesses(clientId)
   const upsert = useUpsertOfficialAccess(clientId)
   const reveal = useRevealOfficialAccess(clientId)
@@ -266,7 +281,9 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
   const items = data?.items || []
   const security = data?.security
   const revealTtl = security?.revealTtlSeconds || 30
-  const disabled = !security?.hasLocalPassword || upsert.isPending || remove.isPending || reveal.isPending
+  const canUnlock = Boolean(security?.canUnlock ?? security?.hasLocalPassword ?? security?.hasVaultPassword)
+  const disabled = !canUnlock || upsert.isPending || remove.isPending || reveal.isPending
+  const userId = user?.id
 
   useEffect(() => {
     if (!revealed) {
@@ -284,14 +301,84 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
     }
   }, [revealed, revealTtl])
 
-  function requestSave(item: OfficialAccessItem, draft: Draft) {
-    if (!item.id && !draft.password.trim()) {
-      toast.error('Indique a palavra-passe deste portal para gravar.')
-      return
+  function persistUnlock(data: { stepUpToken?: string; stepUpExpiresAt?: string | null } | undefined, remember: boolean) {
+    persistVaultStepUpFromResponse(userId, data, remember)
+  }
+
+  async function runUnlocked(
+    intent: StepUpIntent,
+    creds: { currentPassword?: string; stepUpToken?: string; rememberSession?: boolean },
+    draft: Draft | null,
+  ) {
+    if (intent.kind === 'save' && draft) {
+      const result = await upsert.mutateAsync({
+        ...creds,
+        portalKey: intent.item.portalKey,
+        accessId: intent.item.id,
+        username: draft.username,
+        password: draft.password || undefined,
+        label: draft.label,
+      })
+      persistUnlock(result, creds.rememberSession !== false)
+      setExpandedKey(null)
+    } else if (intent.kind === 'create-custom') {
+      const result = await upsert.mutateAsync({
+        ...creds,
+        portalKey: 'CUSTOM',
+        label: customLabel,
+        username: customUsername,
+        password: customPassword,
+      })
+      persistUnlock(result, creds.rememberSession !== false)
+      setCustomLabel('')
+      setCustomUsername('')
+      setCustomPassword('')
+      setCustomOpen(false)
+    } else if ((intent.kind === 'reveal' || intent.kind === 'copy') && intent.item.id) {
+      const result = await reveal.mutateAsync({
+        accessId: intent.item.id,
+        ...creds,
+      })
+      persistUnlock(result, creds.rememberSession !== false)
+      await applyRevealed(intent.item.id, result.revealedValue, intent.kind === 'copy')
+    } else if (intent.kind === 'remove' && intent.item.id) {
+      const result = await remove.mutateAsync({ accessId: intent.item.id, ...creds })
+      persistUnlock(result, creds.rememberSession !== false)
+      if (revealed?.accessId === intent.item.id) setRevealed(null)
+      setExpandedKey(null)
+    }
+  }
+
+  async function requestUnlock(intent: StepUpIntent, draft: Draft | null = null) {
+    setStepUpError(null)
+    const silent = vaultUnlockPayload(userId)
+    if (silent.stepUpToken) {
+      try {
+        await runUnlocked(intent, silent, draft)
+        setStepUp(null)
+        setPendingDraft(null)
+        return
+      } catch {
+        clearVaultStepUpToken(userId)
+      }
     }
     setPendingDraft(draft)
-    setStepUpError(null)
-    setStepUp({ kind: 'save', item })
+    setStepUp(intent)
+  }
+
+  function requestSave(item: OfficialAccessItem, draft: Draft) {
+    const hasName = Boolean(draft.label.trim())
+    const hasUser = Boolean(draft.username.trim())
+    const hasPass = Boolean(draft.password.trim())
+    if (!item.id && !hasPass && !hasUser && !hasName) {
+      toast.error('Indique o nome, o utilizador ou a palavra-passe deste portal para gravar.')
+      return
+    }
+    if (item.portalKey === 'CUSTOM' && !hasName) {
+      toast.error('Indique o nome deste portal.')
+      return
+    }
+    void requestUnlock({ kind: 'save', item }, draft)
   }
 
   async function applyRevealed(accessId: string, value: string, copy: boolean) {
@@ -305,46 +392,15 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
     }
   }
 
-  async function runStepUp(currentPassword: string) {
+  async function runStepUp(currentPassword: string, options: { rememberSession: boolean }) {
     if (!stepUp) return
     try {
-      if (stepUp.kind === 'save' && pendingDraft) {
-        await upsert.mutateAsync({
-          currentPassword,
-          portalKey: stepUp.item.portalKey,
-          accessId: stepUp.item.id,
-          username: pendingDraft.username,
-          password: pendingDraft.password || undefined,
-          label: stepUp.item.portalKey === 'CUSTOM' ? pendingDraft.label : undefined,
-        })
-        setExpandedKey(null)
-      } else if (stepUp.kind === 'create-custom') {
-        await upsert.mutateAsync({
-          currentPassword,
-          portalKey: 'CUSTOM',
-          label: customLabel,
-          username: customUsername,
-          password: customPassword,
-        })
-        setCustomLabel('')
-        setCustomUsername('')
-        setCustomPassword('')
-        setCustomOpen(false)
-      } else if ((stepUp.kind === 'reveal' || stepUp.kind === 'copy') && stepUp.item.id) {
-        const result = await reveal.mutateAsync({
-          accessId: stepUp.item.id,
-          currentPassword,
-        })
-        await applyRevealed(stepUp.item.id, result.revealedValue, stepUp.kind === 'copy')
-      } else if (stepUp.kind === 'remove' && stepUp.item.id) {
-        await remove.mutateAsync({ accessId: stepUp.item.id, currentPassword })
-        if (revealed?.accessId === stepUp.item.id) setRevealed(null)
-        setExpandedKey(null)
-      }
+      await runUnlocked(stepUp, { currentPassword, rememberSession: options.rememberSession }, pendingDraft)
       setStepUp(null)
       setPendingDraft(null)
       setStepUpError(null)
     } catch (err) {
+      if (!options.rememberSession) clearVaultStepUpToken(userId)
       setStepUpError(getErrorMessage(err))
     }
   }
@@ -357,17 +413,27 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
           Acessos oficiais
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Senhas dos portais desta empresa. Só a equipa vê. Copiar senha pede a palavra-passe do Teglion.
+          Senhas dos portais desta empresa. Só a equipa vê. Os nomes AT, SS, ViaCTT, IAPMEI e RU são
+          sugestões — pode alterá-los. Confirma-se com a palavra-passe dos Acessos oficiais.
         </p>
       </div>
 
-      {security && !security.hasLocalPassword ? (
-        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
-          <Shield className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
-          <p>
-            A sua conta não tem palavra-passe no Teglion. Sem ela não dá para confirmar a identidade ao ver ou
-            gravar senhas. Use uma conta com e-mail e palavra-passe.
+      {security && !canUnlock ? (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-950">
+          <p className="mb-2 flex items-start gap-2">
+            <Shield className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <span>
+              Crie uma palavra-passe só para este campo. Quem entra com Google também precisa dela —
+              não é a senha da conta Google.
+            </span>
           </p>
+          <VaultPasswordSetupForm
+            compact
+            userId={userId}
+            hasVaultPassword={Boolean(security.hasVaultPassword)}
+            hasLoginPassword={Boolean(security.hasLocalPassword)}
+            onUpdated={() => void refetch()}
+          />
         </div>
       ) : null}
 
@@ -396,8 +462,7 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
                 onToggle={() => setExpandedKey((current) => (current === key ? null : key))}
                 onSave={requestSave}
                 onReveal={(target) => {
-                  setStepUpError(null)
-                  setStepUp({ kind: 'reveal', item: target })
+                  void requestUnlock({ kind: 'reveal', item: target })
                 }}
                 onCopyPassword={async (target) => {
                   if (target.id && revealed?.accessId === target.id && revealed.value) {
@@ -409,13 +474,11 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
                     }
                     return
                   }
-                  setStepUpError(null)
-                  setStepUp({ kind: 'copy', item: target })
+                  void requestUnlock({ kind: 'copy', item: target })
                 }}
                 onHide={() => setRevealed(null)}
                 onRemove={(target) => {
-                  setStepUpError(null)
-                  setStepUp({ kind: 'remove', item: target })
+                  void requestUnlock({ kind: 'remove', item: target })
                 }}
               />
             )
@@ -464,8 +527,7 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
                 size="sm"
                 disabled={disabled || !customLabel.trim() || !customPassword}
                 onClick={() => {
-                  setStepUpError(null)
-                  setStepUp({ kind: 'create-custom' })
+                  void requestUnlock({ kind: 'create-custom' })
                 }}
               >
                 Guardar portal
@@ -506,8 +568,8 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
             : stepUp?.kind === 'reveal'
               ? 'A senha fica visível cerca de 30 segundos. Esta consulta fica na auditoria do escritório.'
               : stepUp?.kind === 'remove'
-                ? 'A senha cifrada deste portal é apagada. Confirme com a sua palavra-passe do Teglion.'
-                : 'Confirme a sua identidade para gravar este acesso. A senha do portal é cifrada antes de ficar guardada.'
+                ? 'A senha cifrada deste portal é apagada. Confirme com a palavra-passe dos Acessos oficiais.'
+                : 'Confirme a identidade para gravar este acesso. A senha do portal é cifrada antes de ficar guardada.'
         }
         confirmLabel={stepUp?.kind === 'remove' ? 'Remover' : stepUp?.kind === 'copy' ? 'Copiar senha' : 'Confirmar'}
         error={stepUpError}

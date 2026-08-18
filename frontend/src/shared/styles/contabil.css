@@ -864,7 +864,7 @@
   }
 
   .cb-client-hub-kpi {
-    @apply rounded-lg border border-border/70 bg-muted/15 px-3 py-2.5;
+    @apply rounded-lg border border-border/70 bg-muted/15 px-3 py-2.5 text-left transition hover:border-brand/40 hover:bg-muted/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40;
   }
 
   .cb-client-hub-kpi-label {

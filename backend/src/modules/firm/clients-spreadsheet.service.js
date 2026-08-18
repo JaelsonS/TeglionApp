@@ -259,7 +259,7 @@ function metadataFromRow(row) {
   return normalizeMetadataPatch(patch);
 }
 
-async function importCsv({ firmId, actorId, currentPassword, buffer }) {
+async function importCsv({ firmId, actorId, currentPassword, stepUpToken, rememberSession, buffer }) {
   if (!buffer || !Buffer.isBuffer(buffer)) {
     throw new AppError('Ficheiro em falta.', 400, { code: 'FILE_REQUIRED' });
   }
@@ -289,8 +289,16 @@ async function importCsv({ firmId, actorId, currentPassword, buffer }) {
     const row = rowToObject(header, cells);
     return CATALOG_PORTAL_KEYS.some((key) => filled(row[PORTAL_COLS[key].pass]));
   });
+  const report = { created: 0, updated: 0, skipped: 0, errors: [] };
+  let unlock = null;
   if (hasSecrets) {
-    await stepUp.verifyStaffPassword({ firmId, userId: actorId, currentPassword });
+    unlock = await stepUp.verifyStaffPassword({
+      firmId,
+      userId: actorId,
+      currentPassword,
+      stepUpToken,
+      rememberSession: Boolean(rememberSession),
+    });
   }
 
   const existing = await listAllClients(firmId);
@@ -301,7 +309,6 @@ async function importCsv({ firmId, actorId, currentPassword, buffer }) {
   }
 
   let activeCount = await clientsRepository.countClients(firmId, { includeInactive: false });
-  const report = { created: 0, updated: 0, skipped: 0, errors: [] };
 
   for (let i = 0; i < dataRows.length; i += 1) {
     const line = i + 2;
@@ -367,6 +374,10 @@ async function importCsv({ firmId, actorId, currentPassword, buffer }) {
     }
   }
 
+  if (unlock?.stepUpToken) {
+    report.stepUpToken = unlock.stepUpToken;
+    report.stepUpExpiresAt = unlock.stepUpExpiresAt || null;
+  }
   return report;
 }
 

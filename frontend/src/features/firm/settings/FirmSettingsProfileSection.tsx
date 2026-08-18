@@ -14,6 +14,7 @@ import { authApi } from '@/infrastructure/api'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { tryNormalizeAuthUser } from '@/shared/utils/authNormalize'
 import { PASSWORD_MIN_LENGTH, passwordPolicyMessages } from '@/shared/utils/passwordPolicy'
+import { VaultPasswordSetupForm } from '@/features/firm/client-hub/VaultPasswordSetupForm'
 
 type Props = {
   bundle: FirmSettingsBundle
@@ -21,7 +22,7 @@ type Props = {
 }
 
 export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
-  const { setUser } = useAuth()
+  const { setUser, user } = useAuth()
   const [fullName, setFullName] = useState(bundle.actor.fullName)
   const [email, setEmail] = useState(bundle.actor.email)
   const [saving, setSaving] = useState(false)
@@ -32,6 +33,7 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
   const [savingPassword, setSavingPassword] = useState(false)
 
   const hasPassword = bundle.actor.hasPassword !== false
+  const hasVaultPassword = Boolean(bundle.actor.hasVaultPassword)
   const isGoogleAccount = String(bundle.actor.ssoProvider || '').toLowerCase() === 'google' && !bundle.actor.hasPassword
 
   useEffect(() => {
@@ -248,6 +250,27 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
             </Button>
           </>
         )}
+      </section>
+
+      <section className="cb-settings-panel">
+        <div className="cb-settings-panel-hd">
+          <span className="cb-settings-panel-icon">
+            <KeyRound className="h-4 w-4" aria-hidden />
+          </span>
+          <div>
+            <h3 className="cb-settings-panel-title">Palavra-passe dos Acessos oficiais</h3>
+            <p className="cb-settings-panel-sub">
+              Única daquele campo: ver, copiar e gravar senhas dos portais. Não entra no Teglion com ela.
+              Pode optar por manter o cofre desbloqueado nesta sessão para não a digitar a cada clique.
+            </p>
+          </div>
+        </div>
+        <VaultPasswordSetupForm
+          userId={user?.id || bundle.actor.id}
+          hasVaultPassword={hasVaultPassword}
+          hasLoginPassword={hasPassword}
+          onUpdated={onUpdated}
+        />
       </section>
     </div>
   )

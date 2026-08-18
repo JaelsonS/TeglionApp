@@ -29,6 +29,27 @@ function verifyAccessToken(token) {
   return jwt.verify(token, env.JWT_ACCESS_SECRET);
 }
 
+const VAULT_STEPUP_TYP = 'vault-stepup';
+const VAULT_STEPUP_EXPIRES_IN = '8h';
+
+function signVaultStepUpToken({ id, firmId }) {
+  return jwt.sign(
+    { typ: VAULT_STEPUP_TYP, id, firmId },
+    env.JWT_ACCESS_SECRET,
+    { expiresIn: VAULT_STEPUP_EXPIRES_IN },
+  );
+}
+
+function verifyVaultStepUpToken(token) {
+  const payload = jwt.verify(token, env.JWT_ACCESS_SECRET);
+  if (!payload || payload.typ !== VAULT_STEPUP_TYP || !payload.id || !payload.firmId) {
+    const err = new Error('INVALID_VAULT_STEPUP');
+    err.name = 'JsonWebTokenError';
+    throw err;
+  }
+  return payload;
+}
+
 function isAccessTokenSignatureValid(token) {
   if (!token || typeof token !== 'string') return false;
   try {
@@ -60,4 +81,7 @@ module.exports = {
   verifyRefreshToken,
   isAccessTokenSignatureValid,
   isAccessTokenValid,
+  signVaultStepUpToken,
+  verifyVaultStepUpToken,
+  VAULT_STEPUP_TYP,
 };

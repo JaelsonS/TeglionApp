@@ -82,6 +82,8 @@ export type FirmSettingsBundle = {
     isOwner: boolean
     /** false = conta Google (ou SSO) sem palavra-passe local */
     hasPassword?: boolean
+    /** Palavra-passe exclusiva do cofre de Acessos oficiais */
+    hasVaultPassword?: boolean
     ssoProvider?: string | null
   }
   team: FirmSettingsTeamMember[]

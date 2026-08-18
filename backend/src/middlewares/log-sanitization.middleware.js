@@ -113,6 +113,10 @@ const SENSITIVE_KEYS = new Set(
   [
     'password',
     'currentPassword',
+    'vaultPassword',
+    'vault_password_hash',
+    'vaultPasswordHash',
+    'stepUpToken',
     'revealedValue',
     'secret_enc',
     'secretEnc',
