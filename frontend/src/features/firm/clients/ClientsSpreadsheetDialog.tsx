@@ -3,6 +3,10 @@ import { Download, FileSpreadsheet, Shield, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { contabilClientsApi } from '@/infrastructure/api'
+import {
+  persistVaultStepUpFromResponse,
+  vaultUnlockPayload,
+} from '@/features/firm/client-hub/vaultStepUpSession'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -14,6 +18,7 @@ import {
 } from '@/shared/components/ui/dialog'
 import { PasswordInput } from '@/shared/components/ui/password-input'
 import { FormField } from '@/shared/design-system'
+import { useAuth } from '@/shared/hooks/useAuth'
 import { getErrorMessage } from '@/shared/utils/errors'
 
 type Props = {
@@ -33,8 +38,10 @@ function triggerDownload(blob: Blob, filename: string) {
 }
 
 export function ClientsSpreadsheetDialog({ open, onOpenChange, onImported }: Props) {
+  const { user } = useAuth()
   const [file, setFile] = useState<File | null>(null)
   const [currentPassword, setCurrentPassword] = useState('')
+  const [rememberSession, setRememberSession] = useState(true)
   const [busy, setBusy] = useState<'export' | 'template' | 'import' | null>(null)
 
   const reset = () => {
@@ -63,7 +70,9 @@ export function ClientsSpreadsheetDialog({ open, onOpenChange, onImported }: Pro
     }
     setBusy('import')
     try {
-      const report = await contabilClientsApi.importClientsCsv(file, currentPassword || undefined)
+      const unlock = vaultUnlockPayload(user?.id, currentPassword.trim() || undefined, rememberSession)
+      const report = await contabilClientsApi.importClientsCsv(file, unlock)
+      persistVaultStepUpFromResponse(user?.id, report, rememberSession)
       const extra = report.errors.slice(0, 4).map((e) => `Linha ${e.line}: ${e.message}`)
       toast.success(
         `Importação concluída · ${report.created} criados · ${report.updated} actualizados · ${report.skipped} ignorados`,
@@ -133,7 +142,7 @@ export function ClientsSpreadsheetDialog({ open, onOpenChange, onImported }: Pro
               onChange={(e: ChangeEvent<HTMLInputElement>) => setFile(e.target.files?.[0] || null)}
             />
             <FormField
-              label="Palavra-passe do Teglion (só se o CSV tiver senhas de portais)"
+              label="Palavra-passe dos Acessos oficiais (só se o CSV tiver senhas de portais)"
               htmlFor="clients-csv-step-up"
             >
               <PasswordInput
@@ -141,13 +150,23 @@ export function ClientsSpreadsheetDialog({ open, onOpenChange, onImported }: Pro
                 autoComplete="current-password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Opcional se as colunas de senha estiverem vazias"
+                placeholder="Opcional se as colunas de senha estiverem vazias, ou se o cofre já estiver desbloqueado nesta sessão"
               />
             </FormField>
+            <label className="flex items-start gap-2 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={rememberSession}
+                onChange={(e) => setRememberSession(e.target.checked)}
+              />
+              <span>Manter o cofre desbloqueado nesta sessão (não guarda a palavra-passe no browser).</span>
+            </label>
             <p className="flex items-start gap-2 text-xs text-muted-foreground">
               <Shield className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
-              Ficheiros .xlsx, .xls e macros são recusados. Não pedimos a senha dos portais do
-              Estado — só a da sua conta Teglion, quando o CSV traz senhas novas.
+              Ficheiros .xlsx, .xls e macros são recusados. Pedimos a palavra-passe dos Acessos
+              oficiais — única daquele campo — quando o CSV traz senhas novas. Quem entra com Google
+              também a cria em Definições → O seu perfil.
             </p>
           </div>
         </div>

@@ -29,6 +29,17 @@ export const firmSettingsApi = {
   changePassword: (payload: { currentPassword: string; newPassword: string }) =>
     api.post('/contabil/firm/profile/password', payload).then((r) => r.data as { updated: boolean }),
 
+  setVaultPassword: (payload: { newPassword: string; currentPassword?: string }) =>
+    api.post('/contabil/firm/vault-password', payload).then(
+      (r) =>
+        r.data as {
+          updated: boolean
+          hasVaultPassword: boolean
+          stepUpToken?: string
+          stepUpExpiresAt?: string | null
+        },
+    ),
+
   closeAccount: (payload: { confirmName: string; npsScore: number; npsReason?: string | null; npsComment?: string | null }) =>
     api.post('/contabil/firm/close', payload).then((r) => r.data as { closed: boolean; message: string }),
 }

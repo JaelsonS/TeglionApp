@@ -15,6 +15,8 @@ import { toast } from 'sonner'
 import {
   TYPE_LABELS,
   displayObligationTitle,
+  dueDateToDateInput,
+  periodToDateInput,
   type OperationalLane,
 } from '@/features/firm/obligations/obligationOperational'
 import { ViewTrackingBadge, type ViewStats } from '@/shared/components/contabil/ViewTrackingBadge'
@@ -87,8 +89,10 @@ export function FirmObligationDetailPanel({
   const [obligationDocs, setObligationDocs] = useState<
     { id: string; title?: string; category?: string; uploadedByRole?: string }[]
   >([])
-  const [periodDraft, setPeriodDraft] = useState(String(obligation.period || '').slice(0, 7))
+  const [periodDraft, setPeriodDraft] = useState(periodToDateInput(String(obligation.period || '')))
+  const [dueDateDraft, setDueDateDraft] = useState(dueDateToDateInput(String(obligation.dueDate || '')))
   const [savingPeriod, setSavingPeriod] = useState(false)
+  const [savingDueDate, setSavingDueDate] = useState(false)
 
   const lane = (obligation.operationalLane || 'upcoming') as OperationalLane
   const laneBadge = LANE_BADGE[lane] ?? LANE_BADGE.upcoming
@@ -165,16 +169,19 @@ export function FirmObligationDetailPanel({
   }
 
   useEffect(() => {
-    setPeriodDraft(String(obligation.period || '').slice(0, 7))
-  }, [obligation._id, obligation.period])
+    setPeriodDraft(periodToDateInput(String(obligation.period || '')))
+    setDueDateDraft(dueDateToDateInput(String(obligation.dueDate || '')))
+  }, [obligation._id, obligation.period, obligation.dueDate])
 
   const savePeriod = async () => {
     const next = String(periodDraft || '').trim()
-    if (!/^\d{4}-\d{2}$/.test(next)) {
-      toast.error('Período inválido', { description: 'Use o formato AAAA-MM (ex.: 2026-08).' })
+    if (!/^\d{4}-\d{2}(-\d{2})?$/.test(next)) {
+      toast.error('Período inválido', { description: 'Escolha o dia, o mês e o ano.' })
       return
     }
-    if (next === String(obligation.period || '').slice(0, 7)) return
+    const stored = String(obligation.period || '').trim()
+    if (next === stored) return
+    if (/^\d{4}-\d{2}$/.test(stored) && next === `${stored}-01`) return
     setSavingPeriod(true)
     try {
       await contabilObligationsApi.update(obligation._id, { period: next })
@@ -182,9 +189,29 @@ export function FirmObligationDetailPanel({
       onUpdated()
     } catch (err) {
       toast.error('Não foi possível actualizar o período', { description: getErrorMessage(err) })
-      setPeriodDraft(String(obligation.period || '').slice(0, 7))
+      setPeriodDraft(periodToDateInput(String(obligation.period || '')))
     } finally {
       setSavingPeriod(false)
+    }
+  }
+
+  const saveDueDate = async () => {
+    const next = String(dueDateDraft || '').trim()
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(next)) {
+      toast.error('Prazo inválido', { description: 'Escolha o dia, o mês e o ano.' })
+      return
+    }
+    if (next === dueDateToDateInput(String(obligation.dueDate || ''))) return
+    setSavingDueDate(true)
+    try {
+      await contabilObligationsApi.update(obligation._id, { dueDate: next })
+      toast.success('Prazo actualizado')
+      onUpdated()
+    } catch (err) {
+      toast.error('Não foi possível actualizar o prazo', { description: getErrorMessage(err) })
+      setDueDateDraft(dueDateToDateInput(String(obligation.dueDate || '')))
+    } finally {
+      setSavingDueDate(false)
     }
   }
 
@@ -276,8 +303,8 @@ export function FirmObligationDetailPanel({
                 <input
                   type="date"
                   className="cb-ob-meta-val h-8 w-full max-w-[11rem] rounded-md border border-input bg-background px-2 text-sm"
-                  value={periodDraft.length === 7 ? `${periodDraft}-01` : periodDraft}
-                  onChange={(e) => setPeriodDraft(e.target.value.slice(0, 7))}
+                  value={periodDraft}
+                  onChange={(e) => setPeriodDraft(e.target.value)}
                   onBlur={() => void savePeriod()}
                   disabled={savingPeriod || isDelivered}
                   aria-label="Período da obrigação"
@@ -286,10 +313,19 @@ export function FirmObligationDetailPanel({
               </div>
             </div>
             <div className="cb-ob-meta-cell">
-              <p className="cb-ob-meta-label">Prazo legal</p>
-              <p className="cb-ob-meta-val">
-                {obligation.dueDate ? formatPtDate(obligation.dueDate, 'date') : '—'}
-              </p>
+              <p className="cb-ob-meta-label">Prazo</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="date"
+                  className="cb-ob-meta-val h-8 w-full max-w-[11rem] rounded-md border border-input bg-background px-2 text-sm"
+                  value={dueDateDraft}
+                  onChange={(e) => setDueDateDraft(e.target.value)}
+                  onBlur={() => void saveDueDate()}
+                  disabled={savingDueDate || isDelivered}
+                  aria-label="Prazo da obrigação"
+                />
+                {savingDueDate ? <span className="text-[11px] text-muted-foreground">A guardar…</span> : null}
+              </div>
             </div>
             <div className="cb-ob-meta-cell">
               <p className="cb-ob-meta-label">Valor</p>

@@ -44,6 +44,8 @@ exports.upsert = async (req, res, next) => {
       actorId,
       actorRole,
       currentPassword: req.body?.currentPassword,
+      stepUpToken: req.body?.stepUpToken,
+      rememberSession: req.body?.rememberSession === true,
       portalKey: req.body?.portalKey,
       accessId: req.body?.accessId ? parseEntityId(req.body.accessId, 'accessId') : null,
       label: req.body?.label,
@@ -71,6 +73,8 @@ exports.reveal = async (req, res, next) => {
       actorId,
       actorRole,
       currentPassword: req.body?.currentPassword,
+      stepUpToken: req.body?.stepUpToken,
+      rememberSession: req.body?.rememberSession === true,
       req,
     });
     return res.status(200).json(data);
@@ -93,6 +97,8 @@ exports.remove = async (req, res, next) => {
       actorId,
       actorRole,
       currentPassword: req.body?.currentPassword,
+      stepUpToken: req.body?.stepUpToken,
+      rememberSession: req.body?.rememberSession === true,
       req,
     });
     return res.status(200).json(data);

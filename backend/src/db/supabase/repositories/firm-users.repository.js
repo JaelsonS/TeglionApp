@@ -165,6 +165,7 @@ async function updateFirmMember(firmId, userId, patch) {
   if (patch.inviteStatus !== undefined) row.invite_status = patch.inviteStatus;
   if (patch.isActive !== undefined) row.is_active = Boolean(patch.isActive);
   if (patch.passwordHash !== undefined) row.password_hash = patch.passwordHash;
+  if (patch.vaultPasswordHash !== undefined) row.vault_password_hash = patch.vaultPasswordHash;
   if (patch.emailConfirmedAt !== undefined) row.email_confirmed_at = patch.emailConfirmedAt;
   if (patch.permissionsOverride !== undefined) row.permissions_override = patch.permissionsOverride;
 

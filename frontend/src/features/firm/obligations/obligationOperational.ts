@@ -112,6 +112,21 @@ export function currentPeriod(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 }
 
+/** Valor para `<input type="date">` a partir do período (AAAA-MM ou AAAA-MM-DD). */
+export function periodToDateInput(period: string): string {
+  const value = String(period || '').trim()
+  if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10)
+  if (/^\d{4}-\d{2}$/.test(value)) return `${value}-01`
+  return ''
+}
+
+/** Valor para `<input type="date">` a partir do prazo (ISO ou AAAA-MM-DD). */
+export function dueDateToDateInput(dueDate: string): string {
+  const value = String(dueDate || '').trim()
+  if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10)
+  return ''
+}
+
 export function dueDateFromPeriod(period: string, dueDay = 20): string {
   const m = /(\d{4})-(\d{2})/.exec(period)
   const day = String(Math.min(Math.max(dueDay, 1), 28)).padStart(2, '0')

@@ -24,6 +24,8 @@ export type OfficialAccessesResponse = {
   items: OfficialAccessItem[]
   security: {
     hasLocalPassword: boolean
+    hasVaultPassword?: boolean
+    canUnlock?: boolean
     stepUpMethods: string[]
     mfaRequired: boolean
     revealTtlSeconds: number
@@ -36,4 +38,6 @@ export type OfficialAccessRevealResponse = {
   username: string | null
   revealedValue: string
   revealTtlSeconds: number
+  stepUpToken?: string
+  stepUpExpiresAt?: string | null
 }

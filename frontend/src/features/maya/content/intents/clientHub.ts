@@ -7,7 +7,7 @@ export const CLIENT_HUB_INTENTS = [
     title: 'O que é a ficha deste cliente?',
     shortDescription: 'ficha do cliente',
     answer:
-      'Esta é a ficha (hub) de um cliente da carteira do escritório — não é o portal onde o cliente entra. Tabs: Resumo, Perfil, Acessos, Actividade, Obrigações, Documentos, Tarefas e Comunicação. A tab Acessos guarda senhas de portais oficiais (AT, Segurança Social, ViaCTT, IAPMEI, Relatório Único), cifradas; ver uma senha pede a palavra-passe do Teglion. No topo: voltar à lista, etiquetas, convite ou gestão de acesso ao portal, atalho para Mensagens e Editar (abre o Perfil). Os números (obrigações pendentes, documentos por validar, tarefas abertas, mensagens não lidas) são só desta empresa. Não há tab de Solicitações nem de Notas: notas estão no Perfil; pedidos públicos estão em Serviços.',
+      'Esta é a ficha (hub) de um cliente da carteira do escritório — não é o portal onde o cliente entra. Tabs: Resumo, Perfil, Acessos, Actividade, Obrigações, Documentos, Tarefas e Comunicação. A tab Acessos guarda senhas de portais oficiais (AT, Segurança Social, ViaCTT, IAPMEI, Relatório Único), cifradas; ver uma senha pede a palavra-passe dos Acessos oficiais (única daquele campo). No topo: voltar à lista, etiquetas, convite ou gestão de acesso ao portal, atalho para Mensagens e Editar (abre o Perfil). Os números (obrigações pendentes, documentos por validar, tarefas abertas, mensagens não lidas) são só desta empresa. Não há tab de Solicitações nem de Notas: notas estão no Perfil; pedidos públicos estão em Serviços.',
     steps: [
       'Comece pelo Resumo para o estado',
       'Editar ou tab Perfil para corrigir o cadastro',
@@ -94,11 +94,12 @@ export const CLIENT_HUB_INTENTS = [
     title: 'O que são os Acessos oficiais?',
     shortDescription: 'senhas AT e Segurança Social',
     answer:
-      'A tab Acessos guarda utilizador e senha dos portais do Estado desta empresa: AT, Segurança Social, ViaCTT, IAPMEI, Relatório Único, e outro com o nome que escolher. A lista é compacta: uma linha por portal. Copiar utilizador é imediato. Copiar senha (ou o olho) pede a palavra-passe da sua conta Teglion; a senha some em cerca de 30 segundos e a consulta vai para a auditoria. Editar só abre quando clica no lápis. O cliente no portal não vê este bloco.',
+      'A tab Acessos guarda utilizador e senha dos portais desta empresa. Vêm cinco linhas de partida (AT, Segurança Social, ViaCTT, IAPMEI, Relatório Único), mas os nomes são editáveis — se o cliente não usa um deles, mude o nome. Pode acrescentar outro portal no fundo. Copiar senha (ou o olho) pede a palavra-passe dos Acessos oficiais — única daquele campo. Pode marcar «manter desbloqueado nesta sessão». A senha do portal some em cerca de 30 segundos. O cliente no portal não vê este bloco.',
     steps: [
       'Abra a ficha do cliente → tab Acessos',
-      'Para copiar a senha, clique no ícone de copiar e confirme a palavra-passe do Teglion',
-      'Para gravar ou mudar dados, abra o lápis, preencha e Guardar (volta a confirmar a identidade)',
+      'Se ainda não tiver, crie a palavra-passe só deste campo (no próprio ecrã ou em Definições → O seu perfil). Quem entra com Google também precisa dela.',
+      'Para copiar a senha, clique no ícone de copiar e confirme a palavra-passe dos Acessos oficiais',
+      'Para mudar o nome de AT, SS, ViaCTT, IAPMEI ou RU, abra o lápis, altere «Nome do portal» e Guardar',
       'Outro portal: botão no fundo, indique o nome que quiser',
     ],
     deepLink: '/app/firm/clients',
@@ -109,13 +110,13 @@ export const CLIENT_HUB_INTENTS = [
         id: 'no-teglion-password',
         title: 'Não consigo ver nem gravar senhas',
         answer:
-          'A conta precisa de uma palavra-passe no Teglion. Se entrou só com Google, hoje ainda não há «definir palavra-passe» em Definições — use uma conta com e-mail e palavra-passe, ou peça ao dono do escritório.',
+          'Crie uma palavra-passe só para Acessos oficiais, em Definições → O seu perfil ou no próprio ecrã de Acessos. É única daquele campo — não serve para entrar no Teglion. Quem entra com Google também a precisa. Depois pode marcar «manter desbloqueado nesta sessão».',
       },
       {
         id: 'hashed-password',
         title: 'A senha não aparece depois de guardar',
         answer:
-          'É normal na lista compacta. Use o ícone de copiar (confirma a palavra-passe do Teglion e copia de imediato) ou o olho para ver cerca de 30 segundos. Não usamos hash nestas senhas — se usássemos, ninguém as podia ler de volta.',
+          'É normal na lista compacta. Use o ícone de copiar (confirma a palavra-passe dos Acessos oficiais e copia de imediato) ou o olho para ver cerca de 30 segundos. Não usamos hash nestas senhas dos portais — se usássemos, ninguém as podia ler de volta.',
       },
     ],
   }),
@@ -311,7 +312,7 @@ export const CLIENT_HUB_INTENTS = [
     title: 'Que acções existem na ficha?',
     shortDescription: 'acções do cliente',
     answer:
-      'Na ficha: voltar à lista; etiquetas (ligar/desligar); convite ao portal ou Gerir acesso (revogar / reemitir — revogar não apaga dados); Mensagens; Editar (Perfil, gravação automática); mudar de tab. A tab Acessos guarda senhas de portais oficiais com confirmação da palavra-passe do Teglion. No Resumo, atalhos para obrigações, documentos, tarefas e mensagens. Em Documentos/Obrigações/Tarefas, abrir o módulo completo. Em Actividade, ocultar eventos do feed. Não há nesta ficha: eliminar cliente, criar solicitação, carregar documento, publicar serviço ou enviar IRS. Remover da carteira está no menu ⋯ da lista. A Maya não ensina a contornar permissões da equipa.',
+      'Na ficha: voltar à lista; etiquetas (ligar/desligar); convite ao portal ou Gerir acesso (revogar / reemitir — revogar não apaga dados); Mensagens; Editar (Perfil, gravação automática); mudar de tab. A tab Acessos guarda senhas de portais oficiais com confirmação da palavra-passe dos Acessos oficiais (única daquele campo). No Resumo, atalhos para obrigações, documentos, tarefas e mensagens. Em Documentos/Obrigações/Tarefas, abrir o módulo completo. Em Actividade, ocultar eventos do feed. Não há nesta ficha: eliminar cliente, criar solicitação, carregar documento, publicar serviço ou enviar IRS. Remover da carteira está no menu ⋯ da lista. A Maya não ensina a contornar permissões da equipa.',
     steps: [
       'Use o topo para convite, mensagens e editar',
       'Use as tabs para o trabalho do cliente',

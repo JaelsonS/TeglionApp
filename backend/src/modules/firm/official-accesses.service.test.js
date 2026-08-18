@@ -26,13 +26,14 @@ function mockClient() {
   }));
 }
 
-function mockActor(passwordHash = 'hash') {
+function mockActor(passwordHash = 'hash', vaultPasswordHash = null) {
   mock.method(firmUsersRepository, 'findFirmUserById', async () => ({
     id: USER_ID,
     firm_id: FIRM_ID,
     role: 'FIRM_OWNER',
     is_active: true,
     password_hash: passwordHash,
+    vault_password_hash: vaultPasswordHash,
   }));
 }
 
@@ -49,6 +50,24 @@ describe('official-accesses.service', () => {
       ['AT_FINANCAS', 'SEGURANCA_SOCIAL', 'VIA_CTT', 'IAPMEI', 'RELATORIO_UNICO'],
     );
     assert.equal(items.every((i) => i.hasPassword === false && i.id === null), true);
+  });
+
+  test('nome personalizado no catálogo substitui AT/SS/etc.', () => {
+    const items = service.mergeCatalog([
+      {
+        id: ACCESS_ID,
+        portalKey: 'AT_FINANCAS',
+        label: 'Portal da Câmara',
+        username: '123',
+        hasPassword: false,
+        updatedAt: '2026-08-18T10:00:00.000Z',
+      },
+    ]);
+    const at = items.find((i) => i.portalKey === 'AT_FINANCAS');
+    assert.equal(at.shortTitle, 'Portal da Câmara');
+    assert.equal(at.title, 'Portal da Câmara');
+    assert.equal(at.label, 'Portal da Câmara');
+    assert.equal(items.find((i) => i.portalKey === 'VIA_CTT').shortTitle, 'ViaCTT');
   });
 
   test('list nunca inclui secret_enc nem a palavra-passe', async () => {
@@ -80,6 +99,10 @@ describe('official-accesses.service', () => {
     assert.equal(at.password, undefined);
     assert.equal(at.revealedValue, undefined);
     assert.equal(JSON.stringify(data).includes('enc:v1'), false);
+    assert.equal(data.security.canUnlock, true);
+    assert.equal(data.security.hasLocalPassword, true);
+    assert.equal(data.security.hasVaultPassword, false);
+    assert.equal(data.security.mfaRequired, false);
   });
 
   test('reveal exige palavra-passe correcta e devolve revealedValue', async () => {
@@ -129,7 +152,7 @@ describe('official-accesses.service', () => {
     );
   });
 
-  test('upsert recusa gravar portal novo sem palavra-passe', async () => {
+  test('upsert recusa gravar portal novo sem nome, utilizador nem senha', async () => {
     resetMocks();
     mockClient();
     mockActor();
@@ -144,7 +167,6 @@ describe('official-accesses.service', () => {
           actorId: USER_ID,
           currentPassword: 'ok',
           portalKey: 'VIA_CTT',
-          username: 'demo',
         }),
       (err) => err.details?.code === 'PASSWORD_REQUIRED' || err.code === 'PASSWORD_REQUIRED',
     );

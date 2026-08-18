@@ -134,16 +134,23 @@ export function createContabilClientsApi(api: AxiosInstance) {
       return blob
     },
 
-    importClientsCsv: async (file: File, currentPassword?: string) => {
+    importClientsCsv: async (
+      file: File,
+      payload?: { currentPassword?: string; stepUpToken?: string; rememberSession?: boolean },
+    ) => {
       const fd = new FormData()
       fd.append('file', file)
-      if (currentPassword) fd.append('currentPassword', currentPassword)
+      if (payload?.currentPassword) fd.append('currentPassword', payload.currentPassword)
+      if (payload?.stepUpToken) fd.append('stepUpToken', payload.stepUpToken)
+      if (payload?.rememberSession) fd.append('rememberSession', 'true')
       const r = await api.post('/contabil/clients/import-csv', fd, { timeout: 120000 })
       return r.data as {
         created: number
         updated: number
         skipped: number
         errors: Array<{ line: number; message: string }>
+        stepUpToken?: string
+        stepUpExpiresAt?: string | null
       }
     },
 
@@ -202,7 +209,9 @@ export function createContabilClientsApi(api: AxiosInstance) {
     upsertOfficialAccess: (
       clientId: string,
       payload: {
-        currentPassword: string
+        currentPassword?: string
+        stepUpToken?: string
+        rememberSession?: boolean
         portalKey: string
         accessId?: string | null
         username?: string | null
@@ -211,7 +220,11 @@ export function createContabilClientsApi(api: AxiosInstance) {
       },
     ) => api.put(`/contabil/clients/${encodeURIComponent(clientId)}/official-accesses`, payload).then((r) => r.data),
 
-    revealOfficialAccess: (clientId: string, accessId: string, payload: { currentPassword: string }) =>
+    revealOfficialAccess: (
+      clientId: string,
+      accessId: string,
+      payload: { currentPassword?: string; stepUpToken?: string; rememberSession?: boolean },
+    ) =>
       api
         .post(
           `/contabil/clients/${encodeURIComponent(clientId)}/official-accesses/${encodeURIComponent(accessId)}/reveal`,
@@ -219,7 +232,11 @@ export function createContabilClientsApi(api: AxiosInstance) {
         )
         .then((r) => r.data),
 
-    removeOfficialAccess: (clientId: string, accessId: string, payload: { currentPassword: string }) =>
+    removeOfficialAccess: (
+      clientId: string,
+      accessId: string,
+      payload: { currentPassword?: string; stepUpToken?: string; rememberSession?: boolean },
+    ) =>
       api
         .post(
           `/contabil/clients/${encodeURIComponent(clientId)}/official-accesses/${encodeURIComponent(accessId)}/remove`,
