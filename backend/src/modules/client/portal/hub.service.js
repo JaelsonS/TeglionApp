@@ -34,7 +34,7 @@ async function getHubSummary({ actor }) {
   const repo = getRepository();
   const now = new Date();
 
-  const [firm, obligations, tasks, documentsRaw, consultationsRaw, recentMessages] = await Promise.all([
+  const [firm, obligations, tasks, documentsRaw, consultationsRaw, recentMessages, unreadMessages] = await Promise.all([
     loadHubSection('firm', () => firmsRepository.findFirmById(firmId), null),
     loadHubSection('obligations', () => repo.listObligations({ firmId, clientId }), []),
     loadHubSection(
@@ -67,6 +67,11 @@ async function getHubSummary({ actor }) {
       'messages',
       () => messagesRepository.listMessages({ firmId, clientId, limit: 8 }),
       [],
+    ),
+    loadHubSection(
+      'unread_messages',
+      () => messagesRepository.countUnreadForClient(firmId, clientId),
+      0,
     ),
   ]);
 
@@ -122,7 +127,7 @@ async function getHubSummary({ actor }) {
       obligationsOverdue: overdue.length,
       tasksOpen: tasksList.length,
       documents: documents.length,
-      unreadMessages: messagesList.filter((m) => m && m.senderRole === 'FIRM' && !m.readAt).length,
+      unreadMessages: typeof unreadMessages === 'number' ? unreadMessages : 0,
     },
     obligations: obligationsList,
     tasks: tasksList,

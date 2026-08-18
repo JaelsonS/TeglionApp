@@ -54,12 +54,15 @@ async function createObligationWithTask({
 
   const repo = getRepository();
   const sb = require('../../db/supabase/client').getSupabaseAdmin();
+  const periodLabel = normalizePeriodLabel(period);
+  if (!periodLabel) throw new AppError('Período é obrigatório.', 400, { code: 'INVALID_PERIOD' });
+
   const obRow = {
     firm_id: firmId,
     client_id: clientId,
     type: String(type).trim(),
-    period: String(period).trim(),
-    title: obligationTitle(type, period, title),
+    period: periodLabel,
+    title: obligationTitle(type, periodLabel, title),
     due_date: new Date(dueDate),
     status: 'WAITING_CLIENT',
     assigned_staff_id: assignedStaffId || null,
@@ -177,10 +180,10 @@ async function createObligationWithTask({
 function normalizePeriodLabel(raw) {
   const value = String(raw || '').trim();
   if (!value) return null;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value.slice(0, 7);
   if (/^\d{4}-\d{2}$/.test(value)) return value;
   if (/^\d{4}$/.test(value)) return value;
-  throw new AppError('Período inválido. Use AAAA-MM ou AAAA-MM-DD (ex.: 2026-08 ou 2026-08-15).', 400, {
+  throw new AppError('Período inválido. Use mês e ano (AAAA-MM, ex.: 2026-08).', 400, {
     code: 'INVALID_PERIOD',
   });
 }

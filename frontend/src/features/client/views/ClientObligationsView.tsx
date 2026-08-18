@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Calendar, ChevronDown, Download, Eye, FileText, Landmark, Wallet } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -24,6 +24,7 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Skeleton } from '@/shared/design-system'
 import { clientPortalContabilApi, fetchDocumentPreviewUrl } from '@/infrastructure/api'
+import { useAuth } from '@/shared/hooks/useAuth'
 import type { ContabilDocument, Obligation } from '@/shared/types/contabil'
 import { clientDocumentDisplayName } from '@/shared/utils/clientDocumentLabel'
 import { formatEuro, formatPtDate } from '@/shared/utils/contabilLocale'
@@ -84,10 +85,13 @@ function sentAtFromObligation(o: Obligation) {
 export function ClientObligationsView({
   t,
   filterDateKey = null,
+  obligations,
 }: {
   t: ReturnType<typeof getClientHubCopy>
   /** Filtrar obrigações pelo dia seleccionado no calendário (YYYY-MM-DD). */
   filterDateKey?: string | null
+  /** Lista já carregada pela página — evita um segundo GET /obligations. */
+  obligations: Obligation[]
 }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedId = searchParams.get('obligation') || ''
@@ -97,26 +101,22 @@ export function ClientObligationsView({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewTitle, setPreviewTitle] = useState('')
   const [previewLoading, setPreviewLoading] = useState(false)
+  const { user } = useAuth()
+  const clientId = user?.clientId || user?.id || ''
+  const queryClient = useQueryClient()
 
-  const query = useQuery({
-    queryKey: ['client-agenda-fiscal'],
-    queryFn: async () => {
-      const [obligationsRes, docsRes] = await Promise.all([
-        clientPortalContabilApi.listObligations() as Promise<{ items?: Obligation[] }>,
-        clientPortalContabilApi.listMyDocuments({ limit: 400 }) as Promise<{ items?: ContabilDocument[] }>,
-      ])
-      return {
-        obligations: obligationsRes.items ?? [],
-        documents: docsRes.items ?? [],
-      }
-    },
+  const docsQuery = useQuery({
+    queryKey: ['client-agenda-documents', clientId],
+    queryFn: () =>
+      clientPortalContabilApi.listMyDocuments({ limit: 400 }) as Promise<{ items?: ContabilDocument[] }>,
+    enabled: Boolean(clientId),
     staleTime: 60_000,
     refetchInterval: 60_000,
   })
 
   const items = useMemo<ObligationAgendaItem[]>(() => {
     const docsByObligation = new Map<string, ContabilDocument[]>()
-    for (const doc of query.data?.documents || []) {
+    for (const doc of docsQuery.data?.items || []) {
       if (!doc.obligationId) continue
       if (!docsByObligation.has(doc.obligationId)) docsByObligation.set(doc.obligationId, [])
       docsByObligation.get(doc.obligationId)!.push(doc)
@@ -124,7 +124,7 @@ export function ClientObligationsView({
 
     const q = search.trim().toLowerCase()
     const obligationsById = new Map<string, Obligation>()
-    for (const o of query.data?.obligations || []) {
+    for (const o of obligations) {
       const id = String(o._id || o.id || '')
       if (!id) continue
       obligationsById.set(id, o)
@@ -160,7 +160,7 @@ export function ClientObligationsView({
         return hay.includes(q)
       })
       .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-  }, [filterDateKey, period, query.data?.documents, query.data?.obligations, search])
+  }, [filterDateKey, period, docsQuery.data?.items, obligations, search])
 
   const grouped = useMemo(() => {
     const open = items.filter((o) => o.paymentStatus !== 'PAID')
@@ -222,13 +222,16 @@ export function ClientObligationsView({
     try {
       await clientPortalContabilApi.markObligationPaid(obligationId)
       toast.success('Pagamento registado')
-      await query.refetch()
+      await Promise.all([
+        docsQuery.refetch(),
+        queryClient.invalidateQueries({ queryKey: ['client-agenda-rich', clientId] }),
+      ])
     } catch (err) {
       toast.error('Não foi possível actualizar', { description: getErrorMessage(err) })
     }
   }
 
-  if (query.isLoading) {
+  if (docsQuery.isLoading && !docsQuery.data) {
     return (
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
         <div className="space-y-3">
@@ -241,8 +244,8 @@ export function ClientObligationsView({
     )
   }
 
-  if (query.isError) {
-    return <p className="text-sm text-destructive">{getErrorMessage(query.error)}</p>
+  if (docsQuery.isError) {
+    return <p className="text-sm text-destructive">{getErrorMessage(docsQuery.error)}</p>
   }
 
   return (

@@ -7,6 +7,7 @@ const clientsRepository = require('../../db/supabase/repositories/clients.reposi
 const leadsRepository = require('../../db/supabase/repositories/leads.repository');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const googleCalendarSyncService = require('../integrations/google-calendar/google-calendar-sync.service');
+const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const consultationsService = require('./consultations.service');
 
 const FIRM_ID = 'firm-x';
@@ -82,6 +83,95 @@ test('createConsultation: dispara sync para o Google Calendar (fire-and-forget, 
   assert.equal(syncArgs.consultation.id, 'c1');
   assert.equal(syncArgs.requesterName, 'Ana Cliente');
   assert.equal(syncArgs.timeZone, 'Europe/Lisbon');
+});
+
+test('createConsultation: com accountingServiceId usa a duração do serviço da firma e ignora o body', async () => {
+  resetMocks();
+  mockFirmTimezone();
+  mock.method(clientsRepository, 'findClientById', async () => ({ id: 'client-1', displayName: 'Ana Cliente' }));
+  mock.method(consultationsRepository, 'findRecentDuplicateConsultation', async () => null);
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async (id, firmId) => {
+    assert.equal(id, 'service-90');
+    assert.equal(firmId, FIRM_ID);
+    return { id: 'service-90', durationMinutes: 90, name: 'Consultoria' };
+  });
+  let createArgs = null;
+  mock.method(consultationsRepository, 'createConsultation', async (args) => {
+    createArgs = args;
+    return { id: 'c-dur', ...args };
+  });
+  mock.method(googleCalendarSyncService, 'syncConsultationToGoogle', async () => ({ synced: false }));
+
+  await consultationsService.createConsultation({
+    firmId: FIRM_ID,
+    clientId: 'client-1',
+    staffId: 'staff-1',
+    title: 'Consultoria',
+    scheduledAt: '2026-09-14T10:00:00.000Z',
+    durationMinutes: 15,
+    accountingServiceId: 'service-90',
+  });
+
+  assert.equal(createArgs.durationMinutes, 90);
+  assert.equal(createArgs.accountingServiceId, 'service-90');
+});
+
+test('createConsultation: accountingServiceId de outro tenant é 404 e não grava', async () => {
+  resetMocks();
+  mockFirmTimezone();
+  mock.method(clientsRepository, 'findClientById', async () => ({ id: 'client-1', displayName: 'Ana Cliente' }));
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => null);
+  mock.method(consultationsRepository, 'createConsultation', async () => {
+    throw new Error('não devia gravar reunião com serviço de outro escritório');
+  });
+  mock.method(googleCalendarSyncService, 'syncConsultationToGoogle', async () => ({ synced: false }));
+
+  await assert.rejects(
+    () =>
+      consultationsService.createConsultation({
+        firmId: FIRM_ID,
+        clientId: 'client-1',
+        staffId: 'staff-1',
+        title: 'Consultoria',
+        scheduledAt: '2026-09-14T10:00:00.000Z',
+        durationMinutes: 60,
+        accountingServiceId: 'service-other-firm',
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 404);
+      return true;
+    },
+  );
+});
+
+test('createConsultation: violação da exclusion constraint (23P01) vira 409', async () => {
+  resetMocks();
+  mockFirmTimezone();
+  mock.method(clientsRepository, 'findClientById', async () => ({ id: 'client-1', displayName: 'Ana Cliente' }));
+  mock.method(consultationsRepository, 'findRecentDuplicateConsultation', async () => null);
+  mock.method(consultationsRepository, 'createConsultation', async () => {
+    const err = new Error('conflicting key value violates exclusion constraint "consultations_no_overlap"');
+    err.code = '23P01';
+    throw err;
+  });
+  mock.method(googleCalendarSyncService, 'syncConsultationToGoogle', async () => {
+    throw new Error('não devia sincronizar depois de overlap');
+  });
+
+  await assert.rejects(
+    () =>
+      consultationsService.createConsultation({
+        firmId: FIRM_ID,
+        clientId: 'client-1',
+        staffId: 'staff-1',
+        title: 'Consulta',
+        scheduledAt: '2026-09-14T10:00:00.000Z',
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 409);
+      return true;
+    },
+  );
 });
 
 test('updateConsultation: dispara sync para o Google Calendar com o holderName resolvido (Fase Hb)', async () => {

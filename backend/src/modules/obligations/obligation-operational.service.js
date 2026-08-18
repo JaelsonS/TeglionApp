@@ -7,6 +7,10 @@ const templatesService = require('./obligation-templates.service');
 const { getSupabaseAdmin } = require('../../db/supabase/client');
 const { nextPeriodFromFrequency, dueDateForPeriod } = require('./obligation-operational');
 const { AppError } = require('../../middlewares/error.middleware');
+const ttlCache = require('../../utils/cache/ttl-cache');
+const { operationalDashboardKey } = require('../../utils/cache/tenant-scoped-keys');
+
+const OPERATIONAL_DASHBOARD_TTL_SEC = 45;
 
 async function listObligationsOperational({
   firmId,
@@ -42,9 +46,9 @@ async function listObligationsOperational({
   return { items: filtered, monthExclusions: exclusions };
 }
 
-async function getOperationalDashboard(firmId) {
+async function loadOperationalDashboard(firmId) {
   const repo = getRepository();
-  await repo.syncOverdueObligations(firmId);
+  await repo.maybeSyncOverdueObligations(firmId);
   const items = await repo.listObligationsEnriched({ firmId, limit: 500 });
   const now = new Date();
   const todayStr = now.toISOString().slice(0, 10);
@@ -103,6 +107,12 @@ async function getOperationalDashboard(firmId) {
       .slice(0, 10)
       .map(([clientId, count]) => ({ clientId, count })),
   };
+}
+
+async function getOperationalDashboard(firmId) {
+  return ttlCache.getOrSet(operationalDashboardKey(firmId), OPERATIONAL_DASHBOARD_TTL_SEC, () =>
+    loadOperationalDashboard(firmId),
+  );
 }
 
 async function createFromTemplate({

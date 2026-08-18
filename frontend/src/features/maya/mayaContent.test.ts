@@ -318,6 +318,7 @@ describe('Maya Clientes coverage', () => {
     'clients-next-steps',
     'clients-invite',
     'clients-archive',
+    'clients-csv',
     'clients-problems',
     'client-hub',
     'client-hub-overview',

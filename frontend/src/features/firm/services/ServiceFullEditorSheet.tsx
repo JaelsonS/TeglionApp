@@ -18,6 +18,8 @@ import { toast } from 'sonner'
 
 import { ServiceFormPreview } from '@/features/firm/agenda/ServiceFormPreview'
 import { IntakeStartModeFields } from '@/features/firm/services/IntakeStartModeFields'
+import { ServiceBookingAvailabilitySection } from '@/features/firm/services/ServiceBookingAvailabilitySection'
+import { bookingOverridesPayload, hasCustomBookingHours } from '@/features/firm/services/serviceBookingAvailability'
 import {
   ServicePaymentMethodsPanel,
   type ServicePaymentMethodId,
@@ -49,6 +51,7 @@ import type {
   AccountingService,
   DocumentRequirement,
   DocumentTiming,
+  FirmBookingSettings,
   IntakeForm,
   IntakeQuestion,
   IntakeQuestionOption,
@@ -189,6 +192,7 @@ export function ServiceFullEditorSheet({
   const [paymentRequired, setPaymentRequired] = useState(false)
   const [requiresBooking, setRequiresBooking] = useState(false)
   const [intakeStartMode, setIntakeStartMode] = useState<'form' | 'calendar'>('form')
+  const [bookingOverrides, setBookingOverrides] = useState<Partial<FirmBookingSettings> | null>(null)
 
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [imageStorageKey, setImageStorageKey] = useState<string | null>(null)
@@ -239,6 +243,7 @@ export function ServiceFullEditorSheet({
       setPaymentRequired(Boolean(service.paymentRequired))
       setRequiresBooking(Boolean(service.requiresBooking))
       setIntakeStartMode(service.intakeStartMode === 'calendar' ? 'calendar' : 'form')
+      setBookingOverrides(hasCustomBookingHours(service.bookingOverrides) ? service.bookingOverrides ?? null : null)
       setImageUrl(service.imageUrl ?? null)
       setImageStorageKey(service.imageStorageKey ?? null)
       setSlug(service.slug || '')
@@ -260,6 +265,7 @@ export function ServiceFullEditorSheet({
       setPaymentMethod('bank_transfer')
       setRequiresBooking(false)
       setIntakeStartMode('form')
+      setBookingOverrides(null)
       setImageUrl(null)
       setImageStorageKey(null)
       setSlug('')
@@ -471,6 +477,18 @@ export function ServiceFullEditorSheet({
       toast.error('Duração inválida', { description: 'Use um valor entre 15 e 480 minutos.' })
       return
     }
+    const customized = hasCustomBookingHours(bookingOverrides)
+    const nextBookingOverrides = customized
+      ? bookingOverrides?.schedule && Object.keys(bookingOverrides.schedule).length
+        ? bookingOverridesPayload(true, bookingOverrides.schedule)
+        : { weekdays: bookingOverrides?.weekdays }
+      : null
+    if (customized && (!nextBookingOverrides?.weekdays || nextBookingOverrides.weekdays.length === 0)) {
+      toast.error('Horário do serviço incompleto', {
+        description: 'Escolha pelo menos um dia, ou desligue «Personalizar horários deste serviço».',
+      })
+      return
+    }
     const reserved = effectiveQuestions.map((q) => q.label).filter(isReservedQuestionLabel)
     if (reserved.length > 0) {
       toast.error('Perguntas duplicadas no formulário', {
@@ -488,6 +506,7 @@ export function ServiceFullEditorSheet({
       isActive,
       requiresBooking,
       intakeStartMode: requiresBooking ? intakeStartMode : 'form',
+      bookingOverrides: nextBookingOverrides,
       slug: slug.trim() || null,
       isPubliclyListed,
       publicGroup: publicGroup.trim() || null,
@@ -668,7 +687,7 @@ export function ServiceFullEditorSheet({
                     <span>
                       Exige agendamento
                       <span className="block text-xs text-muted-foreground">
-                        O cliente escolhe um horário disponível do escritório na página pública.
+                        O cliente escolhe um horário disponível deste serviço na página pública.
                       </span>
                     </span>
                   </label>
@@ -676,6 +695,12 @@ export function ServiceFullEditorSheet({
                     requiresBooking={requiresBooking}
                     value={intakeStartMode}
                     onChange={setIntakeStartMode}
+                  />
+                  <ServiceBookingAvailabilitySection
+                    requiresBooking={requiresBooking}
+                    durationMinutes={durationMinutes}
+                    value={bookingOverrides}
+                    onChange={setBookingOverrides}
                   />
                 </SectionCard>
 

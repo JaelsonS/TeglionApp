@@ -36,6 +36,7 @@ import {
   MAX_PUBLIC_SITE_NAV_LINKS,
   PUBLIC_SITE_SECTION_ANCHORS,
 } from '@/features/public-intake/publicSiteNavLinks'
+import { coerceExternalHttpsUrl, isPublicCtaRenderable } from '@/features/public-intake/publicSiteCtas'
 
 const HEX_RE = /^#[0-9a-f]{6}$/i
 
@@ -114,6 +115,7 @@ function emptyCtaTarget(
   if (type === 'external-url') return { type, url: '' }
   if (type === 'service-detail') return { type, serviceId: services[0]?.slug }
   if (type === 'phone') return { type, phone: officePhone || '' }
+  if (type === 'whatsapp') return { type, phone: '' }
   return { type }
 }
 
@@ -122,11 +124,13 @@ export function SectionCtasEditor({
   onChange,
   services,
   officePhone,
+  socialWhatsapp,
 }: {
   ctas: PublicSiteCta[]
   onChange: (ctas: PublicSiteCta[]) => void
   services: PublicFirmServiceSummary[]
   officePhone?: string | null
+  socialWhatsapp?: string | null
 }) {
   const addCta = () => {
     onChange([
@@ -248,6 +252,26 @@ export function SectionCtasEditor({
                   </p>
                 </div>
               ) : null}
+              {cta.target.type === 'whatsapp' ? (
+                <div className="space-y-1 sm:col-span-2">
+                  <Label className="text-caption text-muted-foreground">Número WhatsApp</Label>
+                  <Input
+                    value={cta.target.phone || ''}
+                    onChange={(e: FormChangeEvent) =>
+                      patchCta(cta.id, { target: { type: 'whatsapp', phone: e.target.value } })
+                    }
+                    placeholder="+351 9xx xxx xxx"
+                    inputMode="tel"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Inclua o indicativo (ex.: 351…). Se ficar vazio, o botão usa o WhatsApp de Complementos →
+                    Redes sociais.
+                    {socialWhatsapp
+                      ? ' Já existe um WhatsApp nas redes sociais — o botão aparece na pré-visualização.'
+                      : ''}
+                  </p>
+                </div>
+              ) : null}
               {cta.target.type === 'external-url' ? (
                 <div className="space-y-1 sm:col-span-2">
                   <Label className="text-caption text-muted-foreground">Ligação</Label>
@@ -256,14 +280,35 @@ export function SectionCtasEditor({
                     onChange={(e: FormChangeEvent) =>
                       patchCta(cta.id, { target: { type: 'external-url', url: e.target.value } })
                     }
-                    placeholder="https://…"
+                    placeholder="https://exemplo.pt ou exemplo.pt"
                   />
+                  <p className="text-[11px] text-muted-foreground">
+                    Abre noutro separador. Pode escrever só o domínio — o Teglion guarda em https. Ligações
+                    javascript: não aparecem na página.
+                  </p>
+                  {cta.target.url?.trim() && !coerceExternalHttpsUrl(cta.target.url) ? (
+                    <p className="text-caption text-amber-800">
+                      Este endereço não é válido ou não é seguro — o botão não aparece na pré-visualização nem
+                      na página publicada.
+                    </p>
+                  ) : null}
                 </div>
               ) : null}
             </div>
             {unpublished ? (
               <p className="text-caption text-amber-800">
                 Este serviço não está público — o botão não aparece na página até o publicar.
+              </p>
+            ) : null}
+            {cta.target.type === 'whatsapp' &&
+            !isPublicCtaRenderable(
+              cta,
+              { firmSlug: 'preview', services, contact: { phone: officePhone || null } },
+              { whatsapp: socialWhatsapp || undefined },
+            ) ? (
+              <p className="text-caption text-amber-800">
+                Indique o número neste botão ou preencha o WhatsApp em Complementos → Redes sociais. Sem um
+                dos dois, o botão desaparece da pré-visualização.
               </p>
             ) : null}
             {cta.label.trim() ? (
@@ -695,6 +740,7 @@ export function HeroEditor({
   services,
   officePhone,
   publicDisplayName: _publicDisplayName,
+  socialWhatsapp,
 }: {
   content: PublicSiteHeroContent
   onChange: (next: PublicSiteHeroContent) => void
@@ -706,6 +752,7 @@ export function HeroEditor({
   officePhone?: string | null
   /** Nome do header — disponível para a Maya / callers; UI limpa sem parede de texto. */
   publicDisplayName?: string
+  socialWhatsapp?: string | null
 }) {
   const imageFit = normalizeHeroImageFit(content.imageFit)
   const imagePosition = normalizeHeroImagePosition(content.imagePosition)
@@ -866,6 +913,7 @@ export function HeroEditor({
         ctas={content.ctas || []}
         services={services}
         officePhone={officePhone}
+        socialWhatsapp={socialWhatsapp}
         onChange={(ctas) => onChange({ ...content, ctas })}
       />
     </div>
@@ -881,6 +929,7 @@ export function AboutEditor({
   onRemoveImage,
   services,
   officePhone,
+  socialWhatsapp,
 }: {
   content: PublicSiteAboutContent
   onChange: (next: PublicSiteAboutContent) => void
@@ -890,6 +939,7 @@ export function AboutEditor({
   onRemoveImage: () => void
   services: PublicFirmServiceSummary[]
   officePhone?: string | null
+  socialWhatsapp?: string | null
 }) {
   return (
     <div className="space-y-4">
@@ -951,6 +1001,7 @@ export function AboutEditor({
         ctas={content.ctas || []}
         services={services}
         officePhone={officePhone}
+        socialWhatsapp={socialWhatsapp}
         onChange={(ctas) => onChange({ ...content, ctas })}
       />
     </div>
@@ -963,12 +1014,14 @@ export function ServicesHeadingEditor({
   placeholder,
   services,
   officePhone,
+  socialWhatsapp,
 }: {
   content: PublicSiteServicesContent
   onChange: (next: PublicSiteServicesContent) => void
   placeholder: string
   services: PublicFirmServiceSummary[]
   officePhone?: string | null
+  socialWhatsapp?: string | null
 }) {
   return (
     <div className="space-y-3">
@@ -1004,6 +1057,7 @@ export function ServicesHeadingEditor({
         ctas={content.ctas || []}
         services={services}
         officePhone={officePhone}
+        socialWhatsapp={socialWhatsapp}
         onChange={(ctas) => onChange({ ...content, ctas })}
       />
     </div>
@@ -1181,11 +1235,13 @@ export function ContactEditor({
   onChange,
   services,
   officePhone,
+  socialWhatsapp,
 }: {
   content: PublicSiteContactContent
   onChange: (next: PublicSiteContactContent) => void
   services: PublicFirmServiceSummary[]
   officePhone?: string | null
+  socialWhatsapp?: string | null
 }) {
   return (
     <div className="space-y-3">
@@ -1231,6 +1287,7 @@ export function ContactEditor({
         ctas={content.ctas || []}
         services={services}
         officePhone={officePhone}
+        socialWhatsapp={socialWhatsapp}
         onChange={(ctas) => onChange({ ...content, ctas })}
       />
     </div>

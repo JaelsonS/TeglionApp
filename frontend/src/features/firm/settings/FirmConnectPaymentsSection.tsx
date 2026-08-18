@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, CheckCircle2, CreditCard, Loader2, Shield } from 'lucide-react'
 import { toast } from 'sonner'
@@ -140,7 +140,39 @@ export function FirmConnectPaymentsSection() {
         <div>
           <h3 className="cb-settings-panel-title">Pagamentos dos clientes</h3>
           <p className="cb-settings-panel-sub">
-            Receba online na conta do escritório — o dinheiro não passa pela Teglion.
+            Receba online na conta do escritório — o dinheiro não passa pela Teglion. A subscrição do produto
+            (plano mensal/anual) gere-se em Plano, não nesta página.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="cb-settings-fieldset">
+          <p className="cb-settings-fieldset-title">A conta está pronta?</p>
+          <p className="cb-settings-fieldset-sub mt-1">{ready ? 'Sim — a receber dos clientes.' : statusLabel(account?.onboardingStatus, ready)}</p>
+        </div>
+        <div className="cb-settings-fieldset">
+          <p className="cb-settings-fieldset-title">Houve algum problema?</p>
+          <p className="cb-settings-fieldset-sub mt-1">
+            {!configured
+              ? 'Stripe Connect ainda não está activa neste ambiente.'
+              : !paymentsAllowed
+                ? 'O plano actual não inclui pagamentos online.'
+                : !ready && account
+                  ? humanizeConnectDisabledReason(account.requirementsDisabledReason) || pendingCopy
+                  : 'Nenhum bloqueio conhecido.'}
+          </p>
+        </div>
+        <div className="cb-settings-fieldset">
+          <p className="cb-settings-fieldset-title">O que fazer agora?</p>
+          <p className="cb-settings-fieldset-sub mt-1">
+            {configured && canStart && !account
+              ? 'Ligar a conta Stripe do escritório.'
+              : configured && canStart && account && !ready
+                ? 'Continuar a configuração na Stripe.'
+                : ready
+                  ? 'Nada — os clientes já podem pagar online.'
+                  : 'Peça ao dono do escritório ou ao suporte se o botão não aparecer.'}
           </p>
         </div>
       </div>
@@ -199,7 +231,11 @@ export function FirmConnectPaymentsSection() {
       <p className="text-sm leading-relaxed text-muted-foreground">
         Os clientes pagam no Checkout da Stripe; o valor fica na conta do escritório. A Teglion não
         custodia esse dinheiro. Condições e responsabilidades estão na política que o responsável
-        aceita ao ligar os pagamentos.
+        aceita ao ligar os pagamentos. A subscrição do Teglion (mensal/anual) está em{' '}
+        <Link to="/app/firm/billing" className="font-medium text-brand hover:underline">
+          Plano
+        </Link>
+        .
       </p>
 
       {termsOutdated ? (

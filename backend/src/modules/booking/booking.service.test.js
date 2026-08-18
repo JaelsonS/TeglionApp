@@ -226,6 +226,137 @@ test('listSlotsForBooking: sem bookingOverrides, usa as regras do escritório ta
   assert.deepEqual(booking.weekdays, [1, 2, 3, 4, 5]);
 });
 
+test('listSlotsForBooking: override de schedule restringe horários (manhã) e fecha os outros dias', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
+    ...SERVICE,
+    bookingOverrides: {
+      weekdays: [1],
+      schedule: { 1: [{ start: '09:00', end: '12:00' }] },
+    },
+  }));
+  mock.method(firmsRepository, 'findFirmById', async () => ({
+    id: FIRM_ID,
+    settings: {
+      booking: {
+        timezone: 'UTC',
+        slotMinutes: 60,
+        leadTimeHours: 0,
+        horizonDays: 14,
+        weekdays: [1, 2, 3, 4, 5],
+        schedule: {
+          1: [{ start: '09:00', end: '17:00' }],
+          2: [{ start: '09:00', end: '17:00' }],
+          3: [{ start: '09:00', end: '17:00' }],
+          4: [{ start: '09:00', end: '17:00' }],
+          5: [{ start: '09:00', end: '17:00' }],
+        },
+      },
+    },
+  }));
+  mock.method(consultationsRepository, 'listConsultations', async () => []);
+  mock.method(googleCalendarAvailabilityService, 'getBusyRangesForFirm', async () => []);
+  mockHolds();
+
+  const { slots, booking } = await bookingService.listSlotsForBooking({
+    firmId: FIRM_ID,
+    serviceId: SERVICE.id,
+    fromIso: '2026-08-24T00:00:00.000Z', // segunda
+    toIso: '2026-08-28T23:59:59.000Z',
+  });
+
+  assert.deepEqual(booking.weekdays, [1]);
+  assert.ok(slots.length > 0);
+  for (const iso of slots) {
+    const d = new Date(iso);
+    assert.equal(d.getUTCDay(), 1);
+    assert.ok(d.getUTCHours() < 12, `slot ${iso} devia ser de manhã`);
+  }
+});
+
+test('listSlotsForBooking: dois serviços no mesmo escritório podem ter disponibilidades diferentes', async () => {
+  resetMocks();
+  mock.method(firmsRepository, 'findFirmById', async () => ({
+    id: FIRM_ID,
+    settings: {
+      booking: {
+        timezone: 'UTC',
+        slotMinutes: 60,
+        leadTimeHours: 0,
+        horizonDays: 14,
+        weekdays: [1, 2],
+        schedule: {
+          1: [{ start: '09:00', end: '17:00' }],
+          2: [{ start: '09:00', end: '17:00' }],
+        },
+      },
+    },
+  }));
+  mock.method(consultationsRepository, 'listConsultations', async () => []);
+  mock.method(googleCalendarAvailabilityService, 'getBusyRangesForFirm', async () => []);
+  mockHolds();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async (id) => {
+    if (id === 'svc-mon') {
+      return { ...SERVICE, id, bookingOverrides: { weekdays: [1], schedule: { 1: [{ start: '09:00', end: '12:00' }] } } };
+    }
+    return { ...SERVICE, id, bookingOverrides: { weekdays: [2], schedule: { 2: [{ start: '14:00', end: '17:00' }] } } };
+  });
+
+  const fromIso = '2026-08-24T00:00:00.000Z';
+  const toIso = '2026-08-25T23:59:59.000Z';
+  const mon = await bookingService.listSlotsForBooking({
+    firmId: FIRM_ID,
+    serviceId: 'svc-mon',
+    fromIso,
+    toIso,
+  });
+  const tue = await bookingService.listSlotsForBooking({
+    firmId: FIRM_ID,
+    serviceId: 'svc-tue',
+    fromIso,
+    toIso,
+  });
+
+  assert.ok(mon.slots.every((iso) => new Date(iso).getUTCDay() === 1));
+  assert.ok(tue.slots.every((iso) => new Date(iso).getUTCDay() === 2));
+  assert.ok(mon.slots.length > 0);
+  assert.ok(tue.slots.length > 0);
+});
+
+test('listSlotsForBooking: reserva de um serviço esconde o horário no outro (mesmo calendário/recurso)', async () => {
+  resetMocks();
+  const busyStart = Date.parse('2026-08-24T10:00:00.000Z');
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
+    ...SERVICE,
+    id: 'svc-b',
+    bookingOverrides: { weekdays: [1], schedule: { 1: [{ start: '09:00', end: '17:00' }] } },
+  }));
+  mock.method(firmsRepository, 'findFirmById', async () => ({
+    id: FIRM_ID,
+    settings: { booking: { timezone: 'UTC', slotMinutes: 60, leadTimeHours: 0, horizonDays: 14 } },
+  }));
+  mock.method(consultationsRepository, 'listConsultations', async () => [
+    {
+      status: 'SCHEDULED',
+      scheduledAt: '2026-08-24T10:00:00.000Z',
+      durationMinutes: 60,
+      accountingServiceId: 'svc-a',
+    },
+  ]);
+  mock.method(googleCalendarAvailabilityService, 'getBusyRangesForFirm', async () => []);
+  mockHolds();
+
+  const { slots } = await bookingService.listSlotsForBooking({
+    firmId: FIRM_ID,
+    serviceId: 'svc-b',
+    fromIso: '2026-08-24T00:00:00.000Z',
+    toIso: '2026-08-24T23:59:59.000Z',
+  });
+
+  const blocked = slots.some((iso) => Math.abs(new Date(iso).getTime() - busyStart) < 60 * 1000);
+  assert.equal(blocked, false);
+});
+
 test('normalizeBooking: config antiga sem schedule gera schedule a partir de weekdays+dayStart/dayEnd', () => {
   const booking = bookingService.normalizeBooking({
     weekdays: [1, 3, 5],
@@ -288,6 +419,43 @@ test('computeAvailableSlotsTz: gera slots em ambos os intervalos do dia', () => 
   assert.ok(hours.includes(16), `esperava slot às 16h, got ${slots.join(',')}`);
   assert.equal(hours.includes(12), false);
   assert.equal(hours.includes(13), false);
+});
+
+test('computeAvailableSlotsTz: duração 90 min com slotMinutes 30 só gera inícios que cabem no intervalo', () => {
+  const booking = bookingService.normalizeBooking({
+    slotMinutes: 30,
+    leadTimeHours: 0,
+    timezone: 'UTC',
+    schedule: { 1: [{ start: '09:00', end: '11:00' }] },
+  });
+  const slots = bookingService.computeAvailableSlotsTz({
+    fromMs: Date.parse('2026-08-10T00:00:00.000Z'),
+    toMs: Date.parse('2026-08-10T23:59:59.000Z'),
+    booking,
+    durationMinutes: 90,
+    busyRanges: [],
+  });
+  const minutes = slots.map((iso) => new Date(iso).getUTCHours() * 60 + new Date(iso).getUTCMinutes());
+  assert.deepEqual(minutes, [9 * 60, 9 * 60 + 30]);
+});
+
+test('computeAvailableSlotsTz: slotMinutes 60 não gera meias horas', () => {
+  const booking = bookingService.normalizeBooking({
+    slotMinutes: 60,
+    leadTimeHours: 0,
+    timezone: 'UTC',
+    schedule: { 1: [{ start: '09:00', end: '12:00' }] },
+  });
+  const slots = bookingService.computeAvailableSlotsTz({
+    fromMs: Date.parse('2026-08-10T00:00:00.000Z'),
+    toMs: Date.parse('2026-08-10T23:59:59.000Z'),
+    booking,
+    durationMinutes: 60,
+    busyRanges: [],
+  });
+  const minutes = slots.map((iso) => new Date(iso).getUTCMinutes());
+  assert.ok(minutes.every((m) => m === 0));
+  assert.equal(slots.length, 3);
 });
 
 test('computeAvailableSlotsTz: dateOverrides[] fecha o dia (prioridade sobre schedule)', () => {

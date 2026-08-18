@@ -70,13 +70,20 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
           <h2 className="cb-settings-panel-title">Dados do escritório</h2>
           <p className="cb-settings-panel-sub">
             {canEdit
-              ? 'Nome e contactos visíveis na subscrição e comunicações internas.'
+              ? 'Identidade, contactos e dados fiscais. Nada disto é o logótipo (está em Identidade) nem o site público (está em Página pública).'
               : 'Apenas o dono do escritório pode editar estes campos.'}
           </p>
         </div>
       </div>
 
       <div className="space-y-4">
+        <div className="cb-settings-fieldset">
+          <div>
+            <p className="cb-settings-fieldset-title">Identidade</p>
+            <p className="cb-settings-fieldset-sub">
+              Como o escritório se chama na app e na barra do site público.
+            </p>
+          </div>
         <div className="space-y-2">
           <Label htmlFor="firm-name">Nome do escritório</Label>
           <Input
@@ -103,6 +110,15 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
             pública → Destaque principal. Se vazio, usa o nome do escritório acima.
           </p>
         </div>
+        </div>
+
+        <div className="cb-settings-fieldset">
+          <div>
+            <p className="cb-settings-fieldset-title">Contactos</p>
+            <p className="cb-settings-fieldset-sub">
+              E-mail e telefone usados nas comunicações internas e, quando aplicável, na página pública.
+            </p>
+          </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="firm-contact-email">E-mail de contacto</Label>
@@ -127,6 +143,15 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
             />
           </div>
         </div>
+        </div>
+
+        <div className="cb-settings-fieldset">
+          <div>
+            <p className="cb-settings-fieldset-title">Dados fiscais (opcional)</p>
+            <p className="cb-settings-fieldset-sub">
+              NIF e morada do escritório. Não invente dados — só o que o escritório realmente usa.
+            </p>
+          </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="firm-nif">NIF (opcional)</Label>
@@ -148,6 +173,7 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
               placeholder="Rua, cidade"
             />
           </div>
+        </div>
         </div>
         {bundle.firm.status ? (
           <p className="inline-flex items-center rounded-full border border-border/60 bg-muted/20 px-2.5 py-1 text-xs text-muted-foreground">

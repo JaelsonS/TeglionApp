@@ -16,7 +16,8 @@ import {
   TYPE_LABELS,
   displayObligationTitle,
   dueDateToDateInput,
-  periodToDateInput,
+  monthInputToPeriod,
+  periodToMonthInput,
   type OperationalLane,
 } from '@/features/firm/obligations/obligationOperational'
 import { ViewTrackingBadge, type ViewStats } from '@/shared/components/contabil/ViewTrackingBadge'
@@ -89,7 +90,7 @@ export function FirmObligationDetailPanel({
   const [obligationDocs, setObligationDocs] = useState<
     { id: string; title?: string; category?: string; uploadedByRole?: string }[]
   >([])
-  const [periodDraft, setPeriodDraft] = useState(periodToDateInput(String(obligation.period || '')))
+  const [periodDraft, setPeriodDraft] = useState(periodToMonthInput(String(obligation.period || '')))
   const [dueDateDraft, setDueDateDraft] = useState(dueDateToDateInput(String(obligation.dueDate || '')))
   const [savingPeriod, setSavingPeriod] = useState(false)
   const [savingDueDate, setSavingDueDate] = useState(false)
@@ -169,19 +170,18 @@ export function FirmObligationDetailPanel({
   }
 
   useEffect(() => {
-    setPeriodDraft(periodToDateInput(String(obligation.period || '')))
+    setPeriodDraft(periodToMonthInput(String(obligation.period || '')))
     setDueDateDraft(dueDateToDateInput(String(obligation.dueDate || '')))
   }, [obligation._id, obligation.period, obligation.dueDate])
 
   const savePeriod = async () => {
-    const next = String(periodDraft || '').trim()
-    if (!/^\d{4}-\d{2}(-\d{2})?$/.test(next)) {
-      toast.error('Período inválido', { description: 'Escolha o dia, o mês e o ano.' })
+    const next = monthInputToPeriod(periodDraft)
+    if (!/^\d{4}-\d{2}$/.test(next)) {
+      toast.error('Período inválido', { description: 'Escolha o mês e o ano.' })
       return
     }
-    const stored = String(obligation.period || '').trim()
+    const stored = monthInputToPeriod(String(obligation.period || ''))
     if (next === stored) return
-    if (/^\d{4}-\d{2}$/.test(stored) && next === `${stored}-01`) return
     setSavingPeriod(true)
     try {
       await contabilObligationsApi.update(obligation._id, { period: next })
@@ -189,7 +189,7 @@ export function FirmObligationDetailPanel({
       onUpdated()
     } catch (err) {
       toast.error('Não foi possível actualizar o período', { description: getErrorMessage(err) })
-      setPeriodDraft(periodToDateInput(String(obligation.period || '')))
+      setPeriodDraft(periodToMonthInput(String(obligation.period || '')))
     } finally {
       setSavingPeriod(false)
     }
@@ -301,13 +301,13 @@ export function FirmObligationDetailPanel({
               <p className="cb-ob-meta-label">Período</p>
               <div className="flex items-center gap-2">
                 <input
-                  type="date"
+                  type="month"
                   className="cb-ob-meta-val h-8 w-full max-w-[11rem] rounded-md border border-input bg-background px-2 text-sm"
                   value={periodDraft}
                   onChange={(e) => setPeriodDraft(e.target.value)}
                   onBlur={() => void savePeriod()}
                   disabled={savingPeriod || isDelivered}
-                  aria-label="Período da obrigação"
+                  aria-label="Período da obrigação (mês e ano)"
                 />
                 {savingPeriod ? <span className="text-[11px] text-muted-foreground">A guardar…</span> : null}
               </div>

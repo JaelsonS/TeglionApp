@@ -3,13 +3,8 @@ import { useQuery } from '@tanstack/react-query'
 
 import { useAuth } from '@/shared/hooks/useAuth'
 import { useFirmDashboard } from '@/shared/hooks/queries/useFirmDashboard'
-import {
-  contabilAccountingServicesApi,
-  contabilClientsApi,
-  contabilConsultationsApi,
-  contabilFirmApi,
-  contabilServiceInquiriesApi,
-} from '@/infrastructure/api'
+import { contabilAccountingServicesApi, contabilConsultationsApi, contabilFirmApi, contabilServiceInquiriesApi } from '@/infrastructure/api'
+import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
 import { firmPublicSiteApi } from '@/infrastructure/api/contabil/firmPublicSite'
 import type { AccountingService, FirmBookingSettings } from '@/shared/types/contabil'
 import { computeFirmProgress, type FirmProgressResult } from './firmProgress'
@@ -72,12 +67,7 @@ export function useFirmProgress(enabled = true): {
     staleTime: 60_000,
   })
 
-  const clientsQuery = useQuery({
-    queryKey: ['firm-progress', 'clients-portal', firmSlug],
-    queryFn: () => contabilClientsApi.list({ limit: 50 }),
-    enabled: enabled && Boolean(user),
-    staleTime: 60_000,
-  })
+  const clientsQuery = useFirmClientsDirectory({ limit: 500, enabled })
 
   const inquiriesQuery = useQuery({
     queryKey: ['firm-progress', 'inquiries', firmSlug],

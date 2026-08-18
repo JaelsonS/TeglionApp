@@ -1,5 +1,14 @@
 const { getSupabaseAdmin } = require('../../db/supabase/client');
 const messagesRepository = require('../../db/supabase/repositories/messages.repository');
+const ttlCache = require('../../utils/cache/ttl-cache');
+const { liveBadgeKey } = require('../../utils/cache/tenant-scoped-keys');
+
+const LIVE_BADGE_TTL_SEC = 20;
+
+async function cachedLiveBadge({ scope, firmId, actorId }, factory) {
+  if (!firmId || !actorId) return factory();
+  return ttlCache.getOrSet(liveBadgeKey({ scope, firmId, actorId }), LIVE_BADGE_TTL_SEC, factory);
+}
 
 function defaultSince() {
   return new Date(Date.now() - 30_000).toISOString();
@@ -64,22 +73,25 @@ async function pollFirmEvents({ firmId, firmUserId, since }) {
     });
   }
 
-  const unreadMessages = await messagesRepository.countUnreadForFirm(firmId);
-  const { count: unreadNotifs } = await sb
-    .from('firm_notifications')
-    .select('id', { count: 'exact', head: true })
-    .eq('firm_id', firmId)
-    .or(`firm_user_id.is.null,firm_user_id.eq.${firmUserId}`)
-    .is('read_at', null);
+  const badge = await cachedLiveBadge({ scope: 'firm', firmId, actorId: firmUserId }, async () => {
+    const unreadMessages = await messagesRepository.countUnreadForFirm(firmId);
+    const { count: unreadNotifs } = await sb
+      .from('firm_notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('firm_id', firmId)
+      .or(`firm_user_id.is.null,firm_user_id.eq.${firmUserId}`)
+      .is('read_at', null);
+    return {
+      messages: unreadMessages,
+      notifications: unreadNotifs || 0,
+      total: unreadMessages + (unreadNotifs || 0),
+    };
+  });
 
   return {
     events,
     cursor: new Date().toISOString(),
-    badge: {
-      messages: unreadMessages,
-      notifications: unreadNotifs || 0,
-      total: unreadMessages + (unreadNotifs || 0),
-    },
+    badge,
   };
 }
 
@@ -121,22 +133,25 @@ async function pollClientEvents({ firmId, clientId, since }) {
     });
   }
 
-  const unreadMessages = await messagesRepository.countUnreadForClient(firmId, clientId);
-  const { count: unreadNotifs } = await sb
-    .from('in_app_notifications')
-    .select('id', { count: 'exact', head: true })
-    .eq('firm_id', firmId)
-    .eq('client_id', clientId)
-    .is('read_at', null);
+  const badge = await cachedLiveBadge({ scope: 'client', firmId, actorId: clientId }, async () => {
+    const unreadMessages = await messagesRepository.countUnreadForClient(firmId, clientId);
+    const { count: unreadNotifs } = await sb
+      .from('in_app_notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('firm_id', firmId)
+      .eq('client_id', clientId)
+      .is('read_at', null);
+    return {
+      messages: unreadMessages,
+      notifications: unreadNotifs || 0,
+      total: unreadMessages + (unreadNotifs || 0),
+    };
+  });
 
   return {
     events,
     cursor: new Date().toISOString(),
-    badge: {
-      messages: unreadMessages,
-      notifications: unreadNotifs || 0,
-      total: unreadMessages + (unreadNotifs || 0),
-    },
+    badge,
   };
 }
 

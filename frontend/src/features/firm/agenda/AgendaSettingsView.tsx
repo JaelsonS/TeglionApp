@@ -2,6 +2,7 @@ import { ArrowRight, CalendarClock, CalendarDays, Layers } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { AgendaAvailabilityPanel } from '@/features/firm/agenda/AgendaAvailabilityPanel'
+import { AgendaServiceHoursPanel } from '@/features/firm/agenda/AgendaServiceHoursPanel'
 import { GoogleCalendarIntegrationPanel } from '@/features/firm/agenda/GoogleCalendarIntegrationPanel'
 import { Button } from '@/shared/components/ui/button'
 import type { AccountingService, BookingDaySchedule, FirmBookingSettings } from '@/shared/types/contabil'
@@ -30,8 +31,8 @@ export function AgendaSettingsView(props: Props) {
       <div className="cb-agenda-settings-intro">
         <h2 className="cb-agenda-settings-intro-title">Definições da agenda</h2>
         <p className="cb-agenda-settings-intro-sub">
-          Configure aqui os serviços que o escritório presta — IRS, consultorias e outros —, os dias e
-          horários em que aceita marcações, e a ligação ao Google Calendar.
+          Primeiro o horário geral do escritório; depois, se precisar, os dias de cada serviço (Consultoria à
+          segunda, Acompanhamento à terça). A ligação ao Google Calendar bloqueia horas já ocupadas.
         </p>
       </div>
 
@@ -41,8 +42,11 @@ export function AgendaSettingsView(props: Props) {
             <CalendarClock className="h-4 w-4" aria-hidden />
           </span>
           <div>
-            <h3 className="cb-agenda-settings-block-title">Disponibilidade</h3>
-            <p className="cb-agenda-settings-block-sub">Dias e horário em que o escritório aceita marcações</p>
+            <h3 className="cb-agenda-settings-block-title">Horário geral do escritório</h3>
+            <p className="cb-agenda-settings-block-sub">
+              Predefinição para todos os serviços. Uma marcação tranca esse horário no calendário partilhado
+              (incluindo o Google, quando ligado).
+            </p>
           </div>
         </div>
         <AgendaAvailabilityPanel
@@ -58,6 +62,26 @@ export function AgendaSettingsView(props: Props) {
           onHorizon={props.onHorizon}
           onBookingTz={props.onBookingTz}
           onSaveAvailability={props.onSaveAvailability}
+        />
+      </section>
+
+      <section className="cb-agenda-settings-block">
+        <div className="cb-agenda-settings-block-hd">
+          <span className="cb-agenda-settings-block-icon">
+            <CalendarClock className="h-4 w-4" aria-hidden />
+          </span>
+          <div>
+            <h3 className="cb-agenda-settings-block-title">Disponibilidade por serviço</h3>
+            <p className="cb-agenda-settings-block-sub">
+              Quais os dias e intervalos em que cada serviço pode ser agendado
+            </p>
+          </div>
+        </div>
+        <AgendaServiceHoursPanel
+          services={props.services}
+          servicesLoading={props.servicesLoading}
+          onReload={props.onReload}
+          firmSchedule={props.schedule}
         />
       </section>
 

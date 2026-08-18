@@ -18,9 +18,22 @@ function formatPeriodLabel(period?: string | null) {
   if (!period) return '—'
   const m = period.match(/^(\d{4})-(\d{2})/)
   if (m) {
-    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+    const months = [
+      'Janeiro',
+      'Fevereiro',
+      'Março',
+      'Abril',
+      'Maio',
+      'Junho',
+      'Julho',
+      'Agosto',
+      'Setembro',
+      'Outubro',
+      'Novembro',
+      'Dezembro',
+    ]
     const mi = Number(m[2]) - 1
-    return `${months[mi] || m[2]}/${m[1]}`
+    return `${months[mi] || m[2]} ${m[1]}`
   }
   return period
 }

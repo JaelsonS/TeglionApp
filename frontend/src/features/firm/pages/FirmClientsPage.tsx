@@ -17,7 +17,7 @@ import {
   Send,
   X,
 } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import {
@@ -48,6 +48,9 @@ import {
 } from '@/shared/components/ui/dropdown-menu'
 import { Input } from '@/shared/components/ui/input'
 import { contabilClientsApi, contabilInquiryTagsApi } from '@/infrastructure/api'
+import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
+import { queryKeys } from '@/shared/hooks/queries/queryKeys'
+import { useAuth } from '@/shared/hooks/useAuth'
 import { getErrorMessage } from '@/shared/utils/errors'
 import type { Client } from '@/shared/types/clients'
 import { cn } from '@/shared/lib/utils'
@@ -80,6 +83,9 @@ function normalizeRegimeLabel(v?: string | null) {
 
 export function FirmClientsPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const tenantSlug = user?.tenant.slug ?? ''
+  const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
   const openCreate = searchParams.get('create') === '1'
   const setOpenCreate = (open: boolean) => {
@@ -89,9 +95,6 @@ export function FirmClientsPage() {
     setSearchParams(next, { replace: true })
   }
 
-  const [items, setItems] = useState<Client[]>([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('todos')
   const [regimeFilter, setRegimeFilter] = useState<RegimeFilter>('todos')
@@ -124,27 +127,21 @@ export function FirmClientsPage() {
   }, [])
 
   const effectiveView = isMobile ? 'grid' : view
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    try {
-      const res = (await contabilClientsApi.list({
-        page: 1,
-        limit: 500,
-        includeInactive: estadoFilter === 'inativos' || estadoFilter === 'todos' ? '1' : undefined,
-      })) as { items?: Client[]; total?: number }
-      setItems(res.items || [])
-      setTotal(res.total ?? res.items?.length ?? 0)
-    } catch (err) {
-      toast.error('Não foi possível carregar clientes', { description: getErrorMessage(err) })
-    } finally {
-      setLoading(false)
-    }
-  }, [estadoFilter])
+  const includeInactive = estadoFilter === 'inativos' || estadoFilter === 'todos'
+  const clientsQuery = useFirmClientsDirectory({ limit: 500, includeInactive })
+  const items = clientsQuery.data?.items || []
+  const total = clientsQuery.data?.total ?? items.length
+  const loading = clientsQuery.isLoading
+  const refreshClients = useCallback(() => {
+    return queryClient.invalidateQueries({ queryKey: queryKeys.firmClientsDirectoryRoot(tenantSlug) })
+  }, [queryClient, tenantSlug])
 
   useEffect(() => {
-    void load()
-  }, [load])
+    if (!clientsQuery.isError) return
+    toast.error('Não foi possível carregar clientes', {
+      description: getErrorMessage(clientsQuery.error),
+    })
+  }, [clientsQuery.isError, clientsQuery.error])
 
   useEffect(() => {
     setPage(1)
@@ -610,11 +607,11 @@ export function FirmClientsPage() {
         </div>
       </div>
 
-      <CreateCompanyWizard open={openCreate} onOpenChange={setOpenCreate} onCreated={() => void load()} />
+      <CreateCompanyWizard open={openCreate} onOpenChange={setOpenCreate} onCreated={() => void refreshClients()} />
       <ClientsSpreadsheetDialog
         open={spreadsheetOpen}
         onOpenChange={setSpreadsheetOpen}
-        onImported={() => void load()}
+        onImported={() => void refreshClients()}
       />
       <FirmClientBulkInviteDialog
         open={bulkInviteOpen}
@@ -627,7 +624,7 @@ export function FirmClientsPage() {
         }))}
         onDone={() => {
           clearSelection()
-          void load()
+          void refreshClients()
         }}
       />
       <ConfirmDialog
@@ -647,7 +644,7 @@ export function FirmClientsPage() {
           await contabilClientsApi.archive(archiveTarget._id)
           toast.success('Cliente removido da carteira')
           setArchiveTarget(null)
-          await load()
+          await refreshClients()
         }}
       />
     </FirmScrollPage>

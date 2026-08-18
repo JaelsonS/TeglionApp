@@ -99,6 +99,11 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
 
   return (
     <div className="space-y-4">
+      <p className="cb-settings-callout">
+        Esta página é o <strong className="text-foreground">seu</strong> acesso ao painel. Cargo e departamento
+        vêm da Equipa — altere-os lá, não aqui. Abaixo: identidade de login, palavra-passe e cofre dos portais
+        oficiais.
+      </p>
       <section className="cb-settings-panel">
         <div className="cb-settings-panel-hd">
           <span className="cb-settings-panel-icon">

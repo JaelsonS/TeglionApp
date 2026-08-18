@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { Clock, Globe, Plus, Trash2 } from 'lucide-react'
 
@@ -31,6 +32,10 @@ type Props = {
   onBookingTz: (tz: string) => void
   onSaveAvailability: () => void
   hideSaveButton?: boolean
+  /** false = só dias e intervalos (override por serviço). Omissão: mostra fuso/slot/horizonte. */
+  showSlotSettings?: boolean
+  /** Intervalo usado ao reabrir um dia fechado. Omissão: 09:00–17:00. */
+  defaultInterval?: TimeInterval
 }
 
 function intervalsForDay(schedule: BookingDaySchedule, day: number): TimeInterval[] {
@@ -52,10 +57,25 @@ export function AgendaAvailabilityPanel(props: Props) {
     onBookingTz,
     onSaveAvailability,
     hideSaveButton,
+    showSlotSettings = true,
+    defaultInterval = DEFAULT_INTERVAL,
   } = props
 
   const openDays = BOOKING_WEEKDAYS.filter((w) => intervalsForDay(schedule, w.bit).length > 0)
   const overrideDates = Object.keys(dateOverrides).sort()
+  const [copySource, setCopySource] = useState<number>(1)
+  const [copyTargets, setCopyTargets] = useState<number[]>([])
+
+  function copyIntervalsToDays() {
+    const source = intervalsForDay(schedule, copySource).map((iv) => ({ ...iv }))
+    if (!source.length || copyTargets.length === 0) return
+    const next: BookingDaySchedule = { ...schedule }
+    for (const day of copyTargets) {
+      next[day] = source.map((iv) => ({ ...iv }))
+    }
+    onScheduleChange(next)
+    setCopyTargets([])
+  }
 
   function setDayIntervals(day: number, intervals: TimeInterval[]) {
     const next: BookingDaySchedule = { ...schedule }
@@ -67,7 +87,7 @@ export function AgendaAvailabilityPanel(props: Props) {
   function toggleDay(day: number) {
     const current = intervalsForDay(schedule, day)
     if (current.length) setDayIntervals(day, [])
-    else setDayIntervals(day, [{ ...DEFAULT_INTERVAL }])
+    else setDayIntervals(day, [{ ...defaultInterval }])
   }
 
   function updateInterval(day: number, index: number, patch: Partial<TimeInterval>) {
@@ -139,7 +159,8 @@ export function AgendaAvailabilityPanel(props: Props) {
       <div>
         <p className="cb-agenda-availability-label">Horário de atendimento</p>
         <p className="cb-agenda-availability-hint">
-          Defina os dias e um ou mais intervalos por dia (ex.: manhã e tarde), no estilo WhatsApp Business.
+          Defina os dias e um ou mais intervalos por dia (ex.: manhã e tarde). Pode copiar o horário de um
+          dia para os restantes.
         </p>
         <div className="space-y-3">
           {BOOKING_WEEKDAYS.map((w) => {
@@ -154,6 +175,8 @@ export function AgendaAvailabilityPanel(props: Props) {
                   <button
                     type="button"
                     onClick={() => toggleDay(w.bit)}
+                    aria-pressed={open}
+                    aria-label={open ? `${w.full} disponível` : `${w.full} indisponível`}
                     className={cn(
                       'rounded-full px-3 py-1 text-sm font-semibold',
                       open ? 'bg-emerald-100 text-emerald-800' : 'bg-muted text-muted-foreground',
@@ -214,9 +237,59 @@ export function AgendaAvailabilityPanel(props: Props) {
           })}
         </div>
         {openDays.length > 0 ? (
-          <p className="cb-agenda-availability-selected mt-2">
-            Selecionado: {openDays.map((w) => w.full).join(', ')}
-          </p>
+          <div className="mt-3 space-y-2 rounded-xl border border-border/50 bg-muted/10 p-3">
+            <p className="cb-agenda-availability-selected">
+              Selecionado: {openDays.map((w) => w.full).join(', ')}
+            </p>
+            <p className="text-xs font-medium text-foreground">Copiar horário para outros dias</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="text-[11px] text-muted-foreground">
+                De{' '}
+                <select
+                  className="ml-1 h-8 rounded-md border border-input bg-background px-2 text-xs"
+                  value={copySource}
+                  onChange={(e) => setCopySource(Number(e.target.value))}
+                >
+                  {BOOKING_WEEKDAYS.map((w) => (
+                    <option key={w.bit} value={w.bit} disabled={intervalsForDay(schedule, w.bit).length === 0}>
+                      {w.full}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <span className="text-[11px] text-muted-foreground">para</span>
+              {BOOKING_WEEKDAYS.filter((w) => w.bit !== copySource).map((w) => {
+                const checked = copyTargets.includes(w.bit)
+                return (
+                  <button
+                    key={w.bit}
+                    type="button"
+                    className={cn(
+                      'rounded-full px-2 py-0.5 text-[11px] font-medium',
+                      checked ? 'bg-brand text-white' : 'bg-muted text-muted-foreground',
+                    )}
+                    onClick={() =>
+                      setCopyTargets((prev) =>
+                        prev.includes(w.bit) ? prev.filter((d) => d !== w.bit) : [...prev, w.bit],
+                      )
+                    }
+                  >
+                    {w.label}
+                  </button>
+                )
+              })}
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-8 text-xs"
+                disabled={copyTargets.length === 0 || intervalsForDay(schedule, copySource).length === 0}
+                onClick={copyIntervalsToDays}
+              >
+                Aplicar
+              </Button>
+            </div>
+          </div>
         ) : (
           <p className="cb-agenda-availability-warn">Seleccione pelo menos um dia.</p>
         )}
@@ -316,6 +389,7 @@ export function AgendaAvailabilityPanel(props: Props) {
         </div>
       ) : null}
 
+      {showSlotSettings ? (
       <div className="cb-agenda-availability-fields">
         <label className="cb-agenda-field">
           <span className="cb-agenda-field-label">
@@ -354,6 +428,7 @@ export function AgendaAvailabilityPanel(props: Props) {
           />
         </label>
       </div>
+      ) : null}
 
       {hideSaveButton ? null : (
         <Button className="cb-agenda-save-btn" type="button" onClick={onSaveAvailability} disabled={openDays.length === 0}>

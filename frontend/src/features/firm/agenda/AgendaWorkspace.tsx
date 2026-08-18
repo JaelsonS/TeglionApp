@@ -32,10 +32,10 @@ import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { AskMayaButton } from '@/features/maya'
 import { PageHeader } from '@/shared/design-system'
 import { cn } from '@/shared/lib/utils'
-import { contabilConsultationsApi, contabilClientsApi, contabilFirmApi } from '@/infrastructure/api'
+import { contabilConsultationsApi, contabilFirmApi } from '@/infrastructure/api'
+import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
 import { getErrorMessage } from '@/shared/utils/errors'
 import type { AccountingService, BookingDaySchedule, Consultation, FirmBookingSettings } from '@/shared/types/contabil'
-import type { Client } from '@/shared/types/clients'
 
 type Tab = 'calendar' | 'settings'
 
@@ -48,7 +48,8 @@ export function AgendaWorkspace() {
   const [items, setItems] = useState<Consultation[]>([])
   /** Próximas reuniões (14 dias) — independente da semana/mês no grelha. */
   const [upcomingItems, setUpcomingItems] = useState<Consultation[]>([])
-  const [clients, setClients] = useState<Client[]>([])
+  const clientsQuery = useFirmClientsDirectory({ limit: 500 })
+  const clients = clientsQuery.data?.items || []
   const [selectedEvent, setSelectedEvent] = useState<Consultation | null>(null)
   const [confirmCancelEvent, setConfirmCancelEvent] = useState(false)
   const [cancellingEvent, setCancellingEvent] = useState(false)
@@ -85,14 +86,13 @@ export function AgendaWorkspace() {
     try {
       const upcomingFrom = new Date().toISOString()
       const upcomingTo = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
-      const [consRes, upcomingRes, clientRes, cfgRes, staffRes] = await Promise.all([
+      const [consRes, upcomingRes, cfgRes, staffRes] = await Promise.all([
         contabilConsultationsApi.list({ from: range.from, to: range.to }) as Promise<{
           items?: Consultation[]
         }>,
         contabilConsultationsApi.list({ from: upcomingFrom, to: upcomingTo }) as Promise<{
           items?: Consultation[]
         }>,
-        contabilClientsApi.list({ page: 1, limit: 200 }) as Promise<{ items?: Client[] }>,
         contabilConsultationsApi.getBookingSettings() as Promise<{
           services?: AccountingService[]
           booking?: FirmBookingSettings
@@ -101,7 +101,6 @@ export function AgendaWorkspace() {
       ])
       setItems(consRes.items || [])
       setUpcomingItems(upcomingRes.items || [])
-      setClients(clientRes.items || [])
       setStaff(staffRes.items || [])
       setServices(cfgRes.services || [])
       const b = cfgRes.booking
