@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import type { FormChangeEvent } from '@/shared/types/react-events'
 import { Copy, ExternalLink, Eye, EyeOff, KeyRound, Plus, Shield, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -105,7 +106,7 @@ function PortalCard({
           <Input
             id={`oa-label-${fieldId}`}
             value={draft.label}
-            onChange={(e) => setDraft((d) => ({ ...d, label: e.target.value }))}
+            onChange={(e: FormChangeEvent) => setDraft((d) => ({ ...d, label: e.target.value }))}
             disabled={disabled}
             maxLength={80}
             autoComplete="off"
@@ -117,7 +118,7 @@ function PortalCard({
         <Input
           id={`oa-user-${fieldId}`}
           value={draft.username}
-          onChange={(e) => setDraft((d) => ({ ...d, username: e.target.value }))}
+          onChange={(e: FormChangeEvent) => setDraft((d) => ({ ...d, username: e.target.value }))}
           disabled={disabled}
           autoComplete="off"
           spellCheck={false}
@@ -185,7 +186,7 @@ function PortalCard({
           <PasswordInput
             id={`oa-pass-${fieldId}`}
             value={draft.password}
-            onChange={(e) => setDraft((d) => ({ ...d, password: e.target.value }))}
+            onChange={(e: FormChangeEvent) => setDraft((d) => ({ ...d, password: e.target.value }))}
             disabled={disabled}
             autoComplete="new-password"
             placeholder={item.hasPassword ? 'Nova senha (opcional)' : 'Senha do portal'}
@@ -351,7 +352,7 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
           <Input
             id="oa-custom-label"
             value={customLabel}
-            onChange={(e) => setCustomLabel(e.target.value)}
+            onChange={(e: FormChangeEvent) => setCustomLabel(e.target.value)}
             disabled={disabled}
             placeholder="Ex.: e-fatura…"
             maxLength={80}
@@ -362,7 +363,7 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
           <Input
             id="oa-custom-user"
             value={customUsername}
-            onChange={(e) => setCustomUsername(e.target.value)}
+            onChange={(e: FormChangeEvent) => setCustomUsername(e.target.value)}
             disabled={disabled}
             autoComplete="off"
           />
@@ -371,7 +372,7 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
           <PasswordInput
             id="oa-custom-pass"
             value={customPassword}
-            onChange={(e) => setCustomPassword(e.target.value)}
+            onChange={(e: FormChangeEvent) => setCustomPassword(e.target.value)}
             disabled={disabled}
             autoComplete="new-password"
           />

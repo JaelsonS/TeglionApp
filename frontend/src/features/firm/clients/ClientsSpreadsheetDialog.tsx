@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ChangeEvent } from 'react'
 import { Download, FileSpreadsheet, Shield, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -82,7 +82,7 @@ export function ClientsSpreadsheetDialog({ open, onOpenChange, onImported }: Pro
   return (
     <Dialog
       open={open}
-      onOpenChange={(next) => {
+      onOpenChange={(next: boolean) => {
         if (!next) reset()
         onOpenChange(next)
       }}
@@ -130,7 +130,7 @@ export function ClientsSpreadsheetDialog({ open, onOpenChange, onImported }: Pro
               type="file"
               accept=".csv,text/csv"
               className="block w-full text-xs"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setFile(e.target.files?.[0] || null)}
             />
             <FormField
               label="Palavra-passe do Teglion (só se o CSV tiver senhas de portais)"
