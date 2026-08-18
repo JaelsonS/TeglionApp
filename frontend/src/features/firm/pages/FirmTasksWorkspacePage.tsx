@@ -210,8 +210,12 @@ export function FirmTasksWorkspacePage() {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.clientId || !form.title.trim()) {
-      toast.error('Cliente e título obrigatórios')
+    if (!form.title.trim()) {
+      toast.error('Indique o título da tarefa')
+      return
+    }
+    if (form.recurrenceFrequency && form.recurrenceFrequency !== 'NONE' && !form.clientId) {
+      toast.error('A recorrência precisa de um cliente. Para Porta 65 ou trabalho pontual, deixe sem recorrência.')
       return
     }
     const recurrenceRule =
@@ -221,7 +225,7 @@ export function FirmTasksWorkspacePage() {
     createTask.mutate(
       {
         payload: {
-          clientId: form.clientId,
+          clientId: form.clientId || undefined,
           title: form.title.trim(),
           description: form.description || undefined,
           dueDate: form.dueDate || undefined,

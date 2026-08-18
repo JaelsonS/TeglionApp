@@ -60,7 +60,7 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
   const isDesktopSplit = useMinWidthXl()
   const period = currentPeriodYm()
   const [typeFilter, setTypeFilter] = useState('todos')
-  const [monthFilter, setMonthFilter] = useState(period)
+  const [monthFilter, setMonthFilter] = useState('todos')
   const [statusFilter, setStatusFilter] = useState('todos')
   const [clientFilter, setClientFilter] = useState('todos')
   const [page, setPage] = useState(1)
@@ -68,8 +68,12 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
   const clientById = hub.clientById
 
   const rows = useMemo(() => {
-    return hub.items.filter((o) => {
-      if (monthFilter !== 'todos' && String(o.period || '').slice(0, 7) !== monthFilter) return false
+    const filtered = hub.items.filter((o) => {
+      if (monthFilter !== 'todos') {
+        const periodYm = String(o.period || '').slice(0, 7)
+        const dueYm = String(o.dueDate || '').slice(0, 7)
+        if (periodYm !== monthFilter && dueYm !== monthFilter) return false
+      }
       if (clientFilter !== 'todos' && String(o.clientId) !== clientFilter) return false
       if (typeFilter !== 'todos' && String(o.type || '').toUpperCase() !== typeFilter.toUpperCase()) return false
       if (statusFilter !== 'todos') {
@@ -83,6 +87,12 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
         if (st.label !== map[statusFilter]) return false
       }
       return !o.monthExcluded
+    })
+    return filtered.sort((a, b) => {
+      const ar = obligationStatusLabel(a).label === 'Em atraso' ? 0 : 1
+      const br = obligationStatusLabel(b).label === 'Em atraso' ? 0 : 1
+      if (ar !== br) return ar - br
+      return String(a.dueDate || '').localeCompare(String(b.dueDate || ''))
     })
   }, [hub.items, typeFilter, monthFilter, statusFilter, clientFilter])
 
@@ -156,8 +166,8 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
           onChange={(e) => setMonthFilter(e.target.value)}
           aria-label="Mês"
         >
-          <option value={period}>Mês: {formatPeriodLabel(period)}</option>
           <option value="todos">Mês: Todos</option>
+          <option value={period}>Mês: {formatPeriodLabel(period)}</option>
         </select>
         <select
           className="cb-tasks-filter"
@@ -238,17 +248,31 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
                     const st = obligationStatusLabel(ob)
                     const client = clientById.get(String(ob.clientId))
                     const nif = ob.clientTaxId || client?.taxId
+                    const clientLabel =
+                      ob.clientName ||
+                      client?.fullName ||
+                      client?.name ||
+                      client?.displayName ||
+                      '—'
+                    const overdue = st.tone === 'red'
                     return (
                       <tr
                         key={ob._id}
-                        className={cn('cb-tasks-row cursor-pointer', hub.selectedId === ob._id && 'bg-brand/[0.06]')}
+                        className={cn(
+                          'cb-tasks-row cursor-pointer',
+                          hub.selectedId === ob._id && 'bg-brand/[0.06]',
+                          overdue && 'border-l-2 border-l-red-500 bg-red-50/80',
+                        )}
                         onClick={() => hub.selectObligation(ob._id)}
                       >
                         <td className="text-[13px] font-medium" data-label="Obrigação">{displayObligationTitle(ob)}</td>
-                        <td className="text-xs" data-label="Cliente">{safeDisplayText(ob.clientName, '—')}</td>
+                        <td className={cn('text-xs', overdue && 'font-semibold text-red-800')} data-label="Cliente">
+                          {safeDisplayText(clientLabel, '—')}
+                          {overdue ? <span className="ml-1 text-[10px] uppercase tracking-wide text-red-600">Atraso</span> : null}
+                        </td>
                         <td className="text-xs tabular-nums text-muted-foreground" data-label="NIF">{formatNif(nif)}</td>
                         <td className="text-xs" data-label="Periodicidade">{periodicityLabel(ob)}</td>
-                        <td className="text-xs tabular-nums" data-label="Vencimento">
+                        <td className={cn('text-xs tabular-nums', overdue && 'font-semibold text-red-700')} data-label="Vencimento">
                           {ob.dueDate ? formatPtDate(ob.dueDate, 'date') : '—'}
                         </td>
                         <td data-label="Estado">

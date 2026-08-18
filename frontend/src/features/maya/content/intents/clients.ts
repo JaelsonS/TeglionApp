@@ -51,7 +51,7 @@ export const CLIENT_INTENTS = [
     title: 'O que é esta área de Clientes?',
     shortDescription: 'módulo Clientes',
     answer:
-      'Está na carteira do escritório — os clientes que a sua equipa administra no Teglion. Não é o portal do cliente: o portal é a área onde o próprio cliente entra, depois de convite. Aqui cadastra, procura, filtra e abre a ficha de cada empresa ou particular. O botão «Novo cliente» abre o assistente de cadastro neste ecrã (não existe uma página /clients/new). Clicar num cliente abre a ficha em /app/firm/clients/… com Resumo, Perfil, Actividade, Obrigações, Documentos, Tarefas e Comunicação.',
+      'Está na carteira do escritório — os clientes que a sua equipa administra no Teglion. Não é o portal do cliente: o portal é a área onde o próprio cliente entra, depois de convite. Aqui cadastra, procura, filtra e abre a ficha de cada empresa ou particular. O botão «Novo cliente» abre o assistente de cadastro neste ecrã (não existe uma página /clients/new). Clicar num cliente abre a ficha em /app/firm/clients/… com Resumo, Perfil, Acessos, Actividade, Obrigações, Documentos, Tarefas e Comunicação. «Ficha CSV» exporta a carteira (sem senhas) ou importa um modelo de texto; células vazias não apagam dados e .xlsx/macros são recusados.',
     steps: [
       'Se a lista estiver vazia, clique em Novo cliente',
       'Use a pesquisa ou os filtros para encontrar um cliente existente',

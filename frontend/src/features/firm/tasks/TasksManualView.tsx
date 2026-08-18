@@ -159,7 +159,8 @@ export function TasksManualView({
             <ClientSearchSelect
               clients={clients}
               value={form.clientId}
-              onChange={(id) => onFormChange({ clientId: id })}
+              onChange={(id) => onFormChange({ clientId: id, ...(id ? {} : { recurrenceFrequency: 'NONE' }) })}
+              allowEmpty
             />
             <div className="grid gap-2 sm:grid-cols-2">
               <Input
@@ -199,7 +200,8 @@ export function TasksManualView({
               </select>
               <select
                 className="h-10 rounded-xl border border-input px-3 text-sm sm:col-span-2"
-                value={form.recurrenceFrequency}
+                value={form.clientId ? form.recurrenceFrequency : 'NONE'}
+                disabled={!form.clientId}
                 onChange={(e) => onFormChange({ recurrenceFrequency: e.target.value })}
               >
                 <option value="NONE">Tarefa não recorrente</option>

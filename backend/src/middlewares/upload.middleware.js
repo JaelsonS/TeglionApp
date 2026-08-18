@@ -180,6 +180,42 @@ function optionalSingle(fieldName = 'file') {
   };
 }
 
+const uploadCsv = multer({
+  storage: memoryStorage,
+  limits: {
+    fileSize: 2 * 1024 * 1024,
+    files: 1,
+  },
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    if (ext !== '.csv') {
+      return cb(new Error('Só é aceite um ficheiro .csv (texto, sem macros).'), false);
+    }
+    const mime = (file.mimetype || '').toLowerCase();
+    const allowedCsvMimes = new Set([
+      'text/csv',
+      'text/plain',
+      'application/csv',
+      'application/octet-stream',
+      'application/vnd.ms-excel',
+    ]);
+    if (mime && !allowedCsvMimes.has(mime)) {
+      return cb(new Error('Tipo de ficheiro recusado. Exporte como CSV, não Excel .xlsx.'), false);
+    }
+    cb(null, true);
+  },
+});
+
+/** CSV de texto — sem magic bytes de PDF/ZIP (o serviço rejeita OLE/ZIP). */
+function uploadCsvSingle(fieldName = 'file') {
+  return (req, res, next) => {
+    uploadCsv.single(fieldName)(req, res, (err) => {
+      if (err) return next(err);
+      return next();
+    });
+  };
+}
+
 const uploadSingle = (fieldName = 'file') => wrapMulter(upload.single(fieldName));
 const uploadFields = (fields) => wrapMulter(upload.fields(fields));
 const uploadAvatarSingle = (fieldName = 'logo') => wrapMulter(uploadAvatar.single(fieldName));
@@ -190,6 +226,7 @@ module.exports = {
   sanitizeFilename,
   optionalSingle,
   uploadSingle,
+  uploadCsvSingle,
   uploadFields,
   uploadAvatarSingle,
   assertUploadedFileMagic,

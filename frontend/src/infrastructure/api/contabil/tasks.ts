@@ -12,7 +12,7 @@ export type WorkspaceTaskStatus =
 export type WorkspaceTask = {
   id: string
   _id: string
-  clientId: string
+  clientId: string | null
   clientName?: string | null
   title: string
   description?: string | null

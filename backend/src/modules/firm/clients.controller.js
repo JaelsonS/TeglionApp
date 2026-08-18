@@ -1,4 +1,5 @@
 const clientsService = require('./clients.service');
+const spreadsheetService = require('./clients-spreadsheet.service');
 const firmBrandingService = require('./firm-branding.service');
 const securityAudit = require('../../services/audit/security-audit.service');
 const activityService = require('../../services/activity/activity.service');
@@ -59,6 +60,55 @@ exports.list = async (req, res, next) => {
       includeInactive: req.query.includeInactive === '1' || req.query.includeInactive === 'true',
     });
     return res.status(200).json(data);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.exportSpreadsheet = async (req, res, next) => {
+  try {
+    const firmId = String(req.user.firmId);
+    const template = req.query.template === '1' || req.query.template === 'true';
+    const csv = template
+      ? spreadsheetService.buildTemplateCsv()
+      : await spreadsheetService.buildExportCsv({ firmId });
+    const filename = template
+      ? 'teglion-modelo-clientes.csv'
+      : `teglion-clientes-${new Date().toISOString().slice(0, 10)}.csv`;
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(200).send(csv);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.importSpreadsheet = async (req, res, next) => {
+  try {
+    const firmId = String(req.user.firmId);
+    const report = await spreadsheetService.importCsv({
+      firmId,
+      actorId: String(req.user.id),
+      currentPassword: req.body?.currentPassword,
+      buffer: req.file?.buffer,
+    });
+    void securityAudit.recordFirmMutation({
+      action: 'clients.csv_import',
+      actor: req.user,
+      firmId,
+      entityType: 'clients',
+      entityId: firmId,
+      metadata: {
+        created: report.created,
+        updated: report.updated,
+        skipped: report.skipped,
+        errorCount: Array.isArray(report.errors) ? report.errors.length : 0,
+      },
+      req,
+    });
+    return res.status(200).json(report);
   } catch (err) {
     return next(err);
   }

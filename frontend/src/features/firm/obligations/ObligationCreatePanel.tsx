@@ -196,13 +196,21 @@ export function ObligationCreatePanel({
             </label>
           ) : null}
           <label className="space-y-1 text-sm">
-            <span className="font-medium">Período</span>
+            <span className="font-medium">Período (dia, mês e ano)</span>
             <Input
-              type="month"
-              value={period}
-              onChange={(e: FormChangeEvent) => setPeriod(e.target.value)}
+              type="date"
+              value={dueDate || (period.length === 7 ? `${period}-01` : period)}
+              onChange={(e: FormChangeEvent) => {
+                const full = e.target.value
+                if (!full) return
+                setPeriod(full.slice(0, 7))
+                setDueDate(full)
+              }}
               required
             />
+            <p className="text-xs text-muted-foreground">
+              Escolha o dia concreto. O vencimento usa esta data; pode ainda ajustar o prazo ao lado.
+            </p>
           </label>
           <label className="space-y-1 text-sm">
             <span className="font-medium">Prazo</span>

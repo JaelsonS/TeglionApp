@@ -7,7 +7,7 @@ export const CLIENT_HUB_INTENTS = [
     title: 'O que é a ficha deste cliente?',
     shortDescription: 'ficha do cliente',
     answer:
-      'Esta é a ficha (hub) de um cliente da carteira do escritório — não é o portal onde o cliente entra. Tabs: Resumo, Perfil, Actividade, Obrigações, Documentos, Tarefas e Comunicação. No topo: voltar à lista, etiquetas, convite ou gestão de acesso ao portal, atalho para Mensagens e Editar (abre o Perfil). Os números (obrigações pendentes, documentos por validar, tarefas abertas, mensagens não lidas) são só desta empresa. Não há tab de Solicitações nem de Notas: notas estão no Perfil; pedidos públicos estão em Serviços.',
+      'Esta é a ficha (hub) de um cliente da carteira do escritório — não é o portal onde o cliente entra. Tabs: Resumo, Perfil, Acessos, Actividade, Obrigações, Documentos, Tarefas e Comunicação. A tab Acessos guarda senhas de portais oficiais (AT, Segurança Social, ViaCTT, IAPMEI, Relatório Único), cifradas; ver uma senha pede a palavra-passe do Teglion. No topo: voltar à lista, etiquetas, convite ou gestão de acesso ao portal, atalho para Mensagens e Editar (abre o Perfil). Os números (obrigações pendentes, documentos por validar, tarefas abertas, mensagens não lidas) são só desta empresa. Não há tab de Solicitações nem de Notas: notas estão no Perfil; pedidos públicos estão em Serviços.',
     steps: [
       'Comece pelo Resumo para o estado',
       'Editar ou tab Perfil para corrigir o cadastro',
@@ -18,6 +18,7 @@ export const CLIENT_HUB_INTENTS = [
     relatedIntents: [
       'client-hub-overview',
       'client-profile',
+      'client-official-accesses',
       'client-documents',
       'client-services',
       'client-requests',
@@ -30,6 +31,7 @@ export const CLIENT_HUB_INTENTS = [
     nextSteps: [
       { label: 'Resumo', intentId: 'client-hub-overview' },
       { label: 'Perfil / editar', intentId: 'client-profile' },
+      { label: 'Acessos oficiais', intentId: 'client-official-accesses' },
       { label: 'Documentos', intentId: 'client-documents' },
       { label: 'Serviços', intentId: 'client-services' },
       { label: 'Solicitações', intentId: 'client-requests' },
@@ -41,7 +43,7 @@ export const CLIENT_HUB_INTENTS = [
     title: 'O que aparece no Resumo?',
     shortDescription: 'resumo do cliente',
     answer:
-      'O Resumo é o painel inicial da ficha. Atalhos para Obrigações, Documentos, Tarefas e Mensagens. Indicador de risco desta empresa. Histórico de acesso ao portal (sem acesso, convite pendente, activo ou revogado). Próximos prazos. Alertas de risco e tarefas urgentes. Se existirem comunicados, vê se estão lidos, com confirmação pendente ou por ler. Actividade recente (até 6 eventos) com «Ver tudo» para a tab Actividade.',
+      'O Resumo é o painel inicial da ficha. Atalhos para Acessos, Obrigações, Documentos, Tarefas e Mensagens. Indicador de risco desta empresa. Histórico de acesso ao portal (sem acesso, convite pendente, activo ou revogado). Próximos prazos. Alertas de risco e tarefas urgentes. Se existirem comunicados, vê se estão lidos, com confirmação pendente ou por ler. Actividade recente (até 6 eventos) com «Ver tudo» para a tab Actividade.',
     steps: [
       'Leia os números no topo da ficha',
       'Use os atalhos para saltar à tab certa',
@@ -52,6 +54,7 @@ export const CLIENT_HUB_INTENTS = [
     ctaLabel: 'Ir para Clientes',
     nextSteps: [
       { label: 'Perfil', intentId: 'client-profile' },
+      { label: 'Acessos oficiais', intentId: 'client-official-accesses' },
       { label: 'Actividade', intentId: 'client-history' },
     ],
   }),
@@ -83,6 +86,36 @@ export const CLIENT_HUB_INTENTS = [
         title: 'Onde está Guardar?',
         answer:
           'No Perfil não há Guardar: a ficha envia a alteração sozinha. No cadastro novo, o botão final é «Criar cliente».',
+      },
+    ],
+  }),
+  defineIntent({
+    id: 'client-official-accesses',
+    title: 'O que são os Acessos oficiais?',
+    shortDescription: 'senhas AT e Segurança Social',
+    answer:
+      'A tab Acessos (Acessos oficiais) na ficha guarda utilizador e senha dos portais do Estado deste cliente: AT / Portal das Finanças, Segurança Social, ViaCTT, IAPMEI e Relatório Único, mais um portal extra se precisar. As senhas não são um hash: ficam cifradas (AES-256-GCM) para a equipa as poder ler de volta. A lista nunca mostra a senha. O olho pede a palavra-passe da sua conta Teglion; a senha do portal fica visível cerca de 30 segundos e a consulta vai para a auditoria. O cliente no portal não vê este bloco. MFA opcional do dono, quando existir, entra nesta mesma confirmação — não substitui o pedido de identidade.',
+    steps: [
+      'Abra a ficha do cliente → tab Acessos',
+      'Preencha o utilizador e a senha do portal',
+      'Clique em Guardar e confirme com a sua palavra-passe do Teglion',
+      'Para ver a senha mais tarde, use o olho e volte a confirmar a identidade',
+    ],
+    deepLink: '/app/firm/clients',
+    relatedIntents: ['client-hub', 'client-profile', 'client-actions'],
+    ctaLabel: 'Ir para Clientes',
+    commonProblems: [
+      {
+        id: 'no-teglion-password',
+        title: 'Não consigo ver nem gravar senhas',
+        answer:
+          'A conta precisa de uma palavra-passe no Teglion. Se entrou só com Google, hoje ainda não há «definir palavra-passe» em Definições — use uma conta com e-mail e palavra-passe, ou peça ao dono do escritório.',
+      },
+      {
+        id: 'hashed-password',
+        title: 'A senha não aparece depois de guardar',
+        answer:
+          'É normal na lista. Use o olho: o Teglion pede a sua palavra-passe e mostra a senha do portal durante cerca de 30 segundos. Não usamos hash nestas senhas — se usássemos, ninguém as podia ler de volta.',
       },
     ],
   }),
@@ -278,7 +311,7 @@ export const CLIENT_HUB_INTENTS = [
     title: 'Que acções existem na ficha?',
     shortDescription: 'acções do cliente',
     answer:
-      'Na ficha: voltar à lista; etiquetas (ligar/desligar); convite ao portal ou Gerir acesso (revogar / reemitir — revogar não apaga dados); Mensagens; Editar (Perfil, gravação automática); mudar de tab. No Resumo, atalhos para obrigações, documentos, tarefas e mensagens. Em Documentos/Obrigações/Tarefas, abrir o módulo completo. Em Actividade, ocultar eventos do feed. Não há nesta ficha: eliminar cliente, criar solicitação, carregar documento, publicar serviço ou enviar IRS. Remover da carteira está no menu ⋯ da lista. A Maya não ensina a contornar permissões da equipa.',
+      'Na ficha: voltar à lista; etiquetas (ligar/desligar); convite ao portal ou Gerir acesso (revogar / reemitir — revogar não apaga dados); Mensagens; Editar (Perfil, gravação automática); mudar de tab. A tab Acessos guarda senhas de portais oficiais com confirmação da palavra-passe do Teglion. No Resumo, atalhos para obrigações, documentos, tarefas e mensagens. Em Documentos/Obrigações/Tarefas, abrir o módulo completo. Em Actividade, ocultar eventos do feed. Não há nesta ficha: eliminar cliente, criar solicitação, carregar documento, publicar serviço ou enviar IRS. Remover da carteira está no menu ⋯ da lista. A Maya não ensina a contornar permissões da equipa.',
     steps: [
       'Use o topo para convite, mensagens e editar',
       'Use as tabs para o trabalho do cliente',
@@ -289,6 +322,7 @@ export const CLIENT_HUB_INTENTS = [
       'clients-invite',
       'clients-archive',
       'client-profile',
+      'client-official-accesses',
       'client-documents',
       'client-history',
     ],

@@ -13,6 +13,8 @@ type Props = {
   onChange: (clientId: string) => void
   placeholder?: string
   className?: string
+  allowEmpty?: boolean
+  emptyLabel?: string
 }
 
 export function ClientSearchSelect({
@@ -21,6 +23,8 @@ export function ClientSearchSelect({
   onChange,
   placeholder = 'Pesquisar cliente (nome, e-mail, NIF)…',
   className,
+  allowEmpty = false,
+  emptyLabel = 'Tarefa do escritório (sem cliente)',
 }: Props) {
   const [q, setQ] = useState('')
 
@@ -54,8 +58,26 @@ export function ClientSearchSelect({
           Selecionado: <span className="font-medium text-foreground">{safeDisplayText(selected.fullName || selected.name)}</span>
           {selected.taxId ? ` · NIF ${selected.taxId}` : ''}
         </p>
+      ) : allowEmpty && !value ? (
+        <p className="text-xs text-muted-foreground">Sem cliente — fica como tarefa interna do escritório.</p>
       ) : null}
       <div className="max-h-40 overflow-y-auto rounded-xl border border-border/70 bg-muted/20 p-1">
+        {allowEmpty ? (
+          <button
+            type="button"
+            onClick={() => {
+              onChange('')
+              setQ('')
+            }}
+            className={cn(
+              'mb-1 flex w-full flex-col rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-background',
+              !value && 'bg-background font-medium ring-1 ring-brand/30',
+            )}
+          >
+            <span>{emptyLabel}</span>
+            <span className="text-xs text-muted-foreground">Porta 65, trabalho pontual, tarefas internas</span>
+          </button>
+        ) : null}
         {filtered.length === 0 ? (
           <p className="px-3 py-2 text-xs text-muted-foreground">Nenhum cliente encontrado.</p>
         ) : (
