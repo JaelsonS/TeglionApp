@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  FileSpreadsheet,
   LayoutGrid,
   List,
   MessageSquare,
@@ -29,6 +30,7 @@ import {
   type CompanyTypeLabel,
 } from '@/features/firm/clients/clientCompanyAvatar'
 import { FirmScrollPage } from '@/features/firm/FirmPageLayout'
+import { ClientsSpreadsheetDialog } from '@/features/firm/clients/ClientsSpreadsheetDialog'
 import { CreateCompanyWizard } from '@/features/firm/components/CreateCompanyWizard'
 import { FirmClientBulkInviteDialog } from '@/features/firm/components/FirmClientBulkInviteDialog'
 import { FirmTagBadge } from '@/features/firm/tags/FirmTagBadge'
@@ -105,6 +107,7 @@ export function FirmClientsPage() {
   >({})
   const [bulkInviteOpen, setBulkInviteOpen] = useState(false)
   const [archiveTarget, setArchiveTarget] = useState<Client | null>(null)
+  const [spreadsheetOpen, setSpreadsheetOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false,
   )
@@ -271,10 +274,16 @@ export function FirmClientsPage() {
               <AskMayaButton />
             }
             right={
-              <Button size="sm" variant="primary" onClick={() => setOpenCreate(true)}>
-                <Plus className="h-4 w-4" />
-                Novo cliente
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="outline" onClick={() => setSpreadsheetOpen(true)}>
+                  <FileSpreadsheet className="h-4 w-4" />
+                  Ficha CSV
+                </Button>
+                <Button size="sm" variant="primary" onClick={() => setOpenCreate(true)}>
+                  <Plus className="h-4 w-4" />
+                  Novo cliente
+                </Button>
+              </div>
             }
           />
         </div>
@@ -602,6 +611,11 @@ export function FirmClientsPage() {
       </div>
 
       <CreateCompanyWizard open={openCreate} onOpenChange={setOpenCreate} onCreated={() => void load()} />
+      <ClientsSpreadsheetDialog
+        open={spreadsheetOpen}
+        onOpenChange={setSpreadsheetOpen}
+        onImported={() => void load()}
+      />
       <FirmClientBulkInviteDialog
         open={bulkInviteOpen}
         onOpenChange={setBulkInviteOpen}

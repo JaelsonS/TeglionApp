@@ -120,6 +120,33 @@ export function createContabilClientsApi(api: AxiosInstance) {
     archive: (clientId: string) =>
       api.delete(`/contabil/clients/${encodeURIComponent(clientId)}`).then((r) => r.data),
 
+    exportClientsCsv: async (template = false) => {
+      const r = await api.get('/contabil/clients/export-csv', {
+        params: template ? { template: '1' } : undefined,
+        responseType: 'blob',
+      })
+      const blob = r.data as Blob
+      const type = String(r.headers?.['content-type'] || blob.type || '')
+      if (type.includes('application/json')) {
+        const parsed = JSON.parse(await blob.text()) as { message?: string }
+        throw new Error(parsed.message || 'Não foi possível exportar o CSV')
+      }
+      return blob
+    },
+
+    importClientsCsv: async (file: File, currentPassword?: string) => {
+      const fd = new FormData()
+      fd.append('file', file)
+      if (currentPassword) fd.append('currentPassword', currentPassword)
+      const r = await api.post('/contabil/clients/import-csv', fd, { timeout: 120000 })
+      return r.data as {
+        created: number
+        updated: number
+        skipped: number
+        errors: Array<{ line: number; message: string }>
+      }
+    },
+
     createInvite: (payload: { clientId: string; email?: string; initialPassword?: string }) =>
       api
         .post('/contabil/invites', {
@@ -168,6 +195,37 @@ export function createContabilClientsApi(api: AxiosInstance) {
       subject?: string
       bodyText?: string
     }) => api.post('/contabil/invites/test-email', payload).then((r) => r.data as { sent: boolean }),
+
+    listOfficialAccesses: (clientId: string) =>
+      api.get(`/contabil/clients/${encodeURIComponent(clientId)}/official-accesses`).then((r) => r.data),
+
+    upsertOfficialAccess: (
+      clientId: string,
+      payload: {
+        currentPassword: string
+        portalKey: string
+        accessId?: string | null
+        username?: string | null
+        password?: string
+        label?: string | null
+      },
+    ) => api.put(`/contabil/clients/${encodeURIComponent(clientId)}/official-accesses`, payload).then((r) => r.data),
+
+    revealOfficialAccess: (clientId: string, accessId: string, payload: { currentPassword: string }) =>
+      api
+        .post(
+          `/contabil/clients/${encodeURIComponent(clientId)}/official-accesses/${encodeURIComponent(accessId)}/reveal`,
+          payload,
+        )
+        .then((r) => r.data),
+
+    removeOfficialAccess: (clientId: string, accessId: string, payload: { currentPassword: string }) =>
+      api
+        .post(
+          `/contabil/clients/${encodeURIComponent(clientId)}/official-accesses/${encodeURIComponent(accessId)}/remove`,
+          payload,
+        )
+        .then((r) => r.data),
 
     getAccessHistory: (clientId: string) =>
       api.get(`/contabil/clients/${encodeURIComponent(clientId)}/access-history`).then(

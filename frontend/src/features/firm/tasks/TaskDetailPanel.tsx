@@ -198,18 +198,24 @@ export function TaskDetailPanel({ taskId, teamNames, onClose, onMutate, embedded
                   </Link>
                 </Button>
               ) : null}
-              <Button size="sm" variant="outline" className="rounded-full" asChild>
-                <Link to={`/app/firm/clients/${task.clientId}`}>
-                  <ExternalLink className="mr-1.5 h-4 w-4" />
-                  Área do cliente
-                </Link>
-              </Button>
-              <Button size="sm" variant="outline" className="rounded-full" asChild>
-                <Link to={`/app/firm/documents/requests?client=${task.clientId}`}>
-                  <MessageSquare className="mr-1.5 h-4 w-4" />
-                  Mensagens
-                </Link>
-              </Button>
+              {task.clientId ? (
+                <>
+                  <Button size="sm" variant="outline" className="rounded-full" asChild>
+                    <Link to={`/app/firm/clients/${task.clientId}`}>
+                      <ExternalLink className="mr-1.5 h-4 w-4" />
+                      Área do cliente
+                    </Link>
+                  </Button>
+                  <Button size="sm" variant="outline" className="rounded-full" asChild>
+                    <Link to={`/app/firm/documents/requests?client=${task.clientId}`}>
+                      <MessageSquare className="mr-1.5 h-4 w-4" />
+                      Mensagens
+                    </Link>
+                  </Button>
+                </>
+              ) : (
+                <p className="text-xs text-muted-foreground">Tarefa do escritório — sem cliente da carteira.</p>
+              )}
             </div>
 
             <div className="flex flex-wrap gap-2">

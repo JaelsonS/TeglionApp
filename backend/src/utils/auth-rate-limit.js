@@ -31,10 +31,28 @@ const registerFirmLimiter = createAuthLimiter({
   },
 });
 
+const officialAccessStepUpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 8,
+  keyGenerator: (req) => {
+    const userId = req.user?.id || 'anon';
+    const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+    return `${userId}:${ip}`;
+  },
+  store: createRateLimitStore('rl:vault:stepup:'),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: 'Muitas tentativas de confirmação. Aguarde alguns minutos.',
+    code: 'RATE_LIMIT',
+  },
+});
+
 module.exports = {
   createAuthLimiter,
   firmLoginLimiter,
   recoverLimiter,
   refreshLimiter,
   registerFirmLimiter,
+  officialAccessStepUpLimiter,
 };

@@ -14,6 +14,17 @@ test('sanitizeObject: redige accessToken mesmo com casing camelCase', () => {
   assert.equal(out.fileId, 'file-1');
 });
 
+test('sanitizeObject: redige senhas oficiais do CSV (at_senha)', () => {
+  const out = sanitizeObject({
+    at_senha: 'portal-secret',
+    ss_senha: 'ss-secret',
+    nif: '123456789',
+  });
+  assert.equal(out.at_senha, '[REDACTED]');
+  assert.equal(out.ss_senha, '[REDACTED]');
+  assert.equal(out.nif, '[REDACTED]');
+});
+
 test('sanitizeObject: redige apiKey / Authorization case-insensitive', () => {
   const out = sanitizeObject({
     apiKey: 'AIzaSy-test',

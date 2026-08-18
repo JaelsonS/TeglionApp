@@ -274,10 +274,10 @@ export function FirmObligationDetailPanel({
               <p className="cb-ob-meta-label">Período</p>
               <div className="flex items-center gap-2">
                 <input
-                  type="month"
-                  className="cb-ob-meta-val h-8 w-full max-w-[9.5rem] rounded-md border border-input bg-background px-2 text-sm"
-                  value={periodDraft}
-                  onChange={(e) => setPeriodDraft(e.target.value)}
+                  type="date"
+                  className="cb-ob-meta-val h-8 w-full max-w-[11rem] rounded-md border border-input bg-background px-2 text-sm"
+                  value={periodDraft.length === 7 ? `${periodDraft}-01` : periodDraft}
+                  onChange={(e) => setPeriodDraft(e.target.value.slice(0, 7))}
                   onBlur={() => void savePeriod()}
                   disabled={savingPeriod || isDelivered}
                   aria-label="Período da obrigação"

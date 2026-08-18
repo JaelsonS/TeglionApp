@@ -137,6 +137,20 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     primaryIntentId: 'client-profile',
   },
   {
+    id: 'clients-hub-accesses',
+    pathPrefix: '/app/firm/clients/',
+    search: { key: 'section', value: 'accesses' },
+    where: 'Acessos oficiais deste cliente',
+    summary:
+      'Está nas senhas dos portais oficiais desta empresa (AT, Segurança Social, ViaCTT, IAPMEI, Relatório Único). Guardar ou ver uma senha pede a sua palavra-passe do Teglion. O cliente no portal não vê este bloco.',
+    audience: 'Equipa do escritório que trata desta empresa nos portais do Estado',
+    goal: 'Gravar ou consultar um acesso oficial com confirmação de identidade.',
+    firstTimeHint:
+      'O olho não mostra a senha logo: confirma primeiro que é você. A senha visível desaparece ao fim de cerca de 30 segundos.',
+    topicIds: ['client-official-accesses', 'client-hub', 'client-profile'],
+    primaryIntentId: 'client-official-accesses',
+  },
+  {
     id: 'clients-hub-timeline',
     pathPrefix: '/app/firm/clients/',
     search: { key: 'section', value: 'timeline' },
@@ -203,7 +217,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     pathPrefix: '/app/firm/clients/',
     where: 'ficha deste cliente',
     summary:
-      'Esta é a ficha deste cliente: resumo, perfil, actividade, documentos, obrigações, tarefas e comunicação. Daqui também convida ou gere o acesso ao portal. Não é o portal do cliente.',
+      'Esta é a ficha deste cliente: resumo, perfil, acessos oficiais, actividade, documentos, obrigações, tarefas e comunicação. Daqui também convida ou gere o acesso ao portal. Não é o portal do cliente.',
     audience: 'Quem trata deste cliente no dia-a-dia',
     goal: 'Ver o estado do cliente e agir sem saltar entre ecrãs.',
     firstTimeHint:
@@ -212,6 +226,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
       'client-hub',
       'client-hub-overview',
       'client-profile',
+      'client-official-accesses',
       'client-documents',
       'client-services',
       'client-requests',
@@ -228,7 +243,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     exact: true,
     where: 'lista de Clientes',
     summary:
-      'Está na área de Clientes. Aqui fica a carteira do escritório: cadastrar, procurar, filtrar e abrir cada ficha. O botão «Novo cliente» abre o assistente neste ecrã. Isto não é o portal do cliente.',
+      'Está na área de Clientes. Aqui fica a carteira do escritório: cadastrar, procurar, filtrar e abrir cada ficha. O botão «Novo cliente» abre o assistente neste ecrã. «Ficha CSV» exporta ou importa a carteira em texto (sem macros). Isto não é o portal do cliente.',
     audience: 'Toda a equipa que gere a carteira',
     goal: 'Ter os clientes registados e, quando fizer sentido, com acesso ao portal.',
     firstTimeHint:

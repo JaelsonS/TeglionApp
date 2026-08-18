@@ -6,6 +6,7 @@ import {
   ClipboardList,
   FileStack,
   Inbox,
+  KeyRound,
   Megaphone,
   MessageSquare,
 } from 'lucide-react'
@@ -20,6 +21,7 @@ import { FirmScrollPage } from '@/features/firm/FirmPageLayout'
 import { ClientHubHeader } from '@/features/firm/client-hub/ClientHubHeader'
 import { ClientAccessHistory } from '@/features/firm/client-hub/ClientAccessHistory'
 import { ClientHubProfilePanel } from '@/features/firm/client-hub/ClientHubProfilePanel'
+import { ClientHubOfficialAccessesPanel } from '@/features/firm/client-hub/ClientHubOfficialAccessesPanel'
 import { ClientHubActivityHistoryPanel } from '@/features/firm/client-hub/ClientHubActivityHistoryPanel'
 import { ClientHubHistory } from '@/features/firm/client-hub/ClientHubHistory'
 import { deriveRiskReason } from '@/features/firm/client-hub/clientHubUtils'
@@ -100,6 +102,7 @@ export function FirmClientHubPage() {
   }
 
   const hubShortcuts = [
+    { id: 'accesses' as const, label: 'Acessos', icon: KeyRound },
     { id: 'obligations' as const, label: 'Obrigações', icon: ClipboardList },
     { id: 'documents' as const, label: 'Documentos', icon: Inbox },
     { id: 'tasks' as const, label: 'Tarefas', icon: FileStack },
@@ -259,6 +262,8 @@ export function FirmClientHubPage() {
             </section>
           </div>
         ) : null}
+
+        {section === 'accesses' ? <ClientHubOfficialAccessesPanel clientId={cid} /> : null}
 
         {section === 'profile' ? (
           <div className="cb-client-hub-panel p-4 sm:p-5">

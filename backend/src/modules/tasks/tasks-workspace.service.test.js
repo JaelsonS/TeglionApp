@@ -1,3 +1,5 @@
+require('../../test/ensure-test-env');
+
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
