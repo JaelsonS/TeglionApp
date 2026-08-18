@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CreditCard, Loader2, ReceiptText } from 'lucide-react'
+import { Check, CreditCard, Loader2, ReceiptText } from 'lucide-react'
 
 import { FirmScrollPage } from '@/features/firm/FirmPageLayout'
 import { BRAND } from '@/shared/config/brand'
@@ -101,7 +101,7 @@ export function FirmBillingPage() {
         {isLoading ? <PageLoading label="A carregar o plano…" /> : null}
 
         {!isLoading && billing ? (
-          <div className="mb-6 grid gap-3 sm:grid-cols-3">
+          <div className="cb-billing-status-grid">
             <div className="cb-settings-fieldset">
               <p className="cb-settings-fieldset-title">A subscrição está activa?</p>
               <p className="cb-settings-fieldset-sub mt-1">
@@ -136,13 +136,7 @@ export function FirmBillingPage() {
         ) : null}
 
         {!isLoading && billing ? (
-          <div
-            className={`mb-6 rounded-xl border px-4 py-3 text-sm ${
-              billing.hasAccess
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-                : 'border-amber-200 bg-amber-50 text-amber-900'
-            }`}
-          >
+          <div className={cn('cb-billing-hero', billing.hasAccess ? 'cb-billing-hero--ok' : 'cb-billing-hero--warn')}>
             {billing.hasAccess ? (
               <p>
                 <strong>Acesso activo.</strong>{' '}
@@ -163,12 +157,21 @@ export function FirmBillingPage() {
 
         <div className="cb-billing-cards">
           <div className="cb-billing-card">
+            {billing?.status === 'TRIAL' ? <p className="cb-billing-card-using">A usar agora</p> : null}
             <p className="cb-billing-card-label">{p.trial.name}</p>
             <p className="cb-billing-card-price">
               0 €
               <span className="cb-billing-card-period"> / {trialDays} dias</span>
             </p>
             <p className="cb-billing-card-desc">{p.trial.description}</p>
+            <ul className="cb-billing-card-features">
+              {p.trial.features.map((f) => (
+                <li key={f}>
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
+                  {f}
+                </li>
+              ))}
+            </ul>
           </div>
 
           <div className="cb-billing-card">
@@ -178,24 +181,35 @@ export function FirmBillingPage() {
               <span className="cb-billing-card-period"> / mês</span>
             </p>
             <p className="cb-billing-card-desc">{p.plan.monthly.note} · por escritório</p>
+            <ul className="cb-billing-card-features">
+              {p.plan.features.map((f) => (
+                <li key={f}>
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
+                  {f}
+                </li>
+              ))}
+            </ul>
           </div>
 
           <div className="cb-billing-card cb-billing-card-featured">
+            <p className="cb-billing-card-badge">{p.plan.yearly.badge}</p>
             <p className="cb-billing-card-label">{p.plan.yearly.name}</p>
             <p className="cb-billing-card-price">
               {yearlyMonthlyLabel}
               <span className="cb-billing-card-period"> / mês</span>
             </p>
             <p className="cb-billing-card-desc">{yearlyLabel} cobrados uma vez por ano</p>
-            <p className="mt-2 text-xs font-medium text-brand">{p.plan.yearly.badge}</p>
+            <ul className="cb-billing-card-features">
+              {p.plan.features.map((f) => (
+                <li key={`y-${f}`}>
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
+                  {f}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
-        <ul className="mt-4 space-y-1 text-sm text-muted-foreground">
-          {p.plan.features.map((f) => (
-            <li key={f}>· {f}</li>
-          ))}
-        </ul>
         <p className="mt-2 text-xs text-muted-foreground">{p.plan.vatNote}</p>
 
         <div className="mt-8 flex flex-wrap gap-3">

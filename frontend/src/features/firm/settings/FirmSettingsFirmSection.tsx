@@ -109,6 +109,12 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
             Texto da barra superior do site público. O título grande abaixo da foto edita-se em Definições → Página
             pública → Destaque principal. Se vazio, usa o nome do escritório acima.
           </p>
+          <div className="cb-settings-public-bar-preview" aria-hidden>
+            <div className="cb-settings-public-bar-preview-bar">
+              {publicDisplayName.trim() || name.trim() || 'Nome na barra pública'}
+            </div>
+            <p className="cb-settings-public-bar-preview-hint">Pré-visualização da barra do topo — não é o título grande da foto.</p>
+          </div>
         </div>
         </div>
 

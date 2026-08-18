@@ -65,6 +65,7 @@ export function AgendaAvailabilityPanel(props: Props) {
   const overrideDates = Object.keys(dateOverrides).sort()
   const [copySource, setCopySource] = useState<number>(1)
   const [copyTargets, setCopyTargets] = useState<number[]>([])
+  const [focusedDay, setFocusedDay] = useState<number>(1)
 
   function copyIntervalsToDays() {
     const source = intervalsForDay(schedule, copySource).map((iv) => ({ ...iv }))
@@ -87,7 +88,10 @@ export function AgendaAvailabilityPanel(props: Props) {
   function toggleDay(day: number) {
     const current = intervalsForDay(schedule, day)
     if (current.length) setDayIntervals(day, [])
-    else setDayIntervals(day, [{ ...defaultInterval }])
+    else {
+      setDayIntervals(day, [{ ...defaultInterval }])
+      setFocusedDay(day)
+    }
   }
 
   function updateInterval(day: number, index: number, patch: Partial<TimeInterval>) {
@@ -154,22 +158,125 @@ export function AgendaAvailabilityPanel(props: Props) {
     onDateOverridesChange(next)
   }
 
+  const slotAndSave = (
+    <>
+      {showSlotSettings ? (
+        <div className="cb-agenda-availability-fields">
+          <p className="cb-agenda-availability-aside-title">Opções de marcação</p>
+          <label className="cb-agenda-field">
+            <span className="cb-agenda-field-label">
+              <Globe className="h-3.5 w-3.5" aria-hidden />
+              Fuso horário
+            </span>
+            <select className="cb-agenda-field-input" value={bookingTz} onChange={(e) => onBookingTz(e.target.value)}>
+              {BOOKING_TIMEZONE_OPTIONS.map((z) => (
+                <option key={z.value} value={z.value}>
+                  {z.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="cb-agenda-field">
+            <span className="cb-agenda-field-label">Duração do slot</span>
+            <DurationMinutesField
+              value={slotMin}
+              onChange={onSlotMin}
+              min={5}
+              max={240}
+              presets={[15, 30, 45, 60, 90, 120]}
+              inputClassName="cb-agenda-field-input"
+              aria-label="Duração do slot em minutos"
+            />
+          </label>
+          <label className="cb-agenda-field">
+            <span className="cb-agenda-field-label">Horizonte (dias à frente)</span>
+            <Input
+              type="number"
+              min={1}
+              max={60}
+              className="cb-agenda-field-input"
+              value={horizon}
+              onChange={(e: FormChangeEvent) => onHorizon(Number(e.target.value))}
+            />
+          </label>
+        </div>
+      ) : null}
+
+      {hideSaveButton ? null : (
+        <Button
+          className="cb-agenda-save-btn w-full"
+          type="button"
+          onClick={onSaveAvailability}
+          disabled={openDays.length === 0}
+        >
+          Guardar disponibilidade
+        </Button>
+      )}
+
+      {!hideSaveButton && booking ? (
+        <p className="cb-agenda-availability-summary">
+          <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          <span>
+            {booking.timezone || 'Europe/Lisbon'} · slots de {booking.slotMinutes} min · até {booking.horizonDays}{' '}
+            dias · antecedência mín. {booking.leadTimeHours} h
+          </span>
+        </p>
+      ) : null}
+    </>
+  )
+
   return (
-    <div className="cb-agenda-availability">
+    <div className={cn('cb-agenda-availability', showSlotSettings && 'cb-agenda-availability-layout')}>
+      <div className="space-y-5">
       <div>
         <p className="cb-agenda-availability-label">Horário de atendimento</p>
         <p className="cb-agenda-availability-hint">
           Defina os dias e um ou mais intervalos por dia (ex.: manhã e tarde). Pode copiar o horário de um
-          dia para os restantes.
+          dia para os restantes. Clique num dia da faixa para o destacar; o nome do dia abre ou fecha o
+          atendimento.
         </p>
-        <div className="space-y-3">
+        <div className="cb-agenda-weekday-grid" role="group" aria-label="Dias da semana">
+          {BOOKING_WEEKDAYS.map((w) => {
+            const open = intervalsForDay(schedule, w.bit).length > 0
+            return (
+              <button
+                key={`strip-${w.bit}`}
+                type="button"
+                className={cn(
+                  'cb-agenda-weekday-btn',
+                  open && 'cb-agenda-weekday-btn-active',
+                  focusedDay === w.bit && 'cb-agenda-weekday-btn-focus',
+                )}
+                aria-current={focusedDay === w.bit ? 'true' : undefined}
+                aria-label={`Ver horário de ${w.full}${open ? ', aberto' : ', fechado'}`}
+                onClick={() => {
+                  setFocusedDay(w.bit)
+                  document.getElementById(`agenda-day-${w.bit}`)?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                  })
+                }}
+              >
+                <span className="cb-agenda-weekday-short">{w.label}</span>
+                <span className="cb-agenda-weekday-full">{w.label}</span>
+                {!open ? <span className="cb-agenda-weekday-closed">Fechado</span> : null}
+              </button>
+            )
+          })}
+        </div>
+        <div className="mt-3 space-y-3">
           {BOOKING_WEEKDAYS.map((w) => {
             const intervals = intervalsForDay(schedule, w.bit)
             const open = intervals.length > 0
             return (
               <div
                 key={w.bit}
-                className={cn('rounded-xl border border-border/60 p-3', open ? 'bg-card' : 'bg-muted/20')}
+                id={`agenda-day-${w.bit}`}
+                className={cn(
+                  'rounded-xl border border-border/60 p-3',
+                  open ? 'bg-card' : 'bg-muted/20',
+                  focusedDay === w.bit && 'ring-2 ring-brand/25',
+                )}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <button
@@ -388,63 +495,9 @@ export function AgendaAvailabilityPanel(props: Props) {
           )}
         </div>
       ) : null}
-
-      {showSlotSettings ? (
-      <div className="cb-agenda-availability-fields">
-        <label className="cb-agenda-field">
-          <span className="cb-agenda-field-label">
-            <Globe className="h-3.5 w-3.5" aria-hidden />
-            Fuso horário
-          </span>
-          <select className="cb-agenda-field-input" value={bookingTz} onChange={(e) => onBookingTz(e.target.value)}>
-            {BOOKING_TIMEZONE_OPTIONS.map((z) => (
-              <option key={z.value} value={z.value}>
-                {z.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="cb-agenda-field">
-          <span className="cb-agenda-field-label">Duração do slot</span>
-          <DurationMinutesField
-            value={slotMin}
-            onChange={onSlotMin}
-            min={5}
-            max={240}
-            presets={[15, 30, 45, 60, 90, 120]}
-            inputClassName="cb-agenda-field-input"
-            aria-label="Duração do slot em minutos"
-          />
-        </label>
-        <label className="cb-agenda-field">
-          <span className="cb-agenda-field-label">Horizonte (dias à frente)</span>
-          <Input
-            type="number"
-            min={1}
-            max={60}
-            className="cb-agenda-field-input"
-            value={horizon}
-            onChange={(e: FormChangeEvent) => onHorizon(Number(e.target.value))}
-          />
-        </label>
       </div>
-      ) : null}
 
-      {hideSaveButton ? null : (
-        <Button className="cb-agenda-save-btn" type="button" onClick={onSaveAvailability} disabled={openDays.length === 0}>
-          Guardar disponibilidade
-        </Button>
-      )}
-
-      {!hideSaveButton && booking ? (
-        <p className="cb-agenda-availability-summary">
-          <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden />
-          <span>
-            {booking.timezone || 'Europe/Lisbon'} · slots de {booking.slotMinutes} min · até {booking.horizonDays}{' '}
-            dias · antecedência mín. {booking.leadTimeHours} h
-          </span>
-        </p>
-      ) : null}
+      {showSlotSettings ? <aside className="cb-agenda-availability-aside">{slotAndSave}</aside> : slotAndSave}
     </div>
   )
 }
