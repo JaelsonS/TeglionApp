@@ -134,7 +134,7 @@ Ausente (Sprint 0 itens MFA marcados como blocked/deferred). Sem TOTP, recovery 
 
 | Maya v1 (Fase 1) | Maya futura |
 |------------------|-------------|
-| Assistente guiada com respostas **pré-cadastradas** | LLM / RAG / Document Intel (`docs/_archive/ai/AI.md`) |
+| Assistente guiada com respostas **pré-cadastradas** | LLM / RAG / Document Intel |
 | Integrada ao **Guia** existente (`ModuleHelpDialog` + painel lateral) | Gateway `/api/v1/ai/*` |
 | Zero acesso a dados sensíveis | Capabilities com RBAC + audit + cost tracking |
 
@@ -522,7 +522,7 @@ Classificação Fase 1 (ICP = escritório pagante + funil PT):
 - `docs/06-SEGURANCA/*`, `docs/02-ROADMAP/SPRINT-0.md`, `SPRINT-1.md`
 - `docs/03-PRODUTO/{IRS,SERVICOS,BOOKING,PAGINA-PUBLICA}.md`
 - `docs/product/SERVICOS_IRS_REDESIGN_APPROVAL.md`
-- Arquivo (parcialmente stale): `docs/_archive/UX/*`, `docs/_archive/ai/AI.md`, `docs/_archive/content/BLOG_AUDIT.md`
+- UX e produto actuais: `docs/03-PRODUTO/*`, `docs/00-PRODUTO/*`
 
 ---
 
