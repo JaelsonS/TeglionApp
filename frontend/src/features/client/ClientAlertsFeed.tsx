@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { CategoryBadge, PriorityBadge } from '@/features/firm/alerts/broadcast-ui'
 import { fetchClientAlerts, type ClientAlertItem } from '@/infrastructure/api/contabil/broadcasts'
 import { broadcastQueryKeys } from '@/shared/hooks/queries/useBroadcasts'
+import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
 import { clientPortalContabilApi } from '@/infrastructure/api'
 import { formatDateTime } from '@/shared/utils/date'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -17,14 +18,16 @@ import { SkeletonCard } from '@/shared/design-system/Skeleton'
 
 export function ClientAlertsFeed() {
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 400)
   const [category, setCategory] = useState('')
   const [pendingId, setPendingId] = useState<string | null>(null)
   const qc = useQueryClient()
 
-  const filterKey = JSON.stringify({ search, category })
+  const filterKey = JSON.stringify({ search: debouncedSearch, category })
   const { data, isLoading, refetch } = useQuery({
     queryKey: broadcastQueryKeys.clientFeed(filterKey),
-    queryFn: () => fetchClientAlerts({ category: category || undefined, search: search || undefined }),
+    queryFn: () =>
+      fetchClientAlerts({ category: category || undefined, search: debouncedSearch || undefined }),
     staleTime: 30_000,
   })
 
@@ -94,6 +97,7 @@ export function ClientAlertsFeed() {
         <Input
           className="rounded-full pl-9"
           placeholder="Pesquisar alertas do escritório…"
+          aria-label="Pesquisar alertas do escritório"
           value={search}
           onChange={(e: FormChangeEvent) => setSearch(e.target.value)}
         />

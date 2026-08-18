@@ -37,10 +37,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/shared/components/ui/sheet'
-import { contabilClientsApi } from '@/infrastructure/api'
+import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
 import { getErrorMessage } from '@/shared/utils/errors'
-import type { Client } from '@/shared/types/clients'
-
 type ManualViewMode = 'board' | 'grid'
 
 export function FirmTasksWorkspacePage() {
@@ -64,7 +62,8 @@ export function FirmTasksWorkspacePage() {
   const [manualView, setManualView] = useState<ManualViewMode>(
     (searchParams.get('view') === 'grid' ? 'grid' : 'board') as ManualViewMode,
   )
-  const [clients, setClients] = useState<Client[]>([])
+  const clientsQuery = useFirmClientsDirectory({ limit: 500 })
+  const clients = clientsQuery.data?.items || []
   const [form, setForm] = useState({
     clientId: clientFilter || '',
     title: '',
@@ -142,12 +141,6 @@ export function FirmTasksWorkspacePage() {
     for (const u of teamData?.items || []) m.set(u.id, u.fullName || u.email)
     return m
   }, [teamData])
-
-  useEffect(() => {
-    void contabilClientsApi.list({ page: 1, limit: 500 }).then((r: { items?: Client[] }) => {
-      setClients(r.items || [])
-    })
-  }, [])
 
   const { data, isLoading, isFetching } = useTasksWorkspace({
     search: search || undefined,

@@ -22,7 +22,8 @@ import { Input } from '@/shared/components/ui/input'
 import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
 import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
 import { EmptyState, PageHeader } from '@/shared/design-system'
-import { api, contabilClientsApi } from '@/infrastructure/api'
+import { api } from '@/infrastructure/api'
+import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { escapeHtml } from '@/shared/utils/escapeHtml'
 import { cn } from '@/shared/lib/utils'
@@ -81,10 +82,7 @@ export function ServicesWorkspace() {
     queryFn: () => api.get('/contabil/service-requests').then((r) => r.data as { items: ServiceRequest[] }),
   })
 
-  const { data: clientsData } = useQuery({
-    queryKey: ['service-requests-clients'],
-    queryFn: () => contabilClientsApi.list({ page: 1, limit: 300 }) as Promise<{ items?: Client[] }>,
-  })
+  const { data: clientsData } = useFirmClientsDirectory({ limit: 500 })
 
   const { data: detailData, isLoading: detailLoading } = useQuery({
     queryKey: ['service-request-detail', selectedId],

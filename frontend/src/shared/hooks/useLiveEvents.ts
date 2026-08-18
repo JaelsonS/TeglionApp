@@ -2,6 +2,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef } from 'react'
 
 import { api } from '@/infrastructure/api'
+import { queryKeys } from '@/shared/hooks/queries/queryKeys'
+import { useAuth } from '@/shared/hooks/useAuth'
 import { emitAppDataChanged } from '@/shared/utils/appEvents'
 
 export type LiveBadge = {
@@ -38,12 +40,14 @@ function setAppBadge(count: number) {
 
 export function useLiveEvents(scope: 'firm' | 'client', enabled = true) {
   const qc = useQueryClient()
+  const { user } = useAuth()
+  const tenantKey = scope === 'firm' ? user?.tenant.slug ?? '' : user?.clientId || user?.id || ''
   const cursorRef = useRef<string | undefined>(undefined)
 
   const query = useQuery({
-    queryKey: ['live-events', scope],
+    queryKey: queryKeys.liveEvents(scope, tenantKey),
     queryFn: () => (scope === 'firm' ? pollFirm(cursorRef.current) : pollClient(cursorRef.current)),
-    enabled,
+    enabled: enabled && Boolean(tenantKey),
     refetchInterval: false,
     staleTime: 30_000,
   })

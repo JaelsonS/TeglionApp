@@ -46,11 +46,6 @@ export function ClientDashboardPage() {
     queryFn: () => fetchClientAlerts({}),
     staleTime: 45_000,
   })
-  const unreadMessagesQuery = useQuery({
-    queryKey: ['client', 'messages', 'unread-count'],
-    queryFn: () => clientPortalContabilApi.getMessagesUnreadCount(),
-    staleTime: 45_000,
-  })
   const documentRequestsQuery = useQuery({
     queryKey: ['client', 'document-requests', 'count'],
     queryFn: () =>
@@ -74,7 +69,7 @@ export function ClientDashboardPage() {
   }, [newsQuery.featured, newsQuery.items])
 
   const urgentBanner = alertsQuery.data?.urgentBanner
-  const unreadMessagesCount = unreadMessagesQuery.data?.total || 0
+  const unreadMessagesCount = hub?.counts.unreadMessages || 0
   const newRequestsCount = (documentRequestsQuery.data?.items || []).filter((r) => {
     const status = String(r.status || '').toLowerCase()
     return status === 'pending' || status === 'seen'

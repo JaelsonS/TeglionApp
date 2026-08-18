@@ -257,6 +257,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
       'clients-list',
       'client-hub',
       'clients-invite',
+      'clients-csv',
       'clients-next-steps',
       'clients-problems',
     ],

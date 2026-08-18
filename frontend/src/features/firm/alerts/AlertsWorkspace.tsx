@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { useSearchParams } from 'react-router-dom'
 import { Loader2, Megaphone, Pin, Plus, Search } from 'lucide-react'
@@ -22,10 +22,10 @@ import {
 import type { FirmBroadcast } from '@/infrastructure/api/contabil/broadcasts'
 import { useBroadcastMutations, useBroadcastsMeta, useFirmBroadcasts } from '@/shared/hooks/queries/useBroadcasts'
 import { fetchBroadcastAnalytics } from '@/infrastructure/api/contabil/broadcasts'
-import { contabilClientsApi } from '@/infrastructure/api'
+import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
+import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
 import { formatDateTime } from '@/shared/utils/date'
 import { getErrorMessage } from '@/shared/utils/errors'
-import type { Client } from '@/shared/types/clients'
 import { cn } from '@/shared/lib/utils'
 
 export function AlertsWorkspace() {
@@ -34,11 +34,13 @@ export function AlertsWorkspace() {
   const priorityFilter = searchParams.get('priority') || ''
 
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 400)
   const [category, setCategory] = useState('')
   const [status, setStatus] = useState('')
   const [editing, setEditing] = useState<AlertDraft | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<FirmBroadcast | null>(null)
-  const [clients, setClients] = useState<Client[]>([])
+  const clientsQuery = useFirmClientsDirectory({ limit: 500 })
+  const clients = clientsQuery.data?.items || []
   const [analyticsId, setAnalyticsId] = useState<string | null>(null)
   const [analytics, setAnalytics] = useState<Record<string, unknown> | null>(null)
   const [loadingAnalytics, setLoadingAnalytics] = useState(false)
@@ -46,21 +48,15 @@ export function AlertsWorkspace() {
   const { data: meta } = useBroadcastsMeta()
   const filters = useMemo(
     () => ({
-      search: search || undefined,
+      search: debouncedSearch || undefined,
       category: category || undefined,
       priority: priorityFilter || undefined,
       status: status || undefined,
     }),
-    [search, category, priorityFilter, status],
+    [debouncedSearch, category, priorityFilter, status],
   )
   const { data, isLoading } = useFirmBroadcasts(filters)
   const { create, update, remove } = useBroadcastMutations()
-
-  useEffect(() => {
-    void contabilClientsApi.list({ page: 1, limit: 300 }).then((r: { items?: Client[] }) => {
-      setClients(r.items || [])
-    })
-  }, [])
 
   const items = data?.items || []
   const selected = items.find((i) => i.id === selectedId) || null

@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { fetchBroadcastsMeta, fetchFirmBroadcasts } from '@/infrastructure/api/contabil/broadcasts'
-import { contabilQueryKeys } from '@/infrastructure/api/contabil/queryKeys'
 import { contabilBroadcastsApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { toast } from 'sonner'

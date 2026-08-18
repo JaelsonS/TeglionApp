@@ -14,11 +14,14 @@ import { Skeleton } from '@/shared/design-system'
 import { isContabilMode } from '@/shared/config/productMode'
 import { clientPortalContabilApi } from '@/infrastructure/api'
 import { useClientPortalHub } from '@/shared/hooks/queries/useClientPortalHub'
+import { useAuth } from '@/shared/hooks/useAuth'
 import { getInitialAppLocale } from '@/shared/i18n/appLocale'
 import type { ClientTask, DocumentRequest, Obligation } from '@/shared/types/contabil'
 
 export function ClientObligationsPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const clientId = user?.clientId || user?.id || ''
   const [searchParams] = useSearchParams()
   const locale = useMemo(
     () => (isContabilMode() ? 'pt-PT' : toClientHubLocale(getInitialAppLocale())),
@@ -31,7 +34,8 @@ export function ClientObligationsPage() {
     searchParams.get('view') === 'consultoria' || searchParams.get('tab') === 'consultoria'
 
   const agendaQuery = useQuery({
-    queryKey: ['client-agenda-rich'],
+    queryKey: ['client-agenda-rich', clientId],
+    enabled: Boolean(clientId),
     queryFn: async () => {
       const [obligationsRes, requestsRes, tasksRes] = await Promise.all([
         clientPortalContabilApi.listObligations() as Promise<{ items?: Obligation[] }>,
@@ -120,7 +124,7 @@ export function ClientObligationsPage() {
           />
         </div>
         <div className="min-w-0">
-          <ClientObligationsView t={t} filterDateKey={selectedDateKey} />
+          <ClientObligationsView t={t} filterDateKey={selectedDateKey} obligations={obligations} />
         </div>
       </div>
     </div>
