@@ -79,4 +79,106 @@ describe('clients-spreadsheet.service', () => {
     assert.equal(report.skipped, 1);
     assert.equal(patch, null);
   });
+
+  test('Excel PT: exportar CSV, editar como o Excel, importar de volta', async () => {
+    mock.restoreAll();
+    const existing = {
+      id: 'c1',
+      taxId: NIF,
+      displayName: 'Ana',
+      email: 'ana@old.pt',
+      phone: null,
+      metadata: { legalName: 'Ana Lda', notes: 'manter' },
+    };
+    mock.method(clientsRepository, 'listClients', async () => [existing]);
+    mock.method(clientsRepository, 'countClients', async () => 1);
+    mock.method(accessesRepository, 'listUsernamesByFirm', async () => [
+      { clientId: 'c1', portalKey: 'AT_FINANCAS', username: '123456789' },
+    ]);
+
+    const exported = await service.buildExportCsv({ firmId: 'f' });
+    assert.equal(exported.charCodeAt(0) === 0xfeff || exported.startsWith('\uFEFF'), true);
+    assert.equal(exported.includes('at_senha'), true);
+    assert.equal(/at_senha;.*;portal-secret/i.test(exported), false);
+    assert.equal(exported.includes('123456789'), true);
+
+    const header = service.HEADERS.join(';');
+    const existingRow = {
+      nome: 'Ana Lda',
+      razao_social: 'Ana Lda',
+      tipo: 'empresa',
+      nif: NIF,
+      email: 'ana@nova.pt',
+      notas: 'notas novas',
+      at_utilizador: '123456789',
+      at_senha: 'SenhaAT1',
+    };
+    const newRow = {
+      nome: 'Maré Azul; Turismo',
+      razao_social: 'Maré Azul SA',
+      tipo: 'empresa',
+      nif: '510398162',
+      email: 'mare@azul.pt',
+    };
+    const toLine = (rec) =>
+      service.HEADERS.map((h) => {
+        const v = rec[h] || '';
+        return v.includes(';') ? `"${v}"` : v;
+      }).join(';');
+    const excelLike = Buffer.from(`\uFEFF${header}\r\n${toLine(existingRow)}\r\n${toLine(newRow)}\r\n`, 'utf8');
+
+    let stepUpCalled = false;
+    mock.method(stepUp, 'verifyStaffPassword', async () => {
+      stepUpCalled = true;
+      return { actor: { id: 'u' } };
+    });
+    mock.method(entitlements, 'assertWithinLimit', async () => {});
+
+    const patches = [];
+    mock.method(clientsRepository, 'updateClient', async (id, _firm, p) => {
+      patches.push({ id, ...p });
+      return { id, ...existing, ...p };
+    });
+    const created = [];
+    mock.method(clientsRepository, 'createClient', async (payload) => {
+      const row = { id: 'c2', ...payload };
+      created.push(row);
+      return row;
+    });
+    mock.method(accessesRepository, 'findByPortalKey', async () => null);
+    const secrets = [];
+    mock.method(accessesRepository, 'insertRow', async (row) => {
+      secrets.push(row);
+      return { id: 'a1', ...row };
+    });
+
+    const report = await service.importCsv({
+      firmId: 'f',
+      actorId: 'u',
+      currentPassword: 'cofre-123',
+      buffer: excelLike,
+    });
+
+    assert.equal(stepUpCalled, true);
+    assert.equal(report.updated, 1);
+    assert.equal(report.created, 1);
+    assert.equal(patches[0].email, 'ana@nova.pt');
+    assert.equal(created[0].displayName, 'Maré Azul; Turismo');
+    assert.equal(secrets.length, 1);
+    assert.equal(secrets[0].portalKey, 'AT_FINANCAS');
+    assert.equal(secrets[0].password, 'SenhaAT1');
+    assert.equal(JSON.stringify(report).includes('SenhaAT1'), false);
+  });
+
+  test('importCsv recusa .xlsx (ZIP) e .xls (OLE)', async () => {
+    await assert.rejects(
+      () =>
+        service.importCsv({
+          firmId: 'f',
+          actorId: 'u',
+          buffer: Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0, 0, 0, 0]),
+        }),
+      (err) => err.details?.code === 'FILE_REJECTED',
+    );
+  });
 });
