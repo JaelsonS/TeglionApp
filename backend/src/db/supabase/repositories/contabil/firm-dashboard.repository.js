@@ -1,5 +1,5 @@
 const { ensureClient } = require('./shared');
-const { syncOverdueObligations } = require('./obligations.repository');
+const { maybeSyncOverdueObligations } = require('./obligations.repository');
 const {
   buildClientLookups,
   enrichObligations,
@@ -10,16 +10,7 @@ const ttlCache = require('../../../../utils/cache/ttl-cache');
 
 const ACTIVE_TASK_STATUSES = ['BACKLOG', 'TODO', 'IN_PROGRESS', 'WAITING_CLIENT', 'REVIEW'];
 const OBLIGATION_OPEN_FIELDS = 'id, client_id, status, due_date, period, title, type';
-const OVERDUE_SYNC_TTL_SEC = 300;
 const DASHBOARD_CACHE_TTL_SEC = 45;
-
-async function maybeSyncOverdue(firmId) {
-  const key = `overdue-sync:${firmId}`;
-  const seen = await ttlCache.get(key);
-  if (seen) return;
-  await syncOverdueObligations(firmId);
-  await ttlCache.set(key, '1', OVERDUE_SYNC_TTL_SEC);
-}
 
 async function loadFirmDashboardStats(firmId) {
   const sb = ensureClient();
@@ -36,7 +27,7 @@ async function loadFirmDashboardStats(firmId) {
   const todayStartIso = weekStart.toISOString();
   const monthStartIso = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-  await maybeSyncOverdue(firmId);
+  await maybeSyncOverdueObligations(firmId);
 
   const [
     clientsRes,

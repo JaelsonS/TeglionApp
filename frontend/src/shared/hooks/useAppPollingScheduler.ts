@@ -29,7 +29,7 @@ export function useAppPollingScheduler(scope: 'firm' | 'client' | 'off') {
       if (now - lastTickRef.current < FOCUS_DEBOUNCE_MS) return
       lastTickRef.current = now
 
-      void qc.invalidateQueries({ queryKey: queryKeys.liveEvents(scope) })
+      void qc.invalidateQueries({ queryKey: queryKeys.liveEventsRoot(scope) })
       if (scope === 'firm' && tenantSlug) {
         void qc.invalidateQueries({ queryKey: ['firm-inbox', tenantSlug] })
         void qc.invalidateQueries({ queryKey: queryKeys.firmDashboard(tenantSlug) })

@@ -1,4 +1,5 @@
 const { AppError } = require('../../middlewares/error.middleware');
+const entitlements = require('../entitlements/entitlements.service');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const firmInquiryTagsRepository = require('../../db/supabase/repositories/firm-inquiry-tags.repository');
 const { getSupabaseAdmin } = require('../../db/supabase/client');
@@ -190,6 +191,9 @@ async function validateClientNif({ firmId, taxId, excludeClientId }) {
 async function createClient({ firmId, displayName, email, phone, taxId, metadata, assignedStaffId, actor }) {
   const name = String(displayName || '').trim();
   if (!name) throw new AppError('Nome do cliente é obrigatório', 400);
+
+  const currentClients = await clientsRepository.countClients(firmId, { includeInactive: false });
+  await entitlements.assertWithinLimit(firmId, 'max_clients', currentClients);
 
   let normalizedTaxId = null;
   if (taxId) {

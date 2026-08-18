@@ -6,26 +6,26 @@ export const privacyDocument: LegalDocument = {
   title: 'Política de Privacidade',
   subtitle: 'Regulamento (UE) 2016/679 (RGPD) e Lei n.º 58/2019',
   updatedAtLabel: 'Versão',
-  updatedAtValue: '22 de maio de 2026',
+  updatedAtValue: '18 de agosto de 2026',
   version: CONTABIL_LEGAL_VERSIONS.privacy,
   intro: [
-    'Esta Política de Privacidade descreve como o Teglion trata dados pessoais no âmbito do website, da aplicação web e dos serviços associados.',
-    'O tratamento decorre da prestação de software a escritórios de contabilidade (B2B) e do acesso de clientes finais convidados pelo escritório (B2B2C indirecto).',
+    'Esta Política descreve como a AfDigital — Soluções Tecnológicas trata dados pessoais ao desenvolver e operar o produto Teglion (website, aplicação web e serviços associados). Teglion é o nome comercial do software; não é uma empresa nem parte contratual autónoma.',
+    'O tratamento decorre da prestação de software a escritórios de contabilidade (B2B) e do acesso de clientes finais convidados pelo escritório (B2B2C indirecto). Os papéis RGPD variam por fluxo de dados, como se descreve abaixo.',
   ],
   sections: [
     {
       id: 'responsavel',
-      title: '1. Identificação do responsável pelo tratamento (Operador)',
+      title: '1. Quem opera o produto (conta, faturação e site)',
       paragraphs: [
-        'Responsável pelo tratamento dos dados de registo do escritório, faturação e suporte da Plataforma:',
-        'Jaelson Silva dos Santos · NIF 331 759 276 · Coimbra, Portugal · afdigitalweb.st@gmail.com · +351 916 447 990.',
+        'Para dados de registo do escritório, faturação da subscrição, suporte e o site teglion.com, o responsável pelo tratamento é a AfDigital — Soluções Tecnológicas, prestada por Jaelson Silva dos Santos, NIF 331 759 276, Coimbra, Portugal, afdigitalweb.st@gmail.com, +351 916 447 990.',
+        'Pedidos relativos a esta conta ou ao site: afdigitalweb.st@gmail.com.',
       ],
     },
     {
       id: 'papel-escritorio',
-      title: '2. Papel do escritório de contabilidade',
+      title: '2. Dados dos clientes finais do escritório',
       paragraphs: [
-        'Os dados dos clientes finais (nome, NIF, documentos fiscais, mensagens, obrigações) são, em regra, tratados pelo escritório de contabilidade como Responsável pelo Tratamento. O Teglion actua como Subcontratante, nos termos do DPA em /dpa.',
+        'Nome, NIF, documentos fiscais, mensagens e obrigações dos clientes finais são, em regra, tratados pelo escritório de contabilidade como Responsável pelo Tratamento. A AfDigital, ao prestar o Teglion, trata esses dados como Subcontratante nos termos do DPA em /dpa, só para operar o software e segundo instruções do escritório.',
         'Para exercer direitos sobre dados fiscais ou documentos, o titular deve contactar prioritariamente o seu escritório de contabilidade.',
       ],
     },
@@ -58,7 +58,7 @@ export const privacyDocument: LegalDocument = {
       id: 'armazenamento',
       title: '5. Armazenamento e segurança',
       paragraphs: [
-        'Os dados são alojados em infraestrutura cloud com base de dados PostgreSQL e armazenamento de ficheiros (Supabase Storage), com buckets privados por escritório (isolamento multi-tenant).',
+        'Os dados são alojados em infraestrutura cloud com base de dados PostgreSQL e armazenamento de ficheiros (Supabase Storage), com isolamento por escritório (multi-tenant).',
         'Aplicamos medidas técnicas e organizativas adequadas: HTTPS, controlo de acesso por perfil, hashing de palavras-passe, registo de actividade, backups e princípio do menor privilégio.',
         'Nenhum sistema é 100% seguro; em caso de violação de dados notificaremos o escritório e, quando aplicável, a CNPD no prazo legal.',
       ],
@@ -67,7 +67,7 @@ export const privacyDocument: LegalDocument = {
       id: 'subcontratantes',
       title: '6. Subcontratantes e transferências',
       paragraphs: [
-        'Utilizamos subcontratantes de infraestrutura e comunicação (ex.: Supabase, prestador de hosting, serviço de e-mail transaccional), seleccionados com cláusulas de protecção de dados (art. 28.º RGPD).',
+        'A AfDigital recorre a prestadores de infraestrutura e comunicação (lista no DPA), seleccionados com cláusulas de protecção de dados (art. 28.º RGPD).',
         'Os dados são tratados preferencialmente no Espaço Económico Europeu. Qualquer transferência para terceiros países só ocorrerá com garantias adequadas (cláusulas-tipo, decisão de adequação) e instrução do responsável quando o escritório for controlador.',
       ],
     },

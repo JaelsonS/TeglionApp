@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
-import { contabilObligationsApi, contabilClientsApi, contabilFirmApi } from '@/infrastructure/api'
+import { contabilObligationsApi, contabilFirmApi } from '@/infrastructure/api'
+import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { readClientIdFromSearch } from '@/shared/utils/clientQueryParam'
-import type { Client } from '@/shared/types/clients'
 import type { OperationalLane, ObligationRow, ObligationTemplate } from './obligationOperational'
 import { classifyLane } from './obligationOperational'
 
@@ -45,7 +45,8 @@ export function useObligationsHub() {
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<ObligationRow[]>([])
   const [dashboard, setDashboard] = useState<DashboardData | null>(null)
-  const [clients, setClients] = useState<Client[]>([])
+  const clientsQuery = useFirmClientsDirectory({ limit: 500 })
+  const clients = clientsQuery.data?.items || []
   const [templates, setTemplates] = useState<ObligationTemplate[]>([])
   const [staff, setStaff] = useState<{ id: string; fullName?: string; email?: string }[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(filters.obId)
@@ -70,7 +71,7 @@ export function useObligationsHub() {
   const load = useCallback(async (opts?: { includeExcluded?: boolean }) => {
     setLoading(true)
     try {
-      const [listRes, dashRes, clientsRes, tplRes, staffRes] = await Promise.all([
+      const [listRes, dashRes, tplRes, staffRes] = await Promise.all([
         contabilObligationsApi.list({
           lane: filters.lane || undefined,
           clientId: filters.clientId || undefined,
@@ -81,7 +82,6 @@ export function useObligationsHub() {
           monthExclusions?: Array<{ id: string; obligationId?: string; clientId: string; month: string }>
         }>,
         contabilObligationsApi.getOperationalDashboard() as Promise<DashboardData>,
-        contabilClientsApi.list({ page: 1, limit: 200 }) as Promise<{ items?: Client[] }>,
         contabilObligationsApi.listTemplates() as Promise<{ items?: ObligationTemplate[] }>,
         contabilFirmApi.listStaff() as Promise<{ items?: { id: string; fullName?: string; email?: string }[] }>,
       ])
@@ -92,7 +92,6 @@ export function useObligationsHub() {
       setItems(rows)
       setMonthExclusions(listRes.monthExclusions || [])
       setDashboard(dashRes)
-      setClients(clientsRes.items || [])
       setTemplates(tplRes.items || [])
       setStaff(staffRes.items || [])
     } catch (err) {

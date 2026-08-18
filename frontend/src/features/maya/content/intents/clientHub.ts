@@ -7,9 +7,10 @@ export const CLIENT_HUB_INTENTS = [
     title: 'O que é a ficha deste cliente?',
     shortDescription: 'ficha do cliente',
     answer:
-      'Esta é a ficha (hub) de um cliente da carteira do escritório — não é o portal onde o cliente entra. Tabs: Resumo, Perfil, Actividade, Obrigações, Documentos, Tarefas e Comunicação. No topo: voltar à lista, etiquetas, convite ou gestão de acesso ao portal, atalho para Mensagens e Editar (abre o Perfil). Os números (obrigações pendentes, documentos por validar, tarefas abertas, mensagens não lidas) são só desta empresa. Não há tab de Solicitações nem de Notas: notas estão no Perfil; pedidos públicos estão em Serviços.',
+      'Esta é a ficha (hub) de um cliente da carteira do escritório — não é o portal onde o cliente entra. Tabs: Resumo, Perfil, Acessos, Actividade, Obrigações, Documentos, Tarefas e Comunicação. A tab Acessos guarda senhas de portais oficiais (AT, Segurança Social, ViaCTT, IAPMEI, Relatório Único), cifradas; ver uma senha pede a palavra-passe dos Acessos oficiais (única daquele campo). No topo: voltar à lista, etiquetas, convite ou gestão de acesso ao portal, atalho para Mensagens e Editar (abre o Perfil). Os números (obrigações pendentes, documentos por validar, tarefas abertas, mensagens não lidas) são só desta empresa — clique para abrir a tab correspondente. Não há tab de Solicitações nem de Notas: notas estão no Perfil; pedidos públicos estão em Serviços.',
     steps: [
       'Comece pelo Resumo para o estado',
+      'Clique nos números do topo (obrigações, documentos, tarefas, mensagens) para abrir a tab correspondente deste cliente',
       'Editar ou tab Perfil para corrigir o cadastro',
       'Documentos, Obrigações, Tarefas e Comunicação para o trabalho corrente',
       'Convide ao portal se ainda não tiver acesso e houver e-mail',
@@ -18,6 +19,7 @@ export const CLIENT_HUB_INTENTS = [
     relatedIntents: [
       'client-hub-overview',
       'client-profile',
+      'client-official-accesses',
       'client-documents',
       'client-services',
       'client-requests',
@@ -30,6 +32,7 @@ export const CLIENT_HUB_INTENTS = [
     nextSteps: [
       { label: 'Resumo', intentId: 'client-hub-overview' },
       { label: 'Perfil / editar', intentId: 'client-profile' },
+      { label: 'Acessos oficiais', intentId: 'client-official-accesses' },
       { label: 'Documentos', intentId: 'client-documents' },
       { label: 'Serviços', intentId: 'client-services' },
       { label: 'Solicitações', intentId: 'client-requests' },
@@ -41,7 +44,7 @@ export const CLIENT_HUB_INTENTS = [
     title: 'O que aparece no Resumo?',
     shortDescription: 'resumo do cliente',
     answer:
-      'O Resumo é o painel inicial da ficha. Atalhos para Obrigações, Documentos, Tarefas e Mensagens. Indicador de risco desta empresa. Histórico de acesso ao portal (sem acesso, convite pendente, activo ou revogado). Próximos prazos. Alertas de risco e tarefas urgentes. Se existirem comunicados, vê se estão lidos, com confirmação pendente ou por ler. Actividade recente (até 6 eventos) com «Ver tudo» para a tab Actividade.',
+      'O Resumo é o painel inicial da ficha. Atalhos para Acessos, Obrigações, Documentos, Tarefas e Mensagens. Indicador de risco desta empresa. Histórico de acesso ao portal (sem acesso, convite pendente, activo ou revogado). Próximos prazos. Alertas de risco e tarefas urgentes. Se existirem comunicados, vê se estão lidos, com confirmação pendente ou por ler. Actividade recente (até 6 eventos) com «Ver tudo» para a tab Actividade.',
     steps: [
       'Leia os números no topo da ficha',
       'Use os atalhos para saltar à tab certa',
@@ -52,6 +55,7 @@ export const CLIENT_HUB_INTENTS = [
     ctaLabel: 'Ir para Clientes',
     nextSteps: [
       { label: 'Perfil', intentId: 'client-profile' },
+      { label: 'Acessos oficiais', intentId: 'client-official-accesses' },
       { label: 'Actividade', intentId: 'client-history' },
     ],
   }),
@@ -83,6 +87,37 @@ export const CLIENT_HUB_INTENTS = [
         title: 'Onde está Guardar?',
         answer:
           'No Perfil não há Guardar: a ficha envia a alteração sozinha. No cadastro novo, o botão final é «Criar cliente».',
+      },
+    ],
+  }),
+  defineIntent({
+    id: 'client-official-accesses',
+    title: 'O que são os Acessos oficiais?',
+    shortDescription: 'senhas AT e Segurança Social',
+    answer:
+      'A tab Acessos guarda utilizador e senha dos portais desta empresa. Vêm cinco linhas de partida (AT, Segurança Social, ViaCTT, IAPMEI, Relatório Único), mas os nomes são editáveis — se o cliente não usa um deles, mude o nome. Pode acrescentar outro portal no fundo. Copiar senha (ou o olho) pede a palavra-passe dos Acessos oficiais — única daquele campo. Pode marcar «manter desbloqueado nesta sessão». A senha do portal some em cerca de 30 segundos. O cliente no portal não vê este bloco.',
+    steps: [
+      'Abra a ficha do cliente → tab Acessos',
+      'Se ainda não tiver, crie a palavra-passe só deste campo (no próprio ecrã ou em Definições → O seu perfil). Quem entra com Google também precisa dela.',
+      'Para copiar a senha, clique no ícone de copiar e confirme a palavra-passe dos Acessos oficiais',
+      'Para mudar o nome de AT, SS, ViaCTT, IAPMEI ou RU, abra o lápis, altere «Nome do portal» e Guardar',
+      'Outro portal: botão no fundo, indique o nome que quiser',
+    ],
+    deepLink: '/app/firm/clients',
+    relatedIntents: ['client-hub', 'client-profile', 'client-actions'],
+    ctaLabel: 'Ir para Clientes',
+    commonProblems: [
+      {
+        id: 'no-teglion-password',
+        title: 'Não consigo ver nem gravar senhas',
+        answer:
+          'Crie uma palavra-passe só para Acessos oficiais, em Definições → O seu perfil ou no próprio ecrã de Acessos. É única daquele campo — não serve para entrar no Teglion. Quem entra com Google também a precisa. Depois pode marcar «manter desbloqueado nesta sessão».',
+      },
+      {
+        id: 'hashed-password',
+        title: 'A senha não aparece depois de guardar',
+        answer:
+          'É normal na lista compacta. Use o ícone de copiar (confirma a palavra-passe dos Acessos oficiais e copia de imediato) ou o olho para ver cerca de 30 segundos. Não usamos hash nestas senhas dos portais — se usássemos, ninguém as podia ler de volta.',
       },
     ],
   }),
@@ -278,7 +313,7 @@ export const CLIENT_HUB_INTENTS = [
     title: 'Que acções existem na ficha?',
     shortDescription: 'acções do cliente',
     answer:
-      'Na ficha: voltar à lista; etiquetas (ligar/desligar); convite ao portal ou Gerir acesso (revogar / reemitir — revogar não apaga dados); Mensagens; Editar (Perfil, gravação automática); mudar de tab. No Resumo, atalhos para obrigações, documentos, tarefas e mensagens. Em Documentos/Obrigações/Tarefas, abrir o módulo completo. Em Actividade, ocultar eventos do feed. Não há nesta ficha: eliminar cliente, criar solicitação, carregar documento, publicar serviço ou enviar IRS. Remover da carteira está no menu ⋯ da lista. A Maya não ensina a contornar permissões da equipa.',
+      'Na ficha: voltar à lista; etiquetas (ligar/desligar); convite ao portal ou Gerir acesso (revogar / reemitir — revogar não apaga dados); Mensagens; Editar (Perfil, gravação automática); mudar de tab. Os números do topo (obrigações, documentos, tarefas, mensagens) abrem a tab desse cliente. A tab Acessos guarda senhas de portais oficiais com confirmação da palavra-passe dos Acessos oficiais (única daquele campo). No Resumo, atalhos para obrigações, documentos, tarefas e mensagens. Em Documentos/Obrigações/Tarefas, abrir o módulo completo. Em Actividade, ocultar eventos do feed. Não há nesta ficha: eliminar cliente, criar solicitação, carregar documento, publicar serviço ou enviar IRS. Remover da carteira está no menu ⋯ da lista. A Maya não ensina a contornar permissões da equipa.',
     steps: [
       'Use o topo para convite, mensagens e editar',
       'Use as tabs para o trabalho do cliente',
@@ -289,6 +324,7 @@ export const CLIENT_HUB_INTENTS = [
       'clients-invite',
       'clients-archive',
       'client-profile',
+      'client-official-accesses',
       'client-documents',
       'client-history',
     ],

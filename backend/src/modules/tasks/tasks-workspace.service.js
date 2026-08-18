@@ -86,7 +86,7 @@ async function listWorkspace(firmId, query) {
     items = items.slice(0, limit);
   }
 
-  const clientIds = [...new Set(items.map((t) => t.clientId))];
+  const clientIds = [...new Set(items.map((t) => t.clientId).filter(Boolean))];
   const obligationIds = [...new Set(items.map((t) => t.obligationId).filter(Boolean))];
   const names = new Map();
   const obligationTitles = new Map();
@@ -106,7 +106,7 @@ async function listWorkspace(firmId, query) {
   return {
     items: items.map((t) => ({
       ...t,
-      clientName: names.get(t.clientId) || null,
+      clientName: t.clientId ? names.get(t.clientId) || null : 'Escritório',
       obligationTitle: t.obligationId ? obligationTitles.get(t.obligationId) : null,
     })),
     total: query.metric ? items.length : result.total,
@@ -119,7 +119,7 @@ async function getTaskDetail(firmId, taskId) {
   const task = await tasksRepo.findTaskById(firmId, taskId);
   if (!task) throw new AppError('Tarefa não encontrada', 404);
   const comments = await tasksRepo.listComments(taskId, firmId);
-  const client = await clientsRepository.findClientById(firmId, task.clientId);
+  const client = task.clientId ? await clientsRepository.findClientById(firmId, task.clientId) : null;
   const repo = getRepository();
   const sb = require('../../db/supabase/client').getSupabaseAdmin();
 
@@ -193,10 +193,14 @@ async function getTaskDetail(firmId, taskId) {
 }
 
 async function createTask({ firmId, actor, payload, file }) {
-  const clientId = payload.clientId || payload.clientId;
-  if (!clientId || !payload.title?.trim()) throw new AppError('Cliente e título obrigatórios', 400);
-  const client = await clientsRepository.findClientById(firmId, clientId);
-  if (!client) throw new AppError('Cliente não encontrado', 404);
+  const title = String(payload.title || '').trim();
+  if (!title) throw new AppError('Título obrigatório', 400);
+  const clientId = payload.clientId ? String(payload.clientId) : null;
+  let client = null;
+  if (clientId) {
+    client = await clientsRepository.findClientById(firmId, clientId);
+    if (!client) throw new AppError('Cliente não encontrado', 404);
+  }
   const taskType = payload.taskType || 'internal_task';
   // Tarefas internas do escritório nunca notificam o cliente
   const notifyClient = taskType === 'internal_task' ? false : Boolean(payload.notifyClient);
@@ -206,6 +210,11 @@ async function createTask({ firmId, actor, payload, file }) {
   let recurrenceRulePayload = null;
 
   if (taskType === 'internal_task' && recurrenceRule?.frequency) {
+    if (!clientId) {
+      throw new AppError('A recorrência precisa de um cliente. Tarefas do escritório (sem cliente) são pontuais.', 400, {
+        code: 'CLIENT_REQUIRED_FOR_RECURRENCE',
+      });
+    }
     try {
       const rule = await createInternalRecurringRule({
         firmId,

@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
-import { contabilDocumentsApi, contabilClientsApi, contabilObligationsApi } from '@/infrastructure/api'
+import { contabilDocumentsApi, contabilObligationsApi } from '@/infrastructure/api'
+import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
 import { getErrorMessage } from '@/shared/utils/errors'
 import type { Client } from '@/shared/types/clients'
 import type { Obligation } from '@/shared/types/contabil'
@@ -66,7 +67,8 @@ export function useDocumentsHub() {
   const [total, setTotal] = useState(0)
   const [hasMore, setHasMore] = useState(false)
   const [facetItems, setFacetItems] = useState<FirmDocumentRow[]>([])
-  const [clients, setClients] = useState<Client[]>([])
+  const clientsQuery = useFirmClientsDirectory({ limit: 500 })
+  const clients = clientsQuery.data?.items || []
   const [obligations, setObligations] = useState<Obligation[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(filters.docId)
   const [detail, setDetail] = useState<DocumentDetailResponse | null>(null)
@@ -118,11 +120,7 @@ export function useDocumentsHub() {
 
   const loadMeta = useCallback(async () => {
     try {
-      const [clientRes, obRes] = await Promise.all([
-        contabilClientsApi.list({ page: 1, limit: 200 }) as Promise<{ items?: Client[] }>,
-        contabilObligationsApi.list({ limit: 150 }) as Promise<{ items?: Obligation[] }>,
-      ])
-      setClients(clientRes.items || [])
+      const obRes = (await contabilObligationsApi.list({ limit: 150 })) as { items?: Obligation[] }
       setObligations(obRes.items || [])
     } catch {
       /* optional */

@@ -37,10 +37,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/shared/components/ui/sheet'
-import { contabilClientsApi } from '@/infrastructure/api'
+import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
 import { getErrorMessage } from '@/shared/utils/errors'
-import type { Client } from '@/shared/types/clients'
-
 type ManualViewMode = 'board' | 'grid'
 
 export function FirmTasksWorkspacePage() {
@@ -64,7 +62,8 @@ export function FirmTasksWorkspacePage() {
   const [manualView, setManualView] = useState<ManualViewMode>(
     (searchParams.get('view') === 'grid' ? 'grid' : 'board') as ManualViewMode,
   )
-  const [clients, setClients] = useState<Client[]>([])
+  const clientsQuery = useFirmClientsDirectory({ limit: 500 })
+  const clients = clientsQuery.data?.items || []
   const [form, setForm] = useState({
     clientId: clientFilter || '',
     title: '',
@@ -143,12 +142,6 @@ export function FirmTasksWorkspacePage() {
     return m
   }, [teamData])
 
-  useEffect(() => {
-    void contabilClientsApi.list({ page: 1, limit: 500 }).then((r: { items?: Client[] }) => {
-      setClients(r.items || [])
-    })
-  }, [])
-
   const { data, isLoading, isFetching } = useTasksWorkspace({
     search: search || undefined,
     clientId: clientFilter,
@@ -210,8 +203,12 @@ export function FirmTasksWorkspacePage() {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.clientId || !form.title.trim()) {
-      toast.error('Cliente e título obrigatórios')
+    if (!form.title.trim()) {
+      toast.error('Indique o título da tarefa')
+      return
+    }
+    if (form.recurrenceFrequency && form.recurrenceFrequency !== 'NONE' && !form.clientId) {
+      toast.error('A recorrência precisa de um cliente. Tarefas internas do escritório ficam sem recorrência.')
       return
     }
     const recurrenceRule =
@@ -221,7 +218,7 @@ export function FirmTasksWorkspacePage() {
     createTask.mutate(
       {
         payload: {
-          clientId: form.clientId,
+          clientId: form.clientId || undefined,
           title: form.title.trim(),
           description: form.description || undefined,
           dueDate: form.dueDate || undefined,

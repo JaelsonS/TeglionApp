@@ -13,6 +13,8 @@ const { requireFirmOwner } = require('../../middlewares/firm-owner.middleware');
 const consultationsController = require('../../modules/consultations/consultations.controller');
 const invitesController = require('../../modules/firm/invites.controller');
 const clientsController = require('../../modules/firm/clients.controller');
+const officialAccessesController = require('../../modules/firm/official-accesses.controller');
+const { officialAccessStepUpLimiter } = require('../../utils/auth-rate-limit');
 const documentsController = require('../../modules/documents/documents.controller');
 const documentsFirmController = require('../../modules/documents/documents-firm.controller');
 const messagesController = require('../../modules/messages/messages.controller');
@@ -20,7 +22,7 @@ const documentRequestsController = require('../../modules/document-requests/docu
 const newsController = require('../../modules/news/news.controller');
 const broadcastsController = require('../../modules/broadcasts/broadcasts.controller');
 const trackingController = require('../../modules/tracking/tracking.controller');
-const { optionalSingle, uploadSingle, uploadAvatarSingle } = require('../../middlewares/upload.middleware');
+const { optionalSingle, uploadSingle, uploadAvatarSingle, uploadCsvSingle } = require('../../middlewares/upload.middleware');
 const automationController = require('../../modules/automations/automation.controller');
 const fiscalCalendarController = require('../../modules/fiscal/fiscal-calendar.controller');
 const fiscalCalendarNotesController = require('../../modules/fiscal/fiscal-calendar-notes.controller');
@@ -257,6 +259,15 @@ router.post(
   firmSettingsController.changePassword,
 );
 router.post(
+  '/firm/vault-password',
+  requirePermission(PERMISSIONS.FIRM_READ),
+  [
+    body('newPassword').isString().isLength({ min: 10, max: 200 }),
+    body('currentPassword').optional({ values: 'falsy' }).isString().isLength({ min: 1, max: 200 }),
+  ],
+  firmSettingsController.setVaultPassword,
+);
+router.post(
   '/firm/close',
   requireFirmOwner,
   [
@@ -390,8 +401,59 @@ router.post('/messages/notify-inactive', requirePermission(PERMISSIONS.FIRM_CLIE
 
 router.get('/clients', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.list);
 router.get('/clients/validate-nif', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.validateNif);
+router.get('/clients/export-csv', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.exportSpreadsheet);
+router.post(
+  '/clients/import-csv',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  officialAccessStepUpLimiter,
+  uploadCsvSingle('file'),
+  clientsController.importSpreadsheet,
+);
 router.post('/clients', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.create);
 router.get('/clients/:id/hub', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.getHub);
+router.get(
+  '/clients/:id/official-accesses',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  officialAccessesController.list,
+);
+router.put(
+  '/clients/:id/official-accesses',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  officialAccessStepUpLimiter,
+  [
+    body('currentPassword').optional({ values: 'falsy' }).isString().isLength({ min: 1, max: 200 }),
+    body('stepUpToken').optional({ values: 'falsy' }).isString().isLength({ min: 20, max: 4000 }),
+    body('rememberSession').optional().isBoolean(),
+    body('portalKey').isString().isLength({ min: 2, max: 40 }),
+    body('accessId').optional({ nullable: true }).isUUID(),
+    body('username').optional({ nullable: true }).isString().isLength({ max: 200 }),
+    body('label').optional({ nullable: true }).isString().isLength({ max: 80 }),
+    body('password').optional({ nullable: true }).isString().isLength({ max: 256 }),
+  ],
+  officialAccessesController.upsert,
+);
+router.post(
+  '/clients/:id/official-accesses/:accessId/reveal',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  officialAccessStepUpLimiter,
+  [
+    body('currentPassword').optional({ values: 'falsy' }).isString().isLength({ min: 1, max: 200 }),
+    body('stepUpToken').optional({ values: 'falsy' }).isString().isLength({ min: 20, max: 4000 }),
+    body('rememberSession').optional().isBoolean(),
+  ],
+  officialAccessesController.reveal,
+);
+router.post(
+  '/clients/:id/official-accesses/:accessId/remove',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  officialAccessStepUpLimiter,
+  [
+    body('currentPassword').optional({ values: 'falsy' }).isString().isLength({ min: 1, max: 200 }),
+    body('stepUpToken').optional({ values: 'falsy' }).isString().isLength({ min: 20, max: 4000 }),
+    body('rememberSession').optional().isBoolean(),
+  ],
+  officialAccessesController.remove,
+);
 router.get(
   '/clients/:id/activity-history',
   requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),

@@ -6,10 +6,10 @@ export const termsDocument: LegalDocument = {
   title: 'Termos de Utilização',
   subtitle: 'Contrato de licença de software (SaaS) — escritórios de contabilidade',
   updatedAtLabel: 'Versão',
-  updatedAtValue: '22 de maio de 2026',
+  updatedAtValue: '18 de agosto de 2026',
   version: CONTABIL_LEGAL_VERSIONS.terms,
   intro: [
-    'Os presentes Termos de Utilização («Termos») regulam o acesso e a utilização da plataforma Teglion («Plataforma», «Serviço»), disponibilizada por Jaelson Silva dos Santos, NIF 331 759 276, com sede em Coimbra, Portugal («Operador», «nós»).',
+    'Os presentes Termos de Utilização («Termos») regulam o acesso e a utilização da plataforma Teglion («Plataforma», «Serviço»), um produto da AfDigital — Soluções Tecnológicas, disponibilizado por Jaelson Silva dos Santos, NIF 331 759 276, Coimbra, Portugal («Operador», «nós»). O nome Teglion designa o software; não é uma sociedade nem parte contratual autónoma.',
     'Ao criar conta de escritório, convidar utilizadores ou utilizar o Serviço, o representante do escritório declara ter poderes para vincular a entidade e aceita integralmente estes Termos.',
     'A Plataforma destina-se exclusivamente a escritórios de contabilidade e respetivos clientes finais (empresas ou particulares com relação contratual com o escritório).',
   ],
@@ -18,7 +18,7 @@ export const termsDocument: LegalDocument = {
       id: 'natureza',
       title: '1. Natureza do Serviço — software, não contabilidade',
       paragraphs: [
-        'O Teglion é um software de gestão digital em modelo SaaS (Software as a Service): carteira de clientes, obrigações fiscais, documentos, mensagens, alertas, agenda de consultorias e portal do cliente.',
+        'O Teglion é um software de gestão digital em modelo SaaS: carteira de clientes, obrigações fiscais, documentos, mensagens, alertas, agenda de consultorias e portal do cliente.',
         'O Operador não presta serviços de contabilidade, assessoria fiscal, representação perante a Autoridade Tributária ou qualquer ato reservado a profissionais habilitados. Todas as decisões fiscais, prazos legais e conformidade regulatória são da exclusiva responsabilidade do escritório e dos seus profissionais.',
         'Nenhuma funcionalidade da Plataforma constitui aconselhamento jurídico, fiscal ou financeiro por parte do Operador.',
       ],
@@ -37,7 +37,7 @@ export const termsDocument: LegalDocument = {
       title: '3. Papel das partes no tratamento de dados',
       paragraphs: [
         'Em relação aos dados pessoais e documentos fiscais dos clientes finais introduzidos na Plataforma, o escritório de contabilidade actua, em regra, como Responsável pelo Tratamento nos termos do Regulamento (UE) 2016/679 («RGPD»).',
-        'O Operador actua como Subcontratante de Tratamento (processador), tratando dados apenas por instruções documentadas do escritório e para prestar o Serviço, nos termos do Acordo de Tratamento de Dados (DPA) disponível em /dpa.',
+        'A AfDigital, ao prestar o Teglion, actua como Subcontratante (processador) desses dados, tratando-os apenas por instruções documentadas do escritório e para prestar o Serviço, nos termos do Acordo de Tratamento de Dados (DPA) disponível em /dpa.',
         'O aceite do DPA no registo é condição para utilização do Serviço por parte do escritório enquanto controlador.',
       ],
     },
@@ -54,7 +54,7 @@ export const termsDocument: LegalDocument = {
       title: '5. Conteúdo e responsabilidade do escritório',
       paragraphs: [
         'O escritório é o único responsável pelos dados, documentos, mensagens, valores, prazos e configurações que introduz ou autoriza a introduzir na Plataforma.',
-        'O escritório garante que dispõe de base legal (contrato, obrigação legal, consentimento quando aplicável) para tratar e subcontratar o tratamento dos dados dos seus clientes através do Teglion.',
+        'O escritório garante que dispõe de base legal (contrato, obrigação legal, consentimento quando aplicável) para tratar e subcontratar o tratamento dos dados dos seus clientes através da Plataforma.',
         'O Operador não verifica a exactidão fiscal dos conteúdos carregados e não substitui arquivo físico ou legal obrigatório fora da Plataforma, salvo acordo escrito em contrário.',
       ],
     },
@@ -100,7 +100,7 @@ export const termsDocument: LegalDocument = {
       id: 'pi',
       title: '10. Propriedade intelectual',
       paragraphs: [
-        'O software, marca Teglion, documentação e interfaces são propriedade do Operador ou dos seus licenciantes. Nenhum direito de propriedade é transferido além da licença de uso.',
+        'O software, a marca Teglion, a documentação e as interfaces são propriedade do Operador ou dos seus licenciantes. Nenhum direito de propriedade é transferido além da licença de uso.',
       ],
     },
     {

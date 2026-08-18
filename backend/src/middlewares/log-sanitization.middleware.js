@@ -34,9 +34,14 @@ const SANITIZATION_PATTERNS = [
   },
   // Passwords
   {
-    name: 'Password',
-    pattern: /"password"\s*:\s*"[^"]+"/gi,
-    replacement: '"password": "[REDACTED]"',
+    name: 'Current password JSON',
+    pattern: /"currentPassword"\s*:\s*"[^"]+"/gi,
+    replacement: '"currentPassword": "[REDACTED]"',
+  },
+  {
+    name: 'Revealed vault value JSON',
+    pattern: /"revealedValue"\s*:\s*"[^"]+"/gi,
+    replacement: '"revealedValue": "[REDACTED]"',
   },
   {
     name: logSanitizationPatternName('passwordForm'),
@@ -107,6 +112,14 @@ const SANITIZATION_PATTERNS = [
 const SENSITIVE_KEYS = new Set(
   [
     'password',
+    'currentPassword',
+    'vaultPassword',
+    'vault_password_hash',
+    'vaultPasswordHash',
+    'stepUpToken',
+    'revealedValue',
+    'secret_enc',
+    'secretEnc',
     'passwordHash',
     'refreshToken',
     'refreshTokenHash',
@@ -129,6 +142,12 @@ const SENSITIVE_KEYS = new Set(
     'turnstileToken',
     'cf-turnstile-response',
     'cfTurnstileResponse',
+    'senha',
+    'at_senha',
+    'ss_senha',
+    'viactt_senha',
+    'iapmei_senha',
+    'ru_senha',
   ].map((k) => k.toLowerCase()),
 );
 
@@ -176,7 +195,11 @@ function sanitizeObject(obj, visited = new Set()) {
       if (obj.hasOwnProperty(key)) {
         // Sanitiza chaves sensíveis especificamente
         const normalizedKey = String(key).toLowerCase();
-        if (SENSITIVE_KEYS.has(normalizedKey)) {
+        if (
+          SENSITIVE_KEYS.has(normalizedKey) ||
+          normalizedKey.includes('password') ||
+          normalizedKey.includes('senha')
+        ) {
           sanitized[key] = '[REDACTED]';
         } else {
           sanitized[key] = sanitizeObject(obj[key], visited);

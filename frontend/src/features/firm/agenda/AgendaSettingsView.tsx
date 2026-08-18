@@ -2,6 +2,7 @@ import { ArrowRight, CalendarClock, CalendarDays, Layers } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { AgendaAvailabilityPanel } from '@/features/firm/agenda/AgendaAvailabilityPanel'
+import { AgendaServiceHoursPanel } from '@/features/firm/agenda/AgendaServiceHoursPanel'
 import { GoogleCalendarIntegrationPanel } from '@/features/firm/agenda/GoogleCalendarIntegrationPanel'
 import { Button } from '@/shared/components/ui/button'
 import type { AccountingService, BookingDaySchedule, FirmBookingSettings } from '@/shared/types/contabil'
@@ -27,22 +28,32 @@ type Props = {
 export function AgendaSettingsView(props: Props) {
   return (
     <div className="cb-agenda-settings-view">
-      <div className="cb-agenda-settings-intro">
-        <h2 className="cb-agenda-settings-intro-title">Definições da agenda</h2>
-        <p className="cb-agenda-settings-intro-sub">
-          Configure aqui os serviços que o escritório presta — IRS, consultorias e outros —, os dias e
-          horários em que aceita marcações, e a ligação ao Google Calendar.
-        </p>
-      </div>
+      <nav className="cb-agenda-settings-steps" aria-label="Secções da agenda">
+        <a className="cb-agenda-settings-step" href="#agenda-horario-geral">
+          <span className="cb-agenda-settings-step-n">1</span>
+          Horário geral
+        </a>
+        <a className="cb-agenda-settings-step" href="#agenda-por-servico">
+          <span className="cb-agenda-settings-step-n">2</span>
+          Por serviço
+        </a>
+        <a className="cb-agenda-settings-step" href="#agenda-google">
+          <span className="cb-agenda-settings-step-n">3</span>
+          Google Calendar
+        </a>
+      </nav>
 
-      <section className="cb-agenda-settings-block">
+      <section id="agenda-horario-geral" className="cb-agenda-settings-block scroll-mt-24">
         <div className="cb-agenda-settings-block-hd">
           <span className="cb-agenda-settings-block-icon">
             <CalendarClock className="h-4 w-4" aria-hidden />
           </span>
           <div>
-            <h3 className="cb-agenda-settings-block-title">Disponibilidade</h3>
-            <p className="cb-agenda-settings-block-sub">Dias e horário em que o escritório aceita marcações</p>
+            <h3 className="cb-agenda-settings-block-title">Horário geral do escritório</h3>
+            <p className="cb-agenda-settings-block-sub">
+              Predefinição para todos os serviços. Uma marcação tranca esse horário no calendário partilhado
+              (incluindo o Google, quando ligado).
+            </p>
           </div>
         </div>
         <AgendaAvailabilityPanel
@@ -61,6 +72,28 @@ export function AgendaSettingsView(props: Props) {
         />
       </section>
 
+      <div className="cb-agenda-settings-lower">
+      <section id="agenda-por-servico" className="cb-agenda-settings-block scroll-mt-24">
+        <div className="cb-agenda-settings-block-hd">
+          <span className="cb-agenda-settings-block-icon">
+            <CalendarClock className="h-4 w-4" aria-hidden />
+          </span>
+          <div>
+            <h3 className="cb-agenda-settings-block-title">Disponibilidade por serviço</h3>
+            <p className="cb-agenda-settings-block-sub">
+              Quais os dias e intervalos em que cada serviço pode ser agendado
+            </p>
+          </div>
+        </div>
+        <AgendaServiceHoursPanel
+          services={props.services}
+          servicesLoading={props.servicesLoading}
+          onReload={props.onReload}
+          firmSchedule={props.schedule}
+        />
+      </section>
+
+      <div className="cb-agenda-settings-lower-side">
       <section className="cb-agenda-settings-block">
         <div className="cb-agenda-settings-block-hd">
           <span className="cb-agenda-settings-block-icon">
@@ -88,7 +121,7 @@ export function AgendaSettingsView(props: Props) {
         </div>
       </section>
 
-      <section className="cb-agenda-settings-block">
+      <section id="agenda-google" className="cb-agenda-settings-block scroll-mt-24">
         <div className="cb-agenda-settings-block-hd">
           <span className="cb-agenda-settings-block-icon">
             <CalendarDays className="h-4 w-4" aria-hidden />
@@ -100,6 +133,8 @@ export function AgendaSettingsView(props: Props) {
         </div>
         <GoogleCalendarIntegrationPanel />
       </section>
+      </div>
+      </div>
     </div>
   )
 }

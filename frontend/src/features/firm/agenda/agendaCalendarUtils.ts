@@ -204,4 +204,26 @@ export const BOOKING_WEEKDAYS = [
   { bit: 0, label: 'Dom', full: 'Domingo' },
 ] as const
 
+export function cloneBookingSchedule(
+  schedule: Partial<Record<number, Array<{ start: string; end: string }>>> | null | undefined,
+): Partial<Record<number, Array<{ start: string; end: string }>>> {
+  const next: Partial<Record<number, Array<{ start: string; end: string }>>> = {}
+  if (!schedule) return next
+  for (const [key, intervals] of Object.entries(schedule)) {
+    const day = Number(key)
+    if (!Number.isInteger(day)) continue
+    next[day] = (intervals || []).map((iv) => ({ start: iv.start, end: iv.end }))
+  }
+  return next
+}
+
+export function weekdaysFromSchedule(
+  schedule: Partial<Record<number, Array<{ start: string; end: string }>>>,
+): number[] {
+  return Object.keys(schedule)
+    .map(Number)
+    .filter((d) => (schedule[d] || []).length > 0)
+    .sort((a, b) => a - b)
+}
+
 export { HOUR_HEIGHT_PX, HOUR_START, HOUR_END }

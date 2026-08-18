@@ -241,6 +241,12 @@ export function getErrorMessage(err: unknown): string {
   return t('common.errors.generic')
 }
 
+export function getApiErrorCode(err: unknown): string {
+  if (!axios.isAxiosError(err)) return ''
+  const data = (err.response?.data || {}) as { code?: string; details?: { code?: string } }
+  return String(data.code || data.details?.code || '').toUpperCase()
+}
+
 export function isRefreshTokenMissingError(err: unknown): boolean {
   if (!axios.isAxiosError(err)) return false
   const data = (err.response?.data || {}) as { code?: string; message?: string }

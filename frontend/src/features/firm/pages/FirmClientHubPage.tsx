@@ -2,10 +2,12 @@ import { useMemo } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   AlertTriangle,
+  Building2,
   CalendarClock,
   ClipboardList,
   FileStack,
   Inbox,
+  KeyRound,
   Megaphone,
   MessageSquare,
 } from 'lucide-react'
@@ -20,6 +22,7 @@ import { FirmScrollPage } from '@/features/firm/FirmPageLayout'
 import { ClientHubHeader } from '@/features/firm/client-hub/ClientHubHeader'
 import { ClientAccessHistory } from '@/features/firm/client-hub/ClientAccessHistory'
 import { ClientHubProfilePanel } from '@/features/firm/client-hub/ClientHubProfilePanel'
+import { ClientHubOfficialAccessesPanel } from '@/features/firm/client-hub/ClientHubOfficialAccessesPanel'
 import { ClientHubActivityHistoryPanel } from '@/features/firm/client-hub/ClientHubActivityHistoryPanel'
 import { ClientHubHistory } from '@/features/firm/client-hub/ClientHubHistory'
 import { deriveRiskReason } from '@/features/firm/client-hub/clientHubUtils'
@@ -100,10 +103,12 @@ export function FirmClientHubPage() {
   }
 
   const hubShortcuts = [
+    { id: 'accesses' as const, label: 'Acessos', icon: KeyRound },
     { id: 'obligations' as const, label: 'Obrigações', icon: ClipboardList },
     { id: 'documents' as const, label: 'Documentos', icon: Inbox },
     { id: 'tasks' as const, label: 'Tarefas', icon: FileStack },
     { id: 'messages' as const, label: 'Mensagens', icon: MessageSquare },
+    { id: 'profile' as const, label: 'Perfil', icon: Building2 },
   ]
 
   return (
@@ -119,6 +124,7 @@ export function FirmClientHubPage() {
           clientId={cid}
           onBack={() => navigate('/app/firm/clients')}
           onEdit={() => setSection('profile')}
+          onOpenSection={setSection}
           onAccessChanged={() => void refetch()}
         />
 
@@ -143,8 +149,8 @@ export function FirmClientHubPage() {
                   className="cb-client-hub-shortcut"
                   onClick={() => onSectionChange(id)}
                 >
-                  <Icon className="mx-auto h-[18px] w-[18px] text-brand" />
-                  <span>{label}</span>
+                  <Icon className="mx-auto h-[18px] w-[18px] shrink-0 text-brand" aria-hidden />
+                  <span className="max-w-full truncate">{label}</span>
                 </button>
               ))}
             </div>
@@ -259,6 +265,8 @@ export function FirmClientHubPage() {
             </section>
           </div>
         ) : null}
+
+        {section === 'accesses' ? <ClientHubOfficialAccessesPanel clientId={cid} /> : null}
 
         {section === 'profile' ? (
           <div className="cb-client-hub-panel p-4 sm:p-5">

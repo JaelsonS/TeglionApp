@@ -10,6 +10,7 @@ const { hasPermissionForUser, PERMISSIONS } = require('../../utils/permissions')
 const { normalizeSessionRole } = require('../../utils/session-user');
 const { hashPassword, verifyPassword } = require('../../utils/password-crypto');
 const { assertStrongPassword } = require('../../utils/password-policy');
+const stepUp = require('./step-up.service');
 
 function actorPermissionUser(actor) {
   const role = firmUsersRepository.jwtRoleFromFirmRole(actor.role);
@@ -98,6 +99,7 @@ async function getSettingsBundle(firmId, actorUserId) {
       departmentName: actorDepartmentName,
       isOwner: actor.role === 'FIRM_OWNER',
       hasPassword: Boolean(actor.password_hash),
+      hasVaultPassword: Boolean(actor.vault_password_hash),
       ssoProvider: actor.sso_provider || null,
     },
     team: team.map((m) => mapTeamMember(m, actorUserId, m.departmentId ? departmentMap.get(String(m.departmentId)) || null : null)),
@@ -243,6 +245,47 @@ async function changeMyPassword(firmId, userId, { currentPassword, newPassword }
   });
 
   return { updated: true };
+}
+
+async function setMyVaultPassword(firmId, userId, { currentPassword, newPassword }, req = null) {
+  const actor = await firmUsersRepository.findFirmUserById(userId);
+  if (!actor || String(actor.firm_id) !== String(firmId)) {
+    throw new AppError('Utilizador não encontrado', 404);
+  }
+
+  assertStrongPassword(newPassword);
+
+  const existingVault = actor.vault_password_hash || null;
+  const existingLogin = actor.password_hash || null;
+  if (existingVault || existingLogin) {
+    const ok = await verifyPassword(String(currentPassword || ''), existingVault || existingLogin);
+    if (!ok) {
+      throw new AppError('Palavra-passe actual incorrecta.', 400, { code: 'INVALID_CURRENT_PASSWORD' });
+    }
+  }
+
+  if (existingVault && String(currentPassword) === String(newPassword)) {
+    throw new AppError('A nova palavra-passe deve ser diferente da actual.', 400);
+  }
+
+  const vaultPasswordHash = await hashPassword(String(newPassword));
+  await firmUsersRepository.updateFirmMember(firmId, userId, { vaultPasswordHash });
+
+  await securityAudit.recordSettingsMutation({
+    action: 'firm.profile.vault_password.changed',
+    actor: { id: userId, role: actor.role },
+    firmId,
+    metadata: { firstTime: !existingVault },
+    req,
+  });
+
+  const issued = stepUp.issueVaultStepUp({ firmId, userId });
+  return {
+    updated: true,
+    hasVaultPassword: true,
+    stepUpToken: issued.stepUpToken,
+    stepUpExpiresAt: issued.stepUpExpiresAt,
+  };
 }
 
 async function closeFirmAccount(firmId, actorUserId, { confirmName, npsScore, npsReason, npsComment }, req = null) {
@@ -402,6 +445,7 @@ module.exports = {
   updateBranding,
   updateMyProfile,
   changeMyPassword,
+  setMyVaultPassword,
   closeFirmAccount,
   normalizeFirmSlug,
   FIRM_ROLE_LABELS,

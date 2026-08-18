@@ -1,4 +1,5 @@
 import type { ViewStats } from '@/shared/components/contabil/ViewTrackingBadge'
+import { MONTH_NAMES_PT } from '@/shared/calendar'
 import { formatEuro, formatPtDate } from '@/shared/utils/contabilLocale'
 import { safeDisplayText } from '@/shared/utils/safeDisplayText'
 import type { Obligation, ObligationPriority, ObligationType } from '@/shared/types/contabil'
@@ -110,6 +111,43 @@ export function maskEurInput(raw: string): string {
 export function currentPeriod(): string {
   const now = new Date()
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+}
+
+/** Valor para `<input type="month">` a partir do período (AAAA-MM ou AAAA-MM-DD). */
+export function periodToMonthInput(period: string): string {
+  const value = String(period || '').trim()
+  if (/^\d{4}-\d{2}/.test(value)) return value.slice(0, 7)
+  return currentPeriod()
+}
+
+export function monthInputToPeriod(value: string): string {
+  const next = String(value || '').trim()
+  if (/^\d{4}-\d{2}/.test(next)) return next.slice(0, 7)
+  return currentPeriod()
+}
+
+/** Valor para `<input type="date">` a partir do período (AAAA-MM ou AAAA-MM-DD). */
+export function periodToDateInput(period: string): string {
+  const value = String(period || '').trim()
+  if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10)
+  if (/^\d{4}-\d{2}$/.test(value)) return `${value}-01`
+  return ''
+}
+
+/** Rótulo «Agosto 2026» — o período da obrigação é mês + ano. */
+export function formatObligationPeriodLabel(period?: string | null): string {
+  if (!period) return 'Sem período'
+  const m = String(period).match(/^(\d{4})-(\d{2})/)
+  if (!m) return String(period)
+  const month = MONTH_NAMES_PT[Number(m[2]) - 1]
+  return month ? `${month} ${m[1]}` : String(period)
+}
+
+/** Valor para `<input type="date">` a partir do prazo (ISO ou AAAA-MM-DD). */
+export function dueDateToDateInput(dueDate: string): string {
+  const value = String(dueDate || '').trim()
+  if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10)
+  return ''
 }
 
 export function dueDateFromPeriod(period: string, dueDay = 20): string {

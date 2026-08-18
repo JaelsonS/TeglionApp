@@ -51,7 +51,7 @@ export const CLIENT_INTENTS = [
     title: 'O que é esta área de Clientes?',
     shortDescription: 'módulo Clientes',
     answer:
-      'Está na carteira do escritório — os clientes que a sua equipa administra no Teglion. Não é o portal do cliente: o portal é a área onde o próprio cliente entra, depois de convite. Aqui cadastra, procura, filtra e abre a ficha de cada empresa ou particular. O botão «Novo cliente» abre o assistente de cadastro neste ecrã (não existe uma página /clients/new). Clicar num cliente abre a ficha em /app/firm/clients/… com Resumo, Perfil, Actividade, Obrigações, Documentos, Tarefas e Comunicação.',
+      'Está na carteira do escritório — os clientes que a sua equipa administra no Teglion. Não é o portal do cliente: o portal é a área onde o próprio cliente entra, depois de convite. Aqui cadastra, procura, filtra e abre a ficha de cada empresa ou particular. O botão «Novo cliente» abre o assistente de cadastro neste ecrã (não existe uma página /clients/new). Clicar num cliente abre a ficha em /app/firm/clients/… com Resumo, Perfil, Acessos, Actividade, Obrigações, Documentos, Tarefas e Comunicação. «Ficha CSV» exporta a carteira (sem senhas) ou importa um modelo de texto; células vazias não apagam dados e .xlsx/macros são recusados.',
     steps: [
       'Se a lista estiver vazia, clique em Novo cliente',
       'Use a pesquisa ou os filtros para encontrar um cliente existente',
@@ -66,6 +66,7 @@ export const CLIENT_INTENTS = [
       'clients-list',
       'client-hub',
       'clients-invite',
+      'clients-csv',
     ],
     followUpPrompt: 'O que quer fazer?',
     ctaLabel: 'Ir para Clientes',
@@ -74,6 +75,7 @@ export const CLIENT_INTENTS = [
       { label: 'Procurar cliente', intentId: 'clients-search' },
       { label: 'Entender filtros', intentId: 'clients-filters' },
       { label: 'Abrir a ficha', intentId: 'client-hub' },
+      { label: 'Ficha CSV', intentId: 'clients-csv' },
       { label: 'O que fazer depois', intentId: 'clients-next-steps' },
     ],
   }),
@@ -372,6 +374,42 @@ export const CLIENT_INTENTS = [
     ctaLabel: 'Ir para Clientes',
   }),
   defineIntent({
+    id: 'clients-csv',
+    title: 'Porque é que o Excel foi recusado e como importar a ficha?',
+    shortDescription: 'ficha CSV',
+    answer:
+      'Não é um erro do Teglion: a ficha só aceita CSV de texto. O Excel .xlsx é um ficheiro comprimido (ZIP) e pode trazer macros — por isso é recusado de propósito. Caminho correcto no Excel para Windows (Portugal): 1) Descarregue «Modelo vazio» ou «Exportar carteira» nesta janela. 2) Abra o ficheiro no Excel. 3) Ficheiro → Guardar como → escolha a pasta → no tipo, «CSV UTF-8 (delimitado por vírgulas)» ou «CSV (separado por ponto e vírgula)». 4) Confirme se o ficheiro fica com extensão .csv. 5) Volte ao Teglion e importe esse .csv. Não basta mudar o nome de .xlsx para .csv — tem de guardar como CSV. Células vazias não apagam dados já gravados. As senhas dos portais nunca saem na exportação; só entram no import se a coluna estiver preenchida e o cofre estiver desbloqueado.',
+    steps: [
+      'Descarregue o modelo CSV ou a exportação da carteira',
+      'Abra no Excel e preencha o que souber',
+      'Ficheiro → Guardar como → CSV UTF-8 (não Livro do Excel)',
+      'Confirme que o ficheiro acaba em .csv',
+      'Importe nesse diálogo — se ainda recusar, o ficheiro ainda é .xlsx por dentro',
+    ],
+    deepLink: '/app/firm/clients',
+    relatedIntents: ['clients', 'clients-problems', 'client-official-accesses'],
+    ctaLabel: 'Ir para Clientes',
+    followUpPrompt: 'Quer ver outro tema da carteira?',
+    nextSteps: [
+      { label: 'Problemas comuns', intentId: 'clients-problems' },
+      { label: 'Acessos oficiais', intentId: 'client-official-accesses' },
+    ],
+    commonProblems: [
+      {
+        id: 'renamed-xlsx',
+        title: 'Mudei o nome para .csv e mesmo assim recusou',
+        answer:
+          'Mudar a extensão não converte o ficheiro. O Teglion lê os primeiros bytes: se for ZIP (xlsx) ou o formato antigo do Excel, recusa. Tem de usar Guardar como CSV.',
+      },
+      {
+        id: 'mac-excel',
+        title: 'Estou no Excel para Mac',
+        answer:
+          'Ficheiro → Guardar como → Formato: CSV UTF-8. Se só aparecer «CSV», também serve. Evite «Livro do Excel» e «Excel 97-2004».',
+      },
+    ],
+  }),
+  defineIntent({
     id: 'clients-problems',
     title: 'Problemas comuns em Clientes',
     shortDescription: 'problemas clientes',
@@ -384,7 +422,7 @@ export const CLIENT_INTENTS = [
       'Use Estado: Inativos se o cliente saiu da lista activa',
     ],
     deepLink: '/app/firm/clients',
-    relatedIntents: ['clients-create', 'clients-search', 'clients-invite', 'clients-archive'],
+    relatedIntents: ['clients-create', 'clients-search', 'clients-invite', 'clients-archive', 'clients-csv'],
     ctaLabel: 'Ir para Clientes',
     commonProblems: [
       {
@@ -401,6 +439,12 @@ export const CLIENT_INTENTS = [
         id: 'nif',
         title: 'O NIF não passa',
         answer: 'Tem de ter 9 dígitos e dígito de controlo válido. Clique em Validar NIF antes de Continuar.',
+      },
+      {
+        id: 'xlsx',
+        title: 'A importação recusou o meu Excel',
+        answer:
+          'Não é um bug. O Teglion só aceita CSV de texto, não .xlsx nem macros. No Excel: Ficheiro → Guardar como → CSV UTF-8 (ou CSV delimitado por ponto e vírgula). Depois importe esse ficheiro .csv. Peça «Ficha CSV» à Maya para os passos completos.',
       },
     ],
   }),

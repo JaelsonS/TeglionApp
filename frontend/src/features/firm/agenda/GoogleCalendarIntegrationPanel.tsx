@@ -162,13 +162,18 @@ export function GoogleCalendarIntegrationPanel() {
 
   if (healthy) {
     return (
-      <div className="space-y-3 rounded-lg border border-border/40 p-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="space-y-3 rounded-2xl border border-border/40 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-start gap-2 text-sm">
             <CalendarCheck2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
             <div>
-              <p>
-                Ligado como <span className="font-medium">{status.googleEmail}</span>
+              <p className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
+                  Ligado
+                </span>
+                <span>
+                  como <span className="font-medium">{status.googleEmail}</span>
+                </span>
               </p>
               <p className="mt-1 text-muted-foreground">
                 O seu Google Calendar está conectado. Os agendamentos do Teglion serão sincronizados automaticamente com

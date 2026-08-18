@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CreditCard, Loader2, ReceiptText } from 'lucide-react'
+import { Check, CreditCard, Loader2, ReceiptText } from 'lucide-react'
 
 import { FirmScrollPage } from '@/features/firm/FirmPageLayout'
 import { BRAND } from '@/shared/config/brand'
@@ -77,6 +77,7 @@ export function FirmBillingPage() {
     }
   }
 
+  const planLocked = billing?.status === 'ACTIVE'
   const monthlyReady = billing?.plans?.monthly?.configured !== false
   const yearlyReady = billing?.plans?.yearly?.configured === true
   const trialDays = billing?.trialDays ?? PRICING_FALLBACK.trialDays
@@ -101,13 +102,42 @@ export function FirmBillingPage() {
         {isLoading ? <PageLoading label="A carregar o plano…" /> : null}
 
         {!isLoading && billing ? (
-          <div
-            className={`mb-6 rounded-xl border px-4 py-3 text-sm ${
-              billing.hasAccess
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-                : 'border-amber-200 bg-amber-50 text-amber-900'
-            }`}
-          >
+          <div className="cb-billing-status-grid">
+            <div className="cb-settings-fieldset">
+              <p className="cb-settings-fieldset-title">A subscrição está activa?</p>
+              <p className="cb-settings-fieldset-sub mt-1">
+                {billing.hasAccess
+                  ? billing.status === 'TRIAL'
+                    ? `Sim — teste até ${trialEnd ? trialEnd.toLocaleDateString('pt-PT') : '—'}.`
+                    : 'Sim — plano em vigor.'
+                  : trialExpired
+                    ? 'Não — o teste terminou.'
+                    : 'Não — regularize para continuar.'}
+              </p>
+            </div>
+            <div className="cb-settings-fieldset">
+              <p className="cb-settings-fieldset-title">Qual o plano?</p>
+              <p className="cb-settings-fieldset-sub mt-1">
+                {billing.status === 'ACTIVE'
+                  ? 'Plano pago (mensal ou anual — detalhes no portal Stripe).'
+                  : billing.status === 'TRIAL'
+                    ? `Teste de ${trialDays} dias.`
+                    : billing.status || 'Sem plano activo.'}
+              </p>
+            </div>
+            <div className="cb-settings-fieldset">
+              <p className="cb-settings-fieldset-title">O que posso fazer agora?</p>
+              <p className="cb-settings-fieldset-sub mt-1">
+                {billing.status === 'ACTIVE'
+                  ? 'Gerir cartão e faturas no Stripe, ou voltar ao escritório.'
+                  : 'Activar mensal ou anual. Pagamentos dos clientes (Connect) ficam em Definições → Pagamentos.'}
+              </p>
+            </div>
+          </div>
+        ) : null}
+
+        {!isLoading && billing ? (
+          <div className={cn('cb-billing-hero', billing.hasAccess ? 'cb-billing-hero--ok' : 'cb-billing-hero--warn')}>
             {billing.hasAccess ? (
               <p>
                 <strong>Acesso activo.</strong>{' '}
@@ -128,12 +158,21 @@ export function FirmBillingPage() {
 
         <div className="cb-billing-cards">
           <div className="cb-billing-card">
+            {billing?.status === 'TRIAL' ? <p className="cb-billing-card-using">A usar agora</p> : null}
             <p className="cb-billing-card-label">{p.trial.name}</p>
             <p className="cb-billing-card-price">
               0 €
               <span className="cb-billing-card-period"> / {trialDays} dias</span>
             </p>
             <p className="cb-billing-card-desc">{p.trial.description}</p>
+            <ul className="cb-billing-card-features">
+              {p.trial.features.map((f) => (
+                <li key={f}>
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
+                  {f}
+                </li>
+              ))}
+            </ul>
           </div>
 
           <div className="cb-billing-card">
@@ -143,84 +182,106 @@ export function FirmBillingPage() {
               <span className="cb-billing-card-period"> / mês</span>
             </p>
             <p className="cb-billing-card-desc">{p.plan.monthly.note} · por escritório</p>
+            <ul className="cb-billing-card-features">
+              {p.plan.features.map((f) => (
+                <li key={f}>
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            {billing?.stripeConfigured !== false && !planLocked ? (
+              <div className="cb-billing-card-cta">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn('w-full rounded-full', !monthlyReady && 'opacity-60')}
+                  disabled={loadingCheckout !== null || !monthlyReady}
+                  onClick={() => void startCheckout('month')}
+                >
+                  {loadingCheckout === 'month' ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <CreditCard className="mr-2 h-4 w-4" />
+                  )}
+                  Activar mensal ({monthlyLabel})
+                </Button>
+              </div>
+            ) : null}
           </div>
 
           <div className="cb-billing-card cb-billing-card-featured">
+            <p className="cb-billing-card-badge">{p.plan.yearly.badge}</p>
             <p className="cb-billing-card-label">{p.plan.yearly.name}</p>
             <p className="cb-billing-card-price">
               {yearlyMonthlyLabel}
               <span className="cb-billing-card-period"> / mês</span>
             </p>
             <p className="cb-billing-card-desc">{yearlyLabel} cobrados uma vez por ano</p>
-            <p className="mt-2 text-xs font-medium text-brand">{p.plan.yearly.badge}</p>
+            <ul className="cb-billing-card-features">
+              {p.plan.features.map((f) => (
+                <li key={`y-${f}`}>
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            {billing?.stripeConfigured !== false && !planLocked ? (
+              <div className="cb-billing-card-cta">
+                <Button
+                  type="button"
+                  className="w-full rounded-full"
+                  disabled={loadingCheckout !== null || !yearlyReady}
+                  onClick={() => void startCheckout('year')}
+                >
+                  {loadingCheckout === 'year' ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <CreditCard className="mr-2 h-4 w-4" />
+                  )}
+                  Activar anual ({yearlyLabel})
+                </Button>
+              </div>
+            ) : null}
           </div>
         </div>
 
-        <ul className="mt-4 space-y-1 text-sm text-muted-foreground">
-          {p.plan.features.map((f) => (
-            <li key={f}>· {f}</li>
-          ))}
-        </ul>
+        {planLocked ? (
+          <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-border/60 bg-muted/20 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-foreground">
+              O escritório já tem um plano pago. Para mudar o intervalo, actualizar o cartão ou ver faturas, use o portal Stripe.
+            </p>
+            {billing?.hasSubscription ? (
+              <Button
+                type="button"
+                className="shrink-0 rounded-full"
+                disabled={loadingPortal}
+                onClick={() => void openPortal()}
+              >
+                {loadingPortal ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ReceiptText className="mr-2 h-4 w-4" />}
+                Gerir no Stripe
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
+
         <p className="mt-2 text-xs text-muted-foreground">{p.plan.vatNote}</p>
 
-        <div className="mt-8 flex flex-wrap gap-3">
-          {billing?.stripeConfigured !== false ? (
-            <>
-              <Button
-                type="button"
-                className={cn('rounded-full', !monthlyReady && 'opacity-60')}
-                disabled={loadingCheckout !== null || billing?.status === 'ACTIVE' || !monthlyReady}
-                onClick={() => void startCheckout('month')}
-              >
-                {loadingCheckout === 'month' ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <CreditCard className="mr-2 h-4 w-4" />
-                )}
-                Activar mensal ({monthlyLabel})
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-full"
-                disabled={loadingCheckout !== null || billing?.status === 'ACTIVE' || !yearlyReady}
-                onClick={() => void startCheckout('year')}
-              >
-                {loadingCheckout === 'year' ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <CreditCard className="mr-2 h-4 w-4" />
-                )}
-                Activar anual ({yearlyLabel})
-              </Button>
-              {billing?.hasSubscription ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="rounded-full"
-                  disabled={loadingPortal}
-                  onClick={() => void openPortal()}
-                >
-                  {loadingPortal ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Gerir no Stripe
-                </Button>
-              ) : null}
-              {!yearlyReady ? (
-                <p className="w-full text-xs text-muted-foreground">
-                  Plano anual: falta configurar <code>STRIPE_PRICE_ID_EUR_YEARLY</code> no Render.
-                </p>
-              ) : null}
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Pagamentos ainda a configurar. Escreve para{' '}
-              <a href={`mailto:${BRAND.emails.hello}`} className="font-medium text-brand hover:underline">
-                {BRAND.emails.hello}
-              </a>
-              .
-            </p>
-          )}
-        </div>
+        {billing?.stripeConfigured === false ? (
+          <p className="mt-4 text-sm text-muted-foreground">
+            Pagamentos ainda a configurar. Escreve para{' '}
+            <a href={`mailto:${BRAND.emails.hello}`} className="font-medium text-brand hover:underline">
+              {BRAND.emails.hello}
+            </a>
+            .
+          </p>
+        ) : null}
+
+        {billing?.stripeConfigured !== false && !yearlyReady ? (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Plano anual: falta configurar <code>STRIPE_PRICE_ID_EUR_YEARLY</code> no Render.
+          </p>
+        ) : null}
 
         <div className="cb-billing-notice mt-8">
           <ReceiptText className="mb-2 h-5 w-5 text-brand" aria-hidden />
@@ -234,6 +295,18 @@ export function FirmBillingPage() {
         </div>
 
         <div className="mt-6 flex flex-wrap gap-2">
+          {billing?.hasSubscription && !planLocked ? (
+            <Button
+              type="button"
+              variant="ghost"
+              className="rounded-full"
+              disabled={loadingPortal}
+              onClick={() => void openPortal()}
+            >
+              {loadingPortal ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ReceiptText className="mr-2 h-4 w-4" />}
+              Gerir no Stripe
+            </Button>
+          ) : null}
           <Button asChild variant="outline" className="rounded-full">
             <Link to="/#precos">Ver preços no site</Link>
           </Button>

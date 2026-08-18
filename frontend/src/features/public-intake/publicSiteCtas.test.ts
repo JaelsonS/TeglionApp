@@ -50,4 +50,32 @@ describe('publicSiteCtas', () => {
     expect(resolvePublicCtaHref(cta({ target: { type: 'booking' } }), ctx, {})).toBe('#servicos')
     expect(isPublicCtaRenderable(cta({ target: { type: 'booking' } }), ctx, {})).toBe(true)
   })
+
+  it('renders WhatsApp from the button number even without social links', () => {
+    expect(
+      isPublicCtaRenderable(cta({ target: { type: 'whatsapp', phone: '+351 912 345 678' } }), ctx, {}),
+    ).toBe(true)
+    expect(resolvePublicCtaHref(cta({ target: { type: 'whatsapp', phone: '+351 912 345 678' } }), ctx, {})).toBe(
+      'https://wa.me/351912345678',
+    )
+    expect(isPublicCtaRenderable(cta({ target: { type: 'whatsapp' } }), ctx, {})).toBe(false)
+    expect(
+      isPublicCtaRenderable(cta({ target: { type: 'whatsapp' } }), ctx, { whatsapp: 'https://wa.me/351910000000' }),
+    ).toBe(true)
+  })
+
+  it('upgrades external http and host-only URLs to https and rejects javascript:', () => {
+    expect(
+      isPublicCtaRenderable(cta({ target: { type: 'external-url', url: 'http://exemplo.pt' } }), ctx, {}),
+    ).toBe(true)
+    expect(resolvePublicCtaHref(cta({ target: { type: 'external-url', url: 'exemplo.pt/x' } }), ctx, {})).toBe(
+      'https://exemplo.pt/x',
+    )
+    expect(
+      isPublicCtaRenderable(cta({ target: { type: 'external-url', url: 'javascript:alert(1)' } }), ctx, {}),
+    ).toBe(false)
+    expect(resolvePublicCtaHref(cta({ target: { type: 'external-url', url: 'javascript:alert(1)' } }), ctx, {})).toBe(
+      '#',
+    )
+  })
 })

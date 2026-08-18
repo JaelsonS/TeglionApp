@@ -45,12 +45,39 @@ function normalizeHexOrNull(value) {
   return trimmed;
 }
 
+function isSafeHttpsUrl(url) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:') return false;
+    if (!parsed.hostname) return false;
+    if (parsed.username || parsed.password) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function normalizeHttpsUrlOrNull(value) {
   if (value == null) return null;
   const trimmed = String(value).trim();
   if (!trimmed) return null;
   if (!/^https:\/\//i.test(trimmed)) return null;
-  return trimmed.slice(0, 500);
+  return isSafeHttpsUrl(trimmed) ? trimmed.slice(0, 500) : null;
+}
+
+/** Link externo: rejeita javascript:/data:; http e host nu passam a https. */
+function coerceExternalHttpsUrlOrNull(value) {
+  if (value == null) return null;
+  const trimmed = String(value).trim();
+  if (!trimmed || /[\s<>]/.test(trimmed)) return null;
+  if (/^(javascript|data|vbscript|file):/i.test(trimmed)) return null;
+  let candidate = trimmed;
+  if (/^https:\/\//i.test(trimmed)) candidate = trimmed;
+  else if (/^http:\/\//i.test(trimmed)) candidate = `https://${trimmed.slice('http://'.length)}`;
+  else if (/^\/\//.test(trimmed)) candidate = `https:${trimmed}`;
+  else if (/^[a-z0-9.-]+\.[a-z]{2,}([/:?#].*)?$/i.test(trimmed)) candidate = `https://${trimmed}`;
+  else return null;
+  return isSafeHttpsUrl(candidate) ? candidate.slice(0, 500) : null;
 }
 
 function normalizeImageRef(raw) {
@@ -93,10 +120,10 @@ function normalizeCta(raw) {
   const target = { type };
   if (raw.target?.serviceId) target.serviceId = String(raw.target.serviceId).trim().slice(0, 100);
   if (type === 'external-url') {
-    const url = raw.target?.url ? String(raw.target.url).trim() : '';
-    if (/^https:\/\//i.test(url)) target.url = url.slice(0, 500);
+    const url = coerceExternalHttpsUrlOrNull(raw.target?.url);
+    if (url) target.url = url;
   }
-  if (type === 'phone') {
+  if (type === 'phone' || type === 'whatsapp') {
     const phone = normalizePhoneOrNull(raw.target?.phone);
     if (phone) target.phone = phone;
   }
@@ -152,8 +179,8 @@ function normalizeNavLink(raw) {
     link.sectionId = NAV_SECTION_IDS.has(sectionId) ? sectionId : 'servicos';
   }
   if (kind === 'external') {
-    const url = raw.url ? String(raw.url).trim() : '';
-    if (/^https:\/\//i.test(url)) link.url = url.slice(0, 500);
+    const url = coerceExternalHttpsUrlOrNull(raw.url);
+    if (url) link.url = url;
   }
   if (kind === 'service') {
     const serviceId = raw.serviceId ? String(raw.serviceId).trim().slice(0, 100) : '';

@@ -33,17 +33,15 @@ import {
   URGENCY_RING,
 } from '@/features/firm/fiscal-calendar/fiscalCalendarUtils'
 import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
-import {
-  contabilClientsApi,
-  contabilFiscalCalendarApi,
-} from '@/infrastructure/api'
+import { contabilFiscalCalendarApi } from '@/infrastructure/api'
+import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
+import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
 import type { FirmFiscalEvent } from '@/infrastructure/api/contabil/fiscalCalendar'
 import { CalendarMonthGrid, todayCivil } from '@/shared/calendar'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { useFirmBranding } from '@/shared/hooks/useFirmBranding'
 import { cn } from '@/shared/lib/utils'
-import type { Client } from '@/shared/types/clients'
 import { getErrorMessage } from '@/shared/utils/errors'
 
 type ViewMode = 'month' | 'list' | 'year'
@@ -60,6 +58,7 @@ export function FiscalCalendarWorkspace() {
   const [kindFilter, setKindFilter] = useState<'FISCAL' | 'INTERNAL' | null>(null)
   const [statusFilter, setStatusFilter] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 400)
   const [showInactive, setShowInactive] = useState(false)
   const [selected, setSelected] = useState<FirmFiscalEvent | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -84,7 +83,7 @@ export function FiscalCalendarWorkspace() {
       categoryFilter,
       kindFilter,
       statusFilter,
-      search,
+      debouncedSearch,
       showInactive,
     ],
     queryFn: () =>
@@ -94,17 +93,13 @@ export function FiscalCalendarWorkspace() {
         categoryId: categoryFilter,
         eventKind: kindFilter,
         status: statusFilter,
-        search: search.trim() || null,
+        search: debouncedSearch.trim() || null,
         includeInactive: showInactive,
       }),
     staleTime: 30_000,
   })
 
-  const { data: clientsRes } = useQuery({
-    queryKey: ['fiscal-calendar-clients'],
-    queryFn: () => contabilClientsApi.list({ page: 1, limit: 500 }) as Promise<{ items?: Client[] }>,
-    staleTime: 60_000,
-  })
+  const { data: clientsRes } = useFirmClientsDirectory({ limit: 500 })
   const clients = clientsRes?.items || []
 
   const calendar = workspaceQuery.data?.calendar ?? null

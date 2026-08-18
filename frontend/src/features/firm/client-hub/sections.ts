@@ -4,12 +4,21 @@ import {
   Building2,
   ClipboardList,
   FileStack,
+  KeyRound,
   LayoutDashboard,
   MessageSquare,
   ScrollText,
 } from 'lucide-react'
 
-export type ClientHubSection = 'overview' | 'profile' | 'timeline' | 'obligations' | 'documents' | 'tasks' | 'messages'
+export type ClientHubSection =
+  | 'overview'
+  | 'profile'
+  | 'accesses'
+  | 'timeline'
+  | 'obligations'
+  | 'documents'
+  | 'tasks'
+  | 'messages'
 
 export const CLIENT_HUB_SECTIONS: Array<{
   id: ClientHubSection
@@ -18,6 +27,7 @@ export const CLIENT_HUB_SECTIONS: Array<{
 }> = [
   { id: 'overview', label: 'Resumo', icon: LayoutDashboard },
   { id: 'profile', label: 'Perfil', icon: Building2 },
+  { id: 'accesses', label: 'Acessos', icon: KeyRound },
   { id: 'timeline', label: 'Actividade', icon: Activity },
   { id: 'obligations', label: 'Obrigações', icon: ClipboardList },
   { id: 'documents', label: 'Documentos', icon: FileStack },

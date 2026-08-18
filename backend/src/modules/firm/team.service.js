@@ -9,6 +9,7 @@ const { hashPassword } = require('../../utils/password-crypto');
 const { assertStrongPassword } = require('../../utils/password-policy');
 const { notifyFirmStaffWelcome } = require('../../services/notifications/contabil-notifications.service');
 const { PERMISSIONS, hasPermissionForUser } = require('../../utils/permissions');
+const entitlements = require('../entitlements/entitlements.service');
 
 const ALLOWED_ROLES = new Set(['FIRM_OWNER', 'FIRM_STAFF', 'FIRM_CONSULTANT']);
 
@@ -141,6 +142,10 @@ async function createMember({ firmId, actor, payload, req }) {
     if (creationMode !== 'DIRECT') {
         throw new AppError('Para convites, utilize o endpoint dedicado /team/invites.', 400);
     }
+
+    const seats = await firmUsersRepository.listFirmUsers(firmId, { activeOnly: false });
+    const usedSeats = seats.filter((u) => u.isActive || u.inviteStatus === 'PENDING').length;
+    await entitlements.assertWithinLimit(firmId, 'max_staff', usedSeats);
 
     let passwordHash = null;
     assertStrongPassword(payload.password);

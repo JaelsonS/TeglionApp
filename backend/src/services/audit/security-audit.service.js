@@ -7,6 +7,10 @@ const { logger } = require('../../utils/logger');
 
 const REDACT_KEYS = new Set([
   'password',
+  'currentPassword',
+  'revealedValue',
+  'secret_enc',
+  'secretEnc',
   'passwordHash',
   'password_hash',
   'refreshToken',

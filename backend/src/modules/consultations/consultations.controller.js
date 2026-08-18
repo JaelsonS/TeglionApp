@@ -29,7 +29,7 @@ exports.attentionCount = async (req, res, next) => {
 exports.create = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);
-    const { clientId, title, scheduledAt, durationMinutes, notes, staffId } = req.body || {};
+    const { clientId, title, scheduledAt, durationMinutes, notes, staffId, accountingServiceId } = req.body || {};
     const result = await consultationsService.createConsultation({
       firmId,
       clientId: parseEntityId(clientId, 'clientId'),
@@ -38,6 +38,9 @@ exports.create = async (req, res, next) => {
       scheduledAt,
       durationMinutes,
       notes,
+      accountingServiceId: accountingServiceId
+        ? parseEntityId(accountingServiceId, 'accountingServiceId')
+        : undefined,
     });
     return res.status(201).json(result);
   } catch (err) {

@@ -1,5 +1,9 @@
 const { ensureClient } = require('./shared');
 const { mapObligationRow } = require('./mappers');
+const ttlCache = require('../../../../utils/cache/ttl-cache');
+const { overdueSyncKey } = require('../../../../utils/cache/tenant-scoped-keys');
+
+const OVERDUE_SYNC_TTL_SEC = 300;
 
 async function listObligations({ firmId, clientId, period, statusIn, limit = 500 }) {
   const sb = ensureClient();
@@ -82,6 +86,20 @@ async function syncOverdueObligations(firmId) {
   if (error) throw error;
 }
 
+/**
+ * Marca OVERDUE no máximo uma vez por tenant a cada 5 min.
+ * O GET do dashboard operacional e o GET do painel partilham a mesma chave.
+ */
+async function maybeSyncOverdueObligations(firmId, syncFn = syncOverdueObligations) {
+  if (!firmId) return false;
+  const key = overdueSyncKey(firmId);
+  const seen = await ttlCache.get(key);
+  if (seen) return false;
+  await syncFn(firmId);
+  await ttlCache.set(key, '1', OVERDUE_SYNC_TTL_SEC);
+  return true;
+}
+
 module.exports = {
   listObligations,
   listObligationsEnriched,
@@ -89,4 +107,5 @@ module.exports = {
   createObligation,
   updateObligation,
   syncOverdueObligations,
+  maybeSyncOverdueObligations,
 };

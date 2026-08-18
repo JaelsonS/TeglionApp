@@ -243,6 +243,9 @@ describe('resolveMayaPage', () => {
     expect(resolveMayaPage('/app/firm/clients/abc', new URLSearchParams('section=profile'))?.id).toBe(
       'clients-hub-profile',
     )
+    expect(resolveMayaPage('/app/firm/clients/abc', new URLSearchParams('section=accesses'))?.id).toBe(
+      'clients-hub-accesses',
+    )
     expect(
       resolveMayaPage('/app/firm/clients/abc', new URLSearchParams('section=documents'))?.id,
     ).toBe('clients-hub-documents')
@@ -315,10 +318,12 @@ describe('Maya Clientes coverage', () => {
     'clients-next-steps',
     'clients-invite',
     'clients-archive',
+    'clients-csv',
     'clients-problems',
     'client-hub',
     'client-hub-overview',
     'client-profile',
+    'client-official-accesses',
     'client-documents',
     'client-services',
     'client-requests',

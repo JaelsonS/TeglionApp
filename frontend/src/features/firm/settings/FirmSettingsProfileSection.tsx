@@ -14,6 +14,7 @@ import { authApi } from '@/infrastructure/api'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { tryNormalizeAuthUser } from '@/shared/utils/authNormalize'
 import { PASSWORD_MIN_LENGTH, passwordPolicyMessages } from '@/shared/utils/passwordPolicy'
+import { VaultPasswordSetupForm } from '@/features/firm/client-hub/VaultPasswordSetupForm'
 
 type Props = {
   bundle: FirmSettingsBundle
@@ -21,7 +22,7 @@ type Props = {
 }
 
 export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
-  const { setUser } = useAuth()
+  const { setUser, user } = useAuth()
   const [fullName, setFullName] = useState(bundle.actor.fullName)
   const [email, setEmail] = useState(bundle.actor.email)
   const [saving, setSaving] = useState(false)
@@ -32,6 +33,7 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
   const [savingPassword, setSavingPassword] = useState(false)
 
   const hasPassword = bundle.actor.hasPassword !== false
+  const hasVaultPassword = Boolean(bundle.actor.hasVaultPassword)
   const isGoogleAccount = String(bundle.actor.ssoProvider || '').toLowerCase() === 'google' && !bundle.actor.hasPassword
 
   useEffect(() => {
@@ -97,34 +99,32 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
 
   return (
     <div className="space-y-4">
+      <p className="cb-settings-callout">
+        Esta página é o <strong className="text-foreground">seu</strong> acesso ao painel. Cargo e departamento
+        vêm da Equipa — altere-os lá, não aqui. Abaixo: identidade de login, palavra-passe e cofre dos portais
+        oficiais.
+      </p>
+
       <section className="cb-settings-panel">
-        <div className="cb-settings-panel-hd">
-          <span className="cb-settings-panel-icon">
-            <User className="h-4 w-4" aria-hidden />
-          </span>
-          <div className="flex-1">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand/10 text-sm font-bold text-brand">
-                {initials || 'U'}
-              </div>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="cb-settings-panel-title">{bundle.actor.fullName}</h3>
-                  <span
-                    className={
-                      bundle.actor.isOwner
-                        ? 'cb-settings-role-badge cb-settings-role-badge--owner'
-                        : 'cb-settings-role-badge'
-                    }
-                  >
-                    {bundle.actor.isOwner ? <Crown className="h-3 w-3" aria-hidden /> : null}
-                    {bundle.actor.firmRoleLabel}
-                  </span>
-                </div>
-                <p className="cb-settings-panel-sub">Nome e e-mail de acesso ao painel do escritório.</p>
-              </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand/10 text-lg font-bold text-brand">
+            {initials || 'U'}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="cb-settings-panel-title">{bundle.actor.fullName}</h3>
+              <span
+                className={
+                  bundle.actor.isOwner
+                    ? 'cb-settings-role-badge cb-settings-role-badge--owner'
+                    : 'cb-settings-role-badge'
+                }
+              >
+                {bundle.actor.isOwner ? <Crown className="h-3 w-3" aria-hidden /> : null}
+                {bundle.actor.firmRoleLabel}
+              </span>
             </div>
-            <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
               <span className="rounded-full border border-border/60 px-2 py-1">
                 Cargo:{' '}
                 {bundle.actor.jobTitle || (bundle.actor.isOwner ? 'Dono do escritório' : 'Colaborador')}
@@ -133,6 +133,19 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
                 Departamento: {bundle.actor.departmentName || 'Sem departamento'}
               </span>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="space-y-4">
+      <section className="cb-settings-panel">
+        <div className="cb-settings-panel-hd">
+          <span className="cb-settings-panel-icon">
+            <User className="h-4 w-4" aria-hidden />
+          </span>
+          <div>
+            <h3 className="cb-settings-panel-title">Dados de acesso</h3>
+            <p className="cb-settings-panel-sub">Nome e e-mail de acesso ao painel do escritório.</p>
           </div>
         </div>
 
@@ -204,9 +217,7 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
                   disabled={savingPassword}
                 />
                 <p className="text-xs leading-relaxed text-muted-foreground">
-                  Por segurança, a palavra-passe não fica guardada em texto legível — por isso este campo
-                  começa sempre vazio. Escreva a actual para confirmarmos que é mesmo você; o olho só mostra
-                  o que está a digitar agora.
+                  O campo começa vazio de propósito — a palavra-passe não fica guardada em texto. O olho só mostra o que está a escrever agora.
                 </p>
               </div>
               <div className="space-y-2">
@@ -248,6 +259,28 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
             </Button>
           </>
         )}
+      </section>
+      </div>
+
+      <section className="cb-settings-panel">
+        <div className="cb-settings-panel-hd">
+          <span className="cb-settings-panel-icon">
+            <KeyRound className="h-4 w-4" aria-hidden />
+          </span>
+          <div>
+            <h3 className="cb-settings-panel-title">Palavra-passe dos Acessos oficiais</h3>
+            <p className="cb-settings-panel-sub">
+              Só para ver, copiar e gravar senhas dos portais. Não entra no Teglion com ela.
+            </p>
+          </div>
+        </div>
+        <VaultPasswordSetupForm
+          userId={user?.id || bundle.actor.id}
+          hasVaultPassword={hasVaultPassword}
+          hasLoginPassword={hasPassword}
+          hideIntro
+          onUpdated={onUpdated}
+        />
       </section>
     </div>
   )

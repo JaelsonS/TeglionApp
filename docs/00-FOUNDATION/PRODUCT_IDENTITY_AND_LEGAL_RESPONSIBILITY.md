@@ -88,4 +88,4 @@ Separar responsabilidades de integração (AfDigital), serviço do fornecedor, e
 - Identidade comercial e contactos públicos: `frontend/src/shared/config/agency.ts`, `brand.ts`, `supportLinks.ts`
 - App: Definições → Ajuda e suporte / Sobre o Teglion
 - Landing: secção de transparência + footer institucional
-- Reescrita dos textos legais: **pendente** (auditoria / `LEGAL_DECISION_REQUIRED` / `LEGAL_REVIEW_REQUIRED` onde aplicável)
+- Reescrita dos textos legais: **2026-08-18** — Teglion = produto; AfDigital = prestador; titular legal confirmado (pessoa). Papéis RGPD por fluxo (conta vs clientes do escritório). Revisão jurídica profissional continua recomendada.

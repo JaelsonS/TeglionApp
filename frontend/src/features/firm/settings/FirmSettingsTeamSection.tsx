@@ -1,6 +1,6 @@
 import { type ChangeEvent, type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { KeyRound, MailPlus, Pencil, ShieldCheck, UserPlus, Users } from 'lucide-react'
+import { Crown, KeyRound, MailPlus, Pencil, ShieldCheck, UserPlus, Users } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { teamManagementApi } from '@/infrastructure/api/contabil/teamManagement'
@@ -82,7 +82,7 @@ function focusAndReveal(el: HTMLElement | null) {
 
 export function FirmSettingsTeamSection({ bundle }: Props) {
     const queryClient = useQueryClient()
-    const [teamView, setTeamView] = useState<TeamView>('create')
+    const [teamView, setTeamView] = useState<TeamView>('list')
     const panelRef = useRef<HTMLDivElement>(null)
     const [directForm, setDirectForm] = useState({
         fullName: '',
@@ -350,7 +350,8 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                 <div>
                     <h2 className="cb-settings-panel-title">Equipa e departamentos</h2>
                     <p className="cb-settings-panel-sub">
-                        O dono do escritório define o cargo/função e o departamento de cada colaborador.
+                      Quem entra no painel, com que cargo e departamento, e o que pode fazer. Criar, convidar,
+                      desactivar e permissões continuam todos aqui — nada foi removido.
                     </p>
                 </div>
             </div>
@@ -395,7 +396,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
             </div>
 
             {canManageTeam ? (
-                <div className="flex flex-wrap gap-2" role="tablist" aria-label="Acções da equipa">
+                <div className="cb-settings-segmented" role="tablist" aria-label="Acções da equipa">
                     {(
                         [
                             { id: 'create' as const, label: 'Criar colaborador', icon: UserPlus },
@@ -427,9 +428,10 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
 
             <div className="cb-settings-tip">
                 <p>
-                    Dica: use termos simples de negócio como <strong>Receção</strong>, <strong>Fiscal</strong>,{' '}
-                    <strong>Contabilidade</strong> e <strong>Apoio ao cliente</strong> para facilitar o uso por toda a
-                    equipa.
+                    <strong>Como começar:</strong> crie o colaborador com palavra-passe (acesso imediato) ou envie um
+                    convite por e-mail. Use departamentos com nomes de negócio — <strong>Receção</strong>,{' '}
+                    <strong>Fiscal</strong>, <strong>Contabilidade</strong>, <strong>Apoio ao cliente</strong>. Clique
+                    numa linha da lista para editar cargo, departamento e permissões.
                 </p>
             </div>
 
@@ -452,6 +454,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                         </div>
                     </div>
                     <div className="cb-settings-action-body">
+                    <div className="grid gap-2 sm:grid-cols-2">
                         <Input
                             placeholder="Nome completo"
                             value={directForm.fullName}
@@ -468,16 +471,6 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                             value={directForm.jobTitle}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, jobTitle: e.target.value }))}
                         />
-                        <PasswordInput
-                            placeholder="Palavra-passe (mín. 10, maiúscula, minúscula e número)"
-                            value={directForm.password}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, password: e.target.value }))}
-                            autoComplete="new-password"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                            A palavra-passe não é enviada por e-mail. Se activar o aviso de boas-vindas, o colaborador
-                            recebe apenas o link de login — partilhe a palavra-passe por um canal seguro.
-                        </p>
                         <select
                             className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                             value={directForm.departmentId}
@@ -492,6 +485,19 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                     </option>
                                 ))}
                         </select>
+                        <div className="sm:col-span-2">
+                        <PasswordInput
+                            placeholder="Palavra-passe (mín. 10, maiúscula, minúscula e número)"
+                            value={directForm.password}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, password: e.target.value }))}
+                            autoComplete="new-password"
+                        />
+                        </div>
+                    </div>
+                        <p className="text-xs text-muted-foreground">
+                            A palavra-passe não é enviada por e-mail. Se activar o aviso de boas-vindas, o colaborador
+                            recebe apenas o link de login — partilhe a palavra-passe por um canal seguro.
+                        </p>
                         <Label className="flex items-center gap-2 text-sm font-normal">
                             <Checkbox
                                 checked={directForm.sendWelcomeEmail}
@@ -527,6 +533,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                         </div>
                     </div>
                     <div className="cb-settings-action-body">
+                    <div className="grid gap-2 sm:grid-cols-2">
                         <Input
                             id="equipa-invite-fullName"
                             placeholder="Nome completo"
@@ -558,6 +565,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                     </option>
                                 ))}
                         </select>
+                    </div>
                         <Button
                             type="button"
                             variant="primary"
@@ -638,121 +646,139 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                         </Label>
                     </div>
                 ) : null}
-                <table className="w-full text-left text-sm">
-                    <thead className="border-b border-border/60 bg-muted/30 text-xs uppercase tracking-wide text-muted-foreground">
-                        <tr>
-                            <th className="px-4 py-2.5 font-medium">Nome</th>
-                            <th className="hidden px-4 py-2.5 font-medium sm:table-cell">E-mail</th>
-                            <th className="px-4 py-2.5 font-medium">Cargo/Função</th>
-                            <th className="hidden px-4 py-2.5 font-medium lg:table-cell">Departamento</th>
-                            <th className="px-4 py-2.5 font-medium">Estado</th>
-                            <th className="px-4 py-2.5 font-medium">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {visibleMembers.map((m) => (
-                            <tr
-                                key={m.id}
-                                className={`border-b border-border/40 last:border-0 ${canManageTeam ? 'cursor-pointer transition-colors hover:bg-brand/[0.04]' : ''}`}
-                                onClick={() => {
-                                    if (canManageTeam) openEditMember(m)
-                                }}
-                            >
-                                <td className="px-4 py-3 font-medium text-foreground">
-                                    {m.fullName || '—'}
-                                    {m.isCurrentUser ? (
-                                        <span className="ml-2 text-xs font-normal text-muted-foreground">(você)</span>
-                                    ) : null}
+                <div className="cb-team-people">
+                    {visibleMembers.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">Ainda não há colaboradores visíveis nesta lista.</p>
+                    ) : null}
+                    {visibleMembers.map((m) => (
+                        <article
+                            key={m.id}
+                            className={cn('cb-team-person', canManageTeam && 'cursor-pointer transition hover:border-brand/30')}
+                            onClick={() => {
+                                if (canManageTeam) openEditMember(m)
+                            }}
+                        >
+                            <div className="cb-team-person-main">
+                                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand/10 text-xs font-bold text-brand">
+                                    {(m.fullName || 'U')
+                                        .split(/\s+/)
+                                        .filter(Boolean)
+                                        .slice(0, 2)
+                                        .map((p) => p[0]?.toUpperCase() || '')
+                                        .join('') || 'U'}
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <p className="font-semibold text-foreground">
+                                            {m.fullName || '—'}
+                                            {m.isCurrentUser ? (
+                                                <span className="ml-2 text-xs font-normal text-muted-foreground">(você)</span>
+                                            ) : null}
+                                        </p>
+                                        {m.role === 'FIRM_OWNER' ? (
+                                            <span className="cb-settings-role-badge cb-settings-role-badge--owner">
+                                                <Crown className="h-3 w-3" aria-hidden />
+                                                {renderAccessLabel(m)}
+                                            </span>
+                                        ) : null}
+                                        <span
+                                            className={
+                                                m.isActive
+                                                    ? 'inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800'
+                                                    : 'inline-flex rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground'
+                                            }
+                                        >
+                                            {m.isActive ? 'Activo' : 'Inactivo'}
+                                        </span>
+                                        {m.inviteStatus === 'PENDING' ? (
+                                            <span className="text-[11px] text-muted-foreground">Convite pendente</span>
+                                        ) : null}
+                                    </div>
+                                    <p className="mt-0.5 truncate text-sm text-muted-foreground">{m.email}</p>
+                                    <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
+                                        <span className="rounded-full border border-border/60 px-2 py-0.5">
+                                            {m.jobTitle || renderAccessLabel(m)}
+                                        </span>
+                                        <span className="rounded-full border border-border/60 px-2 py-0.5">
+                                            {m.departmentName || m.department?.name || 'Sem departamento'}
+                                        </span>
+                                    </div>
                                     {(m.tags || []).length > 0 ? (
-                                        <div className="mt-1 flex flex-wrap gap-1">
+                                        <div className="mt-2 flex flex-wrap gap-1">
                                             {(m.tags || []).map((t) => (
                                                 <FirmTagBadge key={t.id} tag={t} />
                                             ))}
                                         </div>
                                     ) : null}
-                                </td>
-                                <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">{m.email}</td>
-                                <td className="px-4 py-3 text-xs text-muted-foreground">
-                                    <div>{m.jobTitle || renderAccessLabel(m)}</div>
-                                    <div className="mt-0.5 text-[11px]">Nível: {renderAccessLabel(m)}</div>
-                                </td>
-                                <td className="hidden px-4 py-3 text-xs text-muted-foreground lg:table-cell">
-                                    {m.departmentName || m.department?.name || 'Sem departamento'}
-                                </td>
-                                <td className="px-4 py-3 text-xs text-muted-foreground">
-                                    {m.isActive ? 'Ativo' : 'Inativo'}
-                                    {m.inviteStatus === 'PENDING' ? ' · convite pendente' : ''}
-                                </td>
-                                <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                                    <div className="flex flex-wrap gap-2">
-                                        {canManageTeam ? (
+                                </div>
+                            </div>
+                            <div className="cb-team-person-actions" onClick={(e) => e.stopPropagation()}>
+                                {canManageTeam ? (
+                                    <>
+                                        <Button type="button" variant="outline" size="sm" onClick={() => openEditMember(m)}>
+                                            <Pencil className="mr-1 h-3.5 w-3.5" />
+                                            Editar dados
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setPermissionsMemberId(m.id)}
+                                        >
+                                            <KeyRound className="mr-1 h-3.5 w-3.5" />
+                                            Permissões
+                                        </Button>
+                                        {m.inviteStatus === 'PENDING' ? (
                                             <>
-                                                <Button type="button" variant="outline" size="sm" onClick={() => openEditMember(m)}>
-                                                    <Pencil className="mr-1 h-3.5 w-3.5" />
-                                                    Editar dados
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => inviteActionMutation.mutate({ memberId: m.id, mode: 'RESEND' })}
+                                                >
+                                                    Reenviar convite
                                                 </Button>
                                                 <Button
                                                     type="button"
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => setPermissionsMemberId(m.id)}
+                                                    onClick={() => inviteActionMutation.mutate({ memberId: m.id, mode: 'REVOKE' })}
                                                 >
-                                                    <KeyRound className="mr-1 h-3.5 w-3.5" />
-                                                    Permissões
+                                                    Revogar convite
                                                 </Button>
-                                                {m.inviteStatus === 'PENDING' ? (
-                                                    <>
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => inviteActionMutation.mutate({ memberId: m.id, mode: 'RESEND' })}
-                                                        >
-                                                            Reenviar convite
-                                                        </Button>
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => inviteActionMutation.mutate({ memberId: m.id, mode: 'REVOKE' })}
-                                                        >
-                                                            Revogar convite
-                                                        </Button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            size="sm"
-                                                            disabled={m.role === 'FIRM_OWNER' && ownerCount <= 1 && m.isActive}
-                                                            onClick={() => toggleMemberMutation.mutate({ memberId: m.id, active: m.isActive })}
-                                                        >
-                                                            {m.isActive ? 'Desativar' : 'Reativar'}
-                                                        </Button>
-                                                        {!m.isCurrentUser ? (
-                                                            <Button
-                                                                type="button"
-                                                                variant="destructive"
-                                                                size="sm"
-                                                                disabled={m.role === 'FIRM_OWNER' && ownerCount <= 1 && m.isActive}
-                                                                onClick={() => setExcludeMember(m)}
-                                                            >
-                                                                Excluir
-                                                            </Button>
-                                                        ) : null}
-                                                    </>
-                                                )}
                                             </>
                                         ) : (
-                                            <span className="text-xs text-muted-foreground">Visualização disponível</span>
+                                            <>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    disabled={m.role === 'FIRM_OWNER' && ownerCount <= 1 && m.isActive}
+                                                    onClick={() => toggleMemberMutation.mutate({ memberId: m.id, active: m.isActive })}
+                                                >
+                                                    {m.isActive ? 'Desativar' : 'Reativar'}
+                                                </Button>
+                                                {!m.isCurrentUser ? (
+                                                    <Button
+                                                        type="button"
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        disabled={m.role === 'FIRM_OWNER' && ownerCount <= 1 && m.isActive}
+                                                        onClick={() => setExcludeMember(m)}
+                                                    >
+                                                        Excluir
+                                                    </Button>
+                                                ) : null}
+                                            </>
                                         )}
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                    </>
+                                ) : (
+                                    <span className="text-xs text-muted-foreground">Visualização disponível</span>
+                                )}
+                            </div>
+                        </article>
+                    ))}
+                </div>
             </div>
 
             {canManageTeam && editingMemberId ? (

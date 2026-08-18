@@ -14,10 +14,12 @@ import type { ObligationPriority, ObligationType } from '@/shared/types/contabil
 import type { ObligationTemplate } from './obligationOperational'
 import {
   currentPeriod,
-  dueDateFromPeriod,
+  dueDateToDateInput,
   formatEurInputFromCents,
   maskEurInput,
   parseEurToCents,
+  periodToMonthInput,
+  monthInputToPeriod,
   PRIORITY_LABELS,
   TYPE_LABELS,
 } from './obligationOperational'
@@ -60,28 +62,30 @@ export function ObligationCreatePanel({
 
   const tpl = templates.find((t) => t.id === templateId || t._id === templateId)
 
-  // Pré-preenchimento vindo do Calendário Fiscal (prazo nacional).
   useEffect(() => {
     if (!open) return
-    if (initialType) setType(initialType)
-    if (initialPeriod) setPeriod(initialPeriod)
-    if (initialDueDate) setDueDate(initialDueDate)
-    // Intencional: não mexer em templateId/clientId aqui.
+    setTemplateId('')
+    setClientId('')
+    setType(initialType || 'IVA')
+    setPeriod(initialPeriod || currentPeriod())
+    setDueDate(initialDueDate || '')
+    setAmountEur('')
+    setPriority('NORMAL')
+    setAssignedStaffId('')
+    setAccountantNotes('')
+    setGuideFile(null)
+    setRecurring(false)
   }, [open, initialType, initialPeriod, initialDueDate])
 
   useEffect(() => {
-    if (!tpl) return
+    if (!open || !tpl) return
     setType(tpl.type)
     setPriority(tpl.defaultPriority)
-    setPeriod(currentPeriod())
-    setDueDate(dueDateFromPeriod(period, tpl.defaultDueDay))
     if (tpl.defaultAmountCents != null) setAmountEur(formatEurInputFromCents(tpl.defaultAmountCents))
     if (tpl.defaultTaskDescription) setAccountantNotes(tpl.defaultTaskDescription)
-  }, [tpl, period])
-
-  useEffect(() => {
-    if (!dueDate && period) setDueDate(dueDateFromPeriod(period, tpl?.defaultDueDay ?? 20))
-  }, [period, dueDate, tpl?.defaultDueDay])
+    // O prazo não é preenchido a partir do período — as duas datas são autónomas.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [templateId, open])
 
   if (!open) return null
 
@@ -196,17 +200,32 @@ export function ObligationCreatePanel({
             </label>
           ) : null}
           <label className="space-y-1 text-sm">
-            <span className="font-medium">Período</span>
+            <span className="font-medium">Período da obrigação</span>
             <Input
               type="month"
-              value={period}
-              onChange={(e: FormChangeEvent) => setPeriod(e.target.value)}
+              value={periodToMonthInput(period)}
+              onChange={(e: FormChangeEvent) => {
+                const next = e.target.value
+                if (!next) return
+                setPeriod(monthInputToPeriod(next))
+              }}
               required
             />
+            <p className="text-xs text-muted-foreground">
+              Mês e ano a que a obrigação se refere (ex.: Agosto 2026). O prazo de entrega é uma data completa à parte.
+            </p>
           </label>
           <label className="space-y-1 text-sm">
-            <span className="font-medium">Prazo</span>
-            <Input type="date" value={dueDate} onChange={(e: FormChangeEvent) => setDueDate(e.target.value)} required />
+            <span className="font-medium">Prazo de entrega</span>
+            <Input
+              type="date"
+              value={dueDateToDateInput(dueDate)}
+              onChange={(e: FormChangeEvent) => setDueDate(e.target.value)}
+              required
+            />
+            <p className="text-xs text-muted-foreground">
+              Data limite. Independente do período — podem ser dias diferentes.
+            </p>
           </label>
           <label className="space-y-1 text-sm">
             <span className="font-medium">Valor (EUR)</span>

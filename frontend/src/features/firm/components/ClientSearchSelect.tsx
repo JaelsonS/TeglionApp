@@ -13,6 +13,8 @@ type Props = {
   onChange: (clientId: string) => void
   placeholder?: string
   className?: string
+  /** Só mostra resultados depois de escrever — evita parecer uma lista obrigatória. */
+  requireQuery?: boolean
 }
 
 export function ClientSearchSelect({
@@ -21,6 +23,7 @@ export function ClientSearchSelect({
   onChange,
   placeholder = 'Pesquisar cliente (nome, e-mail, NIF)…',
   className,
+  requireQuery = false,
 }: Props) {
   const [q, setQ] = useState('')
 
@@ -37,6 +40,7 @@ export function ClientSearchSelect({
   }, [clients, q])
 
   const selected = clients.find((c) => c._id === value)
+  const showResults = !requireQuery || q.trim().length > 0
 
   return (
     <div className={cn('space-y-2', className)}>
@@ -54,32 +58,36 @@ export function ClientSearchSelect({
           Selecionado: <span className="font-medium text-foreground">{safeDisplayText(selected.fullName || selected.name)}</span>
           {selected.taxId ? ` · NIF ${selected.taxId}` : ''}
         </p>
+      ) : requireQuery && !q.trim() ? (
+        <p className="text-xs text-muted-foreground">Comece a escrever para encontrar o cliente.</p>
       ) : null}
-      <div className="max-h-40 overflow-y-auto rounded-xl border border-border/70 bg-muted/20 p-1">
-        {filtered.length === 0 ? (
-          <p className="px-3 py-2 text-xs text-muted-foreground">Nenhum cliente encontrado.</p>
-        ) : (
-          filtered.map((c) => (
-            <button
-              key={c._id}
-              type="button"
-              onClick={() => {
-                onChange(c._id)
-                setQ('')
-              }}
-              className={cn(
-                'flex w-full flex-col rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-background',
-                value === c._id && 'bg-background font-medium ring-1 ring-brand/30',
-              )}
-            >
-              <span>{safeDisplayText(c.fullName || c.name || c.displayName, 'Cliente')}</span>
-              <span className="text-xs text-muted-foreground">
-                {[c.email, c.taxId ? `NIF ${c.taxId}` : null].filter(Boolean).join(' · ')}
-              </span>
-            </button>
-          ))
-        )}
-      </div>
+      {showResults ? (
+        <div className="max-h-40 overflow-y-auto rounded-xl border border-border/70 bg-muted/20 p-1">
+          {filtered.length === 0 ? (
+            <p className="px-3 py-2 text-xs text-muted-foreground">Nenhum cliente encontrado.</p>
+          ) : (
+            filtered.map((c) => (
+              <button
+                key={c._id}
+                type="button"
+                onClick={() => {
+                  onChange(c._id)
+                  setQ('')
+                }}
+                className={cn(
+                  'flex w-full flex-col rounded-lg px-3 py-2 text-left text-sm transition-colors hover:bg-background',
+                  value === c._id && 'bg-background font-medium ring-1 ring-brand/30',
+                )}
+              >
+                <span>{safeDisplayText(c.fullName || c.name || c.displayName, 'Cliente')}</span>
+                <span className="text-xs text-muted-foreground">
+                  {[c.email, c.taxId ? `NIF ${c.taxId}` : null].filter(Boolean).join(' · ')}
+                </span>
+              </button>
+            ))
+          )}
+        </div>
+      ) : null}
     </div>
   )
 }

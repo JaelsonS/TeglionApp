@@ -1,3 +1,4 @@
+import { MONTH_NAMES_PT } from '@/shared/calendar'
 import type { WorkspaceTask } from '@/infrastructure/api/contabil/tasks'
 import type { ObligationRow, OperationalLane } from '@/features/firm/obligations/obligationOperational'
 import {
@@ -17,10 +18,10 @@ export function currentPeriodYm(): string {
 
 export function formatPeriodLabel(period?: string | null): string {
   if (!period) return 'Sem período'
-  const [y, m] = period.split('-')
-  if (!y || !m) return period
-  const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-  return `${months[Number(m) - 1] || m} ${y}`
+  const m = String(period).match(/^(\d{4})-(\d{2})/)
+  if (!m) return String(period)
+  const month = MONTH_NAMES_PT[Number(m[2]) - 1]
+  return month ? `${month} ${m[1]}` : String(period)
 }
 
 export function isPreviousPeriod(period?: string | null): boolean {
@@ -33,10 +34,23 @@ export function isCurrentPeriod(period?: string | null): boolean {
   return String(period).slice(0, 7) === currentPeriodYm()
 }
 
+export function isObligationOverdue(ob: ObligationRow): boolean {
+  const status = String(ob.status || '').toUpperCase()
+  if (status === 'DELIVERED' || status === 'CANCELLED') return false
+  if (status === 'OVERDUE' || ob.operationalLane === 'overdue') return true
+  if (ob.dueDate) {
+    const due = String(ob.dueDate).slice(0, 10)
+    const now = new Date()
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    return due < today
+  }
+  return isPreviousPeriod(ob.period)
+}
+
 export function mapObligationDisplayStatus(ob: ObligationRow): ObligationDisplayStatus {
   const status = String(ob.status || '').toUpperCase()
   if (status === 'DELIVERED' || status === 'CANCELLED') return 'completed'
-  if (isPreviousPeriod(ob.period) || ob.operationalLane === 'overdue') return 'overdue'
+  if (isObligationOverdue(ob)) return 'overdue'
   if (status === 'IN_PROGRESS' || status === 'WAITING_CLIENT') return 'in_progress'
   return 'pending'
 }
