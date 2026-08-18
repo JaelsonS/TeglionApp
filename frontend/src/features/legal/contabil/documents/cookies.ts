@@ -6,10 +6,10 @@ export const cookiesDocument: LegalDocument = {
   title: 'Política de Cookies',
   subtitle: 'Directiva 2002/58/CE (ePrivacy) e RGPD',
   updatedAtLabel: 'Versão',
-  updatedAtValue: '22 de maio de 2026',
+  updatedAtValue: '18 de agosto de 2026',
   version: CONTABIL_LEGAL_VERSIONS.cookies,
   intro: [
-    'Esta política explica o uso de cookies e tecnologias similares no website e na aplicação Teglion.',
+    'Esta política explica o uso de cookies e tecnologias similares no website e na aplicação do produto Teglion, operado pela AfDigital — Soluções Tecnológicas.',
     'Cookies essenciais são necessários para login, segurança e preferências básicas. Cookies não essenciais (ex.: analítica) só são activados após consentimento explícito no banner de cookies.',
   ],
   sections: [
@@ -45,7 +45,7 @@ export const cookiesDocument: LegalDocument = {
       id: 'gestao',
       title: '4. Gestão de preferências',
       paragraphs: [
-        'Pode aceitar ou rejeitar cookies não essenciais no banner apresentado na primeira visita. Pode alterar a escolha eliminando cookies no browser ou contactando-nos.',
+        'Pode aceitar ou rejeitar cookies não essenciais no banner apresentado na primeira visita. Pode alterar a escolha no ícone de cookies, eliminando cookies no browser, ou contactando-nos.',
         'A rejeição de não essenciais não impede o login nem o uso das funcionalidades principais.',
       ],
     },
@@ -53,13 +53,15 @@ export const cookiesDocument: LegalDocument = {
       id: 'terceiros',
       title: '5. Cookies de terceiros',
       paragraphs: [
-        'Se integrarmos ferramentas de terceiros (ex.: analytics), esses prestadores podem depositar cookies próprios sujeitos às suas políticas. Listaremos actualizações nesta página.',
+        'Ferramentas de terceiros (analítica, Turnstile, pagamentos) podem depositar cookies próprios sujeitos às suas políticas, só quando o script correspondente está activo.',
       ],
     },
     {
       id: 'contacto',
       title: '6. Contacto',
-      paragraphs: ['Questões: afdigitalweb.st@gmail.com · Política de Privacidade: /privacidade.'],
+      paragraphs: [
+        'Questões: AfDigital — Soluções Tecnológicas · afdigitalweb.st@gmail.com · Política de Privacidade: /privacidade.',
+      ],
     },
   ],
 }

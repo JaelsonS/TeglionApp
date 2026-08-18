@@ -84,12 +84,14 @@ function getPublicVersions() {
   return {
     versions: LEGAL_VERSIONS,
     operator: {
-      name: env.LEGAL_OPERATOR_NAME || BRAND.name,
+      tradingName: env.LEGAL_OPERATOR_TRADE_NAME || 'AfDigital — Soluções Tecnológicas',
+      name: env.LEGAL_OPERATOR_NAME || null,
       nif: env.LEGAL_OPERATOR_NIF || null,
       email: env.LEGAL_OPERATOR_EMAIL || BRAND.emails.hello || env.FROM_EMAIL,
       phone: env.LEGAL_OPERATOR_PHONE || null,
       location: env.LEGAL_OPERATOR_LOCATION || null,
       cae: env.LEGAL_OPERATOR_CAE || null,
+      product: BRAND.name,
     },
     required: REQUIRED_FIRM_CONSENTS,
   };

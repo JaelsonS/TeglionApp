@@ -68,7 +68,7 @@ export function ContabilLegalPage({ page }: { page: ContabilLegalPageKey }) {
         </div>
         <footer className="mt-12 border-t border-slate-200 pt-6 text-xs text-slate-500">
           <p>
-            {op.legalName} · NIF {op.nif} · {op.address} ·{' '}
+            {op.tradingName} · {op.legalName} · NIF {op.nif} · {op.address} ·{' '}
             <a href={`mailto:${op.email}`} className="text-[#0f2942] hover:underline">
               {op.email}
             </a>

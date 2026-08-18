@@ -6,12 +6,12 @@ export const dpaDocument: LegalDocument = {
   title: 'Acordo de Subcontratação de Tratamento de Dados (DPA)',
   subtitle: 'Artigo 28.º do Regulamento (UE) 2016/679 (RGPD)',
   updatedAtLabel: 'Versão',
-  updatedAtValue: '22 de maio de 2026',
+  updatedAtValue: '18 de agosto de 2026',
   version: CONTABIL_LEGAL_VERSIONS.dpa,
   intro: [
-    'O presente Acordo de Tratamento de Dados («DPA») complementa os Termos de Utilização e aplica-se quando o escritório de contabilidade («Controlador», «Escritório», «você») utiliza a plataforma Teglion («Processador», «Plataforma», «nós») para tratar dados pessoais dos seus clientes finais.',
+    'O presente Acordo de Tratamento de Dados («DPA») complementa os Termos de Utilização e aplica-se quando o escritório de contabilidade («Controlador», «Escritório», «você») utiliza o produto Teglion, prestado pela AfDigital — Soluções Tecnológicas («Processador», «Operador», «nós»), para tratar dados pessoais dos seus clientes finais. Teglion é o nome do software, não uma pessoa jurídica.',
     'Ao aceitar este DPA no registo ou na re-aceitação exigida por nova versão, o representante do Escritório declara ter poderes para vincular a entidade e compromete-se a cumprir as obrigações de controlador nos termos do RGPD.',
-    'Prestador do software: Jaelson Silva dos Santos, NIF 331 759 276, Coimbra, Portugal.',
+    'Prestador: AfDigital — Soluções Tecnológicas. Titular legal: Jaelson Silva dos Santos, NIF 331 759 276, Coimbra, Portugal.',
   ],
   sections: [
     {
@@ -78,13 +78,17 @@ export const dpaDocument: LegalDocument = {
       id: 'subprocessadores',
       title: '7. Subcontratantes autorizados (subprocessadores)',
       paragraphs: [
-        'O Escritório autoriza o Processador a recorrer aos seguintes tipos de subcontratantes, sujeitos a contrato escrito com cláusulas equivalentes ao art. 28.º RGPD:',
-        'Lista actualizada disponível mediante pedido a afdigitalweb.st@gmail.com. Alterações materiais serão comunicadas com prazo mínimo de 30 dias para objecção fundamentada; na ausência de objecção no prazo, considera-se aceite a continuação do Serviço ou alternativa razoável oferecida.',
+        'O Escritório autoriza o Processador a recorrer aos seguintes subcontratantes, sujeitos a contrato escrito com cláusulas equivalentes ao art. 28.º RGPD. Alterações materiais serão comunicadas com prazo mínimo de 30 dias para objecção fundamentada.',
       ],
       bullets: [
-        'Supabase Inc. (ou entidade contratual aplicável) — base de dados PostgreSQL, autenticação e armazenamento de objectos na UE/EEE quando configurado na região europeia.',
-        'Prestador de hosting / CDN da aplicação web.',
-        'Serviço de e-mail transaccional para convites, recuperação de palavra-passe e notificações.',
+        'Supabase — base de dados PostgreSQL e armazenamento de objectos (região europeia quando configurada).',
+        'Render — alojamento da API.',
+        'Vercel — alojamento da aplicação web.',
+        'Cloudflare — CDN, protecção e Turnstile.',
+        'Brevo — e-mail transaccional (convites, recuperação de palavra-passe, notificações).',
+        'Stripe — pagamentos da subscrição e, se o Escritório activar, cobranças a clientes (Connect).',
+        'Sentry — monitorização de erros (sem conteúdo de documentos).',
+        'Google — apenas se o Escritório ligar Calendar ou Drive na conta.',
         'Prestador de SMS, se activado pelo Escritório.',
       ],
     },
