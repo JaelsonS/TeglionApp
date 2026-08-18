@@ -34,9 +34,23 @@ export function AgendaSettingsView(props: Props) {
           Primeiro o horário geral do escritório; depois, se precisar, os dias de cada serviço (Consultoria à
           segunda, Acompanhamento à terça). A ligação ao Google Calendar bloqueia horas já ocupadas.
         </p>
+        <nav className="cb-agenda-settings-steps mt-3" aria-label="Secções da agenda">
+          <a className="cb-agenda-settings-step" href="#agenda-horario-geral">
+            <span className="cb-agenda-settings-step-n">1</span>
+            Horário geral
+          </a>
+          <a className="cb-agenda-settings-step" href="#agenda-por-servico">
+            <span className="cb-agenda-settings-step-n">2</span>
+            Por serviço
+          </a>
+          <a className="cb-agenda-settings-step" href="#agenda-google">
+            <span className="cb-agenda-settings-step-n">3</span>
+            Google Calendar
+          </a>
+        </nav>
       </div>
 
-      <section className="cb-agenda-settings-block">
+      <section id="agenda-horario-geral" className="cb-agenda-settings-block scroll-mt-24">
         <div className="cb-agenda-settings-block-hd">
           <span className="cb-agenda-settings-block-icon">
             <CalendarClock className="h-4 w-4" aria-hidden />
@@ -65,7 +79,7 @@ export function AgendaSettingsView(props: Props) {
         />
       </section>
 
-      <section className="cb-agenda-settings-block">
+      <section id="agenda-por-servico" className="cb-agenda-settings-block scroll-mt-24">
         <div className="cb-agenda-settings-block-hd">
           <span className="cb-agenda-settings-block-icon">
             <CalendarClock className="h-4 w-4" aria-hidden />
@@ -112,7 +126,7 @@ export function AgendaSettingsView(props: Props) {
         </div>
       </section>
 
-      <section className="cb-agenda-settings-block">
+      <section id="agenda-google" className="cb-agenda-settings-block scroll-mt-24">
         <div className="cb-agenda-settings-block-hd">
           <span className="cb-agenda-settings-block-icon">
             <CalendarDays className="h-4 w-4" aria-hidden />

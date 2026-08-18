@@ -396,7 +396,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
             </div>
 
             {canManageTeam ? (
-                <div className="flex flex-wrap gap-2" role="tablist" aria-label="Acções da equipa">
+                <div className="cb-settings-segmented" role="tablist" aria-label="Acções da equipa">
                     {(
                         [
                             { id: 'create' as const, label: 'Criar colaborador', icon: UserPlus },
@@ -454,6 +454,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                         </div>
                     </div>
                     <div className="cb-settings-action-body">
+                    <div className="grid gap-2 sm:grid-cols-2">
                         <Input
                             placeholder="Nome completo"
                             value={directForm.fullName}
@@ -470,16 +471,6 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                             value={directForm.jobTitle}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, jobTitle: e.target.value }))}
                         />
-                        <PasswordInput
-                            placeholder="Palavra-passe (mín. 10, maiúscula, minúscula e número)"
-                            value={directForm.password}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, password: e.target.value }))}
-                            autoComplete="new-password"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                            A palavra-passe não é enviada por e-mail. Se activar o aviso de boas-vindas, o colaborador
-                            recebe apenas o link de login — partilhe a palavra-passe por um canal seguro.
-                        </p>
                         <select
                             className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                             value={directForm.departmentId}
@@ -494,6 +485,19 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                     </option>
                                 ))}
                         </select>
+                        <div className="sm:col-span-2">
+                        <PasswordInput
+                            placeholder="Palavra-passe (mín. 10, maiúscula, minúscula e número)"
+                            value={directForm.password}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setDirectForm((s) => ({ ...s, password: e.target.value }))}
+                            autoComplete="new-password"
+                        />
+                        </div>
+                    </div>
+                        <p className="text-xs text-muted-foreground">
+                            A palavra-passe não é enviada por e-mail. Se activar o aviso de boas-vindas, o colaborador
+                            recebe apenas o link de login — partilhe a palavra-passe por um canal seguro.
+                        </p>
                         <Label className="flex items-center gap-2 text-sm font-normal">
                             <Checkbox
                                 checked={directForm.sendWelcomeEmail}
@@ -529,6 +533,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                         </div>
                     </div>
                     <div className="cb-settings-action-body">
+                    <div className="grid gap-2 sm:grid-cols-2">
                         <Input
                             id="equipa-invite-fullName"
                             placeholder="Nome completo"
@@ -560,6 +565,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                     </option>
                                 ))}
                         </select>
+                    </div>
                         <Button
                             type="button"
                             variant="primary"
@@ -661,10 +667,22 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                 }}
                             >
                                 <td className="px-4 py-3 font-medium text-foreground">
+                                    <div className="flex items-center gap-2.5">
+                                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand/10 text-[11px] font-bold text-brand">
+                                            {(m.fullName || 'U')
+                                                .split(/\s+/)
+                                                .filter(Boolean)
+                                                .slice(0, 2)
+                                                .map((p) => p[0]?.toUpperCase() || '')
+                                                .join('') || 'U'}
+                                        </span>
+                                        <span>
                                     {m.fullName || '—'}
                                     {m.isCurrentUser ? (
                                         <span className="ml-2 text-xs font-normal text-muted-foreground">(você)</span>
                                     ) : null}
+                                        </span>
+                                    </div>
                                     {(m.tags || []).length > 0 ? (
                                         <div className="mt-1 flex flex-wrap gap-1">
                                             {(m.tags || []).map((t) => (

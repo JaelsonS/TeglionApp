@@ -66,6 +66,11 @@ export function FirmTagsManager({ compact = false, onTagsChanged }: Props) {
         </div>
       ) : null}
 
+      <div className="cb-tag-composer">
+        <p className="text-sm font-medium text-foreground">Nova etiqueta</p>
+        <p className="text-xs text-muted-foreground">
+          Escolha a cor, escreva o nome e crie. A lista abaixo continua a servir para apagar.
+        </p>
       <div className="flex flex-wrap gap-2">
         {SUGGESTED_TAG_COLORS.map((c) => (
           <button
@@ -95,9 +100,18 @@ export function FirmTagsManager({ compact = false, onTagsChanged }: Props) {
           disabled={savingTag || !newTagName.trim()}
           onClick={() => void createTag()}
         >
-          {savingTag ? '…' : 'Criar'}
+          {savingTag ? '…' : 'Criar etiqueta'}
         </Button>
       </div>
+      </div>
+
+      {firmTags.length > 0 ? (
+        <div className="cb-tag-cloud" aria-label="Biblioteca de etiquetas">
+          {firmTags.map((tag) => (
+            <FirmTagBadge key={`cloud-${tag.id}`} tag={tag} className="max-w-none px-3 py-1.5 text-sm" />
+          ))}
+        </div>
+      ) : null}
 
       <ul className="space-y-2">
         {firmTags.map((tag) => (

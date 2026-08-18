@@ -104,6 +104,7 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
         vêm da Equipa — altere-os lá, não aqui. Abaixo: identidade de login, palavra-passe e cofre dos portais
         oficiais.
       </p>
+      <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
       <section className="cb-settings-panel">
         <div className="cb-settings-panel-hd">
           <span className="cb-settings-panel-icon">
@@ -256,6 +257,7 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
           </>
         )}
       </section>
+      </div>
 
       <section className="cb-settings-panel">
         <div className="cb-settings-panel-hd">
