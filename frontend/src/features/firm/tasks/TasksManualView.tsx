@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { Kanban, LayoutGrid, Plus, Search } from 'lucide-react'
 
@@ -79,6 +80,8 @@ export function TasksManualView({
 }) {
   const recurrenceFrequency = (form.recurrenceFrequency || 'NONE') as RecurrenceFrequency
   const hasRecurrence = recurrenceFrequency !== 'NONE'
+  const [pickingClient, setPickingClient] = useState(Boolean(form.clientId))
+  const associateClient = pickingClient || Boolean(form.clientId)
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -156,12 +159,52 @@ export function TasksManualView({
         <section className="rounded-2xl border border-border/60 bg-gradient-to-b from-muted/30 to-card p-5 shadow-sm">
           <h3 className="mb-3 text-sm font-semibold">Nova tarefa interna</h3>
           <form onSubmit={onCreateSubmit} className="space-y-3">
-            <ClientSearchSelect
-              clients={clients}
-              value={form.clientId}
-              onChange={(id) => onFormChange({ clientId: id, ...(id ? {} : { recurrenceFrequency: 'NONE' }) })}
-              allowEmpty
-            />
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-foreground">Cliente (opcional)</p>
+              <div className="flex flex-wrap gap-1.5" role="group" aria-label="Tipo de tarefa">
+                <button
+                  type="button"
+                  className={cn(
+                    'rounded-full px-3 py-1.5 text-xs font-medium',
+                    !associateClient
+                      ? 'bg-brand text-primary-foreground'
+                      : 'border border-border/60 bg-background text-muted-foreground',
+                  )}
+                  onClick={() => {
+                    setPickingClient(false)
+                    onFormChange({ clientId: '', recurrenceFrequency: 'NONE' })
+                  }}
+                >
+                  Tarefa interna do escritório
+                </button>
+                <button
+                  type="button"
+                  className={cn(
+                    'rounded-full px-3 py-1.5 text-xs font-medium',
+                    associateClient
+                      ? 'bg-brand text-primary-foreground'
+                      : 'border border-border/60 bg-background text-muted-foreground',
+                  )}
+                  onClick={() => setPickingClient(true)}
+                >
+                  Associar a um cliente
+                </button>
+              </div>
+              {associateClient ? (
+                <ClientSearchSelect
+                  clients={clients}
+                  value={form.clientId}
+                  onChange={(id) => onFormChange({ clientId: id, ...(id ? {} : { recurrenceFrequency: 'NONE' }) })}
+                  allowEmpty
+                  emptyLabel="Tarefa interna do escritório"
+                  placeholder="Pesquisar cliente da carteira"
+                />
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Sem cliente da carteira — a tarefa fica só no escritório.
+                </p>
+              )}
+            </div>
             <div className="grid gap-2 sm:grid-cols-2">
               <Input
                 placeholder="Título"

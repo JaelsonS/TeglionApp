@@ -208,7 +208,7 @@ export function FirmTasksWorkspacePage() {
       return
     }
     if (form.recurrenceFrequency && form.recurrenceFrequency !== 'NONE' && !form.clientId) {
-      toast.error('A recorrência precisa de um cliente. Para Porta 65 ou trabalho pontual, deixe sem recorrência.')
+      toast.error('A recorrência precisa de um cliente. Tarefas internas do escritório ficam sem recorrência.')
       return
     }
     const recurrenceRule =

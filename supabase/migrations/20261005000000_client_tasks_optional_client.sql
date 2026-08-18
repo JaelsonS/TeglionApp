@@ -1,4 +1,4 @@
--- Tarefas internas do escritório (Porta 65, trabalho pontual) sem cliente da carteira.
+-- Tarefas internas do escritório sem cliente da carteira.
 
 ALTER TABLE public.client_tasks
   ALTER COLUMN client_id DROP NOT NULL;

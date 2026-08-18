@@ -121,3 +121,22 @@ test('createTask propaga erros não relacionados a colunas legadas (falha alto, 
     }),
   );
 });
+
+test('createTask aceita tarefa interna sem cliente da carteira', async () => {
+  const insertedRows = [];
+  await withMock(activityService, 'recordActivity', async () => {}, () =>
+    withMock(tasksRepo, 'insertTask', async (row) => {
+      insertedRows.push(row);
+      return { id: 'task-office', clientId: row.client_id, ...row };
+    }, async () => {
+      const { task } = await workspace.createTask({
+        firmId: 'firm-1',
+        actor: { id: 'user-1', name: 'Escritório' },
+        payload: { title: 'Tarefa interna', taskType: 'internal_task', status: 'TODO' },
+      });
+      assert.equal(insertedRows.length, 1);
+      assert.equal(insertedRows[0].client_id, null);
+      assert.equal(task.id, 'task-office');
+    }),
+  );
+});

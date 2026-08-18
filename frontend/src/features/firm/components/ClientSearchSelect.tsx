@@ -75,7 +75,7 @@ export function ClientSearchSelect({
             )}
           >
             <span>{emptyLabel}</span>
-            <span className="text-xs text-muted-foreground">Porta 65, trabalho pontual, tarefas internas</span>
+            <span className="text-xs text-muted-foreground">Tarefa interna do escritório</span>
           </button>
         ) : null}
         {filtered.length === 0 ? (
