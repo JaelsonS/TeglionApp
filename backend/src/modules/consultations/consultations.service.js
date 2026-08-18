@@ -3,6 +3,7 @@ const consultationsRepository = require('../../db/supabase/repositories/consulta
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const leadsRepository = require('../../db/supabase/repositories/leads.repository');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
+const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const googleCalendarSyncService = require('../integrations/google-calendar/google-calendar-sync.service');
 
 /** Nome do titular (Client ou Lead). */
@@ -42,11 +43,30 @@ async function getAttentionCount({ firmId }) {
   return consultationsRepository.countAttentionByFirm(firmId);
 }
 
-async function createConsultation({ firmId, clientId, staffId, title, scheduledAt, durationMinutes, notes }) {
+async function createConsultation({
+  firmId,
+  clientId,
+  staffId,
+  title,
+  scheduledAt,
+  durationMinutes,
+  notes,
+  accountingServiceId,
+}) {
   const client = await clientsRepository.findClientById(firmId, clientId);
   if (!client) throw new AppError('Cliente não encontrado', 404);
   if (!title || !scheduledAt) throw new AppError('Título e data são obrigatórios', 400);
   const normalizedTitle = String(title).trim();
+
+  let resolvedDuration = durationMinutes;
+  let resolvedServiceId = null;
+  if (accountingServiceId) {
+    const service = await accountingServicesRepository.findByIdForFirm(accountingServiceId, firmId);
+    if (!service) throw new AppError('Serviço não encontrado', 404);
+    resolvedDuration = service.durationMinutes;
+    resolvedServiceId = service.id;
+  }
+
   const duplicate = await consultationsRepository.findRecentDuplicateConsultation({
     firmId,
     clientId,
@@ -57,15 +77,25 @@ async function createConsultation({ firmId, clientId, staffId, title, scheduledA
   if (duplicate) {
     return { consultation: duplicate };
   }
-  const consultation = await consultationsRepository.createConsultation({
-    firmId,
-    clientId,
-    staffId,
-    title: normalizedTitle,
-    scheduledAt,
-    durationMinutes,
-    notes,
-  });
+
+  let consultation;
+  try {
+    consultation = await consultationsRepository.createConsultation({
+      firmId,
+      clientId,
+      staffId,
+      title: normalizedTitle,
+      scheduledAt,
+      durationMinutes: resolvedDuration,
+      notes,
+      accountingServiceId: resolvedServiceId,
+    });
+  } catch (err) {
+    if (err?.code === '23P01') {
+      throw new AppError('Este horário já não está disponível', 409);
+    }
+    throw err;
+  }
   const timeZone = await firmBookingTimezone(firmId);
   void googleCalendarSyncService
     .syncConsultationToGoogle({

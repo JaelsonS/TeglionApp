@@ -235,7 +235,7 @@ test('normalizeSiteConfig: header navLinks aceitam texto, âncora, serviço e ht
   assert.equal(header.content.navLinks[1].kind, 'service');
   assert.equal(header.content.navLinks[2].url, 'https://afdigital.example/');
   assert.equal(header.content.navLinks[3].kind, 'external');
-  assert.equal(header.content.navLinks[3].url, undefined);
+  assert.equal(header.content.navLinks[3].url, 'https://inseguro.example/');
 });
 
 test('normalizeSiteConfig: faq filtra entradas sem pergunta ou sem resposta', () => {
@@ -275,24 +275,43 @@ test('normalizeSiteConfig: cta com type desconhecido é descartado', () => {
   assert.equal(ctas[0].target.type, 'booking');
 });
 
-test('normalizeSiteConfig: external-url só aceita https, http:// fica sem url mas mantém a CTA', () => {
+test('normalizeSiteConfig: external-url promove http/host nu para https e rejeita javascript:', () => {
   const config = firmPublicSiteService.normalizeSiteConfig({
     sections: [
       {
         type: 'hero',
         content: {
           ctas: [
-            { label: 'Site inseguro', target: { type: 'external-url', url: 'http://sem-https.com' } },
-            { label: 'Site seguro', target: { type: 'external-url', url: 'https://com-https.com' } },
+            { label: 'Site http', target: { type: 'external-url', url: 'http://sem-https.com' } },
+            { label: 'Host nu', target: { type: 'external-url', url: 'exemplo.pt/contacto' } },
+            { label: 'XSS', target: { type: 'external-url', url: 'javascript:alert(1)' } },
           ],
         },
       },
     ],
   });
   const ctas = config.sections[0].content.ctas;
-  assert.equal(ctas.length, 2);
-  assert.equal(ctas[0].target.url, undefined, 'url http:// nunca deve ser aceite');
-  assert.equal(ctas[1].target.url, 'https://com-https.com');
+  assert.equal(ctas.length, 3);
+  assert.equal(ctas[0].target.url, 'https://sem-https.com');
+  assert.equal(ctas[1].target.url, 'https://exemplo.pt/contacto');
+  assert.equal(ctas[2].target.url, undefined, 'javascript: nunca deve ser aceite');
+});
+
+test('normalizeSiteConfig: WhatsApp no botão guarda o telefone', () => {
+  const config = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'hero',
+        content: {
+          ctas: [{ label: 'WhatsApp', target: { type: 'whatsapp', phone: '+351 912 345 678' } }],
+        },
+      },
+    ],
+  });
+  const ctas = config.sections[0].content.ctas;
+  assert.equal(ctas.length, 1);
+  assert.equal(ctas[0].target.type, 'whatsapp');
+  assert.equal(ctas[0].target.phone, '+351 912 345 678');
 });
 
 test('normalizeSiteConfig: secção hero limita a 3 CTAs mesmo que o payload traga mais', () => {

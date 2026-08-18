@@ -101,6 +101,41 @@ export function FirmBillingPage() {
         {isLoading ? <PageLoading label="A carregar o plano…" /> : null}
 
         {!isLoading && billing ? (
+          <div className="mb-6 grid gap-3 sm:grid-cols-3">
+            <div className="cb-settings-fieldset">
+              <p className="cb-settings-fieldset-title">A subscrição está activa?</p>
+              <p className="cb-settings-fieldset-sub mt-1">
+                {billing.hasAccess
+                  ? billing.status === 'TRIAL'
+                    ? `Sim — teste até ${trialEnd ? trialEnd.toLocaleDateString('pt-PT') : '—'}.`
+                    : 'Sim — plano em vigor.'
+                  : trialExpired
+                    ? 'Não — o teste terminou.'
+                    : 'Não — regularize para continuar.'}
+              </p>
+            </div>
+            <div className="cb-settings-fieldset">
+              <p className="cb-settings-fieldset-title">Qual o plano?</p>
+              <p className="cb-settings-fieldset-sub mt-1">
+                {billing.status === 'ACTIVE'
+                  ? 'Plano pago (mensal ou anual — detalhes no portal Stripe).'
+                  : billing.status === 'TRIAL'
+                    ? `Teste de ${trialDays} dias.`
+                    : billing.status || 'Sem plano activo.'}
+              </p>
+            </div>
+            <div className="cb-settings-fieldset">
+              <p className="cb-settings-fieldset-title">O que posso fazer agora?</p>
+              <p className="cb-settings-fieldset-sub mt-1">
+                {billing.status === 'ACTIVE'
+                  ? 'Gerir cartão e faturas no Stripe, ou voltar ao escritório.'
+                  : 'Activar mensal ou anual. Pagamentos dos clientes (Connect) ficam em Definições → Pagamentos.'}
+              </p>
+            </div>
+          </div>
+        ) : null}
+
+        {!isLoading && billing ? (
           <div
             className={`mb-6 rounded-xl border px-4 py-3 text-sm ${
               billing.hasAccess

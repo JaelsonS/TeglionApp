@@ -61,7 +61,7 @@ export function formatPeriodLabel(period: string): string {
     const [year, q] = period.split('-')
     return `${q.replace('Q', 'T')} · ${year}`
   }
-  if (/^\d{4}-\d{2}$/.test(period)) {
+  if (/^\d{4}-\d{2}(-\d{2})?$/.test(period)) {
     const [year, month] = period.split('-')
     return `${MONTH_NAMES_PT[Number(month) - 1] ?? month} ${year}`
   }

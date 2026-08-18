@@ -350,7 +350,8 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                 <div>
                     <h2 className="cb-settings-panel-title">Equipa e departamentos</h2>
                     <p className="cb-settings-panel-sub">
-                        O dono do escritório define o cargo/função e o departamento de cada colaborador.
+                      Quem entra no painel, com que cargo e departamento, e o que pode fazer. Criar, convidar,
+                      desactivar e permissões continuam todos aqui — nada foi removido.
                     </p>
                 </div>
             </div>
@@ -427,9 +428,10 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
 
             <div className="cb-settings-tip">
                 <p>
-                    Dica: use termos simples de negócio como <strong>Receção</strong>, <strong>Fiscal</strong>,{' '}
-                    <strong>Contabilidade</strong> e <strong>Apoio ao cliente</strong> para facilitar o uso por toda a
-                    equipa.
+                    <strong>Como começar:</strong> crie o colaborador com palavra-passe (acesso imediato) ou envie um
+                    convite por e-mail. Use departamentos com nomes de negócio — <strong>Receção</strong>,{' '}
+                    <strong>Fiscal</strong>, <strong>Contabilidade</strong>, <strong>Apoio ao cliente</strong>. Clique
+                    numa linha da lista para editar cargo, departamento e permissões.
                 </p>
             </div>
 

@@ -3061,6 +3061,22 @@
     @apply mt-0.5 text-sm leading-relaxed text-muted-foreground;
   }
 
+  .cb-settings-fieldset {
+    @apply space-y-3 rounded-xl border border-border/40 bg-background/70 p-4;
+  }
+
+  .cb-settings-fieldset-title {
+    @apply text-sm font-semibold tracking-tight text-foreground;
+  }
+
+  .cb-settings-fieldset-sub {
+    @apply text-xs leading-relaxed text-muted-foreground;
+  }
+
+  .cb-settings-callout {
+    @apply rounded-xl border border-border/50 bg-muted/20 px-4 py-3 text-sm leading-relaxed text-muted-foreground;
+  }
+
   .cb-settings-grid {
     @apply grid gap-3 sm:grid-cols-2;
   }

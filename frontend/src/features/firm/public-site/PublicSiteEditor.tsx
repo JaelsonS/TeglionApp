@@ -508,6 +508,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 publicDisplayName={previewFirmName}
                 services={previewServices}
                 officePhone={bundle.contact?.phone}
+                socialWhatsapp={draft.socialLinks?.whatsapp}
                 imageUrl={
                   section.type === 'hero'
                     ? resolveSectionImageUrl(section, 'hero')
@@ -746,6 +747,7 @@ function SectionEditorSwitch({
   services,
   officePhone,
   publicDisplayName,
+  socialWhatsapp,
 }: {
   section: PublicSiteSection
   onChange: (content: PublicSiteSection['content']) => void
@@ -756,6 +758,7 @@ function SectionEditorSwitch({
   services: PublicFirmServiceSummary[]
   officePhone?: string | null
   publicDisplayName?: string
+  socialWhatsapp?: string | null
 }) {
   switch (section.type) {
     case 'hero':
@@ -769,6 +772,7 @@ function SectionEditorSwitch({
           onRemoveImage={onRemoveImage}
           services={services}
           officePhone={officePhone}
+          socialWhatsapp={socialWhatsapp}
           publicDisplayName={publicDisplayName}
         />
       )
@@ -783,6 +787,7 @@ function SectionEditorSwitch({
           onRemoveImage={onRemoveImage}
           services={services}
           officePhone={officePhone}
+          socialWhatsapp={socialWhatsapp}
         />
       )
     case 'services':
@@ -793,6 +798,7 @@ function SectionEditorSwitch({
           placeholder="Consultorias com agendamento"
           services={services}
           officePhone={officePhone}
+          socialWhatsapp={socialWhatsapp}
         />
       )
     case 'bookingServices':
@@ -803,6 +809,7 @@ function SectionEditorSwitch({
           placeholder="Outros serviços"
           services={services}
           officePhone={officePhone}
+          socialWhatsapp={socialWhatsapp}
         />
       )
     case 'features':
@@ -818,6 +825,7 @@ function SectionEditorSwitch({
           onChange={onChange}
           services={services}
           officePhone={officePhone}
+          socialWhatsapp={socialWhatsapp}
         />
       )
     case 'header':

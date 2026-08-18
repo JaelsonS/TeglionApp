@@ -183,11 +183,14 @@ export function FirmSettingsPage() {
                     {activeTab === 'identidade' && 'Logótipo no menu, portal do cliente e comunicações.'}
                     {activeTab === 'pagina-publica' &&
                       'Configure o site partilhável: identidade, secções, cores e publicação.'}
-                    {activeTab === 'escritorio' && 'Nome e contactos do escritório.'}
+                    {activeTab === 'escritorio' &&
+                      'Nome interno, contactos e dados fiscais — usados na app, na facturação e nas comunicações.'}
                     {activeTab === 'pagamentos' &&
-                      'Stripe Connect — receber pagamentos dos clientes na conta do escritório.'}
-                    {activeTab === 'perfil' && 'Os seus dados de acesso e segurança.'}
-                    {activeTab === 'equipa' && 'Colaboradores, cargos e departamentos.'}
+                      'Receber dos clientes via Stripe Connect, na conta bancária do escritório — separado da subscrição Teglion (Plano).'}
+                    {activeTab === 'perfil' &&
+                      'O seu nome, e-mail de acesso, palavra-passe e cofre dos acessos oficiais.'}
+                    {activeTab === 'equipa' &&
+                      'Colaboradores, convites, cargos, departamentos e permissões — o dono define quem faz o quê.'}
                     {activeTab === 'etiquetas' &&
                       'Biblioteca do escritório — clientes, leads, solicitações e equipa.'}
                     {activeTab === 'notificacoes' && 'Alertas push e preferências de aviso.'}

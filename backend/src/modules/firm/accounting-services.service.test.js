@@ -155,6 +155,57 @@ test('normalizeBookingOverrides: schedule com múltiplos intervalos', () => {
   ]);
 });
 
+test('update: sem bookingOverrides no payload não inclui o campo no patch (não apaga o override existente)', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
+    id: 'service-1',
+    slug: 'consultoria',
+    requiresBooking: true,
+    priceCents: 5000,
+    paymentRequired: false,
+    bookingOverrides: { weekdays: [1], schedule: { 1: [{ start: '09:00', end: '12:00' }] } },
+  }));
+  let patchArg = null;
+  mock.method(accountingServicesRepository, 'updateRow', async (_id, _firmId, patch) => {
+    patchArg = patch;
+    return { id: 'service-1', name: 'Consultoria' };
+  });
+
+  await accountingServicesService.update({
+    firmId: 'firm-x',
+    id: 'service-1',
+    payload: { name: 'Consultoria fiscal' },
+  });
+
+  assert.equal(patchArg.bookingOverrides, undefined);
+  assert.equal(patchArg.name, 'Consultoria fiscal');
+});
+
+test('update: bookingOverrides null remove o override (volta a herdar do escritório)', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
+    id: 'service-1',
+    slug: 'consultoria',
+    requiresBooking: true,
+    priceCents: 5000,
+    paymentRequired: false,
+    bookingOverrides: { weekdays: [1] },
+  }));
+  let patchArg = null;
+  mock.method(accountingServicesRepository, 'updateRow', async (_id, _firmId, patch) => {
+    patchArg = patch;
+    return { id: 'service-1', name: 'Consultoria' };
+  });
+
+  await accountingServicesService.update({
+    firmId: 'firm-x',
+    id: 'service-1',
+    payload: { bookingOverrides: null },
+  });
+
+  assert.equal(patchArg.bookingOverrides, null);
+});
+
 test('assertFormReadyForPublish: sem intake_form, não bloqueia (formulário mínimo é válido)', () => {
   accountingServicesService.assertFormReadyForPublish(null);
   accountingServicesService.assertFormReadyForPublish({ questions: [] });

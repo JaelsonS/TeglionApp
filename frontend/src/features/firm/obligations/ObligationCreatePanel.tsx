@@ -18,7 +18,8 @@ import {
   formatEurInputFromCents,
   maskEurInput,
   parseEurToCents,
-  periodToDateInput,
+  periodToMonthInput,
+  monthInputToPeriod,
   PRIORITY_LABELS,
   TYPE_LABELS,
 } from './obligationOperational'
@@ -201,17 +202,17 @@ export function ObligationCreatePanel({
           <label className="space-y-1 text-sm">
             <span className="font-medium">Período da obrigação</span>
             <Input
-              type="date"
-              value={periodToDateInput(period)}
+              type="month"
+              value={periodToMonthInput(period)}
               onChange={(e: FormChangeEvent) => {
-                const full = e.target.value
-                if (!full) return
-                setPeriod(full)
+                const next = e.target.value
+                if (!next) return
+                setPeriod(monthInputToPeriod(next))
               }}
               required
             />
             <p className="text-xs text-muted-foreground">
-              Mês (e dia) a que se refere. Não muda o prazo.
+              Mês e ano a que a obrigação se refere (ex.: Agosto 2026). O prazo de entrega é uma data completa à parte.
             </p>
           </label>
           <label className="space-y-1 text-sm">
