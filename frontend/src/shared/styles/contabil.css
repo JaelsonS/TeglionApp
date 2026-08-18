@@ -2352,7 +2352,15 @@
   }
 
   .cb-agenda-settings-view {
-    @apply space-y-6 overflow-y-auto p-4 sm:p-5;
+    @apply space-y-4 overflow-y-auto p-4 sm:p-5;
+  }
+
+  .cb-agenda-settings-lower {
+    @apply grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(17rem,1fr)] lg:items-start;
+  }
+
+  .cb-agenda-settings-lower-side {
+    @apply space-y-4;
   }
 
   .cb-agenda-settings-steps {

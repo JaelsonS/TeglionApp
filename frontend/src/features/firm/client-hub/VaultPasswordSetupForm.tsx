@@ -17,6 +17,7 @@ type Props = {
   hasVaultPassword: boolean
   hasLoginPassword: boolean
   compact?: boolean
+  hideIntro?: boolean
   onUpdated?: () => void
 }
 
@@ -25,6 +26,7 @@ export function VaultPasswordSetupForm({
   hasVaultPassword,
   hasLoginPassword,
   compact = false,
+  hideIntro = false,
   onUpdated,
 }: Props) {
   const [currentPassword, setCurrentPassword] = useState('')
@@ -79,7 +81,8 @@ export function VaultPasswordSetupForm({
   }
 
   return (
-    <div className={compact ? 'space-y-3' : 'space-y-4'}>
+    <div className="space-y-3">
+      {hideIntro ? null : (
       <p className="text-sm leading-relaxed text-muted-foreground">
         Esta palavra-passe é <strong className="text-foreground">só para Acessos oficiais</strong> —
         ver, copiar ou gravar senhas dos portais. Não serve para entrar no Teglion. Se entra com
@@ -95,8 +98,10 @@ export function VaultPasswordSetupForm({
           </>
         ) : null}
       </p>
+      )}
+      <div className="grid gap-3 sm:grid-cols-2">
       {needsCurrent ? (
-        <div className="space-y-2">
+        <div className="space-y-1.5 sm:col-span-2">
           <Label htmlFor={compact ? 'vault-current-compact' : 'vault-current'}>
             {hasVaultPassword ? 'Palavra-passe actual deste cofre' : 'Palavra-passe de entrada no Teglion'}
           </Label>
@@ -109,8 +114,7 @@ export function VaultPasswordSetupForm({
           />
         </div>
       ) : null}
-      <div className={compact ? 'grid gap-3 sm:grid-cols-2' : 'grid gap-4 sm:grid-cols-2'}>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor={compact ? 'vault-new-compact' : 'vault-new'}>Nova palavra-passe deste campo</Label>
           <PasswordInput
             id={compact ? 'vault-new-compact' : 'vault-new'}
@@ -121,7 +125,7 @@ export function VaultPasswordSetupForm({
             placeholder={`Mín. ${PASSWORD_MIN_LENGTH} caracteres`}
           />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor={compact ? 'vault-confirm-compact' : 'vault-confirm'}>Confirmar</Label>
           <PasswordInput
             id={compact ? 'vault-confirm-compact' : 'vault-confirm'}
