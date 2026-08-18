@@ -151,12 +151,14 @@ describe('ServiceBookingAvailabilitySection', () => {
       />,
     )
 
+    await user.click(screen.getByLabelText('Ver horário de Terça'))
     await user.click(screen.getByLabelText('Terça disponível'))
     const afterClose = onChange.mock.calls.at(-1)?.[0] as { weekdays: number[]; schedule: Record<string, unknown> }
     expect(afterClose.weekdays).toEqual([1])
     expect(afterClose.schedule[2]).toBeUndefined()
 
-    await user.click(screen.getAllByRole('button', { name: /Adicionar intervalo/i })[0])
+    await user.click(screen.getByLabelText('Ver horário de Segunda'))
+    await user.click(screen.getByRole('button', { name: /Adicionar intervalo/i }))
     const afterAdd = onChange.mock.calls.at(-1)?.[0] as {
       schedule: Record<number, Array<{ start: string; end: string }>>
     }

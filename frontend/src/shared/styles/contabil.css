@@ -888,11 +888,11 @@
   }
 
   .cb-client-hub-shortcuts {
-    @apply grid grid-cols-2 gap-2 sm:grid-cols-4;
+    @apply grid w-full grid-cols-3 gap-2 sm:grid-cols-3 lg:grid-cols-6;
   }
 
   .cb-client-hub-shortcut {
-    @apply flex flex-col items-center gap-1.5 rounded-lg border border-border/70 bg-card px-2 py-2.5 text-caption font-medium text-foreground shadow-sm transition-colors hover:border-brand/25 hover:bg-brand/[0.04];
+    @apply flex min-h-[4.75rem] w-full min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl border border-border/70 bg-card px-1.5 py-2.5 text-center text-caption font-medium leading-tight text-foreground shadow-sm transition-colors hover:border-brand/25 hover:bg-brand/[0.04];
   }
 
   .cb-detail-meta {
@@ -2451,6 +2451,38 @@
     @apply text-[9px] font-medium uppercase tracking-wide text-muted-foreground sm:text-[10px];
   }
 
+  .cb-agenda-day-editor {
+    @apply mt-3 rounded-2xl border border-border/50 bg-card p-4 shadow-sm;
+  }
+
+  .cb-agenda-service-card {
+    @apply rounded-2xl border border-border/50 bg-background/80 p-4;
+  }
+
+  .cb-agenda-nonbookable-hint {
+    @apply text-xs leading-relaxed text-muted-foreground;
+  }
+
+  .cb-billing-card-cta {
+    @apply mt-auto pt-3;
+  }
+
+  .cb-team-people {
+    @apply space-y-3 p-3 sm:p-4;
+  }
+
+  .cb-team-person {
+    @apply rounded-2xl border border-border/40 bg-background/80 p-4;
+  }
+
+  .cb-team-person-main {
+    @apply flex items-start gap-3;
+  }
+
+  .cb-team-person-actions {
+    @apply mt-3 flex flex-wrap gap-2;
+  }
+
   .cb-agenda-availability-selected {
     @apply mt-2 text-xs text-muted-foreground;
   }
@@ -3255,7 +3287,7 @@
   }
 
   .cb-billing-cards {
-    @apply grid gap-4 sm:grid-cols-2 lg:grid-cols-3;
+    @apply grid grid-cols-1 gap-4 md:grid-cols-3;
   }
 
   .cb-billing-card {

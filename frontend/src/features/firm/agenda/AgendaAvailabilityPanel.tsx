@@ -66,6 +66,9 @@ export function AgendaAvailabilityPanel(props: Props) {
   const [copySource, setCopySource] = useState<number>(1)
   const [copyTargets, setCopyTargets] = useState<number[]>([])
   const [focusedDay, setFocusedDay] = useState<number>(1)
+  const focusedWeekday = BOOKING_WEEKDAYS.find((w) => w.bit === focusedDay) ?? BOOKING_WEEKDAYS[0]
+  const focusedIntervals = intervalsForDay(schedule, focusedWeekday.bit)
+  const focusedOpen = focusedIntervals.length > 0
 
   function copyIntervalsToDays() {
     const source = intervalsForDay(schedule, copySource).map((iv) => ({ ...iv }))
@@ -91,6 +94,13 @@ export function AgendaAvailabilityPanel(props: Props) {
     else {
       setDayIntervals(day, [{ ...defaultInterval }])
       setFocusedDay(day)
+    }
+  }
+
+  function selectDay(day: number) {
+    setFocusedDay(day)
+    if (intervalsForDay(schedule, day).length === 0) {
+      setDayIntervals(day, [{ ...defaultInterval }])
     }
   }
 
@@ -231,9 +241,7 @@ export function AgendaAvailabilityPanel(props: Props) {
       <div>
         <p className="cb-agenda-availability-label">Horário de atendimento</p>
         <p className="cb-agenda-availability-hint">
-          Defina os dias e um ou mais intervalos por dia (ex.: manhã e tarde). Pode copiar o horário de um
-          dia para os restantes. Clique num dia da faixa para o destacar; o nome do dia abre ou fecha o
-          atendimento.
+          Clique num dia para o abrir e editar. Pode copiar o horário para os outros dias.
         </p>
         <div className="cb-agenda-weekday-grid" role="group" aria-label="Dias da semana">
           {BOOKING_WEEKDAYS.map((w) => {
@@ -248,14 +256,8 @@ export function AgendaAvailabilityPanel(props: Props) {
                   focusedDay === w.bit && 'cb-agenda-weekday-btn-focus',
                 )}
                 aria-current={focusedDay === w.bit ? 'true' : undefined}
-                aria-label={`Ver horário de ${w.full}${open ? ', aberto' : ', fechado'}`}
-                onClick={() => {
-                  setFocusedDay(w.bit)
-                  document.getElementById(`agenda-day-${w.bit}`)?.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'nearest',
-                  })
-                }}
+                aria-label={open ? `Ver horário de ${w.full}` : `${w.full} indisponível`}
+                onClick={() => selectDay(w.bit)}
               >
                 <span className="cb-agenda-weekday-short">{w.label}</span>
                 <span className="cb-agenda-weekday-full">{w.label}</span>
@@ -264,91 +266,92 @@ export function AgendaAvailabilityPanel(props: Props) {
             )
           })}
         </div>
-        <div className="mt-3 space-y-3">
-          {BOOKING_WEEKDAYS.map((w) => {
-            const intervals = intervalsForDay(schedule, w.bit)
-            const open = intervals.length > 0
-            return (
-              <div
-                key={w.bit}
-                id={`agenda-day-${w.bit}`}
-                className={cn(
-                  'rounded-xl border border-border/60 p-3',
-                  open ? 'bg-card' : 'bg-muted/20',
-                  focusedDay === w.bit && 'ring-2 ring-brand/25',
-                )}
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    onClick={() => toggleDay(w.bit)}
-                    aria-pressed={open}
-                    aria-label={open ? `${w.full} disponível` : `${w.full} indisponível`}
-                    className={cn(
-                      'rounded-full px-3 py-1 text-sm font-semibold',
-                      open ? 'bg-emerald-100 text-emerald-800' : 'bg-muted text-muted-foreground',
-                    )}
-                  >
-                    {w.full}
-                  </button>
-                  {open ? (
+        <div className="cb-agenda-day-editor" id={`agenda-day-${focusedWeekday.bit}`}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => toggleDay(focusedWeekday.bit)}
+              aria-pressed={focusedOpen}
+              aria-label={
+                focusedOpen ? `${focusedWeekday.full} disponível` : `${focusedWeekday.full} indisponível`
+              }
+              className={cn(
+                'rounded-full px-3 py-1 text-sm font-semibold',
+                focusedOpen ? 'bg-emerald-100 text-emerald-800' : 'bg-muted text-muted-foreground',
+              )}
+            >
+              {focusedWeekday.full}
+            </button>
+            {focusedOpen ? (
+              <div className="flex flex-wrap items-center gap-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 gap-1 text-xs"
+                  onClick={() => addInterval(focusedWeekday.bit)}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Adicionar intervalo
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs text-muted-foreground"
+                  onClick={() => toggleDay(focusedWeekday.bit)}
+                >
+                  Fechar este dia
+                </Button>
+              </div>
+            ) : (
+              <span className="text-xs text-muted-foreground">Fechado — clique no nome para abrir</span>
+            )}
+          </div>
+          {focusedOpen ? (
+            <ul className="mt-3 space-y-2">
+              {focusedIntervals.map((iv, idx) => (
+                <li key={`${focusedWeekday.bit}-${idx}`} className="flex flex-wrap items-center gap-2">
+                  <Input
+                    type="time"
+                    className="h-9 w-[7.5rem] rounded-lg"
+                    value={iv.start}
+                    onChange={(e: FormChangeEvent) =>
+                      updateInterval(focusedWeekday.bit, idx, { start: e.target.value })
+                    }
+                  />
+                  <span className="text-xs text-muted-foreground">até</span>
+                  <Input
+                    type="time"
+                    className="h-9 w-[7.5rem] rounded-lg"
+                    value={iv.end}
+                    onChange={(e: FormChangeEvent) =>
+                      updateInterval(focusedWeekday.bit, idx, { end: e.target.value })
+                    }
+                  />
+                  {focusedIntervals.length > 1 ? (
                     <Button
                       type="button"
                       variant="ghost"
-                      size="sm"
-                      className="h-8 gap-1 text-xs"
-                      onClick={() => addInterval(w.bit)}
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      aria-label="Remover intervalo"
+                      onClick={() => removeInterval(focusedWeekday.bit, idx)}
                     >
-                      <Plus className="h-3.5 w-3.5" />
-                      Adicionar intervalo
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">Fechado</span>
-                  )}
-                </div>
-                {open ? (
-                  <ul className="mt-3 space-y-2">
-                    {intervals.map((iv, idx) => (
-                      <li key={`${w.bit}-${idx}`} className="flex flex-wrap items-center gap-2">
-                        <Input
-                          type="time"
-                          className="h-9 w-[7.5rem] rounded-lg"
-                          value={iv.start}
-                          onChange={(e: FormChangeEvent) => updateInterval(w.bit, idx, { start: e.target.value })}
-                        />
-                        <span className="text-xs text-muted-foreground">até</span>
-                        <Input
-                          type="time"
-                          className="h-9 w-[7.5rem] rounded-lg"
-                          value={iv.end}
-                          onChange={(e: FormChangeEvent) => updateInterval(w.bit, idx, { end: e.target.value })}
-                        />
-                        {intervals.length > 1 ? (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive"
-                            aria-label="Remover intervalo"
-                            onClick={() => removeInterval(w.bit, idx)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </div>
-            )
-          })}
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
         {openDays.length > 0 ? (
           <div className="mt-3 space-y-2 rounded-xl border border-border/50 bg-muted/10 p-3">
             <p className="cb-agenda-availability-selected">
-              Selecionado: {openDays.map((w) => w.full).join(', ')}
+              Aberto: {openDays.map((w) => w.label).join(', ')}
             </p>
-            <p className="text-xs font-medium text-foreground">Copiar horário para outros dias</p>
+            <p className="text-xs font-medium text-foreground">Copiar horário</p>
             <div className="flex flex-wrap items-center gap-2">
               <label className="text-[11px] text-muted-foreground">
                 De{' '}

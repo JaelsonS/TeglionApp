@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   AlertTriangle,
+  Building2,
   CalendarClock,
   ClipboardList,
   FileStack,
@@ -107,6 +108,7 @@ export function FirmClientHubPage() {
     { id: 'documents' as const, label: 'Documentos', icon: Inbox },
     { id: 'tasks' as const, label: 'Tarefas', icon: FileStack },
     { id: 'messages' as const, label: 'Mensagens', icon: MessageSquare },
+    { id: 'profile' as const, label: 'Perfil', icon: Building2 },
   ]
 
   return (
@@ -147,8 +149,8 @@ export function FirmClientHubPage() {
                   className="cb-client-hub-shortcut"
                   onClick={() => onSectionChange(id)}
                 >
-                  <Icon className="mx-auto h-[18px] w-[18px] text-brand" />
-                  <span>{label}</span>
+                  <Icon className="mx-auto h-[18px] w-[18px] shrink-0 text-brand" aria-hidden />
+                  <span className="max-w-full truncate">{label}</span>
                 </button>
               ))}
             </div>

@@ -113,11 +113,15 @@ export function FirmTagsManager({ compact = false, onTagsChanged }: Props) {
         </div>
       ) : null}
 
+      <div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Todas as etiquetas
+        </p>
       <ul className="space-y-2">
         {firmTags.map((tag) => (
           <li
             key={tag.id}
-            className="flex items-center justify-between gap-2 rounded-lg border border-border/50 px-3 py-2"
+            className="flex items-center justify-between gap-2 rounded-xl border border-border/50 bg-background/70 px-3 py-2.5"
           >
             <FirmTagBadge tag={tag} />
             <Button
@@ -135,6 +139,7 @@ export function FirmTagsManager({ compact = false, onTagsChanged }: Props) {
           <p className="text-sm text-muted-foreground">Ainda sem etiquetas — crie a primeira acima.</p>
         ) : null}
       </ul>
+      </div>
 
       <ConfirmDialog
         open={Boolean(deleteTarget)}

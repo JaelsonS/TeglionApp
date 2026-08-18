@@ -1,7 +1,7 @@
 /** @vitest-environment happy-dom */
-import { render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { AccountingService, BookingDaySchedule } from '@/shared/types/contabil'
 
@@ -26,6 +26,10 @@ function renderPanel(services: AccountingService[], loading = false) {
 }
 
 describe('AgendaServiceHoursPanel', () => {
+  afterEach(() => {
+    cleanup()
+  })
+
   it('shows loading', () => {
     renderPanel([], true)
     expect(screen.getByTestId('agenda-service-hours-loading')).toBeTruthy()
@@ -43,7 +47,9 @@ describe('AgendaServiceHoursPanel', () => {
       },
     ])
     expect(screen.getByTestId('agenda-service-hours-empty')).toBeTruthy()
-    expect(screen.getByText(/IRS papel/)).toBeTruthy()
+    expect(screen.queryByText('IRS papel')).toBeNull()
+    expect(screen.getByTestId('agenda-nonbookable-hint')).toBeTruthy()
+    expect(screen.getByText(/1 serviço do catálogo não exige marcação/)).toBeTruthy()
   })
 
   it('distinguishes inherited vs custom hours', () => {
@@ -66,10 +72,20 @@ describe('AgendaServiceHoursPanel', () => {
         isActive: true,
         bookingOverrides: null,
       },
+      {
+        id: 'c',
+        name: 'IRS papel',
+        durationMinutes: 30,
+        priceCents: 0,
+        requiresBooking: false,
+        isActive: true,
+      },
     ])
     expect(screen.getByText('Consultoria')).toBeTruthy()
     expect(screen.getByText('Acompanhamento')).toBeTruthy()
     expect(screen.getByText('Horário próprio')).toBeTruthy()
     expect(screen.getByText('Horário geral')).toBeTruthy()
+    expect(screen.queryByText('IRS papel')).toBeNull()
+    expect(screen.getByText(/1 serviço do catálogo não exige marcação/)).toBeTruthy()
   })
 })

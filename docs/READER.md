@@ -83,4 +83,4 @@ Estrutura do monorepo, comando de build/teste, e o padrão de módulo que todo c
 
 ## O marco de 12 de agosto de 2026
 
-Tudo que aconteceu antes dessa data continua fazendo parte da história do Teglion — resumido em [09-HISTORICO](./09-HISTORICO/MARCO-2026-08-12.md), com o material original preservado em [_archive](./_archive/). Mas, a partir de agora, roadmap, arquitetura, decisão de produto, segurança e negócio são acompanhados por esta documentação — não pela antiga. Se algum documento antigo disser algo diferente do que está aqui, esta versão vence.
+Tudo que aconteceu antes dessa data continua fazendo parte da história do Teglion — resumido em [09-HISTORICO](./09-HISTORICO/MARCO-2026-08-12.md). A partir de agora, roadmap, arquitetura, decisão de produto, segurança e negócio são acompanhados por esta documentação. Se algum rascunho antigo disser algo diferente do que está aqui, esta versão vence.

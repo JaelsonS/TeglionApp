@@ -84,6 +84,7 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
               Como o escritório se chama na app e na barra do site público.
             </p>
           </div>
+        <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="firm-name">Nome do escritório</Label>
           <Input
@@ -115,6 +116,7 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
             </div>
             <p className="cb-settings-public-bar-preview-hint">Pré-visualização da barra do topo — não é o título grande da foto.</p>
           </div>
+        </div>
         </div>
         </div>
 

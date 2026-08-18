@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
-import { Kanban, LayoutGrid, Plus, Search } from 'lucide-react'
+import { Building2, Kanban, LayoutGrid, Plus, Search } from 'lucide-react'
 
 import type { WorkspaceTask, WorkspaceTaskStatus } from '@/infrastructure/api/contabil/tasks'
 import { ClientSearchSelect } from '@/features/firm/components/ClientSearchSelect'
@@ -79,6 +80,12 @@ export function TasksManualView({
 }) {
   const recurrenceFrequency = (form.recurrenceFrequency || 'NONE') as RecurrenceFrequency
   const hasRecurrence = recurrenceFrequency !== 'NONE'
+  const [pickingClient, setPickingClient] = useState(Boolean(form.clientId))
+  const associateClient = pickingClient || Boolean(form.clientId)
+
+  useEffect(() => {
+    if (!showForm) setPickingClient(false)
+  }, [showForm])
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -153,76 +160,159 @@ export function TasksManualView({
       ) : null}
 
       {showForm ? (
-        <section className="rounded-2xl border border-border/60 bg-gradient-to-b from-muted/30 to-card p-5 shadow-sm">
-          <h3 className="mb-3 text-sm font-semibold">Nova tarefa interna</h3>
-          <form onSubmit={onCreateSubmit} className="space-y-3">
-            <ClientSearchSelect
-              clients={clients}
-              value={form.clientId}
-              onChange={(id) => onFormChange({ clientId: id, ...(id ? {} : { recurrenceFrequency: 'NONE' }) })}
-              allowEmpty
-            />
-            <div className="grid gap-2 sm:grid-cols-2">
+        <section className="rounded-2xl border border-border/50 bg-card p-5 shadow-sm">
+          <div className="mb-4">
+            <h3 className="text-base font-semibold tracking-tight">Nova tarefa</h3>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Trabalho da equipa. Não aparece no portal do cliente.
+            </p>
+          </div>
+          <form onSubmit={onCreateSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label htmlFor="task-title" className="text-xs font-medium text-foreground">
+                Título
+              </label>
               <Input
-                placeholder="Título"
+                id="task-title"
+                placeholder="Ex.: Reunir papéis do mês, rever processo interno…"
                 value={form.title}
                 onChange={(e: FormChangeEvent) => onFormChange({ title: e.target.value })}
                 required
                 className="rounded-xl"
+                autoFocus
               />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label htmlFor="task-due" className="text-xs font-medium text-foreground">
+                  Prazo
+                </label>
+                <Input
+                  id="task-due"
+                  type="date"
+                  value={form.dueDate}
+                  onChange={(e: FormChangeEvent) => onFormChange({ dueDate: e.target.value })}
+                  className="rounded-xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label htmlFor="task-priority" className="text-xs font-medium text-foreground">
+                  Prioridade
+                </label>
+                <select
+                  id="task-priority"
+                  className="h-10 w-full rounded-xl border border-input px-3 text-sm"
+                  value={form.priority}
+                  onChange={(e) => onFormChange({ priority: e.target.value })}
+                >
+                  <option value="LOW">Baixa</option>
+                  <option value="NORMAL">Normal</option>
+                  <option value="HIGH">Alta</option>
+                  <option value="URGENT">Urgente</option>
+                </select>
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <label htmlFor="task-assignee" className="text-xs font-medium text-foreground">
+                  Responsável
+                </label>
+                <select
+                  id="task-assignee"
+                  className="h-10 w-full rounded-xl border border-input px-3 text-sm"
+                  value={form.assigneeId}
+                  onChange={(e) => onFormChange({ assigneeId: e.target.value })}
+                >
+                  <option value="">Sem responsável definido</option>
+                  {teamItems.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.fullName || u.email}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="task-desc" className="text-xs font-medium text-foreground">
+                Notas
+              </label>
               <Input
-                type="date"
-                value={form.dueDate}
-                onChange={(e: FormChangeEvent) => onFormChange({ dueDate: e.target.value })}
+                id="task-desc"
+                placeholder="Opcional"
+                value={form.description}
+                onChange={(e: FormChangeEvent) => onFormChange({ description: e.target.value })}
                 className="rounded-xl"
               />
-              <select
-                className="h-10 rounded-xl border border-input px-3 text-sm"
-                value={form.priority}
-                onChange={(e) => onFormChange({ priority: e.target.value })}
-              >
-                <option value="LOW">Baixa</option>
-                <option value="NORMAL">Normal</option>
-                <option value="HIGH">Alta</option>
-                <option value="URGENT">Urgente</option>
-              </select>
-              <select
-                className="h-10 rounded-xl border border-input px-3 text-sm"
-                value={form.assigneeId}
-                onChange={(e) => onFormChange({ assigneeId: e.target.value })}
-              >
-                <option value="">Responsável</option>
-                {teamItems.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.fullName || u.email}
-                  </option>
-                ))}
-              </select>
-              <select
-                className="h-10 rounded-xl border border-input px-3 text-sm sm:col-span-2"
-                value={form.clientId ? form.recurrenceFrequency : 'NONE'}
-                disabled={!form.clientId}
-                onChange={(e) => onFormChange({ recurrenceFrequency: e.target.value })}
-              >
-                <option value="NONE">Tarefa não recorrente</option>
-                <option value="MONTHLY">Tarefa recorrente mensal</option>
-                <option value="QUARTERLY">Tarefa recorrente trimestral</option>
-                <option value="SEMIANNUAL">Tarefa recorrente semestral</option>
-                <option value="ANNUAL">Tarefa recorrente anual</option>
-              </select>
             </div>
-            {hasRecurrence ? (
-              <div className="rounded-xl border border-dashed border-border/70 bg-background/80 p-3 text-xs text-muted-foreground">
-                Esta tarefa fica marcada como recorrente interna e não notifica o cliente.
+
+            {associateClient ? (
+              <div className="space-y-2 rounded-xl border border-border/50 bg-muted/10 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-medium text-foreground">Cliente da carteira</p>
+                  <button
+                    type="button"
+                    className="text-xs font-medium text-muted-foreground hover:text-foreground"
+                    onClick={() => {
+                      setPickingClient(false)
+                      onFormChange({ clientId: '', recurrenceFrequency: 'NONE' })
+                    }}
+                  >
+                    Sem cliente
+                  </button>
+                </div>
+                <ClientSearchSelect
+                  clients={clients}
+                  value={form.clientId}
+                  onChange={(id) => onFormChange({ clientId: id, ...(id ? {} : { recurrenceFrequency: 'NONE' }) })}
+                  placeholder="Nome, e-mail ou NIF"
+                  requireQuery
+                />
+                {form.clientId ? (
+                  <div className="space-y-1.5">
+                    <label htmlFor="task-recurrence" className="text-xs font-medium text-foreground">
+                      Recorrência
+                    </label>
+                    <select
+                      id="task-recurrence"
+                      className="h-10 w-full rounded-xl border border-input px-3 text-sm"
+                      value={form.recurrenceFrequency}
+                      onChange={(e) => onFormChange({ recurrenceFrequency: e.target.value })}
+                    >
+                      <option value="NONE">Uma vez</option>
+                      <option value="MONTHLY">Mensal</option>
+                      <option value="QUARTERLY">Trimestral</option>
+                      <option value="SEMIANNUAL">Semestral</option>
+                      <option value="ANNUAL">Anual</option>
+                    </select>
+                  </div>
+                ) : null}
               </div>
+            ) : (
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-border/40 bg-muted/15 px-3 py-2.5">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                    <Building2 className="h-4 w-4" aria-hidden />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground">Escritório</p>
+                    <p className="text-xs text-muted-foreground">Não está ligada a nenhum cliente</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="shrink-0 text-xs font-semibold text-brand hover:underline"
+                  onClick={() => setPickingClient(true)}
+                >
+                  Ligar a um cliente
+                </button>
+              </div>
+            )}
+
+            {hasRecurrence ? (
+              <p className="text-xs text-muted-foreground">
+                Recorrente interna — o cliente não é notificado.
+              </p>
             ) : null}
-            <Input
-              placeholder="Descrição"
-              value={form.description}
-              onChange={(e: FormChangeEvent) => onFormChange({ description: e.target.value })}
-              className="rounded-xl"
-            />
-            <div className="flex gap-2">
+
+            <div className="flex flex-wrap gap-2 pt-1">
               <Button type="submit" disabled={createPending} className="rounded-full">
                 {hasRecurrence ? 'Criar tarefa recorrente' : 'Criar tarefa'}
               </Button>
