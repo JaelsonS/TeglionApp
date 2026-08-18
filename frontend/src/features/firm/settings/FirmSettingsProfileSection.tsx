@@ -137,7 +137,7 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
         </div>
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+      <div className="space-y-4">
       <section className="cb-settings-panel">
         <div className="cb-settings-panel-hd">
           <span className="cb-settings-panel-icon">
@@ -217,9 +217,7 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
                   disabled={savingPassword}
                 />
                 <p className="text-xs leading-relaxed text-muted-foreground">
-                  Por segurança, a palavra-passe não fica guardada em texto legível — por isso este campo
-                  começa sempre vazio. Escreva a actual para confirmarmos que é mesmo você; o olho só mostra
-                  o que está a digitar agora.
+                  O campo começa vazio de propósito — a palavra-passe não fica guardada em texto. O olho só mostra o que está a escrever agora.
                 </p>
               </div>
               <div className="space-y-2">
@@ -272,8 +270,7 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
           <div>
             <h3 className="cb-settings-panel-title">Palavra-passe dos Acessos oficiais</h3>
             <p className="cb-settings-panel-sub">
-              Única daquele campo: ver, copiar e gravar senhas dos portais. Não entra no Teglion com ela.
-              Pode optar por manter o cofre desbloqueado nesta sessão para não a digitar a cada clique.
+              Só para ver, copiar e gravar senhas dos portais. Não entra no Teglion com ela.
             </p>
           </div>
         </div>
@@ -281,6 +278,7 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
           userId={user?.id || bundle.actor.id}
           hasVaultPassword={hasVaultPassword}
           hasLoginPassword={hasPassword}
+          hideIntro
           onUpdated={onUpdated}
         />
       </section>

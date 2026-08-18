@@ -77,6 +77,7 @@ export function FirmBillingPage() {
     }
   }
 
+  const planLocked = billing?.status === 'ACTIVE'
   const monthlyReady = billing?.plans?.monthly?.configured !== false
   const yearlyReady = billing?.plans?.yearly?.configured === true
   const trialDays = billing?.trialDays ?? PRICING_FALLBACK.trialDays
@@ -189,13 +190,13 @@ export function FirmBillingPage() {
                 </li>
               ))}
             </ul>
-            {billing?.stripeConfigured !== false ? (
+            {billing?.stripeConfigured !== false && !planLocked ? (
               <div className="cb-billing-card-cta">
                 <Button
                   type="button"
                   variant="outline"
                   className={cn('w-full rounded-full', !monthlyReady && 'opacity-60')}
-                  disabled={loadingCheckout !== null || billing?.status === 'ACTIVE' || !monthlyReady}
+                  disabled={loadingCheckout !== null || !monthlyReady}
                   onClick={() => void startCheckout('month')}
                 >
                   {loadingCheckout === 'month' ? (
@@ -225,12 +226,12 @@ export function FirmBillingPage() {
                 </li>
               ))}
             </ul>
-            {billing?.stripeConfigured !== false ? (
+            {billing?.stripeConfigured !== false && !planLocked ? (
               <div className="cb-billing-card-cta">
                 <Button
                   type="button"
                   className="w-full rounded-full"
-                  disabled={loadingCheckout !== null || billing?.status === 'ACTIVE' || !yearlyReady}
+                  disabled={loadingCheckout !== null || !yearlyReady}
                   onClick={() => void startCheckout('year')}
                 >
                   {loadingCheckout === 'year' ? (
@@ -244,6 +245,25 @@ export function FirmBillingPage() {
             ) : null}
           </div>
         </div>
+
+        {planLocked ? (
+          <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-border/60 bg-muted/20 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-foreground">
+              O escritório já tem um plano pago. Para mudar o intervalo, actualizar o cartão ou ver faturas, use o portal Stripe.
+            </p>
+            {billing?.hasSubscription ? (
+              <Button
+                type="button"
+                className="shrink-0 rounded-full"
+                disabled={loadingPortal}
+                onClick={() => void openPortal()}
+              >
+                {loadingPortal ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ReceiptText className="mr-2 h-4 w-4" />}
+                Gerir no Stripe
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
 
         <p className="mt-2 text-xs text-muted-foreground">{p.plan.vatNote}</p>
 
@@ -275,7 +295,7 @@ export function FirmBillingPage() {
         </div>
 
         <div className="mt-6 flex flex-wrap gap-2">
-          {billing?.hasSubscription ? (
+          {billing?.hasSubscription && !planLocked ? (
             <Button
               type="button"
               variant="ghost"
