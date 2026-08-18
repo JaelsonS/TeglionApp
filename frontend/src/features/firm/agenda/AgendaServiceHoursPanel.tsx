@@ -38,6 +38,22 @@ type Props = {
   firmSchedule: BookingDaySchedule
 }
 
+function NonBookableHint({ count }: { count: number }) {
+  if (count <= 0) return null
+  return (
+    <p className="cb-agenda-nonbookable-hint" data-testid="agenda-nonbookable-hint">
+      {count === 1
+        ? '1 serviço do catálogo não exige marcação.'
+        : `${count} serviços do catálogo não exigem marcação.`}{' '}
+      Active a marcação em{' '}
+      <Link to="/app/firm/services" className="font-medium text-brand hover:underline">
+        Serviços
+      </Link>{' '}
+      se quiser horários próprios.
+    </p>
+  )
+}
+
 export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, firmSchedule }: Props) {
   const bookable = useMemo(
     () => services.filter((s) => s.isActive !== false && s.requiresBooking),
@@ -116,11 +132,9 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
         <Link to="/app/firm/services" className="mt-2 inline-block font-medium text-brand hover:underline">
           Ir para Serviços
         </Link>
-        {others.length > 0 ? (
-          <p className="mt-3 text-xs">
-            Serviços sem agendamento ({others.length}): {others.map((s) => s.name).join(', ')}.
-          </p>
-        ) : null}
+        <div className="mt-3">
+          <NonBookableHint count={others.length} />
+        </div>
       </div>
     )
   }
@@ -128,10 +142,8 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
   return (
     <div className="space-y-3" data-testid="agenda-service-hours">
       <p className="text-sm leading-relaxed text-muted-foreground">
-        O horário geral acima é a predefinição. Aqui vê quais os serviços que o herdam e quais têm dias
-        próprios. Exemplo: segundas para Consultoria, terças para Acompanhamento. Uma marcação ocupa o
-        calendário partilhado do escritório — se alguém reserva as 10h num serviço, esse horário deixa de
-        estar livre nos outros.
+        O horário geral é a predefinição. Personalize só os serviços que precisam de outros dias — por
+        exemplo Consultoria à segunda e Acompanhamento à terça.
       </p>
       {bookable.map((service) => {
         const draft = draftFor(service)
@@ -140,7 +152,7 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
         const label = draft.enabled ? 'custom' : 'inherited'
         const summary = draft.enabled ? summarizeBookingSchedule(draft.schedule) : 'Horário geral do escritório'
         return (
-          <div key={service.id} className="rounded-xl border border-border/50 bg-background/70 p-4">
+          <div key={service.id} className="cb-agenda-service-card">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -156,8 +168,7 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
                   </span>
                 </div>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  Duração da sessão: {duration} min
-                  {summary ? ` · ${summary}` : ''}
+                  {duration} min{summary ? ` · ${summary}` : ''}
                 </p>
               </div>
               <Button
@@ -245,12 +256,7 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
           </div>
         )
       })}
-      {others.length > 0 ? (
-        <p className="text-xs text-muted-foreground">
-          Sem agendamento ({others.length}): {others.map((s) => s.name).join(', ')}. Active a marcação em
-          Serviços se quiser horários próprios.
-        </p>
-      ) : null}
+      <NonBookableHint count={others.length} />
     </div>
   )
 }

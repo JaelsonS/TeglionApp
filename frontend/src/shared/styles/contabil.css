@@ -2451,6 +2451,38 @@
     @apply text-[9px] font-medium uppercase tracking-wide text-muted-foreground sm:text-[10px];
   }
 
+  .cb-agenda-day-editor {
+    @apply mt-3 rounded-2xl border border-border/50 bg-card p-4 shadow-sm;
+  }
+
+  .cb-agenda-service-card {
+    @apply rounded-2xl border border-border/50 bg-background/80 p-4;
+  }
+
+  .cb-agenda-nonbookable-hint {
+    @apply text-xs leading-relaxed text-muted-foreground;
+  }
+
+  .cb-billing-card-cta {
+    @apply mt-auto pt-3;
+  }
+
+  .cb-team-people {
+    @apply space-y-3 p-3 sm:p-4;
+  }
+
+  .cb-team-person {
+    @apply rounded-2xl border border-border/40 bg-background/80 p-4;
+  }
+
+  .cb-team-person-main {
+    @apply flex items-start gap-3;
+  }
+
+  .cb-team-person-actions {
+    @apply mt-3 flex flex-wrap gap-2;
+  }
+
   .cb-agenda-availability-selected {
     @apply mt-2 text-xs text-muted-foreground;
   }

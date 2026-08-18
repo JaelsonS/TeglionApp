@@ -31,8 +31,8 @@ export function AgendaSettingsView(props: Props) {
       <div className="cb-agenda-settings-intro">
         <h2 className="cb-agenda-settings-intro-title">Definições da agenda</h2>
         <p className="cb-agenda-settings-intro-sub">
-          Primeiro o horário geral do escritório; depois, se precisar, os dias de cada serviço (Consultoria à
-          segunda, Acompanhamento à terça). A ligação ao Google Calendar bloqueia horas já ocupadas.
+          Primeiro o horário geral; depois, se precisar, os dias de cada serviço. O Google Calendar bloqueia
+          horas já ocupadas.
         </p>
         <nav className="cb-agenda-settings-steps mt-3" aria-label="Secções da agenda">
           <a className="cb-agenda-settings-step" href="#agenda-horario-geral">

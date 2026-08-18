@@ -189,6 +189,24 @@ export function FirmBillingPage() {
                 </li>
               ))}
             </ul>
+            {billing?.stripeConfigured !== false ? (
+              <div className="cb-billing-card-cta">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn('w-full rounded-full', !monthlyReady && 'opacity-60')}
+                  disabled={loadingCheckout !== null || billing?.status === 'ACTIVE' || !monthlyReady}
+                  onClick={() => void startCheckout('month')}
+                >
+                  {loadingCheckout === 'month' ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <CreditCard className="mr-2 h-4 w-4" />
+                  )}
+                  Activar mensal ({monthlyLabel})
+                </Button>
+              </div>
+            ) : null}
           </div>
 
           <div className="cb-billing-card cb-billing-card-featured">
@@ -207,69 +225,43 @@ export function FirmBillingPage() {
                 </li>
               ))}
             </ul>
+            {billing?.stripeConfigured !== false ? (
+              <div className="cb-billing-card-cta">
+                <Button
+                  type="button"
+                  className="w-full rounded-full"
+                  disabled={loadingCheckout !== null || billing?.status === 'ACTIVE' || !yearlyReady}
+                  onClick={() => void startCheckout('year')}
+                >
+                  {loadingCheckout === 'year' ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <CreditCard className="mr-2 h-4 w-4" />
+                  )}
+                  Activar anual ({yearlyLabel})
+                </Button>
+              </div>
+            ) : null}
           </div>
         </div>
 
         <p className="mt-2 text-xs text-muted-foreground">{p.plan.vatNote}</p>
 
-        <div className="mt-8 flex flex-wrap gap-3">
-          {billing?.stripeConfigured !== false ? (
-            <>
-              <Button
-                type="button"
-                className={cn('rounded-full', !monthlyReady && 'opacity-60')}
-                disabled={loadingCheckout !== null || billing?.status === 'ACTIVE' || !monthlyReady}
-                onClick={() => void startCheckout('month')}
-              >
-                {loadingCheckout === 'month' ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <CreditCard className="mr-2 h-4 w-4" />
-                )}
-                Activar mensal ({monthlyLabel})
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-full"
-                disabled={loadingCheckout !== null || billing?.status === 'ACTIVE' || !yearlyReady}
-                onClick={() => void startCheckout('year')}
-              >
-                {loadingCheckout === 'year' ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <CreditCard className="mr-2 h-4 w-4" />
-                )}
-                Activar anual ({yearlyLabel})
-              </Button>
-              {billing?.hasSubscription ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="rounded-full"
-                  disabled={loadingPortal}
-                  onClick={() => void openPortal()}
-                >
-                  {loadingPortal ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Gerir no Stripe
-                </Button>
-              ) : null}
-              {!yearlyReady ? (
-                <p className="w-full text-xs text-muted-foreground">
-                  Plano anual: falta configurar <code>STRIPE_PRICE_ID_EUR_YEARLY</code> no Render.
-                </p>
-              ) : null}
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Pagamentos ainda a configurar. Escreve para{' '}
-              <a href={`mailto:${BRAND.emails.hello}`} className="font-medium text-brand hover:underline">
-                {BRAND.emails.hello}
-              </a>
-              .
-            </p>
-          )}
-        </div>
+        {billing?.stripeConfigured === false ? (
+          <p className="mt-4 text-sm text-muted-foreground">
+            Pagamentos ainda a configurar. Escreve para{' '}
+            <a href={`mailto:${BRAND.emails.hello}`} className="font-medium text-brand hover:underline">
+              {BRAND.emails.hello}
+            </a>
+            .
+          </p>
+        ) : null}
+
+        {billing?.stripeConfigured !== false && !yearlyReady ? (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Plano anual: falta configurar <code>STRIPE_PRICE_ID_EUR_YEARLY</code> no Render.
+          </p>
+        ) : null}
 
         <div className="cb-billing-notice mt-8">
           <ReceiptText className="mb-2 h-5 w-5 text-brand" aria-hidden />
@@ -283,6 +275,18 @@ export function FirmBillingPage() {
         </div>
 
         <div className="mt-6 flex flex-wrap gap-2">
+          {billing?.hasSubscription ? (
+            <Button
+              type="button"
+              variant="ghost"
+              className="rounded-full"
+              disabled={loadingPortal}
+              onClick={() => void openPortal()}
+            >
+              {loadingPortal ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ReceiptText className="mr-2 h-4 w-4" />}
+              Gerir no Stripe
+            </Button>
+          ) : null}
           <Button asChild variant="outline" className="rounded-full">
             <Link to="/#precos">Ver preços no site</Link>
           </Button>
