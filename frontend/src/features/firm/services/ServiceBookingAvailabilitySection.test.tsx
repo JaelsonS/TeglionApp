@@ -156,12 +156,14 @@ describe('ServiceBookingAvailabilitySection', () => {
     expect(afterClose.weekdays).toEqual([1])
     expect(afterClose.schedule[2]).toBeUndefined()
 
-    await user.click(screen.getByRole('button', { name: /Adicionar intervalo/i }))
+    await user.click(screen.getAllByRole('button', { name: /Adicionar intervalo/i })[0])
     const afterAdd = onChange.mock.calls.at(-1)?.[0] as {
       schedule: Record<number, Array<{ start: string; end: string }>>
     }
     expect(afterAdd.schedule[1]).toHaveLength(2)
   })
+
+  it('shows a loading state while the firm schedule is fetched', async () => {
     let resolveSettings: (value: unknown) => void = () => {}
     getBookingSettings.mockReturnValueOnce(
       new Promise((resolve) => {
