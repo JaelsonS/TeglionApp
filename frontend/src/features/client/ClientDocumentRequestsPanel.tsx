@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 import { Eye, EyeOff, FileUp, Inbox, Search, Sparkles } from 'lucide-react'
 import { Skeleton } from '@/shared/design-system'
@@ -18,6 +18,8 @@ import { normalizeRequestStatus } from '@/features/firm/documents/documentReques
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { clientPortalContabilApi } from '@/infrastructure/api'
+import { useClientDocumentRequests } from '@/shared/hooks/queries/useClientDocumentRequests'
+import { queryKeys } from '@/shared/hooks/queries/queryKeys'
 import { emitAppDataChanged } from '@/shared/utils/appEvents'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { formatDateTime } from '@/shared/utils/date'
@@ -37,11 +39,7 @@ export function ClientDocumentRequestsPanel() {
   const rawStatus = searchParams.get('reqStatus')
   const statusFilter = rawStatus === null ? 'pending' : rawStatus
 
-  const requestsQuery = useQuery({
-    queryKey: ['client-document-requests'],
-    queryFn: () => clientPortalContabilApi.listDocumentRequests(),
-    staleTime: 30_000,
-  })
+  const requestsQuery = useClientDocumentRequests()
 
   const qc = useQueryClient()
 
@@ -82,8 +80,7 @@ export function ClientDocumentRequestsPanel() {
       return p
     })
     void clientPortalContabilApi.markDocumentRequestSeen(id).then(() => {
-      void requestsQuery.refetch()
-      void qc.invalidateQueries({ queryKey: ['client-dashboard'] })
+      void qc.invalidateQueries({ queryKey: queryKeys.clientDocumentRequestsRoot })
       emitAppDataChanged({ scope: 'document-requests' })
     })
   }
@@ -116,7 +113,7 @@ export function ClientDocumentRequestsPanel() {
         files.length > 1 ? `${files.length} ficheiros enviados com sucesso` : 'Ficheiro enviado com sucesso',
       )
       await reload()
-      void qc.invalidateQueries({ queryKey: ['client-dashboard'] })
+      void qc.invalidateQueries({ queryKey: queryKeys.clientPortalHubRoot })
     } catch (err) {
       toast.error('Erro ao enviar ficheiro', { description: getErrorMessage(err) })
     } finally {

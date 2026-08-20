@@ -2,11 +2,14 @@ const { getSupabaseAdmin } = require('../../db/supabase/client');
 const automationRepo = require('./automation.repository');
 const tasksRepo = require('../../db/supabase/repositories/tasks.repository');
 const tasksWorkspace = require('../tasks/tasks-workspace.service');
+const { resolveFirmTimezone, todayInTimezone, addDaysToDateString } = require('../../utils/firm-timezone');
 
 async function runAutomationsForFirm(firmId) {
   const sb = getSupabaseAdmin();
   const rules = (await automationRepo.listRules(firmId)).filter((r) => r.enabled);
-  const today = new Date().toISOString().slice(0, 10);
+  const { data: firmRow } = await sb.from('firms').select('settings').eq('id', firmId).maybeSingle();
+  const timezone = resolveFirmTimezone({ settings: firmRow?.settings });
+  const today = todayInTimezone(timezone);
   const summary = { rulesRun: 0, tasksCreated: 0, notifications: 0 };
 
   for (const rule of rules) {
@@ -15,9 +18,7 @@ async function runAutomationsForFirm(firmId) {
 
     if (rule.triggerType === 'OBLIGATION_DUE' && rule.actionType === 'CREATE_TASK') {
       const daysBefore = Number(cfg.daysBefore) || 7;
-      const target = new Date();
-      target.setDate(target.getDate() + daysBefore);
-      const targetStr = target.toISOString().slice(0, 10);
+      const targetStr = addDaysToDateString(today, daysBefore);
 
       const { data: obligations, error } = await sb
         .from('obligations')
