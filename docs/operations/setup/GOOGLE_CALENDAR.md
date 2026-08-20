@@ -2,16 +2,18 @@
 
 > Fonte: `docs/operations/GOOGLE_CALENDAR_SETUP.md` (pasta antiga, removida após esta consolidação). Editado para PT-BR, sem reescrita de conteúdo técnico.
 
-Integração **separada** do login Google SSO. Usa o mesmo OAuth Client ID/Secret, mas:
+Deixo essa integração **separada** do login Google SSO. Uso o mesmo OAuth Client ID/Secret, mas:
 
 - redirect URI diferente;
 - escopos diferentes (`calendar.events` + `calendar.calendarlist.readonly` + `openid`/`email`);
-- `access_type=offline` + `prompt=consent` (para obter `refresh_token`).
+- `access_type=offline` + `prompt=consent` (pra obter `refresh_token`).
+
+Deixo aqui o passo a passo que sigo quando preciso mexer nisso de novo.
 
 ## Google Cloud Console
 
-1. Ativar **Google Calendar API** no projeto.
-2. No OAuth Client (tipo Aplicativo da Web), Authorized redirect URIs:
+1. Ativo a **Google Calendar API** no projeto.
+2. No OAuth Client (tipo Aplicativo da Web), configuro os Authorized redirect URIs:
 
 ```
 https://teglion.com/api/contabil/integrations/google-calendar/callback
@@ -19,11 +21,11 @@ https://www.teglion.com/api/contabil/integrations/google-calendar/callback
 https://teglionapp.onrender.com/api/contabil/integrations/google-calendar/callback
 ```
 
-(SSO continua com `/api/auth/google/callback`.)
+(o SSO continua com `/api/auth/google/callback`.)
 
 3. Origens JavaScript (já usadas pela app): `https://teglion.com`, `https://www.teglion.com`.
-4. OAuth consent screen: escopos alinhados; em Testing, adicionar emails de teste.
-5. Depois de ampliar escopos, a contadora precisa **Reconectar Google Calendar** em Agenda → Configurações.
+4. OAuth consent screen: alinho os escopos; em Testing, adiciono emails de teste.
+5. Depois de ampliar escopos, lembro a contadora de **Reconectar Google Calendar** em Agenda → Configurações.
 
 ## Variáveis de ambiente (Render / local)
 
@@ -37,7 +39,7 @@ FRONTEND_URL=https://teglion.com
 DATA_ENCRYPTION_KEY=...   # cifra tokens em firm_google_calendar_connections
 ```
 
-Se `GOOGLE_CALENDAR_REDIRECT_URI` estiver vazio, o backend infere a partir de `PUBLIC_API_URL`.
+Se `GOOGLE_CALENDAR_REDIRECT_URI` ficar vazio, o backend infere a partir de `PUBLIC_API_URL`.
 
 ## Comportamento no produto
 
@@ -47,9 +49,9 @@ Se `GOOGLE_CALENDAR_REDIRECT_URI` estiver vazio, o backend infere a partir de `P
 | Ligado | `auth_status=ok` — sincronização ativa para o calendário escolhido |
 | Precisa reconectar | Refresh token inválido (`invalid_grant`) — booking no Teglion continua funcionando |
 
-- Escolha de calendário: `calendar_id` (não assume mais só `primary`).
+- Escolha de calendário: `calendar_id` (não assumo mais só `primary`).
 - Agendamentos públicos: se "Sincronizar agendamentos da página pública" estiver ativo, `firms.settings.booking.googleCalendarStaffUserId` aponta para o funcionário conectado.
-- Falha do Google **nunca** cancela nem bloqueia o booking (`google_sync_status=failed`).
+- Deixei claro que falha do Google **nunca** cancela nem bloqueia o booking (`google_sync_status=failed`).
 
 ## Migrations
 
@@ -57,6 +59,8 @@ Se `GOOGLE_CALENDAR_REDIRECT_URI` estiver vazio, o backend infere a partir de `P
 - `20260922000000_google_calendar_production_ready.sql` — `auth_status`, status de sincronização, `calendar_summary`.
 
 ## Validação manual rápida
+
+O checklist que rodo quando preciso confirmar que isso ainda está funcionando:
 
 1. Agenda → Configurações → Ligar Google Calendar → consentir escopos.
 2. Escolher calendário na lista.

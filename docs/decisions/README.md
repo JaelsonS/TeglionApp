@@ -2,11 +2,11 @@
 
 ## O que é um ADR
 
-Um ADR (Architecture Decision Record) registra uma decisão de arquitetura que já foi tomada e já está implementada — não uma ideia, não uma proposta em aberto, não uma preferência pessoal de quem escreveu. Cada ADR neste diretório existe porque há evidência real no código do Teglion sustentando a decisão descrita: um arquivo, uma migration, uma constraint, um comentário, um comportamento observável.
+Aqui eu registro as decisões de arquitetura que já tomei e já implementei — não uma ideia solta, não uma proposta em aberto, não uma preferência pessoal disfarçada de decisão. Cada ADR nesta pasta existe porque encontrei evidência real no código do Teglion sustentando a decisão descrita: um arquivo, uma migration, uma constraint, um comentário, um comportamento observável.
 
-Um ADR não é um documento de venda. Ele registra a decisão, as alternativas que foram descartadas (quando isso é conhecido), os motivos, e — com o mesmo peso — as consequências negativas e os riscos de ter escolhido esse caminho. Um ADR que só lista vantagens não é um registro honesto, é propaganda; se um documento aqui parecer assim, ele está errado e deve ser corrigido.
+Não escrevo um ADR como documento de venda. Registro a decisão, as alternativas que descartei (quando lembro ou encontro evidência do porquê), os motivos, e — com o mesmo peso — as consequências negativas e os riscos de ter escolhido esse caminho. Um ADR que só lista vantagens não é um registro honesto pra mim, é propaganda; se algum documento aqui parecer assim, está errado e preciso corrigir.
 
-Formato de arquivo: `ADR-NNNN-nome-curto-da-decisao.md`, numeração sequencial, sem reaproveitar números de ADRs removidos.
+Formato de arquivo: `ADR-NNNN-nome-curto-da-decisao.md`, numeração sequencial, sem reaproveitar números de ADRs que eu remover.
 
 ## ADRs registrados
 
@@ -20,19 +20,19 @@ Formato de arquivo: `ADR-NNNN-nome-curto-da-decisao.md`, numeração sequencial,
 | [ADR-0006](./ADR-0006-obrigacao-custom-estrategia-entrada-pais.md) | O tipo de obrigação `CUSTOM` permite que um escritório opere em um país sem calendário fiscal automático (hoje, o Brasil), sem bloquear a expansão até a automação fiscal completa desse país estar pronta. |
 | [ADR-0007](./ADR-0007-scheduler-central-polling-frontend.md) | Um scheduler central de polling por shell do frontend (escritório/cliente) substitui temporizadores independentes por componente, invalidando cache em um único intervalo em vez de "N intervals" — ainda coexistindo com hooks de badge que mantêm `refetchInterval` próprio. |
 
-## Como propor um novo ADR
+## Como eu proponho um novo ADR
 
-1. **Quando propor:** sempre que uma mudança de arquitetura relevante for feita ou decidida — algo que afeta como o sistema é construído de forma duradoura (modelo de dados, isolamento de tenant, escolha de plataforma/fornecedor, padrão de autenticação, estratégia de expansão), não uma escolha de implementação local e reversível sem custo.
-2. **Quem pode propor:** qualquer pessoa da engenharia do Teglion que esteja implementando ou tenha implementado a decisão. Um ADR descreve o que já existe no código — não se propõe um ADR para uma ideia ainda não implementada; propõe-se um ADR quando a decisão já foi tomada e tem evidência real para documentar.
-3. **Onde registrar:** um novo arquivo `ADR-NNNN-nome-curto.md` neste diretório (`docs/decisions/`), seguindo a mesma estrutura dos ADRs existentes: Contexto, Problema, Decisão, Alternativas consideradas, Motivos da decisão, Consequências positivas, Consequências negativas, Riscos, Impacto futuro, Status, Data, e relação com outros ADRs quando fizer sentido. Todo o conteúdo em português do Brasil, com evidência real do código citada explicitamente (caminho de arquivo, nome de função, linha de constraint) — nunca uma afirmação sem lastro.
-4. **Como muda de status:**
-   - `Proposto` — registrado, mas ainda em revisão ou discussão antes de ser considerado a posição oficial do projeto.
-   - `Aceito` — é a decisão vigente. A maioria dos ADRs deste diretório está neste estado.
-   - `Substituído por ADR-NNNN` — a decisão mudou; o ADR antigo não é apagado (perderia o registro histórico do porquê da escolha anterior), só marcado como substituído, com um link para o novo.
-   - `Rejeitado` — foi proposto e decidiu-se explicitamente não seguir esse caminho; mantido como registro de que a alternativa foi considerada.
-   - Qualquer mudança de status é feita atualizando o campo `Status` no topo do arquivo, em um commit ou PR que explique o motivo da mudança — nunca reescrevendo silenciosamente a decisão original sem deixar rastro do que mudou e por quê.
-5. **Revisão:** como o Teglion é hoje uma equipe pequena, a revisão prática é o próprio processo de PR do repositório — mas a régua de aceitação é a mesma descrita na regra de honestidade de `docs/README.md`: uma afirmação só entra em um ADR se foi confirmada lendo o código real, não copiada de intenção ou de memória.
+1. **Quando eu proponho:** sempre que faço uma mudança de arquitetura relevante — algo que afeta como o sistema é construído de forma duradoura (modelo de dados, isolamento de tenant, escolha de plataforma/fornecedor, padrão de autenticação, estratégia de expansão), não uma escolha de implementação local e reversível sem custo.
+2. **Quem pode propor:** qualquer pessoa da minha equipe de engenharia que esteja implementando ou tenha implementado a decisão — hoje, na prática, sou eu mesmo na maior parte do tempo. Um ADR descreve o que já existe no código; não escrevo um ADR para uma ideia ainda não implementada, só quando a decisão já foi tomada e tenho evidência real para documentar.
+3. **Onde registro:** um novo arquivo `ADR-NNNN-nome-curto.md` nesta pasta (`docs/decisions/`), seguindo a mesma estrutura dos ADRs que já existem: Contexto, Problema, Decisão, Alternativas consideradas, Motivos da decisão, Consequências positivas, Consequências negativas, Riscos, Impacto futuro, Status, Data, e relação com outros ADRs quando fizer sentido. Escrevo tudo em português do Brasil, com evidência real do código citada explicitamente (caminho de arquivo, nome de função, linha de constraint) — nunca uma afirmação sem lastro.
+4. **Como eu mudo o status:**
+   - `Proposto` — registrei, mas ainda estou revisando ou discutindo antes de considerar a posição oficial do projeto.
+   - `Aceito` — é a decisão vigente. A maioria dos ADRs desta pasta está neste estado.
+   - `Substituído por ADR-NNNN` — a decisão mudou; não apago o ADR antigo (perderia o registro histórico do porquê da escolha anterior), só marco como substituído, com um link para o novo.
+   - `Rejeitado` — propus e decidi explicitamente não seguir esse caminho; mantenho como registro de que considerei a alternativa.
+   - Qualquer mudança de status eu faço atualizando o campo `Status` no topo do arquivo, em um commit ou PR que explique o motivo da mudança — nunca reescrevendo silenciosamente a decisão original sem deixar rastro do que mudou e por quê.
+5. **Revisão:** como hoje sou uma equipe pequena, a revisão prática é o próprio processo de PR do repositório — mas a régua que uso para aceitar algo é a mesma da regra de honestidade em `docs/README.md`: só deixo uma afirmação entrar num ADR se confirmei lendo o código real, não copiada de intenção ou de memória.
 
 ## Relação com o resto da documentação
 
-ADRs documentam o "porquê" de uma decisão de arquitetura já tomada. Eles não substituem `docs/ROADMAP.md` (que é a única fonte de prioridades futuras do Teglion) nem os documentos de `docs/architecture/` (que descrevem como o sistema funciona hoje, não por que foi construído assim). Quando uma decisão registrada aqui muda, atualize também qualquer documento de arquitetura que a descreva — um ADR desatualizado é menos grave do que um documento de arquitetura desatualizado, porque o ADR é explicitamente um registro histórico, mas ambos devem refletir a realidade.
+Nos ADRs eu documento o "porquê" de uma decisão de arquitetura que já tomei. Eles não substituem `docs/ROADMAP.md` (que é minha única fonte de prioridades futuras do Teglion) nem os documentos de `docs/architecture/` (que descrevem como o sistema funciona hoje, não por que eu construí assim). Quando uma decisão registrada aqui muda, atualizo também qualquer documento de arquitetura que a descreva — um ADR desatualizado é menos grave pra mim do que um documento de arquitetura desatualizado, porque o ADR é explicitamente um registro histórico, mas os dois precisam refletir a realidade.

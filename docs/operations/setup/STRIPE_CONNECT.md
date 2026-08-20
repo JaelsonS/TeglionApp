@@ -2,7 +2,7 @@
 
 > Fonte: `docs/operations/STRIPE_CONNECT_SETUP.md` (pasta antiga, removida após esta consolidação). Editado para PT-BR, sem reescrita de conteúdo técnico. "Definições → Pagamentos" abaixo é o texto real da navegação no produto (interface em PT-PT, porque o Teglion atende escritórios em Portugal) — não traduzido de propósito.
 
-Pagamentos dos **clientes do escritório** → Connected Account Express. **Separado** do Billing SaaS ([`STRIPE.md`](./STRIPE.md)).
+Pagamentos dos **clientes do escritório** → Connected Account Express. Separo isso do Billing SaaS ([`STRIPE.md`](./STRIPE.md)) de propósito, pra não misturar as duas coisas.
 
 | Fluxo | Quem paga | Quem recebe | Webhook |
 |-------|-----------|-------------|---------|
@@ -11,18 +11,18 @@ Pagamentos dos **clientes do escritório** → Connected Account Express. **Sepa
 
 O Teglion **não custodia** dinheiro. Processamento: Stripe (Direct Charges). Em cada pagamento Connect, o Teglion retém uma **taxa de serviço da plataforma** (`application_fee_amount`, default **2%** via `STRIPE_CONNECT_PLATFORM_FEE_BPS=200`). As **taxas da Stripe** são cobradas pela Stripe diretamente à Connected Account, à parte. O escritório aceita a política em Definições → Pagamentos (IP, hora, versão + hash do texto).
 
-**Não usar** a "Ferramenta de preços da plataforma" do Dashboard para essa taxa — com Direct Charges, o caminho correto é `application_fee_amount` no Checkout.
+**Não uso** a "Ferramenta de preços da plataforma" do Dashboard para essa taxa — com Direct Charges, o caminho correto é `application_fee_amount` no Checkout.
 
 ---
 
 ## Ativação LIVE (produção)
 
-O código usa a mesma `STRIPE_SECRET_KEY` da plataforma. Em produção, deve ser **`sk_live_…`**. Contas Express criadas com `sk_test_` **não servem** em live — o dono precisa reconectar o Connect em Definições.
+O código usa a mesma `STRIPE_SECRET_KEY` da plataforma. Em produção, precisa ser **`sk_live_…`**. Contas Express criadas com `sk_test_` **não servem** em live — o dono precisa reconectar o Connect em Definições.
 
 ### 1. Stripe Dashboard — modo **Live** (toggle Test desligado)
 
-1. **Connect → Settings**: perfil da plataforma, branding, website, suporte, país PT.
-2. Completar os requisitos de plataforma Connect (a Stripe pode pedir informação do Teglion como plataforma).
+1. Vou em **Connect → Settings**: preencho perfil da plataforma, branding, website, suporte, país PT.
+2. Completo os requisitos de plataforma Connect (a Stripe pode pedir informação do Teglion como plataforma).
 3. **Developers → Webhooks → Add endpoint** (Live)
    - URL: `https://<API_PRODUÇÃO>/api/public/stripe/connect/webhook`
    - Listen to: **Events on Connected accounts**
@@ -31,8 +31,8 @@ O código usa a mesma `STRIPE_SECRET_KEY` da plataforma. Em produção, deve ser
      - `checkout.session.completed`
      - `checkout.session.expired`
      - `charge.refunded`
-4. Copiar **Signing secret** (`whsec_…`) → `STRIPE_CONNECT_WEBHOOK_SECRET` no Render.
-5. **Não** reutilizar o webhook de Billing para eventos Connect.
+4. Copio o **Signing secret** (`whsec_…`) → `STRIPE_CONNECT_WEBHOOK_SECRET` no Render.
+5. **Não** reutilizo o webhook de Billing para eventos Connect.
 
 ### 2. Variáveis no Render (backend produção)
 
@@ -46,21 +46,21 @@ O código usa a mesma `STRIPE_SECRET_KEY` da plataforma. Em produção, deve ser
 | `STRIPE_PRICE_ID_EUR_MONTHLY` / `YEARLY` | Price IDs **live** do plano Teglion |
 | `FRONTEND_URL` | URL canônica da app (ex. `https://app.teglion.com`) |
 
-Depois de salvar: **redeploy** do backend.
+Depois de salvar, faço o **redeploy** do backend.
 
 ### 3. Banco de dados
 
-Aplicar no Supabase **produção**:
+Aplico no Supabase **produção**:
 
 - `20260925000000_firm_stripe_connect.sql`
 - `20260926000000_firm_payments_booking_hold.sql`
 
 ### 4. Escritório (piloto)
 
-1. Definições → **Pagamentos** → ler política → aceitar → Ligar Stripe Connect (**KYC live**).
-2. Esperar `charges_enabled` (webhook `account.updated`).
-3. Serviço público: agendamento ligado + **Pagamento obrigatório** + preço > 0.
-4. Fazer **um pagamento real pequeno** (ex. 1,00 €) no link público e confirmar:
+1. Vou em Definições → **Pagamentos**, leio a política, aceito, e ligo o Stripe Connect (**KYC live**).
+2. Espero o `charges_enabled` (webhook `account.updated`).
+3. Deixo o serviço público com agendamento ligado + **Pagamento obrigatório** + preço > 0.
+4. Faço **um pagamento real pequeno** (ex. 1,00 €) no link público e confirmo:
    - webhook → consulta `SCHEDULED`
    - dinheiro na Express do escritório
    - Google Calendar (se conectado)
@@ -100,4 +100,4 @@ Aplicar no Supabase **produção**:
 
 ## Entitlements
 
-`entitlements.can(firmId, 'payments.online')` está em modo **open** hoje. Mais tarde: planos/add-ons sem `if (plan === …)` espalhado pelo código.
+`entitlements.can(firmId, 'payments.online')` está em modo **open** hoje. Mais adiante, quero planos/add-ons sem `if (plan === …)` espalhado pelo código.

@@ -2,9 +2,9 @@
 
 > Fonte: `docs/operations/STRIPE_SETUP.md` (pasta antiga, removida após esta consolidação). Editado para PT-BR, sem reescrita de conteúdo técnico. Última atualização do conteúdo-fonte: 17/07/2026.
 
-Para **pagamentos dos clientes do escritório** (Stripe Connect), ver [`STRIPE_CONNECT.md`](./STRIPE_CONNECT.md). Não misturar com este guia de Billing.
+Pra **pagamentos dos clientes do escritório** (Stripe Connect), fui documentar em [`STRIPE_CONNECT.md`](./STRIPE_CONNECT.md). Não misturo esse guia de Billing com aquele.
 
-## O que é vendido
+## O que vendo
 
 | Plano | O que o cliente vê | O que é cobrado na Stripe |
 |-------|--------------------|------------------------|
@@ -12,15 +12,17 @@ Para **pagamentos dos clientes do escritório** (Stripe Connect), ver [`STRIPE_C
 | **Mensal** | 35 € / mês | Recurring **35,00 EUR** / mês |
 | **Anual** | 29,99 €/mês (equivalente) | Recurring **359,88 EUR** / ano |
 
-Regra: site, app e Stripe têm que bater certo. O teste de **14 dias** continua como está (criado no registro, sem cartão).
+Regra que sigo: site, app e Stripe têm que bater certo. O teste de **14 dias** continua como está (criado no registro, sem cartão).
 
 ---
 
 ## Passo a passo na Stripe (Test mode primeiro)
 
+Deixo aqui exatamente os passos que sigo quando preciso montar isso de novo.
+
 ### 1. Produto
 
-1. Abrir [dashboard.stripe.com](https://dashboard.stripe.com) → **Test mode** ligado.
+1. Abro [dashboard.stripe.com](https://dashboard.stripe.com) → **Test mode** ligado.
 2. **Product catalog** → **Add product**.
 3. Nome: `Teglion — Plano Escritório`.
 4. Descrição (opcional): `Software para o escritório de contabilidade · portal do cliente incluído`.
@@ -30,21 +32,21 @@ Regra: site, app e Stripe têm que bater certo. O teste de **14 dias** continua 
 **Preço A — Mensal**
 - Recurring → **Monthly**
 - Amount: **35,00 EUR**
-- Copiar o Price ID (`price_…`) → `STRIPE_PRICE_ID_EUR_MONTHLY`
+- Copio o Price ID (`price_…`) → `STRIPE_PRICE_ID_EUR_MONTHLY`
 
 **Preço B — Anual**
 - No mesmo produto → **Add another price**
 - Recurring → **Yearly**
 - Amount: **359,88 EUR**
-- Copiar o Price ID → `STRIPE_PRICE_ID_EUR_YEARLY`
+- Copio o Price ID → `STRIPE_PRICE_ID_EUR_YEARLY`
 
-Dica: dá para deixar o mensal como "default" no catálogo; o app escolhe pelo botão (mensal vs. anual).
+Dica que anoto pra mim: dá pra deixar o mensal como "default" no catálogo; o app escolhe pelo botão (mensal vs. anual).
 
 ### 3. Chaves API
 
 **Developers → API keys**
 - Secret key (`sk_test_…` agora, `sk_live_…` em produção) → `STRIPE_SECRET_KEY` no Render.
-- Nunca colocar a secret no frontend.
+- Nunca coloco a secret no frontend.
 
 ### 4. Webhook
 
@@ -63,17 +65,17 @@ Eventos:
 
 Signing secret (`whsec_…`) → `STRIPE_WEBHOOK_SECRET`.
 
-Para testar localmente: Stripe CLI —
+Pra testar localmente: Stripe CLI —
 `stripe listen --forward-to localhost:PORT/api/public/stripe/webhook`
 
 ### 5. Customer portal (recomendado)
 
 **Settings → Billing → Customer portal**
-Ativar: cancelar, mudar método de pagamento, ver faturas.
+Ativo: cancelar, mudar método de pagamento, ver faturas.
 
 ### 6. Métodos de pagamento (PT)
 
-**Settings → Payment methods** — cartão; Multibanco / MB WAY se quiser (quando a conta estiver pronta para PT).
+**Settings → Payment methods** — cartão; Multibanco / MB WAY se eu quiser (quando a conta estiver pronta para PT).
 
 ---
 
@@ -121,6 +123,6 @@ FIRM_PLAN_EUR_YEARLY_CENTS=35988
 ## Teste rápido (Test mode)
 
 Cartão: `4242 4242 4242 4242`
-Registrar escritório → ir em Plano → Ativar mensal ou anual → confirmar no Supabase `firms.status = ACTIVE`.
+Registro escritório → vou em Plano → Ativar mensal ou anual → confirmo no Supabase `firms.status = ACTIVE`.
 
 Se o botão anual estiver desativado, falta `STRIPE_PRICE_ID_EUR_YEARLY` no Render.

@@ -1,47 +1,47 @@
 # Documentação do Teglion
 
-Este diretório é a documentação oficial do Teglion — um SaaS multi-tenant para escritórios de contabilidade, criado por um fundador brasileiro, nascido em Portugal, com 4 escritórios pilotos usando o sistema hoje (agosto de 2026).
+Esse diretório é onde eu guardo o registro oficial do Teglion — o SaaS multi-tenant que estou construindo para escritórios de contabilidade. Comecei em Portugal, sou brasileiro, e hoje (agosto de 2026) tenho 4 escritórios pilotos usando o sistema de verdade.
 
-## Por que esta documentação existe
+## Por que eu escrevo isso
 
-Porque o Teglion não pode continuar dependendo só da memória de quem construiu. Esta documentação existe para que um novo engenheiro entenda o sistema sem depender de perguntar ao fundador, para que uma auditoria técnica ou uma due diligence de investidor encontre respostas reais em vez de otimismo genérico, e para que decisões de arquitetura não se percam — sejam registradas, com o motivo, para sempre.
+Porque eu não posso continuar dependendo só da minha própria memória. Escrevo essa documentação pra que, quando eu contratar o primeiro engenheiro, ele consiga entender o sistema sem precisar me perguntar tudo. Pra que, se um dia eu passar por uma auditoria técnica ou uma due diligence de investidor, eu tenha respostas reais escritas, não otimismo genérico. E pra que as decisões de arquitetura que eu tomo não se percam — eu registro o motivo, pra não esquecer nem eu mesmo daqui a um ano.
 
-## Regra de honestidade
+## A regra que eu sigo
 
-Cada documento aqui distingue explicitamente o que está **implementado e comprovado**, o que está **parcial**, o que está **planejado** e o que **não existe ainda**. Se um documento afirmar que algo funciona, isso foi confirmado lendo o código real — não copiado de uma versão antiga ou de uma intenção. Quando não houver certeza suficiente, o documento diz `Não comprovado atualmente` ou `A validar`, em vez de inventar.
+Em cada documento, eu deixo claro o que está **implementado e comprovado**, o que está **parcial**, o que está **planejado** e o que **ainda não existe**. Se eu escrevo que algo funciona, é porque eu confirmei lendo o código de verdade — não copiei de uma versão antiga nem de uma intenção que eu tinha. Quando eu não tenho certeza suficiente, escrevo `Não comprovado atualmente` ou `A validar`, em vez de inventar. Prefiro admitir que não sei do que me enganar.
 
-## Fonte oficial do roadmap
+## Onde está o roadmap
 
-**[`docs/ROADMAP.md`](./ROADMAP.md) é o único roadmap oficial do Teglion.** Toda decisão sobre o que fazer a seguir — segurança, arquitetura, produto, infraestrutura, expansão para o Brasil — está lá, com prioridade, estado e critério de conclusão. Nenhum outro documento deste repositório tem autoridade para listar prioridades futuras concorrentes. Se algum documento antigo ainda tiver uma lista de "próximos passos", ela está desatualizada por definição — o roadmap manda.
+**[`docs/ROADMAP.md`](./ROADMAP.md) é o único roadmap que eu uso.** Toda decisão sobre o que eu vou fazer a seguir — segurança, arquitetura, produto, infraestrutura, expansão pro Brasil — está lá, com prioridade, estado e o que precisa acontecer pra eu considerar concluído. Não deixo nenhum outro documento com uma lista de "próximos passos" concorrente. Se eu esbarrar num documento antigo que ainda tem uma lista dessas, já sei que está desatualizada — o roadmap manda.
 
-## Como a documentação está organizada
+## Como eu organizei tudo
 
-| Pasta | O que encontrar aqui |
+| Pasta | O que eu guardo aqui |
 |---|---|
-| [`product/`](./product/) | O que o Teglion é, para quem existe, que problema resolve, e os princípios que guiam decisões de produto. |
-| [`architecture/`](./architecture/) | Como o sistema é construído — backend, frontend, banco, multi-tenancy, API, integrações — explicado para um engenheiro entender rápido, não como cópia do código. |
-| [`decisions/`](./decisions/) | Architecture Decision Records (ADRs) — por que escolhemos o que escolhemos, quais alternativas foram consideradas, e o que isso custa. |
-| [`security/`](./security/) | Autenticação, autorização, isolamento entre escritórios, proteção de dados, e o que já foi testado de segurança versus o que ainda precisa ser. |
+| [`product/`](./product/) | O que é o Teglion, pra quem eu construí, que problema eu resolvo, e os princípios que eu sigo pra decidir produto. |
+| [`architecture/`](./architecture/) | Como eu construí o sistema — backend, frontend, banco, multi-tenancy, API, integrações — escrito pra eu (ou quem eu contratar) entender rápido, não uma cópia do código. |
+| [`decisions/`](./decisions/) | Architecture Decision Records (ADRs) — por que eu escolhi o que escolhi, que alternativas eu considerei, e o que isso me custa. |
+| [`security/`](./security/) | Autenticação, autorização, isolamento entre escritórios, proteção de dados, e o que eu já testei de segurança versus o que ainda preciso testar. |
 | [`database/`](./database/) | Schema, RLS, migrations, backup e recuperação de desastre. |
 | [`infrastructure/`](./infrastructure/) | Ambientes, deploy, CI/CD, observabilidade — como o sistema roda de verdade, hoje. |
-| [`operations/`](./operations/) | Runbooks operacionais — o que fazer quando algo quebra, como fazer release, guias de configuração de cada integração. |
-| [`testing/`](./testing/) | O que é testado hoje, o que não é, e o plano para fechar a diferença. |
-| [`ux/`](./ux/) | Como as telas e fluxos do produto são pensados. |
-| [`governance/`](./governance/) | Como a engenharia do Teglion trabalha e como a documentação se mantém viva. |
-| [`investor/`](./investor/) | Pitch deck, narrativa para investidores, e o que uma due diligence técnica encontraria hoje. |
-| [`historico/`](./historico/) | Registros fechados — sprints concluídas, auditorias antigas, marcos já superados. Não é fonte de verdade sobre o estado atual, é memória do que já aconteceu. |
+| [`operations/`](./operations/) | Meus runbooks — o que eu faço quando algo quebra, como eu faço release, guias de configuração de cada integração que eu uso. |
+| [`testing/`](./testing/) | O que eu já testo hoje, o que eu ainda não testo, e o que falta pra fechar essa diferença. |
+| [`ux/`](./ux/) | Como eu penso as telas e os fluxos do produto. |
+| [`governance/`](./governance/) | Como eu trabalho na engenharia do Teglion e como eu mantenho essa documentação viva. |
+| [`investor/`](./investor/) | Meu pitch deck, a narrativa que eu uso com investidor, e o que uma due diligence técnica encontraria hoje se abrisse o meu código. |
+| [`historico/`](./historico/) | O que eu já arquivei — sprints que já fechei, auditorias antigas, marcos que já passaram. Não uso isso como fonte de verdade do estado atual, é só memória do que já aconteceu. |
 
-## Como os ADRs funcionam
+## Como eu uso os ADRs
 
-Um ADR (Architecture Decision Record) documenta uma decisão de arquitetura já tomada — não uma ideia, não uma sugestão. Cada um tem contexto, alternativas consideradas, a decisão em si, e as consequências (boas e ruins) de ter escolhido esse caminho. Veja [`decisions/README.md`](./decisions/README.md) para a lista completa e o processo de criar um novo.
+Um ADR (Architecture Decision Record) registra uma decisão de arquitetura que eu já tomei — não uma ideia solta, não algo que eu ainda estou pensando. Em cada um eu escrevo o contexto, as alternativas que eu considerei, a decisão em si, e as consequências (boas e ruins) de eu ter escolhido esse caminho. Veja [`decisions/README.md`](./decisions/README.md) pra lista completa e pra como eu crio um novo.
 
-## Como manter esta documentação viva
+## Como eu mantenho isso vivo
 
-1. Mudou algo de arquitetura relevante? Crie ou atualize um ADR.
-2. Mudou algo de produto? Atualize o documento correspondente em `product/`.
-3. Mudou infraestrutura ou processo de deploy? Atualize `infrastructure/` ou `operations/`.
-4. Mudou algo de segurança? Atualize `security/`.
-5. Mudou uma prioridade? Atualize `ROADMAP.md` — nunca crie uma lista de tarefas paralela.
-6. Encontrou uma afirmação que não bate mais com o código? Corrija na hora, não deixe para depois — documentação errada é pior do que documentação ausente, porque engana em vez de admitir que não sabe.
+1. Mudei algo de arquitetura relevante? Eu crio ou atualizo um ADR.
+2. Mudei algo de produto? Eu atualizo o documento certo em `product/`.
+3. Mudei infraestrutura ou processo de deploy? Eu atualizo `infrastructure/` ou `operations/`.
+4. Mudei algo de segurança? Eu atualizo `security/`.
+5. Mudei uma prioridade? Eu atualizo o `ROADMAP.md` — nunca crio uma lista de tarefas paralela, por mais tentador que seja no momento.
+6. Encontrei uma afirmação que já não bate com o código? Eu corrijo na hora, não deixo pra depois — documentação errada é pior que documentação ausente, porque me engana em vez de eu simplesmente admitir que não sei.
 
 Mais detalhes em [`governance/DOCUMENTATION_POLICY.md`](./governance/DOCUMENTATION_POLICY.md).

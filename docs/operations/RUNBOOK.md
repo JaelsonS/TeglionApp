@@ -1,8 +1,8 @@
 # Runbook operacional
 
-> Substitui o antigo `docs/operations/README.md`, que tinha três links quebrados apontando para pastas removidas (`../CLIENTE_PILOTO/`, `../company/`, `../product/SCALE_100K...`). Esses links não foram recriados aqui.
+> Substitui o antigo `docs/operations/README.md`, que tinha três links quebrados apontando para pastas removidas (`../CLIENTE_PILOTO/`, `../company/`, `../product/SCALE_100K...`). Não recriei esses links aqui.
 
-Índice operacional do Teglion: o que fazer para preparar, lançar, monitorar e recuperar produção, e onde está cada guia de configuração de integração.
+Esse é o índice operacional do Teglion pra mim mesmo: o que faço pra preparar, lançar, monitorar e recuperar produção, e onde está cada guia de configuração de integração.
 
 ## Infraestrutura (onde tudo roda)
 
@@ -34,9 +34,9 @@
 | [`setup/BREVO_DOMAIN.md`](./setup/BREVO_DOMAIN.md) | Domínio autenticado para email transacional |
 | [`setup/FREE_PLAN.md`](./setup/FREE_PLAN.md) | O que dá para fechar de isolamento staging/produção sem contratar infraestrutura nova |
 
-## Regras de operação
+## Regras de operação que sigo
 
 1. Nada é promovido para produção sem o gate de CI verde (`validate`) — ver [`../infrastructure/CI_CD.md`](../infrastructure/CI_CD.md).
-2. Segredo nunca é editado ou lido do Git — só no provedor (Render, Vercel, GitHub Environment).
-3. Backend e frontend de uma mesma release são deployados juntos — a autenticação é cookie-only e depende dos dois estarem em sincronia.
-4. Rollback fica pronto antes de abrir tráfego para uma release nova — ver [`../infrastructure/DEPLOYMENT.md`](../infrastructure/DEPLOYMENT.md#rollback).
+2. Segredo nunca edito ou leio do Git — só no provedor (Render, Vercel, GitHub Environment).
+3. Backend e frontend de uma mesma release eu deployo sempre juntos — a autenticação é cookie-only e depende dos dois estarem em sincronia.
+4. Deixo o rollback pronto antes de abrir tráfego para uma release nova — ver [`../infrastructure/DEPLOYMENT.md`](../infrastructure/DEPLOYMENT.md#rollback).

@@ -2,11 +2,11 @@
 
 > Fonte consolidada: `docs/04-ARQUITETURA/BACKEND.md` (removido após esta migração).
 
-Node.js com Express. Organizado por módulo de domínio dentro de `backend/src/modules/` — cada pasta é uma área de negócio (`auth`, `firm`, `client`, `billing`, `connect`, `booking`, `documents`, `document-requests`, `messages`, `inbox`, `fiscal`, `obligations`, `tasks`, `news`, `broadcasts`, `consultations`, `integrations`, `public`, `service-requests`, `tracking`, `live`, `notifications`, `push`, `automations`, `entitlements`, `legal`, entre outros), cada uma com o próprio conjunto de controller, service e rotas.
+Uso Node.js com Express. Organizei por módulo de domínio dentro de `backend/src/modules/` — cada pasta é uma área de negócio (`auth`, `firm`, `client`, `billing`, `connect`, `booking`, `documents`, `document-requests`, `messages`, `inbox`, `fiscal`, `obligations`, `tasks`, `news`, `broadcasts`, `consultations`, `integrations`, `public`, `service-requests`, `tracking`, `live`, `notifications`, `push`, `automations`, `entitlements`, `legal`, entre outros), cada uma com o próprio conjunto de controller, service e rotas.
 
 ## Padrão dentro de um módulo
 
-`routes → middlewares → controller → service → repository`. O repository é sempre a última camada antes do Supabase — nenhum controller ou service monta consulta ao banco diretamente. Esse padrão é consistente entre módulos.
+`routes → middlewares → controller → service → repository`. O repository é sempre a última camada antes do Supabase — não deixo nenhum controller ou service montar consulta ao banco diretamente. Mantenho esse padrão consistente entre módulos.
 
 ## Middlewares principais
 
@@ -25,19 +25,19 @@ Todos vivem em `backend/src/middlewares/`:
 
 ## Tratamento de erro
 
-Existe um handler central de erro que padroniza a resposta, evita vazar detalhe interno sensível na mensagem de erro devolvida ao cliente, e passa pela sanitização de log antes de registrar — mas essa sanitização central não cobre chamada de log feita fora desse caminho (ver [`docs/security/SECURITY.md`](../security/SECURITY.md) para o detalhe desse risco).
+Montei um handler central de erro que padroniza a resposta, evita vazar detalhe interno sensível na mensagem de erro devolvida ao cliente, e passa pela sanitização de log antes de registrar — mas essa sanitização central não cobre chamada de log feita fora desse caminho (ver [`docs/security/SECURITY.md`](../security/SECURITY.md) para o detalhe desse risco).
 
 ## Jobs e tarefas em segundo plano
 
-Este é o ponto mais importante para quem for pensar em escala: hoje existe apenas um mecanismo real de fila, baseado em Redis, usado para um único tipo de tarefa — lembrete de obrigação por escritório. Todo o resto, envio de email por exemplo, roda de forma síncrona, dentro da própria requisição HTTP que o originou. Isso funciona bem no volume atual (4 escritórios pilotos), mas é o primeiro lugar onde a arquitetura sente fricção conforme o número de escritórios ativos cresce.
+Este é o ponto mais importante pra mim pensar em escala: hoje tenho apenas um mecanismo real de fila, baseado em Redis, usado para um único tipo de tarefa — lembrete de obrigação por escritório. Todo o resto, envio de email por exemplo, roda de forma síncrona, dentro da própria requisição HTTP que o originou. Isso funciona bem no volume atual (4 escritórios pilotos), mas é o primeiro lugar onde sinto a arquitetura tensionar conforme o número de escritórios ativos cresce.
 
 ## Agendadores (schedulers)
 
-Rodam dentro do próprio processo do backend, não em um worker separado — o lembrete de obrigação, por exemplo, roda a cada hora para todo escritório ativo, disparado no boot do processo. Não há orquestração de job distribuída hoje.
+Rodo os agendadores dentro do próprio processo do backend, não em um worker separado — o lembrete de obrigação, por exemplo, roda a cada hora para todo escritório ativo, disparado no boot do processo. Não tenho orquestração de job distribuída hoje.
 
 ## Entrada da API e webhook
 
-O processo Express (`backend/src/app.js`) monta as rotas de API em `backend/src/routes/mount-api-routes.js`, com prefixo `/api/v1` como versão atual e `/api` mantido como alias depreciado (ver [API.md](./API.md)). Os webhooks do Stripe (billing e Connect) são a exceção deliberada a esse caminho: são registrados diretamente em `app.js`, com corpo bruto (`express.raw`), antes do parser JSON global — necessário porque a verificação de assinatura do Stripe exige o corpo exato, não reserializado (ver [INTEGRATIONS.md](./INTEGRATIONS.md)).
+O processo Express (`backend/src/app.js`) monta as rotas de API em `backend/src/routes/mount-api-routes.js`, com prefixo `/api/v1` como versão atual e `/api` mantido como alias depreciado (ver [API.md](./API.md)). Os webhooks do Stripe (billing e Connect) são a exceção deliberada que abri nesse caminho: registro os dois diretamente em `app.js`, com corpo bruto (`express.raw`), antes do parser JSON global — necessário porque a verificação de assinatura do Stripe exige o corpo exato, não reserializado (ver [INTEGRATIONS.md](./INTEGRATIONS.md)).
 
 ## Onde aprofundar
 
