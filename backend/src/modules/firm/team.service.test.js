@@ -213,3 +213,93 @@ test('assertActorCanAssignRole: staff não pode atribuir FIRM_OWNER', () => {
     (err) => err?.details?.code === 'OWNER_ROLE_FORBIDDEN',
   );
 });
+
+test('reactivateMember: staff NÃO pode reativar um FIRM_OWNER desativado (regressão P2)', async () => {
+  resetMocks();
+  const ownerMember = baseMember({ id: 'owner-2', role: 'FIRM_OWNER', isActive: false });
+  mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => ownerMember);
+
+  let called = false;
+  mock.method(firmUsersRepository, 'setFirmMemberActive', async () => {
+    called = true;
+    return { ...ownerMember, isActive: true };
+  });
+
+  await assert.rejects(
+    () =>
+      teamService.reactivateMember({
+        firmId: FIRM_ID,
+        memberId: ownerMember.id,
+        actor: STAFF,
+        req: {},
+      }),
+    (err) => err?.statusCode === 403 && err?.details?.code === 'OWNER_ROLE_FORBIDDEN',
+  );
+  assert.equal(called, false, 'setFirmMemberActive nunca deve ser chamado quando a guarda bloqueia');
+});
+
+test('reactivateMember: owner PODE reativar outro owner (sem regressão)', async () => {
+  resetMocks();
+  mockTags();
+  const ownerMember = baseMember({ id: 'owner-2', role: 'FIRM_OWNER', isActive: false });
+  mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => ownerMember);
+  mock.method(firmUsersRepository, 'setFirmMemberActive', async () => ({ ...ownerMember, isActive: true }));
+  mock.method(securityAudit, 'recordTeamMutation', async () => {});
+
+  const result = await teamService.reactivateMember({
+    firmId: FIRM_ID,
+    memberId: ownerMember.id,
+    actor: OWNER,
+    req: {},
+  });
+  assert.equal(result.role, 'FIRM_OWNER');
+});
+
+test('updateMember: não é possível rebaixar o último FIRM_OWNER ativo (regressão P2 — TOCTOU/invariante)', async () => {
+  resetMocks();
+  const soleOwner = baseMember({ id: OWNER.id, role: 'FIRM_OWNER' });
+  mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => soleOwner);
+  mock.method(firmUsersRepository, 'listFirmUsers', async () => [soleOwner]);
+
+  let called = false;
+  mock.method(firmUsersRepository, 'updateFirmMember', async () => {
+    called = true;
+    return { ...soleOwner, role: 'FIRM_STAFF' };
+  });
+
+  await assert.rejects(
+    () =>
+      teamService.updateMember({
+        firmId: FIRM_ID,
+        memberId: soleOwner.id,
+        actor: OWNER,
+        payload: { role: 'FIRM_STAFF' },
+        req: {},
+      }),
+    (err) => err?.statusCode === 400 && err?.details?.code === 'LAST_OWNER_FORBIDDEN',
+  );
+  assert.equal(called, false, 'updateFirmMember nunca deve ser chamado quando a guarda bloqueia');
+});
+
+test('updateMember: rebaixar um owner é permitido quando há outro owner ativo (sem regressão)', async () => {
+  resetMocks();
+  mockTags();
+  let current = baseMember({ id: 'owner-2', role: 'FIRM_OWNER' });
+  const otherOwner = baseMember({ id: OWNER.id, role: 'FIRM_OWNER' });
+  mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => current);
+  mock.method(firmUsersRepository, 'listFirmUsers', async () => [current, otherOwner]);
+  mock.method(firmUsersRepository, 'updateFirmMember', async (_firmId, _id, patch) => {
+    current = { ...current, ...patch };
+    return current;
+  });
+  mock.method(securityAudit, 'recordTeamMutation', async () => {});
+
+  const updated = await teamService.updateMember({
+    firmId: FIRM_ID,
+    memberId: current.id,
+    actor: OWNER,
+    payload: { role: 'FIRM_STAFF' },
+    req: {},
+  });
+  assert.equal(updated.role, 'FIRM_STAFF');
+});

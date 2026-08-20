@@ -48,6 +48,23 @@ const SANITIZATION_PATTERNS = [
     pattern: /password=([^&\s]+)/gi,
     replacement: 'password=[REDACTED]',
   },
+  // OAuth authorization code / state / tokens em querystring (ex.: linhas de log HTTP do morgan,
+  // que incluem a URL completa de callbacks OAuth como /auth/google/callback?code=...&state=...)
+  {
+    name: 'OAuth code querystring',
+    pattern: /\bcode=([^&\s]+)/gi,
+    replacement: 'code=[REDACTED]',
+  },
+  {
+    name: 'OAuth state querystring',
+    pattern: /\bstate=([^&\s]+)/gi,
+    replacement: 'state=[REDACTED]',
+  },
+  {
+    name: 'OAuth/pending token querystring',
+    pattern: /\b(pending|access_token|refresh_token|id_token)=([^&\s]+)/gi,
+    replacement: '$1=[REDACTED]',
+  },
   // Email
   {
     name: 'Email',
@@ -148,6 +165,13 @@ const SENSITIVE_KEYS = new Set(
     'viactt_senha',
     'iapmei_senha',
     'ru_senha',
+    'cookie',
+    'access_token',
+    'refresh_token',
+    'id_token',
+    'client_secret',
+    'whsec',
+    'webhookSecret',
   ].map((k) => k.toLowerCase()),
 );
 
@@ -239,23 +263,27 @@ class SafeLogger {
   }
 
   debug(message, data) {
+    const safeMessage = sanitizeText(message);
     const sanitized = sanitizeObject(data);
-    return this.logger.debug(message, sanitized);
+    return this.logger.debug(safeMessage, sanitized);
   }
 
   info(message, data) {
+    const safeMessage = sanitizeText(message);
     const sanitized = sanitizeObject(data);
-    return this.logger.info(message, sanitized);
+    return this.logger.info(safeMessage, sanitized);
   }
 
   warn(message, data) {
+    const safeMessage = sanitizeText(message);
     const sanitized = sanitizeObject(data);
-    return this.logger.warn(message, sanitized);
+    return this.logger.warn(safeMessage, sanitized);
   }
 
   error(message, data) {
+    const safeMessage = sanitizeText(message);
     const sanitized = data instanceof Error ? sanitizeError(data) : sanitizeObject(data);
-    return this.logger.error(message, sanitized);
+    return this.logger.error(safeMessage, sanitized);
   }
 }
 

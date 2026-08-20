@@ -235,6 +235,20 @@ async function updateMember({ firmId, memberId, actor, payload, req }) {
     }
     if (payload.role !== undefined) {
         patch.role = assertActorCanAssignRole(actor, payload.role, { previousRole: current.role });
+
+        // Sem isto, o único FIRM_OWNER do escritório conseguia rebaixar-se a si mesmo (ou
+        // a assertActorCanAssignRole permitia que outro owner o rebaixasse) até zero owners
+        // ativos, travando ações administrativas que exigem FIRM_OWNER (billing, permissões).
+        // Mesma invariante já aplicada em deactivateMember, agora também aqui.
+        if (current.role === 'FIRM_OWNER' && patch.role !== 'FIRM_OWNER') {
+            const all = await firmUsersRepository.listFirmUsers(firmId, { activeOnly: false });
+            const activeOwners = all.filter((u) => u.isActive && u.role === 'FIRM_OWNER');
+            if (activeOwners.length <= 1) {
+                throw new AppError('Não é possível rebaixar o último owner do escritório.', 400, {
+                    code: 'LAST_OWNER_FORBIDDEN',
+                });
+            }
+        }
     }
     if (payload.jobTitle !== undefined) {
         patch.jobTitle = normalizeJobTitle(payload.jobTitle);
@@ -316,6 +330,15 @@ async function deactivateMember({ firmId, memberId, actor, req }) {
 async function reactivateMember({ firmId, memberId, actor, req }) {
     const current = await firmUsersRepository.findFirmUserByIdForFirm(firmId, memberId);
     if (!current) throw new AppError('Membro não encontrado.', 404);
+
+    // Mesma guarda de deactivateMember: sem isto, um STAFF com USERS_UPDATE (permissão
+    // por omissão) conseguia reativar um FIRM_OWNER que o dono atual tinha desativado
+    // deliberadamente (ex.: sócio afastado, ex-funcionário com acesso de owner revogado).
+    if (current.role === 'FIRM_OWNER' && !actorIsFirmOwner(actor)) {
+        throw new AppError('Apenas o dono do escritório pode reativar outro dono.', 403, {
+            code: 'OWNER_ROLE_FORBIDDEN',
+        });
+    }
 
     const updated = await firmUsersRepository.setFirmMemberActive(firmId, memberId, true);
     await securityAudit.recordTeamMutation({

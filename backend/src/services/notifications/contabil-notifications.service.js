@@ -221,8 +221,9 @@ async function notifyClientObligationReminder({ clientEmail, clientName, obligat
       title: obligationTitle || 'Lembrete fiscal',
       greeting: `Olá ${escapeHtml(clientName || 'Cliente')},`,
       bodyHtml: `<p style="margin:0">${
-        body ||
-        `A obrigação <strong>${escapeHtml(obligationTitle || '')}</strong> tem prazo ${escapeHtml(dueDate || 'em breve')}.`
+        body
+          ? escapeHtml(body)
+          : `A obrigação <strong>${escapeHtml(obligationTitle || '')}</strong> tem prazo ${escapeHtml(dueDate || 'em breve')}.`
       }</p>`,
       ctaLabel: 'Abrir portal Teglion',
       ctaUrl: portalUrl(),
