@@ -495,6 +495,85 @@ test('computeAvailableSlotsTz: dateOverrides com horário especial substitui o s
   assert.deepEqual(hours, [10, 11]);
 });
 
+test('copyMonthDateOverrides: Agosto → Setembro clona em profundidade (independência)', () => {
+  const source = {
+    '2026-08-05': [],
+    '2026-08-12': [
+      { start: '09:00', end: '12:00' },
+      { start: '14:00', end: '17:00' },
+    ],
+    '2026-07-01': [{ start: '08:00', end: '09:00' }],
+  };
+  const next = bookingService.copyMonthDateOverrides(source, '2026-08', '2026-09');
+  assert.deepEqual(next['2026-09-05'], []);
+  assert.deepEqual(next['2026-09-12'], [
+    { start: '09:00', end: '12:00' },
+    { start: '14:00', end: '17:00' },
+  ]);
+  assert.deepEqual(next['2026-08-12'][0], { start: '09:00', end: '12:00' });
+  next['2026-09-12'][0].start = '10:00';
+  assert.equal(source['2026-08-12'][0].start, '09:00');
+  assert.equal(next['2026-08-12'][0].start, '09:00');
+});
+
+test('copyMonthDateOverrides: substitui chaves já existentes no mês de destino', () => {
+  const source = {
+    '2026-08-01': [{ start: '09:00', end: '10:00' }],
+    '2026-09-01': [],
+    '2026-09-15': [{ start: '11:00', end: '12:00' }],
+  };
+  const next = bookingService.copyMonthDateOverrides(source, '2026-08', '2026-09');
+  assert.deepEqual(next['2026-09-01'], [{ start: '09:00', end: '10:00' }]);
+  assert.equal(next['2026-09-15'], undefined);
+});
+
+test('copyMonthDateOverrides: rejeita from === to e formato inválido', () => {
+  assert.throws(
+    () => bookingService.copyMonthDateOverrides({}, '2026-08', '2026-08'),
+    (err) => err.statusCode === 400,
+  );
+  assert.throws(
+    () => bookingService.copyMonthDateOverrides({}, 'agosto', '2026-09'),
+    (err) => err.statusCode === 400,
+  );
+});
+
+test('updateBookingSettings: copyMonth persiste excepções independentes do mês de origem', async () => {
+  resetMocks();
+  const stored = {
+    id: FIRM.id,
+    settings: {
+      booking: {
+        slotMinutes: 30,
+        horizonDays: 14,
+        leadTimeHours: 2,
+        timezone: 'Europe/Lisbon',
+        weekdays: [1, 2, 3, 4, 5],
+        schedule: { 1: [{ start: '09:00', end: '17:00' }] },
+        dateOverrides: {
+          '2026-08-10': [{ start: '10:00', end: '12:00' }],
+        },
+      },
+    },
+  };
+  let merged = null;
+  mock.method(firmsRepository, 'findFirmById', async () => stored);
+  mock.method(firmsRepository, 'mergeSettingsKey', async (_firmId, key, value) => {
+    assert.equal(key, 'booking');
+    merged = value;
+    stored.settings.booking = value;
+    return stored;
+  });
+
+  const result = await bookingService.updateBookingSettings(FIRM.id, {
+    copyMonth: { from: '2026-08', to: '2026-09' },
+  });
+  assert.deepEqual(result.dateOverrides['2026-09-10'], [{ start: '10:00', end: '12:00' }]);
+  assert.deepEqual(merged.dateOverrides['2026-08-10'], [{ start: '10:00', end: '12:00' }]);
+  result.dateOverrides['2026-09-10'][0].start = '11:00';
+  assert.equal(merged.dateOverrides['2026-08-10'][0].start, '10:00');
+});
+
 test('listSlotsForBooking: horário ocupado no Google Calendar ligado não aparece como slot livre (Fase Hc)', async () => {
   resetMocks();
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => SERVICE);

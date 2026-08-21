@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 
 import { AgendaAvailabilityPanel } from '@/features/firm/agenda/AgendaAvailabilityPanel'
 import { cloneBookingSchedule } from '@/features/firm/agenda/agendaCalendarUtils'
+import { cloneDateOverrides } from '@/features/firm/agenda/bookingDateOverrides'
 import {
   bookingOverridesPayload,
   defaultIntervalFromSchedule,
@@ -16,11 +17,16 @@ import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { getErrorMessage } from '@/shared/utils/errors'
-import type { AccountingService, BookingDaySchedule } from '@/shared/types/contabil'
+import type {
+  AccountingService,
+  BookingDateOverrides,
+  BookingDaySchedule,
+} from '@/shared/types/contabil'
 
 type Draft = {
   enabled: boolean
   schedule: BookingDaySchedule
+  dateOverrides: BookingDateOverrides
 }
 
 function draftFromService(service: AccountingService, firmSchedule: BookingDaySchedule): Draft {
@@ -28,6 +34,7 @@ function draftFromService(service: AccountingService, firmSchedule: BookingDaySc
   return {
     enabled,
     schedule: scheduleFromServiceOverrides(service.bookingOverrides, firmSchedule),
+    dateOverrides: cloneDateOverrides(service.bookingOverrides?.dateOverrides),
   }
 }
 
@@ -83,7 +90,7 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
 
   async function saveService(service: AccountingService) {
     const draft = draftFor(service)
-    const payload = bookingOverridesPayload(draft.enabled, draft.schedule)
+    const payload = bookingOverridesPayload(draft.enabled, draft.schedule, draft.dateOverrides)
     if (draft.enabled && (!payload || payload.weekdays.length === 0)) {
       toast.error('Escolha pelo menos um dia para este serviço.')
       return
@@ -191,6 +198,7 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
                       patchDraft(service.id, {
                         enabled: on,
                         schedule: on ? cloneBookingSchedule(firmSchedule) : draft.schedule,
+                        dateOverrides: on ? draft.dateOverrides : {},
                       })
                     }}
                   />
@@ -211,6 +219,8 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
                       defaultInterval={defaultIntervalFromSchedule(firmSchedule)}
                       schedule={draft.schedule}
                       onScheduleChange={(next) => patchDraft(service.id, { schedule: next })}
+                      dateOverrides={draft.dateOverrides}
+                      onDateOverridesChange={(next) => patchDraft(service.id, { dateOverrides: next })}
                       slotMin={30}
                       horizon={14}
                       bookingTz="Europe/Lisbon"

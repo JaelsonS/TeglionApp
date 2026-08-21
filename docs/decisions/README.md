@@ -20,6 +20,9 @@ Formato de arquivo: `ADR-NNNN-nome-curto-da-decisao.md`, numeração sequencial,
 | [ADR-0006](./ADR-0006-obrigacao-custom-estrategia-entrada-pais.md) | O tipo de obrigação `CUSTOM` permite que um escritório opere em um país sem calendário fiscal automático (hoje, o Brasil), sem bloquear a expansão até a automação fiscal completa desse país estar pronta. |
 | [ADR-0007](./ADR-0007-scheduler-central-polling-frontend.md) | Um scheduler central de polling por shell do frontend (escritório/cliente) substitui temporizadores independentes por componente, invalidando cache em um único intervalo em vez de "N intervals" — ainda coexistindo com hooks de badge que mantêm `refetchInterval` próprio. |
 | [ADR-0008](./ADR-0008-tarefas-multi-cliente-m2m.md) | Tarefas manuais podem ter vários clientes via `client_task_client_links` (M2M, mesmo padrão de `firm_entity_tag_links`), com `client_tasks.client_id` mantida como ponteiro legado sincronizado automaticamente, não removida nesta fase. |
+| [ADR-0009](./ADR-0009-servicos-grupos-e-posicionamento-imagem.md) | Serviços agrupados em `accounting_service_groups` (1 nível) e imagem de banner com posicionamento reversível (ponto focal + zoom), sem assar o crop nos pixels. |
+| [ADR-0010](./ADR-0010-agenda-calendario-excepcoes-e-copia-mes.md) | Excepções de disponibilidade (`dateOverrides`) editadas via `CalendarMonthGrid` + Dialog por dia, com «copiar mês» em cópia profunda independente; sem migration — reutiliza `schedule`/`dateOverrides` existentes. |
+| [ADR-0011](./ADR-0011-servico-oferta-opcoes.md) | Oferta comercial: serviço principal → opções (serviços reais via `accounting_service_option_links`), profundidade 1, dados vivos, booking no `service_id` da opção — sem hierarquia recursiva de categorias. |
 
 ## Como eu proponho um novo ADR
 

@@ -392,6 +392,23 @@ export type AccountingService = {
   paymentMethod?: 'bank_transfer' | 'multibanco' | 'stripe_connect'
   /** Se true, agendamento público exige Checkout Stripe antes de confirmar. */
   paymentRequired?: boolean
+  /** IDs das opções (serviços reais) desta oferta comercial — vazio = serviço simples. */
+  optionServiceIds?: string[]
+  /** Dados vivos das opções (preço/duração vêm do serviço filho, sem cópia). */
+  options?: AccountingServiceOptionSummary[]
+}
+
+export type AccountingServiceOptionSummary = {
+  id: string
+  name: string
+  durationMinutes: number
+  priceCents: number
+  priceTaxMode?: 'included' | 'excluded' | null
+  currency?: string
+  isActive: boolean
+  isPubliclyListed: boolean
+  slug?: string | null
+  requiresBooking: boolean
 }
 
 export type AccountingServiceGroup = {

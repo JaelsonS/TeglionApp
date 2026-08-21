@@ -432,6 +432,7 @@ export function ServicesCatalogWorkspace({
       <ServiceFullEditorSheet
         service={editingService}
         open={editorOpen}
+        catalogServices={services}
         initialCatalogHint={catalogHint}
         onOpenChange={(open) => {
           setEditorOpen(open)

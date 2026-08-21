@@ -19,6 +19,7 @@ import { toast } from 'sonner'
 
 import { ServiceFormPreview } from '@/features/firm/agenda/ServiceFormPreview'
 import { IntakeStartModeFields } from '@/features/firm/services/IntakeStartModeFields'
+import { ServiceOfferOptionsEditor } from '@/features/firm/services/ServiceOfferOptionsEditor'
 import { ServiceBookingAvailabilitySection } from '@/features/firm/services/ServiceBookingAvailabilitySection'
 import { bookingOverridesPayload, hasCustomBookingHours } from '@/features/firm/services/serviceBookingAvailability'
 import {
@@ -167,6 +168,8 @@ type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSaved: () => void
+  /** Catálogo do escritório — para escolher opções da oferta. */
+  catalogServices?: AccountingService[]
   /** Semente ao criar a partir de um modelo Teglion (depois de activar, passe o serviço criado). */
   initialCatalogHint?: { name?: string; catalogKey?: string } | null
 }
@@ -176,6 +179,7 @@ export function ServiceFullEditorSheet({
   open,
   onOpenChange,
   onSaved,
+  catalogServices = [],
   initialCatalogHint,
 }: Props) {
   const isCreate = !service
@@ -212,6 +216,7 @@ export function ServiceFullEditorSheet({
   const [slug, setSlug] = useState('')
   const [isPubliclyListed, setIsPubliclyListed] = useState(false)
   const [groupId, setGroupId] = useState('')
+  const [optionServiceIds, setOptionServiceIds] = useState<string[]>([])
 
   const groupsQuery = useQuery({
     queryKey: ['contabil-accounting-service-groups'],
@@ -220,6 +225,15 @@ export function ServiceFullEditorSheet({
     enabled: open,
   })
   const groups = groupsQuery.data?.items ?? []
+
+  const catalogQuery = useQuery({
+    queryKey: ['contabil-accounting-services', 'editor-catalog'],
+    queryFn: () => contabilAccountingServicesApi.list({ activeOnly: false }),
+    staleTime: 30_000,
+    enabled: open && catalogServices.length === 0,
+  })
+  const servicesForOptions =
+    catalogServices.length > 0 ? catalogServices : ((catalogQuery.data?.items as AccountingService[]) || [])
 
   const [documentRequirements, setDocumentRequirements] = useState<DocumentRequirement[]>([])
   const [questions, setQuestions] = useState<IntakeQuestion[]>([])
@@ -267,6 +281,7 @@ export function ServiceFullEditorSheet({
       setSlug(service.slug || '')
       setIsPubliclyListed(Boolean(service.isPubliclyListed))
       setGroupId(service.groupId || '')
+      setOptionServiceIds(service.optionServiceIds?.length ? [...service.optionServiceIds] : [])
       setDocumentRequirements(service.documentRequirements ?? [])
       setQuestions(serviceQuestions)
       setFormEnabled(serviceQuestions.length > 0)
@@ -293,6 +308,7 @@ export function ServiceFullEditorSheet({
       setSlug('')
       setIsPubliclyListed(false)
       setGroupId('')
+      setOptionServiceIds([])
       setDocumentRequirements([])
       setQuestions([])
       setFormEnabled(false)
@@ -546,6 +562,7 @@ export function ServiceFullEditorSheet({
       slug: slug.trim() || null,
       isPubliclyListed,
       groupId: groupId || null,
+      optionServiceIds,
       paymentMethod: paymentRequired ? 'stripe_connect' : paymentMethod,
       paymentRequired,
       documentRequirements,
@@ -745,6 +762,18 @@ export function ServiceFullEditorSheet({
                     durationMinutes={durationMinutes}
                     value={bookingOverrides}
                     onChange={setBookingOverrides}
+                  />
+                </SectionCard>
+
+                <SectionCard
+                  title="Opções do serviço"
+                  description="Transforme esta oferta numa apresentação comercial com modalidades escolhíveis pelo cliente."
+                >
+                  <ServiceOfferOptionsEditor
+                    currentServiceId={service?.id}
+                    allServices={servicesForOptions}
+                    value={optionServiceIds}
+                    onChange={setOptionServiceIds}
                   />
                 </SectionCard>
 

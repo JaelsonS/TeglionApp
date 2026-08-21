@@ -403,7 +403,16 @@ function ServiceCard({
               <SanitizedServiceHtml html={service.description} className="mt-1 line-clamp-2 text-sm" />
             ) : null}
           </div>
-          {showPrices && service.priceCents > 0 ? (
+          {showPrices && service.hasOptions && (service.fromPriceCents ?? 0) > 0 ? (
+            <div className="shrink-0 text-right">
+              <span className="block text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                A partir de
+              </span>
+              <span className="block text-sm font-semibold text-[hsl(var(--brand-text,var(--primary)))]">
+                {formatPrice(service.fromPriceCents || 0)}
+              </span>
+            </div>
+          ) : showPrices && !service.hasOptions && service.priceCents > 0 ? (
             <div className="shrink-0 text-right">
               <span className="block text-sm font-semibold text-[hsl(var(--brand-text,var(--primary)))]">
                 {formatPrice(service.priceCents)}
@@ -416,7 +425,13 @@ function ServiceCard({
             </div>
           ) : null}
         </div>
-        {service.requiresBooking ? (
+        {service.hasOptions ? (
+          <p className="mt-3 text-xs text-muted-foreground">
+            {(service.options?.length || 0) > 1
+              ? `${service.options!.length} opções · escolha a modalidade`
+              : 'Várias modalidades disponíveis'}
+          </p>
+        ) : service.requiresBooking ? (
           <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
             <CalendarClock className="h-3.5 w-3.5" /> {service.durationMinutes} min · com agendamento
           </p>

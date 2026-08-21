@@ -30,8 +30,23 @@ async function resolvePublicService(firmSlug, serviceSlug) {
   return { firm, service };
 }
 
-async function mapPublicServiceSummary(s, groupNameById) {
+async function mapPublicServiceSummary(s, groupNameById, { options = [] } = {}) {
   const enriched = await accountingServicesService.enrichService(s, groupNameById);
+  const publicOptions = options
+    .filter((o) => o.isActive !== false && o.isPubliclyListed && o.slug)
+    .map((o) => ({
+      slug: o.slug,
+      name: interpolateServiceTemplate(o.name),
+      description: null,
+      durationMinutes: o.durationMinutes,
+      priceCents: o.priceCents,
+      priceTaxMode: o.priceTaxMode || null,
+      requiresBooking: o.requiresBooking === true,
+    }));
+  const fromPriceCents =
+    publicOptions.length > 0
+      ? Math.min(...publicOptions.map((o) => Number(o.priceCents) || 0))
+      : enriched.priceCents;
   return {
     slug: enriched.slug,
     name: interpolateServiceTemplate(enriched.name),
@@ -47,7 +62,35 @@ async function mapPublicServiceSummary(s, groupNameById) {
     imageFocusX: enriched.imageFocusX,
     imageFocusY: enriched.imageFocusY,
     imageZoom: enriched.imageZoom,
+    hasOptions: publicOptions.length > 0,
+    fromPriceCents: publicOptions.length > 0 ? fromPriceCents : null,
+    options: publicOptions.length > 0 ? publicOptions : undefined,
   };
+}
+
+/**
+ * Catálogo público de topo: serviços publicados, excepto opções de ofertas
+ * também publicadas (evita poluição — a opção aparece dentro da oferta).
+ */
+async function listPublicCatalogServices(firmId) {
+  const [services, groupNameById] = await Promise.all([
+    accountingServicesRepository.listByFirm(firmId, { activeOnly: true }),
+    resolveGroupNameMap(firmId),
+  ]);
+  const withOptions = await accountingServicesService.attachOptionsToServices(firmId, services);
+  const optionChildIds = new Set();
+  for (const s of withOptions) {
+    if (s.isPubliclyListed && s.slug && (s.options || []).length > 0) {
+      for (const opt of s.options) optionChildIds.add(opt.id);
+    }
+  }
+  const items = [];
+  for (const s of withOptions) {
+    if (!s.isPubliclyListed || !s.slug) continue;
+    if (optionChildIds.has(s.id)) continue;
+    items.push(await mapPublicServiceSummary(s, groupNameById, { options: s.options || [] }));
+  }
+  return items;
 }
 
 async function resolveGroupNameMap(firmId) {
@@ -82,15 +125,7 @@ async function getPublicFirmServices(req, res, next) {
     const firm = await firmsRepository.findFirmBySlugOrLabel(firmSlug);
     if (!firm) throw new AppError('Escritório não encontrado', 404, { code: 'NOT_FOUND' });
 
-    const [services, groupNameById] = await Promise.all([
-      accountingServicesRepository.listByFirm(firm.id, { activeOnly: true }),
-      resolveGroupNameMap(firm.id),
-    ]);
-    const items = await Promise.all(
-      services
-        .filter((s) => s.isPubliclyListed && s.slug)
-        .map((s) => mapPublicServiceSummary(s, groupNameById)),
-    );
+    const items = await listPublicCatalogServices(firm.id);
 
     let logoUrl = null;
     try {
@@ -147,15 +182,7 @@ async function getPublicFirmSite(req, res, next) {
       ? site.draft
       : site.published || firmPublicSiteService.buildConfigFromLegacySettings(firm);
 
-    const [services, groupNameById] = await Promise.all([
-      accountingServicesRepository.listByFirm(firm.id, { activeOnly: true }),
-      resolveGroupNameMap(firm.id),
-    ]);
-    const items = await Promise.all(
-      services
-        .filter((s) => s.isPubliclyListed && s.slug)
-        .map((s) => mapPublicServiceSummary(s, groupNameById)),
-    );
+    const items = await listPublicCatalogServices(firm.id);
 
     let logoUrl = null;
     try {
@@ -253,6 +280,18 @@ async function getPublicService(req, res, next) {
     const showFirmLogo = service.intakeForm?.pageOptions?.showFirmLogo !== false;
     const showTeglionCredit = await entitlements.showTeglionBranding(firm.id);
 
+    const withOptions = await accountingServicesService.attachOptionsToServices(firm.id, [service]);
+    const optionSummaries = (withOptions[0]?.options || [])
+      .filter((o) => o.isActive !== false && o.isPubliclyListed && o.slug)
+      .map((o) => ({
+        slug: o.slug,
+        name: interpolateServiceTemplate(o.name),
+        durationMinutes: o.durationMinutes,
+        priceCents: o.priceCents,
+        priceTaxMode: o.priceTaxMode || null,
+        requiresBooking: o.requiresBooking === true,
+      }));
+
     return res.json({
       firmName: resolvePublicFirmName(firm),
       logoUrl: showFirmLogo ? logoUrl : null,
@@ -275,6 +314,8 @@ async function getPublicService(req, res, next) {
       termsText,
       privacyText,
       theme,
+      hasOptions: optionSummaries.length > 0,
+      options: optionSummaries,
     });
   } catch (err) {
     return next(err);

@@ -69,6 +69,7 @@ export function AgendaSettingsView(props: Props) {
           onHorizon={props.onHorizon}
           onBookingTz={props.onBookingTz}
           onSaveAvailability={props.onSaveAvailability}
+          bookableServices={props.services.filter((s) => s.isActive !== false && s.requiresBooking)}
         />
       </section>
 

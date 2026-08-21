@@ -35,9 +35,10 @@ describe('hasCustomBookingHours', () => {
     expect(hasCustomBookingHours({})).toBe(false)
   })
 
-  it('detects weekdays or schedule', () => {
+  it('detects weekdays, schedule or dateOverrides', () => {
     expect(hasCustomBookingHours({ weekdays: [1, 2] })).toBe(true)
     expect(hasCustomBookingHours({ schedule: { 1: [{ start: '09:00', end: '12:00' }] } })).toBe(true)
+    expect(hasCustomBookingHours({ dateOverrides: { '2026-08-10': [] } })).toBe(true)
   })
 })
 

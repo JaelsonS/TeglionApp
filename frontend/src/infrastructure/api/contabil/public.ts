@@ -3,6 +3,15 @@ import type { IntakeForm } from '@/shared/types/contabil'
 import type { PublicSiteConfig } from '@/shared/types/firmPublicSite'
 import { withTurnstileToken } from '@/shared/security/withTurnstileToken'
 
+export type PublicFirmServiceOption = {
+  slug: string
+  name: string
+  durationMinutes: number
+  priceCents: number
+  priceTaxMode?: 'included' | 'excluded' | null
+  requiresBooking: boolean
+}
+
 export type PublicFirmServiceSummary = {
   slug: string
   name: string
@@ -18,6 +27,10 @@ export type PublicFirmServiceSummary = {
   imageFocusX?: number | null
   imageFocusY?: number | null
   imageZoom?: number | null
+  /** Oferta com opções — o cliente escolhe um serviço real. */
+  hasOptions?: boolean
+  fromPriceCents?: number | null
+  options?: PublicFirmServiceOption[]
 }
 
 export type PublicServiceIntake = {
@@ -42,6 +55,8 @@ export type PublicServiceIntake = {
   termsText?: string | null
   privacyText?: string | null
   theme?: PublicSiteConfig['theme'] | null
+  hasOptions?: boolean
+  options?: PublicFirmServiceOption[]
 }
 
 export type PublicFirmFaq = {

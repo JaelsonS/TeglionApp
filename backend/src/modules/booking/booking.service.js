@@ -179,6 +179,39 @@ function normalizeDateOverrides(raw) {
   return out;
 }
 
+function cloneDateOverrides(raw) {
+  return normalizeDateOverrides(raw);
+}
+
+/**
+ * Copia excepções de um mês civil (YYYY-MM) para outro.
+ * Clona intervalos em profundidade — alterar o mês de destino não muta o de origem.
+ * Substitui as chaves já existentes no mês de destino.
+ */
+function copyMonthDateOverrides(dateOverrides, fromYearMonth, toYearMonth) {
+  if (!/^\d{4}-\d{2}$/.test(fromYearMonth) || !/^\d{4}-\d{2}$/.test(toYearMonth)) {
+    throw new AppError('copyMonth exige from/to no formato YYYY-MM', 400);
+  }
+  if (fromYearMonth === toYearMonth) {
+    throw new AppError('copyMonth: mês de origem e destino têm de ser diferentes', 400);
+  }
+  const source = normalizeDateOverrides(dateOverrides);
+  const next = cloneDateOverrides(source);
+  for (const key of Object.keys(next)) {
+    if (key.startsWith(`${toYearMonth}-`)) delete next[key];
+  }
+  const [ty, tm] = toYearMonth.split('-').map(Number);
+  const daysInTarget = new Date(ty, tm, 0).getDate();
+  for (const [date, intervals] of Object.entries(source)) {
+    if (!date.startsWith(`${fromYearMonth}-`)) continue;
+    const day = date.slice(8, 10);
+    if (!/^\d{2}$/.test(day)) continue;
+    if (Number(day) > daysInTarget) continue;
+    next[`${toYearMonth}-${day}`] = (intervals || []).map((iv) => ({ start: iv.start, end: iv.end }));
+  }
+  return next;
+}
+
 function overlaps(a0, a1, b0, b1) {
   return a0 < b1 && b0 < a1;
 }
@@ -243,7 +276,24 @@ async function updateBookingSettings(firmId, patch) {
   const firm = await firmsRepository.findFirmById(firmId);
   if (!firm) throw new AppError('Escritório não encontrado', 404);
   const prev = normalizeBooking(firm.settings?.booking || {});
-  const next = normalizeBooking({ ...prev, ...(patch || {}) });
+  const body = patch && typeof patch === 'object' ? { ...patch } : {};
+  const copyMonth = body.copyMonth;
+  delete body.copyMonth;
+
+  let merged = { ...prev, ...body };
+  if (copyMonth != null) {
+    if (typeof copyMonth !== 'object' || Array.isArray(copyMonth)) {
+      throw new AppError('copyMonth deve ser um objeto { from, to }', 400);
+    }
+    const from = String(copyMonth.from || '');
+    const to = String(copyMonth.to || '');
+    // Base: dateOverrides do patch (se veio) ou os já persistidos — depois aplica a cópia.
+    const baseOverrides =
+      body.dateOverrides != null ? normalizeDateOverrides(body.dateOverrides) : prev.dateOverrides;
+    merged.dateOverrides = copyMonthDateOverrides(baseOverrides, from, to);
+  }
+
+  const next = normalizeBooking(merged);
   await firmsRepository.mergeSettingsKey(firmId, 'booking', next);
   return next;
 }
@@ -485,6 +535,9 @@ module.exports = {
   defaultBooking: () => ({ ...DEFAULT_BOOKING }),
   defaultBookingSeed,
   normalizeBooking,
+  normalizeDateOverrides,
+  cloneDateOverrides,
+  copyMonthDateOverrides,
   computeAvailableSlotsTz,
   getBookingConfigForFirm,
   updateBookingSettings,

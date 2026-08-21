@@ -20,7 +20,11 @@ export function hasCustomBookingHours(overrides?: Partial<FirmBookingSettings> |
       if (Array.isArray(intervals) && intervals.length > 0) return true
     }
   }
-  return Array.isArray(overrides.weekdays) && overrides.weekdays.length > 0
+  if (Array.isArray(overrides.weekdays) && overrides.weekdays.length > 0) return true
+  if (overrides.dateOverrides && typeof overrides.dateOverrides === 'object') {
+    return Object.keys(overrides.dateOverrides).length > 0
+  }
+  return false
 }
 
 export function scheduleFromFirmBooking(
@@ -58,22 +62,42 @@ export function scheduleFromServiceOverrides(
   return Object.keys(filtered).length ? filtered : cloneBookingSchedule(firmSchedule)
 }
 
-export function bookingOverridesFromSchedule(schedule: BookingDaySchedule): {
+export function bookingOverridesFromSchedule(
+  schedule: BookingDaySchedule,
+  dateOverrides?: FirmBookingSettings['dateOverrides'],
+): {
   weekdays: number[]
   schedule: BookingDaySchedule
+  dateOverrides?: FirmBookingSettings['dateOverrides']
 } {
-  return {
+  const payload: {
+    weekdays: number[]
+    schedule: BookingDaySchedule
+    dateOverrides?: FirmBookingSettings['dateOverrides']
+  } = {
     weekdays: weekdaysFromSchedule(schedule),
     schedule: cloneBookingSchedule(schedule),
   }
+  if (dateOverrides && Object.keys(dateOverrides).length > 0) {
+    payload.dateOverrides = { ...dateOverrides }
+    for (const [date, intervals] of Object.entries(dateOverrides)) {
+      payload.dateOverrides[date] = (intervals || []).map((iv) => ({ start: iv.start, end: iv.end }))
+    }
+  }
+  return payload
 }
 
 export function bookingOverridesPayload(
   enabled: boolean,
   schedule: BookingDaySchedule,
-): { weekdays: number[]; schedule: BookingDaySchedule } | null {
+  dateOverrides?: FirmBookingSettings['dateOverrides'],
+): {
+  weekdays: number[]
+  schedule: BookingDaySchedule
+  dateOverrides?: FirmBookingSettings['dateOverrides']
+} | null {
   if (!enabled) return null
-  return bookingOverridesFromSchedule(schedule)
+  return bookingOverridesFromSchedule(schedule, dateOverrides)
 }
 
 export function defaultIntervalFromSchedule(schedule: BookingDaySchedule): TimeInterval {

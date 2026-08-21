@@ -4,6 +4,7 @@ const { mock } = require('node:test');
 
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const accountingServiceGroupsRepository = require('../../db/supabase/repositories/accounting-service-groups.repository');
+const accountingServiceOptionsRepository = require('../../db/supabase/repositories/accounting-service-options.repository');
 const accountingServicesService = require('./accounting-services.service');
 
 function resetMocks() {
@@ -13,6 +14,9 @@ function resetMocks() {
   // verdade sobrepõem este mock explicitamente.
   mock.method(accountingServiceGroupsRepository, 'listByFirm', async () => []);
   mock.method(accountingServiceGroupsRepository, 'findByIdForFirm', async () => null);
+  mock.method(accountingServiceOptionsRepository, 'listByFirm', async () => []);
+  mock.method(accountingServiceOptionsRepository, 'listParentIdsForChild', async () => []);
+  mock.method(accountingServiceOptionsRepository, 'replaceForParent', async () => []);
 }
 
 test('normalizeIntakeForm: undefined passa por undefined (não altera o patch)', () => {

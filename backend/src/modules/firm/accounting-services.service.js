@@ -3,6 +3,7 @@ const { AppError } = require('../../middlewares/error.middleware');
 const { mapDbError } = require('../../utils/db-error');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const accountingServiceGroupsRepository = require('../../db/supabase/repositories/accounting-service-groups.repository');
+const accountingServiceOptionsRepository = require('../../db/supabase/repositories/accounting-service-options.repository');
 const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-catalog');
 const { titleForTag } = require('../../data/irs-modelo3-intake');
 const { BOOKING_TIMEZONES } = require('../booking/booking.service');
@@ -449,6 +450,112 @@ async function enrichService(item, groupNameById) {
   return { ...item, imageUrl, imageOriginalUrl, imageStorageKey, publicGroup };
 }
 
+function optionSummaryFromService(s) {
+  return {
+    id: s.id,
+    name: s.name,
+    durationMinutes: s.durationMinutes,
+    priceCents: s.priceCents,
+    priceTaxMode: s.priceTaxMode || null,
+    currency: s.currency || 'EUR',
+    isActive: s.isActive !== false,
+    isPubliclyListed: Boolean(s.isPubliclyListed),
+    slug: s.slug || null,
+    requiresBooking: s.requiresBooking === true,
+  };
+}
+
+/**
+ * Anexa optionServiceIds + options (dados vivos dos filhos) a uma lista de serviços.
+ * Sem denormalização de preço/duração — sempre lê o serviço filho actual.
+ */
+async function attachOptionsToServices(firmId, items) {
+  if (!items?.length) return items || [];
+  const links = await accountingServiceOptionsRepository.listByFirm(firmId);
+  if (!links.length) {
+    return items.map((item) => ({ ...item, optionServiceIds: [], options: [] }));
+  }
+  const byParent = new Map();
+  for (const link of links) {
+    if (!byParent.has(link.parentServiceId)) byParent.set(link.parentServiceId, []);
+    byParent.get(link.parentServiceId).push(link);
+  }
+  const childIds = [...new Set(links.map((l) => l.childServiceId))];
+  const children = await accountingServicesRepository.findByIdsForFirm(childIds, firmId);
+  const childById = new Map(children.map((c) => [c.id, c]));
+
+  return items.map((item) => {
+    const parentLinks = byParent.get(item.id) || [];
+    const options = [];
+    const optionServiceIds = [];
+    for (const link of parentLinks) {
+      const child = childById.get(link.childServiceId);
+      if (!child) continue;
+      optionServiceIds.push(child.id);
+      options.push(optionSummaryFromService(child));
+    }
+    return { ...item, optionServiceIds, options };
+  });
+}
+
+/**
+ * Substitui as opções do serviço principal.
+ * Profundidade 1 obrigatória: parent não pode ser child de ninguém; child não pode ter opções.
+ * Cross-tenant / inexistente: rejeitado (findByIdsForFirm). Sem cópia de preço/duração.
+ */
+async function setServiceOptions({ firmId, parentServiceId, optionServiceIds }) {
+  const parent = await accountingServicesRepository.findByIdForFirm(parentServiceId, firmId);
+  if (!parent) throw new AppError('Serviço não encontrado', 404);
+
+  if (!Array.isArray(optionServiceIds)) {
+    throw new AppError('optionServiceIds deve ser uma lista', 400);
+  }
+
+  const seen = new Set();
+  const ordered = [];
+  for (const raw of optionServiceIds) {
+    const id = String(raw || '').trim();
+    if (!id) continue;
+    if (id === parentServiceId) {
+      throw new AppError('Um serviço não pode ser opção de si próprio', 400, { code: 'OPTION_SELF_REF' });
+    }
+    if (seen.has(id)) continue;
+    seen.add(id);
+    ordered.push(id);
+  }
+
+  if (ordered.length) {
+    const asChildOf = await accountingServiceOptionsRepository.listParentIdsForChild(firmId, parentServiceId);
+    if (asChildOf.length) {
+      throw new AppError(
+        'Este serviço já é opção de outra oferta — não pode ter opções próprias (profundidade máxima: 1)',
+        400,
+        { code: 'OPTION_DEPTH' },
+      );
+    }
+
+    const children = await accountingServicesRepository.findByIdsForFirm(ordered, firmId);
+    if (children.length !== ordered.length) {
+      throw new AppError('Uma ou mais opções não existem neste escritório', 400, { code: 'OPTION_NOT_FOUND' });
+    }
+
+    const childLinks = await accountingServiceOptionsRepository.listByFirm(firmId);
+    const parentsWithOptions = new Set(childLinks.map((l) => l.parentServiceId));
+    for (const id of ordered) {
+      if (parentsWithOptions.has(id)) {
+        throw new AppError(
+          'Não pode usar como opção um serviço que já tem opções próprias (profundidade máxima: 1)',
+          400,
+          { code: 'OPTION_CYCLE' },
+        );
+      }
+    }
+  }
+
+  await accountingServiceOptionsRepository.replaceForParent(firmId, parentServiceId, ordered);
+  return ordered;
+}
+
 async function resolveGroupNameMap(firmId) {
   const groups = await accountingServiceGroupsRepository.listByFirm(firmId);
   return new Map(groups.map((g) => [g.id, g.name]));
@@ -459,7 +566,8 @@ async function list({ firmId, activeOnly }) {
     accountingServicesRepository.listByFirm(firmId, { activeOnly: Boolean(activeOnly) }),
     resolveGroupNameMap(firmId),
   ]);
-  return { items: await Promise.all(items.map((item) => enrichService(item, groupNameById))) };
+  const enriched = await Promise.all(items.map((item) => enrichService(item, groupNameById)));
+  return { items: await attachOptionsToServices(firmId, enriched) };
 }
 
 async function create({ firmId, payload }) {
@@ -543,7 +651,12 @@ async function create({ firmId, payload }) {
     paymentRequired,
     priceTaxMode: normalizePriceTaxMode(payload?.priceTaxMode) ?? null,
   });
-  return { item: await enrichService(item, await resolveGroupNameMap(firmId)) };
+  if (payload?.optionServiceIds !== undefined) {
+    await setServiceOptions({ firmId, parentServiceId: item.id, optionServiceIds: payload.optionServiceIds });
+  }
+  const enriched = await enrichService(item, await resolveGroupNameMap(firmId));
+  const [withOptions] = await attachOptionsToServices(firmId, [enriched]);
+  return { item: withOptions };
 }
 
 async function update({ firmId, id, payload }) {
@@ -647,7 +760,12 @@ async function update({ firmId, id, payload }) {
   }
 
   const item = await accountingServicesRepository.updateRow(id, firmId, patch);
-  return { item: await enrichService(item, await resolveGroupNameMap(firmId)) };
+  if (payload?.optionServiceIds !== undefined) {
+    await setServiceOptions({ firmId, parentServiceId: id, optionServiceIds: payload.optionServiceIds });
+  }
+  const enriched = await enrichService(item, await resolveGroupNameMap(firmId));
+  const [withOptions] = await attachOptionsToServices(firmId, [enriched]);
+  return { item: withOptions };
 }
 
 /**
@@ -824,6 +942,8 @@ module.exports = {
   uploadServiceImage,
   enrichService,
   resolveServiceImageUrl,
+  setServiceOptions,
+  attachOptionsToServices,
   getCatalogTemplate: () => CONSULTING_SERVICES_CATALOG,
   normalizeIntakeForm,
   normalizeBookingOverrides,
