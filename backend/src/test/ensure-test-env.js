@@ -16,6 +16,8 @@ const defaults = {
   JWT_REFRESH_SECRET: 'test-refresh-secret-min-32-chars!',
   SUPABASE_URL: 'https://example.supabase.co',
   SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
+  // 32 bytes hex — só para testes unitários de crypto/MFA
+  DATA_ENCRYPTION_KEY: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
 };
 
 for (const key of Object.keys(defaults)) {

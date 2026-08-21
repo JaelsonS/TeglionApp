@@ -424,6 +424,7 @@ router.put(
   [
     body('currentPassword').optional({ values: 'falsy' }).isString().isLength({ min: 1, max: 200 }),
     body('stepUpToken').optional({ values: 'falsy' }).isString().isLength({ min: 20, max: 4000 }),
+    body('totpCode').optional({ values: 'falsy' }).isString().matches(/^\d{6}$/),
     body('rememberSession').optional().isBoolean(),
     body('portalKey').isString().isLength({ min: 2, max: 40 }),
     body('accessId').optional({ nullable: true }).isUUID(),
@@ -440,6 +441,7 @@ router.post(
   [
     body('currentPassword').optional({ values: 'falsy' }).isString().isLength({ min: 1, max: 200 }),
     body('stepUpToken').optional({ values: 'falsy' }).isString().isLength({ min: 20, max: 4000 }),
+    body('totpCode').optional({ values: 'falsy' }).isString().matches(/^\d{6}$/),
     body('rememberSession').optional().isBoolean(),
   ],
   officialAccessesController.reveal,
@@ -451,6 +453,7 @@ router.post(
   [
     body('currentPassword').optional({ values: 'falsy' }).isString().isLength({ min: 1, max: 200 }),
     body('stepUpToken').optional({ values: 'falsy' }).isString().isLength({ min: 20, max: 4000 }),
+    body('totpCode').optional({ values: 'falsy' }).isString().matches(/^\d{6}$/),
     body('rememberSession').optional().isBoolean(),
   ],
   officialAccessesController.remove,

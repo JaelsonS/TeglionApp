@@ -109,13 +109,23 @@ function withStepUp(payload, unlock) {
   };
 }
 
-async function unlockActor({ firmId, actorId, currentPassword, stepUpToken, rememberSession }) {
-  return stepUp.verifyStaffPassword({
+async function unlockActor({
+  firmId,
+  actorId,
+  currentPassword,
+  stepUpToken,
+  rememberSession,
+  totpCode,
+}) {
+  const mfa = require('../auth/mfa.service');
+  return mfa.verifyMfaOrVaultPassword({
     firmId,
     userId: actorId,
+    totpCode: totpCode || null,
     currentPassword,
     stepUpToken,
     rememberSession: Boolean(rememberSession),
+    purpose: 'vault_credentials_view',
   });
 }
 
@@ -127,6 +137,7 @@ async function upsertOfficialAccess({
   currentPassword,
   stepUpToken,
   rememberSession,
+  totpCode,
   portalKey,
   accessId,
   label,
@@ -141,6 +152,7 @@ async function upsertOfficialAccess({
     currentPassword,
     stepUpToken,
     rememberSession,
+    totpCode,
   });
   const actor = unlock.actor;
 
@@ -233,6 +245,7 @@ async function revealOfficialAccess({
   currentPassword,
   stepUpToken,
   rememberSession,
+  totpCode,
   req,
 }) {
   await requireClient(firmId, clientId);
@@ -242,6 +255,7 @@ async function revealOfficialAccess({
     currentPassword,
     stepUpToken,
     rememberSession,
+    totpCode,
   });
   const actor = unlock.actor;
   const row = await accessesRepository.findById(firmId, clientId, accessId);
@@ -282,6 +296,7 @@ async function removeOfficialAccess({
   currentPassword,
   stepUpToken,
   rememberSession,
+  totpCode,
   req,
 }) {
   await requireClient(firmId, clientId);
@@ -291,6 +306,7 @@ async function removeOfficialAccess({
     currentPassword,
     stepUpToken,
     rememberSession,
+    totpCode,
   });
   const actor = unlock.actor;
   const row = await accessesRepository.findById(firmId, clientId, accessId);

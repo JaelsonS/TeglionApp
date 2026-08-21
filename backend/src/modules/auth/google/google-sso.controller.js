@@ -115,6 +115,24 @@ async function googleCallback(req, res) {
     });
 
     if (loginResult.ok) {
+      if (
+        loginResult.status === 'MFA_CHALLENGE_REQUIRED' ||
+        loginResult.status === 'MFA_ENROLLMENT_REQUIRED'
+      ) {
+        const {
+          setMfaChallengeCookie,
+          clearAccessTokenCookie,
+          clearRefreshTokenCookie,
+        } = require('../../../utils/auth-cookies');
+        clearAccessTokenCookie(res, { req });
+        clearRefreshTokenCookie(res, { req });
+        if (loginResult.mfa?.challengeToken) {
+          setMfaChallengeCookie(res, loginResult.mfa.challengeToken, { req });
+        }
+        const reason =
+          loginResult.status === 'MFA_ENROLLMENT_REQUIRED' ? 'enroll' : 'challenge';
+        return res.redirect(`${env.FRONTEND_URL}/auth/firm/mfa?reason=${reason}&sso=1`);
+      }
       setRefreshTokenCookie(res, loginResult.tokens.refreshToken, { req });
       setAccessTokenCookie(res, loginResult.tokens.accessToken, { req });
       if (loginResult.firmAccess?.hasAccess === false && loginResult.firmAccess.reason === 'TRIAL_EXPIRED') {

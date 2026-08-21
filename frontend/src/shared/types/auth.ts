@@ -82,6 +82,12 @@ export type AuthLoginClientRequest = AuthLoginRequest & {
 export type AuthLoginResponse = {
   user: AuthUser
   tokens?: AuthTokens
+  status?: 'AUTHENTICATED' | 'MFA_CHALLENGE_REQUIRED' | 'MFA_ENROLLMENT_REQUIRED'
+  mfa?: {
+    purpose?: 'mfa_verify' | 'mfa_enroll'
+    expiresAt?: string | null
+    challengeToken?: string
+  }
   firmAccess?: {
     hasAccess: boolean
     reason?: string

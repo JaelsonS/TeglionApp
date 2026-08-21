@@ -20,6 +20,12 @@ const REDACT_KEYS = new Set([
   'taxId',
   'tax_id',
   'nif',
+  'totpCode',
+  'recoveryCode',
+  'recoveryCodes',
+  'challengeToken',
+  'mfaTotpSecretEnc',
+  'otpauthUrl',
 ]);
 
 function sanitizeMetadata(input) {

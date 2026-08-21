@@ -48,6 +48,45 @@ const officialAccessStepUpLimiter = rateLimit({
   },
 });
 
+/**
+ * MFA challenge/enroll verify — chave user+challenge+IP para dificultar bypass por IP hopping.
+ */
+function mfaChallengeKey(req) {
+  const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+  const bodyToken = String(req.body?.challengeToken || '').slice(0, 24);
+  const headerToken = String(req.headers['x-mfa-challenge'] || '').slice(0, 24);
+  const cookieToken = String(req.cookies?.mfaChallengeToken || '').slice(0, 24);
+  const challengePart = bodyToken || headerToken || cookieToken || 'nochallenge';
+  const userPart = req.user?.id || req.body?.userId || 'anon';
+  return `${userPart}:${challengePart}:${ip}`;
+}
+
+const mfaVerifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 8,
+  keyGenerator: mfaChallengeKey,
+  store: createRateLimitStore('rl:mfa:verify:'),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: 'Muitas tentativas MFA. Aguarde alguns minutos.',
+    code: 'RATE_LIMIT',
+  },
+});
+
+const mfaEnrollLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  keyGenerator: mfaChallengeKey,
+  store: createRateLimitStore('rl:mfa:enroll:'),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: 'Muitas tentativas de configuração MFA. Aguarde alguns minutos.',
+    code: 'RATE_LIMIT',
+  },
+});
+
 module.exports = {
   createAuthLimiter,
   firmLoginLimiter,
@@ -55,4 +94,6 @@ module.exports = {
   refreshLimiter,
   registerFirmLimiter,
   officialAccessStepUpLimiter,
+  mfaVerifyLimiter,
+  mfaEnrollLimiter,
 };

@@ -100,6 +100,14 @@ export function FirmLoginPage() {
           turnstileToken,
         )
         const res = await loginFirm(payload)
+        if (res.status === 'MFA_CHALLENGE_REQUIRED') {
+          navigate('/auth/firm/mfa?reason=challenge', { replace: true })
+          return
+        }
+        if (res.status === 'MFA_ENROLLMENT_REQUIRED') {
+          navigate('/auth/firm/mfa?reason=enroll', { replace: true })
+          return
+        }
         if (res.firmAccess?.hasAccess === false && res.firmAccess.reason === 'TRIAL_EXPIRED') {
           navigate('/app/firm/billing', { replace: true })
           return

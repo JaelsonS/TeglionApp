@@ -44,7 +44,7 @@ async function authMiddleware(req, res, next) {
 
   try {
     const payload = verifyAccessToken(token);
-    if (payload?.typ === 'vault-stepup') {
+    if (payload?.typ === 'vault-stepup' || payload?.typ === 'mfa-challenge') {
       return next(new AppError(authMiddlewareMessage('invalidOrExpiredToken'), 401, { code: 'UNAUTHORIZED' }));
     }
     const firmId = readActorFirmId(payload);

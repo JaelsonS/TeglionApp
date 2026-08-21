@@ -56,10 +56,27 @@ function clearAccessTokenCookie(res, options = {}) {
   res.clearCookie('accessToken', buildAuthCookieOptions(options?.req));
 }
 
+const MFA_CHALLENGE_COOKIE = 'mfaChallengeToken';
+const MFA_CHALLENGE_MAX_AGE_MS = 5 * 60 * 1000;
+
+function setMfaChallengeCookie(res, challengeToken, options = {}) {
+  res.cookie(MFA_CHALLENGE_COOKIE, challengeToken, {
+    ...buildAuthCookieOptions(options?.req),
+    maxAge: MFA_CHALLENGE_MAX_AGE_MS,
+  });
+}
+
+function clearMfaChallengeCookie(res, options = {}) {
+  res.clearCookie(MFA_CHALLENGE_COOKIE, buildAuthCookieOptions(options?.req));
+}
+
 module.exports = {
   buildAuthCookieOptions,
   setRefreshTokenCookie,
   setAccessTokenCookie,
   clearRefreshTokenCookie,
   clearAccessTokenCookie,
+  setMfaChallengeCookie,
+  clearMfaChallengeCookie,
+  MFA_CHALLENGE_COOKIE,
 };

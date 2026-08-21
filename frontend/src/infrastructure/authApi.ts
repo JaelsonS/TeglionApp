@@ -104,6 +104,36 @@ export const authApi = {
 
   completeOnboarding: () => api.post('/auth/complete-onboarding').then((r) => r.data),
 
+  mfaChallengeStatus: (challengeToken?: string) =>
+    api
+      .get('/auth/mfa/challenge/status', {
+        headers: challengeToken ? { 'x-mfa-challenge': challengeToken } : undefined,
+      })
+      .then((r) => r.data),
+
+  mfaChallengeVerify: (payload: { code?: string; recoveryCode?: string; challengeToken?: string }) =>
+    api.post('/auth/mfa/challenge/verify', payload).then((r) => r.data),
+
+  mfaEnrollBegin: (challengeToken?: string) =>
+    api
+      .post(
+        '/auth/mfa/enroll/begin',
+        challengeToken ? { challengeToken } : {},
+        challengeToken ? { headers: { 'x-mfa-challenge': challengeToken } } : undefined,
+      )
+      .then((r) => r.data),
+
+  mfaEnrollConfirm: (payload: { code: string; challengeToken?: string }) =>
+    api.post('/auth/mfa/enroll/confirm', payload).then((r) => r.data),
+
+  mfaStatus: () => api.get('/auth/mfa/status').then((r) => r.data),
+
+  mfaDisable: (payload: { code?: string; recoveryCode?: string }) =>
+    api.post('/auth/mfa/disable', payload).then((r) => r.data),
+
+  mfaRegenerateRecovery: (payload: { code: string }) =>
+    api.post('/auth/mfa/recovery/regenerate', payload).then((r) => r.data),
+
   reset: (payload: {
     token: string
     newPassword: string
