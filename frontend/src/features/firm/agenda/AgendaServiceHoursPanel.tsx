@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
-import { HelpCircle, Loader2, Save, Search } from 'lucide-react'
+import { CalendarDays, Check, HelpCircle, Loader2, Pencil, Save, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { Link } from 'react-router-dom'
 
@@ -189,11 +189,7 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
   return (
     <div className="cb-agenda-svc-layout" data-testid="agenda-service-hours">
       <div className="cb-agenda-svc-main">
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          O horário geral é a predefinição. Personalize só os serviços que precisam de outros dias.
-        </p>
-
-        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -218,8 +214,8 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
                 className={cn(
                   'rounded-full border px-3 py-1.5 text-xs font-semibold transition',
                   filter === f.key
-                    ? 'border-brand bg-brand text-primary-foreground'
-                    : 'border-border/60 text-muted-foreground hover:border-brand/30',
+                    ? 'border-[hsl(222_47%_16%)] bg-[hsl(222_47%_16%)] text-white'
+                    : 'border-border/60 text-muted-foreground hover:border-sky-300',
                 )}
                 aria-pressed={filter === f.key}
                 onClick={() => setFilter(f.key)}
@@ -314,10 +310,19 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
                           onBookingTz={() => {}}
                           onSaveAvailability={() => {}}
                         />
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
                           <Button
                             type="button"
-                            className="rounded-xl"
+                            variant="ghost"
+                            className="rounded-xl text-sky-700 hover:bg-sky-50 hover:text-sky-800"
+                            disabled={savingId === service.id}
+                            onClick={() => void resetToGeneral(service)}
+                          >
+                            Repor horário geral
+                          </Button>
+                          <Button
+                            type="button"
+                            className="rounded-xl bg-emerald-600 hover:bg-emerald-700"
                             disabled={savingId === service.id}
                             onClick={() => void saveService(service)}
                           >
@@ -327,15 +332,6 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
                               <Save className="mr-2 h-4 w-4" />
                             )}
                             Guardar
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            className="rounded-xl text-muted-foreground"
-                            disabled={savingId === service.id}
-                            onClick={() => void resetToGeneral(service)}
-                          >
-                            Repor horário geral
                           </Button>
                         </div>
                       </>
@@ -373,18 +369,68 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
 
       <aside className="cb-agenda-svc-help" aria-label="Como funciona">
         <div className="cb-agenda-svc-help-card">
-          <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground">
-            <HelpCircle className="h-4 w-4 text-brand" aria-hidden />
-            Como funciona
-          </p>
-          <ul className="mt-3 space-y-2 text-xs leading-relaxed text-muted-foreground">
-            <li>Por defeito, cada serviço herda o horário geral do escritório.</li>
-            <li>Personalize só excepções (ex.: consultoria só à segunda).</li>
-            <li>As marcações públicas usam o serviço real (incl. opções de uma oferta).</li>
-          </ul>
-          <p className="mt-4 rounded-lg bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
-            Google Calendar: integração no final do roadmap (Fase 9) — prepare staging antes de ligar.
-          </p>
+          <div className="cb-agenda-svc-tip">
+            <span className="cb-agenda-svc-tip-icon" aria-hidden>
+              <HelpCircle className="h-3.5 w-3.5" />
+            </span>
+            <p>
+              <span className="font-semibold text-foreground">Como funciona</span>
+              <span className="mt-0.5 block">
+                Defina a disponibilidade de cada serviço da sua agenda, independente do horário geral.
+              </span>
+            </p>
+          </div>
+          <div className="cb-agenda-svc-tip">
+            <span className="cb-agenda-svc-tip-icon" aria-hidden>
+              <CalendarDays className="h-3.5 w-3.5" />
+            </span>
+            <p>
+              <span className="font-semibold text-foreground">Herda por defeito</span>
+              <span className="mt-0.5 block">
+                Cada serviço herda o horário geral do escritório até personalizar.
+              </span>
+            </p>
+          </div>
+          <div className="cb-agenda-svc-tip">
+            <span className="cb-agenda-svc-tip-icon" aria-hidden>
+              <Pencil className="h-3.5 w-3.5" />
+            </span>
+            <p>
+              <span className="font-semibold text-foreground">Personalize só excepções</span>
+              <span className="mt-0.5 block">
+                Altere apenas quando o serviço precisa de dias ou horas diferentes.
+              </span>
+            </p>
+          </div>
+          <div className="cb-agenda-svc-tip">
+            <span className="cb-agenda-svc-tip-icon" aria-hidden>
+              <Check className="h-3.5 w-3.5" />
+            </span>
+            <p>
+              <span className="font-semibold text-foreground">Marcações usam o serviço real</span>
+              <span className="mt-0.5 block">
+                Os clientes vêem e agendam com base nestes horários (incl. opções de uma oferta).
+              </span>
+            </p>
+          </div>
+          <div className="cb-agenda-svc-fase9">
+            <div className="flex items-start gap-2">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sky-600 text-white">
+                <CalendarDays className="h-4 w-4" aria-hidden />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  Integração mais tarde{' '}
+                  <span className="ml-1 rounded-md bg-sky-600 px-1.5 py-0.5 text-[10px] font-bold uppercase text-white">
+                    Fase 9
+                  </span>
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Vamos ligar ao Google Calendar numa fase futura.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </aside>
     </div>

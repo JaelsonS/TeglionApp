@@ -8,6 +8,7 @@ import { GoogleCalendarIntegrationPanel } from '@/features/firm/agenda/GoogleCal
 import { contabilAccountingServicesApi, contabilConsultationsApi } from '@/infrastructure/api'
 import { Button } from '@/shared/components/ui/button'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { cn } from '@/shared/lib/utils'
 import type {
   AccountingService,
   BookingDateOverrides,
@@ -85,44 +86,34 @@ export function AgendaSettingsView(props: Props) {
 
   return (
     <div className="cb-agenda-settings-view">
-      <nav className="cb-agenda-settings-steps" aria-label="Secções da agenda">
-        <a className="cb-agenda-settings-step cb-agenda-settings-step-active" href="#agenda-horario-geral">
-          <span className="cb-agenda-settings-step-n">1</span>
-          <span>
+      <nav className="cb-agenda-stepper" aria-label="Secções da agenda">
+        <a className="cb-agenda-stepper-item cb-agenda-stepper-item-active" href="#agenda-horario-geral">
+          <span className="cb-agenda-stepper-n">1</span>
+          <span className="cb-agenda-stepper-label">
             Horário geral
-            <span className="cb-agenda-settings-step-badge ml-0 block sm:ml-2 sm:inline">Ativo</span>
+            <span className="cb-agenda-stepper-ativo">Ativo</span>
           </span>
         </a>
-        <a className="cb-agenda-settings-step" href="#agenda-por-servico">
-          <span className="cb-agenda-settings-step-n">2</span>
-          Por serviço
+        <span className="cb-agenda-stepper-line" aria-hidden />
+        <a className="cb-agenda-stepper-item" href="#agenda-por-servico">
+          <span className="cb-agenda-stepper-n">2</span>
+          <span className="cb-agenda-stepper-label">Por serviço</span>
         </a>
+        <span className="cb-agenda-stepper-line" aria-hidden />
         <a
-          className="cb-agenda-settings-step cb-agenda-settings-step-later"
+          className="cb-agenda-stepper-item cb-agenda-stepper-item-later"
           href="#agenda-google"
-          title="Integração Google Calendar fica para o final do roadmap (Fase 9)"
+          title="Integração Google Calendar — Fase 9"
         >
-          <span className="cb-agenda-settings-step-n">3</span>
-          <span>
+          <span className="cb-agenda-stepper-n">3</span>
+          <span className="cb-agenda-stepper-label">
             Google Calendar
-            <span className="cb-agenda-settings-step-later-badge ml-0 mt-0.5 block sm:ml-2 sm:mt-0 sm:inline">
-              Mais tarde
-            </span>
+            <span className="cb-agenda-stepper-later">Mais tarde</span>
           </span>
         </a>
       </nav>
 
-      <section
-        id="agenda-horario-geral"
-        className="cb-agenda-settings-block scroll-mt-24 !border-0 !bg-transparent !p-0 !shadow-none"
-      >
-        <div className="mb-4">
-          <h3 className="cb-agenda-settings-block-title text-base">Horário geral do escritório</h3>
-          <p className="cb-agenda-settings-block-sub mt-1 max-w-2xl">
-            Defina a disponibilidade da organização. O horário semanal é a predefinição; as excepções do mês
-            sobrescrevem dias concretos. No dialog do dia pode ajustar serviços com persistência real.
-          </p>
-        </div>
+      <section id="agenda-horario-geral" className="scroll-mt-24">
         <AgendaAvailabilityPanel
           booking={props.booking}
           schedule={props.schedule}
@@ -141,7 +132,7 @@ export function AgendaSettingsView(props: Props) {
         />
       </section>
 
-      <section id="agenda-por-servico" className="cb-agenda-settings-block scroll-mt-24">
+      <section id="agenda-por-servico" className="cb-agenda-settings-block scroll-mt-24 mt-6">
         <div className="cb-agenda-settings-block-hd">
           <span className="cb-agenda-settings-block-icon">
             <CalendarClock className="h-4 w-4" aria-hidden />
@@ -149,7 +140,7 @@ export function AgendaSettingsView(props: Props) {
           <div>
             <h3 className="cb-agenda-settings-block-title">Disponibilidade por serviço</h3>
             <p className="cb-agenda-settings-block-sub">
-              Quais os dias e intervalos em que cada serviço pode ser agendado
+              Defina a disponibilidade de cada serviço da sua agenda.
             </p>
           </div>
         </div>
@@ -161,7 +152,7 @@ export function AgendaSettingsView(props: Props) {
         />
       </section>
 
-      <div className="cb-agenda-settings-lower">
+      <div className="cb-agenda-settings-lower mt-4">
         <section className="cb-agenda-settings-block">
           <div className="cb-agenda-settings-block-hd">
             <span className="cb-agenda-settings-block-icon">
@@ -178,8 +169,7 @@ export function AgendaSettingsView(props: Props) {
             <p className="text-sm text-muted-foreground">
               {props.services.length > 0
                 ? `${props.services.filter((s) => s.isActive !== false).length} de ${props.services.length} serviço(s) activo(s).`
-                : 'Ainda não tem nenhum serviço configurado.'}{' '}
-              Catálogo em Serviços.
+                : 'Ainda não tem nenhum serviço configurado.'}
             </p>
             <Link to="/app/firm/services">
               <Button type="button" size="sm" className="rounded-full">
@@ -197,10 +187,10 @@ export function AgendaSettingsView(props: Props) {
             <div>
               <h3 className="cb-agenda-settings-block-title">
                 Google Calendar{' '}
-                <span className="cb-agenda-settings-step-later-badge ml-1 align-middle">Mais tarde</span>
+                <span className={cn('cb-agenda-stepper-later', 'ml-1 align-middle')}>Mais tarde</span>
               </h3>
               <p className="cb-agenda-settings-block-sub">
-                Fase 9 do roadmap — prepare o ambiente de staging antes de ligar a sincronização.
+                Fase 9 — prepare staging antes de ligar a sincronização.
               </p>
             </div>
           </div>

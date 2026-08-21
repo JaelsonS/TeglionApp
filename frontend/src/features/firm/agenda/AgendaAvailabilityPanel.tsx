@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
-import { CalendarDays, ChevronLeft, ChevronRight, Copy, MapPin, Plus, Trash2 } from 'lucide-react'
+import { CalendarCheck2, CalendarDays, ChevronLeft, ChevronRight, Clock, Copy, Globe, MoreVertical, Plus, Save, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { AgendaDayAvailabilityDialog, type DayAvailabilityDraft, type ServiceDayDraft } from '@/features/firm/agenda/AgendaDayAvailabilityDialog'
@@ -76,13 +76,6 @@ type Props = {
 
 function intervalsForDay(schedule: BookingDaySchedule, day: number): TimeInterval[] {
   return schedule[day] || []
-}
-
-function formatSelectedDateShort(iso: string): string {
-  const [, m, d] = iso.split('-')
-  const monthIdx = Number(m) - 1
-  const monthShort = (MONTH_NAMES_PT[monthIdx] || '').slice(0, 3).toLowerCase()
-  return `${Number(d)} ${monthShort}`
 }
 
 export function AgendaAvailabilityPanel(props: Props) {
@@ -289,9 +282,17 @@ export function AgendaAvailabilityPanel(props: Props) {
 
   const weeklyPanel = (
     <section className="cb-agenda-avail-card" aria-labelledby="agenda-horario-semanal-title">
-      <h4 id="agenda-horario-semanal-title" className="cb-agenda-avail-card-title">
-        Horário semanal
-      </h4>
+      <div className="cb-agenda-avail-card-hd-block">
+        <span className="cb-agenda-avail-card-icon" aria-hidden>
+          <Clock className="h-4 w-4" />
+        </span>
+        <div>
+          <h4 id="agenda-horario-semanal-title" className="cb-agenda-avail-card-title">
+            Horário semanal
+          </h4>
+          <p className="cb-agenda-avail-card-sub">Dias e intervalos em que o escritório atende.</p>
+        </div>
+      </div>
       <ul className="cb-agenda-week-list" role="list">
         {BOOKING_WEEKDAYS.map((w) => {
           const intervals = intervalsForDay(schedule, w.bit)
@@ -376,9 +377,12 @@ export function AgendaAvailabilityPanel(props: Props) {
                     </button>
                   </>
                 ) : (
-                  <span className="cb-agenda-week-closed-hint">Sem atendimento</span>
+                  <span className="cb-agenda-week-closed-hint">—</span>
                 )}
               </div>
+              <span className="cb-agenda-week-more" aria-hidden>
+                <MoreVertical className="h-4 w-4" />
+              </span>
             </li>
           )
         })}
@@ -395,7 +399,7 @@ export function AgendaAvailabilityPanel(props: Props) {
           onClick={onSaveAvailability}
           disabled={openDays.length === 0}
         >
-          <CalendarDays className="h-4 w-4" aria-hidden />
+          <Save className="h-4 w-4" aria-hidden />
           Guardar horário
         </Button>
       )}
@@ -408,22 +412,18 @@ export function AgendaAvailabilityPanel(props: Props) {
       aria-labelledby="agenda-excepcoes-title"
       data-testid="agenda-date-overrides-calendar"
     >
-      <div className="cb-agenda-avail-card-hd">
-        <h4 id="agenda-excepcoes-title" className="cb-agenda-avail-card-title">
-          Excepções do mês
-        </h4>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="cb-agenda-copy-month-btn h-8 gap-1.5 text-xs"
-          disabled={monthOverrideCount === 0}
-          onClick={handleCopyMonth}
-          data-testid="agenda-copy-month"
-        >
-          <Copy className="h-3.5 w-3.5" />
-          Copiar {fromMonthLabel} → {toMonthLabel}
-        </Button>
+      <div className="cb-agenda-avail-card-hd-block">
+        <span className="cb-agenda-avail-card-icon" aria-hidden>
+          <CalendarDays className="h-4 w-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h4 id="agenda-excepcoes-title" className="cb-agenda-avail-card-title">
+            Excepções do mês
+          </h4>
+          <p className="cb-agenda-avail-card-sub">
+            Feche dias ou defina horários especiais em {MONTH_NAMES_PT[calMonthIndex]} {calYear}.
+          </p>
+        </div>
       </div>
 
       <div className="cb-agenda-month-nav">
@@ -487,7 +487,9 @@ export function AgendaAvailabilityPanel(props: Props) {
                     )}
                     aria-hidden
                   />
-                ) : null}
+                ) : (
+                  <span className="cb-agenda-month-day-dot cb-agenda-month-day-dot-inherit" aria-hidden />
+                )}
               </button>
             )
           }}
@@ -511,21 +513,26 @@ export function AgendaAvailabilityPanel(props: Props) {
 
       {selectedDate ? (
         <div className="cb-agenda-month-selected">
-          <span
-            className={cn(
-              'cb-agenda-month-selected-dot',
-              selectedKind === 'closed' && 'cb-agenda-month-day-dot-closed',
-              selectedKind === 'custom' && 'cb-agenda-month-day-dot-special',
-              selectedKind === 'none' && 'cb-agenda-month-legend-dot-inherit',
-            )}
-            aria-hidden
-          />
-          <p className="cb-agenda-month-selected-text">
-            <span className="font-medium">{formatSelectedDateShort(selectedDate)}</span>
-            {' — '}
-            {selectedSummaryLabel}
-            {selectedSummaryTimes ? ` — ${selectedSummaryTimes}` : ''}
-          </p>
+          <div className="cb-agenda-month-selected-daynum">
+            {Number(selectedDate.slice(8, 10))}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="cb-agenda-month-selected-title capitalize">
+              {(() => {
+                const [y, m, d] = selectedDate.split('-').map(Number)
+                return new Date(y, m - 1, d).toLocaleDateString('pt-PT', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })
+              })()}
+            </p>
+            <p className="cb-agenda-month-selected-meta">
+              {selectedSummaryLabel}
+              {selectedSummaryTimes ? ` · ${selectedSummaryTimes}` : ''}
+            </p>
+          </div>
           <button
             type="button"
             className="cb-agenda-month-selected-edit"
@@ -539,11 +546,22 @@ export function AgendaAvailabilityPanel(props: Props) {
         </div>
       ) : (
         <p className="cb-agenda-month-selected-empty">
-          {monthOverrideCount === 0
-            ? 'Clique num dia para fechar ou definir horário especial.'
-            : `${monthOverrideCount} excepção(ões) em ${formatYearMonthPt(monthKey)}.`}
+          Clique num dia para fechar ou definir horário especial.
         </p>
       )}
+
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="cb-agenda-copy-month-btn mt-3 h-9 w-full gap-1.5 text-xs"
+        disabled={monthOverrideCount === 0}
+        onClick={handleCopyMonth}
+        data-testid="agenda-copy-month"
+      >
+        <Copy className="h-3.5 w-3.5" />
+        Copiar {fromMonthLabel} → {toMonthLabel}
+      </Button>
     </section>
   ) : null
 
@@ -551,7 +569,7 @@ export function AgendaAvailabilityPanel(props: Props) {
     <aside className="cb-agenda-avail-options" aria-label="Opções de marcação">
       <div className="cb-agenda-avail-option-card">
         <p className="cb-agenda-avail-option-label">
-          <MapPin className="h-3.5 w-3.5" aria-hidden />
+          <Globe className="h-3.5 w-3.5" aria-hidden />
           Fuso horário
         </p>
         <select
@@ -568,7 +586,10 @@ export function AgendaAvailabilityPanel(props: Props) {
       </div>
 
       <div className="cb-agenda-avail-option-card">
-        <p className="cb-agenda-avail-option-label">Duração do agendamento</p>
+        <p className="cb-agenda-avail-option-label">
+          <Clock className="h-3.5 w-3.5" aria-hidden />
+          Duração do agendamento
+        </p>
         <div className="cb-agenda-slot-chip-grid" role="group" aria-label="Duração do slot">
           {SLOT_PRESETS.map((mins) => (
             <button
@@ -589,8 +610,8 @@ export function AgendaAvailabilityPanel(props: Props) {
 
       <div className="cb-agenda-avail-option-card">
         <p className="cb-agenda-avail-option-label">
-          <CalendarDays className="h-3.5 w-3.5" aria-hidden />
-          Horizonte de marcação
+          <CalendarCheck2 className="h-3.5 w-3.5" aria-hidden />
+          Horizonte de agendamento
         </p>
         <select
           className="cb-agenda-field-input"
