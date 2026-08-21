@@ -17,6 +17,7 @@ import { createContabilGoogleDriveApi } from '@/infrastructure/api/contabil/goog
 import { createContabilLeadsApi } from '@/infrastructure/api/contabil/leads'
 import { createContabilMessagesApi } from '@/infrastructure/api/contabil/messages'
 import { createContabilNewsApi } from '@/infrastructure/api/contabil/news'
+import { createContabilNavBadgesApi } from '@/infrastructure/api/contabil/navBadges'
 import { createContabilObligationsApi } from '@/infrastructure/api/contabil/obligations'
 import { createContabilPublicApi } from '@/infrastructure/api/contabil/public'
 import { createContabilServiceInquiriesApi } from '@/infrastructure/api/contabil/serviceInquiries'
@@ -72,6 +73,7 @@ export const contabilObligationsApi = createContabilObligationsApi(api)
 export const contabilConsultationsApi = createContabilConsultationsApi(api)
 export const contabilAccountingServicesApi = createContabilAccountingServicesApi(api)
 export const contabilNewsApi = createContabilNewsApi(api)
+export const contabilNavBadgesApi = createContabilNavBadgesApi(api)
 export const contabilFiscalCalendarApi = createContabilFiscalCalendarApi(api)
 export const contabilBroadcastsApi = createContabilBroadcastsApi(api)
 export const contabilBillingApi = createContabilBillingApi(api)

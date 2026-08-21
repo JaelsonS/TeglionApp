@@ -1,6 +1,6 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { requirePermission } = require('../../middlewares/role.middleware');
+const { requirePermission, requireAnyPermission } = require('../../middlewares/role.middleware');
 const { PERMISSIONS } = require('../../utils/permissions');
 const obligationsController = require('../../modules/obligations/obligations.controller');
 const obligationTemplatesController = require('../../modules/obligations/obligation-templates.controller');
@@ -10,6 +10,7 @@ const accountingServiceGroupsController = require('../../modules/firm/accounting
 const bookingSettingsController = require('../../modules/firm/booking-settings.controller');
 const firmSettingsController = require('../../modules/firm/firm-settings.controller');
 const firmPublicSiteController = require('../../modules/firm/firm-public-site.controller');
+const navBadgesController = require('../../modules/firm/nav-badges.controller');
 const { requireFirmOwner } = require('../../middlewares/firm-owner.middleware');
 const consultationsController = require('../../modules/consultations/consultations.controller');
 const invitesController = require('../../modules/firm/invites.controller');
@@ -287,6 +288,17 @@ router.post(
 );
 router.delete('/firm/logo', requireFirmOwner, clientsController.removeFirmLogo);
 router.get('/dashboard', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationsController.dashboard);
+/** Chrome nav badges — 1 GET agrega contagens (Gate 1: anti-429). Auth + perms por campo no service. */
+router.get(
+  '/nav-badges',
+  requireAnyPermission([
+    PERMISSIONS.FIRM_CLIENTS_MANAGE,
+    PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE,
+    PERMISSIONS.FIRM_CONSULTATIONS_MANAGE,
+    PERMISSIONS.FIRM_OBLIGATIONS_MANAGE,
+  ]),
+  navBadgesController.getNavBadges,
+);
 router.get('/obligations/operational-dashboard', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationTemplatesController.operationalDashboard);
 router.get('/obligation-templates', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationTemplatesController.listTemplates);
 router.post('/obligation-templates', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationTemplatesController.createTemplate);

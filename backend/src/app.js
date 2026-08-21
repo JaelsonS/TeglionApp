@@ -8,6 +8,7 @@ const morgan = require('morgan');
 
 const { env } = require('./config/env');
 const { createRateLimitStore } = require('./utils/rate-limit-store');
+const { isAuthenticatedShellReadPath } = require('./utils/authenticated-shell-read-paths');
 const { isAccessTokenValid, verifyAccessToken } = require('./config/jwt');
 const { logger } = require('./utils/logger');
 const { errorMiddleware } = require('./middlewares/error.middleware');
@@ -60,23 +61,6 @@ function extractRateLimitKey(req) {
 function isAuthenticatedRequest(req) {
   const accessToken = extractAccessTokenFromRequest(req);
   return Boolean(accessToken && isAccessTokenValid(accessToken));
-}
-
-/** Rotas de leitura do shell da app — polling frequente; não contam para o limite global. */
-function isAuthenticatedShellReadPath(url) {
-  const pathOnly = String(url || '').split('?')[0];
-  const exact = [
-    '/api/auth/me',
-    '/api/contabil/firm',
-    '/api/contabil/dashboard',
-    '/api/contabil/billing/status',
-    '/api/contabil/live/events',
-    '/api/contabil/messages/unread-summary',
-    '/api/client-portal/me/contabil/live/events',
-  ];
-  if (exact.includes(pathOnly)) return true;
-  if (pathOnly.startsWith('/api/contabil/notifications')) return true;
-  return false;
 }
 
 function shouldSkipProductionHttpLog(req, res) {
