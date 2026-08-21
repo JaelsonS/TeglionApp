@@ -72,6 +72,8 @@ type Props = {
     dateOverrides: BookingDateOverrides
     servicePatches: Array<{ id: string; bookingOverrides: Partial<FirmBookingSettings> | null }>
   }) => Promise<void>
+  /** Renomear serviço a partir do dialog do dia (opcional). */
+  onRenameService?: (serviceId: string, name: string) => Promise<void> | void
 }
 
 function intervalsForDay(schedule: BookingDaySchedule, day: number): TimeInterval[] {
@@ -96,10 +98,12 @@ export function AgendaAvailabilityPanel(props: Props) {
     defaultInterval = DEFAULT_INTERVAL,
     bookableServices,
     onPersistDay,
+    onRenameService,
   } = props
 
   const openDays = BOOKING_WEEKDAYS.filter((w) => intervalsForDay(schedule, w.bit).length > 0)
   const [focusedDay, setFocusedDay] = useState<number>(1)
+  const [weekMenuDay, setWeekMenuDay] = useState<number | null>(null)
 
   const now = new Date()
   const [calYear, setCalYear] = useState(now.getFullYear())
@@ -380,9 +384,59 @@ export function AgendaAvailabilityPanel(props: Props) {
                   <span className="cb-agenda-week-closed-hint">—</span>
                 )}
               </div>
-              <span className="cb-agenda-week-more" aria-hidden>
-                <MoreVertical className="h-4 w-4" />
-              </span>
+              <div className="relative justify-self-end">
+                <button
+                  type="button"
+                  className="cb-agenda-week-more"
+                  aria-label={`Opções de ${w.full}`}
+                  aria-expanded={weekMenuDay === w.bit}
+                  onClick={() => {
+                    setFocusedDay(w.bit)
+                    setWeekMenuDay(weekMenuDay === w.bit ? null : w.bit)
+                  }}
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </button>
+                {weekMenuDay === w.bit ? (
+                  <div className="cb-agenda-week-menu" role="menu">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        if (open) addInterval(w.bit)
+                        else toggleDay(w.bit)
+                        setWeekMenuDay(null)
+                      }}
+                    >
+                      {open ? 'Adicionar intervalo' : 'Abrir dia'}
+                    </button>
+                    {open ? (
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          toggleDay(w.bit)
+                          setWeekMenuDay(null)
+                        }}
+                      >
+                        Fechar dia
+                      </button>
+                    ) : null}
+                    {open && intervals.length > 1 ? (
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setDayIntervals(w.bit, [intervals[0]])
+                          setWeekMenuDay(null)
+                        }}
+                      >
+                        Remover intervalos extra
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
             </li>
           )
         })}
@@ -421,9 +475,24 @@ export function AgendaAvailabilityPanel(props: Props) {
             Excepções do mês
           </h4>
           <p className="cb-agenda-avail-card-sub">
-            Feche dias ou defina horários especiais em {MONTH_NAMES_PT[calMonthIndex]} {calYear}.
+            Clique num dia para horário e serviços · {MONTH_NAMES_PT[calMonthIndex]} {calYear}.
           </p>
         </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="cb-agenda-copy-month-btn h-9 shrink-0 gap-1.5 text-xs"
+          disabled={monthOverrideCount === 0}
+          onClick={handleCopyMonth}
+          data-testid="agenda-copy-month"
+        >
+          <Copy className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">
+            Copiar {fromMonthLabel} → {toMonthLabel}
+          </span>
+          <span className="sm:hidden">Copiar mês</span>
+        </Button>
       </div>
 
       <div className="cb-agenda-month-nav">
@@ -550,18 +619,6 @@ export function AgendaAvailabilityPanel(props: Props) {
         </p>
       )}
 
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="cb-agenda-copy-month-btn mt-3 h-9 w-full gap-1.5 text-xs"
-        disabled={monthOverrideCount === 0}
-        onClick={handleCopyMonth}
-        data-testid="agenda-copy-month"
-      >
-        <Copy className="h-3.5 w-3.5" />
-        Copiar {fromMonthLabel} → {toMonthLabel}
-      </Button>
     </section>
   ) : null
 
@@ -661,6 +718,7 @@ export function AgendaAvailabilityPanel(props: Props) {
           defaultInterval={defaultIntervalFromSchedule(schedule) || defaultInterval}
           serviceDrafts={serviceDayDrafts}
           onServiceDraftsChange={setServiceDayDrafts}
+          onRenameService={onRenameService}
           onSave={saveDayDraft}
           onCopyFromDate={handleCopyFromDate}
           saving={daySaving}

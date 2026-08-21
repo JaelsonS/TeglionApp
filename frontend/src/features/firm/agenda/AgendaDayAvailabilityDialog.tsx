@@ -1,8 +1,20 @@
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { useEffect, useState } from 'react'
-import { CalendarDays, Clock, Copy, Loader2, Lock, Plus, Trash2 } from 'lucide-react'
+import {
+  CalendarDays,
+  Check,
+  Clock,
+  Copy,
+  Loader2,
+  Lock,
+  Pencil,
+  Plus,
+  Trash2,
+  X,
+} from 'lucide-react'
 
 import { Button } from '@/shared/components/ui/button'
+import { Checkbox } from '@/shared/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -28,9 +40,7 @@ export type ServiceDayDraft = {
   id: string
   name: string
   mode: ServiceDayMode
-  /** Intervalos quando mode === 'open' */
   intervals: TimeInterval[]
-  /** Texto efectivo herdado (só UI). */
   inheritedLabel: string
 }
 
@@ -48,25 +58,9 @@ function draftFromExisting(
   return { mode: 'custom', intervals: cloneIntervals(existing) }
 }
 
-function serviceStatusPill(s: ServiceDayDraft): { label: string; className: string } {
-  if (s.mode === 'closed') {
-    return { label: 'Fechado', className: 'cb-agenda-day-svc-status-closed' }
-  }
-  if (s.mode === 'open') {
-    const times = (s.intervals.length ? s.intervals : [])
-      .map((iv) => `${iv.start}–${iv.end}`)
-      .join(', ')
-    if (times) {
-      return { label: `Horário próprio ${times}`, className: 'cb-agenda-day-svc-status-custom' }
-    }
-    return { label: 'Aberto', className: 'cb-agenda-day-svc-status-open' }
-  }
-  return { label: 'Herdado', className: 'cb-agenda-day-svc-status-inherit' }
-}
-
 /**
- * Dialog centralizado para configurar a disponibilidade de um dia concreto
- * (excepção sobre o horário semanal) + modos por serviço (Herdar / Aberto / Fechado).
+ * Dialog do dia: excepção do horário geral + selecção múltipla de serviços
+ * (oferecer / herdar / horário próprio / limpar / renomear).
  */
 export function AgendaDayAvailabilityDialog({
   open,
@@ -78,6 +72,7 @@ export function AgendaDayAvailabilityDialog({
   defaultInterval,
   serviceDrafts,
   onServiceDraftsChange,
+  onRenameService,
   onSave,
   onCopyFromDate,
   saving = false,
@@ -91,6 +86,7 @@ export function AgendaDayAvailabilityDialog({
   defaultInterval: TimeInterval
   serviceDrafts?: ServiceDayDraft[]
   onServiceDraftsChange?: (next: ServiceDayDraft[]) => void
+  onRenameService?: (serviceId: string, name: string) => Promise<void> | void
   onSave: (draft: DayAvailabilityDraft) => void | Promise<void>
   onCopyFromDate?: (fromDate: string) => void
   saving?: boolean
@@ -100,11 +96,16 @@ export function AgendaDayAvailabilityDialog({
     intervals: [defaultInterval],
   })
   const [copyFrom, setCopyFrom] = useState('')
+  const [renamingId, setRenamingId] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
+  const [renameSaving, setRenameSaving] = useState(false)
 
   useEffect(() => {
     if (!open || !date) return
     setDraft(draftFromExisting(overrideIntervals, hasOverride, defaultInterval))
     setCopyFrom('')
+    setRenamingId(null)
+    setRenameValue('')
   }, [open, date, hasOverride, overrideIntervals, defaultInterval])
 
   if (!date) return null
@@ -122,6 +123,8 @@ export function AgendaDayAvailabilityDialog({
   const kind = hasOverride
     ? dayOverrideKind(date, { [date]: overrideIntervals || [] })
     : 'none'
+
+  const offeredCount = (serviceDrafts || []).filter((s) => s.mode !== 'closed').length
 
   function updateInterval(index: number, patch: Partial<TimeInterval>) {
     setDraft((prev) => {
@@ -163,6 +166,36 @@ export function AgendaDayAvailabilityDialog({
         return next
       }),
     )
+  }
+
+  function setOffered(id: string, offered: boolean) {
+    patchService(id, { mode: offered ? 'inherit' : 'closed' })
+  }
+
+  function selectAllServices(offered: boolean) {
+    if (!onServiceDraftsChange || !serviceDrafts) return
+    onServiceDraftsChange(
+      serviceDrafts.map((s) => ({
+        ...s,
+        mode: offered ? (s.mode === 'closed' ? 'inherit' : s.mode) : 'closed',
+      })),
+    )
+  }
+
+  async function commitRename(id: string) {
+    const next = renameValue.trim()
+    if (!next || !onRenameService) {
+      setRenamingId(null)
+      return
+    }
+    setRenameSaving(true)
+    try {
+      await onRenameService(id, next)
+      patchService(id, { name: next })
+      setRenamingId(null)
+    } finally {
+      setRenameSaving(false)
+    }
   }
 
   async function handleSave() {
@@ -348,101 +381,269 @@ export function AgendaDayAvailabilityDialog({
 
           {serviceDrafts && serviceDrafts.length > 0 ? (
             <div data-testid="agenda-day-services-editor">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Serviços neste dia
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Ajuste só o que for diferente do horário geral neste dia.
-              </p>
-              <div className="mt-3 overflow-hidden rounded-xl border border-border/50">
-                <div className="hidden grid-cols-[minmax(0,1.2fr)_7rem_minmax(10rem,1fr)] gap-2 border-b border-border/40 bg-muted/20 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:grid">
-                  <span>Serviço</span>
-                  <span>Estado atual</span>
-                  <span>Definir para este dia</span>
+              <div className="flex flex-wrap items-end justify-between gap-2">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Serviços neste dia
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Escolha quais serviços estão disponíveis. Pode editar horário, limpar excepção ou
+                    renomear.
+                  </p>
                 </div>
-                <ul>
-                  {serviceDrafts.map((s) => {
-                    const status = serviceStatusPill(s)
-                    return (
-                      <li
-                        key={s.id}
-                        className="border-b border-border/40 px-3 py-2.5 last:border-b-0"
-                        data-testid={`agenda-day-service-${s.id}`}
-                      >
-                        <div className="grid gap-2 sm:grid-cols-[minmax(0,1.2fr)_7rem_minmax(10rem,1fr)] sm:items-center">
-                          <p className="text-sm font-medium text-foreground">{s.name}</p>
-                          <span className={cn('cb-agenda-day-svc-status', status.className)}>
-                            {status.label}
-                          </span>
-                          <div
-                            className="inline-flex w-fit rounded-lg border border-border/60 bg-background p-0.5"
-                            role="group"
-                            aria-label={`Disponibilidade de ${s.name}`}
-                          >
-                            {(
-                              [
-                                { mode: 'inherit' as const, label: 'Herdar' },
-                                { mode: 'open' as const, label: 'Aberto' },
-                                { mode: 'closed' as const, label: 'Fechado' },
-                              ] as const
-                            ).map((opt) => (
-                              <button
-                                key={opt.mode}
-                                type="button"
-                                className={cn(
-                                  'rounded-md px-2.5 py-1 text-[11px] font-semibold transition',
-                                  s.mode === opt.mode
-                                    ? 'bg-[hsl(222_47%_16%)] text-white'
-                                    : 'text-muted-foreground hover:bg-muted/40',
-                                )}
-                                aria-pressed={s.mode === opt.mode}
-                                onClick={() => patchService(s.id, { mode: opt.mode })}
-                              >
-                                {opt.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                        {s.mode === 'open' ? (
-                          <div className="mt-2 flex flex-wrap items-center gap-2 sm:pl-[calc(1.2fr+7rem+0.5rem)]">
-                            {(s.intervals.length ? s.intervals : [defaultInterval]).map((iv, idx) => (
-                              <div key={`${s.id}-${idx}`} className="inline-flex items-center gap-1">
-                                <Input
-                                  type="time"
-                                  className="h-8 w-[6.5rem] rounded-md text-xs"
-                                  value={iv.start}
-                                  aria-label={`${s.name} início ${idx + 1}`}
-                                  onChange={(e: FormChangeEvent) => {
-                                    const intervals = cloneIntervals(
-                                      s.intervals.length ? s.intervals : [defaultInterval],
-                                    )
-                                    intervals[idx] = { ...intervals[idx], start: e.target.value }
-                                    patchService(s.id, { intervals })
-                                  }}
-                                />
-                                <span className="text-xs text-muted-foreground">–</span>
-                                <Input
-                                  type="time"
-                                  className="h-8 w-[6.5rem] rounded-md text-xs"
-                                  value={iv.end}
-                                  aria-label={`${s.name} fim ${idx + 1}`}
-                                  onChange={(e: FormChangeEvent) => {
-                                    const intervals = cloneIntervals(
-                                      s.intervals.length ? s.intervals : [defaultInterval],
-                                    )
-                                    intervals[idx] = { ...intervals[idx], end: e.target.value }
-                                    patchService(s.id, { intervals })
-                                  }}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        ) : null}
-                      </li>
-                    )
-                  })}
-                </ul>
+                <p className="text-xs font-medium text-muted-foreground">
+                  {offeredCount} de {serviceDrafts.length} seleccionado(s)
+                </p>
               </div>
+
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-8 rounded-lg text-xs"
+                  onClick={() => selectAllServices(true)}
+                >
+                  Seleccionar todos
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-8 rounded-lg text-xs"
+                  onClick={() => selectAllServices(false)}
+                >
+                  Limpar selecção
+                </Button>
+              </div>
+
+              <ul className="mt-3 space-y-2">
+                {serviceDrafts.map((s) => {
+                  const offered = s.mode !== 'closed'
+                  const editingName = renamingId === s.id
+                  return (
+                    <li
+                      key={s.id}
+                      className={cn(
+                        'rounded-xl border px-3 py-2.5 transition',
+                        offered
+                          ? 'border-sky-200 bg-sky-50/40'
+                          : 'border-border/50 bg-muted/5 opacity-80',
+                      )}
+                      data-testid={`agenda-day-service-${s.id}`}
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <Checkbox
+                          className="mt-1"
+                          checked={offered}
+                          onCheckedChange={(checked: boolean | 'indeterminate') =>
+                            setOffered(s.id, Boolean(checked))
+                          }
+                          aria-label={`Oferecer ${s.name} neste dia`}
+                        />
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {editingName ? (
+                              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+                                <Input
+                                  value={renameValue}
+                                  onChange={(e: FormChangeEvent) => setRenameValue(e.target.value)}
+                                  className="h-8 max-w-xs rounded-lg text-sm"
+                                  aria-label="Novo nome do serviço"
+                                  autoFocus
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') void commitRename(s.id)
+                                    if (e.key === 'Escape') setRenamingId(null)
+                                  }}
+                                />
+                                <Button
+                                  type="button"
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8"
+                                  disabled={renameSaving}
+                                  aria-label="Confirmar nome"
+                                  onClick={() => void commitRename(s.id)}
+                                >
+                                  {renameSaving ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  ) : (
+                                    <Check className="h-3.5 w-3.5" />
+                                  )}
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8"
+                                  aria-label="Cancelar renomear"
+                                  onClick={() => setRenamingId(null)}
+                                >
+                                  <X className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <>
+                                <p className="text-sm font-medium text-foreground">{s.name}</p>
+                                {onRenameService ? (
+                                  <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-7 w-7 text-muted-foreground"
+                                    aria-label={`Renomear ${s.name}`}
+                                    onClick={() => {
+                                      setRenamingId(s.id)
+                                      setRenameValue(s.name)
+                                    }}
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </Button>
+                                ) : null}
+                              </>
+                            )}
+                          </div>
+
+                          {offered ? (
+                            <>
+                              <div
+                                className="inline-flex w-fit rounded-lg border border-border/60 bg-background p-0.5"
+                                role="group"
+                                aria-label={`Disponibilidade de ${s.name}`}
+                              >
+                                {(
+                                  [
+                                    { mode: 'inherit' as const, label: 'Herdar' },
+                                    { mode: 'open' as const, label: 'Horário próprio' },
+                                  ] as const
+                                ).map((opt) => (
+                                  <button
+                                    key={opt.mode}
+                                    type="button"
+                                    className={cn(
+                                      'rounded-md px-2.5 py-1 text-[11px] font-semibold transition',
+                                      s.mode === opt.mode
+                                        ? 'bg-[hsl(222_47%_16%)] text-white'
+                                        : 'text-muted-foreground hover:bg-muted/40',
+                                    )}
+                                    aria-pressed={s.mode === opt.mode}
+                                    onClick={() => patchService(s.id, { mode: opt.mode })}
+                                  >
+                                    {opt.label}
+                                  </button>
+                                ))}
+                              </div>
+
+                              {s.mode === 'inherit' ? (
+                                <p className="text-[11px] text-muted-foreground">{s.inheritedLabel}</p>
+                              ) : null}
+
+                              {s.mode === 'open' ? (
+                                <div className="flex flex-wrap items-center gap-2">
+                                  {(s.intervals.length ? s.intervals : [defaultInterval]).map(
+                                    (iv, idx) => (
+                                      <div
+                                        key={`${s.id}-${idx}`}
+                                        className="inline-flex items-center gap-1 rounded-lg border border-border/50 bg-card px-1.5 py-1"
+                                      >
+                                        <Input
+                                          type="time"
+                                          className="h-8 w-[6.5rem] rounded-md border-0 bg-transparent text-xs shadow-none"
+                                          value={iv.start}
+                                          aria-label={`${s.name} início ${idx + 1}`}
+                                          onChange={(e: FormChangeEvent) => {
+                                            const intervals = cloneIntervals(
+                                              s.intervals.length ? s.intervals : [defaultInterval],
+                                            )
+                                            intervals[idx] = {
+                                              ...intervals[idx],
+                                              start: e.target.value,
+                                            }
+                                            patchService(s.id, { intervals })
+                                          }}
+                                        />
+                                        <span className="text-xs text-muted-foreground">–</span>
+                                        <Input
+                                          type="time"
+                                          className="h-8 w-[6.5rem] rounded-md border-0 bg-transparent text-xs shadow-none"
+                                          value={iv.end}
+                                          aria-label={`${s.name} fim ${idx + 1}`}
+                                          onChange={(e: FormChangeEvent) => {
+                                            const intervals = cloneIntervals(
+                                              s.intervals.length ? s.intervals : [defaultInterval],
+                                            )
+                                            intervals[idx] = {
+                                              ...intervals[idx],
+                                              end: e.target.value,
+                                            }
+                                            patchService(s.id, { intervals })
+                                          }}
+                                        />
+                                        {(s.intervals.length || 1) > 1 ? (
+                                          <button
+                                            type="button"
+                                            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-rose-50 hover:text-rose-700"
+                                            aria-label={`Remover intervalo ${idx + 1}`}
+                                            onClick={() => {
+                                              const intervals = (
+                                                s.intervals.length ? s.intervals : [defaultInterval]
+                                              ).filter((_, i) => i !== idx)
+                                              patchService(s.id, {
+                                                intervals: intervals.length
+                                                  ? intervals
+                                                  : [{ ...defaultInterval }],
+                                              })
+                                            }}
+                                          >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                          </button>
+                                        ) : null}
+                                      </div>
+                                    ),
+                                  )}
+                                  <button
+                                    type="button"
+                                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-dashed border-border/70 text-muted-foreground hover:border-sky-400 hover:bg-sky-50"
+                                    aria-label={`Adicionar intervalo a ${s.name}`}
+                                    onClick={() => {
+                                      const base = s.intervals.length
+                                        ? s.intervals
+                                        : [defaultInterval]
+                                      patchService(s.id, {
+                                        intervals: [...base, { start: '14:00', end: '17:00' }],
+                                      })
+                                    }}
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              ) : null}
+                            </>
+                          ) : (
+                            <p className="text-[11px] text-muted-foreground">
+                              Não oferecido neste dia (fechado para marcações).
+                            </p>
+                          )}
+                        </div>
+
+                        {s.mode !== 'inherit' ? (
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-rose-700"
+                            aria-label={`Apagar excepção de ${s.name}`}
+                            title="Repor para herdar o horário geral"
+                            onClick={() => patchService(s.id, { mode: 'inherit' })}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        ) : null}
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
             </div>
           ) : null}
         </div>

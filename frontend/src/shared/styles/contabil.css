@@ -2377,7 +2377,7 @@
   }
 
   .cb-agenda-stepper-item-active .cb-agenda-stepper-n {
-    @apply border-transparent bg-[hsl(222_47%_16%)] text-white;
+    @apply border-transparent bg-slate-900 text-white;
   }
 
   .cb-agenda-stepper-label {
@@ -2401,7 +2401,17 @@
   }
 
   .cb-agenda-availability-trio {
-    @apply grid gap-4 lg:grid-cols-[minmax(18rem,1.15fr)_minmax(17rem,1fr)_minmax(13.5rem,16rem)] lg:items-start;
+    @apply grid gap-4 xl:grid-cols-[minmax(22rem,1.35fr)_minmax(17rem,1fr)_minmax(13rem,15rem)] xl:items-start;
+  }
+
+  @media (min-width: 1024px) and (max-width: 1279px) {
+    .cb-agenda-availability-trio {
+      grid-template-columns: minmax(0, 1fr) minmax(14rem, 16rem);
+    }
+
+    .cb-agenda-availability-trio > .cb-agenda-avail-card:first-child {
+      grid-column: 1 / -1;
+    }
   }
 
   .cb-agenda-avail-card {
@@ -2409,15 +2419,15 @@
   }
 
   .cb-agenda-avail-card-hd-block {
-    @apply mb-4 flex items-start gap-3;
+    @apply mb-4 flex flex-wrap items-start gap-3;
   }
 
   .cb-agenda-avail-card-icon {
-    @apply mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[hsl(222_47%_16%/0.08)] text-[hsl(222_47%_16%)];
+    @apply mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-900/10 text-slate-900;
   }
 
   .cb-agenda-avail-card-title {
-    @apply text-[15px] font-semibold tracking-tight text-[hsl(222_47%_16%)];
+    @apply text-[15px] font-semibold tracking-tight text-slate-900;
   }
 
   .cb-agenda-avail-card-sub {
@@ -2429,7 +2439,14 @@
   }
 
   .cb-agenda-week-row {
-    @apply grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 rounded-xl border border-border/40 bg-background/90 px-3 py-2.5 sm:grid-cols-[8rem_auto_minmax(0,1fr)_1.5rem];
+    @apply grid grid-cols-[minmax(0,1fr)_auto_auto] items-start gap-x-2 gap-y-2 rounded-xl border border-border/40 bg-background/90 px-3 py-2.5;
+  }
+
+  @media (min-width: 640px) {
+    .cb-agenda-week-row {
+      grid-template-columns: 9.5rem auto minmax(0, 1fr) auto;
+      align-items: center;
+    }
   }
 
   .cb-agenda-week-row-focus {
@@ -2437,7 +2454,7 @@
   }
 
   .cb-agenda-week-more {
-    @apply hidden text-muted-foreground/70 sm:inline-flex;
+    @apply inline-flex shrink-0 text-muted-foreground/70;
   }
 
   .cb-agenda-week-badge-open {
@@ -2453,39 +2470,54 @@
   }
 
   .cb-agenda-week-row-name {
-    @apply text-sm font-medium text-foreground;
+    @apply text-sm font-medium leading-snug text-foreground;
   }
 
   .cb-agenda-week-badge {
-    @apply inline-flex w-fit items-center justify-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
+    @apply inline-flex w-fit shrink-0 items-center justify-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
   }
 
   .cb-agenda-week-intervals {
-    @apply flex min-w-0 flex-wrap items-center gap-1.5;
+    @apply col-span-3 flex min-w-0 flex-col gap-1.5 sm:col-span-1 sm:flex-row sm:flex-wrap sm:items-center;
   }
 
   .cb-agenda-week-interval {
-    @apply inline-flex items-center gap-1 rounded-lg border border-border/50 bg-card px-1.5 py-1;
+    @apply inline-flex max-w-full items-center gap-1 rounded-lg border border-border/50 bg-card px-1.5 py-1;
   }
 
   .cb-agenda-week-time {
-    @apply h-8 w-[6.25rem] rounded-md border-0 bg-transparent px-1 text-xs tabular-nums shadow-none focus-visible:ring-1 focus-visible:ring-sky-400;
+    @apply h-8 min-w-0 max-w-[6rem] flex-1 rounded-md border-0 bg-transparent px-0.5 text-xs tabular-nums shadow-none focus-visible:ring-1 focus-visible:ring-sky-400;
+  }
+
+  .cb-agenda-week-time::-webkit-calendar-picker-indicator {
+    margin-inline-start: 0;
+    padding: 0;
+    width: 0.9rem;
+    opacity: 0.55;
   }
 
   .cb-agenda-week-time-sep {
-    @apply text-xs text-muted-foreground;
+    @apply shrink-0 text-xs text-muted-foreground;
   }
 
   .cb-agenda-week-interval-remove {
-    @apply inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition hover:bg-rose-50 hover:text-rose-700;
+    @apply inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition hover:bg-rose-50 hover:text-rose-700;
   }
 
   .cb-agenda-week-add {
-    @apply inline-flex h-8 w-8 items-center justify-center rounded-lg border border-dashed border-border/70 text-muted-foreground transition hover:border-sky-400 hover:bg-sky-50 hover:text-sky-800;
+    @apply inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-dashed border-border/70 text-muted-foreground transition hover:border-sky-400 hover:bg-sky-50 hover:text-sky-800;
   }
 
   .cb-agenda-week-closed-hint {
     @apply text-sm font-medium text-muted-foreground;
+  }
+
+  .cb-agenda-week-menu {
+    @apply absolute right-0 z-20 mt-1 min-w-[11rem] rounded-lg border border-border/60 bg-card p-1 shadow-lg;
+  }
+
+  .cb-agenda-week-menu button {
+    @apply flex w-full items-center rounded-md px-2.5 py-1.5 text-left text-xs font-medium text-foreground transition hover:bg-muted/60;
   }
 
   .cb-agenda-month-nav {
@@ -2613,7 +2645,7 @@
   }
 
   .cb-agenda-avail-save {
-    @apply h-11 rounded-xl bg-[hsl(222_47%_16%)] text-sm font-semibold text-white hover:bg-[hsl(222_47%_20%)];
+    @apply h-11 rounded-xl bg-slate-900 text-sm font-semibold text-white hover:bg-slate-800;
   }
 
   .cb-agenda-month-legend-dot-inherit {
@@ -2641,7 +2673,7 @@
   }
 
   .cb-agenda-month-day-selected {
-    @apply bg-[hsl(222_47%_16%)] text-white ring-0;
+    @apply bg-slate-900 text-white ring-0;
   }
 
   .cb-agenda-month-day-selected .cb-agenda-month-day-dot {
@@ -2653,7 +2685,7 @@
   }
 
   .cb-agenda-month-selected-daynum {
-    @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[hsl(222_47%_16%)] text-base font-bold text-white;
+    @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-base font-bold text-white;
   }
 
   .cb-agenda-month-selected-title {
@@ -2677,11 +2709,11 @@
   }
 
   .cb-agenda-slot-chip-on {
-    @apply border-transparent bg-[hsl(222_47%_16%)] text-white shadow-sm hover:bg-[hsl(222_47%_20%)] hover:text-white;
+    @apply border-transparent bg-slate-900 text-white shadow-sm hover:bg-slate-800 hover:text-white;
   }
 
   .cb-agenda-svc-help-card {
-    @apply space-y-3 rounded-2xl border border-border/50 bg-card p-4 shadow-[0_8px_24px_-12px_rgba(15,23,42,0.16)] lg:sticky lg:top-4;
+    @apply space-y-3 rounded-2xl border border-border/50 bg-card p-4 shadow-[0_8px_24px_-12px_rgba(15,23,42,0.16)];
   }
 
   .cb-agenda-svc-tip {
@@ -2738,7 +2770,11 @@
   }
 
   .cb-agenda-svc-main {
-    @apply min-w-0;
+    @apply order-1 min-w-0;
+  }
+
+  .cb-agenda-svc-help {
+    @apply order-2 min-w-0;
   }
 
   .cb-agenda-svc-table {

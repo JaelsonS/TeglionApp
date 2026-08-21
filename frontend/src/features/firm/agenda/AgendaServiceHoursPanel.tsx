@@ -214,7 +214,7 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
                 className={cn(
                   'rounded-full border px-3 py-1.5 text-xs font-semibold transition',
                   filter === f.key
-                    ? 'border-[hsl(222_47%_16%)] bg-[hsl(222_47%_16%)] text-white'
+                    ? 'border-slate-900 bg-slate-900 text-white'
                     : 'border-border/60 text-muted-foreground hover:border-sky-300',
                 )}
                 aria-pressed={filter === f.key}

@@ -84,6 +84,17 @@ export function AgendaSettingsView(props: Props) {
     }
   }
 
+  async function renameService(serviceId: string, name: string) {
+    try {
+      await contabilAccountingServicesApi.patch(serviceId, { name })
+      await props.onReload()
+      toast.success('Serviço renomeado.')
+    } catch (err) {
+      toast.error('Não foi possível renomear o serviço', { description: getErrorMessage(err) })
+      throw err
+    }
+  }
+
   return (
     <div className="cb-agenda-settings-view">
       <nav className="cb-agenda-stepper" aria-label="Secções da agenda">
@@ -129,6 +140,7 @@ export function AgendaSettingsView(props: Props) {
           onSaveAvailability={props.onSaveAvailability}
           bookableServices={bookable}
           onPersistDay={persistDay}
+          onRenameService={renameService}
         />
       </section>
 
