@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type ChangeEvent } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { isAxiosError } from 'axios'
 
@@ -199,7 +199,7 @@ export function FirmSettingsSecuritySection() {
                   aria-describedby={fieldError ? 'sec-mfa-error' : undefined}
                   className="h-11 max-w-xs tracking-[0.3em]"
                   value={code}
-                  onChange={(e) => {
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
                     setFieldError(null)
                     setCode(e.target.value.replace(/\D/g, '').slice(0, 6))
                   }}
@@ -241,7 +241,7 @@ export function FirmSettingsSecuritySection() {
               aria-describedby={fieldError ? 'sec-mfa-error' : undefined}
               className="h-11 max-w-xs tracking-[0.3em]"
               value={code}
-              onChange={(e) => {
+              onChange={(e: ChangeEvent<HTMLInputElement>) => {
                 setFieldError(null)
                 setCode(e.target.value.replace(/\D/g, '').slice(0, 6))
               }}

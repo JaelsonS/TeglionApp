@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
 import { isAxiosError } from 'axios'
@@ -97,7 +97,7 @@ export function FirmMfaChallengePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- boot once on mount / reason
   }, [reason])
 
-  async function onVerifyChallenge(e: React.FormEvent) {
+  async function onVerifyChallenge(e: FormEvent) {
     e.preventDefault()
     setFieldError(null)
     setBusy(true)
@@ -121,7 +121,7 @@ export function FirmMfaChallengePage() {
     }
   }
 
-  async function onConfirmEnroll(e: React.FormEvent) {
+  async function onConfirmEnroll(e: FormEvent) {
     e.preventDefault()
     setFieldError(null)
     setBusy(true)
@@ -199,7 +199,7 @@ export function FirmMfaChallengePage() {
                     aria-describedby={fieldError ? 'mfa-code-error' : 'mfa-code-hint'}
                     className="h-12 text-center text-lg tracking-[0.35em] sm:text-xl"
                     value={code}
-                    onChange={(ev) => {
+                    onChange={(ev: ChangeEvent<HTMLInputElement>) => {
                       setFieldError(null)
                       setCode(ev.target.value.replace(/\D/g, '').slice(0, 6))
                     }}
@@ -230,7 +230,7 @@ export function FirmMfaChallengePage() {
                     aria-describedby={fieldError ? 'mfa-code-error' : undefined}
                     className="h-12 font-mono tracking-wide"
                     value={recoveryCode}
-                    onChange={(ev) => {
+                    onChange={(ev: ChangeEvent<HTMLInputElement>) => {
                       setFieldError(null)
                       setRecoveryCode(ev.target.value.toUpperCase())
                     }}
@@ -322,7 +322,7 @@ export function FirmMfaChallengePage() {
                 aria-describedby={fieldError ? 'mfa-code-error' : undefined}
                 className="h-12 text-center text-lg tracking-[0.35em] sm:text-xl"
                 value={code}
-                onChange={(ev) => {
+                onChange={(ev: ChangeEvent<HTMLInputElement>) => {
                   setFieldError(null)
                   setCode(ev.target.value.replace(/\D/g, '').slice(0, 6))
                 }}
