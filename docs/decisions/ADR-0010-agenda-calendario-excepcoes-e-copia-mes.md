@@ -2,7 +2,7 @@
 
 ## Status
 
-Aceito. Decisão em vigor — implementada em 21/08/2026, como Fase 3 da evolução aprovada a partir da auditoria de 20/08/2026 (`docs/decisions/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md`).
+Aceito. Decisão em vigor — implementada em 21/08/2026; **Fase 3 formalmente encerrada** após UAT aprovado pelo owner em 21/08/2026. Origem: auditoria de 20/08/2026 (`docs/decisions/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md`).
 
 ## Contexto
 
@@ -36,10 +36,11 @@ A prioridade `dateOverrides[data] ?? schedule[weekday]` já estava implementada 
 
 - `dateOverrides` continua num blob JSON — queries SQL por data de excepção não são naturais (aceitável no volume actual).
 - A cópia de mês no UI actualiza o estado local; a persistência só ocorre quando o utilizador guarda a disponibilidade (comportamento igual ao resto do painel).
-- Resumo «serviços neste dia» no dialog é informativo, não um editor multi-serviço no mesmo dialog.
+- Evolução UX pós-UAT (branch `fix/fase-3-agenda-ux-uat`, PR #80): editor multi-serviço no dialog do dia (selecção, horário próprio, limpar, renomear) e layout anti-overflow do horário semanal — a integrar em `staging` se ainda não merged no fecho.
 
 ## Relação com outros ADRs
 
 - Não altera o isolamento por `firm_id` (ADR-0001): settings e `booking_overrides` já são por escritório.
 - Google Calendar fica na **Fase 9** desta frente ([ADR-0012](./ADR-0012-ordem-frente-evolucao-produto.md)), não imediatamente após Agenda — continua fora deste ADR; a disponibilidade local não muda o sync.
-- Dívida UX conhecida (21/08/2026): o calendário de excepções na UI antiga ficava cortado / com scroll aninhado frágil (`cb-fiscal-cal-grid-wrap`). **Corrigido** com layout em 3 colunas. Na mesma frente: dialog do dia com **Herdar/Aberto/Fechado por serviço** (persistência via `PATCH booking-settings` + `PATCH accounting-services`); merge profundo de `dateOverrides` firma+serviço em `mergeFirmAndServiceBooking` (booking.service.js) para o slotting público reflectir excepções do serviço sem apagar as da firma.
+- Dívida UX de scroll aninhado (`cb-fiscal-cal-grid-wrap`): **corrigida** com layout em 3 colunas. Dialog do dia com modos por serviço; merge profundo de `dateOverrides` firma+serviço em `mergeFirmAndServiceBooking` (booking.service.js).
+- **Fecho Fase 3 (21/08/2026):** UAT owner aprovado. Fase 4 (MFA) não inicia automaticamente — exige autorização explícita.
