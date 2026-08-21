@@ -259,7 +259,15 @@ function metadataFromRow(row) {
   return normalizeMetadataPatch(patch);
 }
 
-async function importCsv({ firmId, actorId, currentPassword, stepUpToken, rememberSession, buffer }) {
+async function importCsv({
+  firmId,
+  actorId,
+  currentPassword,
+  stepUpToken,
+  rememberSession,
+  totpCode,
+  buffer,
+}) {
   if (!buffer || !Buffer.isBuffer(buffer)) {
     throw new AppError('Ficheiro em falta.', 400, { code: 'FILE_REQUIRED' });
   }
@@ -292,9 +300,12 @@ async function importCsv({ firmId, actorId, currentPassword, stepUpToken, rememb
   const report = { created: 0, updated: 0, skipped: 0, errors: [] };
   let unlock = null;
   if (hasSecrets) {
-    unlock = await stepUp.verifyStaffPassword({
+    const sensitive = require('../security/sensitive-action.service');
+    unlock = await sensitive.assertVaultSensitiveUnlock({
       firmId,
       userId: actorId,
+      purpose: sensitive.SENSITIVE_PURPOSES.VAULT_IMPORT,
+      totpCode,
       currentPassword,
       stepUpToken,
       rememberSession: Boolean(rememberSession),

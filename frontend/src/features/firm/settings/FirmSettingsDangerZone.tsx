@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { AlertTriangle, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
@@ -8,11 +8,16 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
+import {
+  SensitiveActionConfirmFields,
+  sensitiveConfirmReady,
+} from '@/shared/components/security/SensitiveActionConfirmFields'
 import { firmSettingsApi } from '@/infrastructure/api/contabil/firmSettings'
 import type { FirmSettingsBundle } from '@/shared/types/firmSettings'
 import { authFirmLoginUrl } from '@/shared/constants/authPaths'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { useAuth } from '@/shared/hooks/useAuth'
+import { authApi } from '@/infrastructure/api'
 
 type Props = {
   bundle: FirmSettingsBundle
@@ -27,6 +32,24 @@ export function FirmSettingsDangerZone({ bundle }: Props) {
   const [npsReason, setNpsReason] = useState('')
   const [npsComment, setNpsComment] = useState('')
   const [closing, setClosing] = useState(false)
+  const [mfaEnabled, setMfaEnabled] = useState(true)
+  const [totpCode, setTotpCode] = useState('')
+  const [currentPassword, setCurrentPassword] = useState('')
+
+  useEffect(() => {
+    let cancelled = false
+    void authApi
+      .mfaStatus()
+      .then((data: { mfaEnabled?: boolean }) => {
+        if (!cancelled) setMfaEnabled(data?.mfaEnabled === true)
+      })
+      .catch(() => {
+        if (!cancelled) setMfaEnabled(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   if (!bundle.capabilities.canCloseAccount) return null
 
@@ -37,6 +60,14 @@ export function FirmSettingsDangerZone({ bundle }: Props) {
       toast.error('Indique o NPS antes de encerrar a conta.')
       return
     }
+    if (!sensitiveConfirmReady(mfaEnabled, totpCode, currentPassword)) {
+      toast.error(
+        mfaEnabled
+          ? 'Introduza o código da aplicação autenticadora para encerrar a conta.'
+          : 'Introduza a palavra-passe de login para encerrar a conta.',
+      )
+      return
+    }
     setClosing(true)
     try {
       await firmSettingsApi.closeAccount({
@@ -44,6 +75,7 @@ export function FirmSettingsDangerZone({ bundle }: Props) {
         npsScore,
         npsReason: npsReason.trim() || null,
         npsComment: npsComment.trim() || null,
+        ...(mfaEnabled ? { totpCode: totpCode.trim() } : { currentPassword }),
       })
       setOpen(false)
       toast.success('Conta encerrada. A redireccionar…')
@@ -84,6 +116,8 @@ export function FirmSettingsDangerZone({ bundle }: Props) {
             setNpsScore(null)
             setNpsReason('')
             setNpsComment('')
+            setTotpCode('')
+            setCurrentPassword('')
           }
         }}
         title="Confirmar encerramento"
@@ -104,6 +138,16 @@ export function FirmSettingsDangerZone({ bundle }: Props) {
             autoComplete="off"
           />
         </div>
+
+        <SensitiveActionConfirmFields
+          idPrefix="firm-close"
+          mfaEnabled={mfaEnabled}
+          totpCode={totpCode}
+          currentPassword={currentPassword}
+          onTotpChange={setTotpCode}
+          onPasswordChange={setCurrentPassword}
+          passwordMode="login"
+        />
 
         <div className="space-y-2">
           <Label>NPS: de 0 a 10, qual a probabilidade de recomendar o Teglion?</Label>

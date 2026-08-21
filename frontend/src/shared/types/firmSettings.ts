@@ -103,6 +103,8 @@ export type PatchFirmSettingsPayload = {
 export type PatchFirmProfilePayload = {
   fullName?: string
   email?: string
+  totpCode?: string
+  currentPassword?: string
 }
 
 export type PatchFirmPublicProfilePayload = {

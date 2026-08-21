@@ -210,6 +210,7 @@ export function createContabilClientsApi(api: AxiosInstance) {
       clientId: string,
       payload: {
         currentPassword?: string
+        totpCode?: string
         stepUpToken?: string
         rememberSession?: boolean
         portalKey: string
@@ -223,7 +224,12 @@ export function createContabilClientsApi(api: AxiosInstance) {
     revealOfficialAccess: (
       clientId: string,
       accessId: string,
-      payload: { currentPassword?: string; stepUpToken?: string; rememberSession?: boolean },
+      payload: {
+        currentPassword?: string
+        totpCode?: string
+        stepUpToken?: string
+        rememberSession?: boolean
+      },
     ) =>
       api
         .post(
@@ -235,7 +241,12 @@ export function createContabilClientsApi(api: AxiosInstance) {
     removeOfficialAccess: (
       clientId: string,
       accessId: string,
-      payload: { currentPassword?: string; stepUpToken?: string; rememberSession?: boolean },
+      payload: {
+        currentPassword?: string
+        totpCode?: string
+        stepUpToken?: string
+        rememberSession?: boolean
+      },
     ) =>
       api
         .post(

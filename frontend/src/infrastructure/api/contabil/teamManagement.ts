@@ -12,6 +12,8 @@ export const teamManagementApi = {
         password: string
         departmentId?: string | null
         sendWelcomeEmail?: boolean
+        totpCode?: string
+        currentPassword?: string
     }) =>
         api.post('/contabil/team', { ...payload, creationMode: 'DIRECT' }).then(
             (r) =>
@@ -27,12 +29,14 @@ export const teamManagementApi = {
         payload: Partial<Pick<TeamMember, 'fullName' | 'email' | 'role' | 'jobTitle'>> & {
             departmentId?: string | null
             tagIds?: string[]
+            totpCode?: string
+            currentPassword?: string
         },
     ) =>
         api.patch(`/contabil/team/${encodeURIComponent(memberId)}`, payload).then((r) => r.data as { member: TeamMember }),
 
-    deactivateMember: (memberId: string) =>
-        api.post(`/contabil/team/${encodeURIComponent(memberId)}/deactivate`).then((r) => r.data as { member: TeamMember }),
+    deactivateMember: (memberId: string, payload?: { totpCode?: string; currentPassword?: string }) =>
+        api.post(`/contabil/team/${encodeURIComponent(memberId)}/deactivate`, payload || {}).then((r) => r.data as { member: TeamMember }),
 
     reactivateMember: (memberId: string) =>
         api.post(`/contabil/team/${encodeURIComponent(memberId)}/reactivate`).then((r) => r.data as { member: TeamMember }),
@@ -81,7 +85,15 @@ export const teamManagementApi = {
     getMemberPermissions: (memberId: string) =>
         api.get(`/contabil/team/${encodeURIComponent(memberId)}/permissions`).then((r) => r.data as TeamPermissionsView),
 
-    patchMemberPermissions: (memberId: string, payload: { mode: 'INHERIT' | 'OVERRIDE'; permissions?: string[] }) =>
+    patchMemberPermissions: (
+        memberId: string,
+        payload: {
+            mode: 'INHERIT' | 'OVERRIDE'
+            permissions?: string[]
+            totpCode?: string
+            currentPassword?: string
+        },
+    ) =>
         api.patch(`/contabil/team/${encodeURIComponent(memberId)}/permissions`, payload).then((r) => r.data as {
             memberId: string
             mode: 'INHERIT' | 'OVERRIDE'

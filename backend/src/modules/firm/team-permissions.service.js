@@ -38,6 +38,15 @@ async function getTeamPermissions({ firmId, memberId }) {
 }
 
 async function patchTeamPermissions({ firmId, memberId, actor, payload, req }) {
+    const sensitive = require('../security/sensitive-action.service');
+    await sensitive.confirmSensitiveAction({
+        firmId,
+        userId: actor.id,
+        purpose: sensitive.SENSITIVE_PURPOSES.TEAM_PERMISSIONS_PATCH,
+        totpCode: payload?.totpCode,
+        currentPassword: payload?.currentPassword,
+    });
+
     const member = await firmUsersRepository.findFirmUserByIdForFirm(firmId, memberId);
     if (!member) throw new AppError('Membro não encontrado.', 404);
 

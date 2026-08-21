@@ -178,7 +178,7 @@ function normalizeFirmSlug(raw) {
   return s;
 }
 
-async function updateMyProfile(firmId, userId, { fullName, email }) {
+async function updateMyProfile(firmId, userId, { fullName, email, totpCode, currentPassword }, req = null) {
   const actor = await firmUsersRepository.findFirmUserById(userId);
   if (!actor || String(actor.firm_id) !== String(firmId)) {
     throw new AppError('Utilizador não encontrado', 404);
@@ -190,21 +190,43 @@ async function updateMyProfile(firmId, userId, { fullName, email }) {
   }
 
   let nextEmail;
+  let emailChanging = false;
   if (email != null) {
     nextEmail = String(email).trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextEmail)) {
       throw new AppError('E-mail inválido.', 400);
     }
-    const taken = await firmUsersRepository.findFirmUserByEmailExcluding(nextEmail, userId);
-    if (taken) {
-      throw new AppError('Este e-mail já está associado a outra conta.', 409);
+    emailChanging = nextEmail !== String(actor.email || '').trim().toLowerCase();
+    if (emailChanging) {
+      const taken = await firmUsersRepository.findFirmUserByEmailExcluding(nextEmail, userId);
+      if (taken) {
+        throw new AppError('Este e-mail já está associado a outra conta.', 409);
+      }
+      const sensitive = require('../security/sensitive-action.service');
+      await sensitive.confirmSensitiveAction({
+        firmId,
+        userId,
+        purpose: sensitive.SENSITIVE_PURPOSES.PROFILE_EMAIL_CHANGE,
+        totpCode,
+        currentPassword,
+      });
     }
   }
 
   const row = await firmUsersRepository.updateFirmUserProfile(userId, firmId, {
     fullName: nextName ?? undefined,
-    email: nextEmail,
+    email: emailChanging ? nextEmail : undefined,
   });
+
+  if (emailChanging) {
+    await securityAudit.recordSettingsMutation({
+      action: 'firm.profile.email.changed',
+      actor: { id: userId, role: actor.role },
+      firmId,
+      metadata: {},
+      req,
+    });
+  }
 
   return {
     id: row.id,
@@ -214,13 +236,25 @@ async function updateMyProfile(firmId, userId, { fullName, email }) {
   };
 }
 
-async function changeMyPassword(firmId, userId, { currentPassword, newPassword }, req = null) {
+async function changeMyPassword(firmId, userId, { currentPassword, newPassword, totpCode }, req = null) {
   const actor = await firmUsersRepository.findFirmUserById(userId);
   if (!actor || String(actor.firm_id) !== String(firmId)) {
     throw new AppError('Utilizador não encontrado', 404);
   }
   if (!actor.password_hash) {
     throw new AppError('Esta conta não tem palavra-passe local para alterar.', 400);
+  }
+
+  const sensitive = require('../security/sensitive-action.service');
+  // MFA on → TOTP; MFA off → currentPassword already required below (same factor).
+  if (actor.mfa_enabled === true) {
+    await sensitive.confirmSensitiveAction({
+      firmId,
+      userId,
+      purpose: sensitive.SENSITIVE_PURPOSES.PROFILE_PASSWORD_CHANGE,
+      totpCode,
+      currentPassword: null,
+    });
   }
 
   const ok = await verifyPassword(String(currentPassword || ''), actor.password_hash);
@@ -236,15 +270,17 @@ async function changeMyPassword(firmId, userId, { currentPassword, newPassword }
   const passwordHash = await hashPassword(String(newPassword));
   await firmUsersRepository.updateFirmMember(firmId, userId, { passwordHash });
 
+  await authRefreshSessionsRepository.deleteAllForActor('firm_user', userId);
+
   await securityAudit.recordSettingsMutation({
     action: 'firm.profile.password.changed',
     actor: { id: userId, role: actor.role },
     firmId,
-    metadata: {},
+    metadata: { sessionsRevoked: true },
     req,
   });
 
-  return { updated: true };
+  return { updated: true, sessionsRevoked: true };
 }
 
 async function setMyVaultPassword(firmId, userId, { currentPassword, newPassword }, req = null) {
@@ -288,11 +324,25 @@ async function setMyVaultPassword(firmId, userId, { currentPassword, newPassword
   };
 }
 
-async function closeFirmAccount(firmId, actorUserId, { confirmName, npsScore, npsReason, npsComment }, req = null) {
+async function closeFirmAccount(
+  firmId,
+  actorUserId,
+  { confirmName, npsScore, npsReason, npsComment, totpCode, currentPassword },
+  req = null,
+) {
   const actor = await firmUsersRepository.findFirmUserById(actorUserId);
   if (!actor || String(actor.firm_id) !== String(firmId) || actor.role !== 'FIRM_OWNER') {
     throw new AppError('Apenas o dono do escritório pode encerrar a conta.', 403);
   }
+
+  const sensitive = require('../security/sensitive-action.service');
+  await sensitive.confirmSensitiveAction({
+    firmId,
+    userId: actorUserId,
+    purpose: sensitive.SENSITIVE_PURPOSES.FIRM_CLOSE,
+    totpCode,
+    currentPassword,
+  });
 
   const firm = await firmsRepository.findFirmById(firmId);
   if (!firm) throw new AppError('Escritório não encontrado', 404);
@@ -322,6 +372,7 @@ async function closeFirmAccount(firmId, actorUserId, { confirmName, npsScore, np
       npsReason: normalizedNpsReason,
       npsComment: normalizedNpsComment,
       source: 'firm_close_dialog',
+      stepUpConfirmed: true,
     },
     req,
   });
@@ -333,6 +384,14 @@ async function closeFirmAccount(firmId, actorUserId, { confirmName, npsScore, np
   await Promise.all(
     team.map((u) => authRefreshSessionsRepository.deleteAllForActor('firm_user', u.id)),
   );
+
+  await securityAudit.recordSettingsMutation({
+    action: 'firm.account.closed',
+    actor: { id: actorUserId, role: actor.role },
+    firmId,
+    metadata: {},
+    req,
+  });
 
   return { closed: true, message: 'Conta do escritório encerrada. Todas as sessões foram terminadas.' };
 }

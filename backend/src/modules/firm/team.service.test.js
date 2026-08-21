@@ -6,6 +6,7 @@ const firmUsersRepository = require('../../db/supabase/repositories/firm-users.r
 const authRefreshSessionsRepository = require('../../db/supabase/repositories/auth-refresh-sessions.repository');
 const firmInquiryTagsRepository = require('../../db/supabase/repositories/firm-inquiry-tags.repository');
 const securityAudit = require('../../services/audit/security-audit.service');
+const sensitiveAction = require('../security/sensitive-action.service');
 const teamService = require('./team.service');
 
 const FIRM_ID = 'firm-x';
@@ -14,6 +15,14 @@ const STAFF = { id: 'staff-1', role: 'FIRM_STAFF' };
 
 function resetMocks() {
   mock.restoreAll();
+  mock.method(sensitiveAction, 'confirmSensitiveAction', async () => ({
+    method: 'test',
+    purpose: 'test',
+  }));
+}
+
+function mockSensitiveOk() {
+  // confirmSensitiveAction já mockado em resetMocks
 }
 
 /** I/O de etiquetas: só stubs de rede — mapLinkRowsToTagsByKey fica real (puro). */
@@ -36,6 +45,7 @@ function baseMember(overrides = {}) {
 
 test('deactivateMember: revoga todas as sessões de refresh do membro desativado', async () => {
   resetMocks();
+  mockSensitiveOk();
   mockTags();
   const member = baseMember();
   mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => member);
@@ -48,13 +58,20 @@ test('deactivateMember: revoga todas as sessões de refresh do membro desativado
   });
   mock.method(securityAudit, 'recordTeamMutation', async () => {});
 
-  await teamService.deactivateMember({ firmId: FIRM_ID, memberId: member.id, actor: OWNER, req: {} });
+  await teamService.deactivateMember({
+    firmId: FIRM_ID,
+    memberId: member.id,
+    actor: OWNER,
+    req: {},
+    totpCode: '123456',
+  });
 
   assert.deepEqual(revokedCall, { actorType: 'firm_user', actorId: member.id });
 });
 
 test('deactivateMember: sinaliza sessionsRevoked no registo de auditoria', async () => {
   resetMocks();
+  mockSensitiveOk();
   mockTags();
   const member = baseMember();
   mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => member);
@@ -67,13 +84,20 @@ test('deactivateMember: sinaliza sessionsRevoked no registo de auditoria', async
     auditMetadata = metadata;
   });
 
-  await teamService.deactivateMember({ firmId: FIRM_ID, memberId: member.id, actor: OWNER, req: {} });
+  await teamService.deactivateMember({
+    firmId: FIRM_ID,
+    memberId: member.id,
+    actor: OWNER,
+    req: {},
+    totpCode: '123456',
+  });
 
   assert.equal(auditMetadata.sessionsRevoked, true);
 });
 
 test('deactivateMember: não revoga sessão se o próprio utilizador tentar desativar-se', async () => {
   resetMocks();
+  mockSensitiveOk();
   const member = baseMember({ id: OWNER.id });
   mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => member);
 
@@ -83,7 +107,14 @@ test('deactivateMember: não revoga sessão se o próprio utilizador tentar desa
   });
 
   await assert.rejects(
-    () => teamService.deactivateMember({ firmId: FIRM_ID, memberId: member.id, actor: OWNER, req: {} }),
+    () =>
+      teamService.deactivateMember({
+        firmId: FIRM_ID,
+        memberId: member.id,
+        actor: OWNER,
+        req: {},
+        totpCode: '123456',
+      }),
     /próprio/,
   );
   assert.equal(called, false);

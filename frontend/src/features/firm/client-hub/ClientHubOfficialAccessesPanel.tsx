@@ -281,7 +281,10 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
   const items = data?.items || []
   const security = data?.security
   const revealTtl = security?.revealTtlSeconds || 30
-  const canUnlock = Boolean(security?.canUnlock ?? security?.hasLocalPassword ?? security?.hasVaultPassword)
+  const mfaRequired = Boolean(security?.mfaRequired)
+  const canUnlock = Boolean(
+    security?.canUnlock ?? security?.hasLocalPassword ?? security?.hasVaultPassword ?? mfaRequired,
+  )
   const disabled = !canUnlock || upsert.isPending || remove.isPending || reveal.isPending
   const userId = user?.id
 
@@ -307,7 +310,12 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
 
   async function runUnlocked(
     intent: StepUpIntent,
-    creds: { currentPassword?: string; stepUpToken?: string; rememberSession?: boolean },
+    creds: {
+      currentPassword?: string
+      totpCode?: string
+      stepUpToken?: string
+      rememberSession?: boolean
+    },
     draft: Draft | null,
   ) {
     if (intent.kind === 'save' && draft) {
@@ -392,15 +400,25 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
     }
   }
 
-  async function runStepUp(currentPassword: string, options: { rememberSession: boolean }) {
+  async function runStepUp(
+    result: { currentPassword?: string; totpCode?: string; rememberSession: boolean },
+  ) {
     if (!stepUp) return
     try {
-      await runUnlocked(stepUp, { currentPassword, rememberSession: options.rememberSession }, pendingDraft)
+      await runUnlocked(
+        stepUp,
+        {
+          currentPassword: result.currentPassword,
+          totpCode: result.totpCode,
+          rememberSession: result.rememberSession,
+        },
+        pendingDraft,
+      )
       setStepUp(null)
       setPendingDraft(null)
       setStepUpError(null)
     } catch (err) {
-      if (!options.rememberSession) clearVaultStepUpToken(userId)
+      if (!result.rememberSession) clearVaultStepUpToken(userId)
       setStepUpError(getErrorMessage(err))
     }
   }
@@ -553,6 +571,7 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
 
       <StepUpPasswordDialog
         open={Boolean(stepUp)}
+        mfaEnabled={mfaRequired}
         title={
           stepUp?.kind === 'copy'
             ? 'Copiar senha do portal'
@@ -563,13 +582,15 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
                 : 'Guardar acesso oficial'
         }
         description={
-          stepUp?.kind === 'copy'
-            ? 'A senha vai para a área de transferência e some daqui em cerca de 30 segundos. A consulta fica na auditoria.'
-            : stepUp?.kind === 'reveal'
-              ? 'A senha fica visível cerca de 30 segundos. Esta consulta fica na auditoria do escritório.'
-              : stepUp?.kind === 'remove'
-                ? 'A senha cifrada deste portal é apagada. Confirme com a palavra-passe dos Acessos oficiais.'
-                : 'Confirme a identidade para gravar este acesso. A senha do portal é cifrada antes de ficar guardada.'
+          mfaRequired
+            ? undefined
+            : stepUp?.kind === 'copy'
+              ? 'A senha vai para a área de transferência e some daqui em cerca de 30 segundos. A consulta fica na auditoria.'
+              : stepUp?.kind === 'reveal'
+                ? 'A senha fica visível cerca de 30 segundos. Esta consulta fica na auditoria do escritório.'
+                : stepUp?.kind === 'remove'
+                  ? 'A senha cifrada deste portal é apagada. Confirme com a palavra-passe dos Acessos oficiais.'
+                  : 'Confirme a identidade para gravar este acesso. A senha do portal é cifrada antes de ficar guardada.'
         }
         confirmLabel={stepUp?.kind === 'remove' ? 'Remover' : stepUp?.kind === 'copy' ? 'Copiar senha' : 'Confirmar'}
         error={stepUpError}

@@ -24,6 +24,12 @@ function loadServiceWithMember(member, { updateCalls } = {}) {
   stubModule('../../services/audit/security-audit.service', {
     recordTeamMutation: async () => {},
   });
+  stubModule('../security/sensitive-action.service', {
+    SENSITIVE_PURPOSES: {
+      TEAM_PERMISSIONS_PATCH: 'team_permissions_patch',
+    },
+    confirmSensitiveAction: async () => ({ method: 'test', purpose: 'team_permissions_patch' }),
+  });
   delete require.cache[require.resolve('./team-permissions.service')];
   return require('./team-permissions.service');
 }

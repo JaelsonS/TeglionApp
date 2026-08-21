@@ -122,6 +122,15 @@ async function getMember(firmId, memberId) {
 }
 
 async function createMember({ firmId, actor, payload, req }) {
+    const sensitive = require('../security/sensitive-action.service');
+    await sensitive.confirmSensitiveAction({
+        firmId,
+        userId: actor.id,
+        purpose: sensitive.SENSITIVE_PURPOSES.TEAM_MEMBER_CREATE,
+        totpCode: payload?.totpCode,
+        currentPassword: payload?.currentPassword,
+    });
+
     const email = String(payload.email || '').trim().toLowerCase();
     const fullName = String(payload.fullName || '').trim();
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -236,6 +245,17 @@ async function updateMember({ firmId, memberId, actor, payload, req }) {
     if (payload.role !== undefined) {
         patch.role = assertActorCanAssignRole(actor, payload.role, { previousRole: current.role });
 
+        if (String(patch.role) !== String(current.role)) {
+            const sensitive = require('../security/sensitive-action.service');
+            await sensitive.confirmSensitiveAction({
+                firmId,
+                userId: actor.id,
+                purpose: sensitive.SENSITIVE_PURPOSES.TEAM_MEMBER_ROLE_CHANGE,
+                totpCode: payload?.totpCode,
+                currentPassword: payload?.currentPassword,
+            });
+        }
+
         // Sem isto, o único FIRM_OWNER do escritório conseguia rebaixar-se a si mesmo (ou
         // a assertActorCanAssignRole permitia que outro owner o rebaixasse) até zero owners
         // ativos, travando ações administrativas que exigem FIRM_OWNER (billing, permissões).
@@ -292,7 +312,16 @@ async function updateMember({ firmId, memberId, actor, payload, req }) {
     return getMember(firmId, updated.id);
 }
 
-async function deactivateMember({ firmId, memberId, actor, req }) {
+async function deactivateMember({ firmId, memberId, actor, req, totpCode, currentPassword }) {
+    const sensitive = require('../security/sensitive-action.service');
+    await sensitive.confirmSensitiveAction({
+        firmId,
+        userId: actor.id,
+        purpose: sensitive.SENSITIVE_PURPOSES.TEAM_MEMBER_DEACTIVATE,
+        totpCode: totpCode ?? req?.body?.totpCode,
+        currentPassword: currentPassword ?? req?.body?.currentPassword,
+    });
+
     const current = await firmUsersRepository.findFirmUserByIdForFirm(firmId, memberId);
     if (!current) throw new AppError('Membro não encontrado.', 404);
     if (String(current.id) === String(actor.id)) {

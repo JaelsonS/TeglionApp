@@ -128,9 +128,10 @@ describe('clients-spreadsheet.service', () => {
     const excelLike = Buffer.from(`\uFEFF${header}\r\n${toLine(existingRow)}\r\n${toLine(newRow)}\r\n`, 'utf8');
 
     let stepUpCalled = false;
-    mock.method(stepUp, 'verifyStaffPassword', async () => {
+    const sensitive = require('../security/sensitive-action.service');
+    mock.method(sensitive, 'assertVaultSensitiveUnlock', async () => {
       stepUpCalled = true;
-      return { actor: { id: 'u' } };
+      return { actor: { id: 'u' }, method: 'test' };
     });
     mock.method(entitlements, 'assertWithinLimit', async () => {});
 

@@ -104,4 +104,5 @@ module.exports = {
   actorHasLocalPassword,
   getUnlockState,
   issueVaultStepUp,
+  readValidStepUpToken,
 };
