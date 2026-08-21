@@ -242,7 +242,7 @@ export function AgendaDayAvailabilityDialog({
                     className={cn(
                       'mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border',
                       draft.mode === opt.mode
-                        ? 'border-[hsl(222_47%_16%)] bg-[hsl(222_47%_16%)]'
+                        ? 'border-slate-900 bg-slate-900'
                         : 'border-border',
                     )}
                     aria-hidden
@@ -392,7 +392,7 @@ export function AgendaDayAvailabilityDialog({
                                 className={cn(
                                   'rounded-md px-2.5 py-1 text-[11px] font-semibold transition',
                                   s.mode === opt.mode
-                                    ? 'bg-[hsl(222_47%_16%)] text-white'
+                                    ? 'bg-slate-900 text-white'
                                     : 'text-muted-foreground hover:bg-muted/40',
                                 )}
                                 aria-pressed={s.mode === opt.mode}
@@ -453,7 +453,7 @@ export function AgendaDayAvailabilityDialog({
           </Button>
           <Button
             type="button"
-            className="bg-[hsl(222_47%_16%)] hover:bg-[hsl(222_47%_20%)]"
+            className="bg-slate-900 hover:bg-slate-800"
             onClick={() => void handleSave()}
             disabled={saving}
             data-testid="agenda-day-availability-save"

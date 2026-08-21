@@ -2377,7 +2377,7 @@
   }
 
   .cb-agenda-stepper-item-active .cb-agenda-stepper-n {
-    @apply border-transparent bg-[hsl(222_47%_16%)] text-white;
+    @apply border-transparent bg-slate-900 text-white;
   }
 
   .cb-agenda-stepper-label {
@@ -2413,11 +2413,11 @@
   }
 
   .cb-agenda-avail-card-icon {
-    @apply mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[hsl(222_47%_16%/0.08)] text-[hsl(222_47%_16%)];
+    @apply mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-900/10 text-slate-900;
   }
 
   .cb-agenda-avail-card-title {
-    @apply text-[15px] font-semibold tracking-tight text-[hsl(222_47%_16%)];
+    @apply text-[15px] font-semibold tracking-tight text-slate-900;
   }
 
   .cb-agenda-avail-card-sub {
@@ -2613,7 +2613,7 @@
   }
 
   .cb-agenda-avail-save {
-    @apply h-11 rounded-xl bg-[hsl(222_47%_16%)] text-sm font-semibold text-white hover:bg-[hsl(222_47%_20%)];
+    @apply h-11 rounded-xl bg-slate-900 text-sm font-semibold text-white hover:bg-slate-800;
   }
 
   .cb-agenda-month-legend-dot-inherit {
@@ -2641,7 +2641,7 @@
   }
 
   .cb-agenda-month-day-selected {
-    @apply bg-[hsl(222_47%_16%)] text-white ring-0;
+    @apply bg-slate-900 text-white ring-0;
   }
 
   .cb-agenda-month-day-selected .cb-agenda-month-day-dot {
@@ -2653,7 +2653,7 @@
   }
 
   .cb-agenda-month-selected-daynum {
-    @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[hsl(222_47%_16%)] text-base font-bold text-white;
+    @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-base font-bold text-white;
   }
 
   .cb-agenda-month-selected-title {
@@ -2677,7 +2677,7 @@
   }
 
   .cb-agenda-slot-chip-on {
-    @apply border-transparent bg-[hsl(222_47%_16%)] text-white shadow-sm hover:bg-[hsl(222_47%_20%)] hover:text-white;
+    @apply border-transparent bg-slate-900 text-white shadow-sm hover:bg-slate-800 hover:text-white;
   }
 
   .cb-agenda-svc-help-card {
