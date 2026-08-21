@@ -63,7 +63,7 @@ export function VaultPasswordSetupForm({
         newPassword,
         currentPassword: needsCurrent ? currentPassword : undefined,
       })
-      persistVaultStepUpFromResponse(userId, result, true)
+      persistVaultStepUpFromResponse(userId, result, true, 'vault_mutate')
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')

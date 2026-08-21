@@ -30,20 +30,42 @@ function verifyAccessToken(token) {
 }
 
 const VAULT_STEPUP_TYP = 'vault-stepup';
-const VAULT_STEPUP_EXPIRES_IN = '8h';
+/** Produção: curto e purpose-bound (Gate 3 / main release). */
+const VAULT_STEPUP_EXPIRES_IN = '10m';
+const VAULT_STEPUP_PURPOSES = Object.freeze({
+  REVEAL: 'vault_reveal',
+  MUTATE: 'vault_mutate',
+  IMPORT: 'vault_import',
+});
 
-function signVaultStepUpToken({ id, firmId }) {
+function signVaultStepUpToken({ id, firmId, purpose }) {
+  if (!id || !firmId || !purpose) {
+    throw new Error('VAULT_STEPUP_PAYLOAD_INCOMPLETE');
+  }
+  if (!Object.values(VAULT_STEPUP_PURPOSES).includes(purpose)) {
+    throw new Error('VAULT_STEPUP_PURPOSE_INVALID');
+  }
   return jwt.sign(
-    { typ: VAULT_STEPUP_TYP, id, firmId },
+    { typ: VAULT_STEPUP_TYP, id, firmId, purpose },
     env.JWT_ACCESS_SECRET,
     { expiresIn: VAULT_STEPUP_EXPIRES_IN },
   );
 }
 
-function verifyVaultStepUpToken(token) {
+function verifyVaultStepUpToken(token, { purpose } = {}) {
   const payload = jwt.verify(token, env.JWT_ACCESS_SECRET);
-  if (!payload || payload.typ !== VAULT_STEPUP_TYP || !payload.id || !payload.firmId) {
+  if (!payload || payload.typ !== VAULT_STEPUP_TYP || !payload.id || !payload.firmId || !payload.purpose) {
     const err = new Error('INVALID_VAULT_STEPUP');
+    err.name = 'JsonWebTokenError';
+    throw err;
+  }
+  if (!Object.values(VAULT_STEPUP_PURPOSES).includes(payload.purpose)) {
+    const err = new Error('INVALID_VAULT_STEPUP_PURPOSE');
+    err.name = 'JsonWebTokenError';
+    throw err;
+  }
+  if (purpose && String(payload.purpose) !== String(purpose)) {
+    const err = new Error('VAULT_STEPUP_PURPOSE_MISMATCH');
     err.name = 'JsonWebTokenError';
     throw err;
   }
@@ -133,6 +155,8 @@ module.exports = {
   signVaultStepUpToken,
   verifyVaultStepUpToken,
   VAULT_STEPUP_TYP,
+  VAULT_STEPUP_EXPIRES_IN,
+  VAULT_STEPUP_PURPOSES,
   signMfaChallengeToken,
   verifyMfaChallengeToken,
   MFA_CHALLENGE_TYP,

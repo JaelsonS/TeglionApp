@@ -24,6 +24,7 @@ const SENSITIVE_PURPOSES = Object.freeze({
   TEAM_MEMBER_DEACTIVATE: 'team_member_deactivate',
   TEAM_MEMBER_ROLE_CHANGE: 'team_member_role_change',
   TEAM_MEMBER_CREATE: 'team_member_create',
+  TEAM_MEMBER_EMAIL_CHANGE: 'team_member_email_change',
   VAULT_REVEAL: 'vault_reveal',
   VAULT_MUTATE: 'vault_mutate',
   VAULT_IMPORT: 'vault_import',
@@ -134,14 +135,14 @@ async function assertVaultSensitiveUnlock({
   const stepUp = require('../firm/step-up.service');
 
   if (actor.mfa_enabled === true) {
-    const tokenPayload = stepUp.readValidStepUpToken({ firmId, userId, stepUpToken });
+    const tokenPayload = stepUp.readValidStepUpToken({ firmId, userId, stepUpToken, purpose });
     if (tokenPayload) {
-      const issued = rememberSession !== false ? stepUp.issueVaultStepUp({ firmId, userId }) : {};
+      const issued = rememberSession !== false ? stepUp.issueVaultStepUp({ firmId, userId, purpose }) : {};
       return { actor, method: 'vault_stepup', purpose, mfaEnabled: true, ...issued };
     }
     if (!totpCode || !String(totpCode).trim()) throw mfaRequiredError();
     await verifyTotpForActor(actor, String(totpCode).trim());
-    const issued = rememberSession ? stepUp.issueVaultStepUp({ firmId, userId }) : {};
+    const issued = rememberSession ? stepUp.issueVaultStepUp({ firmId, userId, purpose }) : {};
     return { actor, method: 'mfa_totp', purpose, mfaEnabled: true, ...issued };
   }
 
@@ -151,6 +152,7 @@ async function assertVaultSensitiveUnlock({
     currentPassword,
     stepUpToken,
     rememberSession,
+    purpose,
   }).then((result) => ({ ...result, purpose, method: result.method || 'vault_password', mfaEnabled: false }));
 }
 

@@ -304,8 +304,16 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
     }
   }, [revealed, revealTtl])
 
-  function persistUnlock(data: { stepUpToken?: string; stepUpExpiresAt?: string | null } | undefined, remember: boolean) {
-    persistVaultStepUpFromResponse(userId, data, remember)
+  function purposeForIntent(intent: StepUpIntent): 'vault_reveal' | 'vault_mutate' {
+    return intent.kind === 'reveal' || intent.kind === 'copy' ? 'vault_reveal' : 'vault_mutate'
+  }
+
+  function persistUnlock(
+    data: { stepUpToken?: string; stepUpExpiresAt?: string | null } | undefined,
+    remember: boolean,
+    purpose: 'vault_reveal' | 'vault_mutate',
+  ) {
+    persistVaultStepUpFromResponse(userId, data, remember, purpose)
   }
 
   async function runUnlocked(
@@ -318,6 +326,7 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
     },
     draft: Draft | null,
   ) {
+    const purpose = purposeForIntent(intent)
     if (intent.kind === 'save' && draft) {
       const result = await upsert.mutateAsync({
         ...creds,
@@ -327,7 +336,7 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
         password: draft.password || undefined,
         label: draft.label,
       })
-      persistUnlock(result, creds.rememberSession !== false)
+      persistUnlock(result, creds.rememberSession !== false, purpose)
       setExpandedKey(null)
     } else if (intent.kind === 'create-custom') {
       const result = await upsert.mutateAsync({
@@ -337,7 +346,7 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
         username: customUsername,
         password: customPassword,
       })
-      persistUnlock(result, creds.rememberSession !== false)
+      persistUnlock(result, creds.rememberSession !== false, purpose)
       setCustomLabel('')
       setCustomUsername('')
       setCustomPassword('')
@@ -347,11 +356,11 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
         accessId: intent.item.id,
         ...creds,
       })
-      persistUnlock(result, creds.rememberSession !== false)
+      persistUnlock(result, creds.rememberSession !== false, purpose)
       await applyRevealed(intent.item.id, result.revealedValue, intent.kind === 'copy')
     } else if (intent.kind === 'remove' && intent.item.id) {
       const result = await remove.mutateAsync({ accessId: intent.item.id, ...creds })
-      persistUnlock(result, creds.rememberSession !== false)
+      persistUnlock(result, creds.rememberSession !== false, purpose)
       if (revealed?.accessId === intent.item.id) setRevealed(null)
       setExpandedKey(null)
     }
@@ -359,7 +368,8 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
 
   async function requestUnlock(intent: StepUpIntent, draft: Draft | null = null) {
     setStepUpError(null)
-    const silent = vaultUnlockPayload(userId)
+    const purpose = purposeForIntent(intent)
+    const silent = vaultUnlockPayload(userId, purpose)
     if (silent.stepUpToken) {
       try {
         await runUnlocked(intent, silent, draft)
@@ -367,7 +377,7 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
         setPendingDraft(null)
         return
       } catch {
-        clearVaultStepUpToken(userId)
+        clearVaultStepUpToken(userId, purpose)
       }
     }
     setPendingDraft(draft)
@@ -418,7 +428,7 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
       setPendingDraft(null)
       setStepUpError(null)
     } catch (err) {
-      if (!result.rememberSession) clearVaultStepUpToken(userId)
+      if (!result.rememberSession && stepUp) clearVaultStepUpToken(userId, purposeForIntent(stepUp))
       setStepUpError(getErrorMessage(err))
     }
   }

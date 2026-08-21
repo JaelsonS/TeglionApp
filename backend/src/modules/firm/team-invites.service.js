@@ -68,6 +68,15 @@ async function deliverTeamInviteEmail({ staffEmail, staffName, firmName, inviteT
 }
 
 async function createStaffInvite({ firmId, actor, payload, req }) {
+    const sensitive = require('../security/sensitive-action.service');
+    await sensitive.confirmSensitiveAction({
+        firmId,
+        userId: actor.id,
+        purpose: sensitive.SENSITIVE_PURPOSES.TEAM_MEMBER_CREATE,
+        totpCode: payload?.totpCode,
+        currentPassword: payload?.currentPassword,
+    });
+
     const email = String(payload.email || '').trim().toLowerCase();
     const fullName = String(payload.fullName || '').trim();
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {

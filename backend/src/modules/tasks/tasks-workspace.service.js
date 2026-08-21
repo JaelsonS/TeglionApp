@@ -375,6 +375,17 @@ async function updateTask({ firmId, taskId, actor, patch }) {
   if (next.status === 'ARCHIVED') next.archivedAt = new Date().toISOString();
   if (next.status === 'WAITING_CLIENT') next.submittedAt = new Date().toISOString();
 
+  if (next.clientIds !== undefined) {
+    const ids = [...new Set((next.clientIds || []).filter(Boolean).map(String))];
+    for (const clientId of ids) {
+      const client = await clientsRepository.findClientById(firmId, clientId);
+      if (!client) {
+        throw new AppError('Cliente inválido para esta tarefa.', 400, { code: 'CLIENT_NOT_IN_FIRM' });
+      }
+    }
+    next.clientIds = ids;
+  }
+
   const task = await tasksRepo.updateTask(taskId, firmId, next);
 
   void activityService.recordActivity({

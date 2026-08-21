@@ -6,17 +6,20 @@ export type PublicServiceCluster = {
 }
 
 /**
- * Agrupa serviços adjacentes com o mesmo `publicGroup`, preservando sort_order.
- * Sem grupo → heading null (lista plana como hoje).
+ * Agrupa serviços pelo `publicGroup`, preservando a ordem relativa do catálogo.
+ * Sem grupo → heading null (lista plana).
+ * Não depende de adjacência: o mesmo grupo não parte em vários accordions.
  */
 export function clusterPublicServices(items: PublicFirmServiceSummary[]): PublicServiceCluster[] {
   const clusters: PublicServiceCluster[] = []
+  const indexByHeading = new Map<string | null, number>()
   for (const item of items) {
     const heading = String(item.publicGroup || '').trim() || null
-    const last = clusters[clusters.length - 1]
-    if (last && last.heading === heading) {
-      last.items.push(item)
+    const existingIdx = indexByHeading.get(heading)
+    if (existingIdx !== undefined) {
+      clusters[existingIdx].items.push(item)
     } else {
+      indexByHeading.set(heading, clusters.length)
       clusters.push({ heading, items: [item] })
     }
   }

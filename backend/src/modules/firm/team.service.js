@@ -240,7 +240,18 @@ async function updateMember({ firmId, memberId, actor, payload, req }) {
         if (taken && String(taken.firm_id) === String(firmId)) {
             throw new AppError('Este e-mail já está associado a outra conta.', 409);
         }
-        patch.email = email;
+        if (email !== String(current.email || '').trim().toLowerCase()) {
+            const sensitive = require('../security/sensitive-action.service');
+            await sensitive.confirmSensitiveAction({
+                firmId,
+                userId: actor.id,
+                purpose: sensitive.SENSITIVE_PURPOSES.TEAM_MEMBER_EMAIL_CHANGE,
+                totpCode: payload?.totpCode,
+                currentPassword: payload?.currentPassword,
+            });
+            patch.email = email;
+            patch.emailConfirmedAt = null;
+        }
     }
     if (payload.role !== undefined) {
         patch.role = assertActorCanAssignRole(actor, payload.role, { previousRole: current.role });
@@ -283,10 +294,16 @@ async function updateMember({ firmId, memberId, actor, payload, req }) {
         return getMember(firmId, memberId);
     }
 
+    const emailChanged = Object.prototype.hasOwnProperty.call(patch, 'email');
+
     const updated =
         Object.keys(patch).length > 0
             ? await firmUsersRepository.updateFirmMember(firmId, memberId, patch)
             : current;
+
+    if (emailChanged) {
+        await authRefreshSessionsRepository.deleteAllForActor('firm_user', memberId);
+    }
 
     if (Array.isArray(payload.tagIds)) {
         const tagIds = await firmInquiryTagsRepository.resolveAllowedTagIds(firmId, payload.tagIds);
@@ -300,10 +317,11 @@ async function updateMember({ firmId, memberId, actor, payload, req }) {
             firmId,
             targetUserId: updated.id,
             metadata: {
-                changedFields: Object.keys(patch),
+                changedFields: Object.keys(patch).filter((k) => k !== 'emailConfirmedAt'),
                 role: updated.role,
                 jobTitle: updated.jobTitle,
                 departmentId: updated.departmentId,
+                sessionsRevoked: emailChanged,
             },
             req,
         });

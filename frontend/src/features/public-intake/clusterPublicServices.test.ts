@@ -20,11 +20,11 @@ describe('clusterPublicServices', () => {
     expect(out).toEqual([{ heading: null, items: [svc('irs'), svc('iva')] }])
   })
 
-  it('clusters adjacent services with the same group', () => {
+  it('merges the same group even when services are not adjacent', () => {
     const out = clusterPublicServices([
       svc('a', 'Consultoria Fiscal'),
-      svc('b', 'Consultoria Fiscal'),
       svc('c'),
+      svc('b', 'Consultoria Fiscal'),
     ])
     expect(out.map((c) => c.heading)).toEqual(['Consultoria Fiscal', null])
     expect(out[0].items.map((i) => i.slug)).toEqual(['a', 'b'])

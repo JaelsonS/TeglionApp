@@ -47,6 +47,8 @@ export const teamManagementApi = {
         role?: TeamMember['role']
         jobTitle?: string | null
         departmentId?: string | null
+        totpCode?: string
+        currentPassword?: string
     }) =>
         api.post('/contabil/team/invites', payload).then(
             (r) =>

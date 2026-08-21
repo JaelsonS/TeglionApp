@@ -61,7 +61,18 @@ async function createClientTask(data) {
   };
   const { data: inserted, error } = await sb.from('client_tasks').insert(row).select().single();
   if (error) throw error;
-  return mapTaskRow(inserted);
+
+  // M2M: fiche/portal usam client_task_client_links como fonte de verdade.
+  if (data.clientId) {
+    const { error: linkError } = await sb.from('client_task_client_links').insert({
+      client_task_id: inserted.id,
+      client_id: data.clientId,
+      firm_id: data.firmId,
+    });
+    if (linkError) throw linkError;
+  }
+
+  return { ...mapTaskRow(inserted), clientIds: data.clientId ? [data.clientId] : [] };
 }
 
 async function updateClientTask(id, firmId, patch) {
