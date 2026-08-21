@@ -2,7 +2,7 @@
 
 **Esse é o único roadmap que eu uso.** Se eu esbarrar em qualquer outro documento com lista de tarefas, sprints ou "próximos passos" que não seja esse arquivo, já sei que ele está desatualizado — corrijo ou arquivo. Nenhuma outra lista de prioridades no repositório tem autoridade sobre essa aqui.
 
-Última vez que eu atualizei: 21 de agosto de 2026 (ordem da frente de evolução: MFA após Agenda; Google Calendar por último — ver [ADR-0012](./decisions/ADR-0012-ordem-frente-evolucao-produto.md)). Antes disso: 18/08/2026 (auditorias multi-tenancy, HTTP/polling, expansão internacional). Onde uma afirmação vem de uma dessas auditorias, eu marco isso. Onde eu ainda não investiguei fundo o suficiente pra ter certeza, eu também marco — não quero fingir que sei o que ainda não sei.
+Última vez que eu atualizei: 21 de agosto de 2026 (Fase 3 Agenda formalmente encerrada após UAT; Fase 4 MFA bloqueada até autorização explícita — ver [ADR-0012](./decisions/ADR-0012-ordem-frente-evolucao-produto.md)). Antes disso: 18/08/2026 (auditorias multi-tenancy, HTTP/polling, expansão internacional). Onde uma afirmação vem de uma dessas auditorias, eu marco isso. Onde eu ainda não investiguei fundo o suficiente pra ter certeza, eu também marco — não quero fingir que sei o que ainda não sei.
 
 ---
 
@@ -187,8 +187,8 @@ Abri uma frente própria, maior que um item avulso desta fase. A auditoria item 
 |---|---|---|
 | 1 | Tarefas M2M | `CONCLUÍDO` |
 | 2 | Serviços (grupos, imagem, oferta+opções, Página Pública agrupada) | `CONCLUÍDO` tecnicamente; UAT visual pendente |
-| 3 | Agenda / disponibilidade | `PARCIAL` — fechar UAT visual, mobile/desktop, copyMonth HTTP, regressões |
-| 4 | MFA (TOTP, recovery, owner obrigatório) | `PLANEJADO` — **só após Fase 3 fechada e aprovação explícita** |
+| 3 | Agenda / disponibilidade | `CONCLUÍDO` — UAT aprovado 21/08/2026 |
+| 4 | MFA (TOTP, recovery, owner obrigatório) | `PLANEJADO` — **só após autorização explícita** («AUTORIZO O INÍCIO DA FASE 4 — MFA.») |
 | 5 | Step-up + ações sensíveis (evoluir mecanismo existente; sem 2.º mecanismo) | `PLANEJADO` |
 | 6 | Créditos / SMS (saldo genérico; sem compra real ainda) | `PLANEJADO` |
 | 7 | Entitlements / add-ons / pricing (arquitectura; preços futuros só documentados) | `PLANEJADO` |
@@ -199,8 +199,8 @@ Abri uma frente própria, maior que um item avulso desta fase. A auditoria item 
 
 - **Fase 1 — Tarefas M2M: `CONCLUÍDO`.** Vários clientes por tarefa (`client_task_client_links`, [ADR-0008](./decisions/ADR-0008-tarefas-multi-cliente-m2m.md)); edição completa em `Dialog` (`TaskEditDialog.tsx`).
 - **Fase 2 — Serviços: `CONCLUÍDO` tecnicamente; UAT pendente.** Grupos 1 nível + imagem reposicionável ([ADR-0009](./decisions/ADR-0009-servicos-grupos-e-posicionamento-imagem.md)); oferta comercial + opções (`accounting_service_option_links`, [ADR-0011](./decisions/ADR-0011-servico-oferta-opcoes.md)); booking no `service_id` do filho; catálogo público esconde opções de ofertas publicadas. Migration de opções aplicada em **teglion-staging** apenas.
-- **Fase 3 — Agenda / disponibilidade: `PARCIAL`.** Modelo `schedule`/`dateOverrides` + UI calendário/dialog/copiar mês ([ADR-0010](./decisions/ADR-0010-agenda-calendario-excepcoes-e-copia-mes.md)). Pendente: UAT visual (desktop/mobile), corrigir falhas de scroll do calendário na UI actual, smoke HTTP autenticado `copyMonth`, regressões, validação final. Mockup de direcção UX: [`docs/product/mockups/agenda-horario-geral-mockup.png`](./product/mockups/agenda-horario-geral-mockup.png). **Não iniciar Fase 4 até esta fase estar realmente fechada.**
-- **Fase 4 — MFA:** owner obrigatório; staff opcional inicialmente; TOTP; enrollment; QR; recovery codes; login challenge; ecrã de segurança; auditoria; rate limit; armazenamento seguro do segredo; tenant isolation. Reutilizar/evoluir o **step-up já existente** — não criar um segundo mecanismo. Políticas futuras por organização/função/acção/risco.
+- **Fase 3 — Agenda / disponibilidade: `CONCLUÍDO`.** Modelo `schedule`/`dateOverrides` + UI calendário/dialog/copiar mês ([ADR-0010](./decisions/ADR-0010-agenda-calendario-excepcoes-e-copia-mes.md)); merge firma+serviço; UAT visual aprovado pelo owner em 21/08/2026. Produção não alterada nesta fase. Mockup: [`docs/product/mockups/agenda-horario-geral-mockup.png`](./product/mockups/agenda-horario-geral-mockup.png).
+- **Fase 4 — MFA: `PLANEJADO` / bloqueada.** Spec completa guardada; execução só após «AUTORIZO O INÍCIO DA FASE 4 — MFA.» Depois: re-auditoria → Plano Técnico → aprovação do plano → implementação staging-first. Owner obrigatório; staff opcional; TOTP; recovery; challenge; ecrã segurança; AES-GCM; rate limit; tenant isolation; evoluir step-up existente (sem 2.º mecanismo). Colunas MFA eventualmente presentes em teglion-staging permanecem **inertes** até implementação autorizada.
 - **Fase 5 — Step-up + ações sensíveis:** generalizar scopes (`vault_credentials_view`, `account_email_change`, `firm_delete`, `data_export`, …). Fluxo: sessão → acção → step-up MFA → token temporário → acção → auditoria. Sem senha como fallback indefinido para acções críticas.
 - **Fase 6 — Créditos / SMS:** arquitectura genérica (ex.: 200 SMS incluídos); saldo, consumo, histórico, motivo, tenant, utilizador, referência; alertas; esgotado. Sem compra real nesta fase.
 - **Fase 7 — Entitlements / add-ons / pricing:** entitlements por firma para Página Pública e add-ons futuros. Preços futuros documentados apenas (€45/mês, €479/ano) — **não exibir publicamente** até autorização. Sem cobrança activa nesta fase.
