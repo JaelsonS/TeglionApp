@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ChangeEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { isAxiosError } from 'axios'
 
@@ -28,36 +28,73 @@ function mfaUserFacingError(err: unknown): string {
   return raw
 }
 
+function mapMfaStatus(data: {
+  mfaEnabled?: boolean
+  mfaEnabledAt?: string | null
+  required?: boolean
+} | null | undefined): MfaStatus {
+  return {
+    mfaEnabled: data?.mfaEnabled === true,
+    mfaEnabledAt: data?.mfaEnabledAt ?? null,
+    required: data?.required === true,
+  }
+}
+
 export function FirmSettingsSecuritySection() {
   const toast = useApiToast()
+  const toastRef = useRef(toast)
+  toastRef.current = toast
   const { user } = useAuth()
   const [status, setStatus] = useState<MfaStatus | null>(null)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [otpauthUrl, setOtpauthUrl] = useState<string | null>(null)
   const [code, setCode] = useState('')
   const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null)
   const [busy, setBusy] = useState(false)
   const [fieldError, setFieldError] = useState<string | null>(null)
 
-  const refresh = useCallback(async () => {
-    setLoading(true)
+  /**
+   * useApiToast() devolve um objecto novo em cada render. Se `refresh` depender de `toast`,
+   * o useEffect reentra em loop e a UI fica presa em «A carregar segurança…».
+   */
+  const refresh = useCallback(async (opts?: { silent?: boolean; notifyError?: boolean }) => {
+    const silent = opts?.silent === true
+    const notifyError = opts?.notifyError !== false
+    if (!silent) setLoading(true)
+    setLoadError(null)
     try {
       const data = await authApi.mfaStatus()
-      setStatus({
-        mfaEnabled: data?.mfaEnabled === true,
-        mfaEnabledAt: data?.mfaEnabledAt ?? null,
-        required: data?.required === true,
-      })
+      setStatus(mapMfaStatus(data))
     } catch (err) {
-      toast.error(mfaUserFacingError(err))
+      const message = mfaUserFacingError(err)
+      setLoadError(message)
+      if (notifyError) toastRef.current.error(message)
     } finally {
       setLoading(false)
     }
-  }, [toast])
+  }, [])
 
   useEffect(() => {
-    void refresh()
-  }, [refresh])
+    let cancelled = false
+    ;(async () => {
+      setLoading(true)
+      setLoadError(null)
+      try {
+        const data = await authApi.mfaStatus()
+        if (cancelled) return
+        setStatus(mapMfaStatus(data))
+      } catch (err) {
+        if (cancelled) return
+        setLoadError(mfaUserFacingError(err))
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   async function startEnroll() {
     setBusy(true)
@@ -82,7 +119,7 @@ export function FirmSettingsSecuritySection() {
       setOtpauthUrl(null)
       setCode('')
       toast.success('Autenticação de dois factores activada.')
-      await refresh()
+      await refresh({ silent: true })
     } catch (err) {
       const message = mfaUserFacingError(err)
       setFieldError(message)
@@ -100,7 +137,7 @@ export function FirmSettingsSecuritySection() {
       setRecoveryCodes(Array.isArray(res.recoveryCodes) ? res.recoveryCodes : [])
       setCode('')
       toast.success('Novos códigos de recuperação gerados. Os anteriores deixaram de ser válidos.')
-      await refresh()
+      await refresh({ silent: true })
     } catch (err) {
       const message = mfaUserFacingError(err)
       setFieldError(message)
@@ -122,7 +159,7 @@ export function FirmSettingsSecuritySection() {
       setCode('')
       setRecoveryCodes(null)
       toast.success('Autenticação de dois factores desactivada.')
-      await refresh()
+      await refresh({ silent: true })
     } catch (err) {
       const message = mfaUserFacingError(err)
       setFieldError(message)
@@ -134,6 +171,24 @@ export function FirmSettingsSecuritySection() {
 
   if (loading) {
     return <p className="text-sm text-muted-foreground">A carregar segurança…</p>
+  }
+
+  if (loadError && !status) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-4">
+        <p className="text-sm text-destructive" role="alert">
+          Não foi possível carregar o estado de segurança. Tente novamente.
+        </p>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void refresh()}
+          className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-60"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -197,41 +252,39 @@ export function FirmSettingsSecuritySection() {
                   placeholder="000000"
                   aria-invalid={Boolean(fieldError)}
                   aria-describedby={fieldError ? 'sec-mfa-error' : undefined}
-                  className="h-11 max-w-xs tracking-[0.3em]"
                   value={code}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                  onChange={(ev: ChangeEvent<HTMLInputElement>) => {
                     setFieldError(null)
-                    setCode(e.target.value.replace(/\D/g, '').slice(0, 6))
+                    setCode(ev.target.value.replace(/\D/g, '').slice(0, 6))
                   }}
                 />
+                {fieldError ? (
+                  <p id="sec-mfa-error" role="alert" className="text-sm text-destructive">
+                    {fieldError}
+                  </p>
+                ) : null}
               </div>
-              {fieldError ? (
-                <p id="sec-mfa-error" role="alert" className="text-sm text-destructive">
-                  {fieldError}
-                </p>
-              ) : null}
               <button
                 type="button"
                 disabled={busy || code.length !== 6}
                 onClick={() => void confirmEnroll()}
                 className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-60"
               >
-                Confirmar configuração
+                Confirmar e activar
               </button>
             </>
           )}
         </div>
       ) : (
         <div className="space-y-4">
-          <p className="text-sm leading-6 text-slate-600">
-            Para regenerar códigos de recuperação
-            {!status.required ? ' ou desactivar esta protecção' : ''}, introduza o código actualmente
-            apresentado na sua aplicação de autenticação.
+          <p className="text-sm text-muted-foreground">
+            Para regenerar códigos de recuperação ou desactivar, introduza o código actual da sua
+            aplicação de autenticação.
           </p>
           <div className="space-y-2">
-            <Label htmlFor="sec-mfa-code">Código de 6 dígitos</Label>
+            <Label htmlFor="sec-action-code">Código de 6 dígitos</Label>
             <Input
-              id="sec-mfa-code"
+              id="sec-action-code"
               inputMode="numeric"
               pattern="[0-9]*"
               autoComplete="one-time-code"
@@ -239,19 +292,18 @@ export function FirmSettingsSecuritySection() {
               placeholder="000000"
               aria-invalid={Boolean(fieldError)}
               aria-describedby={fieldError ? 'sec-mfa-error' : undefined}
-              className="h-11 max-w-xs tracking-[0.3em]"
               value={code}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              onChange={(ev: ChangeEvent<HTMLInputElement>) => {
                 setFieldError(null)
-                setCode(e.target.value.replace(/\D/g, '').slice(0, 6))
+                setCode(ev.target.value.replace(/\D/g, '').slice(0, 6))
               }}
             />
+            {fieldError ? (
+              <p id="sec-mfa-error" role="alert" className="text-sm text-destructive">
+                {fieldError}
+              </p>
+            ) : null}
           </div>
-          {fieldError ? (
-            <p id="sec-mfa-error" role="alert" className="text-sm text-destructive">
-              {fieldError}
-            </p>
-          ) : null}
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -268,7 +320,7 @@ export function FirmSettingsSecuritySection() {
                 onClick={() => void disable()}
                 className="rounded-md border border-destructive/40 px-4 py-2 text-sm text-destructive disabled:opacity-60"
               >
-                Desactivar autenticação de dois factores
+                Desactivar MFA
               </button>
             ) : null}
           </div>
@@ -276,13 +328,11 @@ export function FirmSettingsSecuritySection() {
       )}
 
       {recoveryCodes && recoveryCodes.length > 0 ? (
-        <div className="space-y-2 rounded-md border p-4">
-          <p className="text-sm font-medium">Códigos de recuperação</p>
-          <p className="text-sm text-muted-foreground">
-            Guarde-os num local seguro. Cada um só pode ser utilizado uma vez. Esta é a única vez em que
-            são mostrados.
+        <div className="rounded-md border border-amber-200 bg-amber-50 p-4">
+          <p className="text-sm font-medium text-amber-900">
+            Guarde estes códigos de recuperação num local seguro. Cada um só pode ser usado uma vez.
           </p>
-          <ul className="grid grid-cols-1 gap-1 font-mono text-sm sm:grid-cols-2">
+          <ul className="mt-3 grid gap-1 font-mono text-sm">
             {recoveryCodes.map((c) => (
               <li key={c}>{c}</li>
             ))}
