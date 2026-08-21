@@ -193,7 +193,7 @@ export function FirmSettingsPage() {
                     {activeTab === 'perfil' &&
                       'O seu nome, e-mail de acesso, palavra-passe e cofre dos acessos oficiais.'}
                     {activeTab === 'seguranca' &&
-                      'Autenticação de dois factores (TOTP), códigos de recuperação e política por função.'}
+                      'Autenticação de dois factores com aplicação autenticadora, códigos de recuperação e política por função.'}
                     {activeTab === 'equipa' &&
                       'Colaboradores, convites, cargos, departamentos e permissões — o dono define quem faz o quê.'}
                     {activeTab === 'etiquetas' &&
