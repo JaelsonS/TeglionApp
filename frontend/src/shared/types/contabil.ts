@@ -362,6 +362,12 @@ export type AccountingService = {
   description?: string | null
   imageUrl?: string | null
   imageStorageKey?: string | null
+  /** Imagem original, sem recorte -- base para o reposicionamento reversível (focus/zoom). */
+  imageOriginalUrl?: string | null
+  /** Ponto focal (0-100) e zoom (1-2.5) aplicados via CSS (object-position/transform), nunca "assados" nos pixels. */
+  imageFocusX?: number | null
+  imageFocusY?: number | null
+  imageZoom?: number | null
   durationMinutes: number
   priceCents: number
   /** rótulo na página pública: included | excluded | null */
@@ -371,6 +377,9 @@ export type AccountingService = {
   sortOrder?: number
   slug?: string | null
   isPubliclyListed?: boolean
+  /** Grupo de apresentação (accounting_service_groups). null = sem grupo. */
+  groupId?: string | null
+  /** Nome do grupo, resolvido pelo backend a partir de groupId — não editar diretamente, editar groupId. */
   publicGroup?: string | null
   requiresBooking?: boolean
   /** form = dados primeiro (default). calendar = horários primeiro. Só aplica se requiresBooking. */
@@ -383,6 +392,17 @@ export type AccountingService = {
   paymentMethod?: 'bank_transfer' | 'multibanco' | 'stripe_connect'
   /** Se true, agendamento público exige Checkout Stripe antes de confirmar. */
   paymentRequired?: boolean
+}
+
+export type AccountingServiceGroup = {
+  id: string
+  firmId: string
+  name: string
+  isActive: boolean
+  isPubliclyListed: boolean
+  sortOrder: number
+  createdAt?: string
+  updatedAt?: string
 }
 
 export type ConsultingCatalogEntry = {

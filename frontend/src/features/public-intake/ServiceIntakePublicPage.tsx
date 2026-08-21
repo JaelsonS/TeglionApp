@@ -28,6 +28,7 @@ import type { FormChangeEvent, FormSubmitEvent } from '@/shared/types/react-even
 import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
 import { TeglionPublicCredit } from '@/features/public-intake/TeglionPublicCredit'
 import { PublicSlotCalendar } from '@/features/public-intake/PublicSlotCalendar'
+import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
 
 function formatScheduledAt(iso: string) {
   return new Date(iso).toLocaleString('pt-PT', {
@@ -467,7 +468,9 @@ export function ServiceIntakePublicPage() {
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{service.firmName}</p>
         )}
         {service.imageUrl ? (
-          <img src={service.imageUrl} alt="" className="mb-3 max-h-48 w-full rounded-xl object-cover" />
+          <div className="mb-3 h-48 w-full overflow-hidden rounded-xl">
+            <img src={service.imageUrl} alt="" className="h-full w-full" style={servicePositionedImageStyle(service)} />
+          </div>
         ) : null}
         <h1 className="text-2xl font-bold text-[hsl(var(--brand-text,var(--foreground)))]">{service.serviceName}</h1>
         {service.description ? <SanitizedServiceHtml html={service.description} className="text-sm text-muted-foreground" /> : null}

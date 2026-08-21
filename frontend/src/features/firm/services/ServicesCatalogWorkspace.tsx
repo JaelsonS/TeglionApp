@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   CheckCircle2,
   Eye,
+  FolderCog,
   Loader2,
   Pencil,
   Plus,
@@ -16,6 +17,7 @@ import {
 import { toast } from 'sonner'
 
 import { ServiceFullEditorSheet } from '@/features/firm/services/ServiceFullEditorSheet'
+import { ServiceGroupsManager } from '@/features/firm/services/ServiceGroupsManager'
 import { getServicePublishPresentation } from '@/features/firm/services/servicePublishState'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -58,6 +60,7 @@ export function ServicesCatalogWorkspace({
   description,
 }: Props) {
   const { user } = useAuth()
+  const qc = useQueryClient()
   const firmSlug = user?.tenant?.slug
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterMode>('active')
@@ -66,12 +69,20 @@ export function ServicesCatalogWorkspace({
   const [editingService, setEditingService] = useState<AccountingService | null>(null)
   const [catalogHint, setCatalogHint] = useState<{ name?: string; catalogKey?: string } | null>(null)
   const [busyKey, setBusyKey] = useState<string | null>(null)
+  const [groupsManagerOpen, setGroupsManagerOpen] = useState(false)
 
   const catalogQuery = useQuery({
     queryKey: ['contabil-accounting-services', 'catalog-template'],
     queryFn: () => contabilAccountingServicesApi.getCatalogTemplate(),
     staleTime: 10 * 60_000,
   })
+
+  const groupsQuery = useQuery({
+    queryKey: ['contabil-accounting-service-groups'],
+    queryFn: () => contabilAccountingServicesApi.listGroups(),
+    staleTime: 30_000,
+  })
+  const groups = groupsQuery.data?.items ?? []
 
   const firmServices = useMemo(() => {
     let list = excludeIrs ? services.filter((s) => !isIrsEntry(s)) : services
@@ -172,9 +183,14 @@ export function ServicesCatalogWorkspace({
           <div className="shrink-0 space-y-3 border-b border-brand/10 bg-gradient-to-r from-brand/[0.06] to-transparent px-4 py-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-sm font-semibold">{title}</h3>
-              <Button type="button" size="sm" variant="primary" onClick={() => openEditor(null)}>
-                <Plus className="h-4 w-4" /> Adicionar serviço
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <Button type="button" size="sm" variant="outline" onClick={() => setGroupsManagerOpen(true)}>
+                  <FolderCog className="h-4 w-4" /> Grupos
+                </Button>
+                <Button type="button" size="sm" variant="primary" onClick={() => openEditor(null)}>
+                  <Plus className="h-4 w-4" /> Adicionar serviço
+                </Button>
+              </div>
             </div>
             <p className="text-xs text-muted-foreground">
               Comece pelos serviços que o escritório mais presta. Edite para configurar e publicar na página pública.
@@ -425,6 +441,16 @@ export function ServicesCatalogWorkspace({
           }
         }}
         onSaved={() => void onReload()}
+      />
+
+      <ServiceGroupsManager
+        open={groupsManagerOpen}
+        onOpenChange={setGroupsManagerOpen}
+        groups={groups}
+        onReload={async () => {
+          await qc.invalidateQueries({ queryKey: ['contabil-accounting-service-groups'] })
+          await onReload()
+        }}
       />
     </div>
   )

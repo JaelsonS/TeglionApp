@@ -1,5 +1,5 @@
 import type { AxiosInstance } from 'axios'
-import type { ConsultingCatalogEntry } from '@/shared/types/contabil'
+import type { AccountingServiceGroup, ConsultingCatalogEntry } from '@/shared/types/contabil'
 
 export function createContabilAccountingServicesApi(api: AxiosInstance) {
   return {
@@ -36,6 +36,22 @@ export function createContabilAccountingServicesApi(api: AxiosInstance) {
         .post('/contabil/accounting-services/image', fd)
         .then((r) => r.data as { storageKey: string; previewUrl: string })
     },
+
+    listGroups: () =>
+      api.get('/contabil/accounting-service-groups').then((r) => r.data as { items: AccountingServiceGroup[] }),
+
+    createGroup: (payload: { name: string; sortOrder?: number; isActive?: boolean; isPubliclyListed?: boolean }) =>
+      api
+        .post('/contabil/accounting-service-groups', payload)
+        .then((r) => r.data as { item: AccountingServiceGroup }),
+
+    patchGroup: (id: string, payload: Record<string, unknown>) =>
+      api
+        .patch(`/contabil/accounting-service-groups/${encodeURIComponent(id)}`, payload)
+        .then((r) => r.data as { item: AccountingServiceGroup }),
+
+    removeGroup: (id: string) =>
+      api.delete(`/contabil/accounting-service-groups/${encodeURIComponent(id)}`).then((r) => r.data),
   }
 }
 

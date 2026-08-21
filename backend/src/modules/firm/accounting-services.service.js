@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const { AppError } = require('../../middlewares/error.middleware');
 const { mapDbError } = require('../../utils/db-error');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
+const accountingServiceGroupsRepository = require('../../db/supabase/repositories/accounting-service-groups.repository');
 const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-catalog');
 const { titleForTag } = require('../../data/irs-modelo3-intake');
 const { BOOKING_TIMEZONES } = require('../booking/booking.service');
@@ -24,6 +25,23 @@ function normalizePublicGroup(value) {
   if (value === null) return null;
   const trimmed = String(value).trim().slice(0, 80);
   return trimmed || null;
+}
+
+/** Ponto focal/zoom de reposicionamento de imagem — ver migration image_position. */
+function normalizeImageFocus(value, min, max) {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < min || n > max) {
+    throw new AppError(`Valor de posicionamento de imagem inválido (esperado ${min}-${max})`, 400);
+  }
+  return Math.round(n * 100) / 100;
+}
+
+async function assertGroupBelongsToFirm(firmId, groupId) {
+  if (!groupId) return;
+  const group = await accountingServiceGroupsRepository.findByIdForFirm(groupId, firmId);
+  if (!group) throw new AppError('Grupo de serviços não encontrado', 404, { code: 'GROUP_NOT_FOUND' });
 }
 
 function normalizeIntakeStartMode(value) {
@@ -415,17 +433,33 @@ async function resolveServiceImageUrl(imageRef) {
   return raw;
 }
 
-async function enrichService(item) {
+async function enrichService(item, groupNameById) {
   if (!item) return item;
   const key = item.imageStorageKey || item.imageUrl;
   const imageStorageKey = key && String(key).startsWith('firm/') ? key : item.imageStorageKey || null;
-  const imageUrl = await resolveServiceImageUrl(key);
-  return { ...item, imageUrl, imageStorageKey };
+  const [imageUrl, imageOriginalUrl] = await Promise.all([
+    resolveServiceImageUrl(key),
+    resolveServiceImageUrl(item.imageOriginalUrl),
+  ]);
+  // Grupo real (accounting_service_groups) é a fonte de verdade do nome exibido —
+  // sobrepõe o texto legado public_group quando o serviço já está ligado a um grupo.
+  // Sem groupId, publicGroup continua vindo do texto legado (comportamento de sempre,
+  // serviço nunca migrado para a nova hierarquia).
+  const publicGroup = item.groupId ? groupNameById?.get(item.groupId) ?? item.publicGroup : item.publicGroup;
+  return { ...item, imageUrl, imageOriginalUrl, imageStorageKey, publicGroup };
+}
+
+async function resolveGroupNameMap(firmId) {
+  const groups = await accountingServiceGroupsRepository.listByFirm(firmId);
+  return new Map(groups.map((g) => [g.id, g.name]));
 }
 
 async function list({ firmId, activeOnly }) {
-  const items = await accountingServicesRepository.listByFirm(firmId, { activeOnly: Boolean(activeOnly) });
-  return { items: await Promise.all(items.map(enrichService)) };
+  const [items, groupNameById] = await Promise.all([
+    accountingServicesRepository.listByFirm(firmId, { activeOnly: Boolean(activeOnly) }),
+    resolveGroupNameMap(firmId),
+  ]);
+  return { items: await Promise.all(items.map((item) => enrichService(item, groupNameById))) };
 }
 
 async function create({ firmId, payload }) {
@@ -479,11 +513,17 @@ async function create({ firmId, payload }) {
     paymentMethod = 'stripe_connect';
   }
 
+  if (payload?.groupId !== undefined) await assertGroupBelongsToFirm(firmId, payload.groupId);
+
   const item = await accountingServicesRepository.createRow({
     firmId,
     name,
     description: payload?.description,
     imageUrl: payload?.imageStorageKey || payload?.imageUrl || null,
+    imageOriginalUrl: payload?.imageOriginalUrl || null,
+    imageFocusX: normalizeImageFocus(payload?.imageFocusX, 0, 100) ?? null,
+    imageFocusY: normalizeImageFocus(payload?.imageFocusY, 0, 100) ?? null,
+    imageZoom: normalizeImageFocus(payload?.imageZoom, 1, 2.5) ?? null,
     durationMinutes: duration,
     priceCents,
     currency: String(payload?.currency || 'EUR').toUpperCase().slice(0, 3),
@@ -493,6 +533,7 @@ async function create({ firmId, payload }) {
     slug,
     isPubliclyListed,
     requiresBooking: payload?.requiresBooking === true,
+    groupId: payload?.groupId || null,
     publicGroup: normalizePublicGroup(payload?.publicGroup) ?? null,
     intakeStartMode: normalizeIntakeStartMode(payload?.intakeStartMode) ?? 'form',
     documentRequirements: normalizeDocumentRequirements(payload?.documentRequirements) || [],
@@ -502,7 +543,7 @@ async function create({ firmId, payload }) {
     paymentRequired,
     priceTaxMode: normalizePriceTaxMode(payload?.priceTaxMode) ?? null,
   });
-  return { item: await enrichService(item) };
+  return { item: await enrichService(item, await resolveGroupNameMap(firmId)) };
 }
 
 async function update({ firmId, id, payload }) {
@@ -518,6 +559,10 @@ async function update({ firmId, id, payload }) {
   if (payload?.description !== undefined) patch.description = payload.description;
   if (payload?.imageStorageKey !== undefined) patch.imageUrl = payload.imageStorageKey;
   else if (payload?.imageUrl !== undefined) patch.imageUrl = payload.imageUrl;
+  if (payload?.imageOriginalUrl !== undefined) patch.imageOriginalUrl = payload.imageOriginalUrl;
+  if (payload?.imageFocusX !== undefined) patch.imageFocusX = normalizeImageFocus(payload.imageFocusX, 0, 100);
+  if (payload?.imageFocusY !== undefined) patch.imageFocusY = normalizeImageFocus(payload.imageFocusY, 0, 100);
+  if (payload?.imageZoom !== undefined) patch.imageZoom = normalizeImageFocus(payload.imageZoom, 1, 2.5);
   if (payload?.durationMinutes !== undefined) {
     const duration = Number(payload.durationMinutes);
     if (!Number.isFinite(duration) || duration < 15 || duration > 480) {
@@ -532,6 +577,10 @@ async function update({ firmId, id, payload }) {
   if (payload?.isActive !== undefined) patch.isActive = Boolean(payload.isActive);
   if (payload?.slug !== undefined) patch.slug = normalizeSlug(payload.slug);
   if (payload?.requiresBooking !== undefined) patch.requiresBooking = Boolean(payload.requiresBooking);
+  if (payload?.groupId !== undefined) {
+    await assertGroupBelongsToFirm(firmId, payload.groupId);
+    patch.groupId = payload.groupId || null;
+  }
   if (payload?.publicGroup !== undefined) patch.publicGroup = normalizePublicGroup(payload.publicGroup);
   if (payload?.sortOrder !== undefined) patch.sortOrder = normalizeSortOrder(payload.sortOrder);
   if (payload?.intakeStartMode !== undefined) {
@@ -598,7 +647,7 @@ async function update({ firmId, id, payload }) {
   }
 
   const item = await accountingServicesRepository.updateRow(id, firmId, patch);
-  return { item: await enrichService(item) };
+  return { item: await enrichService(item, await resolveGroupNameMap(firmId)) };
 }
 
 /**
@@ -616,6 +665,10 @@ async function duplicate({ firmId, id }) {
     name: `${existing.name} (cópia)`,
     description: existing.description,
     imageUrl: existing.imageStorageKey || existing.imageUrl || null,
+    imageOriginalUrl: existing.imageOriginalUrl,
+    imageFocusX: existing.imageFocusX,
+    imageFocusY: existing.imageFocusY,
+    imageZoom: existing.imageZoom,
     durationMinutes: existing.durationMinutes,
     priceCents: existing.priceCents,
     currency: existing.currency,
@@ -625,13 +678,14 @@ async function duplicate({ firmId, id }) {
     slug: null,
     isPubliclyListed: false,
     requiresBooking: existing.requiresBooking,
+    groupId: existing.groupId,
     publicGroup: existing.publicGroup,
     intakeStartMode: existing.intakeStartMode,
     documentRequirements: existing.documentRequirements,
     intakeForm: existing.intakeForm,
     bookingOverrides: existing.bookingOverrides,
   });
-  return { item: await enrichService(item) };
+  return { item: await enrichService(item, await resolveGroupNameMap(firmId)) };
 }
 
 /**

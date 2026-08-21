@@ -32,6 +32,13 @@ import { PublicSiteHeroBanner } from '@/features/public-intake/PublicSiteHeroBan
 import { PublicSiteCtaButtons } from '@/features/public-intake/PublicSiteCtaButtons'
 import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
 import { priceTaxModeCaption } from '@/shared/utils/priceTaxMode'
+import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/shared/components/ui/accordion'
 
 function resolveFirstImageUrl(imageIds: string[], images: PublicSiteConfig['images']): string | null {
   const id = imageIds[0]
@@ -378,7 +385,15 @@ function ServiceCard({
   const body = (
     <>
       {service.imageUrl ? (
-        <img src={service.imageUrl} alt="" className="h-36 w-full object-cover" loading="lazy" />
+        <div className="h-36 w-full overflow-hidden">
+          <img
+            src={service.imageUrl}
+            alt=""
+            className="h-full w-full"
+            style={servicePositionedImageStyle(service)}
+            loading="lazy"
+          />
+        </div>
       ) : null}
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
@@ -425,6 +440,58 @@ function ServiceCard({
   )
 }
 
+/** Grupo → serviços: grupos com nome viram itens de accordion (abertos por
+ * padrão, colapsáveis); serviços sem grupo continuam numa lista simples. */
+function ClusteredServiceGroups({
+  clusters,
+  firmSlug,
+  showPrices,
+  openInNewTab,
+}: {
+  clusters: ReturnType<typeof clusterPublicServices>
+  firmSlug: string
+  showPrices: boolean
+  openInNewTab: boolean
+}) {
+  const namedGroups = clusters.filter((c) => c.heading)
+  const accordionValues = namedGroups.map((c) => c.heading as string)
+  return (
+    <Accordion type="multiple" defaultValue={accordionValues} className="space-y-2">
+      {clusters.map((cluster) =>
+        cluster.heading ? (
+          <AccordionItem key={cluster.heading} value={cluster.heading} className="border-none">
+            <AccordionTrigger className="text-[hsl(var(--brand-text,var(--foreground)))]">
+              {cluster.heading}
+            </AccordionTrigger>
+            <AccordionContent>
+              <ul className="space-y-3">
+                {cluster.items.map((s) => (
+                  <li key={s.slug}>
+                    <ServiceCard
+                      firmSlug={firmSlug}
+                      service={s}
+                      showPrices={showPrices}
+                      openInNewTab={openInNewTab}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </AccordionContent>
+          </AccordionItem>
+        ) : (
+          <ul key="__ungrouped" className="space-y-3">
+            {cluster.items.map((s) => (
+              <li key={s.slug}>
+                <ServiceCard firmSlug={firmSlug} service={s} showPrices={showPrices} openInNewTab={openInNewTab} />
+              </li>
+            ))}
+          </ul>
+        ),
+      )}
+    </Accordion>
+  )
+}
+
 export function ServicesSection({
   content,
   ctx,
@@ -452,27 +519,12 @@ export function ServicesSection({
         >
           {content.heading || 'Serviços com marcação'}
         </h2>
-        {clusterPublicServices(items).map((cluster) => (
-          <div key={cluster.heading || '__ungrouped'} className="space-y-2">
-            {cluster.heading ? (
-              <h3 className="text-sm font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">
-                {cluster.heading}
-              </h3>
-            ) : null}
-            <ul className="space-y-3">
-              {cluster.items.map((s) => (
-                <li key={s.slug}>
-                  <ServiceCard
-                    firmSlug={ctx.firmSlug}
-                    service={s}
-                    showPrices={ctx.showPrices !== false}
-                    openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        <ClusteredServiceGroups
+          clusters={clusterPublicServices(items)}
+          firmSlug={ctx.firmSlug}
+          showPrices={ctx.showPrices !== false}
+          openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
+        />
         <PublicSiteCtaButtons
           ctas={content.ctas}
           ctx={ctx}
@@ -511,27 +563,12 @@ export function BookingServicesSection({
         >
           {content.heading || 'Serviços sob pedido'}
         </h2>
-        {clusterPublicServices(items).map((cluster) => (
-          <div key={cluster.heading || '__ungrouped'} className="space-y-2">
-            {cluster.heading ? (
-              <h3 className="text-sm font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">
-                {cluster.heading}
-              </h3>
-            ) : null}
-            <ul className="space-y-3">
-              {cluster.items.map((s) => (
-                <li key={s.slug}>
-                  <ServiceCard
-                    firmSlug={ctx.firmSlug}
-                    service={s}
-                    showPrices={ctx.showPrices !== false}
-                    openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        <ClusteredServiceGroups
+          clusters={clusterPublicServices(items)}
+          firmSlug={ctx.firmSlug}
+          showPrices={ctx.showPrices !== false}
+          openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
+        />
         <PublicSiteCtaButtons
           ctas={content.ctas}
           ctx={ctx}

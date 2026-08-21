@@ -14,6 +14,10 @@ export type PublicFirmServiceSummary = {
   publicGroup?: string | null
   paymentRequired?: boolean
   imageUrl?: string | null
+  imageOriginalUrl?: string | null
+  imageFocusX?: number | null
+  imageFocusY?: number | null
+  imageZoom?: number | null
 }
 
 export type PublicServiceIntake = {
@@ -24,6 +28,10 @@ export type PublicServiceIntake = {
   serviceName: string
   description?: string | null
   imageUrl?: string | null
+  imageOriginalUrl?: string | null
+  imageFocusX?: number | null
+  imageFocusY?: number | null
+  imageZoom?: number | null
   intakeForm: IntakeForm
   requiresBooking: boolean
   intakeStartMode?: 'form' | 'calendar'

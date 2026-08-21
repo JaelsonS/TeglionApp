@@ -6,6 +6,7 @@ const obligationsController = require('../../modules/obligations/obligations.con
 const obligationTemplatesController = require('../../modules/obligations/obligation-templates.controller');
 const clientTasksController = require('../../modules/tasks/client-tasks.controller');
 const accountingServicesController = require('../../modules/firm/accounting-services.controller');
+const accountingServiceGroupsController = require('../../modules/firm/accounting-service-groups.controller');
 const bookingSettingsController = require('../../modules/firm/booking-settings.controller');
 const firmSettingsController = require('../../modules/firm/firm-settings.controller');
 const firmPublicSiteController = require('../../modules/firm/firm-public-site.controller');
@@ -509,6 +510,11 @@ router.post(
 router.patch('/accounting-services/:id', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.patch);
 router.post('/accounting-services/:id/duplicate', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.duplicate);
 router.delete('/accounting-services/:id', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.remove);
+
+router.get('/accounting-service-groups', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_VIEW), accountingServiceGroupsController.list);
+router.post('/accounting-service-groups', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServiceGroupsController.create);
+router.patch('/accounting-service-groups/:id', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServiceGroupsController.patch);
+router.delete('/accounting-service-groups/:id', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServiceGroupsController.remove);
 
 router.get('/booking-settings', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), bookingSettingsController.get);
 router.patch('/booking-settings', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), bookingSettingsController.patch);

@@ -11,6 +11,7 @@ const { param, query, body, validationResult } = require('express-validator');
 const { AppError } = require('../../middlewares/error.middleware');
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
+const accountingServiceGroupsRepository = require('../../db/supabase/repositories/accounting-service-groups.repository');
 const bookingService = require('../booking/booking.service');
 const serviceInquiriesService = require('../firm/service-inquiries.service');
 const firmBrandingService = require('../firm/firm-branding.service');
@@ -29,8 +30,8 @@ async function resolvePublicService(firmSlug, serviceSlug) {
   return { firm, service };
 }
 
-async function mapPublicServiceSummary(s) {
-  const enriched = await accountingServicesService.enrichService(s);
+async function mapPublicServiceSummary(s, groupNameById) {
+  const enriched = await accountingServicesService.enrichService(s, groupNameById);
   return {
     slug: enriched.slug,
     name: interpolateServiceTemplate(enriched.name),
@@ -42,7 +43,16 @@ async function mapPublicServiceSummary(s) {
     publicGroup: enriched.publicGroup || null,
     paymentRequired: enriched.paymentRequired === true,
     imageUrl: enriched.imageUrl || null,
+    imageOriginalUrl: enriched.imageOriginalUrl || null,
+    imageFocusX: enriched.imageFocusX,
+    imageFocusY: enriched.imageFocusY,
+    imageZoom: enriched.imageZoom,
   };
+}
+
+async function resolveGroupNameMap(firmId) {
+  const groups = await accountingServiceGroupsRepository.listByFirm(firmId);
+  return new Map(groups.filter((g) => g.isPubliclyListed).map((g) => [g.id, g.name]));
 }
 
 function assertValid(req) {
@@ -72,9 +82,14 @@ async function getPublicFirmServices(req, res, next) {
     const firm = await firmsRepository.findFirmBySlugOrLabel(firmSlug);
     if (!firm) throw new AppError('Escritório não encontrado', 404, { code: 'NOT_FOUND' });
 
-    const services = await accountingServicesRepository.listByFirm(firm.id, { activeOnly: true });
+    const [services, groupNameById] = await Promise.all([
+      accountingServicesRepository.listByFirm(firm.id, { activeOnly: true }),
+      resolveGroupNameMap(firm.id),
+    ]);
     const items = await Promise.all(
-      services.filter((s) => s.isPubliclyListed && s.slug).map(mapPublicServiceSummary),
+      services
+        .filter((s) => s.isPubliclyListed && s.slug)
+        .map((s) => mapPublicServiceSummary(s, groupNameById)),
     );
 
     let logoUrl = null;
@@ -132,9 +147,14 @@ async function getPublicFirmSite(req, res, next) {
       ? site.draft
       : site.published || firmPublicSiteService.buildConfigFromLegacySettings(firm);
 
-    const services = await accountingServicesRepository.listByFirm(firm.id, { activeOnly: true });
+    const [services, groupNameById] = await Promise.all([
+      accountingServicesRepository.listByFirm(firm.id, { activeOnly: true }),
+      resolveGroupNameMap(firm.id),
+    ]);
     const items = await Promise.all(
-      services.filter((s) => s.isPubliclyListed && s.slug).map(mapPublicServiceSummary),
+      services
+        .filter((s) => s.isPubliclyListed && s.slug)
+        .map((s) => mapPublicServiceSummary(s, groupNameById)),
     );
 
     let logoUrl = null;
@@ -241,6 +261,10 @@ async function getPublicService(req, res, next) {
       serviceName: interpolateServiceTemplate(service.name),
       description: interpolateServiceTemplate(service.description) || null,
       imageUrl: (await accountingServicesService.resolveServiceImageUrl(service.imageStorageKey || service.imageUrl)) || null,
+      imageOriginalUrl: (await accountingServicesService.resolveServiceImageUrl(service.imageOriginalUrl)) || null,
+      imageFocusX: service.imageFocusX,
+      imageFocusY: service.imageFocusY,
+      imageZoom: service.imageZoom,
       intakeForm: service.intakeForm || { questions: [] },
       requiresBooking: service.requiresBooking === true,
       intakeStartMode: service.requiresBooking && service.intakeStartMode === 'calendar' ? 'calendar' : 'form',
