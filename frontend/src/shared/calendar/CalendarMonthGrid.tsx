@@ -4,7 +4,7 @@ import {
   daysInMonth,
   firstWeekdayMonday,
   WEEKDAY_LABELS_PT,
-} from '@/shared/calendar'
+} from '@/shared/calendar/civilDate'
 import { cn } from '@/shared/lib/utils'
 
 /**
