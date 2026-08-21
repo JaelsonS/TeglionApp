@@ -50,6 +50,55 @@ function verifyVaultStepUpToken(token) {
   return payload;
 }
 
+const MFA_CHALLENGE_TYP = 'mfa-challenge';
+const MFA_CHALLENGE_EXPIRES_IN = '5m';
+const MFA_PURPOSES = Object.freeze({
+  VERIFY: 'mfa_verify',
+  ENROLL: 'mfa_enroll',
+});
+
+/**
+ * JWT curto — NÃO é sessão autenticada.
+ * Middleware de sessão deve rejeitar typ=mfa-challenge.
+ */
+function signMfaChallengeToken({ id, firmId, purpose }) {
+  if (!id || !firmId || !purpose) {
+    throw new Error('MFA_CHALLENGE_PAYLOAD_INCOMPLETE');
+  }
+  if (!Object.values(MFA_PURPOSES).includes(purpose)) {
+    throw new Error('MFA_CHALLENGE_PURPOSE_INVALID');
+  }
+  const jti = generateId(24);
+  const token = jwt.sign(
+    { typ: MFA_CHALLENGE_TYP, id, firmId, purpose, jti },
+    env.JWT_ACCESS_SECRET,
+    { expiresIn: MFA_CHALLENGE_EXPIRES_IN },
+  );
+  return { token, jti };
+}
+
+function verifyMfaChallengeToken(token) {
+  const payload = jwt.verify(token, env.JWT_ACCESS_SECRET);
+  if (
+    !payload ||
+    payload.typ !== MFA_CHALLENGE_TYP ||
+    !payload.id ||
+    !payload.firmId ||
+    !payload.purpose ||
+    !payload.jti
+  ) {
+    const err = new Error('INVALID_MFA_CHALLENGE');
+    err.name = 'JsonWebTokenError';
+    throw err;
+  }
+  if (!Object.values(MFA_PURPOSES).includes(payload.purpose)) {
+    const err = new Error('INVALID_MFA_CHALLENGE_PURPOSE');
+    err.name = 'JsonWebTokenError';
+    throw err;
+  }
+  return payload;
+}
+
 function isAccessTokenSignatureValid(token) {
   if (!token || typeof token !== 'string') return false;
   try {
@@ -84,4 +133,9 @@ module.exports = {
   signVaultStepUpToken,
   verifyVaultStepUpToken,
   VAULT_STEPUP_TYP,
+  signMfaChallengeToken,
+  verifyMfaChallengeToken,
+  MFA_CHALLENGE_TYP,
+  MFA_CHALLENGE_EXPIRES_IN,
+  MFA_PURPOSES,
 };

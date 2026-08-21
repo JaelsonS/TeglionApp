@@ -355,9 +355,30 @@ async function loginFirm({ email, password, req }) {
     currentHash: row.password_hash,
   });
   await loginSecurity.recordSuccessfulLogin(accountKey);
+
+  const mfa = require('./mfa.service');
+  const gate = mfa.resolvePostCredentialGate(row);
+  const firmAccessPayload = { hasAccess: firmAccess.hasAccess, reason: firmAccess.reason };
+  if (gate.status !== mfa.STATUS.AUTHENTICATED) {
+    void securityAudit.recordSecurityEvent({
+      firmId: row.firm_id,
+      actorRole: sanitizeFirmUser(row).role,
+      actorId: row.id,
+      action:
+        gate.status === mfa.STATUS.MFA_ENROLLMENT_REQUIRED
+          ? 'mfa.login.enrollment_required'
+          : 'mfa.login.challenge_required',
+      entityType: 'auth',
+      entityId: row.id,
+      metadata: { scope: 'firm', method: 'password' },
+      req,
+    });
+    return { ...gate, firmAccess: firmAccessPayload, tokens: null };
+  }
+
   const issued = await issueTokensForFirmUser(row);
   void securityAudit.recordAuthLoginSuccess({ user: issued.user, req, scope: 'firm' });
-  return { ...issued, firmAccess: { hasAccess: firmAccess.hasAccess, reason: firmAccess.reason } };
+  return { ...issued, status: mfa.STATUS.AUTHENTICATED, firmAccess: firmAccessPayload };
 }
 
 /** Login escritório via SSO (Google) — utilizador já verificado pelo IdP. */
@@ -380,6 +401,33 @@ async function loginFirmBySso({ email, req, provider = 'google', googleSub }) {
   }
   const firm = await firmsRepository.findFirmById(row.firm_id);
   const firmAccess = assertFirmLoginAllowed(firm);
+  const firmAccessPayload = { hasAccess: firmAccess.hasAccess, reason: firmAccess.reason };
+
+  const mfa = require('./mfa.service');
+  const gate = mfa.resolvePostCredentialGate(row);
+  if (gate.status !== mfa.STATUS.AUTHENTICATED) {
+    void securityAudit.recordSecurityEvent({
+      firmId: row.firm_id,
+      actorRole: sanitizeFirmUser(row).role,
+      actorId: row.id,
+      action:
+        gate.status === mfa.STATUS.MFA_ENROLLMENT_REQUIRED
+          ? 'mfa.login.enrollment_required'
+          : 'mfa.login.challenge_required',
+      entityType: 'auth',
+      entityId: row.id,
+      metadata: { scope: 'firm', method: 'google_sso' },
+      req,
+    });
+    return {
+      ok: true,
+      ...gate,
+      tokens: null,
+      firmAccess: firmAccessPayload,
+      ssoProvider: provider,
+    };
+  }
+
   const issued = await issueTokensForFirmUser(row);
   void securityAudit.recordAuthLoginSuccess({
     user: issued.user,
@@ -388,8 +436,9 @@ async function loginFirmBySso({ email, req, provider = 'google', googleSub }) {
   });
   return {
     ok: true,
+    status: mfa.STATUS.AUTHENTICATED,
     ...issued,
-    firmAccess: { hasAccess: firmAccess.hasAccess, reason: firmAccess.reason },
+    firmAccess: firmAccessPayload,
     ssoProvider: provider,
   };
 }
@@ -527,6 +576,7 @@ async function refreshSession({ refreshToken }) {
       await rejectInactiveFirmUser(row);
       const firm = await firmsRepository.findFirmById(row.firm_id);
       assertFirmLoginAllowed(firm);
+      await assertFirmUserRefreshMfaAllowed(row);
       return issueTokensForFirmUser(row);
     }
   }
@@ -548,8 +598,29 @@ async function refreshSession({ refreshToken }) {
   await rejectInactiveFirmUser(row);
   const firm = await firmsRepository.findFirmById(row.firm_id);
   assertFirmLoginAllowed(firm);
+  await assertFirmUserRefreshMfaAllowed(row);
   await firmUsersRepository.updateFirmUserAuth(row.id, { refreshTokenHash: null, refreshTokenExpiresAt: null });
   return issueTokensForFirmUser(row);
+}
+
+/**
+ * Refresh: owner sem MFA permanece em enrollment (sem sessão completa).
+ * Owner/staff com MFA activo: refresh OK (MFA já cumprido nesta autenticação).
+ * Staff/consultant sem MFA: refresh OK (MFA opcional).
+ */
+async function assertFirmUserRefreshMfaAllowed(row) {
+  const mfa = require('./mfa.service');
+  if (mfa.mfaRequiredForRole(row.role) && row.mfa_enabled !== true) {
+    if (row.id) {
+      await authRefreshSessionsRepository.deleteAllForActor('firm_user', row.id).catch(() => {});
+    }
+    throw new AppError(
+      'Configure a autenticação de dois factores para continuar.',
+      401,
+      { code: 'MFA_ENROLLMENT_REQUIRED' },
+      'MFA_ENROLLMENT_REQUIRED',
+    );
+  }
 }
 
 async function getMe(userId, role) {
@@ -749,4 +820,5 @@ module.exports = {
   resetPasswordWithToken,
   sanitizeFirmUser,
   sanitizeClient,
+  issueTokensForFirmUser,
 };

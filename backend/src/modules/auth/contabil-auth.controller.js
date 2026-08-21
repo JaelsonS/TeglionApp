@@ -31,10 +31,39 @@ async function loginFirm(req, res, next) {
     assertValid(req);
     const { email, password, rememberMe } = req.body;
     const result = await contabilAuth.loginFirm({ email, password, req });
+    const mfaStatus = result.status;
+    if (
+      mfaStatus === 'MFA_CHALLENGE_REQUIRED' ||
+      mfaStatus === 'MFA_ENROLLMENT_REQUIRED'
+    ) {
+      const {
+        setMfaChallengeCookie,
+        clearAccessTokenCookie,
+        clearRefreshTokenCookie,
+      } = require('../../utils/auth-cookies');
+      clearAccessTokenCookie(res, { req });
+      clearRefreshTokenCookie(res, { req });
+      if (result.mfa?.challengeToken) {
+        setMfaChallengeCookie(res, result.mfa.challengeToken, { req });
+      }
+      return res.status(200).json({
+        status: mfaStatus,
+        user: result.user,
+        mfa: {
+          purpose: result.mfa?.purpose,
+          expiresAt: result.mfa?.expiresAt,
+          challengeToken: result.mfa?.challengeToken,
+        },
+        firmAccess: result.firmAccess || undefined,
+      });
+    }
     setRefreshTokenCookie(res, result.tokens.refreshToken, { rememberMe: Boolean(rememberMe), req });
     setAccessTokenCookie(res, result.tokens.accessToken, { req });
     return res.status(200).json(
-      buildAuthResponseBody(result, { firmAccess: result.firmAccess || undefined }),
+      buildAuthResponseBody(result, {
+        status: result.status || 'AUTHENTICATED',
+        firmAccess: result.firmAccess || undefined,
+      }),
     );
   } catch (err) {
     return next(err);

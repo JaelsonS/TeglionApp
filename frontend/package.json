@@ -55,6 +55,7 @@
     "i18next": "^25.7.3",
     "lucide-react": "^0.507.0",
     "postcss": "^8.4.49",
+    "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.2",

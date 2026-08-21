@@ -265,6 +265,35 @@ async function updateFirmUserAuth(id, { refreshTokenHash, refreshTokenExpiresAt,
   return data;
 }
 
+/**
+ * Actualiza campos MFA. `firmId` é obrigatório (tenant isolation).
+ * Aceita apenas chaves MFA conhecidas — nunca aceita firm_id do cliente como autoridade.
+ */
+async function updateFirmUserMfa(id, firmId, patch) {
+  if (!id || !firmId) throw new Error('FIRM_USER_MFA_SCOPE_REQUIRED');
+  const sb = getSupabaseAdmin();
+  const row = { updated_at: new Date().toISOString() };
+  if (patch.mfaEnabled !== undefined) row.mfa_enabled = Boolean(patch.mfaEnabled);
+  if (patch.mfaTotpSecretEnc !== undefined) row.mfa_totp_secret_enc = patch.mfaTotpSecretEnc;
+  if (patch.mfaTotpPendingSecretEnc !== undefined) {
+    row.mfa_totp_pending_secret_enc = patch.mfaTotpPendingSecretEnc;
+  }
+  if (patch.mfaRecoveryCodesHash !== undefined) {
+    row.mfa_recovery_codes_hash = patch.mfaRecoveryCodesHash;
+  }
+  if (patch.mfaEnabledAt !== undefined) row.mfa_enabled_at = patch.mfaEnabledAt;
+  if (patch.mfaLastVerifiedAt !== undefined) row.mfa_last_verified_at = patch.mfaLastVerifiedAt;
+  const { data, error } = await sb
+    .from('firm_users')
+    .update(row)
+    .eq('id', id)
+    .eq('firm_id', firmId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 async function markFirmUserEmailConfirmed(id, firmId) {
   const sb = getSupabaseAdmin();
   const { data, error } = await sb
@@ -316,5 +345,6 @@ module.exports = {
   createFirmOwner,
   updateFirmUserSso,
   updateFirmUserAuth,
+  updateFirmUserMfa,
   markFirmUserEmailConfirmed,
 };

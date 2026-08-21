@@ -9,7 +9,8 @@
  * não pedir a senha a cada clique nesta sessão do browser. Esse JWT NÃO autentica
  * o login — o middleware de sessão rejeita-o.
  *
- * MFA/TOTP: não nesta versão.
+ * MFA/TOTP: Fase 4 — preferir `mfa.service.verifyMfaOrVaultPassword` quando o
+ * cliente envia `totpCode`. Scopes completos (Fase 5) ainda não aplicam.
  */
 const { AppError } = require('../../middlewares/error.middleware');
 const passwordCrypto = require('../../utils/password-crypto');
