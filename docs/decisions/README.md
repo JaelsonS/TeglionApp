@@ -23,6 +23,7 @@ Formato de arquivo: `ADR-NNNN-nome-curto-da-decisao.md`, numeração sequencial,
 | [ADR-0009](./ADR-0009-servicos-grupos-e-posicionamento-imagem.md) | Serviços agrupados em `accounting_service_groups` (1 nível) e imagem de banner com posicionamento reversível (ponto focal + zoom), sem assar o crop nos pixels. |
 | [ADR-0010](./ADR-0010-agenda-calendario-excepcoes-e-copia-mes.md) | Excepções de disponibilidade (`dateOverrides`) editadas via `CalendarMonthGrid` + Dialog por dia, com «copiar mês» em cópia profunda independente; sem migration — reutiliza `schedule`/`dateOverrides` existentes. |
 | [ADR-0011](./ADR-0011-servico-oferta-opcoes.md) | Oferta comercial: serviço principal → opções (serviços reais via `accounting_service_option_links`), profundidade 1, dados vivos, booking no `service_id` da opção — sem hierarquia recursiva de categorias. |
+| [ADR-0012](./ADR-0012-ordem-frente-evolucao-produto.md) | Ordem obrigatória da frente de evolução: Tarefas → Serviços → Agenda → MFA → Step-up → Créditos → Entitlements → Domínio público → Google Calendar (último). |
 
 ## Como eu proponho um novo ADR
 

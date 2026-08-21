@@ -2364,15 +2364,35 @@
   }
 
   .cb-agenda-settings-steps {
-    @apply flex flex-wrap gap-2;
+    @apply flex flex-wrap items-center gap-2 sm:gap-3;
   }
 
   .cb-agenda-settings-step {
-    @apply inline-flex items-center gap-2 rounded-full border border-border/50 bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-brand/30 hover:text-foreground;
+    @apply inline-flex flex-col items-start gap-0.5 rounded-xl border border-border/50 bg-card px-3 py-2 text-xs font-medium text-muted-foreground transition hover:border-brand/30 hover:text-foreground sm:flex-row sm:items-center sm:gap-2;
+  }
+
+  .cb-agenda-settings-step-active {
+    @apply border-brand/30 bg-brand/[0.06] text-foreground shadow-sm;
+  }
+
+  .cb-agenda-settings-step-later {
+    @apply opacity-70;
   }
 
   .cb-agenda-settings-step-n {
-    @apply flex h-5 w-5 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-primary-foreground;
+    @apply flex h-6 w-6 items-center justify-center rounded-full bg-muted text-[11px] font-bold text-muted-foreground;
+  }
+
+  .cb-agenda-settings-step-active .cb-agenda-settings-step-n {
+    @apply bg-brand text-primary-foreground;
+  }
+
+  .cb-agenda-settings-step-badge {
+    @apply text-[10px] font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-agenda-settings-step-later-badge {
+    @apply rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium normal-case tracking-normal text-muted-foreground;
   }
 
   .cb-agenda-settings-intro {
@@ -2408,11 +2428,244 @@
   }
 
   .cb-agenda-availability {
-    @apply space-y-5;
+    @apply space-y-4;
   }
 
   .cb-agenda-availability-layout {
-    @apply grid gap-5 lg:grid-cols-[minmax(0,1fr)_min(18rem,32%)];
+    @apply grid gap-4 lg:grid-cols-[minmax(0,1fr)_min(17rem,30%)];
+  }
+
+  .cb-agenda-availability-duo {
+    @apply grid gap-4 lg:grid-cols-2 lg:items-start;
+  }
+
+  .cb-agenda-availability-trio {
+    @apply grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(14rem,17rem)] xl:items-start;
+  }
+
+  .cb-agenda-avail-card {
+    @apply rounded-2xl border border-border/55 bg-card p-4 shadow-sm sm:p-5;
+  }
+
+  .cb-agenda-avail-card-hd {
+    @apply mb-3 flex flex-wrap items-start justify-between gap-2;
+  }
+
+  .cb-agenda-avail-card-title {
+    @apply text-sm font-semibold tracking-tight text-foreground;
+  }
+
+  .cb-agenda-week-list {
+    @apply mt-3 space-y-2;
+  }
+
+  .cb-agenda-week-row {
+    @apply grid grid-cols-1 gap-2 rounded-xl border border-border/45 bg-background/80 px-3 py-2.5 transition sm:grid-cols-[7.5rem_auto_minmax(0,1fr)] sm:items-center;
+  }
+
+  .cb-agenda-week-row-focus {
+    @apply border-brand/50 bg-brand/[0.04] ring-1 ring-brand/25;
+  }
+
+  .cb-agenda-week-row-day {
+    @apply text-left;
+  }
+
+  .cb-agenda-week-row-name {
+    @apply text-sm font-medium text-foreground;
+  }
+
+  .cb-agenda-week-badge {
+    @apply inline-flex w-fit items-center justify-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
+  }
+
+  .cb-agenda-week-badge-open {
+    @apply bg-emerald-100 text-emerald-800;
+  }
+
+  .cb-agenda-week-badge-closed {
+    @apply bg-rose-100 text-rose-800;
+  }
+
+  .cb-agenda-week-intervals {
+    @apply flex min-w-0 flex-wrap items-center gap-1.5;
+  }
+
+  .cb-agenda-week-interval {
+    @apply inline-flex items-center gap-1 rounded-lg border border-border/50 bg-card px-1.5 py-1;
+  }
+
+  .cb-agenda-week-time {
+    @apply h-8 w-[6.25rem] rounded-md border-0 bg-transparent px-1 text-xs tabular-nums shadow-none focus-visible:ring-1 focus-visible:ring-brand/40;
+  }
+
+  .cb-agenda-week-time-sep {
+    @apply text-xs text-muted-foreground;
+  }
+
+  .cb-agenda-week-interval-remove {
+    @apply inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition hover:bg-rose-50 hover:text-rose-700;
+  }
+
+  .cb-agenda-week-add {
+    @apply inline-flex h-8 w-8 items-center justify-center rounded-lg border border-dashed border-border/70 text-muted-foreground transition hover:border-brand/40 hover:bg-brand/5 hover:text-brand;
+  }
+
+  .cb-agenda-week-closed-hint {
+    @apply text-xs text-muted-foreground;
+  }
+
+  .cb-agenda-avail-save {
+    @apply h-11 rounded-xl text-sm font-semibold;
+  }
+
+  .cb-agenda-copy-month-btn {
+    @apply rounded-lg border-brand/30 text-brand hover:bg-brand/5;
+  }
+
+  .cb-agenda-month-nav {
+    @apply mb-2 flex items-center justify-between gap-2;
+  }
+
+  .cb-agenda-month-nav-label {
+    @apply text-sm font-semibold capitalize text-foreground;
+  }
+
+  /* Calendário da Agenda: mês completo visível — sem scroll aninhado do fiscal */
+  .cb-agenda-month-grid-wrap {
+    @apply overflow-visible rounded-xl border border-border/40 bg-muted/15 p-2;
+  }
+
+  .cb-agenda-month-grid {
+    @apply min-w-0 gap-1 bg-transparent p-0;
+  }
+
+  .cb-agenda-month-grid .cb-fiscal-cal-weekday {
+    @apply rounded-md bg-transparent py-1.5 text-[10px] text-muted-foreground;
+  }
+
+  .cb-agenda-month-grid .cb-fiscal-cal-cell {
+    @apply min-h-0 bg-transparent p-0;
+  }
+
+  .cb-agenda-month-grid .cb-fiscal-cal-cell-empty {
+    @apply bg-transparent;
+  }
+
+  .cb-agenda-month-grid .cb-fiscal-cal-cell-today {
+    @apply bg-transparent ring-0;
+  }
+
+  .cb-agenda-month-day {
+    @apply relative flex aspect-square w-full flex-col items-center justify-center rounded-lg text-xs font-semibold tabular-nums text-foreground transition hover:bg-muted/50;
+  }
+
+  .cb-agenda-month-day-weekend {
+    @apply bg-rose-50/50;
+  }
+
+  .cb-agenda-month-day-closed {
+    @apply bg-rose-50 text-rose-800;
+  }
+
+  .cb-agenda-month-day-special {
+    @apply bg-sky-100 text-sky-900;
+  }
+
+  .cb-agenda-month-day-selected {
+    @apply bg-sky-100 ring-2 ring-brand/50;
+  }
+
+  .cb-agenda-month-day-today {
+    @apply ring-1 ring-inset ring-brand/35;
+  }
+
+  .cb-agenda-month-day-num {
+    @apply leading-none;
+  }
+
+  .cb-agenda-month-day-dot {
+    @apply mt-0.5 h-1.5 w-1.5 rounded-full;
+  }
+
+  .cb-agenda-month-day-dot-special {
+    @apply bg-sky-500;
+  }
+
+  .cb-agenda-month-day-dot-closed {
+    @apply bg-rose-500;
+  }
+
+  .cb-agenda-month-legend {
+    @apply mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground;
+  }
+
+  .cb-agenda-month-legend li {
+    @apply inline-flex items-center gap-1.5;
+  }
+
+  .cb-agenda-month-legend-dot {
+    @apply h-2 w-2 rounded-full;
+  }
+
+  .cb-agenda-month-legend-dot-inherit {
+    @apply bg-slate-300;
+  }
+
+  .cb-agenda-month-legend-dot-special {
+    @apply bg-sky-400;
+  }
+
+  .cb-agenda-month-legend-dot-closed {
+    @apply bg-rose-400;
+  }
+
+  .cb-agenda-month-selected {
+    @apply mt-3 flex items-center gap-2 rounded-xl border border-border/50 bg-muted/20 px-3 py-2.5;
+  }
+
+  .cb-agenda-month-selected-dot {
+    @apply h-2 w-2 shrink-0 rounded-full bg-slate-300;
+  }
+
+  .cb-agenda-month-selected-text {
+    @apply min-w-0 flex-1 text-xs text-foreground;
+  }
+
+  .cb-agenda-month-selected-edit {
+    @apply shrink-0 text-xs font-semibold text-brand hover:underline;
+  }
+
+  .cb-agenda-month-selected-empty {
+    @apply mt-3 text-xs text-muted-foreground;
+  }
+
+  .cb-agenda-avail-options {
+    @apply flex flex-col gap-3;
+  }
+
+  .cb-agenda-avail-option-card {
+    @apply space-y-2 rounded-2xl border border-border/55 bg-card p-4 shadow-sm;
+  }
+
+  .cb-agenda-avail-option-label {
+    @apply inline-flex items-center gap-1.5 text-xs font-semibold text-foreground;
+  }
+
+  .cb-agenda-avail-option-hint {
+    @apply text-[11px] leading-relaxed text-muted-foreground;
+  }
+
+  .cb-agenda-slot-chip-grid {
+    @apply grid grid-cols-2 gap-2;
+  }
+
+  .cb-agenda-slot-chip {
+    @apply rounded-xl border border-border/60 bg-background px-2 py-2.5 text-center text-xs font-semibold text-muted-foreground transition hover:border-brand/30 hover:text-foreground;
+  }
+
+  .cb-agenda-slot-chip-on {
+    @apply border-brand bg-brand text-primary-foreground shadow-sm hover:border-brand hover:bg-brand/90 hover:text-primary-foreground;
   }
 
   .cb-agenda-availability-aside {

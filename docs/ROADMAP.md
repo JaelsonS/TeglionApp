@@ -2,7 +2,7 @@
 
 **Esse é o único roadmap que eu uso.** Se eu esbarrar em qualquer outro documento com lista de tarefas, sprints ou "próximos passos" que não seja esse arquivo, já sei que ele está desatualizado — corrijo ou arquivo. Nenhuma outra lista de prioridades no repositório tem autoridade sobre essa aqui.
 
-Última vez que eu atualizei: 18 de agosto de 2026, depois de três auditorias técnicas completas que eu fiz nessa data (multi-tenancy e segurança, requisições HTTP/polling, e preparação para expansão internacional). Onde uma afirmação vem de uma dessas auditorias, eu marco isso. Onde eu ainda não investiguei fundo o suficiente pra ter certeza, eu também marco — não quero fingir que sei o que ainda não sei.
+Última vez que eu atualizei: 21 de agosto de 2026 (ordem da frente de evolução: MFA após Agenda; Google Calendar por último — ver [ADR-0012](./decisions/ADR-0012-ordem-frente-evolucao-produto.md)). Antes disso: 18/08/2026 (auditorias multi-tenancy, HTTP/polling, expansão internacional). Onde uma afirmação vem de uma dessas auditorias, eu marco isso. Onde eu ainda não investiguei fundo o suficiente pra ter certeza, eu também marco — não quero fingir que sei o que ainda não sei.
 
 ---
 
@@ -179,15 +179,35 @@ Portugal é o único mercado onde eu tenho uso real hoje (4 escritórios pilotos
 
 ### Frente de evolução de produto/segurança (iniciada 20/08/2026)
 
-Abri uma frente própria, maior que um item avulso desta fase, cobrindo tarefas multi-cliente, hierarquia de serviços, agenda em calendário mensal, MFA, step-up authentication e a base comercial futura (pricing/add-ons/SMS). Fiz a auditoria completa antes de implementar qualquer coisa — o detalhe item a item, com classificação e decisões arquiteturais, fica em [`docs/decisions/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md`](./decisions/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md), pra eu não duplicar aqui o que já documentei lá. Este ROADMAP.md continua sendo minha única fonte de prioridade geral — só não repito o detalhe fase-a-fase dessa frente específica nos dois lugares.
+Abri uma frente própria, maior que um item avulso desta fase. A auditoria item a item fica em [`docs/decisions/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md`](./decisions/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md). A **ordem obrigatória** das fases desta frente (actualizada 21/08/2026) está em [ADR-0012](./decisions/ADR-0012-ordem-frente-evolucao-produto.md) — **não alterar sem autorização explícita**.
 
-- **Fase 1 (tarefas manuais — múltiplos clientes e edição completa): `CONCLUÍDO`.** Tarefa agora pode ter vários clientes (M2M via `client_task_client_links`, ver [ADR-0008](./decisions/ADR-0008-tarefas-multi-cliente-m2m.md)), com backfill das tarefas existentes e `client_id` mantida como ponteiro legado. Edição completa (título, descrição, prioridade, prazo, responsável, clientes) implementada em `Dialog` centralizado (`TaskEditDialog.tsx`), reaproveitando o padrão de `FiscalEventFormDialog.tsx` — antes só o Estado era editável. 525 testes de backend + 165 de frontend passando, typecheck e build limpos. Migration aplicada em staging e produção por mim. Detalhe completo no relatório de fase (fica registrado na minha conversa com o Claude Code, não duplico aqui).
-- **Fase 2 (serviços — grupos de 1 nível, imagem reposicionável, Página Pública com accordion): `CONCLUÍDO` em staging.** Grupos reais substituem o texto livre `public_group` (`accounting_service_groups`, ver [ADR-0009](./decisions/ADR-0009-servicos-grupos-e-posicionamento-imagem.md)) — nome único por escritório, ordenação, ativo/inativo, visível/oculto na Página Pública. Banner de serviço passou de recorte assado nos pixels (`ImageCropDialog.tsx`) para posicionamento reversível (ponto focal + zoom em CSS, `ImagePositionEditor.tsx` + `servicePositionedImageStyle.ts`) — a imagem original fica guardada, o enquadramento pode mudar sem reenviar o arquivo. Página Pública agora agrupa serviços por grupo real dentro de um accordion (`ui/accordion.tsx`, novo — primeiro uso de `@radix-ui/react-accordion` no projeto) em vez do cabeçalho estático de texto que a auditoria da Fase 0 encontrou. 525 testes de backend + 165 de frontend passando, typecheck limpo. Migrations aplicadas em staging e produção por mim. Serviços com imagem enviada antes desta fase não têm reposicionamento disponível (limitação conhecida, comunicada na UI) — precisam de reenvio da imagem para ganhar a funcionalidade.
-- **Fase 3 (agenda — calendário mensal de excepções, dialog por dia, copiar mês, dateOverrides por serviço): `CONCLUÍDO` em código (staging branch).** Reutiliza `schedule`/`dateOverrides` existentes (sem migration). UI: `CalendarMonthGrid` + `AgendaDayAvailabilityDialog`; «Copiar mês» com cópia profunda (frontend + `PATCH /booking-settings` com `copyMonth`); disponibilidade por serviço passa a expor `dateOverrides`. Ver [ADR-0010](./decisions/ADR-0010-agenda-calendario-excepcoes-e-copia-mes.md).
-- **Extensão Serviços — oferta + opções (pós Fase 2): implementada nesta rodada (staging).** Serviço principal pode referenciar opções = outros `accounting_services` reais (`accounting_service_option_links`, [ADR-0011](./decisions/ADR-0011-servico-oferta-opcoes.md)). Sem hierarquia recursiva. Booking usa o `service_id` da opção escolhida. Catálogo público esconde opções de ofertas publicadas na listagem de topo. Migration aplicada em **teglion-staging** apenas.
-- **Requisito futuro (não implementar agora):** Página Pública em `https://{slug}.teglion.com` (+ rotas `/servicos`, `/agendamento`). Exige auditoria dedicada de DNS/Cloudflare/Vercel/SSL/cache/tenant antes de qualquer mudança de infra.
-- **Inconsistência auditada (21/08/2026):** objectos das migrations Fase 1/2 (`client_task_client_links`, `accounting_service_groups`, colunas de imagem) existem em **teglion-staging**, mas `supabase_migrations.schema_migrations` no staging **não** lista as versões `20261007`/`20261008`/`20261009` (nem outras `202610*`) — histórico de migrations dessincronizado face ao schema real. Produção **não** foi alterada nem revalidada nesta rodada.
-- **Fases 4–7 dessa frente:** não iniciadas — aguardam autorização explícita após fechar a extensão de opções e o UAT da Fase 3.
+**Ordem actual (única válida para esta frente):**
+
+| # | Fase | Estado |
+|---|---|---|
+| 1 | Tarefas M2M | `CONCLUÍDO` |
+| 2 | Serviços (grupos, imagem, oferta+opções, Página Pública agrupada) | `CONCLUÍDO` tecnicamente; UAT visual pendente |
+| 3 | Agenda / disponibilidade | `PARCIAL` — fechar UAT visual, mobile/desktop, copyMonth HTTP, regressões |
+| 4 | MFA (TOTP, recovery, owner obrigatório) | `PLANEJADO` — **só após Fase 3 fechada e aprovação explícita** |
+| 5 | Step-up + ações sensíveis (evoluir mecanismo existente; sem 2.º mecanismo) | `PLANEJADO` |
+| 6 | Créditos / SMS (saldo genérico; sem compra real ainda) | `PLANEJADO` |
+| 7 | Entitlements / add-ons / pricing (arquitectura; preços futuros só documentados) | `PLANEJADO` |
+| 8 | Página Pública + domínio `{slug}.teglion.com` (auditoria infra antes) | `PLANEJADO` |
+| 9 | Google Calendar | `PLANEJADO` — **por último**; staging Google a preparar antes de iniciar |
+
+**Detalhe por fase desta frente:**
+
+- **Fase 1 — Tarefas M2M: `CONCLUÍDO`.** Vários clientes por tarefa (`client_task_client_links`, [ADR-0008](./decisions/ADR-0008-tarefas-multi-cliente-m2m.md)); edição completa em `Dialog` (`TaskEditDialog.tsx`).
+- **Fase 2 — Serviços: `CONCLUÍDO` tecnicamente; UAT pendente.** Grupos 1 nível + imagem reposicionável ([ADR-0009](./decisions/ADR-0009-servicos-grupos-e-posicionamento-imagem.md)); oferta comercial + opções (`accounting_service_option_links`, [ADR-0011](./decisions/ADR-0011-servico-oferta-opcoes.md)); booking no `service_id` do filho; catálogo público esconde opções de ofertas publicadas. Migration de opções aplicada em **teglion-staging** apenas.
+- **Fase 3 — Agenda / disponibilidade: `PARCIAL`.** Modelo `schedule`/`dateOverrides` + UI calendário/dialog/copiar mês ([ADR-0010](./decisions/ADR-0010-agenda-calendario-excepcoes-e-copia-mes.md)). Pendente: UAT visual (desktop/mobile), corrigir falhas de scroll do calendário na UI actual, smoke HTTP autenticado `copyMonth`, regressões, validação final. Mockup de direcção UX: [`docs/product/mockups/agenda-horario-geral-mockup.png`](./product/mockups/agenda-horario-geral-mockup.png). **Não iniciar Fase 4 até esta fase estar realmente fechada.**
+- **Fase 4 — MFA:** owner obrigatório; staff opcional inicialmente; TOTP; enrollment; QR; recovery codes; login challenge; ecrã de segurança; auditoria; rate limit; armazenamento seguro do segredo; tenant isolation. Reutilizar/evoluir o **step-up já existente** — não criar um segundo mecanismo. Políticas futuras por organização/função/acção/risco.
+- **Fase 5 — Step-up + ações sensíveis:** generalizar scopes (`vault_credentials_view`, `account_email_change`, `firm_delete`, `data_export`, …). Fluxo: sessão → acção → step-up MFA → token temporário → acção → auditoria. Sem senha como fallback indefinido para acções críticas.
+- **Fase 6 — Créditos / SMS:** arquitectura genérica (ex.: 200 SMS incluídos); saldo, consumo, histórico, motivo, tenant, utilizador, referência; alertas; esgotado. Sem compra real nesta fase.
+- **Fase 7 — Entitlements / add-ons / pricing:** entitlements por firma para Página Pública e add-ons futuros. Preços futuros documentados apenas (€45/mês, €479/ano) — **não exibir publicamente** até autorização. Sem cobrança activa nesta fase.
+- **Fase 8 — Página Pública + domínio:** `https://{slug}.teglion.com` (+ `/servicos`, `/agendamento`). Antes: auditoria Cloudflare/Vercel/wildcard DNS/SSL/cache/SSR/SEO/Host Header/cache poisoning/IDOR/reserved slugs. Regra: hostname → slug → `firm_id` → contexto público; segurança continua em `firm_id` + auth + RLS — o subdomínio **não** é a fronteira.
+- **Fase 9 — Google Calendar (último):** não iniciar agora. Antes: preparar staging Google; auditar `firm_google_calendar_connections`, `auth_status`, sync vs “ligado”, `google_event_id`/`iCalUID`, tenant isolation. Distinguir “conectado” de “sincronizando correctamente”. Sem sync duplicada.
+
+**Dívida conhecida (staging):** objectos `202610*` existem em teglion-staging, mas `schema_migrations` está dessincronizado (incl. orphan MCP da option links). Produção não foi alterada nesta frente para reconciliar histórico. Ver recomendação de `migration repair` no relatório de validação — não reaplicar DDL cegamente.
 
 ---
 

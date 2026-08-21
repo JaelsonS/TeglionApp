@@ -41,4 +41,5 @@ A prioridade `dateOverrides[data] ?? schedule[weekday]` já estava implementada 
 ## Relação com outros ADRs
 
 - Não altera o isolamento por `firm_id` (ADR-0001): settings e `booking_overrides` já são por escritório.
-- Google Calendar (próxima fase da frente de evolução) continua fora deste ADR — a disponibilidade local não muda o sync.
+- Google Calendar fica na **Fase 9** desta frente ([ADR-0012](./ADR-0012-ordem-frente-evolucao-produto.md)), não imediatamente após Agenda — continua fora deste ADR; a disponibilidade local não muda o sync.
+- Dívida UX conhecida (21/08/2026): o calendário de excepções na UI antiga ficava cortado / com scroll aninhado frágil (`cb-fiscal-cal-grid-wrap`). **Corrigido na mesma data** com layout em 3 colunas alinhado ao mockup `docs/product/mockups/agenda-horario-geral-mockup.png` (horário semanal em linhas + calendário sem overflow aninhado + opções laterais).

@@ -1,6 +1,8 @@
 # Auditoria Fase 0 — Evolução do Teglion (20/08/2026)
 
 > Auditoria técnica read-only, feita antes de qualquer implementação, cobrindo os 15 itens funcionais pedidos: tarefas multi-cliente, edição de tarefas, imagem/hierarquia de serviços, organização da página pública, agenda em calendário mensal, MFA (dono e funcionário), step-up authentication, Google Calendar, e a base comercial futura (pricing, add-ons, SMS/créditos). Todo achado abaixo tem evidência de código real (`arquivo:linha`), levantada por 8 investigações paralelas e independentes nesta data. Nenhuma linha de código foi alterada nesta fase.
+>
+> **Ordem de execução actualizada em 21/08/2026:** este documento continua a ser a auditoria de achados. A sequência obrigatória de implementação desta frente passou a ser a do [ADR-0012](./ADR-0012-ordem-frente-evolucao-produto.md) (Google Calendar por último; MFA após fechar Agenda). Prioridade viva: `docs/ROADMAP.md`.
 
 ## Como ler este documento
 

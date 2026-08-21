@@ -29,32 +29,39 @@ export function AgendaSettingsView(props: Props) {
   return (
     <div className="cb-agenda-settings-view">
       <nav className="cb-agenda-settings-steps" aria-label="Secções da agenda">
-        <a className="cb-agenda-settings-step" href="#agenda-horario-geral">
+        <a className="cb-agenda-settings-step cb-agenda-settings-step-active" href="#agenda-horario-geral">
           <span className="cb-agenda-settings-step-n">1</span>
-          Horário geral
+          <span>
+            Horário geral
+            <span className="cb-agenda-settings-step-badge ml-0 block sm:ml-2 sm:inline">Ativo</span>
+          </span>
         </a>
         <a className="cb-agenda-settings-step" href="#agenda-por-servico">
           <span className="cb-agenda-settings-step-n">2</span>
           Por serviço
         </a>
-        <a className="cb-agenda-settings-step" href="#agenda-google">
+        <a
+          className="cb-agenda-settings-step cb-agenda-settings-step-later"
+          href="#agenda-google"
+          title="Integração Google Calendar fica para o final do roadmap (Fase 9)"
+        >
           <span className="cb-agenda-settings-step-n">3</span>
-          Google Calendar
+          <span>
+            Google Calendar
+            <span className="cb-agenda-settings-step-later-badge ml-0 mt-0.5 block sm:ml-2 sm:mt-0 sm:inline">
+              Mais tarde
+            </span>
+          </span>
         </a>
       </nav>
 
-      <section id="agenda-horario-geral" className="cb-agenda-settings-block scroll-mt-24">
-        <div className="cb-agenda-settings-block-hd">
-          <span className="cb-agenda-settings-block-icon">
-            <CalendarClock className="h-4 w-4" aria-hidden />
-          </span>
-          <div>
-            <h3 className="cb-agenda-settings-block-title">Horário geral do escritório</h3>
-            <p className="cb-agenda-settings-block-sub">
-              Predefinição para todos os serviços. Uma marcação tranca esse horário no calendário partilhado
-              (incluindo o Google, quando ligado).
-            </p>
-          </div>
+      <section id="agenda-horario-geral" className="cb-agenda-settings-block scroll-mt-24 !border-0 !bg-transparent !p-0 !shadow-none">
+        <div className="mb-4">
+          <h3 className="cb-agenda-settings-block-title text-base">Horário geral do escritório</h3>
+          <p className="cb-agenda-settings-block-sub mt-1 max-w-2xl">
+            Defina a disponibilidade da sua organização para marcações com clientes. O horário semanal é a
+            predefinição; as excepções do mês sobrescrevem dias concretos.
+          </p>
         </div>
         <AgendaAvailabilityPanel
           booking={props.booking}
