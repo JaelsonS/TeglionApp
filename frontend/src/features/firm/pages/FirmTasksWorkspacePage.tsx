@@ -65,7 +65,7 @@ export function FirmTasksWorkspacePage() {
   const clientsQuery = useFirmClientsDirectory({ limit: 500 })
   const clients = clientsQuery.data?.items || []
   const [form, setForm] = useState({
-    clientId: clientFilter || '',
+    clientIds: clientFilter ? [clientFilter] : ([] as string[]),
     title: '',
     description: '',
     dueDate: '',
@@ -207,8 +207,8 @@ export function FirmTasksWorkspacePage() {
       toast.error('Indique o título da tarefa')
       return
     }
-    if (form.recurrenceFrequency && form.recurrenceFrequency !== 'NONE' && !form.clientId) {
-      toast.error('A recorrência precisa de um cliente. Tarefas internas do escritório ficam sem recorrência.')
+    if (form.recurrenceFrequency && form.recurrenceFrequency !== 'NONE' && form.clientIds.length !== 1) {
+      toast.error('A recorrência precisa de exatamente um cliente. Tarefas internas ou com vários clientes ficam sem recorrência.')
       return
     }
     const recurrenceRule =
@@ -218,7 +218,7 @@ export function FirmTasksWorkspacePage() {
     createTask.mutate(
       {
         payload: {
-          clientId: form.clientId || undefined,
+          clientIds: form.clientIds,
           title: form.title.trim(),
           description: form.description || undefined,
           dueDate: form.dueDate || undefined,
@@ -237,7 +237,7 @@ export function FirmTasksWorkspacePage() {
           closeCreateTask()
           navigateTasks({}, { tab: 'manual' })
           setForm({
-            clientId: clientFilter || '',
+            clientIds: clientFilter ? [clientFilter] : [],
             title: '',
             description: '',
             dueDate: '',
@@ -356,6 +356,8 @@ export function FirmTasksWorkspacePage() {
                 embedded
                 taskId={openTaskId}
                 teamNames={teamNames}
+                clients={clients}
+                teamItems={teamData?.items || []}
                 onClose={() => updateParams({ task: null })}
                 onMutate={invalidate}
               />

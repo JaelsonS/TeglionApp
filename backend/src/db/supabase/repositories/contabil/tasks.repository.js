@@ -1,10 +1,28 @@
 const { ensureClient } = require('./shared');
 const { mapTaskRow } = require('./mappers');
 
+/**
+ * IDs de tarefa vinculadas a um cliente via client_task_client_links (fonte de verdade
+ * -- inclui tarefas com vários clientes, não só o ponteiro legado client_tasks.client_id).
+ */
+async function listTaskIdsLinkedToClient(sb, firmId, clientId) {
+  const { data, error } = await sb
+    .from('client_task_client_links')
+    .select('client_task_id')
+    .eq('firm_id', firmId)
+    .eq('client_id', clientId);
+  if (error) throw error;
+  return [...new Set((data || []).map((r) => r.client_task_id))];
+}
+
 async function listClientTasks({ firmId, clientId, statusIn }) {
   const sb = ensureClient();
   let q = sb.from('client_tasks').select('*').eq('firm_id', firmId).order('due_date', { ascending: true });
-  if (clientId) q = q.eq('client_id', clientId);
+  if (clientId) {
+    const taskIds = await listTaskIdsLinkedToClient(sb, firmId, clientId);
+    if (!taskIds.length) return [];
+    q = q.in('id', taskIds);
+  }
   q = q.neq('task_type', 'internal_task');
   if (statusIn?.length) q = q.in('status', statusIn);
   const { data, error } = await q;
@@ -14,10 +32,17 @@ async function listClientTasks({ firmId, clientId, statusIn }) {
 
 async function findClientTaskById(id, firmId, clientId) {
   const sb = ensureClient();
-  let q = sb.from('client_tasks').select('*').eq('id', id).eq('firm_id', firmId);
-  if (clientId) q = q.eq('client_id', clientId);
-  q = q.neq('task_type', 'internal_task');
-  const { data, error } = await q.maybeSingle();
+  if (clientId) {
+    const taskIds = await listTaskIdsLinkedToClient(sb, firmId, clientId);
+    if (!taskIds.includes(id)) return null;
+  }
+  const { data, error } = await sb
+    .from('client_tasks')
+    .select('*')
+    .eq('id', id)
+    .eq('firm_id', firmId)
+    .neq('task_type', 'internal_task')
+    .maybeSingle();
   if (error) throw error;
   return mapTaskRow(data);
 }

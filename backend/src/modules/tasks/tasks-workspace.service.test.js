@@ -122,6 +122,90 @@ test('createTask propaga erros não relacionados a colunas legadas (falha alto, 
   );
 });
 
+test('createTask com clientIds (multi-cliente) valida todos os clientes e repassa o conjunto pro insertTask', async () => {
+  const insertedRows = [];
+  const insertedOpts = [];
+  const knownClients = new Set(['client-a', 'client-b']);
+
+  await withMock(
+    clientsRepository,
+    'findClientById',
+    async (_firmId, clientId) => (knownClients.has(clientId) ? { id: clientId, displayName: 'Cliente' } : null),
+    () =>
+      withMock(activityService, 'recordActivity', async () => {}, () =>
+        withMock(
+          tasksRepo,
+          'insertTask',
+          async (row, opts) => {
+            insertedRows.push(row);
+            insertedOpts.push(opts);
+            return { id: 'task-multi', clientIds: opts?.clientIds || [], ...row };
+          },
+          async () => {
+            const { task } = await workspace.createTask({
+              firmId: 'firm-1',
+              actor: { id: 'user-1', name: 'Escritório' },
+              payload: {
+                clientIds: ['client-a', 'client-b'],
+                title: 'Solicitar documentos IRS',
+                taskType: 'internal_task',
+                status: 'TODO',
+              },
+            });
+
+            assert.equal(insertedRows[0].client_id, 'client-a', 'ponteiro legado = primeiro cliente do conjunto');
+            assert.deepEqual(insertedOpts[0].clientIds, ['client-a', 'client-b']);
+            assert.deepEqual(task.clientIds.sort(), ['client-a', 'client-b']);
+          },
+        ),
+      ),
+  );
+});
+
+test('createTask com clientIds rejeita quando algum cliente não existe (não cria a tarefa parcialmente)', async () => {
+  const insertedRows = [];
+  await withMock(clientsRepository, 'findClientById', async (_firmId, clientId) => (clientId === 'client-a' ? { id: 'client-a' } : null), () =>
+    withMock(tasksRepo, 'insertTask', async (row) => {
+      insertedRows.push(row);
+      return { id: 'task-x', ...row };
+    }, async () => {
+      await assert.rejects(
+        () =>
+          workspace.createTask({
+            firmId: 'firm-1',
+            actor: { id: 'user-1' },
+            payload: { clientIds: ['client-a', 'client-inexistente'], title: 'Tarefa', taskType: 'internal_task' },
+          }),
+        /Cliente não encontrado/,
+      );
+      assert.equal(insertedRows.length, 0, 'não deve inserir nada se algum cliente do conjunto não existir');
+    }),
+  );
+});
+
+test('createTask rejeita recorrência quando há mais de um cliente vinculado', async () => {
+  await withMock(clientsRepository, 'findClientById', async (_firmId, clientId) => ({ id: clientId }), () =>
+    withMock(tasksRepo, 'insertTask', async () => {
+      throw new Error('insertTask não deveria ser chamado');
+    }, async () => {
+      await assert.rejects(
+        () =>
+          workspace.createTask({
+            firmId: 'firm-1',
+            actor: { id: 'user-1' },
+            payload: {
+              clientIds: ['client-a', 'client-b'],
+              title: 'Tarefa recorrente',
+              taskType: 'internal_task',
+              recurrenceRule: { frequency: 'MONTHLY' },
+            },
+          }),
+        /exatamente um cliente/,
+      );
+    }),
+  );
+});
+
 test('createTask aceita tarefa interna sem cliente da carteira', async () => {
   const insertedRows = [];
   await withMock(activityService, 'recordActivity', async () => {}, () =>

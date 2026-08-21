@@ -19,6 +19,7 @@ Formato de arquivo: `ADR-NNNN-nome-curto-da-decisao.md`, numeração sequencial,
 | [ADR-0005](./ADR-0005-stripe-cobranca-preco-por-pais.md) | Stripe é o provedor de cobrança, com resolução de preço por país centralizada em uma única função — pronta para novos países, mas com a moeda exibida ainda não ligada ao país resolvido em todos os pontos do sistema. |
 | [ADR-0006](./ADR-0006-obrigacao-custom-estrategia-entrada-pais.md) | O tipo de obrigação `CUSTOM` permite que um escritório opere em um país sem calendário fiscal automático (hoje, o Brasil), sem bloquear a expansão até a automação fiscal completa desse país estar pronta. |
 | [ADR-0007](./ADR-0007-scheduler-central-polling-frontend.md) | Um scheduler central de polling por shell do frontend (escritório/cliente) substitui temporizadores independentes por componente, invalidando cache em um único intervalo em vez de "N intervals" — ainda coexistindo com hooks de badge que mantêm `refetchInterval` próprio. |
+| [ADR-0008](./ADR-0008-tarefas-multi-cliente-m2m.md) | Tarefas manuais podem ter vários clientes via `client_task_client_links` (M2M, mesmo padrão de `firm_entity_tag_links`), com `client_tasks.client_id` mantida como ponteiro legado sincronizado automaticamente, não removida nesta fase. |
 
 ## Como eu proponho um novo ADR
 

@@ -177,6 +177,13 @@ Portugal é o único mercado onde eu tenho uso real hoje (4 escritórios pilotos
 
 - **Regra que eu sigo nessa fase:** nenhuma mudança que eu fizer nas Fases 3-5 (arquitetura multi-país, Brasil) pode alterar o comportamento que um escritório português vê hoje. Ver Fase 3 pros testes de regressão que eu preciso rodar.
 
+### Frente de evolução de produto/segurança (iniciada 20/08/2026)
+
+Abri uma frente própria, maior que um item avulso desta fase, cobrindo tarefas multi-cliente, hierarquia de serviços, agenda em calendário mensal, MFA, step-up authentication e a base comercial futura (pricing/add-ons/SMS). Fiz a auditoria completa antes de implementar qualquer coisa — o detalhe item a item, com classificação e decisões arquiteturais, fica em [`docs/decisions/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md`](./decisions/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md), pra eu não duplicar aqui o que já documentei lá. Este ROADMAP.md continua sendo minha única fonte de prioridade geral — só não repito o detalhe fase-a-fase dessa frente específica nos dois lugares.
+
+- **Fase 1 (tarefas manuais — múltiplos clientes e edição completa): `CONCLUÍDO`.** Tarefa agora pode ter vários clientes (M2M via `client_task_client_links`, ver [ADR-0008](./decisions/ADR-0008-tarefas-multi-cliente-m2m.md)), com backfill das tarefas existentes e `client_id` mantida como ponteiro legado. Edição completa (título, descrição, prioridade, prazo, responsável, clientes) implementada em `Dialog` centralizado (`TaskEditDialog.tsx`), reaproveitando o padrão de `FiscalEventFormDialog.tsx` — antes só o Estado era editável. 512 testes de backend + 161 de frontend passando, typecheck e build limpos. Migration ainda não aplicada em nenhum banco real (fica pra eu rodar via `supabase db push` quando decidir). Detalhe completo no relatório de fase (fica registrado na minha conversa com o Claude Code, não duplico aqui).
+- **Fases 2-7 dessa frente:** não iniciadas — aguardando eu revisar e aprovar a Fase 1 antes de seguir, como combinei.
+
 ---
 
 ## FASE 3 — Arquitetura multi-país

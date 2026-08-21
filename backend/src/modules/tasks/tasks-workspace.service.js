@@ -86,17 +86,18 @@ async function listWorkspace(firmId, query) {
     items = items.slice(0, limit);
   }
 
-  const clientIds = [...new Set(items.map((t) => t.clientId).filter(Boolean))];
+  const clientIds = [...new Set(items.flatMap((t) => t.clientIds?.length ? t.clientIds : [t.clientId]).filter(Boolean))];
   const obligationIds = [...new Set(items.map((t) => t.obligationId).filter(Boolean))];
   const names = new Map();
   const obligationTitles = new Map();
   const repo = getRepository();
 
   await Promise.all([
-    ...clientIds.map(async (id) => {
-      const c = await clientsRepository.findClientById(firmId, id);
-      if (c) names.set(id, c.displayName || c.name);
-    }),
+    clientIds.length
+      ? clientsRepository.findClientsByIds(firmId, clientIds).then((rows) => {
+          for (const c of rows) names.set(c.id, c.displayName || c.name);
+        })
+      : Promise.resolve(),
     ...obligationIds.map(async (id) => {
       const ob = await repo.findObligationById(id, firmId).catch(() => null);
       if (ob) obligationTitles.set(id, ob.title);
@@ -104,11 +105,19 @@ async function listWorkspace(firmId, query) {
   ]);
 
   return {
-    items: items.map((t) => ({
-      ...t,
-      clientName: t.clientId ? names.get(t.clientId) || null : 'Escritório',
-      obligationTitle: t.obligationId ? obligationTitles.get(t.obligationId) : null,
-    })),
+    items: items.map((t) => {
+      const linkedIds = t.clientIds?.length ? t.clientIds : (t.clientId ? [t.clientId] : []);
+      const clients = linkedIds.map((id) => ({ id, name: names.get(id) || null }));
+      return {
+        ...t,
+        clientIds: linkedIds,
+        clients,
+        clientName: linkedIds.length
+          ? clients.map((c) => c.name).filter(Boolean).join(', ') || null
+          : 'Escritório',
+        obligationTitle: t.obligationId ? obligationTitles.get(t.obligationId) : null,
+      };
+    }),
     total: query.metric ? items.length : result.total,
     page: Math.floor(offset / limit) + 1,
     limit,
@@ -119,7 +128,14 @@ async function getTaskDetail(firmId, taskId) {
   const task = await tasksRepo.findTaskById(firmId, taskId);
   if (!task) throw new AppError('Tarefa não encontrada', 404);
   const comments = await tasksRepo.listComments(taskId, firmId);
+  const linkedClientIds = task.clientIds?.length ? task.clientIds : (task.clientId ? [task.clientId] : []);
   const client = task.clientId ? await clientsRepository.findClientById(firmId, task.clientId) : null;
+  const linkedClients = linkedClientIds.length
+    ? (await clientsRepository.findClientsByIds(firmId, linkedClientIds)).map((c) => ({
+        id: c.id,
+        name: c.displayName || c.name,
+      }))
+    : [];
   const repo = getRepository();
   const sb = require('../../db/supabase/client').getSupabaseAdmin();
 
@@ -179,6 +195,8 @@ async function getTaskDetail(firmId, taskId) {
   return {
     task: {
       ...task,
+      clientIds: linkedClientIds,
+      clients: linkedClients,
       clientName: client?.displayName || client?.name,
       clientEmail: client?.email,
       clientTaxId: client?.tax_id,
@@ -195,11 +213,20 @@ async function getTaskDetail(firmId, taskId) {
 async function createTask({ firmId, actor, payload, file }) {
   const title = String(payload.title || '').trim();
   if (!title) throw new AppError('Título obrigatório', 400);
-  const clientId = payload.clientId ? String(payload.clientId) : null;
-  let client = null;
-  if (clientId) {
-    client = await clientsRepository.findClientById(firmId, clientId);
-    if (!client) throw new AppError('Cliente não encontrado', 404);
+
+  // clientIds (array) é o caminho novo (multi-cliente); clientId (singular) continua
+  // aceito para compatibilidade com integrações/chamadores antigos.
+  const rawClientIds = Array.isArray(payload.clientIds)
+    ? payload.clientIds
+    : payload.clientId
+      ? [payload.clientId]
+      : [];
+  const clientIds = [...new Set(rawClientIds.map((id) => String(id || '').trim()).filter(Boolean))];
+  const clientId = clientIds[0] || null; // ponteiro legado -- primeiro cliente do conjunto
+
+  for (const id of clientIds) {
+    const found = await clientsRepository.findClientById(firmId, id);
+    if (!found) throw new AppError('Cliente não encontrado', 404, { code: 'CLIENT_NOT_FOUND', clientId: id });
   }
   const taskType = payload.taskType || 'internal_task';
   // Tarefas internas do escritório nunca notificam o cliente
@@ -213,6 +240,14 @@ async function createTask({ firmId, actor, payload, file }) {
     if (!clientId) {
       throw new AppError('A recorrência precisa de um cliente. Tarefas do escritório (sem cliente) são pontuais.', 400, {
         code: 'CLIENT_REQUIRED_FOR_RECURRENCE',
+      });
+    }
+    if (clientIds.length > 1) {
+      // task_recurring_rules.client_id é singular -- não valida no backend qual dos vários
+      // clientes "seria o dono" da recorrência, então bloqueio a combinação aqui em vez de
+      // silenciosamente ignorar os demais clientes.
+      throw new AppError('A recorrência só está disponível para tarefas com exatamente um cliente.', 400, {
+        code: 'RECURRENCE_REQUIRES_SINGLE_CLIENT',
       });
     }
     try {
@@ -258,12 +293,15 @@ async function createTask({ firmId, actor, payload, file }) {
 
   let task;
   try {
-    task = await tasksRepo.insertTask({
-      ...baseRow,
-      task_type: taskType,
-      period_month: dueDateValue ? String(dueDateValue).slice(0, 7) : null,
-      recurring_rule_id: recurringRuleId,
-    });
+    task = await tasksRepo.insertTask(
+      {
+        ...baseRow,
+        task_type: taskType,
+        period_month: dueDateValue ? String(dueDateValue).slice(0, 7) : null,
+        recurring_rule_id: recurringRuleId,
+      },
+      { clientIds },
+    );
   } catch (error) {
     const message = String(error?.message || '').toLowerCase();
     // Apenas colunas legadas (period_month/recurring_rule_id) podem estar ausentes em
@@ -281,10 +319,13 @@ async function createTask({ firmId, actor, payload, file }) {
     );
 
     // Fallback para schema antigo: mantém task_type correcto, apenas remove colunas novas.
-    task = await tasksRepo.insertTask({
-      ...baseRow,
-      task_type: taskType,
-    });
+    task = await tasksRepo.insertTask(
+      {
+        ...baseRow,
+        task_type: taskType,
+      },
+      { clientIds },
+    );
   }
 
   let attachment = null;
@@ -374,25 +415,29 @@ async function reopenTask({ firmId, taskId, actor }) {
 async function duplicateTask({ firmId, taskId, actor }) {
   const src = await tasksRepo.findTaskById(firmId, taskId);
   if (!src) throw new AppError('Tarefa não encontrada', 404);
-  const task = await tasksRepo.insertTask({
-    firm_id: firmId,
-    client_id: src.clientId,
-    obligation_id: src.obligationId,
-    title: `${src.title} (cópia)`,
-    description: src.description,
-    status: 'BACKLOG',
-    priority: src.priority,
-    due_date: src.dueDate,
-    assignee_id: src.assigneeId,
-    tags: src.tags,
-    duplicated_from_id: src.id,
-    created_by: actor?.id || null,
-    // CRÍTICO: preservar task_type (e period_month) da tarefa de origem. Sem isto, a
-    // coluna cai no DEFAULT 'manual_task' da tabela e a cópia some da listagem de
-    // Tarefas Manuais, que filtra estritamente por task_type === 'internal_task'.
-    task_type: src.taskType || 'internal_task',
-    period_month: src.dueDate ? String(src.dueDate).slice(0, 7) : null,
-  });
+  const clientIds = src.clientIds?.length ? src.clientIds : (src.clientId ? [src.clientId] : []);
+  const task = await tasksRepo.insertTask(
+    {
+      firm_id: firmId,
+      client_id: src.clientId,
+      obligation_id: src.obligationId,
+      title: `${src.title} (cópia)`,
+      description: src.description,
+      status: 'BACKLOG',
+      priority: src.priority,
+      due_date: src.dueDate,
+      assignee_id: src.assigneeId,
+      tags: src.tags,
+      duplicated_from_id: src.id,
+      created_by: actor?.id || null,
+      // CRÍTICO: preservar task_type (e period_month) da tarefa de origem. Sem isto, a
+      // coluna cai no DEFAULT 'manual_task' da tabela e a cópia some da listagem de
+      // Tarefas Manuais, que filtra estritamente por task_type === 'internal_task'.
+      task_type: src.taskType || 'internal_task',
+      period_month: src.dueDate ? String(src.dueDate).slice(0, 7) : null,
+    },
+    { clientIds },
+  );
   return { task };
 }
 
