@@ -501,7 +501,13 @@ async function verifyMfaOrVaultPassword({
     await firmUsersRepository.updateFirmUserMfa(row.id, firmId, {
       mfaLastVerifiedAt: new Date().toISOString(),
     });
-    const issued = rememberSession ? stepUp.issueVaultStepUp({ firmId, userId }) : {};
+    const issued = rememberSession
+      ? stepUp.issueVaultStepUp({
+          firmId,
+          userId,
+          purpose: purpose || stepUp.VAULT_STEPUP_PURPOSES.MUTATE,
+        })
+      : {};
     return { actor: row, method: 'mfa_totp', purpose, ...issued };
   }
   return stepUp.verifyStaffPassword({
@@ -510,6 +516,7 @@ async function verifyMfaOrVaultPassword({
     currentPassword,
     stepUpToken,
     rememberSession,
+    purpose: purpose || stepUp.VAULT_STEPUP_PURPOSES.MUTATE,
   });
 }
 

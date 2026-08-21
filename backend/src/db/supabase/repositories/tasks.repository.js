@@ -314,10 +314,15 @@ async function getMetrics(firmId) {
     byStatus[s] = (byStatus[s] || 0) + 1;
   }
 
+  const linkMap = await listClientLinksForTaskIds(active.map((t) => t.id));
   const byClient = {};
   const byAssignee = {};
   for (const t of active) {
-    byClient[t.client_id] = (byClient[t.client_id] || 0) + 1;
+    const linked = linkMap.get(t.id);
+    const clientIds = linked?.length ? linked : t.client_id ? [t.client_id] : [];
+    for (const clientId of clientIds) {
+      byClient[clientId] = (byClient[clientId] || 0) + 1;
+    }
     const key = t.assignee_id || 'unassigned';
     byAssignee[key] = (byAssignee[key] || 0) + 1;
   }

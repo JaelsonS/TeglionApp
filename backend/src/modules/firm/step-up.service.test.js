@@ -69,15 +69,45 @@ describe('step-up.service vault password', () => {
 
   test('token vault-stepup válido dispensa a palavra-passe', async () => {
     mockActor({ vault_password_hash: 'vault-hash' });
-    const token = signVaultStepUpToken({ id: USER_ID, firmId: FIRM_ID });
+    const { VAULT_STEPUP_PURPOSES } = require('../../config/jwt');
+    const token = signVaultStepUpToken({
+      id: USER_ID,
+      firmId: FIRM_ID,
+      purpose: VAULT_STEPUP_PURPOSES.MUTATE,
+    });
     const result = await stepUp.verifyStaffPassword({
       firmId: FIRM_ID,
       userId: USER_ID,
       stepUpToken: token,
       rememberSession: true,
+      purpose: VAULT_STEPUP_PURPOSES.MUTATE,
     });
     assert.equal(result.actor.id, USER_ID);
     assert.equal(typeof result.stepUpToken, 'string');
+  });
+
+  test('token vault-stepup de outro purpose é rejeitado', async () => {
+    mockActor({ vault_password_hash: 'vault-hash' });
+    const { VAULT_STEPUP_PURPOSES } = require('../../config/jwt');
+    const token = signVaultStepUpToken({
+      id: USER_ID,
+      firmId: FIRM_ID,
+      purpose: VAULT_STEPUP_PURPOSES.REVEAL,
+    });
+    await assert.rejects(
+      () =>
+        stepUp.verifyStaffPassword({
+          firmId: FIRM_ID,
+          userId: USER_ID,
+          stepUpToken: token,
+          purpose: VAULT_STEPUP_PURPOSES.MUTATE,
+        }),
+      (err) =>
+        err.details?.code === 'NO_VAULT_PASSWORD' ||
+        err.details?.code === 'INVALID_CURRENT_PASSWORD' ||
+        err.code === 'NO_VAULT_PASSWORD' ||
+        err.code === 'INVALID_CURRENT_PASSWORD',
+    );
   });
 
   test('getUnlockState: Google só desbloqueia depois de criar o cofre', async () => {

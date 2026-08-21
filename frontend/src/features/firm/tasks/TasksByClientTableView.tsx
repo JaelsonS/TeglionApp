@@ -52,7 +52,11 @@ export function TasksByClientTableView({
     for (const client of clients) {
       if (client.status && client.status !== 'ACTIVE') continue
       const obs = obligations.filter((o) => String(o.clientId) === client._id)
-      const tasks = manualTasks.filter((t) => t.clientId === client._id)
+      const tasks = manualTasks.filter((t) => {
+        const ids = (t as { clientIds?: string[] }).clientIds
+        if (Array.isArray(ids) && ids.length) return ids.includes(String(client._id))
+        return t.clientId === client._id
+      })
       const overdue =
         obs.filter((o) => mapObligationDisplayStatus(o) === 'overdue').length +
         tasks.filter((t) => t.isOverdue && !['DONE', 'ARCHIVED'].includes(t.status)).length

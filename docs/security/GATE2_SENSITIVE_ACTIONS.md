@@ -1,8 +1,6 @@
-# Gate 2 — Sensitive actions / step-up MFA
+# Gate 2 / Vault step-up — estado actual
 
-**Data:** 21/08/2026  
-**Branch:** `fix/gate-2-sensitive-actions`  
-**Vault TTL 8h:** **não alterado** (Gate 3)
+**Actualizado:** 21/08/2026 (main-release blockers)
 
 ## Abstração central
 
@@ -21,14 +19,20 @@
 | Permissões equipa | `team_permissions_patch` | TOTP | login pwd |
 | Desactivar membro | `team_member_deactivate` | TOTP | login pwd |
 | Mudar role | `team_member_role_change` | TOTP | login pwd |
-| Criar membro | `team_member_create` | TOTP | login pwd |
-| Vault reveal/mutate/import | `vault_*` | TOTP (ou step-up JWT) | vault/login pwd |
+| Criar membro / convite | `team_member_create` | TOTP | login pwd |
+| Alterar email de membro | `team_member_email_change` | TOTP | login pwd (+ revoke sessions) |
+| Vault reveal | `vault_reveal` | TOTP ou step-up JWT **deste purpose** | vault/login pwd |
+| Vault mutate | `vault_mutate` | idem | idem |
+| Vault import | `vault_import` | idem | idem |
+
+## Vault step-up JWT
+
+- TTL: **10 minutos** (`VAULT_STEPUP_EXPIRES_IN`)
+- Claim obrigatório: `purpose` ∈ {`vault_reveal`,`vault_mutate`,`vault_import`}
+- Reutilizar token de reveal em mutate/import → **rejeitado**
+- FE: `sessionStorage` chaveado por purpose (`vaultStepUpSession.ts`)
+- Plaintext revelado: só React state ~30s (não localStorage)
 
 ## FE
 
 `SensitiveActionConfirmFields` — copy autenticador, sem email/SMS.
-
-## Fora deste Gate
-
-- Redução TTL vault 8h → Gate 3
-- Confirmação por e-mail do novo endereço (avaliado; não bloqueia step-up TOTP)

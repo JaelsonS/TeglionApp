@@ -315,7 +315,11 @@ async function setMyVaultPassword(firmId, userId, { currentPassword, newPassword
     req,
   });
 
-  const issued = stepUp.issueVaultStepUp({ firmId, userId });
+  const issued = stepUp.issueVaultStepUp({
+    firmId,
+    userId,
+    purpose: stepUp.VAULT_STEPUP_PURPOSES.MUTATE,
+  });
   return {
     updated: true,
     hasVaultPassword: true,

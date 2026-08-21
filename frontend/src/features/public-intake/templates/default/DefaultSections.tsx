@@ -455,8 +455,7 @@ function ServiceCard({
   )
 }
 
-/** Grupo → serviços: grupos com nome viram itens de accordion (abertos por
- * padrão, colapsáveis); serviços sem grupo continuam numa lista simples. */
+/** Grupo → serviços: accordion colapsado por defeito (melhor com 20–50 serviços). */
 function ClusteredServiceGroups({
   clusters,
   firmSlug,
@@ -468,15 +467,16 @@ function ClusteredServiceGroups({
   showPrices: boolean
   openInNewTab: boolean
 }) {
-  const namedGroups = clusters.filter((c) => c.heading)
-  const accordionValues = namedGroups.map((c) => c.heading as string)
   return (
-    <Accordion type="multiple" defaultValue={accordionValues} className="space-y-2">
+    <Accordion type="multiple" defaultValue={[]} className="space-y-2">
       {clusters.map((cluster) =>
         cluster.heading ? (
           <AccordionItem key={cluster.heading} value={cluster.heading} className="border-none">
             <AccordionTrigger className="text-[hsl(var(--brand-text,var(--foreground)))]">
-              {cluster.heading}
+              <span>
+                {cluster.heading}
+                <span className="ml-2 text-sm font-normal opacity-70">({cluster.items.length})</span>
+              </span>
             </AccordionTrigger>
             <AccordionContent>
               <ul className="space-y-3">
