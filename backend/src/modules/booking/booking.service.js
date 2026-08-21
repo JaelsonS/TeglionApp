@@ -304,16 +304,38 @@ function consultationBusyRange(c) {
   return { start, end: start + dm * 60 * 1000 };
 }
 
+/**
+ * Junta booking do escritório com overrides do serviço.
+ * Campos do serviço sobrescrevem os da firma; `dateOverrides` faz merge por data
+ * (excepção do serviço num dia não apaga as excepções da firma nos outros dias).
+ */
+function mergeFirmAndServiceBooking(firmBookingRaw, serviceOverridesRaw) {
+  const firm = firmBookingRaw && typeof firmBookingRaw === 'object' ? firmBookingRaw : {};
+  const svc = serviceOverridesRaw && typeof serviceOverridesRaw === 'object' ? serviceOverridesRaw : {};
+  const firmDates =
+    firm.dateOverrides && typeof firm.dateOverrides === 'object' && !Array.isArray(firm.dateOverrides)
+      ? firm.dateOverrides
+      : {};
+  const svcDates =
+    svc.dateOverrides && typeof svc.dateOverrides === 'object' && !Array.isArray(svc.dateOverrides)
+      ? svc.dateOverrides
+      : {};
+  return normalizeBooking({
+    ...firm,
+    ...svc,
+    dateOverrides: { ...firmDates, ...svcDates },
+  });
+}
+
 async function listSlotsForBooking({ firmId, serviceId, fromIso, toIso, ignoreHoldToken }) {
   const service = await accountingServicesRepository.findByIdForFirm(serviceId, firmId);
   if (!service || !service.isActive) throw new AppError('Serviço não encontrado', 404);
 
   const firm = await firmsRepository.findFirmById(firmId);
   if (!firm) throw new AppError('Escritório não encontrado', 404);
-  // Overrides do Service sobrepõem, campo a campo, as regras gerais do escritório
-  // (ver plan file da sessão, v8, secção 4) — null/ausente em qualquer campo cai
-  // de volta para a regra do escritório, sem regressão para serviços sem overrides.
-  const booking = normalizeBooking({ ...(firm.settings?.booking || {}), ...(service.bookingOverrides || {}) });
+  // Overrides do Service sobrepõem as regras gerais do escritório (campo a campo);
+  // dateOverrides faz merge por data — ver mergeFirmAndServiceBooking.
+  const booking = mergeFirmAndServiceBooking(firm.settings?.booking, service.bookingOverrides);
 
   const now = Date.now();
   const fromMs = Math.max(now + booking.leadTimeHours * 60 * 60 * 1000, new Date(fromIso).getTime());
@@ -538,6 +560,7 @@ module.exports = {
   normalizeDateOverrides,
   cloneDateOverrides,
   copyMonthDateOverrides,
+  mergeFirmAndServiceBooking,
   computeAvailableSlotsTz,
   getBookingConfigForFirm,
   updateBookingSettings,

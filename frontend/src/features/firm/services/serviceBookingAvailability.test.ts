@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { BookingDaySchedule, FirmBookingSettings } from '@/shared/types/contabil'
 
 import {
+  applyServiceDayOverride,
   bookingOverridesPayload,
   defaultIntervalFromSchedule,
   hasCustomBookingHours,
@@ -142,5 +143,29 @@ describe('serviceAvailabilityLabel', () => {
         bookingOverrides: { weekdays: [1] },
       }),
     ).toBe('custom')
+  })
+})
+
+describe('applyServiceDayOverride', () => {
+  it('fecha um dia sem apagar schedule existente', () => {
+    const next = applyServiceDayOverride({
+      existing: {
+        weekdays: [1],
+        schedule: { 1: [{ start: '09:00', end: '12:00' }] },
+      },
+      date: '2026-08-25',
+      mode: 'closed',
+    })
+    expect(next?.dateOverrides?.['2026-08-25']).toEqual([])
+    expect(next?.schedule?.[1]).toEqual([{ start: '09:00', end: '12:00' }])
+  })
+
+  it('herdar remove a data e devolve null se não resta nada', () => {
+    const next = applyServiceDayOverride({
+      existing: { dateOverrides: { '2026-08-25': [] } },
+      date: '2026-08-25',
+      mode: 'inherit',
+    })
+    expect(next).toBeNull()
   })
 })

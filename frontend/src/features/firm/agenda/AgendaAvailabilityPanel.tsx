@@ -3,7 +3,7 @@ import type { FormChangeEvent } from '@/shared/types/react-events'
 import { CalendarDays, ChevronLeft, ChevronRight, Copy, MapPin, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { AgendaDayAvailabilityDialog, type DayAvailabilityDraft } from '@/features/firm/agenda/AgendaDayAvailabilityDialog'
+import { AgendaDayAvailabilityDialog, type DayAvailabilityDraft, type ServiceDayDraft } from '@/features/firm/agenda/AgendaDayAvailabilityDialog'
 import { BOOKING_WEEKDAYS } from '@/features/firm/agenda/agendaCalendarUtils'
 import {
   clearDayOverride,
@@ -17,9 +17,9 @@ import {
   setDayOverride,
 } from '@/features/firm/agenda/bookingDateOverrides'
 import {
+  applyServiceDayOverride,
   defaultIntervalFromSchedule,
-  hasCustomBookingHours,
-  scheduleFromServiceOverrides,
+  serviceDayModeForDate,
 } from '@/features/firm/services/serviceBookingAvailability'
 import { CalendarMonthGrid, MONTH_NAMES_PT } from '@/shared/calendar'
 import { Button } from '@/shared/components/ui/button'
@@ -61,30 +61,21 @@ type Props = {
   showSlotSettings?: boolean
   /** Intervalo usado ao reabrir um dia fechado. Omissão: 09:00–17:00. */
   defaultInterval?: TimeInterval
-  /** Serviços bookable — resumo no dialog do dia (opcional). */
+  /** Serviços bookable — resumo/edição no dialog do dia (opcional). */
   bookableServices?: AccountingService[]
+  /**
+   * Persistência real do dia (firma + serviços).
+   * Se omitido, só actualiza estado local (compatível com editores embutidos).
+   */
+  onPersistDay?: (payload: {
+    date: string
+    dateOverrides: BookingDateOverrides
+    servicePatches: Array<{ id: string; bookingOverrides: Partial<FirmBookingSettings> | null }>
+  }) => Promise<void>
 }
 
 function intervalsForDay(schedule: BookingDaySchedule, day: number): TimeInterval[] {
   return schedule[day] || []
-}
-
-function serviceDayLabel(
-  service: AccountingService,
-  date: string,
-  firmSchedule: BookingDaySchedule,
-  firmOverrides: BookingDateOverrides,
-): string {
-  const custom = hasCustomBookingHours(service.bookingOverrides)
-  const schedule = custom
-    ? scheduleFromServiceOverrides(service.bookingOverrides, firmSchedule)
-    : firmSchedule
-  const overrides = custom
-    ? ((service.bookingOverrides?.dateOverrides as BookingDateOverrides | undefined) || {})
-    : firmOverrides
-  const intervals = effectiveIntervalsForDate(date, schedule, overrides)
-  if (!intervals.length) return 'Fechado'
-  return intervals.map((iv) => `${iv.start}–${iv.end}`).join(', ')
 }
 
 function formatSelectedDateShort(iso: string): string {
@@ -111,6 +102,7 @@ export function AgendaAvailabilityPanel(props: Props) {
     showSlotSettings = true,
     defaultInterval = DEFAULT_INTERVAL,
     bookableServices,
+    onPersistDay,
   } = props
 
   const openDays = BOOKING_WEEKDAYS.filter((w) => intervalsForDay(schedule, w.bit).length > 0)
@@ -121,6 +113,8 @@ export function AgendaAvailabilityPanel(props: Props) {
   const [calMonthIndex, setCalMonthIndex] = useState(now.getMonth())
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [dayDialogOpen, setDayDialogOpen] = useState(false)
+  const [serviceDayDrafts, setServiceDayDrafts] = useState<ServiceDayDraft[]>([])
+  const [daySaving, setDaySaving] = useState(false)
 
   const monthKey = monthKeyFromParts(calYear, calMonthIndex)
   const targetMonthKey = nextMonthKey(calYear, calMonthIndex)
@@ -162,23 +156,90 @@ export function AgendaAvailabilityPanel(props: Props) {
     setDayIntervals(day, current)
   }
 
+  function buildServiceDayDrafts(iso: string): ServiceDayDraft[] {
+    if (!bookableServices?.length) return []
+    return bookableServices.map((s) => {
+      const mode = serviceDayModeForDate(s, iso)
+      const svcOverrides = (s.bookingOverrides?.dateOverrides || {}) as BookingDateOverrides
+      const firmEffective = effectiveIntervalsForDate(iso, schedule, dateOverrides)
+      const inheritedLabel = firmEffective.length
+        ? `Herdado · ${firmEffective.map((iv) => `${iv.start}–${iv.end}`).join(', ')}`
+        : 'Herdado · fechado no horário geral'
+      const openIntervals =
+        mode === 'open' && Array.isArray(svcOverrides[iso]) && svcOverrides[iso].length
+          ? svcOverrides[iso].map((iv) => ({ ...iv }))
+          : firmEffective.length
+            ? firmEffective.map((iv) => ({ ...iv }))
+            : [{ ...defaultInterval }]
+      return {
+        id: s.id,
+        name: s.name,
+        mode,
+        intervals: openIntervals,
+        inheritedLabel,
+      }
+    })
+  }
+
   function openDayDialog(day: number) {
     const iso = `${monthKey}-${String(day).padStart(2, '0')}`
     setSelectedDate(iso)
+    setServiceDayDrafts(buildServiceDayDrafts(iso))
     setDayDialogOpen(true)
   }
 
-  function saveDayDraft(draft: DayAvailabilityDraft) {
+  function applyFirmDayDraft(draft: DayAvailabilityDraft, iso: string): BookingDateOverrides {
+    if (draft.mode === 'inherit') return clearDayOverride(dateOverrides, iso)
+    if (draft.mode === 'closed') return setDayOverride(dateOverrides, iso, [])
+    return setDayOverride(dateOverrides, iso, draft.intervals)
+  }
+
+  async function saveDayDraft(draft: DayAvailabilityDraft) {
     if (!onDateOverridesChange || !selectedDate) return
-    if (draft.mode === 'inherit') {
-      onDateOverridesChange(clearDayOverride(dateOverrides, selectedDate))
+    const nextFirmOverrides = applyFirmDayDraft(draft, selectedDate)
+
+    const servicePatches: Array<{ id: string; bookingOverrides: Partial<FirmBookingSettings> | null }> = []
+    if (bookableServices?.length && serviceDayDrafts.length) {
+      for (const row of serviceDayDrafts) {
+        const service = bookableServices.find((s) => s.id === row.id)
+        if (!service) continue
+        const prevMode = serviceDayModeForDate(service, selectedDate)
+        const unchanged =
+          prevMode === row.mode &&
+          (row.mode !== 'open' ||
+            JSON.stringify(service.bookingOverrides?.dateOverrides?.[selectedDate] || []) ===
+              JSON.stringify(row.intervals))
+        if (unchanged) continue
+        servicePatches.push({
+          id: service.id,
+          bookingOverrides: applyServiceDayOverride({
+            existing: service.bookingOverrides,
+            date: selectedDate,
+            mode: row.mode,
+            intervals: row.intervals,
+          }),
+        })
+      }
+    }
+
+    if (onPersistDay) {
+      setDaySaving(true)
+      try {
+        await onPersistDay({
+          date: selectedDate,
+          dateOverrides: nextFirmOverrides,
+          servicePatches,
+        })
+        onDateOverridesChange(nextFirmOverrides)
+        setDayDialogOpen(false)
+      } finally {
+        setDaySaving(false)
+      }
       return
     }
-    if (draft.mode === 'closed') {
-      onDateOverridesChange(setDayOverride(dateOverrides, selectedDate, []))
-      return
-    }
-    onDateOverridesChange(setDayOverride(dateOverrides, selectedDate, draft.intervals))
+
+    onDateOverridesChange(nextFirmOverrides)
+    setDayDialogOpen(false)
   }
 
   function handleCopyFromDate(fromDate: string) {
@@ -200,15 +261,6 @@ export function AgendaAvailabilityPanel(props: Props) {
     setCalYear(d.getFullYear())
     setCalMonthIndex(d.getMonth())
   }
-
-  const serviceSummaries = useMemo(() => {
-    if (!selectedDate || !bookableServices?.length) return undefined
-    return bookableServices.map((s) => ({
-      id: s.id,
-      name: s.name,
-      label: serviceDayLabel(s, selectedDate, schedule, dateOverrides),
-    }))
-  }, [bookableServices, selectedDate, schedule, dateOverrides])
 
   const selectedWeekdayIntervals = selectedDate
     ? effectiveIntervalsForDate(selectedDate, schedule, {})
@@ -477,7 +529,10 @@ export function AgendaAvailabilityPanel(props: Props) {
           <button
             type="button"
             className="cb-agenda-month-selected-edit"
-            onClick={() => setDayDialogOpen(true)}
+            onClick={() => {
+              if (selectedDate) setServiceDayDrafts(buildServiceDayDrafts(selectedDate))
+              setDayDialogOpen(true)
+            }}
           >
             Editar
           </button>
@@ -583,9 +638,11 @@ export function AgendaAvailabilityPanel(props: Props) {
           overrideIntervals={selectedDate ? dateOverrides[selectedDate] : undefined}
           weekdayIntervals={selectedWeekdayIntervals}
           defaultInterval={defaultIntervalFromSchedule(schedule) || defaultInterval}
-          serviceSummaries={serviceSummaries}
+          serviceDrafts={serviceDayDrafts}
+          onServiceDraftsChange={setServiceDayDrafts}
           onSave={saveDayDraft}
           onCopyFromDate={handleCopyFromDate}
+          saving={daySaving}
         />
       ) : null}
     </div>

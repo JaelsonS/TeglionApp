@@ -1,6 +1,6 @@
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { useEffect, useState } from 'react'
-import { Copy, Plus, Trash2 } from 'lucide-react'
+import { Copy, Loader2, Plus, Trash2 } from 'lucide-react'
 
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -22,8 +22,19 @@ export type DayAvailabilityDraft = {
   intervals: TimeInterval[]
 }
 
+export type ServiceDayMode = 'inherit' | 'closed' | 'open'
+
+export type ServiceDayDraft = {
+  id: string
+  name: string
+  mode: ServiceDayMode
+  /** Intervalos quando mode === 'open' */
+  intervals: TimeInterval[]
+  /** Texto efectivo herdado (só UI). */
+  inheritedLabel: string
+}
+
 function draftFromExisting(
-  date: string,
   existing: TimeInterval[] | undefined,
   hasOverride: boolean,
   defaultInterval: TimeInterval,
@@ -39,7 +50,7 @@ function draftFromExisting(
 
 /**
  * Dialog centralizado para configurar a disponibilidade de um dia concreto
- * (excepção sobre o horário semanal). Mesmo padrão de FiscalEventFormDialog / TaskEditDialog.
+ * (excepção sobre o horário semanal) + modos por serviço (Herdar / Aberto / Fechado).
  */
 export function AgendaDayAvailabilityDialog({
   open,
@@ -49,9 +60,11 @@ export function AgendaDayAvailabilityDialog({
   overrideIntervals,
   weekdayIntervals,
   defaultInterval,
-  serviceSummaries,
+  serviceDrafts,
+  onServiceDraftsChange,
   onSave,
   onCopyFromDate,
+  saving = false,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -60,10 +73,11 @@ export function AgendaDayAvailabilityDialog({
   overrideIntervals?: TimeInterval[]
   weekdayIntervals: TimeInterval[]
   defaultInterval: TimeInterval
-  /** Serviços bookable e estado efectivo nesse dia (só informativo). */
-  serviceSummaries?: { id: string; name: string; label: string }[]
-  onSave: (draft: DayAvailabilityDraft) => void
+  serviceDrafts?: ServiceDayDraft[]
+  onServiceDraftsChange?: (next: ServiceDayDraft[]) => void
+  onSave: (draft: DayAvailabilityDraft) => void | Promise<void>
   onCopyFromDate?: (fromDate: string) => void
+  saving?: boolean
 }) {
   const [draft, setDraft] = useState<DayAvailabilityDraft>({
     mode: 'inherit',
@@ -73,7 +87,7 @@ export function AgendaDayAvailabilityDialog({
 
   useEffect(() => {
     if (!open || !date) return
-    setDraft(draftFromExisting(date, overrideIntervals, hasOverride, defaultInterval))
+    setDraft(draftFromExisting(overrideIntervals, hasOverride, defaultInterval))
     setCopyFrom('')
   }, [open, date, hasOverride, overrideIntervals, defaultInterval])
 
@@ -119,15 +133,33 @@ export function AgendaDayAvailabilityDialog({
     })
   }
 
-  function handleSave() {
+  function patchService(id: string, patch: Partial<ServiceDayDraft>) {
+    if (!onServiceDraftsChange || !serviceDrafts) return
+    onServiceDraftsChange(
+      serviceDrafts.map((s) => {
+        if (s.id !== id) return s
+        const next = { ...s, ...patch }
+        if (patch.mode === 'open' && (!next.intervals.length)) {
+          next.intervals = cloneIntervals(
+            weekdayIntervals.length ? weekdayIntervals : [defaultInterval],
+          )
+        }
+        return next
+      }),
+    )
+  }
+
+  async function handleSave() {
     if (draft.mode === 'custom' && draft.intervals.length === 0) return
-    onSave(draft)
-    onOpenChange(false)
+    await onSave(draft)
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg" data-testid="agenda-day-availability-dialog">
+      <DialogContent
+        className="max-h-[90vh] overflow-y-auto sm:max-w-xl"
+        data-testid="agenda-day-availability-dialog"
+      >
         <DialogHeader>
           <DialogTitle className="capitalize">{titleDate}</DialogTitle>
         </DialogHeader>
@@ -144,11 +176,19 @@ export function AgendaDayAvailabilityDialog({
           <div className="grid gap-2" role="radiogroup" aria-label="Modo do dia">
             {(
               [
-                { mode: 'inherit' as const, label: 'Usar horário semanal', hint: weekdayIntervals.length
-                  ? weekdayIntervals.map((iv) => `${iv.start}–${iv.end}`).join(', ')
-                  : 'Dia normalmente fechado no horário semanal' },
+                {
+                  mode: 'inherit' as const,
+                  label: 'Usar horário semanal',
+                  hint: weekdayIntervals.length
+                    ? weekdayIntervals.map((iv) => `${iv.start}–${iv.end}`).join(', ')
+                    : 'Dia normalmente fechado no horário semanal',
+                },
                 { mode: 'closed' as const, label: 'Dia fechado', hint: 'Nenhum slot neste dia' },
-                { mode: 'custom' as const, label: 'Horário especial', hint: 'Um ou mais intervalos só neste dia' },
+                {
+                  mode: 'custom' as const,
+                  label: 'Horário especial',
+                  hint: 'Um ou mais intervalos só neste dia',
+                },
               ] as const
             ).map((opt) => (
               <button
@@ -239,7 +279,7 @@ export function AgendaDayAvailabilityDialog({
                   variant="outline"
                   size="sm"
                   className="h-9 gap-1"
-                  disabled={!copyFrom || copyFrom === date}
+                  disabled={!copyFrom || copyFrom === date || saving}
                   onClick={() => {
                     if (!copyFrom) return
                     onCopyFromDate(copyFrom)
@@ -253,16 +293,94 @@ export function AgendaDayAvailabilityDialog({
             </div>
           ) : null}
 
-          {serviceSummaries && serviceSummaries.length > 0 ? (
-            <div>
+          {serviceDrafts && serviceDrafts.length > 0 ? (
+            <div data-testid="agenda-day-services-editor">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Serviços neste dia
               </p>
-              <ul className="mt-2 space-y-1.5">
-                {serviceSummaries.map((s) => (
-                  <li key={s.id} className="flex items-start justify-between gap-2 text-sm">
-                    <span className="font-medium text-foreground">{s.name}</span>
-                    <span className="text-xs text-muted-foreground">{s.label}</span>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Ajuste só o que for diferente do horário geral neste dia. As alterações são gravadas de
+                verdade ao guardar.
+              </p>
+              <ul className="mt-3 space-y-2">
+                {serviceDrafts.map((s) => (
+                  <li
+                    key={s.id}
+                    className="rounded-xl border border-border/50 bg-card px-3 py-2.5"
+                    data-testid={`agenda-day-service-${s.id}`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-medium text-foreground">{s.name}</p>
+                      <div
+                        className="inline-flex rounded-lg border border-border/60 p-0.5"
+                        role="group"
+                        aria-label={`Disponibilidade de ${s.name}`}
+                      >
+                        {(
+                          [
+                            { mode: 'inherit' as const, label: 'Herdar' },
+                            { mode: 'open' as const, label: 'Aberto' },
+                            { mode: 'closed' as const, label: 'Fechado' },
+                          ] as const
+                        ).map((opt) => (
+                          <button
+                            key={opt.mode}
+                            type="button"
+                            className={cn(
+                              'rounded-md px-2.5 py-1 text-[11px] font-semibold transition',
+                              s.mode === opt.mode
+                                ? 'bg-brand text-primary-foreground'
+                                : 'text-muted-foreground hover:bg-muted/40',
+                            )}
+                            aria-pressed={s.mode === opt.mode}
+                            onClick={() => patchService(s.id, { mode: opt.mode })}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {s.mode === 'inherit' ? (
+                      <p className="mt-1.5 text-xs text-muted-foreground">{s.inheritedLabel}</p>
+                    ) : null}
+                    {s.mode === 'closed' ? (
+                      <p className="mt-1.5 text-xs font-medium text-rose-700">Fechado neste dia</p>
+                    ) : null}
+                    {s.mode === 'open' ? (
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        {(s.intervals.length ? s.intervals : [defaultInterval]).map((iv, idx) => (
+                          <div key={`${s.id}-${idx}`} className="inline-flex items-center gap-1">
+                            <Input
+                              type="time"
+                              className="h-8 w-[6.5rem] rounded-md text-xs"
+                              value={iv.start}
+                              aria-label={`${s.name} início ${idx + 1}`}
+                              onChange={(e: FormChangeEvent) => {
+                                const intervals = cloneIntervals(
+                                  s.intervals.length ? s.intervals : [defaultInterval],
+                                )
+                                intervals[idx] = { ...intervals[idx], start: e.target.value }
+                                patchService(s.id, { intervals })
+                              }}
+                            />
+                            <span className="text-xs text-muted-foreground">–</span>
+                            <Input
+                              type="time"
+                              className="h-8 w-[6.5rem] rounded-md text-xs"
+                              value={iv.end}
+                              aria-label={`${s.name} fim ${idx + 1}`}
+                              onChange={(e: FormChangeEvent) => {
+                                const intervals = cloneIntervals(
+                                  s.intervals.length ? s.intervals : [defaultInterval],
+                                )
+                                intervals[idx] = { ...intervals[idx], end: e.target.value }
+                                patchService(s.id, { intervals })
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -271,10 +389,16 @@ export function AgendaDayAvailabilityDialog({
         </div>
 
         <DialogFooter className="gap-2 sm:gap-2">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="outline" disabled={saving} onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button type="button" onClick={handleSave} data-testid="agenda-day-availability-save">
+          <Button
+            type="button"
+            onClick={() => void handleSave()}
+            disabled={saving}
+            data-testid="agenda-day-availability-save"
+          >
+            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
             Guardar dia
           </Button>
         </DialogFooter>

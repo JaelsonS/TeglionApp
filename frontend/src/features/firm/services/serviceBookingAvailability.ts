@@ -122,3 +122,54 @@ export function summarizeBookingSchedule(schedule: BookingDaySchedule): string {
 export function serviceAvailabilityLabel(service: AccountingService): 'custom' | 'inherited' {
   return hasCustomBookingHours(service.bookingOverrides) ? 'custom' : 'inherited'
 }
+
+/** Modo do serviço numa data: herda firma, fechado, ou aberto com intervalos próprios. */
+export function serviceDayModeForDate(
+  service: AccountingService,
+  date: string,
+): 'inherit' | 'closed' | 'open' {
+  const overrides = service.bookingOverrides?.dateOverrides
+  if (!overrides || !Object.prototype.hasOwnProperty.call(overrides, date)) return 'inherit'
+  const intervals = overrides[date]
+  if (!Array.isArray(intervals) || intervals.length === 0) return 'closed'
+  return 'open'
+}
+
+/**
+ * Aplica Herdar / Fechado / Aberto a `bookingOverrides` de um serviço para uma data.
+ * Devolve `null` quando o serviço volta a herdar tudo (sem horário próprio).
+ */
+export function applyServiceDayOverride(params: {
+  existing: Partial<FirmBookingSettings> | null | undefined
+  date: string
+  mode: 'inherit' | 'closed' | 'open'
+  intervals?: TimeInterval[]
+}): Partial<FirmBookingSettings> | null {
+  const { existing, date, mode, intervals } = params
+  const base: Partial<FirmBookingSettings> =
+    existing && typeof existing === 'object' ? { ...existing } : {}
+  const dateOverrides: NonNullable<FirmBookingSettings['dateOverrides']> = {
+    ...(base.dateOverrides && typeof base.dateOverrides === 'object' ? base.dateOverrides : {}),
+  }
+
+  if (mode === 'inherit') {
+    delete dateOverrides[date]
+  } else if (mode === 'closed') {
+    dateOverrides[date] = []
+  } else {
+    const list = (intervals || []).map((iv) => ({ start: iv.start, end: iv.end }))
+    dateOverrides[date] = list.length ? list : [{ start: '09:00', end: '17:00' }]
+  }
+
+  const next: Partial<FirmBookingSettings> = { ...base }
+  if (Object.keys(dateOverrides).length > 0) next.dateOverrides = dateOverrides
+  else delete next.dateOverrides
+
+  const hasSchedule =
+    !!next.schedule &&
+    Object.values(next.schedule).some((ivs) => Array.isArray(ivs) && ivs.length > 0)
+  const hasWeekdays = Array.isArray(next.weekdays) && next.weekdays.length > 0
+  const hasDates = !!next.dateOverrides && Object.keys(next.dateOverrides).length > 0
+  if (!hasSchedule && !hasWeekdays && !hasDates) return null
+  return next
+}

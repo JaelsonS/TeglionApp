@@ -495,6 +495,65 @@ test('computeAvailableSlotsTz: dateOverrides com horário especial substitui o s
   assert.deepEqual(hours, [10, 11]);
 });
 
+test('mergeFirmAndServiceBooking: dateOverrides do serviço faz merge por data (não apaga excepções da firma)', () => {
+  const merged = bookingService.mergeFirmAndServiceBooking(
+    {
+      slotMinutes: 30,
+      timezone: 'UTC',
+      schedule: { 1: [{ start: '09:00', end: '17:00' }] },
+      dateOverrides: {
+        '2026-08-10': [],
+        '2026-08-15': [{ start: '10:00', end: '12:00' }],
+      },
+    },
+    {
+      dateOverrides: {
+        '2026-08-15': [],
+        '2026-08-20': [{ start: '14:00', end: '16:00' }],
+      },
+    },
+  );
+  assert.deepEqual(merged.dateOverrides['2026-08-10'], []);
+  assert.deepEqual(merged.dateOverrides['2026-08-15'], []);
+  assert.deepEqual(merged.dateOverrides['2026-08-20'], [{ start: '14:00', end: '16:00' }]);
+  assert.deepEqual(merged.schedule[1], [{ start: '09:00', end: '17:00' }]);
+});
+
+test('listSlotsForBooking: serviço pode fechar um dia sem apagar dateOverrides da firma nos outros dias', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
+    ...SERVICE,
+    bookingOverrides: { dateOverrides: { '2026-08-17': [] } },
+  }));
+  mock.method(firmsRepository, 'findFirmById', async () => ({
+    ...FIRM,
+    settings: {
+      booking: {
+        slotMinutes: 60,
+        leadTimeHours: 0,
+        horizonDays: 30,
+        timezone: 'UTC',
+        schedule: {
+          1: [{ start: '09:00', end: '12:00' }],
+        },
+        dateOverrides: { '2026-08-10': [{ start: '10:00', end: '11:00' }] },
+      },
+    },
+  }));
+  mock.method(consultationsRepository, 'listConsultations', async () => []);
+  mock.method(googleCalendarAvailabilityService, 'getBusyRangesForFirm', async () => []);
+  mockHolds();
+
+  const { booking } = await bookingService.listSlotsForBooking({
+    firmId: FIRM_ID,
+    serviceId: SERVICE.id,
+    fromIso: '2026-08-01T00:00:00.000Z',
+    toIso: '2026-08-31T23:59:59.000Z',
+  });
+  assert.deepEqual(booking.dateOverrides['2026-08-10'], [{ start: '10:00', end: '11:00' }]);
+  assert.deepEqual(booking.dateOverrides['2026-08-17'], []);
+});
+
 test('copyMonthDateOverrides: Agosto → Setembro clona em profundidade (independência)', () => {
   const source = {
     '2026-08-05': [],

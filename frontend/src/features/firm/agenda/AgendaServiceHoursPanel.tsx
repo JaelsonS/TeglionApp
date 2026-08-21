@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Loader2, Save } from 'lucide-react'
+import type { FormChangeEvent } from '@/shared/types/react-events'
+import { HelpCircle, Loader2, Save, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { Link } from 'react-router-dom'
 
@@ -16,7 +17,9 @@ import {
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
+import { Input } from '@/shared/components/ui/input'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { cn } from '@/shared/lib/utils'
 import type {
   AccountingService,
   BookingDateOverrides,
@@ -28,6 +31,8 @@ type Draft = {
   schedule: BookingDaySchedule
   dateOverrides: BookingDateOverrides
 }
+
+type FilterKey = 'all' | 'general' | 'custom'
 
 function draftFromService(service: AccountingService, firmSchedule: BookingDaySchedule): Draft {
   const enabled = hasCustomBookingHours(service.bookingOverrides)
@@ -74,6 +79,8 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
   const [drafts, setDrafts] = useState<Record<string, Draft>>({})
   const [savingId, setSavingId] = useState<string | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState<FilterKey>('all')
 
   function draftFor(service: AccountingService): Draft {
     return drafts[service.id] ?? draftFromService(service, firmSchedule)
@@ -91,7 +98,7 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
   async function saveService(service: AccountingService) {
     const draft = draftFor(service)
     const payload = bookingOverridesPayload(draft.enabled, draft.schedule, draft.dateOverrides)
-    if (draft.enabled && (!payload || payload.weekdays.length === 0)) {
+    if (draft.enabled && (!payload || (payload.weekdays.length === 0 && !payload.dateOverrides))) {
       toast.error('Escolha pelo menos um dia para este serviço.')
       return
     }
@@ -117,6 +124,39 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
       setSavingId(null)
     }
   }
+
+  async function resetToGeneral(service: AccountingService) {
+    setSavingId(service.id)
+    try {
+      await contabilAccountingServicesApi.patch(service.id, { bookingOverrides: null })
+      toast.success(`«${service.name}» voltou ao horário geral do escritório.`)
+      setDrafts((prev) => {
+        const next = { ...prev }
+        delete next[service.id]
+        return next
+      })
+      setOpenId(null)
+      await onReload()
+    } catch (err) {
+      toast.error('Não foi possível repor o horário geral', {
+        description: getErrorMessage(err),
+      })
+    } finally {
+      setSavingId(null)
+    }
+  }
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return bookable.filter((s) => {
+      const draft = draftFor(s)
+      if (filter === 'general' && draft.enabled) return false
+      if (filter === 'custom' && !draft.enabled) return false
+      if (q && !s.name.toLowerCase().includes(q)) return false
+      return true
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- draftFor uses drafts/firmSchedule
+  }, [bookable, query, filter, drafts, firmSchedule])
 
   if (servicesLoading) {
     return (
@@ -147,126 +187,206 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
   }
 
   return (
-    <div className="space-y-3" data-testid="agenda-service-hours">
-      <p className="text-sm leading-relaxed text-muted-foreground">
-        O horário geral é a predefinição. Personalize só os serviços que precisam de outros dias — por
-        exemplo Consultoria à segunda e Acompanhamento à terça.
-      </p>
-      {bookable.map((service) => {
-        const draft = draftFor(service)
-        const open = openId === service.id
-        const duration = service.durationMinutes || 60
-        const label = draft.enabled ? 'custom' : 'inherited'
-        const summary = draft.enabled ? summarizeBookingSchedule(draft.schedule) : 'Horário geral do escritório'
-        return (
-          <div key={service.id} className="cb-agenda-service-card">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-medium text-foreground">{service.name}</p>
-                  <span
-                    className={
-                      label === 'custom'
-                        ? 'rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand'
-                        : 'rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground'
-                    }
-                  >
-                    {label === 'custom' ? 'Horário próprio' : 'Horário geral'}
-                  </span>
-                </div>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {duration} min{summary ? ` · ${summary}` : ''}
-                </p>
-              </div>
-              <Button
+    <div className="cb-agenda-svc-layout" data-testid="agenda-service-hours">
+      <div className="cb-agenda-svc-main">
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          O horário geral é a predefinição. Personalize só os serviços que precisam de outros dias.
+        </p>
+
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative min-w-0 flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e: FormChangeEvent) => setQuery(e.target.value)}
+              placeholder="Pesquisar serviço…"
+              className="h-10 rounded-xl pl-9"
+              aria-label="Pesquisar serviço"
+            />
+          </div>
+          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar serviços">
+            {(
+              [
+                { key: 'all' as const, label: 'Todos' },
+                { key: 'general' as const, label: 'Horário geral' },
+                { key: 'custom' as const, label: 'Horário próprio' },
+              ] as const
+            ).map((f) => (
+              <button
+                key={f.key}
                 type="button"
-                size="sm"
-                variant="outline"
-                className="rounded-full"
-                onClick={() => setOpenId(open ? null : service.id)}
+                className={cn(
+                  'rounded-full border px-3 py-1.5 text-xs font-semibold transition',
+                  filter === f.key
+                    ? 'border-brand bg-brand text-primary-foreground'
+                    : 'border-border/60 text-muted-foreground hover:border-brand/30',
+                )}
+                aria-pressed={filter === f.key}
+                onClick={() => setFilter(f.key)}
               >
-                {open ? 'Fechar' : 'Configurar disponibilidade'}
-              </Button>
-            </div>
-            {open ? (
-              <div className="mt-4 space-y-4">
-                <label className="flex items-start gap-2 text-sm">
-                  <Checkbox
-                    checked={draft.enabled}
-                    onCheckedChange={(checked: boolean | 'indeterminate') => {
-                      const on = Boolean(checked)
-                      patchDraft(service.id, {
-                        enabled: on,
-                        schedule: on ? cloneBookingSchedule(firmSchedule) : draft.schedule,
-                        dateOverrides: on ? draft.dateOverrides : {},
-                      })
-                    }}
-                  />
-                  <span>
-                    <span className="font-medium">Personalizar horários deste serviço</span>
-                    <span className="mt-0.5 block text-xs text-muted-foreground">
-                      Por padrão, este serviço utiliza o horário geral do escritório. Ative esta opção para
-                      definir dias e horários específicos em que este serviço pode ser marcado.
-                    </span>
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="cb-agenda-svc-table mt-4">
+          <div className="cb-agenda-svc-table-hd hidden sm:grid">
+            <span>Serviço</span>
+            <span>Estado</span>
+            <span>Resumo</span>
+            <span className="text-right">Acção</span>
+          </div>
+          {filtered.map((service) => {
+            const draft = draftFor(service)
+            const open = openId === service.id
+            const duration = service.durationMinutes || 60
+            const summary = draft.enabled
+              ? summarizeBookingSchedule(draft.schedule) || 'Horário próprio'
+              : 'Horário geral do escritório'
+            return (
+              <div key={service.id} className={cn('cb-agenda-svc-row', open && 'cb-agenda-svc-row-open')}>
+                <div className="cb-agenda-svc-row-main">
+                  <div>
+                    <p className="font-medium text-foreground">{service.name}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground sm:hidden">{duration} min · {summary}</p>
+                  </div>
+                  <span
+                    className={cn(
+                      'cb-agenda-svc-pill',
+                      draft.enabled ? 'cb-agenda-svc-pill-custom' : 'cb-agenda-svc-pill-general',
+                    )}
+                  >
+                    {draft.enabled ? 'Horário próprio' : 'Horário geral'}
                   </span>
-                </label>
-                {draft.enabled ? (
-                  <>
-                    <AgendaAvailabilityPanel
-                      booking={null}
-                      hideSaveButton
-                      showSlotSettings={false}
-                      defaultInterval={defaultIntervalFromSchedule(firmSchedule)}
-                      schedule={draft.schedule}
-                      onScheduleChange={(next) => patchDraft(service.id, { schedule: next })}
-                      dateOverrides={draft.dateOverrides}
-                      onDateOverridesChange={(next) => patchDraft(service.id, { dateOverrides: next })}
-                      slotMin={30}
-                      horizon={14}
-                      bookingTz="Europe/Lisbon"
-                      onSlotMin={() => {}}
-                      onHorizon={() => {}}
-                      onBookingTz={() => {}}
-                      onSaveAvailability={() => {}}
-                    />
+                  <p className="hidden text-xs text-muted-foreground sm:block">
+                    {duration} min · {summary}
+                  </p>
+                  <div className="flex justify-end">
                     <Button
                       type="button"
-                      className="rounded-full"
-                      disabled={savingId === service.id}
-                      onClick={() => void saveService(service)}
+                      size="sm"
+                      variant={draft.enabled ? 'outline' : 'ghost'}
+                      className="rounded-lg"
+                      onClick={() => setOpenId(open ? null : service.id)}
                     >
-                      {savingId === service.id ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Save className="mr-2 h-4 w-4" />
-                      )}
-                      Guardar horários de {service.name}
+                      {open ? 'Fechar' : draft.enabled ? 'Editar' : 'Personalizar'}
                     </Button>
-                  </>
-                ) : (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm text-muted-foreground">
-                      Sem horário próprio. Os clientes vêem os mesmos dias do horário geral.
-                    </p>
-                    {service.bookingOverrides ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        disabled={savingId === service.id}
-                        onClick={() => void saveService(service)}
-                      >
-                        Confirmar: usar horário geral
-                      </Button>
-                    ) : null}
                   </div>
-                )}
+                </div>
+                {open ? (
+                  <div className="cb-agenda-svc-expand">
+                    <label className="flex items-start gap-2 text-sm">
+                      <Checkbox
+                        checked={draft.enabled}
+                        onCheckedChange={(checked: boolean | 'indeterminate') => {
+                          const on = Boolean(checked)
+                          patchDraft(service.id, {
+                            enabled: on,
+                            schedule: on ? cloneBookingSchedule(firmSchedule) : draft.schedule,
+                            dateOverrides: on ? draft.dateOverrides : {},
+                          })
+                        }}
+                      />
+                      <span>
+                        <span className="font-medium">Personalizar horários deste serviço</span>
+                        <span className="mt-0.5 block text-xs text-muted-foreground">
+                          Por padrão herda o horário geral. Active para definir dias e excepções próprios.
+                        </span>
+                      </span>
+                    </label>
+                    {draft.enabled ? (
+                      <>
+                        <AgendaAvailabilityPanel
+                          booking={null}
+                          hideSaveButton
+                          showSlotSettings={false}
+                          defaultInterval={defaultIntervalFromSchedule(firmSchedule)}
+                          schedule={draft.schedule}
+                          onScheduleChange={(next) => patchDraft(service.id, { schedule: next })}
+                          dateOverrides={draft.dateOverrides}
+                          onDateOverridesChange={(next) => patchDraft(service.id, { dateOverrides: next })}
+                          slotMin={30}
+                          horizon={14}
+                          bookingTz="Europe/Lisbon"
+                          onSlotMin={() => {}}
+                          onHorizon={() => {}}
+                          onBookingTz={() => {}}
+                          onSaveAvailability={() => {}}
+                        />
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            className="rounded-xl"
+                            disabled={savingId === service.id}
+                            onClick={() => void saveService(service)}
+                          >
+                            {savingId === service.id ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                              <Save className="mr-2 h-4 w-4" />
+                            )}
+                            Guardar
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            className="rounded-xl text-muted-foreground"
+                            disabled={savingId === service.id}
+                            onClick={() => void resetToGeneral(service)}
+                          >
+                            Repor horário geral
+                          </Button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm text-muted-foreground">
+                          Sem horário próprio. Os clientes vêem os mesmos dias do horário geral.
+                        </p>
+                        {service.bookingOverrides ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={savingId === service.id}
+                            onClick={() => void saveService(service)}
+                          >
+                            Confirmar: usar horário geral
+                          </Button>
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-          </div>
-        )
-      })}
-      <NonBookableHint count={others.length} />
+            )
+          })}
+          {filtered.length === 0 ? (
+            <p className="px-3 py-6 text-center text-sm text-muted-foreground">Nenhum serviço neste filtro.</p>
+          ) : null}
+        </div>
+        <div className="mt-3">
+          <NonBookableHint count={others.length} />
+        </div>
+      </div>
+
+      <aside className="cb-agenda-svc-help" aria-label="Como funciona">
+        <div className="cb-agenda-svc-help-card">
+          <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-foreground">
+            <HelpCircle className="h-4 w-4 text-brand" aria-hidden />
+            Como funciona
+          </p>
+          <ul className="mt-3 space-y-2 text-xs leading-relaxed text-muted-foreground">
+            <li>Por defeito, cada serviço herda o horário geral do escritório.</li>
+            <li>Personalize só excepções (ex.: consultoria só à segunda).</li>
+            <li>As marcações públicas usam o serviço real (incl. opções de uma oferta).</li>
+          </ul>
+          <p className="mt-4 rounded-lg bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
+            Google Calendar: integração no final do roadmap (Fase 9) — prepare staging antes de ligar.
+          </p>
+        </div>
+      </aside>
     </div>
   )
 }
