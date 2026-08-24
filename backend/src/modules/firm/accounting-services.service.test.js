@@ -3,10 +3,20 @@ const assert = require('node:assert/strict');
 const { mock } = require('node:test');
 
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
+const accountingServiceGroupsRepository = require('../../db/supabase/repositories/accounting-service-groups.repository');
+const accountingServiceOptionsRepository = require('../../db/supabase/repositories/accounting-service-options.repository');
 const accountingServicesService = require('./accounting-services.service');
 
 function resetMocks() {
   mock.restoreAll();
+  // create/update/duplicate resolvem o nome do grupo (accounting_service_groups) para o
+  // campo publicGroup da resposta -- default sem grupos, testes que exercitam grupo de
+  // verdade sobrepõem este mock explicitamente.
+  mock.method(accountingServiceGroupsRepository, 'listByFirm', async () => []);
+  mock.method(accountingServiceGroupsRepository, 'findByIdForFirm', async () => null);
+  mock.method(accountingServiceOptionsRepository, 'listByFirm', async () => []);
+  mock.method(accountingServiceOptionsRepository, 'listParentIdsForChild', async () => []);
+  mock.method(accountingServiceOptionsRepository, 'replaceForParent', async () => []);
 }
 
 test('normalizeIntakeForm: undefined passa por undefined (não altera o patch)', () => {
@@ -739,6 +749,101 @@ test('normalizeSortOrder: rejeita valores inválidos', () => {
     () => accountingServicesService.normalizeSortOrder(-1),
     (err) => err.statusCode === 400,
   );
+});
+
+test('create: publicGroup da resposta vem do nome real do grupo (accounting_service_groups), não do texto legado', async () => {
+  resetMocks();
+  mock.method(accountingServiceGroupsRepository, 'listByFirm', async () => [
+    { id: 'group-1', firmId: 'firm-x', name: 'Consultorias', isActive: true, isPubliclyListed: true, sortOrder: 0 },
+  ]);
+  mock.method(accountingServiceGroupsRepository, 'findByIdForFirm', async (id, firmId) =>
+    id === 'group-1' && firmId === 'firm-x'
+      ? { id: 'group-1', firmId: 'firm-x', name: 'Consultorias', isActive: true, isPubliclyListed: true, sortOrder: 0 }
+      : null,
+  );
+  mock.method(accountingServicesRepository, 'createRow', async (args) => ({
+    id: 'svc-1',
+    ...args,
+    groupId: args.groupId,
+    publicGroup: args.publicGroup, // simula o texto legado (nunca escrito pelo frontend novo, mas pode existir)
+  }));
+
+  const { item } = await accountingServicesService.create({
+    firmId: 'firm-x',
+    payload: { name: 'Consultoria Fiscal', durationMinutes: 60, groupId: 'group-1' },
+  });
+
+  assert.equal(item.publicGroup, 'Consultorias', 'publicGroup deve vir do nome real do grupo, não do texto legado (undefined aqui)');
+  assert.equal(item.groupId, 'group-1');
+});
+
+test('create: rejeita groupId que não existe (ou é de outro escritório)', async () => {
+  resetMocks();
+  mock.method(accountingServiceGroupsRepository, 'findByIdForFirm', async () => null);
+  mock.method(accountingServicesRepository, 'createRow', async () => {
+    throw new Error('não devia chegar a gravar — groupId inválido devia ter bloqueado antes');
+  });
+
+  await assert.rejects(
+    () =>
+      accountingServicesService.create({
+        firmId: 'firm-x',
+        payload: { name: 'Consultoria Fiscal', durationMinutes: 60, groupId: 'group-de-outra-firma' },
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 404);
+      assert.equal(err.details?.code ?? err.code, 'GROUP_NOT_FOUND');
+      return true;
+    },
+  );
+});
+
+test('update: trocar groupId valida que o novo grupo pertence à mesma firma antes de gravar', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
+    id: 'service-1',
+    slug: 'consultoria',
+    groupId: 'group-antigo',
+  }));
+  mock.method(accountingServiceGroupsRepository, 'findByIdForFirm', async () => null); // grupo não pertence à firma
+  mock.method(accountingServicesRepository, 'updateRow', async () => {
+    throw new Error('não devia chegar a gravar — groupId inválido devia ter bloqueado antes');
+  });
+
+  await assert.rejects(
+    () =>
+      accountingServicesService.update({
+        firmId: 'firm-x',
+        id: 'service-1',
+        payload: { groupId: 'group-de-outra-firma' },
+      }),
+    (err) => {
+      assert.equal(err.statusCode, 404);
+      return true;
+    },
+  );
+});
+
+test('update: groupId null remove o serviço do grupo (volta a "sem grupo")', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
+    id: 'service-1',
+    slug: 'consultoria',
+    groupId: 'group-1',
+  }));
+  let patchArg = null;
+  mock.method(accountingServicesRepository, 'updateRow', async (_id, _firmId, patch) => {
+    patchArg = patch;
+    return { id: 'service-1', name: 'Consultoria', groupId: null };
+  });
+
+  await accountingServicesService.update({
+    firmId: 'firm-x',
+    id: 'service-1',
+    payload: { groupId: null },
+  });
+
+  assert.equal(patchArg.groupId, null);
 });
 
 test('normalizeIntakeStartMode: default é formulário primeiro', () => {

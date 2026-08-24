@@ -6,9 +6,9 @@ import { ClientPremiumHome } from '@/features/client/ClientPremiumHome'
 import { ClientHubFallback } from '@/features/client/ClientHubFallback'
 import { getClientHubCopy, toClientHubLocale } from '@/features/client/clientHubI18n'
 import { fetchClientAlerts } from '@/infrastructure/api/contabil/broadcasts'
-import { clientPortalContabilApi } from '@/infrastructure/api'
 import { isContabilMode } from '@/shared/config/productMode'
 import { useClientPortalHub } from '@/shared/hooks/queries/useClientPortalHub'
+import { useClientDocumentRequests } from '@/shared/hooks/queries/useClientDocumentRequests'
 import { useClientNewsFeed } from '@/shared/hooks/useClientNews'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { getInitialAppLocale } from '@/shared/i18n/appLocale'
@@ -46,12 +46,7 @@ export function ClientDashboardPage() {
     queryFn: () => fetchClientAlerts({}),
     staleTime: 45_000,
   })
-  const documentRequestsQuery = useQuery({
-    queryKey: ['client', 'document-requests', 'count'],
-    queryFn: () =>
-      clientPortalContabilApi.listDocumentRequests() as Promise<{ items?: Array<{ status?: string | null }> }>,
-    staleTime: 45_000,
-  })
+  const documentRequestsQuery = useClientDocumentRequests()
 
   const hub = hubQuery.data
   const fiscalHealth = hub ? resolveFiscalHealth(hub) : 'ok'

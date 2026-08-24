@@ -1,6 +1,7 @@
 const { AppError } = require('../../middlewares/error.middleware');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const accessesRepository = require('../../db/supabase/repositories/client-official-accesses.repository');
+const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
 const securityAudit = require('../../services/audit/security-audit.service');
 const stepUp = require('./step-up.service');
 const {
@@ -82,19 +83,21 @@ function mergeCatalog(rows) {
 
 async function listOfficialAccesses({ firmId, clientId, actorId }) {
   await requireClient(firmId, clientId);
-  const [rows, unlock] = await Promise.all([
+  const [rows, unlock, actor] = await Promise.all([
     accessesRepository.listByClient(firmId, clientId),
     stepUp.getUnlockState({ firmId, userId: actorId }),
+    firmUsersRepository.findFirmUserById(actorId, firmId).catch(() => null),
   ]);
 
+  const mfaEnabled = actor?.mfa_enabled === true;
   return {
     items: mergeCatalog(rows),
     security: {
       hasLocalPassword: unlock.hasLocalPassword,
       hasVaultPassword: unlock.hasVaultPassword,
-      canUnlock: unlock.canUnlock,
-      stepUpMethods: ['vault-password'],
-      mfaRequired: false,
+      canUnlock: mfaEnabled ? true : unlock.canUnlock,
+      stepUpMethods: mfaEnabled ? ['totp'] : ['vault-password'],
+      mfaRequired: mfaEnabled,
       revealTtlSeconds: REVEAL_TTL_SECONDS,
     },
   };
@@ -109,10 +112,21 @@ function withStepUp(payload, unlock) {
   };
 }
 
-async function unlockActor({ firmId, actorId, currentPassword, stepUpToken, rememberSession }) {
-  return stepUp.verifyStaffPassword({
+async function unlockActor({
+  firmId,
+  actorId,
+  currentPassword,
+  stepUpToken,
+  rememberSession,
+  totpCode,
+  purpose,
+}) {
+  const sensitive = require('../security/sensitive-action.service');
+  return sensitive.assertVaultSensitiveUnlock({
     firmId,
     userId: actorId,
+    purpose: purpose || sensitive.SENSITIVE_PURPOSES.VAULT_REVEAL,
+    totpCode: totpCode || null,
     currentPassword,
     stepUpToken,
     rememberSession: Boolean(rememberSession),
@@ -127,6 +141,7 @@ async function upsertOfficialAccess({
   currentPassword,
   stepUpToken,
   rememberSession,
+  totpCode,
   portalKey,
   accessId,
   label,
@@ -141,6 +156,8 @@ async function upsertOfficialAccess({
     currentPassword,
     stepUpToken,
     rememberSession,
+    totpCode,
+    purpose: require('../security/sensitive-action.service').SENSITIVE_PURPOSES.VAULT_MUTATE,
   });
   const actor = unlock.actor;
 
@@ -233,6 +250,7 @@ async function revealOfficialAccess({
   currentPassword,
   stepUpToken,
   rememberSession,
+  totpCode,
   req,
 }) {
   await requireClient(firmId, clientId);
@@ -242,13 +260,11 @@ async function revealOfficialAccess({
     currentPassword,
     stepUpToken,
     rememberSession,
+    totpCode,
+    purpose: require('../security/sensitive-action.service').SENSITIVE_PURPOSES.VAULT_REVEAL,
   });
   const actor = unlock.actor;
   const row = await accessesRepository.findById(firmId, clientId, accessId);
-  if (!row) throw new AppError('Acesso não encontrado.', 404, { code: 'ACCESS_NOT_FOUND' });
-  if (!row.secret_enc) {
-    throw new AppError('Este portal ainda não tem palavra-passe guardada.', 400, { code: 'NO_SECRET' });
-  }
 
   const revealedValue = accessesRepository.decryptSecret(row);
 
@@ -282,6 +298,7 @@ async function removeOfficialAccess({
   currentPassword,
   stepUpToken,
   rememberSession,
+  totpCode,
   req,
 }) {
   await requireClient(firmId, clientId);
@@ -291,6 +308,8 @@ async function removeOfficialAccess({
     currentPassword,
     stepUpToken,
     rememberSession,
+    totpCode,
+    purpose: require('../security/sensitive-action.service').SENSITIVE_PURPOSES.VAULT_MUTATE,
   });
   const actor = unlock.actor;
   const row = await accessesRepository.findById(firmId, clientId, accessId);

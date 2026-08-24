@@ -14,9 +14,10 @@ import { Skeleton } from '@/shared/design-system'
 import { isContabilMode } from '@/shared/config/productMode'
 import { clientPortalContabilApi } from '@/infrastructure/api'
 import { useClientPortalHub } from '@/shared/hooks/queries/useClientPortalHub'
+import { useClientDocumentRequests } from '@/shared/hooks/queries/useClientDocumentRequests'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { getInitialAppLocale } from '@/shared/i18n/appLocale'
-import type { ClientTask, DocumentRequest, Obligation } from '@/shared/types/contabil'
+import type { ClientTask, Obligation } from '@/shared/types/contabil'
 
 export function ClientObligationsPage() {
   const navigate = useNavigate()
@@ -29,6 +30,7 @@ export function ClientObligationsPage() {
   )
   const t = useMemo(() => getClientHubCopy(locale), [locale])
   const hubQuery = useClientPortalHub()
+  const requestsQuery = useClientDocumentRequests()
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null)
   const redirectToServices =
     searchParams.get('view') === 'consultoria' || searchParams.get('tab') === 'consultoria'
@@ -37,9 +39,8 @@ export function ClientObligationsPage() {
     queryKey: ['client-agenda-rich', clientId],
     enabled: Boolean(clientId),
     queryFn: async () => {
-      const [obligationsRes, requestsRes, tasksRes] = await Promise.all([
+      const [obligationsRes, tasksRes] = await Promise.all([
         clientPortalContabilApi.listObligations() as Promise<{ items?: Obligation[] }>,
-        clientPortalContabilApi.listDocumentRequests() as Promise<{ items?: DocumentRequest[] }>,
         clientPortalContabilApi.listTasks() as Promise<{ items?: ClientTask[] } | ClientTask[]>,
       ])
       const tasks = (Array.isArray(tasksRes) ? tasksRes : tasksRes.items ?? []).filter(
@@ -47,7 +48,6 @@ export function ClientObligationsPage() {
       )
       return {
         obligations: obligationsRes.items ?? [],
-        requests: requestsRes.items ?? [],
         tasks,
       }
     },
@@ -59,7 +59,7 @@ export function ClientObligationsPage() {
   const tasks = (agendaQuery.data?.tasks || hubQuery.data?.tasks || []).filter(
     (item) => item.taskType !== 'internal_task',
   )
-  const requests = agendaQuery.data?.requests || []
+  const requests = requestsQuery.data?.items || []
 
   if (redirectToServices) {
     return <Navigate to="/app/client/services" replace />

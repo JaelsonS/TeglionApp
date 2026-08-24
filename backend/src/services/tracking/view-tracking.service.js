@@ -68,7 +68,12 @@ async function recordView({
   const isClientView = String(viewerRole || '').toUpperCase() === 'CLIENT';
 
   if (isClientView) {
-    const { data: entity } = await sb.from(table).select('view_count, first_viewed_at').eq('id', entityId).maybeSingle();
+    const { data: entity } = await sb
+      .from(table)
+      .select('view_count, first_viewed_at')
+      .eq('id', entityId)
+      .eq('firm_id', firmId)
+      .maybeSingle();
     const patch = {
       view_count: (entity?.view_count || 0) + 1,
       last_viewed_at: new Date().toISOString(),
@@ -88,6 +93,7 @@ async function recordView({
       .from(table)
       .select('view_count, last_viewed_at')
       .eq('id', entityId)
+      .eq('firm_id', firmId)
       .maybeSingle();
     clientViewCount = entity?.view_count || 0;
     lastClientViewedAt = entity?.last_viewed_at || viewRow.created_at;

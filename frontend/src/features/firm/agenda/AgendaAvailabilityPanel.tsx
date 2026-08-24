@@ -1,12 +1,36 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
-import { Clock, Globe, Plus, Trash2 } from 'lucide-react'
+import { CalendarCheck2, CalendarDays, ChevronLeft, ChevronRight, Clock, Copy, Globe, MoreVertical, Plus, Save, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 
+import { AgendaDayAvailabilityDialog, type DayAvailabilityDraft, type ServiceDayDraft } from '@/features/firm/agenda/AgendaDayAvailabilityDialog'
+import { BOOKING_WEEKDAYS } from '@/features/firm/agenda/agendaCalendarUtils'
+import {
+  clearDayOverride,
+  copyDayOverride,
+  copyMonthDateOverrides,
+  dayOverrideKind,
+  effectiveIntervalsForDate,
+  formatYearMonthPt,
+  monthKeyFromParts,
+  nextMonthKey,
+  setDayOverride,
+} from '@/features/firm/agenda/bookingDateOverrides'
+import {
+  applyServiceDayOverride,
+  defaultIntervalFromSchedule,
+  serviceDayModeForDate,
+} from '@/features/firm/services/serviceBookingAvailability'
+import { CalendarMonthGrid, MONTH_NAMES_PT } from '@/shared/calendar'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
-import { DurationMinutesField } from '@/shared/design-system'
-import { BOOKING_WEEKDAYS } from '@/features/firm/agenda/agendaCalendarUtils'
-import type { BookingDateOverrides, BookingDaySchedule, FirmBookingSettings, TimeInterval } from '@/shared/types/contabil'
+import type {
+  AccountingService,
+  BookingDateOverrides,
+  BookingDaySchedule,
+  FirmBookingSettings,
+  TimeInterval,
+} from '@/shared/types/contabil'
 import { cn } from '@/shared/lib/utils'
 
 const BOOKING_TIMEZONE_OPTIONS = [
@@ -16,6 +40,7 @@ const BOOKING_TIMEZONE_OPTIONS = [
   { value: 'UTC', label: 'UTC' },
 ] as const
 
+const SLOT_PRESETS = [15, 30, 45, 60] as const
 const DEFAULT_INTERVAL: TimeInterval = { start: '09:00', end: '17:00' }
 
 type Props = {
@@ -36,6 +61,17 @@ type Props = {
   showSlotSettings?: boolean
   /** Intervalo usado ao reabrir um dia fechado. Omissão: 09:00–17:00. */
   defaultInterval?: TimeInterval
+  /** Serviços bookable — resumo/edição no dialog do dia (opcional). */
+  bookableServices?: AccountingService[]
+  /**
+   * Persistência real do dia (firma + serviços).
+   * Se omitido, só actualiza estado local (compatível com editores embutidos).
+   */
+  onPersistDay?: (payload: {
+    date: string
+    dateOverrides: BookingDateOverrides
+    servicePatches: Array<{ id: string; bookingOverrides: Partial<FirmBookingSettings> | null }>
+  }) => Promise<void>
 }
 
 function intervalsForDay(schedule: BookingDaySchedule, day: number): TimeInterval[] {
@@ -44,7 +80,6 @@ function intervalsForDay(schedule: BookingDaySchedule, day: number): TimeInterva
 
 export function AgendaAvailabilityPanel(props: Props) {
   const {
-    booking,
     schedule,
     onScheduleChange,
     dateOverrides = {},
@@ -59,27 +94,27 @@ export function AgendaAvailabilityPanel(props: Props) {
     hideSaveButton,
     showSlotSettings = true,
     defaultInterval = DEFAULT_INTERVAL,
+    bookableServices,
+    onPersistDay,
   } = props
 
   const openDays = BOOKING_WEEKDAYS.filter((w) => intervalsForDay(schedule, w.bit).length > 0)
-  const overrideDates = Object.keys(dateOverrides).sort()
-  const [copySource, setCopySource] = useState<number>(1)
-  const [copyTargets, setCopyTargets] = useState<number[]>([])
   const [focusedDay, setFocusedDay] = useState<number>(1)
-  const focusedWeekday = BOOKING_WEEKDAYS.find((w) => w.bit === focusedDay) ?? BOOKING_WEEKDAYS[0]
-  const focusedIntervals = intervalsForDay(schedule, focusedWeekday.bit)
-  const focusedOpen = focusedIntervals.length > 0
 
-  function copyIntervalsToDays() {
-    const source = intervalsForDay(schedule, copySource).map((iv) => ({ ...iv }))
-    if (!source.length || copyTargets.length === 0) return
-    const next: BookingDaySchedule = { ...schedule }
-    for (const day of copyTargets) {
-      next[day] = source.map((iv) => ({ ...iv }))
-    }
-    onScheduleChange(next)
-    setCopyTargets([])
-  }
+  const now = new Date()
+  const [calYear, setCalYear] = useState(now.getFullYear())
+  const [calMonthIndex, setCalMonthIndex] = useState(now.getMonth())
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [dayDialogOpen, setDayDialogOpen] = useState(false)
+  const [serviceDayDrafts, setServiceDayDrafts] = useState<ServiceDayDraft[]>([])
+  const [daySaving, setDaySaving] = useState(false)
+
+  const monthKey = monthKeyFromParts(calYear, calMonthIndex)
+  const targetMonthKey = nextMonthKey(calYear, calMonthIndex)
+  const monthOverrideCount = useMemo(
+    () => Object.keys(dateOverrides).filter((d) => d.startsWith(`${monthKey}-`)).length,
+    [dateOverrides, monthKey],
+  )
 
   function setDayIntervals(day: number, intervals: TimeInterval[]) {
     const next: BookingDaySchedule = { ...schedule }
@@ -97,13 +132,6 @@ export function AgendaAvailabilityPanel(props: Props) {
     }
   }
 
-  function selectDay(day: number) {
-    setFocusedDay(day)
-    if (intervalsForDay(schedule, day).length === 0) {
-      setDayIntervals(day, [{ ...defaultInterval }])
-    }
-  }
-
   function updateInterval(day: number, index: number, patch: Partial<TimeInterval>) {
     const current = [...intervalsForDay(schedule, day)]
     current[index] = { ...current[index], ...patch }
@@ -113,6 +141,7 @@ export function AgendaAvailabilityPanel(props: Props) {
   function addInterval(day: number) {
     const current = intervalsForDay(schedule, day)
     setDayIntervals(day, [...current, { start: '14:00', end: '17:00' }])
+    setFocusedDay(day)
   }
 
   function removeInterval(day: number, index: number) {
@@ -120,387 +149,553 @@ export function AgendaAvailabilityPanel(props: Props) {
     setDayIntervals(day, current)
   }
 
-  function addDateOverride() {
-    if (!onDateOverridesChange) return
-    const d = new Date()
-    d.setDate(d.getDate() + 1)
-    const iso = d.toISOString().slice(0, 10)
-    if (dateOverrides[iso] !== undefined) return
-    onDateOverridesChange({ ...dateOverrides, [iso]: [] })
-  }
-
-  function setOverrideDateKey(oldKey: string, newKey: string) {
-    if (!onDateOverridesChange || !newKey || oldKey === newKey) return
-    const next = { ...dateOverrides }
-    next[newKey] = next[oldKey] ?? []
-    delete next[oldKey]
-    onDateOverridesChange(next)
-  }
-
-  function setOverrideClosed(date: string, closed: boolean) {
-    if (!onDateOverridesChange) return
-    onDateOverridesChange({
-      ...dateOverrides,
-      [date]: closed ? [] : [{ ...DEFAULT_INTERVAL }],
+  function buildServiceDayDrafts(iso: string): ServiceDayDraft[] {
+    if (!bookableServices?.length) return []
+    return bookableServices.map((s) => {
+      const mode = serviceDayModeForDate(s, iso)
+      const svcOverrides = (s.bookingOverrides?.dateOverrides || {}) as BookingDateOverrides
+      const firmEffective = effectiveIntervalsForDate(iso, schedule, dateOverrides)
+      const inheritedLabel = firmEffective.length
+        ? `Herdado · ${firmEffective.map((iv) => `${iv.start}–${iv.end}`).join(', ')}`
+        : 'Herdado · fechado no horário geral'
+      const openIntervals =
+        mode === 'open' && Array.isArray(svcOverrides[iso]) && svcOverrides[iso].length
+          ? svcOverrides[iso].map((iv) => ({ ...iv }))
+          : firmEffective.length
+            ? firmEffective.map((iv) => ({ ...iv }))
+            : [{ ...defaultInterval }]
+      return {
+        id: s.id,
+        name: s.name,
+        mode,
+        intervals: openIntervals,
+        inheritedLabel,
+      }
     })
   }
 
-  function updateOverrideInterval(date: string, index: number, patch: Partial<TimeInterval>) {
-    if (!onDateOverridesChange) return
-    const current = [...(dateOverrides[date] || [])]
-    current[index] = { ...current[index], ...patch }
-    onDateOverridesChange({ ...dateOverrides, [date]: current })
+  function openDayDialog(day: number) {
+    const iso = `${monthKey}-${String(day).padStart(2, '0')}`
+    setSelectedDate(iso)
+    setServiceDayDrafts(buildServiceDayDrafts(iso))
+    setDayDialogOpen(true)
   }
 
-  function addOverrideInterval(date: string) {
+  function applyFirmDayDraft(draft: DayAvailabilityDraft, iso: string): BookingDateOverrides {
+    if (draft.mode === 'inherit') return clearDayOverride(dateOverrides, iso)
+    if (draft.mode === 'closed') return setDayOverride(dateOverrides, iso, [])
+    return setDayOverride(dateOverrides, iso, draft.intervals)
+  }
+
+  async function saveDayDraft(draft: DayAvailabilityDraft) {
+    if (!onDateOverridesChange || !selectedDate) return
+    const nextFirmOverrides = applyFirmDayDraft(draft, selectedDate)
+
+    const servicePatches: Array<{ id: string; bookingOverrides: Partial<FirmBookingSettings> | null }> = []
+    if (bookableServices?.length && serviceDayDrafts.length) {
+      for (const row of serviceDayDrafts) {
+        const service = bookableServices.find((s) => s.id === row.id)
+        if (!service) continue
+        const prevMode = serviceDayModeForDate(service, selectedDate)
+        const unchanged =
+          prevMode === row.mode &&
+          (row.mode !== 'open' ||
+            JSON.stringify(service.bookingOverrides?.dateOverrides?.[selectedDate] || []) ===
+              JSON.stringify(row.intervals))
+        if (unchanged) continue
+        servicePatches.push({
+          id: service.id,
+          bookingOverrides: applyServiceDayOverride({
+            existing: service.bookingOverrides,
+            date: selectedDate,
+            mode: row.mode,
+            intervals: row.intervals,
+          }),
+        })
+      }
+    }
+
+    if (onPersistDay) {
+      setDaySaving(true)
+      try {
+        await onPersistDay({
+          date: selectedDate,
+          dateOverrides: nextFirmOverrides,
+          servicePatches,
+        })
+        onDateOverridesChange(nextFirmOverrides)
+        setDayDialogOpen(false)
+      } finally {
+        setDaySaving(false)
+      }
+      return
+    }
+
+    onDateOverridesChange(nextFirmOverrides)
+    setDayDialogOpen(false)
+  }
+
+  function handleCopyFromDate(fromDate: string) {
+    if (!onDateOverridesChange || !selectedDate) return
+    onDateOverridesChange(copyDayOverride(dateOverrides, fromDate, selectedDate))
+  }
+
+  function handleCopyMonth() {
     if (!onDateOverridesChange) return
-    const current = dateOverrides[date] || []
-    onDateOverridesChange({
-      ...dateOverrides,
-      [date]: [...current, { start: '14:00', end: '17:00' }],
+    const next = copyMonthDateOverrides(dateOverrides, monthKey, targetMonthKey)
+    onDateOverridesChange(next)
+    toast.success(`Excepções de ${formatYearMonthPt(monthKey)} copiadas para ${formatYearMonthPt(targetMonthKey)}.`, {
+      description: 'Os meses são independentes — alterar um não muda o outro. Guarde a disponibilidade para persistir.',
     })
   }
 
-  function removeOverride(date: string) {
-    if (!onDateOverridesChange) return
-    const next = { ...dateOverrides }
-    delete next[date]
-    onDateOverridesChange(next)
+  function shiftMonth(delta: number) {
+    const d = new Date(calYear, calMonthIndex + delta, 1)
+    setCalYear(d.getFullYear())
+    setCalMonthIndex(d.getMonth())
   }
 
-  const slotAndSave = (
-    <>
-      {showSlotSettings ? (
-        <div className="cb-agenda-availability-fields">
-          <p className="cb-agenda-availability-aside-title">Opções de marcação</p>
-          <label className="cb-agenda-field">
-            <span className="cb-agenda-field-label">
-              <Globe className="h-3.5 w-3.5" aria-hidden />
-              Fuso horário
-            </span>
-            <select className="cb-agenda-field-input" value={bookingTz} onChange={(e) => onBookingTz(e.target.value)}>
-              {BOOKING_TIMEZONE_OPTIONS.map((z) => (
-                <option key={z.value} value={z.value}>
-                  {z.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="cb-agenda-field">
-            <span className="cb-agenda-field-label">Duração do slot</span>
-            <DurationMinutesField
-              value={slotMin}
-              onChange={onSlotMin}
-              min={5}
-              max={240}
-              presets={[15, 30, 45, 60, 90, 120]}
-              inputClassName="cb-agenda-field-input"
-              aria-label="Duração do slot em minutos"
-            />
-          </label>
-          <label className="cb-agenda-field">
-            <span className="cb-agenda-field-label">Horizonte (dias à frente)</span>
-            <Input
-              type="number"
-              min={1}
-              max={60}
-              className="cb-agenda-field-input"
-              value={horizon}
-              onChange={(e: FormChangeEvent) => onHorizon(Number(e.target.value))}
-            />
-          </label>
+  const selectedWeekdayIntervals = selectedDate
+    ? effectiveIntervalsForDate(selectedDate, schedule, {})
+    : []
+
+  const selectedKind = selectedDate ? dayOverrideKind(selectedDate, dateOverrides) : 'none'
+  const selectedEffective = selectedDate
+    ? effectiveIntervalsForDate(selectedDate, schedule, dateOverrides)
+    : []
+  const selectedSummaryLabel =
+    selectedKind === 'closed'
+      ? 'Fechado'
+      : selectedKind === 'custom'
+        ? 'Especial'
+        : 'Herdado'
+  const selectedSummaryTimes =
+    selectedKind === 'closed'
+      ? null
+      : selectedEffective.length
+        ? selectedEffective.map((iv) => `${iv.start}–${iv.end}`).join(' · ')
+        : 'Fechado (semanal)'
+
+  const fromMonthLabel = MONTH_NAMES_PT[calMonthIndex]?.toLowerCase() || ''
+  const toParts = targetMonthKey.split('-')
+  const toMonthLabel = MONTH_NAMES_PT[Number(toParts[1]) - 1]?.toLowerCase() || formatYearMonthPt(targetMonthKey)
+
+  const weeklyPanel = (
+    <section className="cb-agenda-avail-card" aria-labelledby="agenda-horario-semanal-title">
+      <div className="cb-agenda-avail-card-hd-block">
+        <span className="cb-agenda-avail-card-icon" aria-hidden>
+          <Clock className="h-4 w-4" />
+        </span>
+        <div>
+          <h4 id="agenda-horario-semanal-title" className="cb-agenda-avail-card-title">
+            Horário semanal
+          </h4>
+          <p className="cb-agenda-avail-card-sub">Dias e intervalos em que o escritório atende.</p>
         </div>
+      </div>
+      <ul className="cb-agenda-week-list" role="list">
+        {BOOKING_WEEKDAYS.map((w) => {
+          const intervals = intervalsForDay(schedule, w.bit)
+          const open = intervals.length > 0
+          const focused = focusedDay === w.bit
+          return (
+            <li
+              key={w.bit}
+              className={cn(
+                'cb-agenda-week-row',
+                !open && 'cb-agenda-week-row-closed',
+                focused && 'cb-agenda-week-row-focus',
+              )}
+            >
+              <button
+                type="button"
+                className="cb-agenda-week-row-day"
+                onClick={() => setFocusedDay(w.bit)}
+                aria-current={focused ? 'true' : undefined}
+              >
+                <span className="cb-agenda-week-row-name">
+                  {w.bit === 0 || w.bit === 6 ? w.full : `${w.full}-feira`}
+                </span>
+              </button>
+              <button
+                type="button"
+                className={cn(
+                  'cb-agenda-week-badge',
+                  open ? 'cb-agenda-week-badge-open' : 'cb-agenda-week-badge-closed',
+                )}
+                aria-pressed={open}
+                aria-label={
+                  open ? `${w.full} disponível — clicar para fechar` : `${w.full} indisponível — clicar para abrir`
+                }
+                onClick={() => toggleDay(w.bit)}
+              >
+                {open ? 'Aberto' : 'Fechado'}
+              </button>
+              <div className="cb-agenda-week-intervals">
+                {open ? (
+                  <>
+                    {intervals.map((iv, idx) => (
+                      <div key={`${w.bit}-${idx}`} className="cb-agenda-week-interval">
+                        <Input
+                          type="time"
+                          className="cb-agenda-week-time"
+                          value={iv.start}
+                          aria-label={`${w.full} início intervalo ${idx + 1}`}
+                          onChange={(e: FormChangeEvent) =>
+                            updateInterval(w.bit, idx, { start: e.target.value })
+                          }
+                          onFocus={() => setFocusedDay(w.bit)}
+                        />
+                        <span className="cb-agenda-week-time-sep" aria-hidden>
+                          –
+                        </span>
+                        <Input
+                          type="time"
+                          className="cb-agenda-week-time"
+                          value={iv.end}
+                          aria-label={`${w.full} fim intervalo ${idx + 1}`}
+                          onChange={(e: FormChangeEvent) =>
+                            updateInterval(w.bit, idx, { end: e.target.value })
+                          }
+                          onFocus={() => setFocusedDay(w.bit)}
+                        />
+                        {intervals.length > 1 ? (
+                          <button
+                            type="button"
+                            className="cb-agenda-week-interval-remove"
+                            aria-label={`Remover intervalo ${idx + 1} de ${w.full}`}
+                            onClick={() => removeInterval(w.bit, idx)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        ) : null}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      className="cb-agenda-week-add"
+                      aria-label={`Adicionar intervalo em ${w.full}`}
+                      onClick={() => addInterval(w.bit)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </>
+                ) : (
+                  <span className="cb-agenda-week-closed-hint">—</span>
+                )}
+              </div>
+              <span className="cb-agenda-week-more" aria-hidden>
+                <MoreVertical className="h-4 w-4" />
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+
+      {openDays.length === 0 ? (
+        <p className="cb-agenda-availability-warn">Seleccione pelo menos um dia.</p>
       ) : null}
 
       {hideSaveButton ? null : (
         <Button
-          className="cb-agenda-save-btn w-full"
+          className="cb-agenda-save-btn cb-agenda-avail-save mt-4 w-full gap-2"
           type="button"
           onClick={onSaveAvailability}
           disabled={openDays.length === 0}
         >
-          Guardar disponibilidade
+          <Save className="h-4 w-4" aria-hidden />
+          Guardar horário
         </Button>
       )}
-
-      {!hideSaveButton && booking ? (
-        <p className="cb-agenda-availability-summary">
-          <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden />
-          <span>
-            {booking.timezone || 'Europe/Lisbon'} · slots de {booking.slotMinutes} min · até {booking.horizonDays}{' '}
-            dias · antecedência mín. {booking.leadTimeHours} h
-          </span>
-        </p>
-      ) : null}
-    </>
+    </section>
   )
 
-  return (
-    <div className={cn('cb-agenda-availability', showSlotSettings && 'cb-agenda-availability-layout')}>
-      <div className="space-y-5">
-      <div>
-        <p className="cb-agenda-availability-label">Horário de atendimento</p>
-        <p className="cb-agenda-availability-hint">
-          Clique num dia para o abrir e editar. Pode copiar o horário para os outros dias.
+  const exceptionsPanel = onDateOverridesChange ? (
+    <section
+      className="cb-agenda-avail-card"
+      aria-labelledby="agenda-excepcoes-title"
+      data-testid="agenda-date-overrides-calendar"
+    >
+      <div className="cb-agenda-avail-card-hd-block">
+        <span className="cb-agenda-avail-card-icon" aria-hidden>
+          <CalendarDays className="h-4 w-4" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h4 id="agenda-excepcoes-title" className="cb-agenda-avail-card-title">
+            Excepções do mês
+          </h4>
+          <p className="cb-agenda-avail-card-sub">
+            Dias em que o horário normal não se aplica — feriados, férias ou datas especiais — em{' '}
+            {MONTH_NAMES_PT[calMonthIndex]} {calYear}.
+          </p>
+        </div>
+      </div>
+
+      <div className="cb-agenda-month-nav">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          aria-label="Mês anterior"
+          onClick={() => shiftMonth(-1)}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <p className="cb-agenda-month-nav-label">
+          {MONTH_NAMES_PT[calMonthIndex]} {calYear}
         </p>
-        <div className="cb-agenda-weekday-grid" role="group" aria-label="Dias da semana">
-          {BOOKING_WEEKDAYS.map((w) => {
-            const open = intervalsForDay(schedule, w.bit).length > 0
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          aria-label="Mês seguinte"
+          onClick={() => shiftMonth(1)}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="cb-agenda-month-grid-wrap">
+        <CalendarMonthGrid
+          year={calYear}
+          monthIndex={calMonthIndex}
+          className="cb-agenda-month-grid"
+          renderDay={(day, isToday) => {
+            const iso = `${monthKey}-${String(day).padStart(2, '0')}`
+            const kind = dayOverrideKind(iso, dateOverrides)
+            const selected = selectedDate === iso
+            const weekday = new Date(calYear, calMonthIndex, day).getDay()
+            const weekend = weekday === 0 || weekday === 6
+            const weekdayName = BOOKING_WEEKDAYS.find((w) => w.bit === weekday)?.full || ''
+            const statusLabel =
+              kind === 'closed' ? 'fechado' : kind === 'custom' ? 'horário especial' : 'horário semanal'
+            const dayAriaLabel = `${day} de ${weekdayName || MONTH_NAMES_PT[calMonthIndex]}${isToday ? ', hoje' : ''} — ${statusLabel}`
             return (
               <button
-                key={`strip-${w.bit}`}
                 type="button"
                 className={cn(
-                  'cb-agenda-weekday-btn',
-                  open && 'cb-agenda-weekday-btn-active',
-                  focusedDay === w.bit && 'cb-agenda-weekday-btn-focus',
+                  'cb-agenda-month-day',
+                  weekend && kind === 'none' && 'cb-agenda-month-day-weekend',
+                  kind === 'closed' && 'cb-agenda-month-day-closed',
+                  kind === 'custom' && 'cb-agenda-month-day-special',
+                  selected && 'cb-agenda-month-day-selected',
+                  isToday && kind === 'none' && !selected && 'cb-agenda-month-day-today',
                 )}
-                aria-current={focusedDay === w.bit ? 'true' : undefined}
-                aria-label={open ? `Ver horário de ${w.full}` : `${w.full} indisponível`}
-                onClick={() => selectDay(w.bit)}
+                onClick={() => openDayDialog(day)}
+                aria-label={dayAriaLabel}
+                aria-pressed={selected}
+                data-testid={`agenda-override-day-${iso}`}
               >
-                <span className="cb-agenda-weekday-short">{w.label}</span>
-                <span className="cb-agenda-weekday-full">{w.label}</span>
-                {!open ? <span className="cb-agenda-weekday-closed">Fechado</span> : null}
+                <span className="cb-agenda-month-day-num">{day}</span>
+                {kind !== 'none' ? (
+                  <span
+                    className={cn(
+                      'cb-agenda-month-day-dot',
+                      kind === 'closed' && 'cb-agenda-month-day-dot-closed',
+                      kind === 'custom' && 'cb-agenda-month-day-dot-special',
+                    )}
+                    aria-hidden
+                  />
+                ) : (
+                  <span className="cb-agenda-month-day-dot cb-agenda-month-day-dot-inherit" aria-hidden />
+                )}
               </button>
             )
-          })}
-        </div>
-        <div className="cb-agenda-day-editor" id={`agenda-day-${focusedWeekday.bit}`}>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <button
-              type="button"
-              onClick={() => toggleDay(focusedWeekday.bit)}
-              aria-pressed={focusedOpen}
-              aria-label={
-                focusedOpen ? `${focusedWeekday.full} disponível` : `${focusedWeekday.full} indisponível`
-              }
-              className={cn(
-                'rounded-full px-3 py-1 text-sm font-semibold',
-                focusedOpen ? 'bg-emerald-100 text-emerald-800' : 'bg-muted text-muted-foreground',
-              )}
-            >
-              {focusedWeekday.full}
-            </button>
-            {focusedOpen ? (
-              <div className="flex flex-wrap items-center gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 gap-1 text-xs"
-                  onClick={() => addInterval(focusedWeekday.bit)}
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Adicionar intervalo
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 text-xs text-muted-foreground"
-                  onClick={() => toggleDay(focusedWeekday.bit)}
-                >
-                  Fechar este dia
-                </Button>
-              </div>
-            ) : (
-              <span className="text-xs text-muted-foreground">Fechado — clique no nome para abrir</span>
-            )}
-          </div>
-          {focusedOpen ? (
-            <ul className="mt-3 space-y-2">
-              {focusedIntervals.map((iv, idx) => (
-                <li key={`${focusedWeekday.bit}-${idx}`} className="flex flex-wrap items-center gap-2">
-                  <Input
-                    type="time"
-                    className="h-9 w-[7.5rem] rounded-lg"
-                    value={iv.start}
-                    onChange={(e: FormChangeEvent) =>
-                      updateInterval(focusedWeekday.bit, idx, { start: e.target.value })
-                    }
-                  />
-                  <span className="text-xs text-muted-foreground">até</span>
-                  <Input
-                    type="time"
-                    className="h-9 w-[7.5rem] rounded-lg"
-                    value={iv.end}
-                    onChange={(e: FormChangeEvent) =>
-                      updateInterval(focusedWeekday.bit, idx, { end: e.target.value })
-                    }
-                  />
-                  {focusedIntervals.length > 1 ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive"
-                      aria-label="Remover intervalo"
-                      onClick={() => removeInterval(focusedWeekday.bit, idx)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
-        {openDays.length > 0 ? (
-          <div className="mt-3 space-y-2 rounded-xl border border-border/50 bg-muted/10 p-3">
-            <p className="cb-agenda-availability-selected">
-              Aberto: {openDays.map((w) => w.label).join(', ')}
-            </p>
-            <p className="text-xs font-medium text-foreground">Copiar horário</p>
-            <div className="flex flex-wrap items-center gap-2">
-              <label className="text-[11px] text-muted-foreground">
-                De{' '}
-                <select
-                  className="ml-1 h-8 rounded-md border border-input bg-background px-2 text-xs"
-                  value={copySource}
-                  onChange={(e) => setCopySource(Number(e.target.value))}
-                >
-                  {BOOKING_WEEKDAYS.map((w) => (
-                    <option key={w.bit} value={w.bit} disabled={intervalsForDay(schedule, w.bit).length === 0}>
-                      {w.full}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <span className="text-[11px] text-muted-foreground">para</span>
-              {BOOKING_WEEKDAYS.filter((w) => w.bit !== copySource).map((w) => {
-                const checked = copyTargets.includes(w.bit)
-                return (
-                  <button
-                    key={w.bit}
-                    type="button"
-                    className={cn(
-                      'rounded-full px-2 py-0.5 text-[11px] font-medium',
-                      checked ? 'bg-brand text-white' : 'bg-muted text-muted-foreground',
-                    )}
-                    onClick={() =>
-                      setCopyTargets((prev) =>
-                        prev.includes(w.bit) ? prev.filter((d) => d !== w.bit) : [...prev, w.bit],
-                      )
-                    }
-                  >
-                    {w.label}
-                  </button>
-                )
-              })}
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="h-8 text-xs"
-                disabled={copyTargets.length === 0 || intervalsForDay(schedule, copySource).length === 0}
-                onClick={copyIntervalsToDays}
-              >
-                Aplicar
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <p className="cb-agenda-availability-warn">Seleccione pelo menos um dia.</p>
-        )}
+          }}
+        />
       </div>
+
+      <ul className="cb-agenda-month-legend" aria-label="Legenda do calendário">
+        <li>
+          <span className="cb-agenda-month-legend-dot cb-agenda-month-legend-dot-inherit" />
+          Herdado
+        </li>
+        <li>
+          <span className="cb-agenda-month-legend-dot cb-agenda-month-legend-dot-special" />
+          Especial
+        </li>
+        <li>
+          <span className="cb-agenda-month-legend-dot cb-agenda-month-legend-dot-closed" />
+          Fechado
+        </li>
+      </ul>
+
+      {selectedDate ? (
+        <div className="cb-agenda-month-selected">
+          <div className="cb-agenda-month-selected-daynum">
+            {Number(selectedDate.slice(8, 10))}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="cb-agenda-month-selected-title capitalize">
+              {(() => {
+                const [y, m, d] = selectedDate.split('-').map(Number)
+                return new Date(y, m - 1, d).toLocaleDateString('pt-PT', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })
+              })()}
+            </p>
+            <p className="cb-agenda-month-selected-meta">
+              {selectedSummaryLabel}
+              {selectedSummaryTimes ? ` · ${selectedSummaryTimes}` : ''}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="cb-agenda-month-selected-edit"
+            onClick={() => {
+              if (selectedDate) setServiceDayDrafts(buildServiceDayDrafts(selectedDate))
+              setDayDialogOpen(true)
+            }}
+          >
+            Editar
+          </button>
+        </div>
+      ) : (
+        <p className="cb-agenda-month-selected-empty">
+          Clique num dia para fechar ou definir horário especial.
+        </p>
+      )}
+
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="cb-agenda-copy-month-btn mt-3 h-9 w-full gap-1.5 text-xs"
+        disabled={monthOverrideCount === 0}
+        onClick={handleCopyMonth}
+        data-testid="agenda-copy-month"
+      >
+        <Copy className="h-3.5 w-3.5" />
+        Copiar {fromMonthLabel} → {toMonthLabel}
+      </Button>
+    </section>
+  ) : null
+
+  const optionsPanel = showSlotSettings ? (
+    <aside className="cb-agenda-avail-card cb-agenda-avail-options" aria-labelledby="agenda-opcoes-title">
+      <div className="cb-agenda-avail-card-hd-block">
+        <span className="cb-agenda-avail-card-icon" aria-hidden>
+          <Clock className="h-4 w-4" />
+        </span>
+        <div>
+          <h4 id="agenda-opcoes-title" className="cb-agenda-avail-card-title">
+            Opções de marcação
+          </h4>
+          <p className="cb-agenda-avail-card-sub">Fuso horário, duração e antecedência dos agendamentos.</p>
+        </div>
+      </div>
+
+      <div className="cb-agenda-opt-list">
+        <div className="cb-agenda-opt-row">
+          <p className="cb-agenda-avail-option-label">
+            <Globe className="h-3.5 w-3.5" aria-hidden />
+            Fuso horário
+          </p>
+          <select
+            className="cb-agenda-field-input"
+            value={bookingTz}
+            onChange={(e) => onBookingTz(e.target.value)}
+            aria-label="Fuso horário"
+          >
+            {BOOKING_TIMEZONE_OPTIONS.map((z) => (
+              <option key={z.value} value={z.value}>
+                {z.label}
+              </option>
+            ))}
+          </select>
+          <p className="cb-agenda-avail-option-hint">
+            Os horários que definir abaixo usam este fuso — os clientes vêem sempre a hora certa,
+            seja qual for o fuso deles.
+          </p>
+        </div>
+
+        <div className="cb-agenda-opt-row">
+          <p className="cb-agenda-avail-option-label">
+            <Clock className="h-3.5 w-3.5" aria-hidden />
+            Duração do agendamento
+          </p>
+          <div className="cb-agenda-slot-chip-grid" role="group" aria-label="Duração do slot">
+            {SLOT_PRESETS.map((mins) => (
+              <button
+                key={mins}
+                type="button"
+                className={cn(
+                  'cb-agenda-slot-chip',
+                  slotMin === mins && 'cb-agenda-slot-chip-on',
+                )}
+                aria-pressed={slotMin === mins}
+                onClick={() => onSlotMin(mins)}
+              >
+                {mins} min
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="cb-agenda-opt-row">
+          <p className="cb-agenda-avail-option-label">
+            <CalendarCheck2 className="h-3.5 w-3.5" aria-hidden />
+            Horizonte de agendamento
+          </p>
+          <select
+            className="cb-agenda-field-input"
+            value={String(horizon)}
+            onChange={(e) => onHorizon(Number(e.target.value))}
+            aria-label="Horizonte em dias"
+          >
+            {[7, 14, 21, 30, 45, 60].map((d) => (
+              <option key={d} value={d}>
+                {d} dias
+              </option>
+            ))}
+            {!([7, 14, 21, 30, 45, 60] as number[]).includes(horizon) ? (
+              <option value={horizon}>{horizon} dias</option>
+            ) : null}
+          </select>
+          <p className="cb-agenda-avail-option-hint">
+            Os clientes podem reservar até {horizon} dias no futuro.
+          </p>
+        </div>
+      </div>
+    </aside>
+  ) : null
+
+  return (
+    <div
+      className={cn(
+        'cb-agenda-availability',
+        showSlotSettings && onDateOverridesChange && 'cb-agenda-availability-trio',
+        showSlotSettings && !onDateOverridesChange && 'cb-agenda-availability-layout',
+        !showSlotSettings && onDateOverridesChange && 'cb-agenda-availability-duo',
+      )}
+    >
+      {weeklyPanel}
+      {exceptionsPanel}
+      {optionsPanel}
 
       {onDateOverridesChange ? (
-        <div>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p className="cb-agenda-availability-label">Excepções por data</p>
-              <p className="cb-agenda-availability-hint">
-                Férias, feriados ou horário especial num dia concreto. Lista vazia = fechado.
-              </p>
-            </div>
-            <Button type="button" variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={addDateOverride}>
-              <Plus className="h-3.5 w-3.5" />
-              Adicionar data
-            </Button>
-          </div>
-          {overrideDates.length === 0 ? (
-            <p className="mt-2 text-xs text-muted-foreground">Sem excepções — usa o horário semanal.</p>
-          ) : (
-            <ul className="mt-3 space-y-3">
-              {overrideDates.map((date) => {
-                const intervals = dateOverrides[date] || []
-                const closed = intervals.length === 0
-                return (
-                  <li key={date} className="rounded-xl border border-border/60 p-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Input
-                        type="date"
-                        className="h-9 w-40 rounded-lg"
-                        value={date}
-                        onChange={(e: FormChangeEvent) => setOverrideDateKey(date, e.target.value)}
-                      />
-                      <label className="flex items-center gap-1.5 text-xs">
-                        <input
-                          type="checkbox"
-                          checked={closed}
-                          onChange={(e) => setOverrideClosed(date, e.target.checked)}
-                        />
-                        Fechado
-                      </label>
-                      {!closed ? (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 gap-1 text-xs"
-                          onClick={() => addOverrideInterval(date)}
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                          Intervalo
-                        </Button>
-                      ) : null}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="ml-auto h-8 w-8 text-destructive"
-                        aria-label="Remover excepção"
-                        onClick={() => removeOverride(date)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                    {!closed ? (
-                      <ul className="mt-2 space-y-2">
-                        {intervals.map((iv, idx) => (
-                          <li key={`${date}-${idx}`} className="flex flex-wrap items-center gap-2">
-                            <Input
-                              type="time"
-                              className="h-9 w-[7.5rem] rounded-lg"
-                              value={iv.start}
-                              onChange={(e: FormChangeEvent) =>
-                                updateOverrideInterval(date, idx, { start: e.target.value })
-                              }
-                            />
-                            <span className="text-xs text-muted-foreground">até</span>
-                            <Input
-                              type="time"
-                              className="h-9 w-[7.5rem] rounded-lg"
-                              value={iv.end}
-                              onChange={(e: FormChangeEvent) =>
-                                updateOverrideInterval(date, idx, { end: e.target.value })
-                              }
-                            />
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </div>
+        <AgendaDayAvailabilityDialog
+          open={dayDialogOpen}
+          onOpenChange={setDayDialogOpen}
+          date={selectedDate}
+          hasOverride={
+            !!selectedDate && Object.prototype.hasOwnProperty.call(dateOverrides, selectedDate)
+          }
+          overrideIntervals={selectedDate ? dateOverrides[selectedDate] : undefined}
+          weekdayIntervals={selectedWeekdayIntervals}
+          defaultInterval={defaultIntervalFromSchedule(schedule) || defaultInterval}
+          serviceDrafts={serviceDayDrafts}
+          onServiceDraftsChange={setServiceDayDrafts}
+          onSave={saveDayDraft}
+          onCopyFromDate={handleCopyFromDate}
+          saving={daySaving}
+        />
       ) : null}
-      </div>
-
-      {showSlotSettings ? <aside className="cb-agenda-availability-aside">{slotAndSave}</aside> : slotAndSave}
     </div>
   )
 }

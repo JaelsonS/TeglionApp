@@ -9,7 +9,10 @@ export const queryKeys = {
     opts: { limit: number; includeInactive: boolean },
   ) =>
     [...queryKeys.firmClientsDirectoryRoot(tenantSlug), opts.limit, opts.includeInactive ? '1' : '0'] as const,
-  clientPortalHub: (clientId: string) => ['client-portal-hub', clientId] as const,
+  clientPortalHubRoot: ['client-portal-hub'] as const,
+  clientPortalHub: (clientId: string) => [...queryKeys.clientPortalHubRoot, clientId] as const,
+  clientDocumentRequestsRoot: ['client-document-requests'] as const,
+  clientDocumentRequests: (clientId: string) => [...queryKeys.clientDocumentRequestsRoot, clientId] as const,
   liveEventsRoot: (scope: 'firm' | 'client') => ['live-events', scope] as const,
   liveEvents: (scope: 'firm' | 'client', tenantKey: string) =>
     [...queryKeys.liveEventsRoot(scope), tenantKey] as const,

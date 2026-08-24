@@ -1,14 +1,16 @@
 const express = require('express');
 const { body } = require('express-validator');
-const { requirePermission } = require('../../middlewares/role.middleware');
+const { requirePermission, requireAnyPermission } = require('../../middlewares/role.middleware');
 const { PERMISSIONS } = require('../../utils/permissions');
 const obligationsController = require('../../modules/obligations/obligations.controller');
 const obligationTemplatesController = require('../../modules/obligations/obligation-templates.controller');
 const clientTasksController = require('../../modules/tasks/client-tasks.controller');
 const accountingServicesController = require('../../modules/firm/accounting-services.controller');
+const accountingServiceGroupsController = require('../../modules/firm/accounting-service-groups.controller');
 const bookingSettingsController = require('../../modules/firm/booking-settings.controller');
 const firmSettingsController = require('../../modules/firm/firm-settings.controller');
 const firmPublicSiteController = require('../../modules/firm/firm-public-site.controller');
+const navBadgesController = require('../../modules/firm/nav-badges.controller');
 const { requireFirmOwner } = require('../../middlewares/firm-owner.middleware');
 const consultationsController = require('../../modules/consultations/consultations.controller');
 const invitesController = require('../../modules/firm/invites.controller');
@@ -286,6 +288,17 @@ router.post(
 );
 router.delete('/firm/logo', requireFirmOwner, clientsController.removeFirmLogo);
 router.get('/dashboard', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationsController.dashboard);
+/** Chrome nav badges — 1 GET agrega contagens (Gate 1: anti-429). Auth + perms por campo no service. */
+router.get(
+  '/nav-badges',
+  requireAnyPermission([
+    PERMISSIONS.FIRM_CLIENTS_MANAGE,
+    PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE,
+    PERMISSIONS.FIRM_CONSULTATIONS_MANAGE,
+    PERMISSIONS.FIRM_OBLIGATIONS_MANAGE,
+  ]),
+  navBadgesController.getNavBadges,
+);
 router.get('/obligations/operational-dashboard', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationTemplatesController.operationalDashboard);
 router.get('/obligation-templates', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationTemplatesController.listTemplates);
 router.post('/obligation-templates', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationTemplatesController.createTemplate);
@@ -423,6 +436,7 @@ router.put(
   [
     body('currentPassword').optional({ values: 'falsy' }).isString().isLength({ min: 1, max: 200 }),
     body('stepUpToken').optional({ values: 'falsy' }).isString().isLength({ min: 20, max: 4000 }),
+    body('totpCode').optional({ values: 'falsy' }).isString().matches(/^\d{6}$/),
     body('rememberSession').optional().isBoolean(),
     body('portalKey').isString().isLength({ min: 2, max: 40 }),
     body('accessId').optional({ nullable: true }).isUUID(),
@@ -439,6 +453,7 @@ router.post(
   [
     body('currentPassword').optional({ values: 'falsy' }).isString().isLength({ min: 1, max: 200 }),
     body('stepUpToken').optional({ values: 'falsy' }).isString().isLength({ min: 20, max: 4000 }),
+    body('totpCode').optional({ values: 'falsy' }).isString().matches(/^\d{6}$/),
     body('rememberSession').optional().isBoolean(),
   ],
   officialAccessesController.reveal,
@@ -450,6 +465,7 @@ router.post(
   [
     body('currentPassword').optional({ values: 'falsy' }).isString().isLength({ min: 1, max: 200 }),
     body('stepUpToken').optional({ values: 'falsy' }).isString().isLength({ min: 20, max: 4000 }),
+    body('totpCode').optional({ values: 'falsy' }).isString().matches(/^\d{6}$/),
     body('rememberSession').optional().isBoolean(),
   ],
   officialAccessesController.remove,
@@ -509,6 +525,11 @@ router.post(
 router.patch('/accounting-services/:id', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.patch);
 router.post('/accounting-services/:id/duplicate', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.duplicate);
 router.delete('/accounting-services/:id', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServicesController.remove);
+
+router.get('/accounting-service-groups', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_VIEW), accountingServiceGroupsController.list);
+router.post('/accounting-service-groups', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServiceGroupsController.create);
+router.patch('/accounting-service-groups/:id', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServiceGroupsController.patch);
+router.delete('/accounting-service-groups/:id', requirePermission(PERMISSIONS.FIRM_ACCOUNTING_SERVICES_MANAGE), accountingServiceGroupsController.remove);
 
 router.get('/booking-settings', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), bookingSettingsController.get);
 router.patch('/booking-settings', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), bookingSettingsController.patch);

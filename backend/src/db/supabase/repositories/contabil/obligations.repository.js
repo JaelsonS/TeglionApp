@@ -2,6 +2,7 @@ const { ensureClient } = require('./shared');
 const { mapObligationRow } = require('./mappers');
 const ttlCache = require('../../../../utils/cache/ttl-cache');
 const { overdueSyncKey } = require('../../../../utils/cache/tenant-scoped-keys');
+const { resolveFirmTimezone, todayInTimezone } = require('../../../../utils/firm-timezone');
 
 const OVERDUE_SYNC_TTL_SEC = 300;
 
@@ -76,7 +77,9 @@ async function updateObligation(id, firmId, patch) {
 
 async function syncOverdueObligations(firmId) {
   const sb = ensureClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const { data: firmRow } = await sb.from('firms').select('settings').eq('id', firmId).maybeSingle();
+  const timezone = resolveFirmTimezone({ settings: firmRow?.settings });
+  const today = todayInTimezone(timezone);
   const { error } = await sb
     .from('obligations')
     .update({ status: 'OVERDUE' })

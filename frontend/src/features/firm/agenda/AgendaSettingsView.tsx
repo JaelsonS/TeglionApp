@@ -1,11 +1,19 @@
 import { ArrowRight, CalendarClock, CalendarDays, Layers } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import { AgendaAvailabilityPanel } from '@/features/firm/agenda/AgendaAvailabilityPanel'
 import { AgendaServiceHoursPanel } from '@/features/firm/agenda/AgendaServiceHoursPanel'
 import { GoogleCalendarIntegrationPanel } from '@/features/firm/agenda/GoogleCalendarIntegrationPanel'
+import { contabilAccountingServicesApi, contabilConsultationsApi } from '@/infrastructure/api'
 import { Button } from '@/shared/components/ui/button'
-import type { AccountingService, BookingDaySchedule, FirmBookingSettings } from '@/shared/types/contabil'
+import { getErrorMessage } from '@/shared/utils/errors'
+import type {
+  AccountingService,
+  BookingDateOverrides,
+  BookingDaySchedule,
+  FirmBookingSettings,
+} from '@/shared/types/contabil'
 
 type Props = {
   services: AccountingService[]
@@ -26,36 +34,73 @@ type Props = {
 }
 
 export function AgendaSettingsView(props: Props) {
+  const bookable = props.services.filter((s) => s.isActive !== false && s.requiresBooking)
+
+  async function persistDay(payload: {
+    date: string
+    dateOverrides: BookingDateOverrides
+    servicePatches: Array<{ id: string; bookingOverrides: Partial<FirmBookingSettings> | null }>
+  }) {
+    const openDays = Object.keys(props.schedule)
+      .map(Number)
+      .filter((d) => (props.schedule[d] || []).length > 0)
+
+    try {
+      const res = (await contabilConsultationsApi.patchBookingSettings({
+        slotMinutes: props.slotMin,
+        horizonDays: props.horizon,
+        schedule: props.schedule,
+        dateOverrides: payload.dateOverrides || {},
+        weekdays: openDays.sort((a, b) => a - b),
+        leadTimeHours: props.booking?.leadTimeHours ?? 2,
+        timezone: props.bookingTz,
+      })) as { booking?: FirmBookingSettings }
+
+      if (res.booking?.dateOverrides) {
+        props.onDateOverridesChange(res.booking.dateOverrides)
+      } else {
+        props.onDateOverridesChange(payload.dateOverrides)
+      }
+
+      for (const patch of payload.servicePatches) {
+        await contabilAccountingServicesApi.patch(patch.id, {
+          bookingOverrides: patch.bookingOverrides,
+        })
+      }
+
+      if (payload.servicePatches.length) {
+        await props.onReload()
+      }
+
+      toast.success(
+        payload.servicePatches.length
+          ? `Dia ${payload.date} guardado (escritório + ${payload.servicePatches.length} serviço(s)).`
+          : `Dia ${payload.date} guardado no horário do escritório.`,
+      )
+    } catch (err) {
+      toast.error('Não foi possível guardar o dia', { description: getErrorMessage(err) })
+      throw err
+    }
+  }
+
   return (
     <div className="cb-agenda-settings-view">
-      <nav className="cb-agenda-settings-steps" aria-label="Secções da agenda">
-        <a className="cb-agenda-settings-step" href="#agenda-horario-geral">
-          <span className="cb-agenda-settings-step-n">1</span>
-          Horário geral
+      <nav className="cb-agenda-stepper" aria-label="Secções da agenda">
+        <a className="cb-agenda-stepper-item cb-agenda-stepper-item-active" href="#agenda-horario-geral">
+          <span className="cb-agenda-stepper-n">1</span>
+          <span className="cb-agenda-stepper-label">Horário geral</span>
         </a>
-        <a className="cb-agenda-settings-step" href="#agenda-por-servico">
-          <span className="cb-agenda-settings-step-n">2</span>
-          Por serviço
+        <a className="cb-agenda-stepper-item" href="#agenda-por-servico">
+          <span className="cb-agenda-stepper-n">2</span>
+          <span className="cb-agenda-stepper-label">Por serviço</span>
         </a>
-        <a className="cb-agenda-settings-step" href="#agenda-google">
-          <span className="cb-agenda-settings-step-n">3</span>
-          Google Calendar
+        <a className="cb-agenda-stepper-item" href="#agenda-google">
+          <span className="cb-agenda-stepper-n">3</span>
+          <span className="cb-agenda-stepper-label">Google Calendar</span>
         </a>
       </nav>
 
-      <section id="agenda-horario-geral" className="cb-agenda-settings-block scroll-mt-24">
-        <div className="cb-agenda-settings-block-hd">
-          <span className="cb-agenda-settings-block-icon">
-            <CalendarClock className="h-4 w-4" aria-hidden />
-          </span>
-          <div>
-            <h3 className="cb-agenda-settings-block-title">Horário geral do escritório</h3>
-            <p className="cb-agenda-settings-block-sub">
-              Predefinição para todos os serviços. Uma marcação tranca esse horário no calendário partilhado
-              (incluindo o Google, quando ligado).
-            </p>
-          </div>
-        </div>
+      <section id="agenda-horario-geral" className="scroll-mt-24">
         <AgendaAvailabilityPanel
           booking={props.booking}
           schedule={props.schedule}
@@ -69,11 +114,12 @@ export function AgendaSettingsView(props: Props) {
           onHorizon={props.onHorizon}
           onBookingTz={props.onBookingTz}
           onSaveAvailability={props.onSaveAvailability}
+          bookableServices={bookable}
+          onPersistDay={persistDay}
         />
       </section>
 
-      <div className="cb-agenda-settings-lower">
-      <section id="agenda-por-servico" className="cb-agenda-settings-block scroll-mt-24">
+      <section id="agenda-por-servico" className="cb-agenda-settings-block scroll-mt-24 mt-6">
         <div className="cb-agenda-settings-block-hd">
           <span className="cb-agenda-settings-block-icon">
             <CalendarClock className="h-4 w-4" aria-hidden />
@@ -81,7 +127,7 @@ export function AgendaSettingsView(props: Props) {
           <div>
             <h3 className="cb-agenda-settings-block-title">Disponibilidade por serviço</h3>
             <p className="cb-agenda-settings-block-sub">
-              Quais os dias e intervalos em que cada serviço pode ser agendado
+              Defina a disponibilidade de cada serviço da sua agenda.
             </p>
           </div>
         </div>
@@ -93,47 +139,47 @@ export function AgendaSettingsView(props: Props) {
         />
       </section>
 
-      <div className="cb-agenda-settings-lower-side">
-      <section className="cb-agenda-settings-block">
-        <div className="cb-agenda-settings-block-hd">
-          <span className="cb-agenda-settings-block-icon">
-            <Layers className="h-4 w-4" aria-hidden />
-          </span>
-          <div>
-            <h3 className="cb-agenda-settings-block-title">Serviços do escritório</h3>
-            <p className="cb-agenda-settings-block-sub">
-              IRS, consultorias e outros — crie, configure e publique cada um na página pública
+      <div className="cb-agenda-settings-lower mt-4">
+        <section className="cb-agenda-settings-block">
+          <div className="cb-agenda-settings-block-hd">
+            <span className="cb-agenda-settings-block-icon">
+              <Layers className="h-4 w-4" aria-hidden />
+            </span>
+            <div>
+              <h3 className="cb-agenda-settings-block-title">Serviços do escritório</h3>
+              <p className="cb-agenda-settings-block-sub">
+                Crie, edite e publique cada serviço na página pública
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/40 bg-muted/10 p-4">
+            <p className="text-sm text-muted-foreground">
+              {props.services.length > 0
+                ? `${props.services.filter((s) => s.isActive !== false).length} de ${props.services.length} serviço(s) activo(s).`
+                : 'Ainda não tem nenhum serviço configurado.'}
             </p>
+            <Link to="/app/firm/services">
+              <Button type="button" size="sm" className="rounded-full">
+                Ir para Serviços <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+              </Button>
+            </Link>
           </div>
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/40 bg-muted/10 p-4">
-          <p className="text-sm text-muted-foreground">
-            {props.services.length > 0
-              ? `${props.services.filter((s) => s.isActive !== false).length} de ${props.services.length} serviço(s) activo(s).`
-              : 'Ainda não tem nenhum serviço configurado.'}{' '}
-            Crie, edite e publique em Serviços → Catálogo.
-          </p>
-          <Link to="/app/firm/services">
-            <Button type="button" size="sm" className="rounded-full">
-              Ir para Serviços <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-            </Button>
-          </Link>
-        </div>
-      </section>
+        </section>
 
-      <section id="agenda-google" className="cb-agenda-settings-block scroll-mt-24">
-        <div className="cb-agenda-settings-block-hd">
-          <span className="cb-agenda-settings-block-icon">
-            <CalendarDays className="h-4 w-4" aria-hidden />
-          </span>
-          <div>
-            <h3 className="cb-agenda-settings-block-title">Google Calendar</h3>
-            <p className="cb-agenda-settings-block-sub">Sincronize as suas marcações com a sua conta Google</p>
+        <section id="agenda-google" className="cb-agenda-settings-block scroll-mt-24">
+          <div className="cb-agenda-settings-block-hd">
+            <span className="cb-agenda-settings-block-icon">
+              <CalendarDays className="h-4 w-4" aria-hidden />
+            </span>
+            <div>
+              <h3 className="cb-agenda-settings-block-title">Google Calendar</h3>
+              <p className="cb-agenda-settings-block-sub">
+                Sincronize os agendamentos do Teglion com o seu Google Calendar.
+              </p>
+            </div>
           </div>
-        </div>
-        <GoogleCalendarIntegrationPanel />
-      </section>
-      </div>
+          <GoogleCalendarIntegrationPanel />
+        </section>
       </div>
     </div>
   )

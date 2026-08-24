@@ -138,9 +138,14 @@ export function ClientsSpreadsheetDialog({ open, onOpenChange, onImported }: Pro
     }
     setBusy('import')
     try {
-      const unlock = vaultUnlockPayload(user?.id, currentPassword.trim() || undefined, rememberSession)
+      const unlock = vaultUnlockPayload(
+        user?.id,
+        'vault_import',
+        currentPassword.trim() || undefined,
+        rememberSession,
+      )
       const report = await contabilClientsApi.importClientsCsv(file, unlock)
-      persistVaultStepUpFromResponse(user?.id, report, rememberSession)
+      persistVaultStepUpFromResponse(user?.id, report, rememberSession, 'vault_import')
       const extra = report.errors.slice(0, 4).map((e) => `Linha ${e.line}: ${e.message}`)
       toast.success(
         `Importação concluída · ${report.created} criados · ${report.updated} actualizados · ${report.skipped} ignorados`,

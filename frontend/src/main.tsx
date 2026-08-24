@@ -11,6 +11,7 @@ import { registerSW } from 'virtual:pwa-register'
 import { shouldRegisterPwa } from '@/shared/utils/pwaPolicy'
 import { isPushServiceWorkerScript, PUSH_SW_URL } from '@/shared/utils/pushSetup'
 import { isLightweightPublicRoute } from '@/shared/utils/publicRoutes'
+import { STALE_ASSET_EVENT } from '@/shared/styles/loadContabilStyles'
 
 const CHUNK_RECOVERY_KEY = 'teglion.chunk-recovery'
 
@@ -20,10 +21,12 @@ function installChunkLoadRecovery(): void {
   const shouldRecover = (value: unknown): boolean => {
     const text = String(value || '')
     return (
+      text.includes('Unable to preload CSS') ||
       text.includes('Failed to fetch dynamically imported module') ||
       text.includes('Importing a module script failed') ||
       text.includes('Loading chunk') ||
-      text.includes('/assets/')
+      // Stale hashed JS after deploy (avoid matching unrelated /assets/ noise)
+      (text.includes('/assets/') && /\.m?js(\?|$)/.test(text))
     )
   }
 
@@ -77,6 +80,9 @@ function installChunkLoadRecovery(): void {
     const source = err.filename || ''
     if (shouldRecover(message) || shouldRecover(source)) recoverOnce()
   })
+
+  // ensureContabilStyles catches Vite CSS preload errors — still recover once.
+  window.addEventListener(STALE_ASSET_EVENT, () => recoverOnce())
 
   try {
     if (new URL(window.location.href).searchParams.has('__chunk_recover')) {
@@ -164,7 +170,8 @@ if (typeof window !== 'undefined') {
 }
 
 if (typeof window !== 'undefined' && !isLightweightPublicRoute(window.location.pathname)) {
-  void import('@/shared/styles/contabil.css')
+  // Prefer ensureContabilStyles (catch + stale-asset recovery) over a bare import.
+  void import('@/shared/styles/loadContabilStyles').then((m) => m.ensureContabilStyles())
 }
 
 const bootSentry = () => {
@@ -227,6 +234,7 @@ const app = (
       fallback={({ error, resetError }) => {
         const message = error instanceof Error ? error.message : String(error || '')
         const isChunk =
+          message.includes('Unable to preload CSS') ||
           message.includes('Failed to fetch dynamically imported module') ||
           message.includes('Importing a module script failed') ||
           message.includes('Loading chunk')

@@ -100,8 +100,8 @@ describe('ServiceBookingAvailabilitySection', () => {
         onChange={() => {}}
       />,
     )
-    expect(await screen.findByLabelText('Segunda disponível')).toBeTruthy()
-    expect(screen.getByLabelText('Terça indisponível')).toBeTruthy()
+    expect(await screen.findByLabelText(/Segunda disponível/i)).toBeTruthy()
+    expect(screen.getByLabelText(/Terça indisponível/i)).toBeTruthy()
   })
 
   it('disabling customization sends null', async () => {
@@ -151,14 +151,12 @@ describe('ServiceBookingAvailabilitySection', () => {
       />,
     )
 
-    await user.click(screen.getByLabelText('Ver horário de Terça'))
-    await user.click(screen.getByLabelText('Terça disponível'))
+    await user.click(screen.getByLabelText(/Terça disponível/i))
     const afterClose = onChange.mock.calls.at(-1)?.[0] as { weekdays: number[]; schedule: Record<string, unknown> }
     expect(afterClose.weekdays).toEqual([1])
     expect(afterClose.schedule[2]).toBeUndefined()
 
-    await user.click(screen.getByLabelText('Ver horário de Segunda'))
-    await user.click(screen.getByRole('button', { name: /Adicionar intervalo/i }))
+    await user.click(screen.getByLabelText(/Adicionar intervalo em Segunda/i))
     const afterAdd = onChange.mock.calls.at(-1)?.[0] as {
       schedule: Record<number, Array<{ start: string; end: string }>>
     }

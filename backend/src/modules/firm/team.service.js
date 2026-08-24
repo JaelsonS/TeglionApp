@@ -122,6 +122,15 @@ async function getMember(firmId, memberId) {
 }
 
 async function createMember({ firmId, actor, payload, req }) {
+    const sensitive = require('../security/sensitive-action.service');
+    await sensitive.confirmSensitiveAction({
+        firmId,
+        userId: actor.id,
+        purpose: sensitive.SENSITIVE_PURPOSES.TEAM_MEMBER_CREATE,
+        totpCode: payload?.totpCode,
+        currentPassword: payload?.currentPassword,
+    });
+
     const email = String(payload.email || '').trim().toLowerCase();
     const fullName = String(payload.fullName || '').trim();
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -231,10 +240,46 @@ async function updateMember({ firmId, memberId, actor, payload, req }) {
         if (taken && String(taken.firm_id) === String(firmId)) {
             throw new AppError('Este e-mail já está associado a outra conta.', 409);
         }
-        patch.email = email;
+        if (email !== String(current.email || '').trim().toLowerCase()) {
+            const sensitive = require('../security/sensitive-action.service');
+            await sensitive.confirmSensitiveAction({
+                firmId,
+                userId: actor.id,
+                purpose: sensitive.SENSITIVE_PURPOSES.TEAM_MEMBER_EMAIL_CHANGE,
+                totpCode: payload?.totpCode,
+                currentPassword: payload?.currentPassword,
+            });
+            patch.email = email;
+            patch.emailConfirmedAt = null;
+        }
     }
     if (payload.role !== undefined) {
         patch.role = assertActorCanAssignRole(actor, payload.role, { previousRole: current.role });
+
+        if (String(patch.role) !== String(current.role)) {
+            const sensitive = require('../security/sensitive-action.service');
+            await sensitive.confirmSensitiveAction({
+                firmId,
+                userId: actor.id,
+                purpose: sensitive.SENSITIVE_PURPOSES.TEAM_MEMBER_ROLE_CHANGE,
+                totpCode: payload?.totpCode,
+                currentPassword: payload?.currentPassword,
+            });
+        }
+
+        // Sem isto, o único FIRM_OWNER do escritório conseguia rebaixar-se a si mesmo (ou
+        // a assertActorCanAssignRole permitia que outro owner o rebaixasse) até zero owners
+        // ativos, travando ações administrativas que exigem FIRM_OWNER (billing, permissões).
+        // Mesma invariante já aplicada em deactivateMember, agora também aqui.
+        if (current.role === 'FIRM_OWNER' && patch.role !== 'FIRM_OWNER') {
+            const all = await firmUsersRepository.listFirmUsers(firmId, { activeOnly: false });
+            const activeOwners = all.filter((u) => u.isActive && u.role === 'FIRM_OWNER');
+            if (activeOwners.length <= 1) {
+                throw new AppError('Não é possível rebaixar o último owner do escritório.', 400, {
+                    code: 'LAST_OWNER_FORBIDDEN',
+                });
+            }
+        }
     }
     if (payload.jobTitle !== undefined) {
         patch.jobTitle = normalizeJobTitle(payload.jobTitle);
@@ -249,10 +294,16 @@ async function updateMember({ firmId, memberId, actor, payload, req }) {
         return getMember(firmId, memberId);
     }
 
+    const emailChanged = Object.prototype.hasOwnProperty.call(patch, 'email');
+
     const updated =
         Object.keys(patch).length > 0
             ? await firmUsersRepository.updateFirmMember(firmId, memberId, patch)
             : current;
+
+    if (emailChanged) {
+        await authRefreshSessionsRepository.deleteAllForActor('firm_user', memberId);
+    }
 
     if (Array.isArray(payload.tagIds)) {
         const tagIds = await firmInquiryTagsRepository.resolveAllowedTagIds(firmId, payload.tagIds);
@@ -266,10 +317,11 @@ async function updateMember({ firmId, memberId, actor, payload, req }) {
             firmId,
             targetUserId: updated.id,
             metadata: {
-                changedFields: Object.keys(patch),
+                changedFields: Object.keys(patch).filter((k) => k !== 'emailConfirmedAt'),
                 role: updated.role,
                 jobTitle: updated.jobTitle,
                 departmentId: updated.departmentId,
+                sessionsRevoked: emailChanged,
             },
             req,
         });
@@ -278,7 +330,16 @@ async function updateMember({ firmId, memberId, actor, payload, req }) {
     return getMember(firmId, updated.id);
 }
 
-async function deactivateMember({ firmId, memberId, actor, req }) {
+async function deactivateMember({ firmId, memberId, actor, req, totpCode, currentPassword }) {
+    const sensitive = require('../security/sensitive-action.service');
+    await sensitive.confirmSensitiveAction({
+        firmId,
+        userId: actor.id,
+        purpose: sensitive.SENSITIVE_PURPOSES.TEAM_MEMBER_DEACTIVATE,
+        totpCode: totpCode ?? req?.body?.totpCode,
+        currentPassword: currentPassword ?? req?.body?.currentPassword,
+    });
+
     const current = await firmUsersRepository.findFirmUserByIdForFirm(firmId, memberId);
     if (!current) throw new AppError('Membro não encontrado.', 404);
     if (String(current.id) === String(actor.id)) {
@@ -313,9 +374,31 @@ async function deactivateMember({ firmId, memberId, actor, req }) {
     return getMember(firmId, updated.id);
 }
 
-async function reactivateMember({ firmId, memberId, actor, req }) {
+async function reactivateMember({ firmId, memberId, actor, req, totpCode, currentPassword }) {
+    // Simétrico a deactivateMember: reativar restaura acesso tão sensível quanto
+    // desativar o remove — uma sessão comprometida com USERS_UPDATE não pode
+    // devolver acesso a uma conta desativada por motivo de segurança sem o
+    // mesmo factor sensível exigido para desativar.
+    const sensitive = require('../security/sensitive-action.service');
+    await sensitive.confirmSensitiveAction({
+        firmId,
+        userId: actor.id,
+        purpose: sensitive.SENSITIVE_PURPOSES.TEAM_MEMBER_REACTIVATE,
+        totpCode: totpCode ?? req?.body?.totpCode,
+        currentPassword: currentPassword ?? req?.body?.currentPassword,
+    });
+
     const current = await firmUsersRepository.findFirmUserByIdForFirm(firmId, memberId);
     if (!current) throw new AppError('Membro não encontrado.', 404);
+
+    // Mesma guarda de deactivateMember: sem isto, um STAFF com USERS_UPDATE (permissão
+    // por omissão) conseguia reativar um FIRM_OWNER que o dono atual tinha desativado
+    // deliberadamente (ex.: sócio afastado, ex-funcionário com acesso de owner revogado).
+    if (current.role === 'FIRM_OWNER' && !actorIsFirmOwner(actor)) {
+        throw new AppError('Apenas o dono do escritório pode reativar outro dono.', 403, {
+            code: 'OWNER_ROLE_FORBIDDEN',
+        });
+    }
 
     const updated = await firmUsersRepository.setFirmMemberActive(firmId, memberId, true);
     await securityAudit.recordTeamMutation({

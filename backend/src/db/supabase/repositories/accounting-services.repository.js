@@ -19,7 +19,15 @@ function map(row) {
     slug: row.slug || null,
     isPubliclyListed: Boolean(row.is_publicly_listed),
     requiresBooking: Boolean(row.requires_booking),
+    groupId: row.group_id || null,
+    // publicGroup aqui é o valor legado (texto livre) -- o service layer sobrepõe
+    // este campo com o nome do grupo real quando groupId está definido (ver
+    // accounting-services.service.js#resolvePublicGroupNames).
     publicGroup: row.public_group ? String(row.public_group) : null,
+    imageOriginalUrl: row.image_original_url || null,
+    imageFocusX: row.image_focus_x != null ? Number(row.image_focus_x) : null,
+    imageFocusY: row.image_focus_y != null ? Number(row.image_focus_y) : null,
+    imageZoom: row.image_zoom != null ? Number(row.image_zoom) : null,
     intakeStartMode: row.intake_start_mode === 'calendar' ? 'calendar' : 'form',
     documentRequirements: Array.isArray(row.document_requirements) ? row.document_requirements : [],
     intakeForm: row.intake_form || null,
@@ -63,6 +71,10 @@ async function createRow({
   name,
   description,
   imageUrl,
+  imageOriginalUrl,
+  imageFocusX,
+  imageFocusY,
+  imageZoom,
   durationMinutes,
   priceCents,
   currency,
@@ -72,6 +84,7 @@ async function createRow({
   slug,
   isPubliclyListed,
   requiresBooking,
+  groupId,
   publicGroup,
   intakeStartMode,
   documentRequirements,
@@ -90,6 +103,10 @@ async function createRow({
       name: String(name).trim(),
       description: description != null ? String(description).trim() : null,
       image_url: imageUrl || null,
+      image_original_url: imageOriginalUrl || null,
+      image_focus_x: imageFocusX ?? null,
+      image_focus_y: imageFocusY ?? null,
+      image_zoom: imageZoom ?? null,
       duration_minutes: durationMinutes ?? 60,
       price_cents: priceCents ?? 0,
       price_tax_mode: priceTaxMode || null,
@@ -99,6 +116,7 @@ async function createRow({
       slug: slug || null,
       is_publicly_listed: isPubliclyListed === true,
       requires_booking: requiresBooking === true,
+      group_id: groupId || null,
       public_group: publicGroup || null,
       intake_start_mode: intakeStartMode === 'calendar' ? 'calendar' : 'form',
       document_requirements: Array.isArray(documentRequirements) ? documentRequirements : [],
@@ -136,6 +154,10 @@ async function updateRow(id, firmId, patch) {
   if (patch.imageUrl !== undefined) {
     row.image_url = patch.imageUrl || null;
   }
+  if (patch.imageOriginalUrl !== undefined) row.image_original_url = patch.imageOriginalUrl || null;
+  if (patch.imageFocusX !== undefined) row.image_focus_x = patch.imageFocusX;
+  if (patch.imageFocusY !== undefined) row.image_focus_y = patch.imageFocusY;
+  if (patch.imageZoom !== undefined) row.image_zoom = patch.imageZoom;
   if (patch.durationMinutes !== undefined) row.duration_minutes = patch.durationMinutes;
   if (patch.priceCents !== undefined) row.price_cents = patch.priceCents;
   if (patch.priceTaxMode !== undefined) {
@@ -147,6 +169,7 @@ async function updateRow(id, firmId, patch) {
   if (patch.slug !== undefined) row.slug = patch.slug || null;
   if (patch.isPubliclyListed !== undefined) row.is_publicly_listed = Boolean(patch.isPubliclyListed);
   if (patch.requiresBooking !== undefined) row.requires_booking = Boolean(patch.requiresBooking);
+  if (patch.groupId !== undefined) row.group_id = patch.groupId || null;
   if (patch.publicGroup !== undefined) row.public_group = patch.publicGroup || null;
   if (patch.intakeStartMode !== undefined) {
     row.intake_start_mode = patch.intakeStartMode === 'calendar' ? 'calendar' : 'form';

@@ -7,6 +7,10 @@ import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { PasswordInput } from '@/shared/components/ui/password-input'
 import { Label } from '@/shared/components/ui/label'
+import {
+  SensitiveActionConfirmFields,
+  sensitiveConfirmReady,
+} from '@/shared/components/security/SensitiveActionConfirmFields'
 import { firmSettingsApi } from '@/infrastructure/api/contabil/firmSettings'
 import type { FirmSettingsBundle } from '@/shared/types/firmSettings'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -26,11 +30,15 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
   const [fullName, setFullName] = useState(bundle.actor.fullName)
   const [email, setEmail] = useState(bundle.actor.email)
   const [saving, setSaving] = useState(false)
+  const [mfaEnabled, setMfaEnabled] = useState(false)
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [savingPassword, setSavingPassword] = useState(false)
+  const [profileTotp, setProfileTotp] = useState('')
+  const [profileConfirmPassword, setProfileConfirmPassword] = useState('')
+  const [passwordTotp, setPasswordTotp] = useState('')
 
   const hasPassword = bundle.actor.hasPassword !== false
   const hasVaultPassword = Boolean(bundle.actor.hasVaultPassword)
@@ -41,16 +49,49 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
     setEmail(bundle.actor.email)
   }, [bundle])
 
+  useEffect(() => {
+    let cancelled = false
+    void authApi
+      .mfaStatus()
+      .then((data: { mfaEnabled?: boolean }) => {
+        if (!cancelled) setMfaEnabled(data?.mfaEnabled === true)
+      })
+      .catch(() => {
+        if (!cancelled) setMfaEnabled(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [user?.id])
+
+  const emailChanging =
+    email.trim().toLowerCase() !== String(bundle.actor.email || '').trim().toLowerCase()
+
   const onSave = async () => {
+    if (emailChanging && !sensitiveConfirmReady(mfaEnabled, profileTotp, profileConfirmPassword)) {
+      toast.error(
+        mfaEnabled
+          ? 'Introduza o código da aplicação autenticadora para alterar o e-mail.'
+          : 'Introduza a palavra-passe de login para alterar o e-mail.',
+      )
+      return
+    }
     setSaving(true)
     try {
       await firmSettingsApi.patchProfile({
         fullName: fullName.trim(),
         email: email.trim(),
+        ...(emailChanging
+          ? mfaEnabled
+            ? { totpCode: profileTotp.trim() }
+            : { currentPassword: profileConfirmPassword }
+          : {}),
       })
       const me = await authApi.me()
       const normalized = tryNormalizeAuthUser(me?.user)
       if (normalized) setUser(normalized)
+      setProfileTotp('')
+      setProfileConfirmPassword('')
       toast.success('O seu perfil foi actualizado.')
       onUpdated()
     } catch (err) {
@@ -73,16 +114,22 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
       toast.error(passwordPolicyMessages.minLength)
       return
     }
+    if (mfaEnabled && passwordTotp.trim().length !== 6) {
+      toast.error('Introduza o código da aplicação autenticadora para alterar a palavra-passe.')
+      return
+    }
     setSavingPassword(true)
     try {
       await firmSettingsApi.changePassword({
         currentPassword,
         newPassword,
+        ...(mfaEnabled ? { totpCode: passwordTotp.trim() } : {}),
       })
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
-      toast.success('Palavra-passe actualizada.')
+      setPasswordTotp('')
+      toast.success('Palavra-passe actualizada. As outras sessões foram terminadas.')
     } catch (err) {
       toast.error('Não foi possível alterar a palavra-passe', { description: getErrorMessage(err) })
     } finally {
@@ -171,6 +218,19 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
               />
             </div>
           </div>
+          {emailChanging ? (
+            <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
+              <SensitiveActionConfirmFields
+                idPrefix="profile-email"
+                mfaEnabled={mfaEnabled}
+                totpCode={profileTotp}
+                currentPassword={profileConfirmPassword}
+                onTotpChange={setProfileTotp}
+                onPasswordChange={setProfileConfirmPassword}
+                passwordMode="login"
+              />
+            </div>
+          ) : null}
           <Button type="button" className="rounded-lg" disabled={saving} onClick={() => void onSave()}>
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
             Guardar perfil
@@ -220,6 +280,18 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
                   O campo começa vazio de propósito — a palavra-passe não fica guardada em texto. O olho só mostra o que está a escrever agora.
                 </p>
               </div>
+              {mfaEnabled ? (
+                <div className="space-y-2 sm:col-span-2">
+                  <SensitiveActionConfirmFields
+                    idPrefix="profile-password"
+                    mfaEnabled
+                    totpCode={passwordTotp}
+                    currentPassword=""
+                    onTotpChange={setPasswordTotp}
+                    onPasswordChange={() => undefined}
+                  />
+                </div>
+              ) : null}
               <div className="space-y-2">
                 <Label htmlFor="new-password">Nova palavra-passe</Label>
                 <PasswordInput
@@ -276,6 +348,7 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
         </div>
         <VaultPasswordSetupForm
           userId={user?.id || bundle.actor.id}
+          mfaEnabled={mfaEnabled}
           hasVaultPassword={hasVaultPassword}
           hasLoginPassword={hasPassword}
           hideIntro

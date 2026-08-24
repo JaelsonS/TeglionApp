@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -28,6 +28,7 @@ import type { FormChangeEvent, FormSubmitEvent } from '@/shared/types/react-even
 import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
 import { TeglionPublicCredit } from '@/features/public-intake/TeglionPublicCredit'
 import { PublicSlotCalendar } from '@/features/public-intake/PublicSlotCalendar'
+import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
 
 function formatScheduledAt(iso: string) {
   return new Date(iso).toLocaleString('pt-PT', {
@@ -388,6 +389,68 @@ export function ServiceIntakePublicPage() {
     )
   }
 
+  // Oferta composta: o cliente escolhe uma opção real; o booking usa o service_id do filho.
+  if (service.hasOptions && (service.options?.length || 0) > 0) {
+    return (
+      <div className="mx-auto min-h-screen max-w-xl bg-background px-4 py-10">
+        <header className="mb-6 space-y-2">
+          {service.logoUrl ? (
+            <img
+              src={service.logoUrl}
+              alt={service.firmName || ''}
+              className="mb-2 h-10 w-auto max-w-[200px] object-contain"
+            />
+          ) : (
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{service.firmName}</p>
+          )}
+          {service.imageUrl ? (
+            <div className="mb-3 h-48 w-full overflow-hidden rounded-xl">
+              <img src={service.imageUrl} alt="" className="h-full w-full" style={servicePositionedImageStyle(service)} />
+            </div>
+          ) : null}
+          <h1 className="text-2xl font-bold text-[hsl(var(--brand-text,var(--foreground)))]">{service.serviceName}</h1>
+          {service.description ? (
+            <SanitizedServiceHtml html={service.description} className="text-sm text-muted-foreground" />
+          ) : null}
+        </header>
+
+        <section className="space-y-3 rounded-2xl border border-border/50 bg-card p-6 shadow-sm" data-testid="service-offer-options">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Escolha o tipo de serviço que pretende</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Cada opção tem o seu preço, duração e disponibilidade. Depois de escolher, continua o pedido
+              nessa modalidade.
+            </p>
+          </div>
+          <ul className="space-y-2">
+            {service.options!.map((opt) => (
+              <li key={opt.slug}>
+                <Link
+                  to={`/${encodeURIComponent(firmSlug!)}/servicos/${encodeURIComponent(opt.slug)}`}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-background px-4 py-3 transition hover:border-primary/40 hover:shadow-sm"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-foreground">{opt.name}</span>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">
+                      {opt.durationMinutes} min
+                      {opt.requiresBooking ? ' · com agendamento' : ''}
+                    </span>
+                  </span>
+                  {service.showPrices !== false && opt.priceCents > 0 ? (
+                    <span className="shrink-0 text-sm font-semibold text-[hsl(var(--brand-text,var(--primary)))]">
+                      {(opt.priceCents / 100).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}
+                    </span>
+                  ) : null}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <TeglionPublicCredit visible={service.showTeglionCredit} />
+      </div>
+    )
+  }
+
   const identityFields = (
     <>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -467,7 +530,9 @@ export function ServiceIntakePublicPage() {
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{service.firmName}</p>
         )}
         {service.imageUrl ? (
-          <img src={service.imageUrl} alt="" className="mb-3 max-h-48 w-full rounded-xl object-cover" />
+          <div className="mb-3 h-48 w-full overflow-hidden rounded-xl">
+            <img src={service.imageUrl} alt="" className="h-full w-full" style={servicePositionedImageStyle(service)} />
+          </div>
         ) : null}
         <h1 className="text-2xl font-bold text-[hsl(var(--brand-text,var(--foreground)))]">{service.serviceName}</h1>
         {service.description ? <SanitizedServiceHtml html={service.description} className="text-sm text-muted-foreground" /> : null}

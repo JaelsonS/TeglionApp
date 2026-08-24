@@ -14,6 +14,9 @@ import { RequireClientFirmAccess } from '@/shared/components/layout/RequireClien
 import { PageRouteFallback } from '@/shared/components/layout/PageRouteFallback'
 
 const FirmLoginPage = lazy(() => import('@/features/auth/firm/FirmLoginPage').then((m) => ({ default: m.FirmLoginPage })))
+const FirmMfaChallengePage = lazy(() =>
+  import('@/features/auth/firm/FirmMfaChallengePage').then((m) => ({ default: m.FirmMfaChallengePage })),
+)
 const ClientLoginPage = lazy(() => import('@/features/auth/client/ClientLoginPage').then((m) => ({ default: m.ClientLoginPage })))
 const FirmRegisterPage = lazy(() =>
   import('@/features/auth/firm/FirmRegisterPage').then((m) => ({ default: m.FirmRegisterPage })),
@@ -180,6 +183,7 @@ export function ContabilAppRouter() {
 
         <Route path="/auth" element={<AuthProfileChoicePage />} />
         <Route path="/auth/firm/login" element={<FirmLoginPage />} />
+        <Route path="/auth/firm/mfa" element={<FirmMfaChallengePage />} />
         <Route path="/auth/firm/register" element={<FirmRegisterPage />} />
         <Route path="/auth/firm/register/google" element={<FirmRegisterGooglePage />} />
         <Route path="/auth/firm/convite/:token" element={<FirmInviteRegisterPage />} />

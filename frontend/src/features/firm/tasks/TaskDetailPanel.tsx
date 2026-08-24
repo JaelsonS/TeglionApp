@@ -9,6 +9,7 @@ import {
   FileUp,
   History,
   MessageSquare,
+  Pencil,
   RotateCcw,
   Scale,
   Trash2,
@@ -20,6 +21,7 @@ import { toast } from 'sonner'
 import type { WorkspaceTaskStatus } from '@/infrastructure/api/contabil/tasks'
 import { tasksApi } from '@/infrastructure/api/contabil/tasks'
 import { PRIORITY_LABEL, STATUS_LABEL } from '@/features/firm/tasks/taskWorkspaceConstants'
+import { TaskEditDialog, buildTaskEditPatch } from '@/features/firm/tasks/TaskEditDialog'
 import { DocumentPreviewModal } from '@/shared/components/contabil/DocumentPreviewModal'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -30,16 +32,19 @@ import { formatTaskDueDate, formatTaskTitle } from '@/shared/utils/taskDisplay'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { formatPtDate } from '@/shared/utils/contabilLocale'
 import { cn } from '@/shared/lib/utils'
+import type { Client } from '@/shared/types/clients'
 
 type Props = {
   taskId: string | null
   teamNames: Map<string, string>
+  clients: Client[]
+  teamItems: { id: string; fullName?: string; email?: string }[]
   onClose: () => void
   onMutate: () => void
   embedded?: boolean
 }
 
-export function TaskDetailPanel({ taskId, teamNames, onClose, onMutate, embedded = true }: Props) {
+export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose, onMutate, embedded = true }: Props) {
   const { data, isLoading, refetch } = useTaskDetail(taskId)
   const patchTask = usePatchTask()
   const commentMut = useTaskComment()
@@ -48,6 +53,7 @@ export function TaskDetailPanel({ taskId, teamNames, onClose, onMutate, embedded
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewTitle, setPreviewTitle] = useState('')
+  const [editOpen, setEditOpen] = useState(false)
 
   const task = data?.task
   const timeline = data?.timeline || []
@@ -99,6 +105,22 @@ export function TaskDetailPanel({ taskId, teamNames, onClose, onMutate, embedded
     },
     [taskId, onMutate, refetch],
   )
+
+  const handleEditSubmit = async (values: Parameters<typeof buildTaskEditPatch>[0]) => {
+    if (!task) return
+    patchTask.mutate(
+      { id: task.id, patch: buildTaskEditPatch(values) },
+      {
+        onSuccess: () => {
+          toast.success('Tarefa atualizada')
+          setEditOpen(false)
+          onMutate()
+          void refetch()
+        },
+        onError: (e) => toast.error(getErrorMessage(e)),
+      },
+    )
+  }
 
   const openDocPreview = async (docId: string, title: string) => {
     setPreviewTitle(title)
@@ -198,27 +220,24 @@ export function TaskDetailPanel({ taskId, teamNames, onClose, onMutate, embedded
                   </Link>
                 </Button>
               ) : null}
-              {task.clientId ? (
-                <>
-                  <Button size="sm" variant="outline" className="rounded-full" asChild>
-                    <Link to={`/app/firm/clients/${task.clientId}`}>
+              {(task.clients?.length ? task.clients : task.clientId ? [{ id: task.clientId, name: task.clientName || null }] : []).length ? (
+                (task.clients?.length ? task.clients : [{ id: task.clientId as string, name: task.clientName || null }]).map((c) => (
+                  <Button key={c.id} size="sm" variant="outline" className="rounded-full" asChild>
+                    <Link to={`/app/firm/clients/${c.id}`}>
                       <ExternalLink className="mr-1.5 h-4 w-4" />
-                      Área do cliente
+                      {c.name || 'Área do cliente'}
                     </Link>
                   </Button>
-                  <Button size="sm" variant="outline" className="rounded-full" asChild>
-                    <Link to={`/app/firm/documents/requests?client=${task.clientId}`}>
-                      <MessageSquare className="mr-1.5 h-4 w-4" />
-                      Mensagens
-                    </Link>
-                  </Button>
-                </>
+                ))
               ) : (
                 <p className="text-xs text-muted-foreground">Tarefa do escritório — sem cliente da carteira.</p>
               )}
             </div>
 
             <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="secondary" className="rounded-full" onClick={() => setEditOpen(true)}>
+                <Pencil className="mr-1 h-3.5 w-3.5" /> Editar
+              </Button>
               <Button size="sm" variant="secondary" className="rounded-full" onClick={() => run(() => tasksApi.duplicate(task.id), 'Duplicada')}>
                 <Copy className="mr-1 h-3.5 w-3.5" /> Duplicar
               </Button>
@@ -345,6 +364,16 @@ export function TaskDetailPanel({ taskId, teamNames, onClose, onMutate, embedded
         }}
         title={previewTitle}
         previewUrl={previewUrl}
+      />
+
+      <TaskEditDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        task={task || null}
+        clients={clients}
+        teamItems={teamItems}
+        onSubmit={handleEditSubmit}
+        saving={patchTask.isPending}
       />
     </aside>
   )

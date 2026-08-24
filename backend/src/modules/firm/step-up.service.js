@@ -5,16 +5,16 @@
  * Recuo: palavra-passe de login (password_hash), para quem ainda não criou a do cofre.
  * Contas Google sem nenhuma das duas: orientar a criar a palavra-passe do cofre.
  *
- * Depois de confirmar, pode emitir um JWT curto (typ=vault-stepup, 8h) para
- * não pedir a senha a cada clique nesta sessão do browser. Esse JWT NÃO autentica
+ * Depois de confirmar, pode emitir um JWT curto (typ=vault-stepup, 10m) purpose-bound
+ * para não pedir o fator a cada clique da mesma acção. Esse JWT NÃO autentica
  * o login — o middleware de sessão rejeita-o.
  *
- * MFA/TOTP: não nesta versão.
+ * MFA/TOTP: sensitive-action.service assertVaultSensitiveUnlock.
  */
 const { AppError } = require('../../middlewares/error.middleware');
 const passwordCrypto = require('../../utils/password-crypto');
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
-const { signVaultStepUpToken, verifyVaultStepUpToken } = require('../../config/jwt');
+const { signVaultStepUpToken, verifyVaultStepUpToken, VAULT_STEPUP_PURPOSES } = require('../../config/jwt');
 
 function invalidUnlockError() {
   return new AppError('Palavra-passe incorrecta. Confirme a palavra-passe dos Acessos oficiais.', 403, {
@@ -30,19 +30,24 @@ function noUnlockSecretError() {
   );
 }
 
-function issueVaultStepUp({ firmId, userId }) {
-  const token = signVaultStepUpToken({ id: String(userId), firmId: String(firmId) });
-  const payload = verifyVaultStepUpToken(token);
+function issueVaultStepUp({ firmId, userId, purpose }) {
+  const token = signVaultStepUpToken({
+    id: String(userId),
+    firmId: String(firmId),
+    purpose: String(purpose),
+  });
+  const payload = verifyVaultStepUpToken(token, { purpose });
   return {
     stepUpToken: token,
     stepUpExpiresAt: payload.exp ? new Date(payload.exp * 1000).toISOString() : null,
+    stepUpPurpose: payload.purpose,
   };
 }
 
-function readValidStepUpToken({ firmId, userId, stepUpToken }) {
+function readValidStepUpToken({ firmId, userId, stepUpToken, purpose }) {
   if (!stepUpToken) return null;
   try {
-    const payload = verifyVaultStepUpToken(String(stepUpToken));
+    const payload = verifyVaultStepUpToken(String(stepUpToken), { purpose });
     if (String(payload.id) !== String(userId) || String(payload.firmId) !== String(firmId)) {
       return null;
     }
@@ -73,15 +78,16 @@ async function verifyStaffPassword({
   currentPassword,
   stepUpToken = null,
   rememberSession = false,
+  purpose = VAULT_STEPUP_PURPOSES.MUTATE,
 }) {
   const actor = await firmUsersRepository.findFirmUserById(userId, firmId);
   if (!actor || String(actor.firm_id) !== String(firmId) || actor.is_active === false) {
     throw new AppError('Utilizador não encontrado', 404, { code: 'USER_NOT_FOUND' });
   }
 
-  const tokenPayload = readValidStepUpToken({ firmId, userId, stepUpToken });
+  const tokenPayload = readValidStepUpToken({ firmId, userId, stepUpToken, purpose });
   if (tokenPayload) {
-    const issued = rememberSession !== false ? issueVaultStepUp({ firmId, userId }) : {};
+    const issued = rememberSession !== false ? issueVaultStepUp({ firmId, userId, purpose }) : {};
     return { actor, ...issued };
   }
 
@@ -94,7 +100,7 @@ async function verifyStaffPassword({
   const ok = await passwordCrypto.verifyPassword(String(currentPassword || ''), vaultHash || loginHash);
   if (!ok) throw invalidUnlockError();
 
-  const issued = rememberSession ? issueVaultStepUp({ firmId, userId }) : {};
+  const issued = rememberSession ? issueVaultStepUp({ firmId, userId, purpose }) : {};
   return { actor, ...issued };
 }
 
@@ -103,4 +109,6 @@ module.exports = {
   actorHasLocalPassword,
   getUnlockState,
   issueVaultStepUp,
+  readValidStepUpToken,
+  VAULT_STEPUP_PURPOSES,
 };

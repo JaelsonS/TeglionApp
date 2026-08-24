@@ -6,6 +6,7 @@ const firmUsersRepository = require('../../db/supabase/repositories/firm-users.r
 const authRefreshSessionsRepository = require('../../db/supabase/repositories/auth-refresh-sessions.repository');
 const firmInquiryTagsRepository = require('../../db/supabase/repositories/firm-inquiry-tags.repository');
 const securityAudit = require('../../services/audit/security-audit.service');
+const sensitiveAction = require('../security/sensitive-action.service');
 const teamService = require('./team.service');
 
 const FIRM_ID = 'firm-x';
@@ -14,6 +15,14 @@ const STAFF = { id: 'staff-1', role: 'FIRM_STAFF' };
 
 function resetMocks() {
   mock.restoreAll();
+  mock.method(sensitiveAction, 'confirmSensitiveAction', async () => ({
+    method: 'test',
+    purpose: 'test',
+  }));
+}
+
+function mockSensitiveOk() {
+  // confirmSensitiveAction já mockado em resetMocks
 }
 
 /** I/O de etiquetas: só stubs de rede — mapLinkRowsToTagsByKey fica real (puro). */
@@ -36,6 +45,7 @@ function baseMember(overrides = {}) {
 
 test('deactivateMember: revoga todas as sessões de refresh do membro desativado', async () => {
   resetMocks();
+  mockSensitiveOk();
   mockTags();
   const member = baseMember();
   mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => member);
@@ -48,13 +58,20 @@ test('deactivateMember: revoga todas as sessões de refresh do membro desativado
   });
   mock.method(securityAudit, 'recordTeamMutation', async () => {});
 
-  await teamService.deactivateMember({ firmId: FIRM_ID, memberId: member.id, actor: OWNER, req: {} });
+  await teamService.deactivateMember({
+    firmId: FIRM_ID,
+    memberId: member.id,
+    actor: OWNER,
+    req: {},
+    totpCode: '123456',
+  });
 
   assert.deepEqual(revokedCall, { actorType: 'firm_user', actorId: member.id });
 });
 
 test('deactivateMember: sinaliza sessionsRevoked no registo de auditoria', async () => {
   resetMocks();
+  mockSensitiveOk();
   mockTags();
   const member = baseMember();
   mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => member);
@@ -67,13 +84,20 @@ test('deactivateMember: sinaliza sessionsRevoked no registo de auditoria', async
     auditMetadata = metadata;
   });
 
-  await teamService.deactivateMember({ firmId: FIRM_ID, memberId: member.id, actor: OWNER, req: {} });
+  await teamService.deactivateMember({
+    firmId: FIRM_ID,
+    memberId: member.id,
+    actor: OWNER,
+    req: {},
+    totpCode: '123456',
+  });
 
   assert.equal(auditMetadata.sessionsRevoked, true);
 });
 
 test('deactivateMember: não revoga sessão se o próprio utilizador tentar desativar-se', async () => {
   resetMocks();
+  mockSensitiveOk();
   const member = baseMember({ id: OWNER.id });
   mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => member);
 
@@ -83,7 +107,14 @@ test('deactivateMember: não revoga sessão se o próprio utilizador tentar desa
   });
 
   await assert.rejects(
-    () => teamService.deactivateMember({ firmId: FIRM_ID, memberId: member.id, actor: OWNER, req: {} }),
+    () =>
+      teamService.deactivateMember({
+        firmId: FIRM_ID,
+        memberId: member.id,
+        actor: OWNER,
+        req: {},
+        totpCode: '123456',
+      }),
     /próprio/,
   );
   assert.equal(called, false);
@@ -212,4 +243,153 @@ test('assertActorCanAssignRole: staff não pode atribuir FIRM_OWNER', () => {
     () => teamService.assertActorCanAssignRole(STAFF, 'FIRM_OWNER'),
     (err) => err?.details?.code === 'OWNER_ROLE_FORBIDDEN',
   );
+});
+
+test('reactivateMember: staff NÃO pode reativar um FIRM_OWNER desativado (regressão P2)', async () => {
+  resetMocks();
+  const ownerMember = baseMember({ id: 'owner-2', role: 'FIRM_OWNER', isActive: false });
+  mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => ownerMember);
+
+  let called = false;
+  mock.method(firmUsersRepository, 'setFirmMemberActive', async () => {
+    called = true;
+    return { ...ownerMember, isActive: true };
+  });
+
+  await assert.rejects(
+    () =>
+      teamService.reactivateMember({
+        firmId: FIRM_ID,
+        memberId: ownerMember.id,
+        actor: STAFF,
+        req: {},
+      }),
+    (err) => err?.statusCode === 403 && err?.details?.code === 'OWNER_ROLE_FORBIDDEN',
+  );
+  assert.equal(called, false, 'setFirmMemberActive nunca deve ser chamado quando a guarda bloqueia');
+});
+
+test('reactivateMember: owner PODE reativar outro owner (sem regressão)', async () => {
+  resetMocks();
+  mockTags();
+  const ownerMember = baseMember({ id: 'owner-2', role: 'FIRM_OWNER', isActive: false });
+  mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => ownerMember);
+  mock.method(firmUsersRepository, 'setFirmMemberActive', async () => ({ ...ownerMember, isActive: true }));
+  mock.method(securityAudit, 'recordTeamMutation', async () => {});
+
+  const result = await teamService.reactivateMember({
+    firmId: FIRM_ID,
+    memberId: ownerMember.id,
+    actor: OWNER,
+    req: {},
+  });
+  assert.equal(result.role, 'FIRM_OWNER');
+});
+
+test('reactivateMember: exige o mesmo step-up sensível de deactivateMember (F-01)', async () => {
+  resetMocks();
+  mockTags();
+  const member = baseMember({ isActive: false });
+  mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => member);
+  mock.method(firmUsersRepository, 'setFirmMemberActive', async () => ({ ...member, isActive: true }));
+  mock.method(securityAudit, 'recordTeamMutation', async () => {});
+
+  let confirmCall = null;
+  mock.method(sensitiveAction, 'confirmSensitiveAction', async (args) => {
+    confirmCall = args;
+    return { method: 'mfa_totp', purpose: args.purpose };
+  });
+
+  await teamService.reactivateMember({
+    firmId: FIRM_ID,
+    memberId: member.id,
+    actor: OWNER,
+    req: {},
+    totpCode: '123456',
+  });
+
+  assert.equal(confirmCall.purpose, sensitiveAction.SENSITIVE_PURPOSES.TEAM_MEMBER_REACTIVATE);
+  assert.equal(confirmCall.firmId, FIRM_ID);
+  assert.equal(confirmCall.userId, OWNER.id);
+  assert.equal(confirmCall.totpCode, '123456');
+});
+
+test('reactivateMember: sem step-up válido, rejeita e nunca reativa (sem bypass)', async () => {
+  resetMocks();
+  const member = baseMember({ isActive: false });
+  mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => member);
+
+  mock.method(sensitiveAction, 'confirmSensitiveAction', async () => {
+    const err = new Error('Para confirmar esta operação, introduza o código de segurança.');
+    err.statusCode = 403;
+    err.details = { code: 'SENSITIVE_ACTION_MFA_REQUIRED' };
+    throw err;
+  });
+
+  let called = false;
+  mock.method(firmUsersRepository, 'setFirmMemberActive', async () => {
+    called = true;
+    return { ...member, isActive: true };
+  });
+
+  await assert.rejects(
+    () =>
+      teamService.reactivateMember({
+        firmId: FIRM_ID,
+        memberId: member.id,
+        actor: OWNER,
+        req: {},
+      }),
+    (err) => err?.statusCode === 403 && err?.details?.code === 'SENSITIVE_ACTION_MFA_REQUIRED',
+  );
+  assert.equal(called, false, 'setFirmMemberActive nunca deve ser chamado sem o factor sensível confirmado');
+});
+
+test('updateMember: não é possível rebaixar o último FIRM_OWNER ativo (regressão P2 — TOCTOU/invariante)', async () => {
+  resetMocks();
+  const soleOwner = baseMember({ id: OWNER.id, role: 'FIRM_OWNER' });
+  mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => soleOwner);
+  mock.method(firmUsersRepository, 'listFirmUsers', async () => [soleOwner]);
+
+  let called = false;
+  mock.method(firmUsersRepository, 'updateFirmMember', async () => {
+    called = true;
+    return { ...soleOwner, role: 'FIRM_STAFF' };
+  });
+
+  await assert.rejects(
+    () =>
+      teamService.updateMember({
+        firmId: FIRM_ID,
+        memberId: soleOwner.id,
+        actor: OWNER,
+        payload: { role: 'FIRM_STAFF' },
+        req: {},
+      }),
+    (err) => err?.statusCode === 400 && err?.details?.code === 'LAST_OWNER_FORBIDDEN',
+  );
+  assert.equal(called, false, 'updateFirmMember nunca deve ser chamado quando a guarda bloqueia');
+});
+
+test('updateMember: rebaixar um owner é permitido quando há outro owner ativo (sem regressão)', async () => {
+  resetMocks();
+  mockTags();
+  let current = baseMember({ id: 'owner-2', role: 'FIRM_OWNER' });
+  const otherOwner = baseMember({ id: OWNER.id, role: 'FIRM_OWNER' });
+  mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => current);
+  mock.method(firmUsersRepository, 'listFirmUsers', async () => [current, otherOwner]);
+  mock.method(firmUsersRepository, 'updateFirmMember', async (_firmId, _id, patch) => {
+    current = { ...current, ...patch };
+    return current;
+  });
+  mock.method(securityAudit, 'recordTeamMutation', async () => {});
+
+  const updated = await teamService.updateMember({
+    firmId: FIRM_ID,
+    memberId: current.id,
+    actor: OWNER,
+    payload: { role: 'FIRM_STAFF' },
+    req: {},
+  });
+  assert.equal(updated.role, 'FIRM_STAFF');
 });

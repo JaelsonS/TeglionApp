@@ -8,6 +8,7 @@ import {
   ImageIcon,
   Info,
   Shield,
+  Lock,
   Tag,
   User,
   Users,
@@ -25,6 +26,7 @@ import { FirmSettingsProfileSection } from '@/features/firm/settings/FirmSetting
 import { FirmSettingsTeamSection } from '@/features/firm/settings/FirmSettingsTeamSection'
 import { FirmSettingsTagsSection } from '@/features/firm/settings/FirmSettingsTagsSection'
 import { FirmSettingsNotificationsSection } from '@/features/firm/settings/FirmSettingsNotificationsSection'
+import { FirmSettingsSecuritySection } from '@/features/firm/settings/FirmSettingsSecuritySection'
 import { FirmConnectPaymentsSection } from '@/features/firm/settings/FirmConnectPaymentsSection'
 import { FirmAboutPanel, FirmHelpSupportPanel } from '@/features/firm/support/FirmSupportPanels'
 import { AskMayaButton } from '@/features/maya'
@@ -37,6 +39,7 @@ const TABS = [
   { id: 'escritorio', label: 'Escritório', shortLabel: 'Escritório', icon: Building2, danger: false },
   { id: 'pagamentos', label: 'Pagamentos', shortLabel: 'Pagamentos', icon: CreditCard, danger: false },
   { id: 'perfil', label: 'O seu perfil', shortLabel: 'Perfil', icon: User, danger: false },
+  { id: 'seguranca', label: 'Segurança', shortLabel: 'Segurança', icon: Lock, danger: false },
   { id: 'equipa', label: 'Equipa', shortLabel: 'Equipa', icon: Users, danger: false },
   { id: 'etiquetas', label: 'Etiquetas', shortLabel: 'Tags', icon: Tag, danger: false },
   { id: 'notificacoes', label: 'Notificações', shortLabel: 'Avisos', icon: Shield, danger: false },
@@ -189,6 +192,8 @@ export function FirmSettingsPage() {
                       'Receber dos clientes via Stripe Connect, na conta bancária do escritório — separado da subscrição Teglion (Plano).'}
                     {activeTab === 'perfil' &&
                       'O seu nome, e-mail de acesso, palavra-passe e cofre dos acessos oficiais.'}
+                    {activeTab === 'seguranca' &&
+                      'Autenticação de dois factores com aplicação autenticadora, códigos de recuperação e política por função.'}
                     {activeTab === 'equipa' &&
                       'Colaboradores, convites, cargos, departamentos e permissões — o dono define quem faz o quê.'}
                     {activeTab === 'etiquetas' &&
@@ -231,6 +236,8 @@ export function FirmSettingsPage() {
               {activeTab === 'perfil' ? (
                 <FirmSettingsProfileSection bundle={bundle} onUpdated={onUpdated} />
               ) : null}
+
+              {activeTab === 'seguranca' ? <FirmSettingsSecuritySection /> : null}
 
               {activeTab === 'equipa' ? <FirmSettingsTeamSection bundle={bundle} /> : null}
 

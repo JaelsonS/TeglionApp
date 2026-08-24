@@ -20,7 +20,11 @@ export function hasCustomBookingHours(overrides?: Partial<FirmBookingSettings> |
       if (Array.isArray(intervals) && intervals.length > 0) return true
     }
   }
-  return Array.isArray(overrides.weekdays) && overrides.weekdays.length > 0
+  if (Array.isArray(overrides.weekdays) && overrides.weekdays.length > 0) return true
+  if (overrides.dateOverrides && typeof overrides.dateOverrides === 'object') {
+    return Object.keys(overrides.dateOverrides).length > 0
+  }
+  return false
 }
 
 export function scheduleFromFirmBooking(
@@ -58,22 +62,59 @@ export function scheduleFromServiceOverrides(
   return Object.keys(filtered).length ? filtered : cloneBookingSchedule(firmSchedule)
 }
 
-export function bookingOverridesFromSchedule(schedule: BookingDaySchedule): {
+export function bookingOverridesFromSchedule(
+  schedule: BookingDaySchedule,
+  dateOverrides?: FirmBookingSettings['dateOverrides'],
+): {
   weekdays: number[]
   schedule: BookingDaySchedule
+  dateOverrides?: FirmBookingSettings['dateOverrides']
 } {
-  return {
+  const payload: {
+    weekdays: number[]
+    schedule: BookingDaySchedule
+    dateOverrides?: FirmBookingSettings['dateOverrides']
+  } = {
     weekdays: weekdaysFromSchedule(schedule),
     schedule: cloneBookingSchedule(schedule),
   }
+  if (dateOverrides && Object.keys(dateOverrides).length > 0) {
+    payload.dateOverrides = { ...dateOverrides }
+    for (const [date, intervals] of Object.entries(dateOverrides)) {
+      payload.dateOverrides[date] = (intervals || []).map((iv) => ({ start: iv.start, end: iv.end }))
+    }
+  }
+  return payload
 }
 
 export function bookingOverridesPayload(
   enabled: boolean,
   schedule: BookingDaySchedule,
-): { weekdays: number[]; schedule: BookingDaySchedule } | null {
+  dateOverrides?: FirmBookingSettings['dateOverrides'],
+): {
+  weekdays: number[]
+  schedule: BookingDaySchedule
+  dateOverrides?: FirmBookingSettings['dateOverrides']
+} | null {
   if (!enabled) return null
-  return bookingOverridesFromSchedule(schedule)
+  return bookingOverridesFromSchedule(schedule, dateOverrides)
+}
+
+/**
+ * Payload de `bookingOverrides` para o PATCH do serviço, a partir do estado local
+ * do editor completo. Preserva `dateOverrides` já guardado — omiti-lo faria o
+ * backend substituir a coluna inteira e apagar excepções por data já configuradas
+ * (o editor completo não tem UI para excepções por data; quem edita isso é o
+ * painel de horários da Agenda — aqui só precisamos de não as destruir).
+ */
+export function computeServiceBookingOverridesPatch(
+  bookingOverrides: Partial<FirmBookingSettings> | null | undefined,
+): { weekdays: number[]; schedule?: BookingDaySchedule; dateOverrides?: FirmBookingSettings['dateOverrides'] } | null {
+  if (!hasCustomBookingHours(bookingOverrides)) return null
+  if (bookingOverrides?.schedule && Object.keys(bookingOverrides.schedule).length) {
+    return bookingOverridesPayload(true, bookingOverrides.schedule, bookingOverrides.dateOverrides)
+  }
+  return { weekdays: bookingOverrides?.weekdays || [], dateOverrides: bookingOverrides?.dateOverrides }
 }
 
 export function defaultIntervalFromSchedule(schedule: BookingDaySchedule): TimeInterval {
@@ -97,4 +138,55 @@ export function summarizeBookingSchedule(schedule: BookingDaySchedule): string {
 
 export function serviceAvailabilityLabel(service: AccountingService): 'custom' | 'inherited' {
   return hasCustomBookingHours(service.bookingOverrides) ? 'custom' : 'inherited'
+}
+
+/** Modo do serviço numa data: herda firma, fechado, ou aberto com intervalos próprios. */
+export function serviceDayModeForDate(
+  service: AccountingService,
+  date: string,
+): 'inherit' | 'closed' | 'open' {
+  const overrides = service.bookingOverrides?.dateOverrides
+  if (!overrides || !Object.prototype.hasOwnProperty.call(overrides, date)) return 'inherit'
+  const intervals = overrides[date]
+  if (!Array.isArray(intervals) || intervals.length === 0) return 'closed'
+  return 'open'
+}
+
+/**
+ * Aplica Herdar / Fechado / Aberto a `bookingOverrides` de um serviço para uma data.
+ * Devolve `null` quando o serviço volta a herdar tudo (sem horário próprio).
+ */
+export function applyServiceDayOverride(params: {
+  existing: Partial<FirmBookingSettings> | null | undefined
+  date: string
+  mode: 'inherit' | 'closed' | 'open'
+  intervals?: TimeInterval[]
+}): Partial<FirmBookingSettings> | null {
+  const { existing, date, mode, intervals } = params
+  const base: Partial<FirmBookingSettings> =
+    existing && typeof existing === 'object' ? { ...existing } : {}
+  const dateOverrides: NonNullable<FirmBookingSettings['dateOverrides']> = {
+    ...(base.dateOverrides && typeof base.dateOverrides === 'object' ? base.dateOverrides : {}),
+  }
+
+  if (mode === 'inherit') {
+    delete dateOverrides[date]
+  } else if (mode === 'closed') {
+    dateOverrides[date] = []
+  } else {
+    const list = (intervals || []).map((iv) => ({ start: iv.start, end: iv.end }))
+    dateOverrides[date] = list.length ? list : [{ start: '09:00', end: '17:00' }]
+  }
+
+  const next: Partial<FirmBookingSettings> = { ...base }
+  if (Object.keys(dateOverrides).length > 0) next.dateOverrides = dateOverrides
+  else delete next.dateOverrides
+
+  const hasSchedule =
+    !!next.schedule &&
+    Object.values(next.schedule).some((ivs) => Array.isArray(ivs) && ivs.length > 0)
+  const hasWeekdays = Array.isArray(next.weekdays) && next.weekdays.length > 0
+  const hasDates = !!next.dateOverrides && Object.keys(next.dateOverrides).length > 0
+  if (!hasSchedule && !hasWeekdays && !hasDates) return null
+  return next
 }

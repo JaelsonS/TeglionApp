@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import {
   CheckCircle2,
   ChevronDown,
@@ -18,8 +19,9 @@ import { toast } from 'sonner'
 
 import { ServiceFormPreview } from '@/features/firm/agenda/ServiceFormPreview'
 import { IntakeStartModeFields } from '@/features/firm/services/IntakeStartModeFields'
+import { ServiceOfferOptionsEditor } from '@/features/firm/services/ServiceOfferOptionsEditor'
 import { ServiceBookingAvailabilitySection } from '@/features/firm/services/ServiceBookingAvailabilitySection'
-import { bookingOverridesPayload, hasCustomBookingHours } from '@/features/firm/services/serviceBookingAvailability'
+import { computeServiceBookingOverridesPatch, hasCustomBookingHours } from '@/features/firm/services/serviceBookingAvailability'
 import {
   ServicePaymentMethodsPanel,
   type ServicePaymentMethodId,
@@ -41,14 +43,16 @@ import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
 import { Dialog, DialogContent, DialogTitle } from '@/shared/components/ui/dialog'
 import { DurationMinutesField, EuroInput, RichTextEditor, UploadDropzone } from '@/shared/design-system'
-import { ImageCropDialog } from '@/shared/components/media/ImageCropDialog'
+import { ImagePositionEditor } from '@/shared/components/media/ImagePositionEditor'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { PRICE_TAX_MODE_LABELS, type PriceTaxMode } from '@/shared/utils/priceTaxMode'
+import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
 import { cn } from '@/shared/lib/utils'
 import type {
   AccountingService,
+  AccountingServiceGroup,
   DocumentRequirement,
   DocumentTiming,
   FirmBookingSettings,
@@ -164,6 +168,8 @@ type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSaved: () => void
+  /** Catálogo do escritório — para escolher opções da oferta. */
+  catalogServices?: AccountingService[]
   /** Semente ao criar a partir de um modelo Teglion (depois de activar, passe o serviço criado). */
   initialCatalogHint?: { name?: string; catalogKey?: string } | null
 }
@@ -173,6 +179,7 @@ export function ServiceFullEditorSheet({
   open,
   onOpenChange,
   onSaved,
+  catalogServices = [],
   initialCatalogHint,
 }: Props) {
   const isCreate = !service
@@ -196,16 +203,37 @@ export function ServiceFullEditorSheet({
 
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [imageStorageKey, setImageStorageKey] = useState<string | null>(null)
+  const [imageOriginalUrl, setImageOriginalUrl] = useState<string | null>(null)
+  const [imageFocusX, setImageFocusX] = useState<number | null>(null)
+  const [imageFocusY, setImageFocusY] = useState<number | null>(null)
+  const [imageZoom, setImageZoom] = useState<number | null>(null)
   /** Só enviamos campos de imagem quando o escritório mexeu neles — reenviar
    * o `imageUrl` devolvido pela API gravaria uma URL assinada temporária. */
   const [imageDirty, setImageDirty] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [cropFile, setCropFile] = useState<File | null>(null)
-  const [cropOpen, setCropOpen] = useState(false)
+  const [positionOpen, setPositionOpen] = useState(false)
 
   const [slug, setSlug] = useState('')
   const [isPubliclyListed, setIsPubliclyListed] = useState(false)
-  const [publicGroup, setPublicGroup] = useState('')
+  const [groupId, setGroupId] = useState('')
+  const [optionServiceIds, setOptionServiceIds] = useState<string[]>([])
+
+  const groupsQuery = useQuery({
+    queryKey: ['contabil-accounting-service-groups'],
+    queryFn: () => contabilAccountingServicesApi.listGroups(),
+    staleTime: 30_000,
+    enabled: open,
+  })
+  const groups = groupsQuery.data?.items ?? []
+
+  const catalogQuery = useQuery({
+    queryKey: ['contabil-accounting-services', 'editor-catalog'],
+    queryFn: () => contabilAccountingServicesApi.list({ activeOnly: false }),
+    staleTime: 30_000,
+    enabled: open && catalogServices.length === 0,
+  })
+  const servicesForOptions =
+    catalogServices.length > 0 ? catalogServices : ((catalogQuery.data?.items as AccountingService[]) || [])
 
   const [documentRequirements, setDocumentRequirements] = useState<DocumentRequirement[]>([])
   const [questions, setQuestions] = useState<IntakeQuestion[]>([])
@@ -246,9 +274,14 @@ export function ServiceFullEditorSheet({
       setBookingOverrides(hasCustomBookingHours(service.bookingOverrides) ? service.bookingOverrides ?? null : null)
       setImageUrl(service.imageUrl ?? null)
       setImageStorageKey(service.imageStorageKey ?? null)
+      setImageOriginalUrl(service.imageOriginalUrl ?? null)
+      setImageFocusX(service.imageFocusX ?? null)
+      setImageFocusY(service.imageFocusY ?? null)
+      setImageZoom(service.imageZoom ?? null)
       setSlug(service.slug || '')
       setIsPubliclyListed(Boolean(service.isPubliclyListed))
-      setPublicGroup(service.publicGroup || '')
+      setGroupId(service.groupId || '')
+      setOptionServiceIds(service.optionServiceIds?.length ? [...service.optionServiceIds] : [])
       setDocumentRequirements(service.documentRequirements ?? [])
       setQuestions(serviceQuestions)
       setFormEnabled(serviceQuestions.length > 0)
@@ -268,9 +301,14 @@ export function ServiceFullEditorSheet({
       setBookingOverrides(null)
       setImageUrl(null)
       setImageStorageKey(null)
+      setImageOriginalUrl(null)
+      setImageFocusX(null)
+      setImageFocusY(null)
+      setImageZoom(null)
       setSlug('')
       setIsPubliclyListed(false)
-      setPublicGroup('')
+      setGroupId('')
+      setOptionServiceIds([])
       setDocumentRequirements([])
       setQuestions([])
       setFormEnabled(false)
@@ -434,24 +472,27 @@ export function ServiceFullEditorSheet({
     })
   }
 
-  /* ---------- imagem ---------- */
+  /* ---------- imagem (reposicionamento reversível — ver ImagePositionEditor) ---------- */
 
   const uploadBanner = (files: File[]) => {
     const file = files[0]
     if (!file) return
-    setCropFile(file)
-    setCropOpen(true)
-  }
-
-  const uploadCroppedBanner = (file: File) => {
     setUploading(true)
     void (async () => {
       try {
+        // Sobe a imagem ORIGINAL, sem recorte -- o enquadramento é guardado à parte
+        // (focus/zoom) e aplicado via CSS, nunca "assado" nos pixels. Isso é o que
+        // permite reabrir e reposicionar de novo meses depois.
         const res = await contabilAccountingServicesApi.uploadImage(file)
         setImageStorageKey(res.storageKey)
+        setImageOriginalUrl(res.storageKey)
         setImageUrl(res.previewUrl)
+        setImageFocusX(50)
+        setImageFocusY(50)
+        setImageZoom(1)
         setImageDirty(true)
-        toast.success('Imagem carregada — guarde o serviço para aplicar')
+        setPositionOpen(true)
+        toast.success('Imagem carregada — ajuste o enquadramento')
       } catch (err) {
         toast.error('Não foi possível carregar a imagem', { description: getErrorMessage(err) })
       } finally {
@@ -460,9 +501,20 @@ export function ServiceFullEditorSheet({
     })()
   }
 
+  const savePosition = (position: { focusX: number; focusY: number; zoom: number }) => {
+    setImageFocusX(position.focusX)
+    setImageFocusY(position.focusY)
+    setImageZoom(position.zoom)
+    setImageDirty(true)
+  }
+
   const removeBanner = () => {
     setImageStorageKey(null)
     setImageUrl(null)
+    setImageOriginalUrl(null)
+    setImageFocusX(null)
+    setImageFocusY(null)
+    setImageZoom(null)
     setImageDirty(true)
   }
 
@@ -478,11 +530,7 @@ export function ServiceFullEditorSheet({
       return
     }
     const customized = hasCustomBookingHours(bookingOverrides)
-    const nextBookingOverrides = customized
-      ? bookingOverrides?.schedule && Object.keys(bookingOverrides.schedule).length
-        ? bookingOverridesPayload(true, bookingOverrides.schedule)
-        : { weekdays: bookingOverrides?.weekdays }
-      : null
+    const nextBookingOverrides = computeServiceBookingOverridesPatch(bookingOverrides)
     if (customized && (!nextBookingOverrides?.weekdays || nextBookingOverrides.weekdays.length === 0)) {
       toast.error('Horário do serviço incompleto', {
         description: 'Escolha pelo menos um dia, ou desligue «Personalizar horários deste serviço».',
@@ -509,12 +557,21 @@ export function ServiceFullEditorSheet({
       bookingOverrides: nextBookingOverrides,
       slug: slug.trim() || null,
       isPubliclyListed,
-      publicGroup: publicGroup.trim() || null,
+      groupId: groupId || null,
+      optionServiceIds,
       paymentMethod: paymentRequired ? 'stripe_connect' : paymentMethod,
       paymentRequired,
       documentRequirements,
       intakeForm: draftIntakeForm,
-      ...(isCreate || imageDirty ? { imageStorageKey } : {}),
+      ...(isCreate || imageDirty
+        ? {
+            imageStorageKey,
+            imageOriginalUrl,
+            imageFocusX,
+            imageFocusY,
+            imageZoom,
+          }
+        : {}),
       ...(isCreate && initialCatalogHint?.catalogKey ? { catalogKey: initialCatalogHint.catalogKey } : {}),
     }
 
@@ -704,6 +761,18 @@ export function ServiceFullEditorSheet({
                   />
                 </SectionCard>
 
+                <SectionCard
+                  title="Opções do serviço"
+                  description="Transforme esta oferta numa apresentação comercial com modalidades escolhíveis pelo cliente."
+                >
+                  <ServiceOfferOptionsEditor
+                    currentServiceId={service?.id}
+                    allServices={servicesForOptions}
+                    value={optionServiceIds}
+                    onChange={setOptionServiceIds}
+                  />
+                </SectionCard>
+
                 <section className="overflow-hidden rounded-2xl border border-brand/15 bg-card shadow-sm">
                   <button
                     type="button"
@@ -759,14 +828,35 @@ export function ServiceFullEditorSheet({
               >
                 {imageUrl ? (
                   <div className="relative overflow-hidden rounded-xl border border-brand/20">
-                    <img src={imageUrl} alt="" className="max-h-56 w-full object-cover" />
-                    <button
-                      type="button"
-                      className="absolute right-2 top-2 rounded-full bg-card/90 px-3 py-1 text-xs font-medium shadow-sm"
-                      onClick={removeBanner}
-                    >
-                      Remover imagem
-                    </button>
+                    <img
+                      src={imageUrl}
+                      alt=""
+                      className="h-56 w-full"
+                      style={servicePositionedImageStyle({ imageFocusX, imageFocusY, imageZoom })}
+                    />
+                    <div className="absolute right-2 top-2 flex gap-1.5">
+                      {imageOriginalUrl ? (
+                        <button
+                          type="button"
+                          className="rounded-full bg-card/90 px-3 py-1 text-xs font-medium shadow-sm"
+                          onClick={() => setPositionOpen(true)}
+                        >
+                          Reposicionar
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        className="rounded-full bg-card/90 px-3 py-1 text-xs font-medium shadow-sm"
+                        onClick={removeBanner}
+                      >
+                        Remover imagem
+                      </button>
+                    </div>
+                    {!imageOriginalUrl ? (
+                      <p className="absolute inset-x-0 bottom-0 bg-card/90 px-3 py-1.5 text-caption text-muted-foreground">
+                        Imagem antiga (recorte fixo) — envie uma nova para poder reposicionar.
+                      </p>
+                    ) : null}
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 rounded-xl border border-dashed border-brand/20 px-3 py-4 text-xs text-muted-foreground">
@@ -1077,16 +1167,22 @@ export function ServiceFullEditorSheet({
                 </label>
                 <label className="block space-y-1 text-sm">
                   <span className="font-medium">Grupo na Página Pública (opcional)</span>
-                  <Input
-                    value={publicGroup}
-                    onChange={(e: FormChangeEvent) => setPublicGroup(e.target.value)}
-                    placeholder="Ex.: Consultoria Fiscal"
-                    maxLength={80}
-                    className="rounded-xl border-brand/20 bg-card"
-                  />
+                  <select
+                    className="h-10 w-full rounded-xl border border-brand/20 bg-card px-3 text-sm"
+                    value={groupId}
+                    onChange={(e) => setGroupId(e.target.value)}
+                  >
+                    <option value="">Sem grupo (listado individualmente)</option>
+                    {groups.map((g: AccountingServiceGroup) => (
+                      <option key={g.id} value={g.id}>
+                        {g.name}
+                        {!g.isActive ? ' (inativo)' : ''}
+                      </option>
+                    ))}
+                  </select>
                   <span className="block text-xs text-muted-foreground">
-                    Serviços com o mesmo nome de grupo aparecem juntos na página pública. Deixe vazio para listar
-                    individualmente.
+                    Serviços do mesmo grupo aparecem juntos, com dropdown, na página pública. Crie ou reordene
+                    grupos no botão "Grupos" da lista de serviços.
                   </span>
                 </label>
                 <label className="flex items-start gap-2 text-sm">
@@ -1259,16 +1355,18 @@ export function ServiceFullEditorSheet({
         </AlertDialogContent>
       </AlertDialog>
 
-      <ImageCropDialog
-        open={cropOpen}
-        onOpenChange={(next) => {
-          setCropOpen(next)
-          if (!next) setCropFile(null)
+      <ImagePositionEditor
+        open={positionOpen}
+        onOpenChange={setPositionOpen}
+        imageUrl={imageUrl}
+        initialPosition={{
+          focusX: imageFocusX ?? 50,
+          focusY: imageFocusY ?? 50,
+          zoom: imageZoom ?? 1,
         }}
-        file={cropFile}
-        title="Recortar banner do serviço"
         aspect={16 / 9}
-        onCropped={uploadCroppedBanner}
+        title="Reposicionar banner do serviço"
+        onSave={savePosition}
       />
     </>
   )

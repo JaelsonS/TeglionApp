@@ -10,6 +10,8 @@ const FOCUS_DEBOUNCE_MS = 3_000
 
 /**
  * Um único scheduler por shell (firm/client) invalida caches em vez de N intervals.
+ * Inbox NÃO é invalidado aqui — só quando o módulo de mensagens está montado
+ * (evita /inbox a cada 2 min no balde global de rate limit).
  */
 export function useAppPollingScheduler(scope: 'firm' | 'client' | 'off') {
   const qc = useQueryClient()
@@ -31,8 +33,8 @@ export function useAppPollingScheduler(scope: 'firm' | 'client' | 'off') {
 
       void qc.invalidateQueries({ queryKey: queryKeys.liveEventsRoot(scope) })
       if (scope === 'firm' && tenantSlug) {
-        void qc.invalidateQueries({ queryKey: ['firm-inbox', tenantSlug] })
         void qc.invalidateQueries({ queryKey: queryKeys.firmDashboard(tenantSlug) })
+        // nav-badges: poll próprio 3 min + onAppDataChanged — não invalidar aqui
       }
       if (scope === 'client' && clientId) {
         void qc.invalidateQueries({ queryKey: queryKeys.clientPortalHub(clientId) })

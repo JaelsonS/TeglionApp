@@ -13,6 +13,9 @@ function mapTask(row) {
     _id: row.id,
     firmId: row.firm_id,
     clientId: row.client_id,
+    // Preenchido por listTasks/findTaskById a partir de client_task_client_links (fonte
+    // de verdade). Continua [] aqui porque mapTask trabalha linha a linha, sem join.
+    clientIds: row.client_id ? [row.client_id] : [],
     obligationId: row.obligation_id,
     title: safeDecryptText(row.title),
     description: safeDecryptText(row.description),
@@ -37,6 +40,77 @@ function mapTask(row) {
   };
 }
 
+/**
+ * Vínculos M2M tarefa<->cliente (client_task_client_links) para um conjunto de tarefas.
+ * Retorna Map<taskId, string[]> (clientIds, na ordem em que foram criados).
+ */
+async function listClientLinksForTaskIds(taskIds) {
+  const ids = [...new Set((taskIds || []).filter(Boolean))];
+  const map = new Map(ids.map((id) => [id, []]));
+  if (!ids.length) return map;
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from('client_task_client_links')
+    .select('client_task_id, client_id')
+    .in('client_task_id', ids)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  for (const row of data || []) {
+    const list = map.get(row.client_task_id) || [];
+    list.push(row.client_id);
+    map.set(row.client_task_id, list);
+  }
+  return map;
+}
+
+/** IDs de tarefa vinculadas a um cliente via M2M (fonte de verdade — não usa client_id legado). */
+async function listTaskIdsForClient(firmId, clientId) {
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from('client_task_client_links')
+    .select('client_task_id')
+    .eq('firm_id', firmId)
+    .eq('client_id', clientId);
+  if (error) throw error;
+  return [...new Set((data || []).map((r) => r.client_task_id))];
+}
+
+/**
+ * Substitui o conjunto de clientes vinculados a uma tarefa (delete-all + insert), e
+ * sincroniza client_tasks.client_id (legado) para o primeiro cliente do novo conjunto,
+ * ou NULL se a tarefa ficar sem cliente. Não há transação multi-statement via PostgREST
+ * aqui -- mesma limitação já aceita em outros pontos do backend (ex.: ServicesCatalogWorkspace
+ * reordenando em lote) -- por isso mantemos a ordem delete-then-insert-then-sync.
+ */
+async function setTaskClients(taskId, firmId, clientIds) {
+  const sb = getSupabaseAdmin();
+  const ids = [...new Set((clientIds || []).filter(Boolean))];
+
+  const { error: delError } = await sb
+    .from('client_task_client_links')
+    .delete()
+    .eq('client_task_id', taskId)
+    .eq('firm_id', firmId);
+  if (delError) throw delError;
+
+  if (ids.length) {
+    const { error: insError } = await sb
+      .from('client_task_client_links')
+      .insert(ids.map((clientId) => ({ client_task_id: taskId, client_id: clientId, firm_id: firmId })));
+    if (insError) throw insError;
+  }
+
+  const { data, error } = await sb
+    .from('client_tasks')
+    .update({ client_id: ids[0] || null, updated_at: new Date().toISOString() })
+    .eq('id', taskId)
+    .eq('firm_id', firmId)
+    .select()
+    .single();
+  if (error) throw error;
+  return { ...mapTask(data), clientIds: ids };
+}
+
 async function listTasks(firmId, { clientId, statusIn, assigneeId, priority, search, includeArchived = false, limit = 200, offset = 0 } = {}) {
   const sb = getSupabaseAdmin();
   let q = sb
@@ -47,7 +121,13 @@ async function listTasks(firmId, { clientId, statusIn, assigneeId, priority, sea
     .order('updated_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (clientId) q = q.eq('client_id', clientId);
+  if (clientId) {
+    // client_task_client_links é a fonte de verdade -- inclui tarefas com vários
+    // clientes, não só o ponteiro legado client_tasks.client_id.
+    const taskIds = await listTaskIdsForClient(firmId, clientId);
+    if (!taskIds.length) return { items: [], total: 0 };
+    q = q.in('id', taskIds);
+  }
   if (assigneeId) q = q.eq('assignee_id', assigneeId);
   if (priority) q = q.eq('priority', priority);
   if (!includeArchived) q = q.neq('status', 'ARCHIVED');
@@ -59,7 +139,10 @@ async function listTasks(firmId, { clientId, statusIn, assigneeId, priority, sea
 
   const { data, error, count } = await q;
   if (error) throw error;
-  return { items: (data || []).map(mapTask), total: count || 0 };
+  const items = (data || []).map(mapTask);
+  const linkMap = await listClientLinksForTaskIds(items.map((t) => t.id));
+  for (const item of items) item.clientIds = linkMap.get(item.id) || item.clientIds;
+  return { items, total: count || 0 };
 }
 
 async function findTaskById(firmId, taskId, clientId) {
@@ -68,14 +151,42 @@ async function findTaskById(firmId, taskId, clientId) {
   if (clientId) q = q.eq('client_id', clientId);
   const { data, error } = await q.maybeSingle();
   if (error) throw error;
-  return mapTask(data);
+  const task = mapTask(data);
+  if (!task) return null;
+  const linkMap = await listClientLinksForTaskIds([task.id]);
+  task.clientIds = linkMap.get(task.id) || task.clientIds;
+  return task;
 }
 
-async function insertTask(row) {
+/**
+ * @param {object} row - shape da linha client_tasks (chaves em snake_case).
+ * @param {object} [opts]
+ * @param {string[]} [opts.clientIds] - quando informado (mesmo vazio), passa a ser o
+ *   conjunto autoritativo de clientes da tarefa, gravado em client_task_client_links,
+ *   com row.client_id ajustado para o primeiro elemento antes do insert. Quando omitido,
+ *   mantém o comportamento anterior: se row.client_id vier preenchido, cria também o
+ *   vínculo M2M correspondente (chamadores antigos -- schedulers, automações, duplicação
+ *   -- continuam funcionando sem precisar saber da tabela nova).
+ */
+async function insertTask(row, opts = {}) {
   const sb = getSupabaseAdmin();
-  const { data, error } = await sb.from('client_tasks').insert(row).select().single();
+  const explicitClientIds = Array.isArray(opts.clientIds)
+    ? [...new Set(opts.clientIds.filter(Boolean))]
+    : null;
+  const insertRow = explicitClientIds ? { ...row, client_id: explicitClientIds[0] || null } : row;
+
+  const { data, error } = await sb.from('client_tasks').insert(insertRow).select().single();
   if (error) throw error;
-  return mapTask(data);
+
+  const clientIds = explicitClientIds !== null ? explicitClientIds : (row.client_id ? [row.client_id] : []);
+  if (clientIds.length) {
+    const { error: linkError } = await sb
+      .from('client_task_client_links')
+      .insert(clientIds.map((clientId) => ({ client_task_id: data.id, client_id: clientId, firm_id: data.firm_id })));
+    if (linkError) throw linkError;
+  }
+
+  return { ...mapTask(data), clientIds };
 }
 
 async function updateTask(taskId, firmId, patch) {
@@ -107,15 +218,25 @@ async function updateTask(taskId, firmId, patch) {
       else row[key] = patch[src];
     }
   }
-  const { data, error } = await sb
-    .from('client_tasks')
-    .update(row)
-    .eq('id', taskId)
-    .eq('firm_id', firmId)
-    .select()
-    .single();
+
+  // clientIds tem tratamento próprio (setTaskClients já grava client_id legado + M2M +
+  // updated_at) -- se vier junto de outros campos, aplicamos os outros campos primeiro.
+  const hasOtherFields = Object.keys(row).length > 1; // sempre tem updated_at
+  if (hasOtherFields) {
+    const { error } = await sb.from('client_tasks').update(row).eq('id', taskId).eq('firm_id', firmId);
+    if (error) throw error;
+  }
+
+  if (patch.clientIds !== undefined) {
+    return setTaskClients(taskId, firmId, patch.clientIds);
+  }
+
+  const { data, error } = await sb.from('client_tasks').select('*').eq('id', taskId).eq('firm_id', firmId).single();
   if (error) throw error;
-  return mapTask(data);
+  const task = mapTask(data);
+  const linkMap = await listClientLinksForTaskIds([task.id]);
+  task.clientIds = linkMap.get(task.id) || task.clientIds;
+  return task;
 }
 
 async function deleteTask(taskId, firmId) {
@@ -193,10 +314,15 @@ async function getMetrics(firmId) {
     byStatus[s] = (byStatus[s] || 0) + 1;
   }
 
+  const linkMap = await listClientLinksForTaskIds(active.map((t) => t.id));
   const byClient = {};
   const byAssignee = {};
   for (const t of active) {
-    byClient[t.client_id] = (byClient[t.client_id] || 0) + 1;
+    const linked = linkMap.get(t.id);
+    const clientIds = linked?.length ? linked : t.client_id ? [t.client_id] : [];
+    for (const clientId of clientIds) {
+      byClient[clientId] = (byClient[clientId] || 0) + 1;
+    }
     const key = t.assignee_id || 'unassigned';
     byAssignee[key] = (byAssignee[key] || 0) + 1;
   }
@@ -315,4 +441,7 @@ module.exports = {
   listComments,
   insertComment,
   getMetrics,
+  listClientLinksForTaskIds,
+  listTaskIdsForClient,
+  setTaskClients,
 };

@@ -105,6 +105,33 @@ describe('official-accesses.service', () => {
     assert.equal(data.security.mfaRequired, false);
   });
 
+  test('reveal com MFA activo rejeita password-only (Gate 2)', async () => {
+    resetMocks();
+    mockClient();
+    mock.method(firmUsersRepository, 'findFirmUserById', async () => ({
+      id: USER_ID,
+      firm_id: FIRM_ID,
+      role: 'FIRM_OWNER',
+      is_active: true,
+      mfa_enabled: true,
+      mfa_totp_secret_enc: 'enc',
+      password_hash: 'hash',
+    }));
+
+    await assert.rejects(
+      () =>
+        service.revealOfficialAccess({
+          firmId: FIRM_ID,
+          clientId: CLIENT_ID,
+          accessId: ACCESS_ID,
+          actorId: USER_ID,
+          currentPassword: 'anything',
+        }),
+      (err) =>
+        String(err?.details?.code || err?.code) === 'SENSITIVE_ACTION_MFA_REQUIRED',
+    );
+  });
+
   test('reveal exige palavra-passe correcta e devolve revealedValue', async () => {
     resetMocks();
     mockClient();

@@ -8,6 +8,7 @@ const morgan = require('morgan');
 
 const { env } = require('./config/env');
 const { createRateLimitStore } = require('./utils/rate-limit-store');
+const { isAuthenticatedShellReadPath } = require('./utils/authenticated-shell-read-paths');
 const { isAccessTokenValid, verifyAccessToken } = require('./config/jwt');
 const { logger } = require('./utils/logger');
 const { errorMiddleware } = require('./middlewares/error.middleware');
@@ -60,23 +61,6 @@ function extractRateLimitKey(req) {
 function isAuthenticatedRequest(req) {
   const accessToken = extractAccessTokenFromRequest(req);
   return Boolean(accessToken && isAccessTokenValid(accessToken));
-}
-
-/** Rotas de leitura do shell da app — polling frequente; não contam para o limite global. */
-function isAuthenticatedShellReadPath(url) {
-  const pathOnly = String(url || '').split('?')[0];
-  const exact = [
-    '/api/auth/me',
-    '/api/contabil/firm',
-    '/api/contabil/dashboard',
-    '/api/contabil/billing/status',
-    '/api/contabil/live/events',
-    '/api/contabil/messages/unread-summary',
-    '/api/client-portal/me/contabil/live/events',
-  ];
-  if (exact.includes(pathOnly)) return true;
-  if (pathOnly.startsWith('/api/contabil/notifications')) return true;
-  return false;
 }
 
 function shouldSkipProductionHttpLog(req, res) {
@@ -177,15 +161,23 @@ const corsOptionsDelegate = (req, callback) => {
       }
 
       // Rotas públicas: apenas GET/HEAD sem credenciais sensíveis; POST exige origin na allowlist.
+      // Nota de segurança: em preflight (method === 'OPTIONS'), o método REAL pretendido vem no
+      // header `Access-Control-Request-Method`, não em `req.method` — tratar OPTIONS como método
+      // seguro por si só deixava qualquer origem "passar" o preflight de uma rota de mutação
+      // pública (ex.: POST /api/public/support), mesmo que o POST real fosse depois rejeitado.
       if (isPublicPath) {
         const method = String(req?.method || 'GET').toUpperCase();
-        if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') {
+        const isPreflight = method === 'OPTIONS';
+        const effectiveMethod = isPreflight
+          ? String(req?.get?.('access-control-request-method') || '').toUpperCase()
+          : method;
+        if (effectiveMethod === 'GET' || effectiveMethod === 'HEAD') {
           return originCallback(null, origin);
         }
         if (allowedOrigins.includes(origin)) {
           return originCallback(null, origin);
         }
-        logger.warn(`🚫 CORS público bloqueado (${method}): ${origin}`, { path: requestPath });
+        logger.warn(`🚫 CORS público bloqueado (${method}${isPreflight ? ` → ${effectiveMethod || '?'}` : ''}): ${origin}`, { path: requestPath });
         return originCallback(null, false);
       }
 
@@ -268,6 +260,11 @@ app.use(
       if (pathOnly === '/api/public/health') return true;
       // Bootstrap de sessão/CSRF — não deve contar para o limite global
       if (pathOnly === '/api/csrf') return true;
+      // Webhooks Stripe já são autenticados por assinatura HMAC própria (constructEvent);
+      // ficarem sujeitos ao balde anónimo (300/janela/IP) podia fazer o Teglion devolver
+      // 429 a entregas legítimas do Stripe em rajadas de replay/backfill.
+      if (pathOnly === '/api/public/stripe/webhook') return true;
+      if (pathOnly === '/api/public/stripe/connect/webhook') return true;
 
       if (isAuthenticatedRequest(req) && isAuthenticatedShellReadPath(url)) return true;
 

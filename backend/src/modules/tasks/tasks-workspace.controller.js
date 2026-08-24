@@ -41,7 +41,8 @@ exports.create = async (req, res, next) => {
       firmId,
       actor: req.user,
       payload: {
-        clientId: body.clientId || body.clientId,
+        clientId: body.clientId,
+        clientIds: body.clientIds,
         obligationId: body.obligationId,
         title: body.title,
         description: body.description,

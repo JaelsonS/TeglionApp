@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest'
 import type { BookingDaySchedule, FirmBookingSettings } from '@/shared/types/contabil'
 
 import {
+  applyServiceDayOverride,
   bookingOverridesPayload,
+  computeServiceBookingOverridesPatch,
   defaultIntervalFromSchedule,
   hasCustomBookingHours,
   scheduleFromFirmBooking,
@@ -35,9 +37,10 @@ describe('hasCustomBookingHours', () => {
     expect(hasCustomBookingHours({})).toBe(false)
   })
 
-  it('detects weekdays or schedule', () => {
+  it('detects weekdays, schedule or dateOverrides', () => {
     expect(hasCustomBookingHours({ weekdays: [1, 2] })).toBe(true)
     expect(hasCustomBookingHours({ schedule: { 1: [{ start: '09:00', end: '12:00' }] } })).toBe(true)
+    expect(hasCustomBookingHours({ dateOverrides: { '2026-08-10': [] } })).toBe(true)
   })
 })
 
@@ -109,6 +112,50 @@ describe('bookingOverridesPayload', () => {
   })
 })
 
+describe('computeServiceBookingOverridesPatch', () => {
+  it('regressão: guardar o editor completo do serviço não apaga excepções por data já configuradas na Agenda', () => {
+    // Um serviço com horário próprio E uma excepção de dia guardada via
+    // AgendaServiceHoursPanel — exactamente o estado que existia quando o bug
+    // foi encontrado (ServiceFullEditorSheet mandava bookingOverrides sem
+    // dateOverrides, e o backend substitui a coluna inteira).
+    const savedOnAgenda = {
+      weekdays: [1, 2],
+      schedule: {
+        1: [{ start: '09:00', end: '12:00' }],
+        2: [{ start: '09:00', end: '12:00' }],
+      },
+      dateOverrides: { '2026-09-07': [] as { start: string; end: string }[] },
+    }
+    const patch = computeServiceBookingOverridesPatch(savedOnAgenda)
+    expect(patch?.dateOverrides).toEqual({ '2026-09-07': [] })
+    expect(patch?.schedule).toEqual(savedOnAgenda.schedule)
+  })
+
+  it('sem personalização, devolve null (limpa bookingOverrides, comportamento inalterado)', () => {
+    expect(computeServiceBookingOverridesPatch(null)).toBeNull()
+    expect(computeServiceBookingOverridesPatch({})).toBeNull()
+  })
+
+  it('personalização só com weekdays (sem schedule) também preserva dateOverrides', () => {
+    const patch = computeServiceBookingOverridesPatch({
+      weekdays: [3],
+      dateOverrides: { '2026-09-10': [{ start: '10:00', end: '11:00' }] },
+    })
+    expect(patch).toEqual({
+      weekdays: [3],
+      dateOverrides: { '2026-09-10': [{ start: '10:00', end: '11:00' }] },
+    })
+  })
+
+  it('sem dateOverrides guardado, não inventa nenhum', () => {
+    const patch = computeServiceBookingOverridesPatch({
+      weekdays: [1],
+      schedule: { 1: [{ start: '09:00', end: '12:00' }] },
+    })
+    expect(patch?.dateOverrides).toBeUndefined()
+  })
+})
+
 describe('summarizeBookingSchedule', () => {
   it('describes open days for the accountant', () => {
     expect(
@@ -141,5 +188,29 @@ describe('serviceAvailabilityLabel', () => {
         bookingOverrides: { weekdays: [1] },
       }),
     ).toBe('custom')
+  })
+})
+
+describe('applyServiceDayOverride', () => {
+  it('fecha um dia sem apagar schedule existente', () => {
+    const next = applyServiceDayOverride({
+      existing: {
+        weekdays: [1],
+        schedule: { 1: [{ start: '09:00', end: '12:00' }] },
+      },
+      date: '2026-08-25',
+      mode: 'closed',
+    })
+    expect(next?.dateOverrides?.['2026-08-25']).toEqual([])
+    expect(next?.schedule?.[1]).toEqual([{ start: '09:00', end: '12:00' }])
+  })
+
+  it('herdar remove a data e devolve null se não resta nada', () => {
+    const next = applyServiceDayOverride({
+      existing: { dateOverrides: { '2026-08-25': [] } },
+      date: '2026-08-25',
+      mode: 'inherit',
+    })
+    expect(next).toBeNull()
   })
 })

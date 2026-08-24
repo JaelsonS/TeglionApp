@@ -32,6 +32,13 @@ import { PublicSiteHeroBanner } from '@/features/public-intake/PublicSiteHeroBan
 import { PublicSiteCtaButtons } from '@/features/public-intake/PublicSiteCtaButtons'
 import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
 import { priceTaxModeCaption } from '@/shared/utils/priceTaxMode'
+import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/shared/components/ui/accordion'
 
 function resolveFirstImageUrl(imageIds: string[], images: PublicSiteConfig['images']): string | null {
   const id = imageIds[0]
@@ -378,7 +385,15 @@ function ServiceCard({
   const body = (
     <>
       {service.imageUrl ? (
-        <img src={service.imageUrl} alt="" className="h-36 w-full object-cover" loading="lazy" />
+        <div className="h-36 w-full overflow-hidden">
+          <img
+            src={service.imageUrl}
+            alt=""
+            className="h-full w-full"
+            style={servicePositionedImageStyle(service)}
+            loading="lazy"
+          />
+        </div>
       ) : null}
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
@@ -388,7 +403,16 @@ function ServiceCard({
               <SanitizedServiceHtml html={service.description} className="mt-1 line-clamp-2 text-sm" />
             ) : null}
           </div>
-          {showPrices && service.priceCents > 0 ? (
+          {showPrices && service.hasOptions && (service.fromPriceCents ?? 0) > 0 ? (
+            <div className="shrink-0 text-right">
+              <span className="block text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                A partir de
+              </span>
+              <span className="block text-sm font-semibold text-[hsl(var(--brand-text,var(--primary)))]">
+                {formatPrice(service.fromPriceCents || 0)}
+              </span>
+            </div>
+          ) : showPrices && !service.hasOptions && service.priceCents > 0 ? (
             <div className="shrink-0 text-right">
               <span className="block text-sm font-semibold text-[hsl(var(--brand-text,var(--primary)))]">
                 {formatPrice(service.priceCents)}
@@ -401,7 +425,13 @@ function ServiceCard({
             </div>
           ) : null}
         </div>
-        {service.requiresBooking ? (
+        {service.hasOptions ? (
+          <p className="mt-3 text-xs text-muted-foreground">
+            {(service.options?.length || 0) > 1
+              ? `${service.options!.length} opções · escolha a modalidade`
+              : 'Várias modalidades disponíveis'}
+          </p>
+        ) : service.requiresBooking ? (
           <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
             <CalendarClock className="h-3.5 w-3.5" /> {service.durationMinutes} min · com agendamento
           </p>
@@ -422,6 +452,58 @@ function ServiceCard({
     <Link to={href} className={className}>
       {body}
     </Link>
+  )
+}
+
+/** Grupo → serviços: accordion colapsado por defeito (melhor com 20–50 serviços). */
+function ClusteredServiceGroups({
+  clusters,
+  firmSlug,
+  showPrices,
+  openInNewTab,
+}: {
+  clusters: ReturnType<typeof clusterPublicServices>
+  firmSlug: string
+  showPrices: boolean
+  openInNewTab: boolean
+}) {
+  return (
+    <Accordion type="multiple" defaultValue={[]} className="space-y-2">
+      {clusters.map((cluster) =>
+        cluster.heading ? (
+          <AccordionItem key={cluster.heading} value={cluster.heading} className="border-none">
+            <AccordionTrigger className="text-[hsl(var(--brand-text,var(--foreground)))]">
+              <span>
+                {cluster.heading}
+                <span className="ml-2 text-sm font-normal opacity-70">({cluster.items.length})</span>
+              </span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <ul className="space-y-3">
+                {cluster.items.map((s) => (
+                  <li key={s.slug}>
+                    <ServiceCard
+                      firmSlug={firmSlug}
+                      service={s}
+                      showPrices={showPrices}
+                      openInNewTab={openInNewTab}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </AccordionContent>
+          </AccordionItem>
+        ) : (
+          <ul key="__ungrouped" className="space-y-3">
+            {cluster.items.map((s) => (
+              <li key={s.slug}>
+                <ServiceCard firmSlug={firmSlug} service={s} showPrices={showPrices} openInNewTab={openInNewTab} />
+              </li>
+            ))}
+          </ul>
+        ),
+      )}
+    </Accordion>
   )
 }
 
@@ -452,27 +534,12 @@ export function ServicesSection({
         >
           {content.heading || 'Serviços com marcação'}
         </h2>
-        {clusterPublicServices(items).map((cluster) => (
-          <div key={cluster.heading || '__ungrouped'} className="space-y-2">
-            {cluster.heading ? (
-              <h3 className="text-sm font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">
-                {cluster.heading}
-              </h3>
-            ) : null}
-            <ul className="space-y-3">
-              {cluster.items.map((s) => (
-                <li key={s.slug}>
-                  <ServiceCard
-                    firmSlug={ctx.firmSlug}
-                    service={s}
-                    showPrices={ctx.showPrices !== false}
-                    openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        <ClusteredServiceGroups
+          clusters={clusterPublicServices(items)}
+          firmSlug={ctx.firmSlug}
+          showPrices={ctx.showPrices !== false}
+          openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
+        />
         <PublicSiteCtaButtons
           ctas={content.ctas}
           ctx={ctx}
@@ -511,27 +578,12 @@ export function BookingServicesSection({
         >
           {content.heading || 'Serviços sob pedido'}
         </h2>
-        {clusterPublicServices(items).map((cluster) => (
-          <div key={cluster.heading || '__ungrouped'} className="space-y-2">
-            {cluster.heading ? (
-              <h3 className="text-sm font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">
-                {cluster.heading}
-              </h3>
-            ) : null}
-            <ul className="space-y-3">
-              {cluster.items.map((s) => (
-                <li key={s.slug}>
-                  <ServiceCard
-                    firmSlug={ctx.firmSlug}
-                    service={s}
-                    showPrices={ctx.showPrices !== false}
-                    openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        <ClusteredServiceGroups
+          clusters={clusterPublicServices(items)}
+          firmSlug={ctx.firmSlug}
+          showPrices={ctx.showPrices !== false}
+          openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
+        />
         <PublicSiteCtaButtons
           ctas={content.ctas}
           ctx={ctx}

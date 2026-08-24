@@ -82,6 +82,19 @@ const intakeUploadLimiter = rateLimit({
   message: { code: 'RATE_LIMIT', message: 'Demasiados envios. Tente novamente mais tarde.' },
 });
 
+// Sem isto, o endpoint (sem autenticação nem Turnstile) podia ser usado para martelar
+// duas APIs externas gratuitas (geoapi.pt/ViaCEP) a partir do IP do Teglion — risco de
+// exaustão de handlers no backend e de o próprio IP do Teglion ser bloqueado por essas
+// APIs, quebrando o autocomplete de morada para todos os utilizadores legítimos.
+const postalLookupLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  store: createRateLimitStore('rl:postal-lookup:'),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { code: 'RATE_LIMIT', message: 'Demasiados pedidos. Tente novamente mais tarde.' },
+});
+
 router.get('/health', (_req, res) => res.json({ ok: true, service: 'contabil-public' }));
 
 router.get('/health/integrations', (req, res, next) => {
@@ -94,7 +107,7 @@ router.get('/health/integrations', (req, res, next) => {
 router.get('/legal/versions', legalController.getVersions);
 router.get('/countries', countriesController.getSupportedCountries);
 router.get('/pricing', pricingController.getPublicPricing);
-router.get('/postal-lookup', postalLookupController.lookup);
+router.get('/postal-lookup', postalLookupLimiter, postalLookupController.lookup);
 router.get('/client-invite/:token', invitePreviewLimiter, invitesController.previewPublic);
 router.get('/team-invite/:token', invitePreviewLimiter, teamInvitesController.previewPublic);
 router.post(

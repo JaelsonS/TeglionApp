@@ -12,7 +12,10 @@ export type WorkspaceTaskStatus =
 export type WorkspaceTask = {
   id: string
   _id: string
+  /** @deprecated ponteiro legado — usar clientIds. Mantido enquanto client_id não é removido (ver ADR-0008). */
   clientId: string | null
+  clientIds?: string[]
+  clients?: { id: string; name: string | null }[]
   clientName?: string | null
   title: string
   description?: string | null

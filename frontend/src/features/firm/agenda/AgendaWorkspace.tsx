@@ -272,7 +272,11 @@ export function AgendaWorkspace() {
         <div className="px-4 pt-4 sm:px-5">
           <PageHeader
             title="Agenda"
-            subtitle="Marque reuniões, configure disponibilidade e sincronize com o Google Calendar — e a disponibilidade para agendamento na página pública."
+            subtitle={
+              tab === 'settings'
+                ? 'Defina a sua disponibilidade para receber agendamentos.'
+                : 'Marque reuniões, configure disponibilidade e a disponibilidade na página pública.'
+            }
             testId="firm-agenda-header"
             secondary={
               <AskMayaButton intentId="agenda" />

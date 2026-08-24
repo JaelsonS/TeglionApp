@@ -94,6 +94,7 @@ exports.importSpreadsheet = async (req, res, next) => {
       currentPassword: req.body?.currentPassword,
       stepUpToken: req.body?.stepUpToken,
       rememberSession: req.body?.rememberSession === true || req.body?.rememberSession === 'true',
+      totpCode: req.body?.totpCode,
       buffer: req.file?.buffer,
     });
     void securityAudit.recordFirmMutation({

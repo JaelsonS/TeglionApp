@@ -4,6 +4,7 @@ import { Crown, KeyRound, MailPlus, Pencil, ShieldCheck, UserPlus, Users } from 
 import { toast } from 'sonner'
 
 import { teamManagementApi } from '@/infrastructure/api/contabil/teamManagement'
+import { authApi } from '@/infrastructure/api'
 import { FirmEntityTagsEditor } from '@/features/firm/tags/FirmEntityTagsEditor'
 import { FirmTagBadge } from '@/features/firm/tags/FirmTagBadge'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -13,6 +14,10 @@ import { Input } from '@/shared/components/ui/input'
 import { PasswordInput } from '@/shared/components/ui/password-input'
 import { Label } from '@/shared/components/ui/label'
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
+import {
+    SensitiveActionConfirmFields,
+    sensitiveConfirmReady,
+} from '@/shared/components/security/SensitiveActionConfirmFields'
 import type { FirmSettingsBundle } from '@/shared/types/firmSettings'
 import type { TeamMember } from '@/shared/types/teamManagement'
 import { cn } from '@/shared/lib/utils'
@@ -104,13 +109,32 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>([])
     const [editingMemberId, setEditingMemberId] = useState<string | null>(null)
     const [excludeMember, setExcludeMember] = useState<TeamSettingsMember | null>(null)
+    const [toggleMemberTarget, setToggleMemberTarget] = useState<TeamSettingsMember | null>(null)
     const [showInactiveMembers, setShowInactiveMembers] = useState(false)
+    const [mfaEnabled, setMfaEnabled] = useState(false)
+    const [stepUpTotp, setStepUpTotp] = useState('')
+    const [stepUpPassword, setStepUpPassword] = useState('')
     const [editForm, setEditForm] = useState({
         fullName: '',
         email: '',
         jobTitle: '',
         departmentId: '',
     })
+
+    useEffect(() => {
+        let cancelled = false
+        void authApi
+            .mfaStatus()
+            .then((data: { mfaEnabled?: boolean }) => {
+                if (!cancelled) setMfaEnabled(data?.mfaEnabled === true)
+            })
+            .catch(() => {
+                if (!cancelled) setMfaEnabled(false)
+            })
+        return () => {
+            cancelled = true
+        }
+    }, [])
 
     useEffect(() => {
         focusAndReveal(panelRef.current)
@@ -149,15 +173,24 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
     }
 
     const createDirectMutation = useMutation({
-        mutationFn: () =>
-            teamManagementApi.createMemberDirect({
+        mutationFn: () => {
+            if (!sensitiveConfirmReady(mfaEnabled, stepUpTotp, stepUpPassword)) {
+                throw new Error(
+                    mfaEnabled
+                        ? 'Introduza o código da aplicação autenticadora para criar o colaborador.'
+                        : 'Introduza a palavra-passe de login para criar o colaborador.',
+                )
+            }
+            return teamManagementApi.createMemberDirect({
                 fullName: directForm.fullName,
                 email: directForm.email,
                 jobTitle: directForm.jobTitle || null,
                 password: directForm.password,
                 departmentId: directForm.departmentId || null,
                 sendWelcomeEmail: directForm.sendWelcomeEmail,
-            }),
+                ...(mfaEnabled ? { totpCode: stepUpTotp.trim() } : { currentPassword: stepUpPassword }),
+            })
+        },
         onSuccess: async (result) => {
             if (directForm.sendWelcomeEmail && result?.welcomeEmailSent === false) {
                 toast.warning('Colaborador criado, mas o e-mail de boas-vindas não foi enviado. Partilhe a palavra-passe manualmente.')
@@ -172,6 +205,8 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                 departmentId: '',
                 sendWelcomeEmail: true,
             })
+            setStepUpTotp('')
+            setStepUpPassword('')
             setTeamView('list')
             await invalidate()
         },
@@ -179,13 +214,22 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
     })
 
     const createInviteMutation = useMutation({
-        mutationFn: () =>
-            teamManagementApi.createInvite({
+        mutationFn: () => {
+            if (!sensitiveConfirmReady(mfaEnabled, stepUpTotp, stepUpPassword)) {
+                throw new Error(
+                    mfaEnabled
+                        ? 'Introduza o código da aplicação autenticadora para convidar o colaborador.'
+                        : 'Introduza a palavra-passe de login para convidar o colaborador.',
+                )
+            }
+            return teamManagementApi.createInvite({
                 fullName: inviteForm.fullName,
                 email: inviteForm.email,
                 jobTitle: inviteForm.jobTitle || null,
                 departmentId: inviteForm.departmentId || null,
-            }),
+                ...(mfaEnabled ? { totpCode: stepUpTotp.trim() } : { currentPassword: stepUpPassword }),
+            })
+        },
         onSuccess: async (result) => {
             if (result?.emailSent === false) {
                 toast.warning('Convite criado, mas o e-mail falhou. Use Reenviar convite.')
@@ -193,6 +237,8 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                 toast.success('Convite enviado com sucesso.')
             }
             setInviteForm({ fullName: '', email: '', jobTitle: '', departmentId: '' })
+            setStepUpTotp('')
+            setStepUpPassword('')
             setTeamView('list')
             await invalidate()
         },
@@ -212,16 +258,38 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
     const updateMemberMutation = useMutation({
         mutationFn: () => {
             if (!editingMemberId) throw new Error('Membro não selecionado.')
+            const original = members.find((m) => String(m.id) === String(editingMemberId))
+            const emailChanged =
+                String(editForm.email || '')
+                    .trim()
+                    .toLowerCase() !==
+                String(original?.email || '')
+                    .trim()
+                    .toLowerCase()
+            if (emailChanged && !sensitiveConfirmReady(mfaEnabled, stepUpTotp, stepUpPassword)) {
+                throw new Error(
+                    mfaEnabled
+                        ? 'Introduza o código da aplicação autenticadora para alterar o e-mail do colaborador.'
+                        : 'Introduza a palavra-passe de login para alterar o e-mail do colaborador.',
+                )
+            }
             return teamManagementApi.patchMember(editingMemberId, {
                 fullName: editForm.fullName,
                 email: editForm.email,
                 jobTitle: editForm.jobTitle || null,
                 departmentId: editForm.departmentId || null,
+                ...(emailChanged
+                    ? mfaEnabled
+                        ? { totpCode: stepUpTotp.trim() }
+                        : { currentPassword: stepUpPassword }
+                    : {}),
             })
         },
         onSuccess: async () => {
             toast.success('Dados do colaborador atualizados.')
             setEditingMemberId(null)
+            setStepUpTotp('')
+            setStepUpPassword('')
             await invalidate()
         },
         onError: (err) => toast.error(getErrorMessage(err)),
@@ -245,10 +313,17 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
     }
 
     const toggleMemberMutation = useMutation({
-        mutationFn: ({ memberId, active }: { memberId: string; active: boolean }) =>
-            active ? teamManagementApi.deactivateMember(memberId) : teamManagementApi.reactivateMember(memberId),
+        mutationFn: ({ memberId, active }: { memberId: string; active: boolean }) => {
+            const factor = mfaEnabled ? { totpCode: stepUpTotp.trim() } : { currentPassword: stepUpPassword }
+            return active
+                ? teamManagementApi.deactivateMember(memberId, factor)
+                : teamManagementApi.reactivateMember(memberId, factor)
+        },
         onSuccess: async (_, vars) => {
             toast.success(vars.active ? 'Membro desativado.' : 'Membro reativado.')
+            setToggleMemberTarget(null)
+            setStepUpTotp('')
+            setStepUpPassword('')
             await invalidate()
         },
         onError: (err) => toast.error(getErrorMessage(err)),
@@ -275,13 +350,24 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
     })
 
     const patchPermissionsMutation = useMutation({
-        mutationFn: () =>
-            teamManagementApi.patchMemberPermissions(String(permissionsMemberId), {
+        mutationFn: () => {
+            if (!sensitiveConfirmReady(mfaEnabled, stepUpTotp, stepUpPassword)) {
+                throw new Error(
+                    mfaEnabled
+                        ? 'Introduza o código da aplicação autenticadora.'
+                        : 'Introduza a palavra-passe de login.',
+                )
+            }
+            return teamManagementApi.patchMemberPermissions(String(permissionsMemberId), {
                 mode: overrideMode,
                 permissions: overrideMode === 'OVERRIDE' ? selectedPermissions : undefined,
-            }),
+                ...(mfaEnabled ? { totpCode: stepUpTotp.trim() } : { currentPassword: stepUpPassword }),
+            })
+        },
         onSuccess: async () => {
             toast.success('Permissões atualizadas.')
+            setStepUpTotp('')
+            setStepUpPassword('')
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: ['team-member-permissions', permissionsMemberId] }),
                 queryClient.invalidateQueries({ queryKey: ['team-management-members'] }),
@@ -312,12 +398,16 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                 return
             }
             if (member.isActive) {
-                await teamManagementApi.deactivateMember(member.id)
+                await teamManagementApi.deactivateMember(member.id, {
+                    ...(mfaEnabled ? { totpCode: stepUpTotp.trim() } : { currentPassword: stepUpPassword }),
+                })
             }
         },
         onSuccess: async () => {
             toast.success('Colaborador excluído da equipa.')
             setExcludeMember(null)
+            setStepUpTotp('')
+            setStepUpPassword('')
             await invalidate()
         },
         onError: (err) => toast.error(getErrorMessage(err)),
@@ -507,6 +597,17 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                             />
                             Enviar e-mail de boas-vindas com instruções
                         </Label>
+                        <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
+                            <SensitiveActionConfirmFields
+                                idPrefix="team-create"
+                                mfaEnabled={mfaEnabled}
+                                totpCode={stepUpTotp}
+                                currentPassword={stepUpPassword}
+                                onTotpChange={setStepUpTotp}
+                                onPasswordChange={setStepUpPassword}
+                                passwordMode="login"
+                            />
+                        </div>
                         <Button
                             type="button"
                             variant="primary"
@@ -566,6 +667,17 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                 ))}
                         </select>
                     </div>
+                        <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
+                            <SensitiveActionConfirmFields
+                                idPrefix="team-invite"
+                                mfaEnabled={mfaEnabled}
+                                totpCode={stepUpTotp}
+                                currentPassword={stepUpPassword}
+                                onTotpChange={setStepUpTotp}
+                                onPasswordChange={setStepUpPassword}
+                                passwordMode="login"
+                            />
+                        </div>
                         <Button
                             type="button"
                             variant="primary"
@@ -754,7 +866,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                                     variant="outline"
                                                     size="sm"
                                                     disabled={m.role === 'FIRM_OWNER' && ownerCount <= 1 && m.isActive}
-                                                    onClick={() => toggleMemberMutation.mutate({ memberId: m.id, active: m.isActive })}
+                                                    onClick={() => setToggleMemberTarget(m)}
                                                 >
                                                     {m.isActive ? 'Desativar' : 'Reativar'}
                                                 </Button>
@@ -843,6 +955,21 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                             />
                         </div>
                     ) : null}
+                    <div className="mt-3 rounded-lg border border-border/60 bg-muted/20 p-3">
+                        <p className="mb-2 text-xs text-muted-foreground">
+                            Se alterar o e-mail do colaborador, confirme com o fator de segurança. As sessões desse
+                            utilizador serão revogadas.
+                        </p>
+                        <SensitiveActionConfirmFields
+                            idPrefix="team-edit-email"
+                            mfaEnabled={mfaEnabled}
+                            totpCode={stepUpTotp}
+                            currentPassword={stepUpPassword}
+                            onTotpChange={setStepUpTotp}
+                            onPasswordChange={setStepUpPassword}
+                            passwordMode="login"
+                        />
+                    </div>
                     <div className="mt-3 flex gap-2">
                         <Button type="button" size="sm" onClick={() => updateMemberMutation.mutate()}>
                             Guardar alterações
@@ -940,6 +1067,17 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                 </p>
                             )}
                             <div className="mt-3 flex gap-2">
+                                <div className="mt-3 rounded-lg border border-border/60 bg-muted/20 p-3">
+                                    <SensitiveActionConfirmFields
+                                        idPrefix="team-permissions"
+                                        mfaEnabled={mfaEnabled}
+                                        totpCode={stepUpTotp}
+                                        currentPassword={stepUpPassword}
+                                        onTotpChange={setStepUpTotp}
+                                        onPasswordChange={setStepUpPassword}
+                                        passwordMode="login"
+                                    />
+                                </div>
                                 <Button type="button" size="sm" onClick={() => patchPermissionsMutation.mutate()}>
                                     Guardar permissões
                                 </Button>
@@ -966,6 +1104,14 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                 variant="destructive"
                 onConfirm={async () => {
                     if (!excludeMember) return
+                    if (!sensitiveConfirmReady(mfaEnabled, stepUpTotp, stepUpPassword)) {
+                        toast.error(
+                            mfaEnabled
+                                ? 'Introduza o código da aplicação autenticadora.'
+                                : 'Introduza a palavra-passe de login.',
+                        )
+                        return
+                    }
                     await excludeMemberMutation.mutateAsync(excludeMember)
                 }}
                 testId="team-exclude-member"
@@ -973,6 +1119,72 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                 <p className="text-sm text-muted-foreground">
                     Esta ação não elimina histórico operacional, apenas remove o acesso do colaborador ao sistema.
                 </p>
+                <div className="mt-3">
+                    <SensitiveActionConfirmFields
+                        idPrefix="team-exclude"
+                        mfaEnabled={mfaEnabled}
+                        totpCode={stepUpTotp}
+                        currentPassword={stepUpPassword}
+                        onTotpChange={setStepUpTotp}
+                        onPasswordChange={setStepUpPassword}
+                        passwordMode="login"
+                    />
+                </div>
+            </ConfirmDialog>
+
+            <ConfirmDialog
+                open={Boolean(toggleMemberTarget)}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setToggleMemberTarget(null)
+                        setStepUpTotp('')
+                        setStepUpPassword('')
+                    }
+                }}
+                title={toggleMemberTarget?.isActive ? 'Desativar colaborador' : 'Reativar colaborador'}
+                description={
+                    toggleMemberTarget
+                        ? toggleMemberTarget.isActive
+                            ? `Confirma desativar ${toggleMemberTarget.fullName || toggleMemberTarget.email}? Perde acesso ao TegLion até ser reativado.`
+                            : `Confirma reativar ${toggleMemberTarget.fullName || toggleMemberTarget.email}? Recupera o acesso que tinha antes de ser desativado.`
+                        : ''
+                }
+                confirmLabel={
+                    toggleMemberMutation.isPending
+                        ? 'A processar...'
+                        : toggleMemberTarget?.isActive
+                            ? 'Desativar'
+                            : 'Reativar'
+                }
+                variant={toggleMemberTarget?.isActive ? 'destructive' : 'default'}
+                onConfirm={async () => {
+                    if (!toggleMemberTarget) return
+                    if (!sensitiveConfirmReady(mfaEnabled, stepUpTotp, stepUpPassword)) {
+                        toast.error(
+                            mfaEnabled
+                                ? 'Introduza o código da aplicação autenticadora.'
+                                : 'Introduza a palavra-passe de login.',
+                        )
+                        return
+                    }
+                    await toggleMemberMutation.mutateAsync({
+                        memberId: toggleMemberTarget.id,
+                        active: toggleMemberTarget.isActive,
+                    })
+                }}
+                testId="team-toggle-member"
+            >
+                <div className="mt-1">
+                    <SensitiveActionConfirmFields
+                        idPrefix="team-toggle"
+                        mfaEnabled={mfaEnabled}
+                        totpCode={stepUpTotp}
+                        currentPassword={stepUpPassword}
+                        onTotpChange={setStepUpTotp}
+                        onPasswordChange={setStepUpPassword}
+                        passwordMode="login"
+                    />
+                </div>
             </ConfirmDialog>
         </section>
     )

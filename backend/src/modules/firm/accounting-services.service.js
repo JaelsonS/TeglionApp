@@ -2,6 +2,8 @@ const crypto = require('crypto');
 const { AppError } = require('../../middlewares/error.middleware');
 const { mapDbError } = require('../../utils/db-error');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
+const accountingServiceGroupsRepository = require('../../db/supabase/repositories/accounting-service-groups.repository');
+const accountingServiceOptionsRepository = require('../../db/supabase/repositories/accounting-service-options.repository');
 const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-catalog');
 const { titleForTag } = require('../../data/irs-modelo3-intake');
 const { BOOKING_TIMEZONES } = require('../booking/booking.service');
@@ -24,6 +26,23 @@ function normalizePublicGroup(value) {
   if (value === null) return null;
   const trimmed = String(value).trim().slice(0, 80);
   return trimmed || null;
+}
+
+/** Ponto focal/zoom de reposicionamento de imagem — ver migration image_position. */
+function normalizeImageFocus(value, min, max) {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < min || n > max) {
+    throw new AppError(`Valor de posicionamento de imagem inválido (esperado ${min}-${max})`, 400);
+  }
+  return Math.round(n * 100) / 100;
+}
+
+async function assertGroupBelongsToFirm(firmId, groupId) {
+  if (!groupId) return;
+  const group = await accountingServiceGroupsRepository.findByIdForFirm(groupId, firmId);
+  if (!group) throw new AppError('Grupo de serviços não encontrado', 404, { code: 'GROUP_NOT_FOUND' });
 }
 
 function normalizeIntakeStartMode(value) {
@@ -415,17 +434,140 @@ async function resolveServiceImageUrl(imageRef) {
   return raw;
 }
 
-async function enrichService(item) {
+async function enrichService(item, groupNameById) {
   if (!item) return item;
   const key = item.imageStorageKey || item.imageUrl;
   const imageStorageKey = key && String(key).startsWith('firm/') ? key : item.imageStorageKey || null;
-  const imageUrl = await resolveServiceImageUrl(key);
-  return { ...item, imageUrl, imageStorageKey };
+  const [imageUrl, imageOriginalUrl] = await Promise.all([
+    resolveServiceImageUrl(key),
+    resolveServiceImageUrl(item.imageOriginalUrl),
+  ]);
+  // Grupo real (accounting_service_groups) é a fonte de verdade do nome exibido —
+  // sobrepõe o texto legado public_group quando o serviço já está ligado a um grupo.
+  // Sem groupId, publicGroup continua vindo do texto legado (comportamento de sempre,
+  // serviço nunca migrado para a nova hierarquia).
+  const publicGroup = item.groupId ? groupNameById?.get(item.groupId) ?? item.publicGroup : item.publicGroup;
+  return { ...item, imageUrl, imageOriginalUrl, imageStorageKey, publicGroup };
+}
+
+function optionSummaryFromService(s) {
+  return {
+    id: s.id,
+    name: s.name,
+    durationMinutes: s.durationMinutes,
+    priceCents: s.priceCents,
+    priceTaxMode: s.priceTaxMode || null,
+    currency: s.currency || 'EUR',
+    isActive: s.isActive !== false,
+    isPubliclyListed: Boolean(s.isPubliclyListed),
+    slug: s.slug || null,
+    requiresBooking: s.requiresBooking === true,
+  };
+}
+
+/**
+ * Anexa optionServiceIds + options (dados vivos dos filhos) a uma lista de serviços.
+ * Sem denormalização de preço/duração — sempre lê o serviço filho actual.
+ */
+async function attachOptionsToServices(firmId, items) {
+  if (!items?.length) return items || [];
+  const links = await accountingServiceOptionsRepository.listByFirm(firmId);
+  if (!links.length) {
+    return items.map((item) => ({ ...item, optionServiceIds: [], options: [] }));
+  }
+  const byParent = new Map();
+  for (const link of links) {
+    if (!byParent.has(link.parentServiceId)) byParent.set(link.parentServiceId, []);
+    byParent.get(link.parentServiceId).push(link);
+  }
+  const childIds = [...new Set(links.map((l) => l.childServiceId))];
+  const children = await accountingServicesRepository.findByIdsForFirm(childIds, firmId);
+  const childById = new Map(children.map((c) => [c.id, c]));
+
+  return items.map((item) => {
+    const parentLinks = byParent.get(item.id) || [];
+    const options = [];
+    const optionServiceIds = [];
+    for (const link of parentLinks) {
+      const child = childById.get(link.childServiceId);
+      if (!child) continue;
+      optionServiceIds.push(child.id);
+      options.push(optionSummaryFromService(child));
+    }
+    return { ...item, optionServiceIds, options };
+  });
+}
+
+/**
+ * Substitui as opções do serviço principal.
+ * Profundidade 1 obrigatória: parent não pode ser child de ninguém; child não pode ter opções.
+ * Cross-tenant / inexistente: rejeitado (findByIdsForFirm). Sem cópia de preço/duração.
+ */
+async function setServiceOptions({ firmId, parentServiceId, optionServiceIds }) {
+  const parent = await accountingServicesRepository.findByIdForFirm(parentServiceId, firmId);
+  if (!parent) throw new AppError('Serviço não encontrado', 404);
+
+  if (!Array.isArray(optionServiceIds)) {
+    throw new AppError('optionServiceIds deve ser uma lista', 400);
+  }
+
+  const seen = new Set();
+  const ordered = [];
+  for (const raw of optionServiceIds) {
+    const id = String(raw || '').trim();
+    if (!id) continue;
+    if (id === parentServiceId) {
+      throw new AppError('Um serviço não pode ser opção de si próprio', 400, { code: 'OPTION_SELF_REF' });
+    }
+    if (seen.has(id)) continue;
+    seen.add(id);
+    ordered.push(id);
+  }
+
+  if (ordered.length) {
+    const asChildOf = await accountingServiceOptionsRepository.listParentIdsForChild(firmId, parentServiceId);
+    if (asChildOf.length) {
+      throw new AppError(
+        'Este serviço já é opção de outra oferta — não pode ter opções próprias (profundidade máxima: 1)',
+        400,
+        { code: 'OPTION_DEPTH' },
+      );
+    }
+
+    const children = await accountingServicesRepository.findByIdsForFirm(ordered, firmId);
+    if (children.length !== ordered.length) {
+      throw new AppError('Uma ou mais opções não existem neste escritório', 400, { code: 'OPTION_NOT_FOUND' });
+    }
+
+    const childLinks = await accountingServiceOptionsRepository.listByFirm(firmId);
+    const parentsWithOptions = new Set(childLinks.map((l) => l.parentServiceId));
+    for (const id of ordered) {
+      if (parentsWithOptions.has(id)) {
+        throw new AppError(
+          'Não pode usar como opção um serviço que já tem opções próprias (profundidade máxima: 1)',
+          400,
+          { code: 'OPTION_CYCLE' },
+        );
+      }
+    }
+  }
+
+  await accountingServiceOptionsRepository.replaceForParent(firmId, parentServiceId, ordered);
+  return ordered;
+}
+
+async function resolveGroupNameMap(firmId) {
+  const groups = await accountingServiceGroupsRepository.listByFirm(firmId);
+  return new Map(groups.map((g) => [g.id, g.name]));
 }
 
 async function list({ firmId, activeOnly }) {
-  const items = await accountingServicesRepository.listByFirm(firmId, { activeOnly: Boolean(activeOnly) });
-  return { items: await Promise.all(items.map(enrichService)) };
+  const [items, groupNameById] = await Promise.all([
+    accountingServicesRepository.listByFirm(firmId, { activeOnly: Boolean(activeOnly) }),
+    resolveGroupNameMap(firmId),
+  ]);
+  const enriched = await Promise.all(items.map((item) => enrichService(item, groupNameById)));
+  return { items: await attachOptionsToServices(firmId, enriched) };
 }
 
 async function create({ firmId, payload }) {
@@ -479,11 +621,17 @@ async function create({ firmId, payload }) {
     paymentMethod = 'stripe_connect';
   }
 
+  if (payload?.groupId !== undefined) await assertGroupBelongsToFirm(firmId, payload.groupId);
+
   const item = await accountingServicesRepository.createRow({
     firmId,
     name,
     description: payload?.description,
     imageUrl: payload?.imageStorageKey || payload?.imageUrl || null,
+    imageOriginalUrl: payload?.imageOriginalUrl || null,
+    imageFocusX: normalizeImageFocus(payload?.imageFocusX, 0, 100) ?? null,
+    imageFocusY: normalizeImageFocus(payload?.imageFocusY, 0, 100) ?? null,
+    imageZoom: normalizeImageFocus(payload?.imageZoom, 1, 2.5) ?? null,
     durationMinutes: duration,
     priceCents,
     currency: String(payload?.currency || 'EUR').toUpperCase().slice(0, 3),
@@ -493,6 +641,7 @@ async function create({ firmId, payload }) {
     slug,
     isPubliclyListed,
     requiresBooking: payload?.requiresBooking === true,
+    groupId: payload?.groupId || null,
     publicGroup: normalizePublicGroup(payload?.publicGroup) ?? null,
     intakeStartMode: normalizeIntakeStartMode(payload?.intakeStartMode) ?? 'form',
     documentRequirements: normalizeDocumentRequirements(payload?.documentRequirements) || [],
@@ -502,7 +651,12 @@ async function create({ firmId, payload }) {
     paymentRequired,
     priceTaxMode: normalizePriceTaxMode(payload?.priceTaxMode) ?? null,
   });
-  return { item: await enrichService(item) };
+  if (payload?.optionServiceIds !== undefined) {
+    await setServiceOptions({ firmId, parentServiceId: item.id, optionServiceIds: payload.optionServiceIds });
+  }
+  const enriched = await enrichService(item, await resolveGroupNameMap(firmId));
+  const [withOptions] = await attachOptionsToServices(firmId, [enriched]);
+  return { item: withOptions };
 }
 
 async function update({ firmId, id, payload }) {
@@ -518,6 +672,10 @@ async function update({ firmId, id, payload }) {
   if (payload?.description !== undefined) patch.description = payload.description;
   if (payload?.imageStorageKey !== undefined) patch.imageUrl = payload.imageStorageKey;
   else if (payload?.imageUrl !== undefined) patch.imageUrl = payload.imageUrl;
+  if (payload?.imageOriginalUrl !== undefined) patch.imageOriginalUrl = payload.imageOriginalUrl;
+  if (payload?.imageFocusX !== undefined) patch.imageFocusX = normalizeImageFocus(payload.imageFocusX, 0, 100);
+  if (payload?.imageFocusY !== undefined) patch.imageFocusY = normalizeImageFocus(payload.imageFocusY, 0, 100);
+  if (payload?.imageZoom !== undefined) patch.imageZoom = normalizeImageFocus(payload.imageZoom, 1, 2.5);
   if (payload?.durationMinutes !== undefined) {
     const duration = Number(payload.durationMinutes);
     if (!Number.isFinite(duration) || duration < 15 || duration > 480) {
@@ -532,6 +690,10 @@ async function update({ firmId, id, payload }) {
   if (payload?.isActive !== undefined) patch.isActive = Boolean(payload.isActive);
   if (payload?.slug !== undefined) patch.slug = normalizeSlug(payload.slug);
   if (payload?.requiresBooking !== undefined) patch.requiresBooking = Boolean(payload.requiresBooking);
+  if (payload?.groupId !== undefined) {
+    await assertGroupBelongsToFirm(firmId, payload.groupId);
+    patch.groupId = payload.groupId || null;
+  }
   if (payload?.publicGroup !== undefined) patch.publicGroup = normalizePublicGroup(payload.publicGroup);
   if (payload?.sortOrder !== undefined) patch.sortOrder = normalizeSortOrder(payload.sortOrder);
   if (payload?.intakeStartMode !== undefined) {
@@ -598,7 +760,12 @@ async function update({ firmId, id, payload }) {
   }
 
   const item = await accountingServicesRepository.updateRow(id, firmId, patch);
-  return { item: await enrichService(item) };
+  if (payload?.optionServiceIds !== undefined) {
+    await setServiceOptions({ firmId, parentServiceId: id, optionServiceIds: payload.optionServiceIds });
+  }
+  const enriched = await enrichService(item, await resolveGroupNameMap(firmId));
+  const [withOptions] = await attachOptionsToServices(firmId, [enriched]);
+  return { item: withOptions };
 }
 
 /**
@@ -616,6 +783,10 @@ async function duplicate({ firmId, id }) {
     name: `${existing.name} (cópia)`,
     description: existing.description,
     imageUrl: existing.imageStorageKey || existing.imageUrl || null,
+    imageOriginalUrl: existing.imageOriginalUrl,
+    imageFocusX: existing.imageFocusX,
+    imageFocusY: existing.imageFocusY,
+    imageZoom: existing.imageZoom,
     durationMinutes: existing.durationMinutes,
     priceCents: existing.priceCents,
     currency: existing.currency,
@@ -625,13 +796,14 @@ async function duplicate({ firmId, id }) {
     slug: null,
     isPubliclyListed: false,
     requiresBooking: existing.requiresBooking,
+    groupId: existing.groupId,
     publicGroup: existing.publicGroup,
     intakeStartMode: existing.intakeStartMode,
     documentRequirements: existing.documentRequirements,
     intakeForm: existing.intakeForm,
     bookingOverrides: existing.bookingOverrides,
   });
-  return { item: await enrichService(item) };
+  return { item: await enrichService(item, await resolveGroupNameMap(firmId)) };
 }
 
 /**
@@ -770,6 +942,8 @@ module.exports = {
   uploadServiceImage,
   enrichService,
   resolveServiceImageUrl,
+  setServiceOptions,
+  attachOptionsToServices,
   getCatalogTemplate: () => CONSULTING_SERVICES_CATALOG,
   normalizeIntakeForm,
   normalizeBookingOverrides,

@@ -9,8 +9,12 @@ const {
   recoverLimiter,
   refreshLimiter,
   registerFirmLimiter,
+  mfaVerifyLimiter,
+  mfaEnrollLimiter,
 } = require('../utils/auth-rate-limit');
 const { SAFE_NORMALIZE_EMAIL_OPTIONS } = require('../utils/normalize');
+const mfaController = require('../modules/auth/mfa.controller');
+const { optionalAuthIfNoMfaChallenge } = require('../middlewares/mfa-optional-auth.middleware');
 
 const router = express.Router();
 
@@ -129,5 +133,41 @@ router.get('/sso/status', googleSsoController.ssoStatus);
 router.get('/google/pending', googleSsoController.getPendingRegistration);
 router.get('/google', googleSsoController.startGoogleLogin);
 router.get('/google/callback', googleSsoController.googleCallback);
+
+router.get('/mfa/challenge/status', mfaVerifyLimiter, mfaController.challengeStatus);
+router.post(
+  '/mfa/challenge/verify',
+  mfaVerifyLimiter,
+  mfaController.challengeVerifyValidators,
+  mfaController.challengeVerify,
+);
+router.post(
+  '/mfa/enroll/begin',
+  mfaEnrollLimiter,
+  optionalAuthIfNoMfaChallenge,
+  mfaController.enrollBegin,
+);
+router.post(
+  '/mfa/enroll/confirm',
+  mfaEnrollLimiter,
+  optionalAuthIfNoMfaChallenge,
+  mfaController.enrollConfirmValidators,
+  mfaController.enrollConfirm,
+);
+router.get('/mfa/status', authMiddleware, mfaController.sessionStatus);
+router.post(
+  '/mfa/disable',
+  mfaVerifyLimiter,
+  authMiddleware,
+  mfaController.disableValidators,
+  mfaController.disable,
+);
+router.post(
+  '/mfa/recovery/regenerate',
+  mfaVerifyLimiter,
+  authMiddleware,
+  mfaController.regenerateValidators,
+  mfaController.regenerateRecovery,
+);
 
 module.exports = router;

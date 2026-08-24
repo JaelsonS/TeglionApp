@@ -30,7 +30,7 @@ export function RichTextEditor({ value, onChange, className, placeholder, readOn
     const el = ref.current
     if (!el) return
     if (value !== lastEmitted.current && el.innerHTML !== value) {
-      el.innerHTML = value || ''
+      el.innerHTML = sanitizeServiceHtml(value || '')
     }
   }, [value])
 

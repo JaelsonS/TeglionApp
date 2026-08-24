@@ -15,6 +15,7 @@ import {
   isRefreshTokenMissingError,
 } from '@/shared/utils/errors'
 import { logger } from '@/shared/utils/logger'
+import { clearVaultStepUpToken } from '@/features/firm/client-hub/vaultStepUpSession'
 import { writeClientLoginBranding } from '@/shared/utils/clientLoginBrandingStorage'
 import { tryNormalizeAuthUser } from '@/shared/utils/authNormalize'
 import { authClientLoginUrl, authFirmLoginUrl } from '@/shared/constants/authPaths'
@@ -210,6 +211,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loginFirm = useCallback(
     async (payload: Parameters<AuthContextValue['loginFirm']>[0]) => {
       const res = await authApi.loginFirm(payload)
+      if (res.status === 'MFA_CHALLENGE_REQUIRED' || res.status === 'MFA_ENROLLMENT_REQUIRED') {
+        const { setMfaChallengeToken } = await import('@/shared/security/mfaChallengeStore')
+        if (res.mfa?.challengeToken) setMfaChallengeToken(res.mfa.challengeToken)
+        return res
+      }
       if (!setSession(res.user)) {
         throw new Error(String(t('errors.authPayloadInvalid', { defaultValue: 'Resposta de autenticação inválida.' })))
       }
@@ -253,7 +259,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [setSession, t],
   ) as AuthContextValue['registerFirm']
 
-  function clearOperationalSessionCaches() {
+  function clearOperationalSessionCaches(userId?: string) {
     if (typeof window === 'undefined') return
     try {
       const prefixes = [
@@ -270,6 +276,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       /* ignore */
     }
+    // F-02: o token de step-up do cofre (10 min, por-propósito) sobrevivia ao
+    // logout — num computador partilhado, continuava utilizável até expirar
+    // mesmo depois de a pessoa ter saído da conta.
+    clearVaultStepUpToken(userId)
   }
 
   const logout = useCallback(async () => {
@@ -286,7 +296,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logger.warn('Erro ao fazer logout no servidor', error)
     } finally {
       clearClientCsrfCache()
-      clearOperationalSessionCaches()
+      clearOperationalSessionCaches(user?.id)
       navigate(redirectPath, { replace: true })
       clearSession()
       toast.message(t('auth.logoutSuccess'))

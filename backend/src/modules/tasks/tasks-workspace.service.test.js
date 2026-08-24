@@ -122,6 +122,90 @@ test('createTask propaga erros não relacionados a colunas legadas (falha alto, 
   );
 });
 
+test('createTask com clientIds (multi-cliente) valida todos os clientes e repassa o conjunto pro insertTask', async () => {
+  const insertedRows = [];
+  const insertedOpts = [];
+  const knownClients = new Set(['client-a', 'client-b']);
+
+  await withMock(
+    clientsRepository,
+    'findClientById',
+    async (_firmId, clientId) => (knownClients.has(clientId) ? { id: clientId, displayName: 'Cliente' } : null),
+    () =>
+      withMock(activityService, 'recordActivity', async () => {}, () =>
+        withMock(
+          tasksRepo,
+          'insertTask',
+          async (row, opts) => {
+            insertedRows.push(row);
+            insertedOpts.push(opts);
+            return { id: 'task-multi', clientIds: opts?.clientIds || [], ...row };
+          },
+          async () => {
+            const { task } = await workspace.createTask({
+              firmId: 'firm-1',
+              actor: { id: 'user-1', name: 'Escritório' },
+              payload: {
+                clientIds: ['client-a', 'client-b'],
+                title: 'Solicitar documentos IRS',
+                taskType: 'internal_task',
+                status: 'TODO',
+              },
+            });
+
+            assert.equal(insertedRows[0].client_id, 'client-a', 'ponteiro legado = primeiro cliente do conjunto');
+            assert.deepEqual(insertedOpts[0].clientIds, ['client-a', 'client-b']);
+            assert.deepEqual(task.clientIds.sort(), ['client-a', 'client-b']);
+          },
+        ),
+      ),
+  );
+});
+
+test('createTask com clientIds rejeita quando algum cliente não existe (não cria a tarefa parcialmente)', async () => {
+  const insertedRows = [];
+  await withMock(clientsRepository, 'findClientById', async (_firmId, clientId) => (clientId === 'client-a' ? { id: 'client-a' } : null), () =>
+    withMock(tasksRepo, 'insertTask', async (row) => {
+      insertedRows.push(row);
+      return { id: 'task-x', ...row };
+    }, async () => {
+      await assert.rejects(
+        () =>
+          workspace.createTask({
+            firmId: 'firm-1',
+            actor: { id: 'user-1' },
+            payload: { clientIds: ['client-a', 'client-inexistente'], title: 'Tarefa', taskType: 'internal_task' },
+          }),
+        /Cliente não encontrado/,
+      );
+      assert.equal(insertedRows.length, 0, 'não deve inserir nada se algum cliente do conjunto não existir');
+    }),
+  );
+});
+
+test('createTask rejeita recorrência quando há mais de um cliente vinculado', async () => {
+  await withMock(clientsRepository, 'findClientById', async (_firmId, clientId) => ({ id: clientId }), () =>
+    withMock(tasksRepo, 'insertTask', async () => {
+      throw new Error('insertTask não deveria ser chamado');
+    }, async () => {
+      await assert.rejects(
+        () =>
+          workspace.createTask({
+            firmId: 'firm-1',
+            actor: { id: 'user-1' },
+            payload: {
+              clientIds: ['client-a', 'client-b'],
+              title: 'Tarefa recorrente',
+              taskType: 'internal_task',
+              recurrenceRule: { frequency: 'MONTHLY' },
+            },
+          }),
+        /exatamente um cliente/,
+      );
+    }),
+  );
+});
+
 test('createTask aceita tarefa interna sem cliente da carteira', async () => {
   const insertedRows = [];
   await withMock(activityService, 'recordActivity', async () => {}, () =>
@@ -138,5 +222,66 @@ test('createTask aceita tarefa interna sem cliente da carteira', async () => {
       assert.equal(insertedRows[0].client_id, null);
       assert.equal(task.id, 'task-office');
     }),
+  );
+});
+
+// F-08 (auditoria de release final): updateTask valida clientIds contra o
+// escritório actor — sem isto, um pedido a PATCH /tasks/:id com o id de um
+// cliente doutro escritório ligaria essa tarefa a um cliente alheio (fuga
+// cross-tenant). O código já bloqueava isto; faltava o teste de regressão.
+test('updateTask rejeita clientIds de um cliente que não pertence ao escritório (isolamento cross-tenant)', async () => {
+  const updateCalls = [];
+  await withMock(tasksRepo, 'findTaskById', async () => ({
+    id: 'task-1',
+    clientId: 'client-a',
+    title: 'Tarefa',
+    status: 'TODO',
+  }), () =>
+    withMock(clientsRepository, 'findClientById', async (_firmId, clientId) => (clientId === 'client-a' ? { id: 'client-a' } : null), () =>
+      withMock(tasksRepo, 'updateTask', async (...args) => {
+        updateCalls.push(args);
+        return { id: 'task-1' };
+      }, async () => {
+        await assert.rejects(
+          () =>
+            workspace.updateTask({
+              firmId: 'firm-a',
+              taskId: 'task-1',
+              actor: { id: 'user-1' },
+              patch: { clientIds: ['client-a', 'client-de-outro-escritorio'] },
+            }),
+          (err) => err?.statusCode === 400 && err?.details?.code === 'CLIENT_NOT_IN_FIRM',
+        );
+        assert.equal(updateCalls.length, 0, 'não deve persistir nada se algum clientId não pertencer ao escritório');
+      }),
+    ),
+  );
+});
+
+test('updateTask aceita clientIds quando todos pertencem ao escritório', async () => {
+  const updateCalls = [];
+  await withMock(tasksRepo, 'findTaskById', async () => ({
+    id: 'task-1',
+    clientId: 'client-a',
+    title: 'Tarefa',
+    status: 'TODO',
+  }), () =>
+    withMock(clientsRepository, 'findClientById', async (_firmId, clientId) => ({ id: clientId }), () =>
+      withMock(activityService, 'recordActivity', async () => {}, () =>
+        withMock(tasksRepo, 'updateTask', async (taskId, firmId, patch) => {
+          updateCalls.push({ taskId, firmId, patch });
+          return { id: taskId, clientId: 'client-a' };
+        }, async () => {
+          await workspace.updateTask({
+            firmId: 'firm-a',
+            taskId: 'task-1',
+            actor: { id: 'user-1' },
+            patch: { clientIds: ['client-a', 'client-b', 'client-a'] },
+          });
+          assert.equal(updateCalls.length, 1);
+          assert.deepEqual(updateCalls[0].patch.clientIds, ['client-a', 'client-b'], 'dedupe, mas preserva a lista válida');
+        }),
+      ),
+    ),
   );
 });

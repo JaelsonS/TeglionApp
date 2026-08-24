@@ -3,7 +3,7 @@ import type { FormChangeEvent } from '@/shared/types/react-events'
 import { Building2, Kanban, LayoutGrid, Plus, Search } from 'lucide-react'
 
 import type { WorkspaceTask, WorkspaceTaskStatus } from '@/infrastructure/api/contabil/tasks'
-import { ClientSearchSelect } from '@/features/firm/components/ClientSearchSelect'
+import { ClientMultiSelect } from '@/features/firm/components/ClientMultiSelect'
 import { ManualTaskOperationsCard } from '@/features/firm/tasks/ManualTaskOperationsCard'
 import { TaskKanbanView } from '@/features/firm/tasks/TaskKanbanView'
 import { STATUS_LABEL } from '@/features/firm/tasks/taskWorkspaceConstants'
@@ -53,7 +53,7 @@ export function TasksManualView({
   view: ViewMode
   showForm: boolean
   form: {
-    clientId: string
+    clientIds: string[]
     title: string
     description: string
     dueDate: string
@@ -80,8 +80,8 @@ export function TasksManualView({
 }) {
   const recurrenceFrequency = (form.recurrenceFrequency || 'NONE') as RecurrenceFrequency
   const hasRecurrence = recurrenceFrequency !== 'NONE'
-  const [pickingClient, setPickingClient] = useState(Boolean(form.clientId))
-  const associateClient = pickingClient || Boolean(form.clientId)
+  const [pickingClient, setPickingClient] = useState(form.clientIds.length > 0)
+  const associateClient = pickingClient || form.clientIds.length > 0
 
   useEffect(() => {
     if (!showForm) setPickingClient(false)
@@ -246,26 +246,28 @@ export function TasksManualView({
             {associateClient ? (
               <div className="space-y-2 rounded-xl border border-border/50 bg-muted/10 p-3">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-medium text-foreground">Cliente da carteira</p>
+                  <p className="text-xs font-medium text-foreground">Clientes da carteira</p>
                   <button
                     type="button"
                     className="text-xs font-medium text-muted-foreground hover:text-foreground"
                     onClick={() => {
                       setPickingClient(false)
-                      onFormChange({ clientId: '', recurrenceFrequency: 'NONE' })
+                      onFormChange({ clientIds: [], recurrenceFrequency: 'NONE' })
                     }}
                   >
                     Sem cliente
                   </button>
                 </div>
-                <ClientSearchSelect
+                <ClientMultiSelect
                   clients={clients}
-                  value={form.clientId}
-                  onChange={(id) => onFormChange({ clientId: id, ...(id ? {} : { recurrenceFrequency: 'NONE' }) })}
+                  value={form.clientIds}
+                  onChange={(ids) =>
+                    onFormChange({ clientIds: ids, ...(ids.length === 1 ? {} : { recurrenceFrequency: 'NONE' }) })
+                  }
                   placeholder="Nome, e-mail ou NIF"
                   requireQuery
                 />
-                {form.clientId ? (
+                {form.clientIds.length === 1 ? (
                   <div className="space-y-1.5">
                     <label htmlFor="task-recurrence" className="text-xs font-medium text-foreground">
                       Recorrência
@@ -283,6 +285,10 @@ export function TasksManualView({
                       <option value="ANNUAL">Anual</option>
                     </select>
                   </div>
+                ) : form.clientIds.length > 1 ? (
+                  <p className="text-xs text-muted-foreground">
+                    Recorrência não está disponível para tarefas com mais de um cliente.
+                  </p>
                 ) : null}
               </div>
             ) : (
