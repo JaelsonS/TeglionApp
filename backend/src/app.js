@@ -160,11 +160,8 @@ const corsOptionsDelegate = (req, callback) => {
         return originCallback(null, origin);
       }
 
-      // Rotas públicas: apenas GET/HEAD sem credenciais sensíveis; POST exige origin na allowlist.
-      // Nota de segurança: em preflight (method === 'OPTIONS'), o método REAL pretendido vem no
-      // header `Access-Control-Request-Method`, não em `req.method` — tratar OPTIONS como método
-      // seguro por si só deixava qualquer origem "passar" o preflight de uma rota de mutação
-      // pública (ex.: POST /api/public/support), mesmo que o POST real fosse depois rejeitado.
+      // Rotas públicas: GET/HEAD podem refletir Origin; mutações exigem allowlist.
+      // Em preflight OPTIONS, o método pretendido vem de Access-Control-Request-Method.
       if (isPublicPath) {
         const method = String(req?.method || 'GET').toUpperCase();
         const isPreflight = method === 'OPTIONS';
@@ -243,14 +240,12 @@ app.use(
 
       const url = req.originalUrl || req.url || '';
 
-      // Não aplica rate limiting para health checks
+      // Health e fluxos de auth/public webhooks têm baldes dedicados ou autenticação própria.
       if (url === '/api/health') return true;
       if (url === '/health') return true;
       if (url === '/') return true;
 
-      // Evita 429 em rotas sensíveis ao fluxo de login (tráfego ainda não autenticado)
       if (url.startsWith('/api/auth/login')) return true;
-      // refresh tem rate limit dedicado em contabil-auth.routes.js
       if (url.startsWith('/api/auth/recover')) return true;
       if (url.startsWith('/api/auth/validate-reset-token')) return true;
       if (url.startsWith('/api/auth/reset')) return true;
@@ -258,11 +253,7 @@ app.use(
       const pathOnly = url.split('?')[0];
       if (pathOnly === '/api/public/geo') return true;
       if (pathOnly === '/api/public/health') return true;
-      // Bootstrap de sessão/CSRF — não deve contar para o limite global
       if (pathOnly === '/api/csrf') return true;
-      // Webhooks Stripe já são autenticados por assinatura HMAC própria (constructEvent);
-      // ficarem sujeitos ao balde anónimo (300/janela/IP) podia fazer o Teglion devolver
-      // 429 a entregas legítimas do Stripe em rajadas de replay/backfill.
       if (pathOnly === '/api/public/stripe/webhook') return true;
       if (pathOnly === '/api/public/stripe/connect/webhook') return true;
 

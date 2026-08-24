@@ -1,5 +1,6 @@
 const express = require('express');
 const { authMiddleware } = require('../../middlewares/auth.middleware');
+const { requireFirmStaff } = require('../../middlewares/firm-staff.middleware');
 const { requireActiveFirm } = require('../../middlewares/firm-access.middleware');
 const { contabilModeGuard } = require('./middleware');
 const cronRoutes = require('./cron.routes');
@@ -12,6 +13,7 @@ const router = express.Router();
 router.use(contabilModeGuard);
 router.use(cronRoutes);
 router.use(authMiddleware);
+router.use(requireFirmStaff);
 router.use(billingRoutes);
 router.use(requireActiveFirm);
 router.use(connectRoutes);

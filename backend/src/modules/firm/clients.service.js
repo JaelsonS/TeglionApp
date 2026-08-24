@@ -188,6 +188,18 @@ async function validateClientNif({ firmId, taxId, excludeClientId }) {
   return { valid: true, normalized, message: 'NIF válido.' };
 }
 
+async function assertAssignedStaffBelongsToFirm(firmId, assignedStaffId) {
+  if (assignedStaffId == null || assignedStaffId === '') return null;
+  const staffId = String(assignedStaffId).trim();
+  if (!staffId) return null;
+  const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
+  const staff = await firmUsersRepository.findFirmUserByIdForFirm(firmId, staffId);
+  if (!staff || staff.isActive === false) {
+    throw new AppError('Colaborador responsável inválido', 400, { code: 'INVALID_ASSIGNED_STAFF' });
+  }
+  return staffId;
+}
+
 async function createClient({ firmId, displayName, email, phone, taxId, metadata, assignedStaffId, actor }) {
   const name = String(displayName || '').trim();
   if (!name) throw new AppError('Nome do cliente é obrigatório', 400);
@@ -202,6 +214,8 @@ async function createClient({ firmId, displayName, email, phone, taxId, metadata
     normalizedTaxId = check.normalized;
   }
 
+  const resolvedStaffId = await assertAssignedStaffBelongsToFirm(firmId, assignedStaffId);
+
   const metadataPatch = metadata ? normalizeMetadataPatch(metadata) : null;
   const client = await clientsRepository.createClient({
     firmId,
@@ -209,7 +223,7 @@ async function createClient({ firmId, displayName, email, phone, taxId, metadata
     email: email ? String(email).trim().toLowerCase() : null,
     phone: phone || null,
     taxId: normalizedTaxId,
-    assignedStaffId: assignedStaffId || null,
+    assignedStaffId: resolvedStaffId,
     metadata:
       metadataPatch && Object.keys(metadataPatch).length ? metadataPatch : undefined,
   });
@@ -292,7 +306,9 @@ async function updateClient({ firmId, clientId, patch, actor }) {
   if (patch.email !== undefined) repoPatch.email = patch.email;
   if (patch.phone !== undefined) repoPatch.phone = patch.phone;
   if (patch.taxId !== undefined) repoPatch.taxId = patch.taxId;
-  if (patch.assignedStaffId !== undefined) repoPatch.assignedStaffId = patch.assignedStaffId;
+  if (patch.assignedStaffId !== undefined) {
+    repoPatch.assignedStaffId = await assertAssignedStaffBelongsToFirm(firmId, patch.assignedStaffId);
+  }
   if (metadataPatch && Object.keys(metadataPatch).length) {
     repoPatch.metadata = mergeMetadata(existing.metadata, metadataPatch);
   }
