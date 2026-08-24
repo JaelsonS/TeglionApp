@@ -12,10 +12,30 @@ const firmUsersRepository = require('../../db/supabase/repositories/firm-users.r
 const authRefreshSessionsRepository = require('../../db/supabase/repositories/auth-refresh-sessions.repository');
 const { signMfaChallengeToken, verifyMfaChallengeToken, MFA_PURPOSES } = require('../../config/jwt');
 const securityAudit = require('../../services/audit/security-audit.service');
+const rateLimitStore = require('../../utils/rate-limit-store');
 
 const ISSUER = 'Teglion';
 const RECOVERY_CODE_COUNT = 10;
 const TOTP_EPOCH_TOLERANCE_SEC = 30;
+const CHALLENGE_CONSUMED_PREFIX = 'mfa-challenge-used:';
+
+/**
+ * Marca um challenge JWT (jti) como já usado — impede que a mesma confirmação
+ * de MFA seja reenviada para emitir uma segunda sessão dentro dos 5 minutos de
+ * validade do token. Falha aberta se Redis estiver indisponível (mesma política
+ * já adoptada no rate-limit — não bloquear login por uma dependência opcional).
+ */
+async function consumeChallengeJti(jti, expUnixSeconds) {
+  const client = rateLimitStore.getSharedRedisClient();
+  if (!client || !jti) return true;
+  const ttlMs = Math.max(1000, (Number(expUnixSeconds) || 0) * 1000 - Date.now());
+  try {
+    const result = await client.set(`${CHALLENGE_CONSUMED_PREFIX}${jti}`, '1', 'PX', ttlMs, 'NX');
+    return result === 'OK';
+  } catch {
+    return true;
+  }
+}
 
 const STATUS = Object.freeze({
   AUTHENTICATED: 'AUTHENTICATED',
@@ -92,7 +112,45 @@ function resolvePostCredentialGate(row) {
   return { status: STATUS.AUTHENTICATED };
 }
 
-async function verifyTotpCode(secretPlain, code) {
+const TOTP_REPLAY_PREFIX = 'totp-used:';
+// Cobre a janela inteira em que o otplib pode aceitar o código (passo actual
+// ± epochTolerance) — sem isto, um código intercetado continuava a servir
+// para confirmar uma SEGUNDA acção sensível dentro da mesma janela de 30s.
+const TOTP_REPLAY_TTL_MS = (TOTP_EPOCH_TOLERANCE_SEC + 30) * 1000 + 5_000;
+
+/**
+ * Marca "este código, deste utilizador" como já usado — impede reutilização
+ * do mesmo TOTP para uma segunda confirmação (login, acção sensível, ou
+ * vault) enquanto ainda estiver dentro da janela de validade. Falha aberta
+ * se Redis estiver indisponível, mesma política do resto do módulo.
+ */
+async function consumeTotpReplayGuard(replayKey, token) {
+  if (!replayKey) return true;
+  const client = rateLimitStore.getSharedRedisClient();
+  if (!client) return true;
+  try {
+    const result = await client.set(
+      `${TOTP_REPLAY_PREFIX}${replayKey}:${token}`,
+      '1',
+      'PX',
+      TOTP_REPLAY_TTL_MS,
+      'NX',
+    );
+    return result === 'OK';
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * @param {string} secretPlain
+ * @param {string} code
+ * @param {string} [replayKey] — normalmente o id do utilizador. Quando passado,
+ *   um código correcto só é aceite uma vez por utilizador dentro da sua janela
+ *   de validade — a segunda tentativa com o mesmo código falha como se fosse
+ *   inválido, mesmo sendo matematicamente correcto.
+ */
+async function verifyTotpCode(secretPlain, code, replayKey) {
   const token = String(code || '').replace(/\s+/g, '');
   if (!/^\d{6}$/.test(token)) return false;
   const result = await verifyTotp({
@@ -100,7 +158,8 @@ async function verifyTotpCode(secretPlain, code) {
     secret: secretPlain,
     epochTolerance: TOTP_EPOCH_TOLERANCE_SEC,
   });
-  return Boolean(result && result.valid);
+  if (!result || !result.valid) return false;
+  return consumeTotpReplayGuard(replayKey, token);
 }
 
 function generateRecoveryCodesPlain() {
@@ -280,7 +339,7 @@ async function confirmEnrollment({ challengeToken, sessionUser = null, code, req
     throw new AppError('Segredo MFA inválido. Reinicie o enrollment.', 500, { code: 'MFA_SECRET_CORRUPT' });
   }
 
-  const ok = await verifyTotpCode(secretPlain, code);
+  const ok = await verifyTotpCode(secretPlain, code, row.id);
   if (!ok) {
     void securityAudit.recordSecurityEvent({
       firmId,
@@ -370,7 +429,7 @@ async function verifyChallenge({ challengeToken, code, recoveryCode, req = null 
     } catch {
       throw new AppError('Segredo MFA inválido.', 500, { code: 'MFA_SECRET_CORRUPT' });
     }
-    const verified = await verifyTotpCode(secretPlain, code);
+    const verified = await verifyTotpCode(secretPlain, code, row.id);
     if (!verified) {
       void securityAudit.recordSecurityEvent({
         firmId: payload.firmId,
@@ -397,6 +456,24 @@ async function verifyChallenge({ challengeToken, code, recoveryCode, req = null 
     });
   }
 
+  // Só depois de um código/recovery correcto — uma tentativa errada não deve
+  // gastar o challenge, só o reenvio de uma confirmação já bem-sucedida.
+  const firstUse = await consumeChallengeJti(payload.jti, payload.exp);
+  if (!firstUse) {
+    void securityAudit.recordSecurityEvent({
+      firmId: payload.firmId,
+      actorRole: firmUsersRepository.jwtRoleFromFirmRole(row.role),
+      actorId: row.id,
+      action: 'mfa.challenge.replay_blocked',
+      entityType: 'firm_user',
+      entityId: row.id,
+      req,
+    });
+    throw new AppError('Este desafio de MFA já foi usado. Faça login novamente.', 401, {
+      code: 'MFA_CHALLENGE_ALREADY_USED',
+    });
+  }
+
   return { row, verified: true };
 }
 
@@ -418,7 +495,7 @@ async function disableMfa({ userId, firmId, code, recoveryCode, req = null }) {
     ok = consumed.ok;
   } else {
     const secretPlain = decryptField(row.mfa_totp_secret_enc);
-    ok = await verifyTotpCode(secretPlain, code);
+    ok = await verifyTotpCode(secretPlain, code, row.id);
   }
   if (!ok) throw invalidMfaCodeError();
 
@@ -451,7 +528,7 @@ async function regenerateRecoveryCodes({ userId, firmId, code, req = null }) {
     throw new AppError('MFA não está activo.', 400, { code: 'MFA_NOT_ENABLED' });
   }
   const secretPlain = decryptField(row.mfa_totp_secret_enc);
-  const ok = await verifyTotpCode(secretPlain, code);
+  const ok = await verifyTotpCode(secretPlain, code, row.id);
   if (!ok) throw invalidMfaCodeError();
 
   const recoveryPlain = generateRecoveryCodesPlain();

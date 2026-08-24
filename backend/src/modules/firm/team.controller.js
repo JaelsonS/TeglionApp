@@ -86,6 +86,8 @@ exports.reactivate = async (req, res, next) => {
       memberId,
       actor: req.user,
       req,
+      totpCode: req.body?.totpCode,
+      currentPassword: req.body?.currentPassword,
     });
     return res.json({ member });
   } catch (err) {

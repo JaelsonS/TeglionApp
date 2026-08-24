@@ -95,7 +95,11 @@ async function listPublicCatalogServices(firmId) {
 
 async function resolveGroupNameMap(firmId) {
   const groups = await accountingServiceGroupsRepository.listByFirm(firmId);
-  return new Map(groups.filter((g) => g.isPubliclyListed).map((g) => [g.id, g.name]));
+  // F-05: um grupo desactivado não pode continuar a aparecer como cabeçalho
+  // público só porque "visível publicamente" ficou marcado — as duas flags
+  // são independentes na UI de gestão, mas para o visitante público o grupo
+  // só existe quando as duas são verdadeiras.
+  return new Map(groups.filter((g) => g.isPubliclyListed && g.isActive).map((g) => [g.id, g.name]));
 }
 
 function assertValid(req) {

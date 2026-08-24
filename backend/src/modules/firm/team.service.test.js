@@ -286,6 +286,65 @@ test('reactivateMember: owner PODE reativar outro owner (sem regressão)', async
   assert.equal(result.role, 'FIRM_OWNER');
 });
 
+test('reactivateMember: exige o mesmo step-up sensível de deactivateMember (F-01)', async () => {
+  resetMocks();
+  mockTags();
+  const member = baseMember({ isActive: false });
+  mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => member);
+  mock.method(firmUsersRepository, 'setFirmMemberActive', async () => ({ ...member, isActive: true }));
+  mock.method(securityAudit, 'recordTeamMutation', async () => {});
+
+  let confirmCall = null;
+  mock.method(sensitiveAction, 'confirmSensitiveAction', async (args) => {
+    confirmCall = args;
+    return { method: 'mfa_totp', purpose: args.purpose };
+  });
+
+  await teamService.reactivateMember({
+    firmId: FIRM_ID,
+    memberId: member.id,
+    actor: OWNER,
+    req: {},
+    totpCode: '123456',
+  });
+
+  assert.equal(confirmCall.purpose, sensitiveAction.SENSITIVE_PURPOSES.TEAM_MEMBER_REACTIVATE);
+  assert.equal(confirmCall.firmId, FIRM_ID);
+  assert.equal(confirmCall.userId, OWNER.id);
+  assert.equal(confirmCall.totpCode, '123456');
+});
+
+test('reactivateMember: sem step-up válido, rejeita e nunca reativa (sem bypass)', async () => {
+  resetMocks();
+  const member = baseMember({ isActive: false });
+  mock.method(firmUsersRepository, 'findFirmUserByIdForFirm', async () => member);
+
+  mock.method(sensitiveAction, 'confirmSensitiveAction', async () => {
+    const err = new Error('Para confirmar esta operação, introduza o código de segurança.');
+    err.statusCode = 403;
+    err.details = { code: 'SENSITIVE_ACTION_MFA_REQUIRED' };
+    throw err;
+  });
+
+  let called = false;
+  mock.method(firmUsersRepository, 'setFirmMemberActive', async () => {
+    called = true;
+    return { ...member, isActive: true };
+  });
+
+  await assert.rejects(
+    () =>
+      teamService.reactivateMember({
+        firmId: FIRM_ID,
+        memberId: member.id,
+        actor: OWNER,
+        req: {},
+      }),
+    (err) => err?.statusCode === 403 && err?.details?.code === 'SENSITIVE_ACTION_MFA_REQUIRED',
+  );
+  assert.equal(called, false, 'setFirmMemberActive nunca deve ser chamado sem o factor sensível confirmado');
+});
+
 test('updateMember: não é possível rebaixar o último FIRM_OWNER ativo (regressão P2 — TOCTOU/invariante)', async () => {
   resetMocks();
   const soleOwner = baseMember({ id: OWNER.id, role: 'FIRM_OWNER' });

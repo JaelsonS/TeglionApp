@@ -21,7 +21,7 @@ import { ServiceFormPreview } from '@/features/firm/agenda/ServiceFormPreview'
 import { IntakeStartModeFields } from '@/features/firm/services/IntakeStartModeFields'
 import { ServiceOfferOptionsEditor } from '@/features/firm/services/ServiceOfferOptionsEditor'
 import { ServiceBookingAvailabilitySection } from '@/features/firm/services/ServiceBookingAvailabilitySection'
-import { bookingOverridesPayload, hasCustomBookingHours } from '@/features/firm/services/serviceBookingAvailability'
+import { computeServiceBookingOverridesPatch, hasCustomBookingHours } from '@/features/firm/services/serviceBookingAvailability'
 import {
   ServicePaymentMethodsPanel,
   type ServicePaymentMethodId,
@@ -530,11 +530,7 @@ export function ServiceFullEditorSheet({
       return
     }
     const customized = hasCustomBookingHours(bookingOverrides)
-    const nextBookingOverrides = customized
-      ? bookingOverrides?.schedule && Object.keys(bookingOverrides.schedule).length
-        ? bookingOverridesPayload(true, bookingOverrides.schedule)
-        : { weekdays: bookingOverrides?.weekdays }
-      : null
+    const nextBookingOverrides = computeServiceBookingOverridesPatch(bookingOverrides)
     if (customized && (!nextBookingOverrides?.weekdays || nextBookingOverrides.weekdays.length === 0)) {
       toast.error('Horário do serviço incompleto', {
         description: 'Escolha pelo menos um dia, ou desligue «Personalizar horários deste serviço».',

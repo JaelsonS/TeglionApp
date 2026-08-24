@@ -458,6 +458,7 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
           <VaultPasswordSetupForm
             compact
             userId={userId}
+            mfaEnabled={mfaRequired}
             hasVaultPassword={Boolean(security.hasVaultPassword)}
             hasLoginPassword={Boolean(security.hasLocalPassword)}
             onUpdated={() => void refetch()}

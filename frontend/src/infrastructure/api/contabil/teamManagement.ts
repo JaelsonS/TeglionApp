@@ -38,8 +38,8 @@ export const teamManagementApi = {
     deactivateMember: (memberId: string, payload?: { totpCode?: string; currentPassword?: string }) =>
         api.post(`/contabil/team/${encodeURIComponent(memberId)}/deactivate`, payload || {}).then((r) => r.data as { member: TeamMember }),
 
-    reactivateMember: (memberId: string) =>
-        api.post(`/contabil/team/${encodeURIComponent(memberId)}/reactivate`).then((r) => r.data as { member: TeamMember }),
+    reactivateMember: (memberId: string, payload?: { totpCode?: string; currentPassword?: string }) =>
+        api.post(`/contabil/team/${encodeURIComponent(memberId)}/reactivate`, payload || {}).then((r) => r.data as { member: TeamMember }),
 
     createInvite: (payload: {
         fullName: string

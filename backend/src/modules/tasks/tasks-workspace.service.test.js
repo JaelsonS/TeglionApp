@@ -224,3 +224,64 @@ test('createTask aceita tarefa interna sem cliente da carteira', async () => {
     }),
   );
 });
+
+// F-08 (auditoria de release final): updateTask valida clientIds contra o
+// escritório actor — sem isto, um pedido a PATCH /tasks/:id com o id de um
+// cliente doutro escritório ligaria essa tarefa a um cliente alheio (fuga
+// cross-tenant). O código já bloqueava isto; faltava o teste de regressão.
+test('updateTask rejeita clientIds de um cliente que não pertence ao escritório (isolamento cross-tenant)', async () => {
+  const updateCalls = [];
+  await withMock(tasksRepo, 'findTaskById', async () => ({
+    id: 'task-1',
+    clientId: 'client-a',
+    title: 'Tarefa',
+    status: 'TODO',
+  }), () =>
+    withMock(clientsRepository, 'findClientById', async (_firmId, clientId) => (clientId === 'client-a' ? { id: 'client-a' } : null), () =>
+      withMock(tasksRepo, 'updateTask', async (...args) => {
+        updateCalls.push(args);
+        return { id: 'task-1' };
+      }, async () => {
+        await assert.rejects(
+          () =>
+            workspace.updateTask({
+              firmId: 'firm-a',
+              taskId: 'task-1',
+              actor: { id: 'user-1' },
+              patch: { clientIds: ['client-a', 'client-de-outro-escritorio'] },
+            }),
+          (err) => err?.statusCode === 400 && err?.details?.code === 'CLIENT_NOT_IN_FIRM',
+        );
+        assert.equal(updateCalls.length, 0, 'não deve persistir nada se algum clientId não pertencer ao escritório');
+      }),
+    ),
+  );
+});
+
+test('updateTask aceita clientIds quando todos pertencem ao escritório', async () => {
+  const updateCalls = [];
+  await withMock(tasksRepo, 'findTaskById', async () => ({
+    id: 'task-1',
+    clientId: 'client-a',
+    title: 'Tarefa',
+    status: 'TODO',
+  }), () =>
+    withMock(clientsRepository, 'findClientById', async (_firmId, clientId) => ({ id: clientId }), () =>
+      withMock(activityService, 'recordActivity', async () => {}, () =>
+        withMock(tasksRepo, 'updateTask', async (taskId, firmId, patch) => {
+          updateCalls.push({ taskId, firmId, patch });
+          return { id: taskId, clientId: 'client-a' };
+        }, async () => {
+          await workspace.updateTask({
+            firmId: 'firm-a',
+            taskId: 'task-1',
+            actor: { id: 'user-1' },
+            patch: { clientIds: ['client-a', 'client-b', 'client-a'] },
+          });
+          assert.equal(updateCalls.length, 1);
+          assert.deepEqual(updateCalls[0].patch.clientIds, ['client-a', 'client-b'], 'dedupe, mas preserva a lista válida');
+        }),
+      ),
+    ),
+  );
+});

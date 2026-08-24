@@ -109,6 +109,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
     const [selectedPermissions, setSelectedPermissions] = useState<string[]>([])
     const [editingMemberId, setEditingMemberId] = useState<string | null>(null)
     const [excludeMember, setExcludeMember] = useState<TeamSettingsMember | null>(null)
+    const [toggleMemberTarget, setToggleMemberTarget] = useState<TeamSettingsMember | null>(null)
     const [showInactiveMembers, setShowInactiveMembers] = useState(false)
     const [mfaEnabled, setMfaEnabled] = useState(false)
     const [stepUpTotp, setStepUpTotp] = useState('')
@@ -312,14 +313,15 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
     }
 
     const toggleMemberMutation = useMutation({
-        mutationFn: ({ memberId, active }: { memberId: string; active: boolean }) =>
-            active
-                ? teamManagementApi.deactivateMember(memberId, {
-                      ...(mfaEnabled ? { totpCode: stepUpTotp.trim() } : { currentPassword: stepUpPassword }),
-                  })
-                : teamManagementApi.reactivateMember(memberId),
+        mutationFn: ({ memberId, active }: { memberId: string; active: boolean }) => {
+            const factor = mfaEnabled ? { totpCode: stepUpTotp.trim() } : { currentPassword: stepUpPassword }
+            return active
+                ? teamManagementApi.deactivateMember(memberId, factor)
+                : teamManagementApi.reactivateMember(memberId, factor)
+        },
         onSuccess: async (_, vars) => {
             toast.success(vars.active ? 'Membro desativado.' : 'Membro reativado.')
+            setToggleMemberTarget(null)
             setStepUpTotp('')
             setStepUpPassword('')
             await invalidate()
@@ -864,7 +866,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                                                     variant="outline"
                                                     size="sm"
                                                     disabled={m.role === 'FIRM_OWNER' && ownerCount <= 1 && m.isActive}
-                                                    onClick={() => toggleMemberMutation.mutate({ memberId: m.id, active: m.isActive })}
+                                                    onClick={() => setToggleMemberTarget(m)}
                                                 >
                                                     {m.isActive ? 'Desativar' : 'Reativar'}
                                                 </Button>
@@ -1120,6 +1122,61 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                 <div className="mt-3">
                     <SensitiveActionConfirmFields
                         idPrefix="team-exclude"
+                        mfaEnabled={mfaEnabled}
+                        totpCode={stepUpTotp}
+                        currentPassword={stepUpPassword}
+                        onTotpChange={setStepUpTotp}
+                        onPasswordChange={setStepUpPassword}
+                        passwordMode="login"
+                    />
+                </div>
+            </ConfirmDialog>
+
+            <ConfirmDialog
+                open={Boolean(toggleMemberTarget)}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setToggleMemberTarget(null)
+                        setStepUpTotp('')
+                        setStepUpPassword('')
+                    }
+                }}
+                title={toggleMemberTarget?.isActive ? 'Desativar colaborador' : 'Reativar colaborador'}
+                description={
+                    toggleMemberTarget
+                        ? toggleMemberTarget.isActive
+                            ? `Confirma desativar ${toggleMemberTarget.fullName || toggleMemberTarget.email}? Perde acesso ao TegLion até ser reativado.`
+                            : `Confirma reativar ${toggleMemberTarget.fullName || toggleMemberTarget.email}? Recupera o acesso que tinha antes de ser desativado.`
+                        : ''
+                }
+                confirmLabel={
+                    toggleMemberMutation.isPending
+                        ? 'A processar...'
+                        : toggleMemberTarget?.isActive
+                            ? 'Desativar'
+                            : 'Reativar'
+                }
+                variant={toggleMemberTarget?.isActive ? 'destructive' : 'default'}
+                onConfirm={async () => {
+                    if (!toggleMemberTarget) return
+                    if (!sensitiveConfirmReady(mfaEnabled, stepUpTotp, stepUpPassword)) {
+                        toast.error(
+                            mfaEnabled
+                                ? 'Introduza o código da aplicação autenticadora.'
+                                : 'Introduza a palavra-passe de login.',
+                        )
+                        return
+                    }
+                    await toggleMemberMutation.mutateAsync({
+                        memberId: toggleMemberTarget.id,
+                        active: toggleMemberTarget.isActive,
+                    })
+                }}
+                testId="team-toggle-member"
+            >
+                <div className="mt-1">
+                    <SensitiveActionConfirmFields
+                        idPrefix="team-toggle"
                         mfaEnabled={mfaEnabled}
                         totpCode={stepUpTotp}
                         currentPassword={stepUpPassword}
