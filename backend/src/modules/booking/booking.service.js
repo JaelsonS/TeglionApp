@@ -129,7 +129,13 @@ function normalizeBooking(raw) {
   const b = raw && typeof raw === 'object' ? raw : {};
   const slotMinutes = clamp(Number(b.slotMinutes) || DEFAULT_BOOKING.slotMinutes, 15, 120);
   const horizonDays = clamp(Number(b.horizonDays) || DEFAULT_BOOKING.horizonDays, 1, 60);
-  const leadTimeHours = clamp(Number(b.leadTimeHours) || DEFAULT_BOOKING.leadTimeHours, 0, 168);
+  // 0 é valor válido (aceitar marcações imediatas) — não usar `||` (tratava 0 como ausente).
+  const leadRaw = Number(b.leadTimeHours);
+  const leadTimeHours = clamp(
+    Number.isFinite(leadRaw) ? leadRaw : DEFAULT_BOOKING.leadTimeHours,
+    0,
+    168,
+  );
   let weekdays = Array.isArray(b.weekdays) ? b.weekdays.map((x) => Number(x)) : [...DEFAULT_BOOKING.weekdays];
   weekdays = [...new Set(weekdays.filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))];
   if (weekdays.length === 0 && !(b.schedule && typeof b.schedule === 'object')) {

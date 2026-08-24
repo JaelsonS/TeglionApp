@@ -53,6 +53,24 @@ function nextWeekdayNoonUtc() {
   return d.toISOString();
 }
 
+/** Próxima segunda-feira UTC (sempre no futuro) — evita datas hardcoded que passam a “hoje”. */
+function nextMondayUtcRange() {
+  const d = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  d.setUTCHours(0, 0, 0, 0);
+  while (d.getUTCDay() !== 1) {
+    d.setUTCDate(d.getUTCDate() + 1);
+  }
+  const fromIso = d.toISOString();
+  const end = new Date(d);
+  end.setUTCDate(end.getUTCDate() + 1);
+  end.setUTCHours(23, 59, 59, 0);
+  const tueEndIso = end.toISOString();
+  const weekEnd = new Date(d);
+  weekEnd.setUTCDate(weekEnd.getUTCDate() + 4);
+  weekEnd.setUTCHours(23, 59, 59, 0);
+  return { monday: d, fromIso, tueEndIso, weekEndIso: weekEnd.toISOString() };
+}
+
 test('bookAsClient: rejeita quando nem clientId nem leadId são indicados', async () => {
   resetMocks();
   mockAvailability();
@@ -258,14 +276,16 @@ test('listSlotsForBooking: override de schedule restringe horários (manhã) e f
   mock.method(googleCalendarAvailabilityService, 'getBusyRangesForFirm', async () => []);
   mockHolds();
 
+  const { fromIso, weekEndIso } = nextMondayUtcRange();
   const { slots, booking } = await bookingService.listSlotsForBooking({
     firmId: FIRM_ID,
     serviceId: SERVICE.id,
-    fromIso: '2026-08-24T00:00:00.000Z', // segunda
-    toIso: '2026-08-28T23:59:59.000Z',
+    fromIso,
+    toIso: weekEndIso,
   });
 
   assert.deepEqual(booking.weekdays, [1]);
+  assert.equal(booking.leadTimeHours, 0, 'leadTimeHours 0 não pode virar o default 2');
   assert.ok(slots.length > 0);
   for (const iso of slots) {
     const d = new Date(iso);
@@ -302,25 +322,35 @@ test('listSlotsForBooking: dois serviços no mesmo escritório podem ter disponi
     return { ...SERVICE, id, bookingOverrides: { weekdays: [2], schedule: { 2: [{ start: '14:00', end: '17:00' }] } } };
   });
 
-  const fromIso = '2026-08-24T00:00:00.000Z';
-  const toIso = '2026-08-25T23:59:59.000Z';
+  const { fromIso, tueEndIso } = nextMondayUtcRange();
   const mon = await bookingService.listSlotsForBooking({
     firmId: FIRM_ID,
     serviceId: 'svc-mon',
     fromIso,
-    toIso,
+    toIso: tueEndIso,
   });
   const tue = await bookingService.listSlotsForBooking({
     firmId: FIRM_ID,
     serviceId: 'svc-tue',
     fromIso,
-    toIso,
+    toIso: tueEndIso,
   });
 
   assert.ok(mon.slots.every((iso) => new Date(iso).getUTCDay() === 1));
   assert.ok(tue.slots.every((iso) => new Date(iso).getUTCDay() === 2));
   assert.ok(mon.slots.length > 0);
   assert.ok(tue.slots.length > 0);
+});
+
+test('normalizeBooking: leadTimeHours 0 é preservado (não cai no default 2)', () => {
+  const normalized = bookingService.normalizeBooking({
+    timezone: 'UTC',
+    slotMinutes: 60,
+    leadTimeHours: 0,
+    weekdays: [1],
+    schedule: { 1: [{ start: '09:00', end: '12:00' }] },
+  });
+  assert.equal(normalized.leadTimeHours, 0);
 });
 
 test('listSlotsForBooking: reserva de um serviço esconde o horário no outro (mesmo calendário/recurso)', async () => {
