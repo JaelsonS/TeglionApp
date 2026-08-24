@@ -413,24 +413,6 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
               </span>
             </p>
           </div>
-          <div className="cb-agenda-svc-fase9">
-            <div className="flex items-start gap-2">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sky-600 text-white">
-                <CalendarDays className="h-4 w-4" aria-hidden />
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-foreground">
-                  Integração mais tarde{' '}
-                  <span className="ml-1 rounded-md bg-sky-600 px-1.5 py-0.5 text-[10px] font-bold uppercase text-white">
-                    Fase 9
-                  </span>
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Vamos ligar ao Google Calendar numa fase futura.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </aside>
     </div>

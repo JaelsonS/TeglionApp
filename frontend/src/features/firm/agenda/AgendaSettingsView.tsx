@@ -8,7 +8,6 @@ import { GoogleCalendarIntegrationPanel } from '@/features/firm/agenda/GoogleCal
 import { contabilAccountingServicesApi, contabilConsultationsApi } from '@/infrastructure/api'
 import { Button } from '@/shared/components/ui/button'
 import { getErrorMessage } from '@/shared/utils/errors'
-import { cn } from '@/shared/lib/utils'
 import type {
   AccountingService,
   BookingDateOverrides,
@@ -89,27 +88,15 @@ export function AgendaSettingsView(props: Props) {
       <nav className="cb-agenda-stepper" aria-label="Secções da agenda">
         <a className="cb-agenda-stepper-item cb-agenda-stepper-item-active" href="#agenda-horario-geral">
           <span className="cb-agenda-stepper-n">1</span>
-          <span className="cb-agenda-stepper-label">
-            Horário geral
-            <span className="cb-agenda-stepper-ativo">Ativo</span>
-          </span>
+          <span className="cb-agenda-stepper-label">Horário geral</span>
         </a>
-        <span className="cb-agenda-stepper-line" aria-hidden />
         <a className="cb-agenda-stepper-item" href="#agenda-por-servico">
           <span className="cb-agenda-stepper-n">2</span>
           <span className="cb-agenda-stepper-label">Por serviço</span>
         </a>
-        <span className="cb-agenda-stepper-line" aria-hidden />
-        <a
-          className="cb-agenda-stepper-item cb-agenda-stepper-item-later"
-          href="#agenda-google"
-          title="Integração Google Calendar — Fase 9"
-        >
+        <a className="cb-agenda-stepper-item" href="#agenda-google">
           <span className="cb-agenda-stepper-n">3</span>
-          <span className="cb-agenda-stepper-label">
-            Google Calendar
-            <span className="cb-agenda-stepper-later">Mais tarde</span>
-          </span>
+          <span className="cb-agenda-stepper-label">Google Calendar</span>
         </a>
       </nav>
 
@@ -179,24 +166,19 @@ export function AgendaSettingsView(props: Props) {
           </div>
         </section>
 
-        <section id="agenda-google" className="cb-agenda-settings-block cb-agenda-gcal-deferred scroll-mt-24">
+        <section id="agenda-google" className="cb-agenda-settings-block scroll-mt-24">
           <div className="cb-agenda-settings-block-hd">
             <span className="cb-agenda-settings-block-icon">
               <CalendarDays className="h-4 w-4" aria-hidden />
             </span>
             <div>
-              <h3 className="cb-agenda-settings-block-title">
-                Google Calendar{' '}
-                <span className={cn('cb-agenda-stepper-later', 'ml-1 align-middle')}>Mais tarde</span>
-              </h3>
+              <h3 className="cb-agenda-settings-block-title">Google Calendar</h3>
               <p className="cb-agenda-settings-block-sub">
-                Fase 9 — prepare staging antes de ligar a sincronização.
+                Sincronize os agendamentos do Teglion com o seu Google Calendar.
               </p>
             </div>
           </div>
-          <div className="opacity-70">
-            <GoogleCalendarIntegrationPanel />
-          </div>
+          <GoogleCalendarIntegrationPanel />
         </section>
       </div>
     </div>

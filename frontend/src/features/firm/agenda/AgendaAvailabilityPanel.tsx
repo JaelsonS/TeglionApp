@@ -301,7 +301,11 @@ export function AgendaAvailabilityPanel(props: Props) {
           return (
             <li
               key={w.bit}
-              className={cn('cb-agenda-week-row', focused && 'cb-agenda-week-row-focus')}
+              className={cn(
+                'cb-agenda-week-row',
+                !open && 'cb-agenda-week-row-closed',
+                focused && 'cb-agenda-week-row-focus',
+              )}
             >
               <button
                 type="button"
@@ -573,76 +577,90 @@ export function AgendaAvailabilityPanel(props: Props) {
   ) : null
 
   const optionsPanel = showSlotSettings ? (
-    <aside className="cb-agenda-avail-options" aria-label="Opções de marcação">
-      <div className="cb-agenda-avail-option-card">
-        <p className="cb-agenda-avail-option-label">
-          <Globe className="h-3.5 w-3.5" aria-hidden />
-          Fuso horário
-        </p>
-        <select
-          className="cb-agenda-field-input"
-          value={bookingTz}
-          onChange={(e) => onBookingTz(e.target.value)}
-          aria-label="Fuso horário"
-        >
-          {BOOKING_TIMEZONE_OPTIONS.map((z) => (
-            <option key={z.value} value={z.value}>
-              {z.label}
-            </option>
-          ))}
-        </select>
-        <p className="cb-agenda-avail-option-hint">
-          Os horários que definir abaixo usam este fuso — os clientes vêem sempre a hora certa,
-          seja qual for o fuso deles.
-        </p>
-      </div>
-
-      <div className="cb-agenda-avail-option-card">
-        <p className="cb-agenda-avail-option-label">
-          <Clock className="h-3.5 w-3.5" aria-hidden />
-          Duração do agendamento
-        </p>
-        <div className="cb-agenda-slot-chip-grid" role="group" aria-label="Duração do slot">
-          {SLOT_PRESETS.map((mins) => (
-            <button
-              key={mins}
-              type="button"
-              className={cn(
-                'cb-agenda-slot-chip',
-                slotMin === mins && 'cb-agenda-slot-chip-on',
-              )}
-              aria-pressed={slotMin === mins}
-              onClick={() => onSlotMin(mins)}
-            >
-              {mins} min
-            </button>
-          ))}
+    <aside className="cb-agenda-avail-card cb-agenda-avail-options" aria-labelledby="agenda-opcoes-title">
+      <div className="cb-agenda-avail-card-hd-block">
+        <span className="cb-agenda-avail-card-icon" aria-hidden>
+          <Clock className="h-4 w-4" />
+        </span>
+        <div>
+          <h4 id="agenda-opcoes-title" className="cb-agenda-avail-card-title">
+            Opções de marcação
+          </h4>
+          <p className="cb-agenda-avail-card-sub">Fuso horário, duração e antecedência dos agendamentos.</p>
         </div>
       </div>
 
-      <div className="cb-agenda-avail-option-card">
-        <p className="cb-agenda-avail-option-label">
-          <CalendarCheck2 className="h-3.5 w-3.5" aria-hidden />
-          Horizonte de agendamento
-        </p>
-        <select
-          className="cb-agenda-field-input"
-          value={String(horizon)}
-          onChange={(e) => onHorizon(Number(e.target.value))}
-          aria-label="Horizonte em dias"
-        >
-          {[7, 14, 21, 30, 45, 60].map((d) => (
-            <option key={d} value={d}>
-              {d} dias
-            </option>
-          ))}
-          {!([7, 14, 21, 30, 45, 60] as number[]).includes(horizon) ? (
-            <option value={horizon}>{horizon} dias</option>
-          ) : null}
-        </select>
-        <p className="cb-agenda-avail-option-hint">
-          Os clientes podem reservar até {horizon} dias no futuro.
-        </p>
+      <div className="cb-agenda-opt-list">
+        <div className="cb-agenda-opt-row">
+          <p className="cb-agenda-avail-option-label">
+            <Globe className="h-3.5 w-3.5" aria-hidden />
+            Fuso horário
+          </p>
+          <select
+            className="cb-agenda-field-input"
+            value={bookingTz}
+            onChange={(e) => onBookingTz(e.target.value)}
+            aria-label="Fuso horário"
+          >
+            {BOOKING_TIMEZONE_OPTIONS.map((z) => (
+              <option key={z.value} value={z.value}>
+                {z.label}
+              </option>
+            ))}
+          </select>
+          <p className="cb-agenda-avail-option-hint">
+            Os horários que definir abaixo usam este fuso — os clientes vêem sempre a hora certa,
+            seja qual for o fuso deles.
+          </p>
+        </div>
+
+        <div className="cb-agenda-opt-row">
+          <p className="cb-agenda-avail-option-label">
+            <Clock className="h-3.5 w-3.5" aria-hidden />
+            Duração do agendamento
+          </p>
+          <div className="cb-agenda-slot-chip-grid" role="group" aria-label="Duração do slot">
+            {SLOT_PRESETS.map((mins) => (
+              <button
+                key={mins}
+                type="button"
+                className={cn(
+                  'cb-agenda-slot-chip',
+                  slotMin === mins && 'cb-agenda-slot-chip-on',
+                )}
+                aria-pressed={slotMin === mins}
+                onClick={() => onSlotMin(mins)}
+              >
+                {mins} min
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="cb-agenda-opt-row">
+          <p className="cb-agenda-avail-option-label">
+            <CalendarCheck2 className="h-3.5 w-3.5" aria-hidden />
+            Horizonte de agendamento
+          </p>
+          <select
+            className="cb-agenda-field-input"
+            value={String(horizon)}
+            onChange={(e) => onHorizon(Number(e.target.value))}
+            aria-label="Horizonte em dias"
+          >
+            {[7, 14, 21, 30, 45, 60].map((d) => (
+              <option key={d} value={d}>
+                {d} dias
+              </option>
+            ))}
+            {!([7, 14, 21, 30, 45, 60] as number[]).includes(horizon) ? (
+              <option value={horizon}>{horizon} dias</option>
+            ) : null}
+          </select>
+          <p className="cb-agenda-avail-option-hint">
+            Os clientes podem reservar até {horizon} dias no futuro.
+          </p>
+        </div>
       </div>
     </aside>
   ) : null
