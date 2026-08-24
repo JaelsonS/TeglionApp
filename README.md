@@ -1,194 +1,150 @@
 # Teglion
 
-**Gestão digital para escritórios de contabilidade em Portugal** — documentos, prazos, portal do cliente e comunicação num só lugar.
+**Gestão digital para escritórios de contabilidade** — clientes, documentos, prazos, portal do cliente, agenda e comunicação num só lugar.
 
 | | |
 |---|---|
-| **Site** | [teglion.com](https://teglion.com) |
-| **Estado** | Produção controlada para escritório piloto |
-| **Contexto** | Produto SaaS + projeto de estudo (full-stack, UX, fiscalidade PT) |
+| **Produto** | [teglion.com](https://teglion.com) |
+| **Marca** | Teglion · um produto da **AfDigital — Soluções Tecnológicas** |
+| **Estado** | Produção controlada com **4 escritórios pilotos** |
+| **Mercado inicial** | Portugal (expansão internacional no roadmap) |
+
+Índice da documentação: [`docs/README.md`](docs/README.md)  
+Roadmap (única fonte de prioridades): [`docs/ROADMAP.md`](docs/ROADMAP.md)
 
 ---
 
 ## O problema
 
-Escritórios pequenos e médios em Portugal ainda vivem entre **email, WhatsApp, pastas partilhadas e folhas Excel**. O cliente não sabe o que falta enviar; o contabilista perde tempo a pedir o mesmo documento três vezes; os prazos fiscais dependem da memória de uma pessoa.
+Escritórios pequenos e médios ainda operam entre **email, WhatsApp, pastas partilhadas e Excel**. O cliente não sabe o que falta enviar; o contabilista pede o mesmo documento várias vezes; os prazos fiscais dependem da memória de uma pessoa.
 
 ## A solução
 
-O Teglion junta num único sistema:
+- **Portal do escritório** — clientes, documentos, tarefas, agenda, calendário fiscal, mensagens, serviços, alertas, definições e faturação SaaS.
+- **Portal do cliente** — pedidos, uploads, obrigações, mensagens e marcações.
+- **Página pública do escritório** — marca, serviços publicados, captação e booking sem login.
+- **Site comercial** — landing, preços, suporte, blog SEO.
 
-- **Portal do escritório** — clientes, pedidos de documentos, validação, tarefas, calendário fiscal, mensagens, alertas.
-- **Portal do cliente** — upload de ficheiros, estado dos pedidos, obrigações, mensagens com o escritório.
-- **Site público** — landing, preços, blog SEO (atração orgânica para freelancers e PME).
-
-O piloto arranca com **um escritório de contabilidade real** que valida o fluxo no dia a dia antes de escalar.
-
----
-
-## Para quem é
-
-| Público | Valor |
-|---------|--------|
-| **Escritório piloto** | Menos caça ao documento, mais controlo de prazos e comunicação profissional com clientes |
-| **Cliente do escritório** | Saber o que falta entregar, falar com o contabilista sem WhatsApp caótico |
-| **Desenvolvimento / estudo** | Codebase completa: React, Node, Supabase, multi-tenant, RGPD, deploy real |
-
----
-
-## Estado actual (Jul 2026)
-
-| Área | Situação |
-|------|----------|
-| Registo escritório + convite cliente | ✅ |
-| Pedidos e upload de documentos | ✅ |
-| Mensagens escritório ↔ cliente | ✅ |
-| Tarefas, obrigações, calendário fiscal | ✅ |
-| Blog (27 artigos, prerender SEO) | ✅ |
-| Redesign UI escritório + portal cliente | ✅ |
-| TypeScript frontend | ✅ validado no gate de release |
-| Frontend build `build:spa` | ✅ |
-| Backend smoke piloto | ✅ 6/6 |
-| Backend security audit | ✅ |
-| Frontend Playwright E2E smoke | ✅ 5/5 |
-| QA visual tablet/mobile em produção | 🟡 Pendente |
-| Stripe live | 🟡 Validar preços e webhook antes do GO final |
-
-Detalhe completo: [`docs/operations/STATUS.md`](docs/operations/STATUS.md)
-
-Checklist operativo de lançamento: [`docs/operations/GO_PRODUCTION.md`](docs/operations/GO_PRODUCTION.md)
-
-## Pricing oficial (documentação)
-
-| Plano | Valor mensal equivalente | Cobrança |
-|------|---------------------------|----------|
-| **Plano anual** | €29,99/mês | €359,88 por ano |
-| **Plano mensal** | €35,00/mês | €35,00 por mês |
-
-Notas:
-
-- Estes valores são a referência oficial para documentação e comunicação comercial.
-- A configuração final no Stripe deve refletir exatamente estes dois modelos de cobrança.
+Detalhe de produto: [`docs/product/PRODUCT.md`](docs/product/PRODUCT.md) · maturidade por módulo: [`docs/product/FEATURES.md`](docs/product/FEATURES.md)
 
 ---
 
 ## Stack
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  Frontend   React 19 · Vite · TypeScript · Tailwind     │
-│             Vercel (teglion.com)                        │
-├─────────────────────────────────────────────────────────┤
-│  Backend    Node · Express · JWT cookies · Argon2       │
-│             Render (api.teglion.com)                    │
-├─────────────────────────────────────────────────────────┤
-│  Dados      Supabase (Postgres + Storage + RLS)         │
-│  Email      Brevo (convites, lembretes)                 │
-│  Pagamentos Stripe (trial / subscrição)                 │
-└─────────────────────────────────────────────────────────┘
+Frontend   React · Vite · TypeScript · Tailwind     → Vercel
+Backend    Node · Express · JWT (cookies) · Argon2  → Render
+Dados      Supabase (Postgres + Storage + RLS)
+Email      Brevo
+Pagamentos Stripe (assinatura SaaS + Connect opcional)
+Auth extra Google SSO / Calendar / Drive (quando configurado)
 ```
+
+Arquitetura: [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md)  
+Multi-tenant: [`docs/architecture/MULTI_TENANCY.md`](docs/architecture/MULTI_TENANCY.md)  
+Segurança: [`docs/security/SECURITY.md`](docs/security/SECURITY.md)
 
 ---
 
-## Módulos principais
+## Preços (plano Escritório)
 
-### Escritório (`/app/firm`)
+Fonte de verdade no código: `backend/src/config/pricing-plans.js` (valores via env no Render).
 
-Dashboard · Clientes · Documentos (pedidos / ficheiros / histórico) · Tarefas · Agenda · Calendário fiscal · Mensagens · Alertas · Serviços · Definições · Faturação
+| Plano | Referência (defaults PT) |
+|------|---------------------------|
+| **Mensal** | €35,00 / mês |
+| **Anual** | €359,88 / ano (≈ €29,99 / mês) |
+| **Trial** | 14 dias (configurável) |
 
-### Cliente (`/app/client`)
-
-Início · Pedidos · Documentos · Arquivo · Obrigações · Mensagens · Alertas · Notícias · Marcações
-
-### Público
-
-`/` · `/pricing` · `/security` · `/blog` · `/auth/firm/*` · `/auth/client/*`
-
-Mapa de produto e módulos: [`docs/product/PRODUCT.md`](docs/product/PRODUCT.md) · [`docs/product/MODULES.md`](docs/product/MODULES.md)
+API pública: `GET /api/public/pricing`
 
 ---
 
 ## Começar em local
 
-**Requisitos:** Node 20+, conta Supabase, variáveis em `backend/.env.local`
+**Requisitos:** Node **≥ 24** (workspaces), projeto Supabase, ficheiros de ambiente (não versionados).
+
+Na raiz do monorepo:
 
 ```bash
-cd backend && npm install && npm run dev
+npm install
 
-cd frontend && npm install && npm run dev
+# API
+cp backend/.env.staging.example backend/.env.local   # preencher valores locais
+npm run dev:backend
+
+# SPA (outro terminal)
+cp frontend/.env.example frontend/.env.local         # se necessário
+npm run dev:frontend
 ```
 
-Validar infra piloto:
+Exemplos de env: [`backend/.env.staging.example`](backend/.env.staging.example) · [`frontend/.env.example`](frontend/.env.example)  
+Deploy / ambientes: [`docs/infrastructure/DEPLOYMENT.md`](docs/infrastructure/DEPLOYMENT.md) · [`docs/infrastructure/ENVIRONMENTS.md`](docs/infrastructure/ENVIRONMENTS.md)
+
+### Comandos úteis
 
 ```bash
-cd backend && npm run smoke:pilot
+npm run test:backend          # testes do backend
+npm run test                  # testes do frontend (Vitest)
+npm run tsc                   # typecheck frontend
+npm run build                 # build frontend
+npm run security:secrets      # scan de segredos no Git
+npm run smoke:pilot -w backend
+npm run test:security-static -w backend
+npm run test:tenant-isolation -w backend   # exige Supabase (staging)
 ```
 
-Guia completo: [`docs/operations/DEV_LOCAL.md`](docs/operations/DEV_LOCAL.md)
+Testes: [`docs/testing/TESTING.md`](docs/testing/TESTING.md)  
+Releases: [`docs/operations/RELEASES.md`](docs/operations/RELEASES.md)
 
 ---
 
 ## Estrutura do repositório
 
-Detalhe de camadas e comandos: [`docs/engineering/ARCHITECTURE.md`](docs/engineering/ARCHITECTURE.md).
+```
+TeglionApp/
+├── frontend/     SPA (marketing + app escritório/cliente + blog)
+├── backend/      API Express + módulos de negócio
+├── supabase/     Migrations SQL e políticas RLS
+├── docs/         Documentação viva (ver docs/README.md)
+├── tools/        Scripts CI auxiliares
+└── .github/      Workflows CI
+```
 
-```
-Teglion/
-├── frontend/          SPA React (marketing + app + blog)
-├── backend/           API Express + módulos de negócio
-├── supabase/          Migrations SQL e políticas RLS
-├── docs/              Documentação do produto
-└── .github/workflows/ CI (build, tsc, testes)
-```
+Fluxo Git: `feature/…` → PR → `staging` → UAT → PR → `main` (produção).  
+CI/CD: [`docs/infrastructure/CI_CD.md`](docs/infrastructure/CI_CD.md)
 
 ---
 
-## Documentação
-
-Começa por aqui: [`docs/COMECE_AQUI.md`](docs/COMECE_AQUI.md) — explica o projecto, o estado actual e a ordem de leitura recomendada.
+## Documentação (links válidos)
 
 | Documento | Conteúdo |
 |-----------|----------|
-| [`docs/product/VISION.md`](docs/product/VISION.md) | Missão, visão e valores |
-| [`docs/operations/STATUS.md`](docs/operations/STATUS.md) | Estado actual e piloto |
-| [`docs/product/ROADMAP.md`](docs/product/ROADMAP.md) | Plano de evolução (Fases 0–10) |
-| [`docs/product/SPRINT_PLAYBOOK.md`](docs/product/SPRINT_PLAYBOOK.md) | Sprints até comercial em escala |
-| [`docs/operations/DEV_LOCAL.md`](docs/operations/DEV_LOCAL.md) | Ambiente de desenvolvimento |
-| [`docs/operations/DEPLOY_PRODUCTION.md`](docs/operations/DEPLOY_PRODUCTION.md) | Deploy produção |
-| [`docs/operations/GO_PRODUCTION.md`](docs/operations/GO_PRODUCTION.md) | Execução final de GO e rollback |
-| [`docs/operations/REDIS_RENDER_SETUP.md`](docs/operations/REDIS_RENDER_SETUP.md) | Activação e validação de Redis no Render |
-| [`docs/security/SECURITY.md`](docs/security/SECURITY.md) | Segurança e multi-tenant |
+| [`docs/README.md`](docs/README.md) | Mapa de toda a documentação |
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | **Único** roadmap / prioridades |
+| [`docs/product/PRODUCT.md`](docs/product/PRODUCT.md) | O que o produto faz |
+| [`docs/product/FEATURES.md`](docs/product/FEATURES.md) | Estado por funcionalidade |
+| [`docs/product/VISION.md`](docs/product/VISION.md) | Visão |
+| [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) | Arquitetura |
+| [`docs/security/SECURITY.md`](docs/security/SECURITY.md) | Segurança |
+| [`docs/security/TENANT_ISOLATION.md`](docs/security/TENANT_ISOLATION.md) | Isolamento multi-tenant |
+| [`docs/infrastructure/DEPLOYMENT.md`](docs/infrastructure/DEPLOYMENT.md) | Deploy |
+| [`docs/operations/RELEASES.md`](docs/operations/RELEASES.md) | Processo de release |
+| [`docs/governance/DOCUMENTATION_POLICY.md`](docs/governance/DOCUMENTATION_POLICY.md) | Como manter docs vivos |
+
+Pastas numeradas antigas (`docs/00-*`, `docs/03-*`, …) e `docs/historico/` são **arquivo / legado** — não usar como estado actual.
 
 ---
 
-## Roadmap imediato
-
-1. **Piloto no escritório** — onboarding real, feedback semanal, ajustes de fluxo
-2. **QA produção** — tablet/mobile no piloto real
-3. **SEO** — Search Console, indexação blog, PageSpeed mobile
-4. **Hardening** — WAF, cache assets, validação Stripe live
-
-## Segurança do repositório público
+## Segurança do repositório
 
 1. Não versionar `.env` nem segredos operacionais.
-2. Executar `npm run security:secrets` antes de cada push.
-3. Manter CI obrigatório em PR para `main` e `staging`.
-4. Rodar rotação de credenciais imediatamente se houver suspeita de exposição.
-
-## Prontidão para 100.000 clientes activos
-
-Prioridades executivas para escalar com segurança:
-
-1. Filas e processamento assíncrono resiliente (emails, notificações, jobs pesados)
-2. Observabilidade completa (APM, métricas p95/p99, tracing e alertas SLO)
-3. Estratégia de capacidade por tenant (particionamento, índices e políticas de retenção)
-4. Pipeline de release com gates obrigatórios (testes, tenant isolation e smoke)
-5. Plano de resposta a incidentes e exercícios recorrentes de disaster recovery
-
-Ver [`docs/product/ROADMAP.md`](docs/product/ROADMAP.md) para o plano por fases.
+2. Correr `npm run security:secrets` antes de push relevante.
+3. Isolamento entre escritórios: filtro `firm_id` no backend (RLS é defesa em profundidade; o backend usa `service_role`).
+4. Clientes do portal usam `/api/client-portal` — não herdam permissões de staff em `/api/contabil`.
 
 ---
 
 ## Licença
 
-Licença proprietária com todos os direitos reservados: [`LICENSE`](LICENSE).
+Licença proprietária — todos os direitos reservados: [`LICENSE`](LICENSE).
