@@ -134,7 +134,10 @@ function isAccessTokenSignatureValid(token) {
 function isAccessTokenValid(token) {
   if (!token || typeof token !== 'string') return false;
   try {
-    jwt.verify(token, env.JWT_ACCESS_SECRET);
+    const payload = jwt.verify(token, env.JWT_ACCESS_SECRET);
+    if (payload?.typ === VAULT_STEPUP_TYP || payload?.typ === MFA_CHALLENGE_TYP) {
+      return false;
+    }
     return true;
   } catch {
     return false;

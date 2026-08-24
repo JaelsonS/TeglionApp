@@ -97,7 +97,8 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.FIRM_ACCOUNTING_SERVICES_VIEW,
     PERMISSIONS.USERS_CREATE,
   ],
-  CLIENT: [PERMISSIONS.FIRM_READ, PERMISSIONS.FIRM_CONSULTATIONS_MANAGE],
+  // Portal clients never inherit firm-staff permissions; they use /api/client-portal.
+  CLIENT: [],
 };
 
 const { normalizeSessionRole } = require('./session-user');
