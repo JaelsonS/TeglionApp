@@ -348,6 +348,7 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
         </div>
         <VaultPasswordSetupForm
           userId={user?.id || bundle.actor.id}
+          mfaEnabled={mfaEnabled}
           hasVaultPassword={hasVaultPassword}
           hasLoginPassword={hasPassword}
           hideIntro

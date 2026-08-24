@@ -283,7 +283,7 @@ async function changeMyPassword(firmId, userId, { currentPassword, newPassword, 
   return { updated: true, sessionsRevoked: true };
 }
 
-async function setMyVaultPassword(firmId, userId, { currentPassword, newPassword }, req = null) {
+async function setMyVaultPassword(firmId, userId, { currentPassword, newPassword, totpCode }, req = null) {
   const actor = await firmUsersRepository.findFirmUserById(userId);
   if (!actor || String(actor.firm_id) !== String(firmId)) {
     throw new AppError('Utilizador não encontrado', 404);
@@ -297,6 +297,29 @@ async function setMyVaultPassword(firmId, userId, { currentPassword, newPassword
     const ok = await verifyPassword(String(currentPassword || ''), existingVault || existingLogin);
     if (!ok) {
       throw new AppError('Palavra-passe actual incorrecta.', 400, { code: 'INVALID_CURRENT_PASSWORD' });
+    }
+  }
+
+  // F-10: rotacionar a palavra-passe do cofre é uma acção do próprio cofre —
+  // com MFA activo, a política já aplicada a reveal/mutate/import exige TOTP,
+  // não só a palavra-passe antiga (que continua obrigatória acima).
+  if (actor.mfa_enabled === true) {
+    if (!totpCode || !String(totpCode).trim()) {
+      throw new AppError(
+        'Para confirmar esta operação, introduza o código de segurança gerado pela aplicação autenticadora configurada na sua conta.',
+        403,
+        { code: 'SENSITIVE_ACTION_MFA_REQUIRED' },
+      );
+    }
+    const mfa = require('../auth/mfa.service');
+    if (!actor.mfa_totp_secret_enc) {
+      throw new AppError('Segredo MFA inválido.', 500, { code: 'MFA_SECRET_CORRUPT' });
+    }
+    const { decryptField } = require('../../utils/crypto-fields');
+    const secretPlain = decryptField(actor.mfa_totp_secret_enc);
+    const validTotp = await mfa.verifyTotpCode(secretPlain, String(totpCode).trim(), actor.id);
+    if (!validTotp) {
+      throw new AppError('Não foi possível confirmar esta operação.', 401, { code: 'SENSITIVE_ACTION_DENIED' });
     }
   }
 

@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/shared/components/ui/button'
+import { Input } from '@/shared/components/ui/input'
 import { PasswordInput } from '@/shared/components/ui/password-input'
 import { Label } from '@/shared/components/ui/label'
 import { firmSettingsApi } from '@/infrastructure/api/contabil/firmSettings'
@@ -14,6 +15,8 @@ import type { FormChangeEvent } from '@/shared/types/react-events'
 
 type Props = {
   userId?: string
+  /** F-10: com MFA activo, rodar esta palavra-passe também exige TOTP. */
+  mfaEnabled?: boolean
   hasVaultPassword: boolean
   hasLoginPassword: boolean
   compact?: boolean
@@ -23,6 +26,7 @@ type Props = {
 
 export function VaultPasswordSetupForm({
   userId,
+  mfaEnabled = false,
   hasVaultPassword,
   hasLoginPassword,
   compact = false,
@@ -32,6 +36,7 @@ export function VaultPasswordSetupForm({
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [totpCode, setTotpCode] = useState('')
   const [saving, setSaving] = useState(false)
 
   const needsCurrent = hasVaultPassword || hasLoginPassword
@@ -57,16 +62,22 @@ export function VaultPasswordSetupForm({
       )
       return
     }
+    if (mfaEnabled && totpCode.trim().length !== 6) {
+      toast.error('Introduza o código de 6 dígitos da aplicação autenticadora.')
+      return
+    }
     setSaving(true)
     try {
       const result = await firmSettingsApi.setVaultPassword({
         newPassword,
         currentPassword: needsCurrent ? currentPassword : undefined,
+        totpCode: mfaEnabled ? totpCode.trim() : undefined,
       })
       persistVaultStepUpFromResponse(userId, result, true, 'vault_mutate')
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
+      setTotpCode('')
       toast.success(
         hasVaultPassword
           ? 'Palavra-passe dos Acessos oficiais actualizada.'
@@ -135,6 +146,29 @@ export function VaultPasswordSetupForm({
             disabled={saving}
           />
         </div>
+        {mfaEnabled ? (
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor={compact ? 'vault-totp-compact' : 'vault-totp'}>
+              Código da aplicação autenticadora
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Com a autenticação de dois factores activa, também precisa do código actual para rodar
+              esta palavra-passe. O Teglion não envia este código por e-mail ou SMS.
+            </p>
+            <Input
+              id={compact ? 'vault-totp-compact' : 'vault-totp'}
+              inputMode="numeric"
+              pattern="[0-9]*"
+              autoComplete="one-time-code"
+              maxLength={6}
+              placeholder="000000"
+              className="max-w-[10rem] text-center tracking-[0.3em]"
+              value={totpCode}
+              onChange={(e: FormChangeEvent) => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              disabled={saving}
+            />
+          </div>
+        ) : null}
       </div>
       <Button type="button" className="rounded-lg" disabled={saving} onClick={() => void onSave()}>
         {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

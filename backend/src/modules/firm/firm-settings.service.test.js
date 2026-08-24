@@ -1,9 +1,11 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { mock } = require('node:test');
+const { mock, describe } = require('node:test');
 
 const firmsRepository = require('../../db/supabase/repositories/firms.repository');
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
+const { hashPassword } = require('../../utils/password-crypto');
+const { encryptField } = require('../../utils/crypto-fields');
 const firmSettingsService = require('./firm-settings.service');
 
 const OWNER = { id: 'user-1', firm_id: 'firm-1', role: 'FIRM_OWNER' };
@@ -153,4 +155,111 @@ test('updateBranding: aceita hex válido e nunca devolve logoStorageKey', async 
   assert.equal(savedPatch.secondaryColor, null);
   assert.equal(result.branding.logoStorageKey, undefined, 'storage key interna nunca deve ser devolvida ao cliente');
   assert.equal(result.branding.logoUrl, 'https://signed-url');
+});
+
+// F-10 (auditoria de release final): rotacionar a palavra-passe do cofre só
+// exigia a palavra-passe antiga, mesmo com MFA activo — inconsistente com a
+// política já aplicada a todas as outras acções do cofre (MFA on → TOTP).
+describe('setMyVaultPassword (F-10)', () => {
+  test('MFA desligado: continua a bastar a palavra-passe antiga (sem regressão)', async () => {
+    resetMocks();
+    const oldHash = await hashPassword('SenhaAntiga123!');
+    mock.method(firmUsersRepository, 'findFirmUserById', async () => ({
+      ...OWNER,
+      mfa_enabled: false,
+      vault_password_hash: oldHash,
+    }));
+    let saved = null;
+    mock.method(firmUsersRepository, 'updateFirmMember', async (_firmId, _userId, patch) => {
+      saved = patch;
+      return {};
+    });
+
+    await firmSettingsService.setMyVaultPassword('firm-1', 'user-1', {
+      currentPassword: 'SenhaAntiga123!',
+      newPassword: 'SenhaNova456!',
+    });
+
+    assert.ok(saved?.vaultPasswordHash, 'a nova hash deve ter sido gravada');
+  });
+
+  test('MFA ligado: sem totpCode, rejeita e não roda a palavra-passe', async () => {
+    resetMocks();
+    const oldHash = await hashPassword('SenhaAntiga123!');
+    mock.method(firmUsersRepository, 'findFirmUserById', async () => ({
+      ...OWNER,
+      mfa_enabled: true,
+      mfa_totp_secret_enc: encryptField(require('otplib').generateSecret()),
+      vault_password_hash: oldHash,
+    }));
+    let called = false;
+    mock.method(firmUsersRepository, 'updateFirmMember', async () => {
+      called = true;
+      return {};
+    });
+
+    await assert.rejects(
+      () =>
+        firmSettingsService.setMyVaultPassword('firm-1', 'user-1', {
+          currentPassword: 'SenhaAntiga123!',
+          newPassword: 'SenhaNova456!',
+        }),
+      (err) => err?.statusCode === 403 && err?.details?.code === 'SENSITIVE_ACTION_MFA_REQUIRED',
+    );
+    assert.equal(called, false);
+  });
+
+  test('MFA ligado: TOTP errado rejeita e não roda a palavra-passe', async () => {
+    resetMocks();
+    const oldHash = await hashPassword('SenhaAntiga123!');
+    mock.method(firmUsersRepository, 'findFirmUserById', async () => ({
+      ...OWNER,
+      mfa_enabled: true,
+      mfa_totp_secret_enc: encryptField(require('otplib').generateSecret()),
+      vault_password_hash: oldHash,
+    }));
+    let called = false;
+    mock.method(firmUsersRepository, 'updateFirmMember', async () => {
+      called = true;
+      return {};
+    });
+
+    await assert.rejects(
+      () =>
+        firmSettingsService.setMyVaultPassword('firm-1', 'user-1', {
+          currentPassword: 'SenhaAntiga123!',
+          newPassword: 'SenhaNova456!',
+          totpCode: '000000',
+        }),
+      (err) => err?.statusCode === 401 && err?.details?.code === 'SENSITIVE_ACTION_DENIED',
+    );
+    assert.equal(called, false);
+  });
+
+  test('MFA ligado: TOTP correcto roda a palavra-passe', async () => {
+    resetMocks();
+    const { generate } = require('otplib');
+    const secret = require('otplib').generateSecret();
+    const oldHash = await hashPassword('SenhaAntiga123!');
+    mock.method(firmUsersRepository, 'findFirmUserById', async () => ({
+      ...OWNER,
+      mfa_enabled: true,
+      mfa_totp_secret_enc: encryptField(secret),
+      vault_password_hash: oldHash,
+    }));
+    let saved = null;
+    mock.method(firmUsersRepository, 'updateFirmMember', async (_firmId, _userId, patch) => {
+      saved = patch;
+      return {};
+    });
+
+    const code = await generate({ secret });
+    await firmSettingsService.setMyVaultPassword('firm-1', 'user-1', {
+      currentPassword: 'SenhaAntiga123!',
+      newPassword: 'SenhaNova456!',
+      totpCode: code,
+    });
+
+    assert.ok(saved?.vaultPasswordHash);
+  });
 });

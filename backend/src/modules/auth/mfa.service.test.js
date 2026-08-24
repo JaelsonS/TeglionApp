@@ -8,7 +8,21 @@ const firmUsersRepository = require('../../db/supabase/repositories/firm-users.r
 const authRefreshSessionsRepository = require('../../db/supabase/repositories/auth-refresh-sessions.repository');
 const { encryptField } = require('../../utils/crypto-fields');
 const { verifyAccessToken, MFA_CHALLENGE_TYP, MFA_PURPOSES } = require('../../config/jwt');
+const rateLimitStore = require('../../utils/rate-limit-store');
 const mfa = require('./mfa.service');
+
+/** Redis fake mínimo — só o suficiente para exercitar SET ... NX PX. */
+function fakeRedisClient() {
+  const store = new Map();
+  return {
+    async set(key, value, mode, ttlMs, nx) {
+      if (mode !== 'PX' || nx !== 'NX') throw new Error('unexpected SET args in fake redis');
+      if (store.has(key)) return null;
+      store.set(key, value);
+      return 'OK';
+    },
+  };
+}
 
 const FIRM_A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const FIRM_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
@@ -183,6 +197,102 @@ describe('mfa.service enroll + verify TOTP', () => {
       challengeToken: gate.mfa.challengeToken,
       code,
     });
+    assert.equal(result.verified, true);
+  });
+
+  test('verifyChallenge: reenviar a mesma confirmação (mesmo código) é rejeitado (anti-replay do código)', async () => {
+    mock.restoreAll();
+    const redis = fakeRedisClient();
+    mock.method(rateLimitStore, 'getSharedRedisClient', () => redis);
+    const { generateSecret } = require('otplib');
+    const secret = generateSecret();
+    const row = baseOwner({
+      mfa_enabled: true,
+      mfa_totp_secret_enc: encryptField(secret),
+    });
+    mock.method(firmUsersRepository, 'findFirmUserById', async () => row);
+    mock.method(firmUsersRepository, 'updateFirmUserMfa', async () => row);
+
+    const gate = mfa.resolvePostCredentialGate(row);
+    const code = await generate({ secret });
+
+    const first = await mfa.verifyChallenge({ challengeToken: gate.mfa.challengeToken, code });
+    assert.equal(first.verified, true);
+
+    // O guard por código (por-utilizador) apanha isto primeiro — mesmo código,
+    // mesmo utilizador, dentro da janela de validade, mesmo com challenge diferente.
+    await assert.rejects(
+      () => mfa.verifyChallenge({ challengeToken: gate.mfa.challengeToken, code }),
+      (err) => err?.details?.code === 'MFA_INVALID_CODE',
+    );
+  });
+
+  test('verifyChallenge: o mesmo challenge já confirmado é rejeitado mesmo com um código diferente (anti-replay do jti)', async () => {
+    mock.restoreAll();
+    const redis = fakeRedisClient();
+    mock.method(rateLimitStore, 'getSharedRedisClient', () => redis);
+    const { generateSecret } = require('otplib');
+    const secret = generateSecret();
+    const row = baseOwner({
+      mfa_enabled: true,
+      mfa_totp_secret_enc: encryptField(secret),
+    });
+    mock.method(firmUsersRepository, 'findFirmUserById', async () => row);
+    mock.method(firmUsersRepository, 'updateFirmUserMfa', async () => row);
+
+    const gate = mfa.resolvePostCredentialGate(row);
+    const code = await generate({ secret });
+    const nextStepCode = await generate({ secret, epoch: Math.floor(Date.now() / 1000) + 30 });
+
+    const first = await mfa.verifyChallenge({ challengeToken: gate.mfa.challengeToken, code });
+    assert.equal(first.verified, true);
+
+    await assert.rejects(
+      () => mfa.verifyChallenge({ challengeToken: gate.mfa.challengeToken, code: nextStepCode }),
+      (err) => err?.statusCode === 401 && err?.details?.code === 'MFA_CHALLENGE_ALREADY_USED',
+    );
+  });
+
+  test('verifyChallenge: um código errado NÃO gasta o challenge (retry legítimo continua a funcionar)', async () => {
+    mock.restoreAll();
+    const redis = fakeRedisClient();
+    mock.method(rateLimitStore, 'getSharedRedisClient', () => redis);
+    const { generateSecret } = require('otplib');
+    const secret = generateSecret();
+    const row = baseOwner({
+      mfa_enabled: true,
+      mfa_totp_secret_enc: encryptField(secret),
+    });
+    mock.method(firmUsersRepository, 'findFirmUserById', async () => row);
+    mock.method(firmUsersRepository, 'updateFirmUserMfa', async () => row);
+
+    const gate = mfa.resolvePostCredentialGate(row);
+
+    await assert.rejects(
+      () => mfa.verifyChallenge({ challengeToken: gate.mfa.challengeToken, code: '000000' }),
+      (err) => err?.details?.code === 'MFA_INVALID_CODE',
+    );
+
+    const code = await generate({ secret });
+    const result = await mfa.verifyChallenge({ challengeToken: gate.mfa.challengeToken, code });
+    assert.equal(result.verified, true);
+  });
+
+  test('verifyChallenge: Redis indisponível falha aberto (não bloqueia login legítimo)', async () => {
+    mock.restoreAll();
+    mock.method(rateLimitStore, 'getSharedRedisClient', () => null);
+    const { generateSecret } = require('otplib');
+    const secret = generateSecret();
+    const row = baseOwner({
+      mfa_enabled: true,
+      mfa_totp_secret_enc: encryptField(secret),
+    });
+    mock.method(firmUsersRepository, 'findFirmUserById', async () => row);
+    mock.method(firmUsersRepository, 'updateFirmUserMfa', async () => row);
+
+    const gate = mfa.resolvePostCredentialGate(row);
+    const code = await generate({ secret });
+    const result = await mfa.verifyChallenge({ challengeToken: gate.mfa.challengeToken, code });
     assert.equal(result.verified, true);
   });
 });

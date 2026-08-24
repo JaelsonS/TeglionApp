@@ -35,7 +35,7 @@ export const firmSettingsApi = {
       .post('/contabil/firm/profile/password', payload)
       .then((r) => r.data as { updated: boolean; sessionsRevoked?: boolean }),
 
-  setVaultPassword: (payload: { newPassword: string; currentPassword?: string }) =>
+  setVaultPassword: (payload: { newPassword: string; currentPassword?: string; totpCode?: string }) =>
     api.post('/contabil/firm/vault-password', payload).then(
       (r) =>
         r.data as {

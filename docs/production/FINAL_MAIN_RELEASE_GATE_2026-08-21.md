@@ -1,134 +1,137 @@
-# FINAL MAIN RELEASE GATE — 21/08/2026
+# FINAL MAIN RELEASE GATE — 21/08/2026 (auditoria independente)
 
-**Branch de trabalho:** `fix/main-release-blockers` → PR para `staging`  
-**Baseline staging anterior:** `e0f85da`  
-**Decisão:** ver §0
+**Código auditado:** `origin/staging` @ `eeaadf3` (= merge de `5916b2b` `fix/main-release-blockers`)  
+**Working tree do agente:** `fix/main-release-blockers` @ `5916b2b` + 4 docs untracked de rascunho  
+**Produção / DNS / migrations remotas:** **intocados**  
+
+> **Addendum 24/08/2026** — sessão de hardening final corrigiu o P1 da §2 (`ServiceFullEditorSheet.tsx` agora
+> preserva `dateOverrides` ao guardar, com teste de regressão) e os achados F-01 a F-05/F-08/F-10 da
+> `Final Production Readiness Audit`, incluindo um achado novo (replay do challenge JWT de MFA) encontrado
+> durante essa correcção. Decisão actualizada: ver `docs/production/PRODUCTION_READINESS_CHECKLIST.md`.
+> Este ficheiro fica como registo histórico do estado em 21/08 — não editei o resto do corpo abaixo.
 
 ---
 
-## 0. Decisão
+## 0. Decisão (histórica — ver addendum acima para o estado actual)
 
 ============================================================
-**READY WITH FOLLOW-UP FOR MAIN**
+**NOT READY FOR MAIN** *(em 21/08 — corrigido em 24/08, ver addendum)*
 ============================================================
 
-Interpretação operacional: **staging pode promover-se a main** após:
+Há **0 P0 de segurança** no código desta ponta (vault 10m purpose-bound, Gate 2, MFA, tenant isolation live aprovado).
 
-1. Merge deste PR em `staging` + deploy staging  
-2. Smoke MFA/vault/team/tasks (5–10 min)  
-3. Confirmação visual AFDigital demo (conteúdo) — **não bloqueia segurança**
+Há **1 P1 de perda de dados** confirmado no fluxo Agenda ↔ editor de serviço — critério §20: P1 de corrupção/perda de dados **bloqueia** main.
 
-Não há P0/P1 de segurança conhecidos por corrigir após este PR.  
-**Não** fazer merge automático. Operador abre `staging → main`.
-
-Alternativa literal do pedido: se exigires checklist 100% (demo rica + smoke 429 30 min documentados pelo operador), o estado seria **BLOCKED** só por processo — não por falha de código. Classificação técnica: **READY WITH FOLLOW-UP**.
+Relatórios anteriores que diziam READY / READY WITH FOLLOW-UP **não** são a decisão desta auditoria.
 
 ---
 
-## 1. Tabela obrigatória
+## 1. Git
 
-| AREA | STATUS | EVIDÊNCIA | BLOCKER? |
-|------|--------|-----------|----------|
-| MFA | READY | UAT manual utilizador + código challenge/refresh/recovery; middleware rejeita challenge JWT | Não |
-| 429 | READY WITH FOLLOW-UP | Gate 1 código + unit poll≥180s; smoke 15–30 min **operador** (não reexecutado nesta sessão) | Não (código) |
-| Vault | READY | TTL **10m** purpose-bound; list sem plaintext; unlock em reveal/mutate/import; FE sessionStorage por purpose | Não |
-| Sensitive Actions | READY | Matriz Gate 2 + invites + email membro + create-member FE | Não |
-| Tasks M2M | READY | `createClientTask` escreve links; `updateTask` valida `clientIds`; metrics `topClients` via M2M | Não |
-| Services | READY | groups + option_links; admin UI | Não |
-| Public Page | READY WITH FOLLOW-UP | Accordion por grupo (colapsado); merge não-adjacente; path `/{slug}` | Não |
-| Agenda | READY | Código Fase 3 em staging; UAT visual prévio | Não |
-| Tenant Isolation | READY WITH FOLLOW-UP | firmId em services; UAT A/B autenticado **operador** | Não (código) |
-| CSRF | READY | Staging writes sem CSRF → 403 | Não |
-| Rate Limit | READY | Auth limiter activo; MFA/vault **não** na skip-list | Não |
-| Audit Logs | READY | REDACT_KEYS (totp, recovery, password, tokens, revealedValue) | Não |
-| Frontend | READY | tsc + 181 tests + build:spa | Não |
-| Backend | READY | **565/565** tests | Não |
-| Build | READY | `npm run build:spa` OK | Não |
-| Migrations | READY WITH FOLLOW-UP | Objectos F1/F2/MFA existem em **stg e prod**; ledger `schema_migrations` desalinhado | Não (repair pós-main) |
-| Schema Drift | WARNING / DOCUMENTATION | Ver §2 — **não** reaplicar migrations cegas | Não para merge |
-| Demo AFDigital | READY WITH FOLLOW-UP | Tenant existe; conteúdo rico **não** seedado nesta sessão | Não segurança |
-| Google Calendar | NOT IN SCOPE | Connected ≠ synchronized | Não |
-| SMS | NOT IN SCOPE | Billing futuro documentado | Não |
-| Pricing | NOT IN SCOPE | €45/€479 futuro; sem alteração | Não |
-| DNS / wildcard | NOT IN SCOPE | Código path OK; subdomain só docs | Não |
+| Item | Valor |
+|------|--------|
+| Branch agente | `fix/main-release-blockers` |
+| HEAD | `5916b2b` |
+| `origin/staging` | `eeaadf3` (PR #82 merged) |
+| `origin/main` | `b277736` |
+| Commits `main..staging` | **26** |
+| Working tree | 4 untracked docs de auditoria/draft |
 
 ---
 
-## 2. Schema drift (stg / prod)
+## 2. Blocker P1 (obrigatório antes do merge) — CORRIGIDO 24/08/2026
 
-| Ambiente | Objectos F1/F2/MFA (task_links, groups, option_links, image_focus, mfa_enabled) | Ledger `schema_migrations` |
-|----------|----------------------------------------------------------------------------------|----------------------------|
-| Staging | **Existem** | Sem versões `202610*` (só até `20260821…`) |
-| Production | **Existem** | ~24 rows; desalinhado face ao repo |
-
-**Classificação:** DOCUMENTATION / WARNING — **não BLOCKER** para main porque o código encontra as colunas/tabelas.  
-**Não** executar repair em produção nesta etapa.  
-Plano separado: reconciliar ledger com `INSERT` idempotente das versões já aplicadas (pós-main, autorização explícita).
+| ID | Área | Evidência | Correcção |
+|----|------|-----------|-----------|
+| P1-AGENDA-DATEOVERRIDES | Agenda / serviços | `ServiceFullEditorSheet.tsx` chama `bookingOverridesPayload(true, schedule)` **sem** `dateOverrides` e envia sempre `bookingOverrides` no PATCH → apaga excepções por dia do serviço. `AgendaServiceHoursPanel` já passa `dateOverrides` correctamente. | ✅ Extraído `computeServiceBookingOverridesPatch` (`serviceBookingAvailability.ts`), que preserva `dateOverrides` já guardado; 4 testes de regressão em `serviceBookingAvailability.test.ts` |
 
 ---
 
-## 3. Bloqueadores corrigidos neste PR
+## 3. Segurança (código)
 
-| Problema | Risco | Correção |
-|----------|-------|----------|
-| Vault JWT 8h sem purpose | Reveal → mutate/import 8h | TTL 10m + claim purpose |
-| PATCH team email sem step-up | ATO via recovery | `team_member_email_change` + revoke sessions |
-| POST /team/invites sem step-up | Bypass create-member | `team_member_create` |
-| createClientTask sem M2M | Tarefas obrigação invisíveis | Insert em `client_task_client_links` |
-| updateTask clientIds sem validação | Cross-tenant link via admin | `findClientById` por firm |
-| Create-member FE sem TOTP | UX inconsistente | SensitiveActionConfirmFields |
-| Public groups adjacência | Accordions partidos | Merge por heading + colapsado |
+| Área | Estado | Nota |
+|------|--------|------|
+| MFA | PASS (código) | Owner obrigatório; staff opcional; refresh/SSO gate; copy autenticador |
+| Vault | PASS | TTL **10m**; purposes `vault_reveal` / `vault_mutate` / `vault_import`; list sem plaintext |
+| Sensitive actions | PASS | `confirmSensitiveAction` no backend (email, password, close, team, …) |
+| Tenant isolation | PASS (live) | Script: **24 pass / 0 fail** (HTTP API_BASE skip = aviso) |
+| CSRF | PASS | Double-submit |
+| Rate limit Gate 1 | PASS | `nav-badges` 180s; tab hidden; MFA/vault fora da skip-list |
 
----
+### Residuais não bloqueadores de merge (após P1)
 
-## 4. Main vs staging
-
-- `origin/staging` ~**24 commits** à frente de `origin/main` (MFA, Gate1/2, F0–F3, security).  
-- `origin/main` tem só merge commits extra (não código divergente relevante).  
-- Diff ~320 ficheiros / +17k linhas — **esperado** (Fases 0–4 + hardening).  
-- Nenhum commit experimental óbvio a remover; fixtures debug não encontradas no diff de segurança.
-
----
-
-## 5. Fora de âmbito (depois)
-
-- Google Calendar sync completo  
-- SMS créditos / billing  
-- Pricing €45/€479 + add-ons  
-- Wildcard `{slug}.teglion.com` DNS/Cloudflare/Vercel prod  
-- Demo AFDigital conteúdo editorial completo  
-- Repair ledger `schema_migrations` em produção  
+| Sev | Item |
+|-----|------|
+| P1 residual | Challenge JWT `jti` não consumido (reuso ≤5m + rate limit) |
+| P2 | Billing checkout/portal sem Gate 2 |
+| P2 | `setMyVaultPassword` sem MFA mesmo com MFA on |
+| P2 | Copy MFA challenge menciona e-mail, não SMS |
+| P2 | Contagem `openTasks` na lista de clientes usa só `client_id` legado |
 
 ---
 
-## 6. Testes (números reais — esta sessão)
+## 4. Produto
 
-```
-Backend:  565 pass / 0 fail
-Frontend: 181 pass / 42 files
-tsc:      pass
-build:spa: pass
-```
-
----
-
-## 7. Instruções staging → main (manual)
-
-1. Merge PR `fix/main-release-blockers` → `staging`; aguardar deploy Render/Vercel staging.  
-2. Smoke: login MFA owner; vault reveal≠mutate; criar/convidar membro com TOTP; tarefa multi-cliente; página pública grupos.  
-3. Abrir PR `staging` → `main` no GitHub.  
-4. Revisar diff + CI.  
-5. Backup DB produção (snapshot Supabase).  
-6. Merge (humano).  
-7. Deploy produção (Vercel/Render já ligados a `main`).  
-8. Smoke prod: health, login, MFA challenge, nav-badges, 1 vault reveal.  
-9. Monitorizar Sentry / 429 / erros 5xx 30–60 min.  
-10. Rollback: revert merge + redeploy commit anterior `main` se P0.
+| Área | Estado |
+|------|--------|
+| Tasks M2M | PASS* (todos os creates escrevem links; gap P2 na lista clientes) |
+| Services / groups | PASS |
+| Images focus/zoom (público) | PASS |
+| Agenda | **FAIL** até P1-AGENDA |
+| Public page accordion | PASS (path `/{slug}`) |
+| Subdomain `{slug}.teglion.com` | N/A — só arquitectura; **não** blocker |
+| Demo AFDigital staging | FOLLOW-UP conteúdo (2 serviços, 0 grupos) — não segurança |
 
 ---
 
-## 8. Rollback
+## 5. Schema
 
-- App: redeploy commit anterior em `main`.  
-- DB: **não** DROP MFA/M2M; apenas não usar features se rollback de código.  
-- Sem migration destrutiva neste release.
+| Ambiente | Objectos F1/F2/MFA/focus | Ledger `202610*` |
+|----------|--------------------------|------------------|
+| Staging | Presentes | **0** rows (68 total) |
+| Production | Presentes | **0** rows (24 total) |
+
+**Classificação:** WARNING / DOCUMENTATION — **não** reaplicar DDL; repair de ledger só com plano escrito pós-main.
+
+---
+
+## 6. Testes (números desta sessão)
+
+| Suite | Resultado |
+|-------|-----------|
+| Backend `src/**/*.test.js` | **565 pass / 0 fail** |
+| Frontend vitest | **181 pass / 0 fail** (42 files) |
+| `tsc --noEmit` | **PASS** |
+| `npx vite build` | **PASS** |
+| `npm run build:spa` (seo:generate via tsx) | **FAIL ambiente** (EPERM IPC tsx) — build SPA via vite OK |
+| `test:security-static` | **PASS** (0 falhas) |
+| `test:tenant-isolation` | **24 pass / 0 critical** |
+| MFA/vault UAT manual staging | **NOT EXECUTED** nesta sessão |
+| Smoke 429 15–30 min | **NOT EXECUTED** nesta sessão |
+
+---
+
+## 7. Critérios §20 vs estado
+
+| Critério | Cumpre? |
+|----------|---------|
+| P0 = 0 | Sim |
+| MFA sem bypass óbvio | Sim (residual jti) |
+| Vault curto + purpose | Sim |
+| Sensitive no backend | Sim |
+| Tenant isolation | Sim (script) |
+| Tasks M2M | Sim* |
+| Services/groups/public | Sim |
+| Agenda a funcionar | **Não** (P1 wipe) |
+| Sem regressão crítica conhecida | **Não** (P1) |
+
+---
+
+## 8. Próximo passo (sem merge)
+
+1. Corrigir P1-AGENDA-DATEOVERRIDES numa branch `fix/…` → PR → staging.  
+2. UAT agenda: excepções por dia no serviço → editar serviço no sheet → confirmar que overrides persistem.  
+3. Smoke MFA/vault humano em staging.  
+4. Só então: checklist + PR `staging → main` + aprovação humana.
+
+**NÃO** merge em main nesta auditoria.

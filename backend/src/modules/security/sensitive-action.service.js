@@ -22,6 +22,7 @@ const SENSITIVE_PURPOSES = Object.freeze({
   FIRM_CLOSE: 'firm_close',
   TEAM_PERMISSIONS_PATCH: 'team_permissions_patch',
   TEAM_MEMBER_DEACTIVATE: 'team_member_deactivate',
+  TEAM_MEMBER_REACTIVATE: 'team_member_reactivate',
   TEAM_MEMBER_ROLE_CHANGE: 'team_member_role_change',
   TEAM_MEMBER_CREATE: 'team_member_create',
   TEAM_MEMBER_EMAIL_CHANGE: 'team_member_email_change',
@@ -74,7 +75,7 @@ async function verifyTotpForActor(row, totpCode) {
   }
   const mfa = require('../auth/mfa.service');
   const secretPlain = decryptField(row.mfa_totp_secret_enc);
-  const ok = await mfa.verifyTotpCode(secretPlain, totpCode);
+  const ok = await mfa.verifyTotpCode(secretPlain, totpCode, row.id);
   if (!ok) throw invalidCodeError();
   await firmUsersRepository.updateFirmUserMfa(row.id, row.firm_id, {
     mfaLastVerifiedAt: new Date().toISOString(),

@@ -421,7 +421,8 @@ export function AgendaAvailabilityPanel(props: Props) {
             Excepções do mês
           </h4>
           <p className="cb-agenda-avail-card-sub">
-            Feche dias ou defina horários especiais em {MONTH_NAMES_PT[calMonthIndex]} {calYear}.
+            Dias em que o horário normal não se aplica — feriados, férias ou datas especiais — em{' '}
+            {MONTH_NAMES_PT[calMonthIndex]} {calYear}.
           </p>
         </div>
       </div>
@@ -463,6 +464,10 @@ export function AgendaAvailabilityPanel(props: Props) {
             const selected = selectedDate === iso
             const weekday = new Date(calYear, calMonthIndex, day).getDay()
             const weekend = weekday === 0 || weekday === 6
+            const weekdayName = BOOKING_WEEKDAYS.find((w) => w.bit === weekday)?.full || ''
+            const statusLabel =
+              kind === 'closed' ? 'fechado' : kind === 'custom' ? 'horário especial' : 'horário semanal'
+            const dayAriaLabel = `${day} de ${weekdayName || MONTH_NAMES_PT[calMonthIndex]}${isToday ? ', hoje' : ''} — ${statusLabel}`
             return (
               <button
                 type="button"
@@ -475,6 +480,8 @@ export function AgendaAvailabilityPanel(props: Props) {
                   isToday && kind === 'none' && !selected && 'cb-agenda-month-day-today',
                 )}
                 onClick={() => openDayDialog(day)}
+                aria-label={dayAriaLabel}
+                aria-pressed={selected}
                 data-testid={`agenda-override-day-${iso}`}
               >
                 <span className="cb-agenda-month-day-num">{day}</span>
@@ -576,6 +583,7 @@ export function AgendaAvailabilityPanel(props: Props) {
           className="cb-agenda-field-input"
           value={bookingTz}
           onChange={(e) => onBookingTz(e.target.value)}
+          aria-label="Fuso horário"
         >
           {BOOKING_TIMEZONE_OPTIONS.map((z) => (
             <option key={z.value} value={z.value}>
@@ -583,6 +591,10 @@ export function AgendaAvailabilityPanel(props: Props) {
             </option>
           ))}
         </select>
+        <p className="cb-agenda-avail-option-hint">
+          Os horários que definir abaixo usam este fuso — os clientes vêem sempre a hora certa,
+          seja qual for o fuso deles.
+        </p>
       </div>
 
       <div className="cb-agenda-avail-option-card">

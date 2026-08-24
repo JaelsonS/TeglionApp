@@ -5,6 +5,7 @@ import type { BookingDaySchedule, FirmBookingSettings } from '@/shared/types/con
 import {
   applyServiceDayOverride,
   bookingOverridesPayload,
+  computeServiceBookingOverridesPatch,
   defaultIntervalFromSchedule,
   hasCustomBookingHours,
   scheduleFromFirmBooking,
@@ -108,6 +109,50 @@ describe('bookingOverridesPayload', () => {
         3: [{ start: '14:00', end: '17:00' }],
       },
     })
+  })
+})
+
+describe('computeServiceBookingOverridesPatch', () => {
+  it('regressão: guardar o editor completo do serviço não apaga excepções por data já configuradas na Agenda', () => {
+    // Um serviço com horário próprio E uma excepção de dia guardada via
+    // AgendaServiceHoursPanel — exactamente o estado que existia quando o bug
+    // foi encontrado (ServiceFullEditorSheet mandava bookingOverrides sem
+    // dateOverrides, e o backend substitui a coluna inteira).
+    const savedOnAgenda = {
+      weekdays: [1, 2],
+      schedule: {
+        1: [{ start: '09:00', end: '12:00' }],
+        2: [{ start: '09:00', end: '12:00' }],
+      },
+      dateOverrides: { '2026-09-07': [] as { start: string; end: string }[] },
+    }
+    const patch = computeServiceBookingOverridesPatch(savedOnAgenda)
+    expect(patch?.dateOverrides).toEqual({ '2026-09-07': [] })
+    expect(patch?.schedule).toEqual(savedOnAgenda.schedule)
+  })
+
+  it('sem personalização, devolve null (limpa bookingOverrides, comportamento inalterado)', () => {
+    expect(computeServiceBookingOverridesPatch(null)).toBeNull()
+    expect(computeServiceBookingOverridesPatch({})).toBeNull()
+  })
+
+  it('personalização só com weekdays (sem schedule) também preserva dateOverrides', () => {
+    const patch = computeServiceBookingOverridesPatch({
+      weekdays: [3],
+      dateOverrides: { '2026-09-10': [{ start: '10:00', end: '11:00' }] },
+    })
+    expect(patch).toEqual({
+      weekdays: [3],
+      dateOverrides: { '2026-09-10': [{ start: '10:00', end: '11:00' }] },
+    })
+  })
+
+  it('sem dateOverrides guardado, não inventa nenhum', () => {
+    const patch = computeServiceBookingOverridesPatch({
+      weekdays: [1],
+      schedule: { 1: [{ start: '09:00', end: '12:00' }] },
+    })
+    expect(patch?.dateOverrides).toBeUndefined()
   })
 })
 

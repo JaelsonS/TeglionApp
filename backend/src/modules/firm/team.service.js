@@ -374,7 +374,20 @@ async function deactivateMember({ firmId, memberId, actor, req, totpCode, curren
     return getMember(firmId, updated.id);
 }
 
-async function reactivateMember({ firmId, memberId, actor, req }) {
+async function reactivateMember({ firmId, memberId, actor, req, totpCode, currentPassword }) {
+    // Simétrico a deactivateMember: reativar restaura acesso tão sensível quanto
+    // desativar o remove — uma sessão comprometida com USERS_UPDATE não pode
+    // devolver acesso a uma conta desativada por motivo de segurança sem o
+    // mesmo factor sensível exigido para desativar.
+    const sensitive = require('../security/sensitive-action.service');
+    await sensitive.confirmSensitiveAction({
+        firmId,
+        userId: actor.id,
+        purpose: sensitive.SENSITIVE_PURPOSES.TEAM_MEMBER_REACTIVATE,
+        totpCode: totpCode ?? req?.body?.totpCode,
+        currentPassword: currentPassword ?? req?.body?.currentPassword,
+    });
+
     const current = await firmUsersRepository.findFirmUserByIdForFirm(firmId, memberId);
     if (!current) throw new AppError('Membro não encontrado.', 404);
 

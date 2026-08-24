@@ -100,6 +100,23 @@ export function bookingOverridesPayload(
   return bookingOverridesFromSchedule(schedule, dateOverrides)
 }
 
+/**
+ * Payload de `bookingOverrides` para o PATCH do serviço, a partir do estado local
+ * do editor completo. Preserva `dateOverrides` já guardado — omiti-lo faria o
+ * backend substituir a coluna inteira e apagar excepções por data já configuradas
+ * (o editor completo não tem UI para excepções por data; quem edita isso é o
+ * painel de horários da Agenda — aqui só precisamos de não as destruir).
+ */
+export function computeServiceBookingOverridesPatch(
+  bookingOverrides: Partial<FirmBookingSettings> | null | undefined,
+): { weekdays: number[]; schedule?: BookingDaySchedule; dateOverrides?: FirmBookingSettings['dateOverrides'] } | null {
+  if (!hasCustomBookingHours(bookingOverrides)) return null
+  if (bookingOverrides?.schedule && Object.keys(bookingOverrides.schedule).length) {
+    return bookingOverridesPayload(true, bookingOverrides.schedule, bookingOverrides.dateOverrides)
+  }
+  return { weekdays: bookingOverrides?.weekdays || [], dateOverrides: bookingOverrides?.dateOverrides }
+}
+
 export function defaultIntervalFromSchedule(schedule: BookingDaySchedule): TimeInterval {
   for (const w of BOOKING_WEEKDAYS) {
     const first = schedule[w.bit]?.[0]
