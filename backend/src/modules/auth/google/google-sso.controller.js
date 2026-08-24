@@ -1,4 +1,5 @@
 const { env } = require('../../../config/env');
+const crypto = require('crypto');
 const {
   isGoogleSsoEnabled,
   buildGoogleAuthUrl,
@@ -90,7 +91,12 @@ async function googleCallback(req, res) {
 
   const savedState = req.cookies?.[OAUTH_STATE_COOKIE];
   res.clearCookie(OAUTH_STATE_COOKIE, buildAuthCookieOptions(req));
-  if (!state || !savedState || state !== savedState) {
+  const stateOk =
+    Boolean(state) &&
+    Boolean(savedState) &&
+    Buffer.byteLength(String(state)) === Buffer.byteLength(String(savedState)) &&
+    crypto.timingSafeEqual(Buffer.from(String(state)), Buffer.from(String(savedState)));
+  if (!stateOk) {
     captureSsoSignal('Google SSO invalid_state', { code: 'INVALID_STATE', intent });
     return res.redirect(`${intent === 'register' ? registerUrl : loginUrl}?error=invalid_state`);
   }

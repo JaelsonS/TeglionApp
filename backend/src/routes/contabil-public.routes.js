@@ -82,10 +82,6 @@ const intakeUploadLimiter = rateLimit({
   message: { code: 'RATE_LIMIT', message: 'Demasiados envios. Tente novamente mais tarde.' },
 });
 
-// Sem isto, o endpoint (sem autenticação nem Turnstile) podia ser usado para martelar
-// duas APIs externas gratuitas (geoapi.pt/ViaCEP) a partir do IP do Teglion — risco de
-// exaustão de handlers no backend e de o próprio IP do Teglion ser bloqueado por essas
-// APIs, quebrando o autocomplete de morada para todos os utilizadores legítimos.
 const postalLookupLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 30,

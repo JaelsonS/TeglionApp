@@ -1,14 +1,6 @@
 /**
- * CSRF Middleware - Proteção contra Cross-Site Request Forgery
- *
- * Estratégia: Validar X-Requested-With header em requisições state-changing (POST/PATCH/DELETE)
- * Browsers enviam este header automaticamente em XMLHttpRequest, protegendo contra
- * ataques CSRF de <form> em sites maliciosos.
- *
- * ℹ️ NOTA: Cookies com SameSite=Lax/None já proporcionam proteção parcial.
- * Este middleware adiciona camada extra para máxima segurança.
- *
- * @see https://owasp.org/www-community/attacks/csrf
+ * CSRF protection for cookie-authenticated browser requests.
+ * Double-submit cookie + Origin allowlist for state-changing methods.
  */
 const crypto = require('crypto');
 
@@ -109,7 +101,7 @@ function hasAuthorizationHeader(req) {
   return false;
 }
 
-/** Pedidos AJAX da SPA — alguns WebViews/mobile omitiram Origin/Referrer mesmo com HTTPS. */
+/** SPA requests that may omit Origin on some WebViews; CORS still applies earlier. */
 function looksLikeBrowserSpaAjax(req) {
   const v = String(req.get('x-requested-with') || '').toLowerCase();
   return v === 'xmlhttprequest';
@@ -120,10 +112,6 @@ function pathWithoutQuery(req) {
   return String(raw).split('?')[0];
 }
 
-/**
- * SPA em domínio A + API em domínio B: alguns browsers (Chrome iOS) não gravam/expõem cookie CSRF como “primeira parte”.
- * Mantemos Double Submit quando cookie+header existem; quando faltam, exigimos Origin referenciado na allowlist + AJAX SPA — CORS já bloqueia sites não autorizados a obter sessão com estas credenciais.
- */
 function matchPublicCredentialedAuthPath(pathOnly) {
   if (pathOnly === '/api/contabil/auth/register-firm') return true;
   if (pathOnly === '/api/auth/register-firm') return true;
@@ -145,7 +133,7 @@ function trustedSpaCanSkipCsrfCookieHeaderPair(req) {
   return isAllowedConfiguredOrigin(origin);
 }
 
-/** Rotas públicas auth onde bloquear por falta de Origin quebra Safari/WKWebView e apps híbridos — CORS continua aplicável antes disto. */
+/** Auth credentialed posts that may lack Origin on some hybrid clients. */
 function allowsAuthCredentialedPostWithoutOrigin(req) {
   const pathOnly = pathWithoutQuery(req);
   const okPath =
@@ -206,19 +194,14 @@ function safeCompare(a, b) {
 }
 
 /**
- * CSRF Protection Middleware
- * Aplicar em rotas sensíveis (POST, PATCH, DELETE)
- *
- * Endpoints seguros (autenticadas + Authorization header): ✅ menor risco
- * Endpoints com cookies apenas: ⚠️ aplicar este middleware
+ * CSRF for cookie sessions on state-changing methods.
+ * Bearer/integration paths may skip when ALLOW_BEARER_AUTH is enabled.
  */
 const csrfProtection = (req, res, next) => {
-  // Skip GET e OPTIONS (não alteram estado)
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
     return next();
   }
 
-  // Skip para chamadas com Authorization header (tokens) ou integrações — apenas se ALLOW_BEARER_AUTH.
   if (env.ALLOW_BEARER_AUTH && hasAuthorizationHeader(req)) {
     return next();
   }
@@ -272,13 +255,16 @@ const csrfProtection = (req, res, next) => {
  * Endpoints que NÃO precisam de CSRF (público, webhook, etc.)
  */
 const csrfSkipPaths = [
-  /^\/api\/public\/.*/, // Público (geo, search, etc.)
-  /^\/api\/checkout\/webhook.*/, // Stripe webhook (valida signature)
-  /^\/api\/stripe\/webhook.*/, // Stripe webhook legado
-  /^\/api\/public\/stripe\/webhook.*/, // Teglion Stripe webhook
-  /^\/api\/webhook\/.*/, // Webhook WhatsApp 360dialog
-  /^\/api\/webhooks\/.*/, // Webhooks gerais
-  /^\/api\/health.*/, // Health check
+  /^\/api\/public\/.*/,
+  /^\/api\/v1\/public\/.*/,
+  /^\/api\/checkout\/webhook.*/,
+  /^\/api\/stripe\/webhook.*/,
+  /^\/api\/public\/stripe\/webhook.*/,
+  /^\/api\/v1\/public\/stripe\/webhook.*/,
+  /^\/api\/webhook\/.*/,
+  /^\/api\/webhooks\/.*/,
+  /^\/api\/health.*/,
+  /^\/api\/v1\/health.*/,
 ];
 
 /**
@@ -304,15 +290,7 @@ const ensureCsrfCookie = (req, res, next) => {
 };
 
 /**
- * CSRF Token Response Middleware (Opcional)
- * Para clients que precisam de token CSRF explícito antes de fazer POST
- *
- * Uso:
- * 1. GET /api/csrf-token → retorna token
- * 2. POST /api/algum-endpoint com header X-CSRF-Token
- *
- * ℹ️ Atualmente não usamos token baseado em sessão (stateless API)
- * Se precisar, gerar token via session ou JWT claim.
+ * Ensures a CSRF cookie exists, then optionally exposes a fresh token.
  */
 const generateCsrfToken = (req, res, next) => {
   const token = createCsrfToken();

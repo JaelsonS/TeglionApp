@@ -1,5 +1,4 @@
 const { validationResult } = require('express-validator');
-const { env } = require('../../config/env');
 const { requireUserFirmId } = require('../../utils/contabil-scope');
 const automationService = require('./automation.service');
 const { AppError } = require('../../middlewares/error.middleware');
@@ -56,10 +55,6 @@ exports.runCronForFirm = async (req, res, next) => {
 
 exports.runAllFirms = async (req, res, next) => {
   try {
-    const cronSecret = req.headers['x-cron-secret'];
-    if (!cronSecret || !env.CRON_SECRET || cronSecret !== env.CRON_SECRET) {
-      throw new AppError('Não autorizado', 403);
-    }
     const { getSupabaseAdmin } = require('../../db/supabase/client');
     const sb = getSupabaseAdmin();
     const { data: firms, error } = await sb.from('firms').select('id').eq('status', 'ACTIVE');

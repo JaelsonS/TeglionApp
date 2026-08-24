@@ -109,7 +109,52 @@ async function createConsultation({
 }
 
 async function updateConsultation({ firmId, id, patch }) {
-  const consultation = await consultationsRepository.updateConsultation(id, firmId, patch);
+  const existing = await consultationsRepository.findByIdForFirm(id, firmId);
+  if (!existing) throw new AppError('Consulta não encontrada', 404);
+
+  const safePatch = {};
+  if (patch.notes !== undefined) safePatch.notes = patch.notes;
+  if (patch.title !== undefined) safePatch.title = patch.title;
+  if (patch.scheduledAt !== undefined) safePatch.scheduledAt = patch.scheduledAt;
+  if (patch.cancelReason !== undefined) safePatch.cancelReason = patch.cancelReason;
+
+  if (patch.status !== undefined) {
+    const allowedStatuses = new Set([
+      'SCHEDULED',
+      'COMPLETED',
+      'CANCELLED',
+      'NO_SHOW',
+      'PENDING_PAYMENT',
+    ]);
+    const nextStatus = String(patch.status || '').trim().toUpperCase();
+    if (!allowedStatuses.has(nextStatus)) {
+      throw new AppError('Estado de consulta inválido', 400, { code: 'INVALID_STATUS' });
+    }
+    // Payment/hold lifecycle is owned by Connect payment flows — not free-form staff edits.
+    if (
+      (existing.status === 'PENDING_PAYMENT' || nextStatus === 'PENDING_PAYMENT') &&
+      existing.status !== nextStatus
+    ) {
+      throw new AppError('Estado de pagamento não pode ser alterado manualmente', 400, {
+        code: 'PAYMENT_STATUS_LOCKED',
+      });
+    }
+    safePatch.status = nextStatus;
+  }
+
+  if (patch.staffId !== undefined) {
+    const staffId = patch.staffId ? String(patch.staffId).trim() : null;
+    if (staffId) {
+      const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
+      const staff = await firmUsersRepository.findFirmUserByIdForFirm(firmId, staffId);
+      if (!staff || staff.isActive === false) {
+        throw new AppError('Colaborador inválido', 400, { code: 'INVALID_STAFF' });
+      }
+    }
+    safePatch.staffId = staffId;
+  }
+
+  const consultation = await consultationsRepository.updateConsultation(id, firmId, safePatch);
   if (!consultation) throw new AppError('Consulta não encontrada', 404);
   const timeZone = await firmBookingTimezone(firmId);
   void googleCalendarSyncService

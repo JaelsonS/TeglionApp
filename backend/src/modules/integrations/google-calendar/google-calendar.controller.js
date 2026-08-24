@@ -1,4 +1,5 @@
 const { env } = require('../../../config/env');
+const crypto = require('crypto');
 const { requireUserFirmId } = require('../../../utils/contabil-scope');
 const { buildAuthCookieOptions } = require('../../../utils/auth-cookies');
 const { logger } = require('../../../utils/logger');
@@ -48,7 +49,13 @@ async function callback(req, res) {
   const savedState = req.cookies?.[STATE_COOKIE];
   res.clearCookie(STATE_COOKIE, buildAuthCookieOptions(req));
 
-  if (error || !state || !savedState || state !== savedState || !code) {
+  const stateOk =
+    Boolean(state) &&
+    Boolean(savedState) &&
+    Buffer.byteLength(String(state)) === Buffer.byteLength(String(savedState)) &&
+    crypto.timingSafeEqual(Buffer.from(String(state)), Buffer.from(String(savedState)));
+
+  if (error || !stateOk || !code) {
     return res.redirect(`${settingsUrl}&calendar=error`);
   }
 

@@ -24,6 +24,13 @@ const SENSITIVE_KEYS = new Set([
   'turnstileToken',
   'cf-turnstile-response',
   'cfTurnstileResponse',
+  'mfa_totp_secret_enc',
+  'mfaTotpSecretEnc',
+  'mfa_totp_pending_secret_enc',
+  'mfaTotpPendingSecretEnc',
+  'mfa_recovery_codes_hash',
+  'mfaRecoveryCodesHash',
+  'totpSecret',
 ]);
 
 function stripSensitiveValue(value) {

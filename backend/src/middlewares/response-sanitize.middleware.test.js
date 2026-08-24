@@ -45,3 +45,20 @@ test('stripSensitiveValue remove accessToken JWT mas preserva intakeToken do por
   assert.equal(out.accessToken, undefined);
   assert.equal(out.intakeToken, 'portal-opaque-ok');
 });
+
+test('stripSensitiveValue remove segredos MFA encriptados', () => {
+  const out = stripSensitiveValue({
+    id: 'u1',
+    email: 'a@b.com',
+    mfa_totp_secret_enc: 'enc:v1:secret',
+    mfa_totp_pending_secret_enc: 'enc:v1:pending',
+    mfa_recovery_codes_hash: ['h1'],
+    mfaEnabled: true,
+    challengeToken: 'challenge-ok-to-return',
+  });
+  assert.equal(out.mfa_totp_secret_enc, undefined);
+  assert.equal(out.mfa_totp_pending_secret_enc, undefined);
+  assert.equal(out.mfa_recovery_codes_hash, undefined);
+  assert.equal(out.mfaEnabled, true);
+  assert.equal(out.challengeToken, 'challenge-ok-to-return');
+});

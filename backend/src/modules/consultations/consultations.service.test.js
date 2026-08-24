@@ -177,6 +177,12 @@ test('createConsultation: violação da exclusion constraint (23P01) vira 409', 
 test('updateConsultation: dispara sync para o Google Calendar com o holderName resolvido (Fase Hb)', async () => {
   resetMocks();
   mockFirmTimezone('Europe/Lisbon');
+  mock.method(consultationsRepository, 'findByIdForFirm', async () => ({
+    id: 'c1',
+    clientId: 'client-1',
+    leadId: null,
+    status: 'SCHEDULED',
+  }));
   mock.method(consultationsRepository, 'updateConsultation', async () => ({
     id: 'c1',
     clientId: 'client-1',
