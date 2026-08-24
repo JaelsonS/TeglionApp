@@ -2388,6 +2388,12 @@
     @apply grid gap-4 lg:grid-cols-[minmax(18rem,1.15fr)_minmax(17rem,1fr)_minmax(13.5rem,16rem)] lg:items-start;
   }
 
+  /* Cards em grelha duo/trio precisam de min-w-0 para a coluna fr encolher sem clipar filhos. */
+  .cb-agenda-availability-duo > .cb-agenda-avail-card,
+  .cb-agenda-availability-trio > .cb-agenda-avail-card {
+    @apply min-w-0;
+  }
+
   .cb-agenda-avail-card {
     @apply rounded-2xl border border-border/50 bg-card p-4 shadow-[0_8px_24px_-12px_rgba(15,23,42,0.18)] sm:p-5;
   }
@@ -2413,7 +2419,30 @@
   }
 
   .cb-agenda-week-row {
-    @apply grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 rounded-xl border border-border/40 bg-background/90 px-3 py-2.5 sm:grid-cols-[8rem_auto_minmax(0,1fr)_1.5rem];
+    @apply grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 rounded-xl border border-border/40 bg-background/90 px-3 py-2.5 sm:grid-cols-[minmax(0,7.5rem)_auto_minmax(0,1fr)_1.5rem];
+  }
+
+  /*
+   * Desktop (lg+): em duo/trio a coluna do horário semanal fica estreita demais para
+   * dia + badge + dois inputs type=time numa só linha — os relógios saíam cortados.
+   * Empilha os intervalos sob o dia/badge. Mobile/tablet (< lg) mantêm o grid actual.
+   */
+  @media (min-width: 1024px) {
+    .cb-agenda-availability-duo .cb-agenda-week-row,
+    .cb-agenda-availability-trio .cb-agenda-week-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+    }
+
+    .cb-agenda-availability-duo .cb-agenda-week-intervals,
+    .cb-agenda-availability-trio .cb-agenda-week-intervals {
+      grid-column: 1 / -1;
+    }
+
+    .cb-agenda-availability-duo .cb-agenda-week-more,
+    .cb-agenda-availability-trio .cb-agenda-week-more {
+      display: none;
+    }
   }
 
   .cb-agenda-week-row-focus {
@@ -2441,15 +2470,15 @@
   }
 
   .cb-agenda-week-row-day {
-    @apply text-left;
+    @apply min-w-0 text-left;
   }
 
   .cb-agenda-week-row-name {
-    @apply text-sm font-medium text-foreground;
+    @apply block truncate text-sm font-medium text-foreground;
   }
 
   .cb-agenda-week-badge {
-    @apply inline-flex w-fit items-center justify-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
+    @apply inline-flex w-fit shrink-0 items-center justify-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
   }
 
   .cb-agenda-week-intervals {
@@ -2457,11 +2486,11 @@
   }
 
   .cb-agenda-week-interval {
-    @apply inline-flex items-center gap-1 rounded-lg border border-border/50 bg-card px-1.5 py-1;
+    @apply inline-flex max-w-full min-w-0 items-center gap-1 rounded-lg border border-border/50 bg-card px-1.5 py-1;
   }
 
   .cb-agenda-week-time {
-    @apply h-8 w-[6.25rem] rounded-md border-0 bg-transparent px-1 text-xs tabular-nums shadow-none focus-visible:ring-1 focus-visible:ring-sky-400;
+    @apply h-8 w-[6.25rem] max-w-full min-w-0 rounded-md border-0 bg-transparent px-1 text-xs tabular-nums shadow-none focus-visible:ring-1 focus-visible:ring-sky-400;
   }
 
   .cb-agenda-week-time-sep {
@@ -2718,7 +2747,7 @@
   }
 
   .cb-agenda-availability-duo {
-    @apply grid gap-4 lg:grid-cols-2 lg:items-start;
+    @apply grid min-w-0 gap-4 lg:grid-cols-2 lg:items-start;
   }
 
   .cb-agenda-svc-layout {
