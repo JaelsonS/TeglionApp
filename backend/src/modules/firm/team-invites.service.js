@@ -294,18 +294,36 @@ async function acceptInvite({ token, email, password, fullName, req }) {
     const member = await firmUsersRepository.findFirmUserByIdForFirm(invite.firm_id, invite.member_id);
     if (!member) throw new AppError('Membro não encontrado.', 404);
 
-    const passwordHash = await hashPassword(String(password));
+    // Reclama o convite ANTES de gravar a senha: se dois pedidos concorrentes
+    // apresentarem o mesmo token, só um consegue transitar PENDING -> ACCEPTED.
+    // O perdedor da corrida nunca chega a chamar updateFirmMember, evitando que
+    // sobreponha silenciosamente a senha já definida pelo vencedor.
+    const claimed = await firmMemberInvitesRepository.markInviteAccepted(invite.id);
+    if (!claimed) {
+        throw new AppError('Este convite já foi utilizado para criar acesso.', 410, {
+            code: 'INVITE_ALREADY_USED',
+        });
+    }
+
     const nextName = String(fullName || '').trim();
 
-    const updated = await firmUsersRepository.updateFirmMember(invite.firm_id, invite.member_id, {
-        fullName: nextName || member.fullName,
-        passwordHash,
-        inviteStatus: 'ACCEPTED',
-        isActive: false,
-        emailConfirmedAt: null,
-    });
-
-    await firmMemberInvitesRepository.markInviteAccepted(invite.id);
+    let updated;
+    try {
+        const passwordHash = await hashPassword(String(password));
+        updated = await firmUsersRepository.updateFirmMember(invite.firm_id, invite.member_id, {
+            fullName: nextName || member.fullName,
+            passwordHash,
+            inviteStatus: 'ACCEPTED',
+            isActive: false,
+            emailConfirmedAt: null,
+        });
+    } catch (err) {
+        // A senha nunca chegou a ser gravada — devolve o convite a PENDING para que
+        // o mesmo link continue a funcionar, em vez de ficar queimado por uma falha
+        // transitória (rede/DB) que nada tem a ver com o utilizador.
+        await firmMemberInvitesRepository.revertInviteToPending(invite.id).catch(() => {});
+        throw err;
+    }
 
     const firm = await firmsRepository.findFirmById(invite.firm_id).catch(() => null);
     const confirmationDelivery = await sendEmailConfirmationForMember({

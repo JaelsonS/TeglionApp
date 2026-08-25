@@ -117,11 +117,10 @@ function dedupeDocumentRequests(items) {
   return out;
 }
 
-// Ciclo de vida do access_token do mini-portal (ver especificação da sessão, v8):
-// tecto generoso desde a submissão (cobre um processo lento sem expirar por engano),
-// apertado para uma janela curta assim que a ServiceInquiry fica concluída/cancelada.
-const ACCESS_TOKEN_TTL_MS = 180 * 24 * 60 * 60 * 1000;
-const ACCESS_TOKEN_GRACE_MS = 30 * 24 * 60 * 60 * 1000;
+// Ciclo de vida do access_token do mini-portal:
+// janela alargada desde a submissão; apertada após conclusão/cancelamento.
+const ACCESS_TOKEN_TTL_MS = 90 * 24 * 60 * 60 * 1000;
+const ACCESS_TOKEN_GRACE_MS = 14 * 24 * 60 * 60 * 1000;
 
 async function enrichForList(firmId, inquiries) {
   const serviceIds = [...new Set(inquiries.map((i) => i.serviceId).filter(Boolean))];

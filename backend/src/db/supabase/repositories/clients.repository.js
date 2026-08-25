@@ -120,13 +120,6 @@ async function findClientByEmailForFirm(email, firmId) {
   return mapClient(data);
 }
 
-/** @deprecated Prefer findClientByEmailForFirm — global lookup is unsafe for multi-tenant login. */
-async function findClientByEmail(email) {
-  const list = await findClientsByEmail(email);
-  const preferred = list.find((r) => r.hasPortalAccess) || list[0];
-  return preferred || null;
-}
-
 async function findClientByTaxId(firmId, taxId) {
   const normalized = String(taxId || '').replace(/\D+/g, '');
   if (!normalized) return null;
@@ -204,7 +197,6 @@ module.exports = {
   findClientsByIds,
   findClientsByEmail,
   findClientByEmailForFirm,
-  findClientByEmail,
   findClientByTaxId,
   createClient,
   updateClient,

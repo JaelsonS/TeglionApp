@@ -63,12 +63,38 @@ async function markInviteExpired(id) {
     if (error) throw error;
 }
 
+/**
+ * Reclama o convite atomicamente (UPDATE condicionado a status='PENDING'). Se dois
+ * pedidos concorrentes aceitarem o mesmo convite, só um consegue transitar o estado
+ * — o outro recebe null e deve ser tratado como "convite já usado", em vez de ambos
+ * prosseguirem e um deles sobrepor silenciosamente a senha definida pelo outro.
+ */
 async function markInviteAccepted(id) {
+    const sb = getSupabaseAdmin();
+    const { data, error } = await sb
+        .from('firm_member_invites')
+        .update({ status: 'ACCEPTED', accepted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .eq('status', 'PENDING')
+        .select()
+        .maybeSingle();
+    if (error) throw error;
+    return data;
+}
+
+/**
+ * Reverte um convite reclamado de volta a PENDING (condicionado a status='ACCEPTED').
+ * Usado quando a reclamação teve sucesso mas o passo seguinte (gravar a senha) falha
+ * — sem isto, uma falha transitória queimaria o link do convite permanentemente,
+ * exigindo reenvio manual por um administrador para um problema que era só de rede/DB.
+ */
+async function revertInviteToPending(id) {
     const sb = getSupabaseAdmin();
     const { error } = await sb
         .from('firm_member_invites')
-        .update({ status: 'ACCEPTED', accepted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-        .eq('id', id);
+        .update({ status: 'PENDING', accepted_at: null, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .eq('status', 'ACCEPTED');
     if (error) throw error;
 }
 
@@ -79,4 +105,5 @@ module.exports = {
     revokePendingInvitesForMember,
     markInviteExpired,
     markInviteAccepted,
+    revertInviteToPending,
 };

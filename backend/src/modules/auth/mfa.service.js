@@ -19,22 +19,38 @@ const RECOVERY_CODE_COUNT = 10;
 const TOTP_EPOCH_TOLERANCE_SEC = 30;
 const CHALLENGE_CONSUMED_PREFIX = 'mfa-challenge-used:';
 
+/** Fallback em memória quando Redis não está disponível (instância local). */
+const challengeJtiMemory = new Map();
+const totpReplayMemory = new Map();
+
+function pruneExpiredMemoryMap(map) {
+  const now = Date.now();
+  for (const [key, expiresAt] of map.entries()) {
+    if (expiresAt <= now) map.delete(key);
+  }
+}
+
 /**
- * Marca um challenge JWT (jti) como já usado — impede que a mesma confirmação
- * de MFA seja reenviada para emitir uma segunda sessão dentro dos 5 minutos de
- * validade do token. Falha aberta se Redis estiver indisponível (mesma política
- * já adoptada no rate-limit — não bloquear login por uma dependência opcional).
+ * Marca um challenge JWT (jti) como já usado — impede reutilização do mesmo desafio.
+ * Com Redis: SET NX. Sem Redis: mapa em memória desta instância.
  */
 async function consumeChallengeJti(jti, expUnixSeconds) {
-  const client = rateLimitStore.getSharedRedisClient();
-  if (!client || !jti) return true;
+  if (!jti) return false;
   const ttlMs = Math.max(1000, (Number(expUnixSeconds) || 0) * 1000 - Date.now());
-  try {
-    const result = await client.set(`${CHALLENGE_CONSUMED_PREFIX}${jti}`, '1', 'PX', ttlMs, 'NX');
-    return result === 'OK';
-  } catch {
-    return true;
+  const client = rateLimitStore.getSharedRedisClient();
+  if (client) {
+    try {
+      const result = await client.set(`${CHALLENGE_CONSUMED_PREFIX}${jti}`, '1', 'PX', ttlMs, 'NX');
+      return result === 'OK';
+    } catch {
+      /* cai no fallback em memória */
+    }
   }
+  pruneExpiredMemoryMap(challengeJtiMemory);
+  const key = String(jti);
+  if (challengeJtiMemory.has(key)) return false;
+  challengeJtiMemory.set(key, Date.now() + ttlMs);
+  return true;
 }
 
 const STATUS = Object.freeze({
@@ -119,27 +135,25 @@ const TOTP_REPLAY_PREFIX = 'totp-used:';
 const TOTP_REPLAY_TTL_MS = (TOTP_EPOCH_TOLERANCE_SEC + 30) * 1000 + 5_000;
 
 /**
- * Marca "este código, deste utilizador" como já usado — impede reutilização
- * do mesmo TOTP para uma segunda confirmação (login, acção sensível, ou
- * vault) enquanto ainda estiver dentro da janela de validade. Falha aberta
- * se Redis estiver indisponível, mesma política do resto do módulo.
+ * Marca um código TOTP como já usado para este utilizador (anti-replay).
+ * Com Redis: SET NX. Sem Redis: mapa em memória desta instância.
  */
 async function consumeTotpReplayGuard(replayKey, token) {
   if (!replayKey) return true;
+  const key = `${TOTP_REPLAY_PREFIX}${replayKey}:${token}`;
   const client = rateLimitStore.getSharedRedisClient();
-  if (!client) return true;
-  try {
-    const result = await client.set(
-      `${TOTP_REPLAY_PREFIX}${replayKey}:${token}`,
-      '1',
-      'PX',
-      TOTP_REPLAY_TTL_MS,
-      'NX',
-    );
-    return result === 'OK';
-  } catch {
-    return true;
+  if (client) {
+    try {
+      const result = await client.set(key, '1', 'PX', TOTP_REPLAY_TTL_MS, 'NX');
+      return result === 'OK';
+    } catch {
+      /* cai no fallback em memória */
+    }
   }
+  pruneExpiredMemoryMap(totpReplayMemory);
+  if (totpReplayMemory.has(key)) return false;
+  totpReplayMemory.set(key, Date.now() + TOTP_REPLAY_TTL_MS);
+  return true;
 }
 
 /**
@@ -573,7 +587,7 @@ async function verifyMfaOrVaultPassword({
       throw new AppError('MFA não está activo nesta conta.', 400, { code: 'MFA_NOT_ENABLED' });
     }
     const secretPlain = decryptField(row.mfa_totp_secret_enc);
-    const ok = await verifyTotpCode(secretPlain, totpCode);
+    const ok = await verifyTotpCode(secretPlain, totpCode, String(userId));
     if (!ok) throw invalidMfaCodeError();
     await firmUsersRepository.updateFirmUserMfa(row.id, firmId, {
       mfaLastVerifiedAt: new Date().toISOString(),

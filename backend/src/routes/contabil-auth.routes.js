@@ -143,29 +143,29 @@ router.post(
 );
 router.post(
   '/mfa/enroll/begin',
-  mfaEnrollLimiter,
   optionalAuthIfNoMfaChallenge,
+  mfaEnrollLimiter,
   mfaController.enrollBegin,
 );
 router.post(
   '/mfa/enroll/confirm',
-  mfaEnrollLimiter,
   optionalAuthIfNoMfaChallenge,
+  mfaEnrollLimiter,
   mfaController.enrollConfirmValidators,
   mfaController.enrollConfirm,
 );
 router.get('/mfa/status', authMiddleware, mfaController.sessionStatus);
 router.post(
   '/mfa/disable',
-  mfaVerifyLimiter,
   authMiddleware,
+  mfaVerifyLimiter,
   mfaController.disableValidators,
   mfaController.disable,
 );
 router.post(
   '/mfa/recovery/regenerate',
-  mfaVerifyLimiter,
   authMiddleware,
+  mfaVerifyLimiter,
   mfaController.regenerateValidators,
   mfaController.regenerateRecovery,
 );

@@ -265,6 +265,7 @@ async function revealOfficialAccess({
   });
   const actor = unlock.actor;
   const row = await accessesRepository.findById(firmId, clientId, accessId);
+  if (!row) throw new AppError('Acesso não encontrado.', 404, { code: 'ACCESS_NOT_FOUND' });
 
   const revealedValue = accessesRepository.decryptSecret(row);
 

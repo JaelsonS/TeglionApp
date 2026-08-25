@@ -8,6 +8,11 @@ const { AppError } = require('../../middlewares/error.middleware');
 const BREVO_URL = 'https://api.brevo.com/v3/smtp/email';
 const APP_URL = (env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
 
+/** Remove caracteres de controlo (CR/LF) de campos que acabam num cabeçalho de e-mail. */
+function stripControlChars(value) {
+  return String(value ?? '').replace(/[\r\n]+/g, ' ').trim();
+}
+
 function formatBrevoError(err) {
   const data = err?.response?.data;
   const raw =
@@ -51,7 +56,7 @@ async function sendEmail({ to, subject, html, text, tags, replyTo }) {
       email: env.FROM_EMAIL,
     },
     to: [{ email: String(to).trim() }],
-    subject: String(subject),
+    subject: stripControlChars(subject),
     htmlContent: html || `<p>${text || subject}</p>`,
     textContent: text || subject,
     tags: categoryTags,
@@ -67,7 +72,7 @@ async function sendEmail({ to, subject, html, text, tags, replyTo }) {
   if (replyTo?.email) {
     payload.replyTo = {
       email: String(replyTo.email).trim(),
-      ...(replyTo.name ? { name: String(replyTo.name) } : {}),
+      ...(replyTo.name ? { name: stripControlChars(replyTo.name) } : {}),
     };
   } else {
     payload.replyTo = {
@@ -111,4 +116,4 @@ async function sendEmail({ to, subject, html, text, tags, replyTo }) {
   }
 }
 
-module.exports = { sendEmail };
+module.exports = { sendEmail, stripControlChars };

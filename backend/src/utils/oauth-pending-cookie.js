@@ -1,9 +1,6 @@
 /**
- * Cookie / token assinado para concluir registo OAuth (Google) sem expor dados em claro.
- *
- * Em staging, o callback Google corre no host Render e o SPA faz XHR same-origin
- * em staging.teglion.com — o cookie host-only do Render não chega. Por isso o
- * token assinado também vai no redirect (`?pending=`) e no header `X-OAuth-Pending`.
+ * Token assinado para concluir o registo OAuth (Google).
+ * Preferir cookie HttpOnly; header e query existem para fluxos multi-host.
  */
 const crypto = require('crypto');
 const { env } = require('../config/env');
@@ -13,7 +10,14 @@ const HEADER_NAME = 'x-oauth-pending';
 const TTL_MS = 15 * 60 * 1000;
 
 function signingSecret() {
-  return env.JWT_ACCESS_SECRET || env.DOCUMENTS_SIGNING_SECRET || 'dev-oauth-pending';
+  const secret = env.JWT_ACCESS_SECRET || env.DOCUMENTS_SIGNING_SECRET;
+  if (!secret) {
+    if (env.isProduction) {
+      throw new Error('OAuth pending signing secret is required');
+    }
+    return 'dev-oauth-pending';
+  }
+  return secret;
 }
 
 function signPayload(payload) {

@@ -25,7 +25,7 @@ test('SEC-M1: refresh rejeita firm user com is_active=false e invalida sessão',
     actorType: 'firm',
   }));
 
-  mock.method(authRefreshSessionsRepository, 'findByJti', async () => ({
+  mock.method(authRefreshSessionsRepository, 'claimByJti', async () => ({
     token_hash: expectedHash,
     expires_at: new Date(Date.now() + 60_000).toISOString(),
   }));

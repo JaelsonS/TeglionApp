@@ -46,7 +46,7 @@ export function FirmModuleShell({
                 key={to}
                 to={to}
                 data-testid={testId}
-                className={({ isActive }) =>
+                className={({ isActive }: { isActive: boolean }) =>
                   cn('cb-docs-page-tab', isActive && 'cb-docs-page-tab-active')
                 }
               >

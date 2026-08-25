@@ -146,7 +146,7 @@ test('submitPublicIntake: identidade nova (Lead) -> materializa docs immediate e
   assert.equal(created.accessToken.length, 64);
   assert.ok(created.accessTokenExpiresAt, 'devia definir um tecto de expiração já na criação');
   const daysUntilExpiry = (new Date(created.accessTokenExpiresAt).getTime() - Date.now()) / (24 * 60 * 60 * 1000);
-  assert.ok(daysUntilExpiry > 170 && daysUntilExpiry <= 180, 'tecto inicial devia ser ~180 dias');
+  assert.ok(daysUntilExpiry > 85 && daysUntilExpiry <= 90, 'tecto inicial devia ser ~90 dias');
   assert.equal(requiredDocuments.length, 1, 'sugestões continuam disponíveis para a equipa');
   assert.equal(checklistRows.length, 1);
   assert.equal(checklistRows[0].tag, 'cc');

@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, Info, Search } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type MouseEvent } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { Link } from 'react-router-dom'
 
@@ -196,7 +196,7 @@ export function TasksByClientTableView({
                       <Link
                         to={`/app/firm/clients/${encodeURIComponent(row.client._id)}`}
                         className="text-[13px] font-medium text-sky-600 hover:underline"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e: MouseEvent) => e.stopPropagation()}
                       >
                         {row.client.fullName || row.client.name}
                       </Link>

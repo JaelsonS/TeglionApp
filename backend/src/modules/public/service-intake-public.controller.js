@@ -517,7 +517,7 @@ const submitValidators = [
   param('firmSlug').isString().trim().isLength({ min: 2, max: 64 }),
   param('serviceSlug').isString().trim().isLength({ min: 1, max: 80 }),
   body('name').isString().trim().isLength({ min: 1, max: 200 }),
-  body('email').isString().trim().isLength({ min: 3, max: 200 }),
+  body('email').isString().trim().isLength({ min: 3, max: 200 }).isEmail(),
   body('phone').optional({ nullable: true }).isString().trim().isLength({ max: 40 }),
   body('taxId').optional({ nullable: true }).isString().trim().isLength({ max: 40 }),
   body('scheduledAt').optional({ nullable: true }).isISO8601(),
@@ -529,7 +529,7 @@ const captureLeadValidators = [
   param('firmSlug').isString().trim().isLength({ min: 2, max: 64 }),
   param('serviceSlug').isString().trim().isLength({ min: 1, max: 80 }),
   body('name').isString().trim().isLength({ min: 1, max: 200 }),
-  body('email').isString().trim().isLength({ min: 3, max: 200 }),
+  body('email').isString().trim().isLength({ min: 3, max: 200 }).isEmail(),
   body('phone').optional({ nullable: true }).isString().trim().isLength({ max: 40 }),
   body('taxId').optional({ nullable: true }).isString().trim().isLength({ max: 40 }),
 ];

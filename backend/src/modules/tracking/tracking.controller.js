@@ -55,6 +55,8 @@ exports.endView = async (req, res, next) => {
     const result = await viewTracking.endView({
       viewId: req.body?.viewId,
       durationSeconds: req.body?.durationSeconds,
+      firmId: String(req.user.firmId),
+      viewerId: req.user.id,
     });
     return res.json({ ok: true, view: result });
   } catch (err) {

@@ -40,47 +40,65 @@ async function checkLock(accountKey) {
   };
 }
 
+const MAX_CONCURRENCY_RETRIES = 5;
+
+/**
+ * Regista uma falha de login com controlo de concorrência optimista: o UPDATE só
+ * é aceite se `failed_count` ainda for o valor lido nesta tentativa. Se outro
+ * pedido concorrente já tiver escrito primeiro, relê o estado e tenta de novo —
+ * evita que múltiplos pedidos simultâneos colapsem no mesmo incremento.
+ */
 async function upsertFailure(accountKey, { ip, maxFailures, lockoutMs, windowMs }) {
   const sb = getSupabaseAdmin();
-  const now = new Date();
-  const nowIso = now.toISOString();
-  const existing = await findByAccountKey(accountKey);
 
-  let failedCount = 1;
-  if (existing?.lastAttemptAt) {
-    const lastMs = new Date(existing.lastAttemptAt).getTime();
-    const withinWindow = now.getTime() - lastMs <= windowMs;
-    failedCount = withinWindow ? (existing.failedCount || 0) + 1 : 1;
-  }
+  for (let attempt = 0; attempt < MAX_CONCURRENCY_RETRIES; attempt += 1) {
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const existing = await findByAccountKey(accountKey);
 
-  let lockedUntil = null;
-  if (failedCount >= maxFailures) {
-    lockedUntil = new Date(now.getTime() + lockoutMs).toISOString();
-  }
+    let failedCount = 1;
+    if (existing?.lastAttemptAt) {
+      const lastMs = new Date(existing.lastAttemptAt).getTime();
+      const withinWindow = now.getTime() - lastMs <= windowMs;
+      failedCount = withinWindow ? (existing.failedCount || 0) + 1 : 1;
+    }
 
-  const payload = {
-    account_key: accountKey,
-    failed_count: failedCount,
-    locked_until: lockedUntil,
-    last_attempt_at: nowIso,
-    last_ip: ip || null,
-    updated_at: nowIso,
-  };
+    let lockedUntil = null;
+    if (failedCount >= maxFailures) {
+      lockedUntil = new Date(now.getTime() + lockoutMs).toISOString();
+    }
 
-  if (existing?.id) {
-    const { data, error } = await sb
-      .from('auth_login_attempts')
-      .update(payload)
-      .eq('id', existing.id)
-      .select()
-      .single();
-    if (error) throw error;
+    const payload = {
+      account_key: accountKey,
+      failed_count: failedCount,
+      locked_until: lockedUntil,
+      last_attempt_at: nowIso,
+      last_ip: ip || null,
+      updated_at: nowIso,
+    };
+
+    if (existing?.id) {
+      const { data, error } = await sb
+        .from('auth_login_attempts')
+        .update(payload)
+        .eq('id', existing.id)
+        .eq('failed_count', existing.failedCount)
+        .select()
+        .maybeSingle();
+      if (error) throw error;
+      if (data) return mapRow(data);
+      continue;
+    }
+
+    const { data, error } = await sb.from('auth_login_attempts').insert(payload).select().single();
+    if (error) {
+      if (error.code === '23505') continue;
+      throw error;
+    }
     return mapRow(data);
   }
 
-  const { data, error } = await sb.from('auth_login_attempts').insert(payload).select().single();
-  if (error) throw error;
-  return mapRow(data);
+  return findByAccountKey(accountKey);
 }
 
 async function clearAttempts(accountKey) {

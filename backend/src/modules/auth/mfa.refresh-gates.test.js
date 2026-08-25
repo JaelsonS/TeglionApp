@@ -28,7 +28,7 @@ describe('MFA refresh gates', () => {
       jti: 'jti-owner',
       actorType: 'firm',
     }));
-    mock.method(authRefreshSessionsRepository, 'findByJti', async () => ({
+    mock.method(authRefreshSessionsRepository, 'claimByJti', async () => ({
       token_hash: expectedHash,
       expires_at: new Date(Date.now() + 60_000).toISOString(),
     }));
@@ -73,7 +73,7 @@ describe('MFA refresh gates', () => {
       jti: 'jti-owner-mfa',
       actorType: 'firm',
     }));
-    mock.method(authRefreshSessionsRepository, 'findByJti', async () => ({
+    mock.method(authRefreshSessionsRepository, 'claimByJti', async () => ({
       token_hash: expectedHash,
       expires_at: new Date(Date.now() + 60_000).toISOString(),
     }));
@@ -116,7 +116,7 @@ describe('MFA refresh gates', () => {
       jti: 'jti-staff',
       actorType: 'firm',
     }));
-    mock.method(authRefreshSessionsRepository, 'findByJti', async () => ({
+    mock.method(authRefreshSessionsRepository, 'claimByJti', async () => ({
       token_hash: expectedHash,
       expires_at: new Date(Date.now() + 60_000).toISOString(),
     }));

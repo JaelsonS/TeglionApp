@@ -14,7 +14,12 @@
 const { AppError } = require('../../middlewares/error.middleware');
 const passwordCrypto = require('../../utils/password-crypto');
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
-const { signVaultStepUpToken, verifyVaultStepUpToken, VAULT_STEPUP_PURPOSES } = require('../../config/jwt');
+const {
+  signVaultStepUpToken,
+  verifyVaultStepUpToken,
+  VAULT_STEPUP_PURPOSES,
+  VAULT_STEPUP_MAX_SESSION_MS,
+} = require('../../config/jwt');
 
 function invalidUnlockError() {
   return new AppError('Palavra-passe incorrecta. Confirme a palavra-passe dos Acessos oficiais.', 403, {
@@ -30,11 +35,12 @@ function noUnlockSecretError() {
   );
 }
 
-function issueVaultStepUp({ firmId, userId, purpose }) {
+function issueVaultStepUp({ firmId, userId, purpose, authenticatedAt }) {
   const token = signVaultStepUpToken({
     id: String(userId),
     firmId: String(firmId),
     purpose: String(purpose),
+    authenticatedAt,
   });
   const payload = verifyVaultStepUpToken(token, { purpose });
   return {
@@ -49,6 +55,15 @@ function readValidStepUpToken({ firmId, userId, stepUpToken, purpose }) {
   try {
     const payload = verifyVaultStepUpToken(String(stepUpToken), { purpose });
     if (String(payload.id) !== String(userId) || String(payload.firmId) !== String(firmId)) {
+      return null;
+    }
+    // Teto absoluto: mesmo um token dentro da sua janela de 10 minutos deixa de
+    // renovar-se sozinho além de VAULT_STEPUP_MAX_SESSION_MS desde a confirmação
+    // real (senha/TOTP) — força nova confirmação em vez de uma sessão indefinida.
+    // Falha fechada: um authenticatedAt ausente/inválido é tratado como expirado,
+    // nunca como "sempre válido".
+    const anchoredAtMs = Number(payload.authenticatedAt) * 1000;
+    if (!Number.isFinite(anchoredAtMs) || Date.now() - anchoredAtMs > VAULT_STEPUP_MAX_SESSION_MS) {
       return null;
     }
     return payload;
@@ -87,7 +102,10 @@ async function verifyStaffPassword({
 
   const tokenPayload = readValidStepUpToken({ firmId, userId, stepUpToken, purpose });
   if (tokenPayload) {
-    const issued = rememberSession !== false ? issueVaultStepUp({ firmId, userId, purpose }) : {};
+    const issued =
+      rememberSession !== false
+        ? issueVaultStepUp({ firmId, userId, purpose, authenticatedAt: tokenPayload.authenticatedAt })
+        : {};
     return { actor, ...issued };
   }
 

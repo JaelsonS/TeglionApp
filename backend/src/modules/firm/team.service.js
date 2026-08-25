@@ -295,13 +295,15 @@ async function updateMember({ firmId, memberId, actor, payload, req }) {
     }
 
     const emailChanged = Object.prototype.hasOwnProperty.call(patch, 'email');
+    const roleChanged =
+        Object.prototype.hasOwnProperty.call(patch, 'role') && String(patch.role) !== String(current.role);
 
     const updated =
         Object.keys(patch).length > 0
             ? await firmUsersRepository.updateFirmMember(firmId, memberId, patch)
             : current;
 
-    if (emailChanged) {
+    if (emailChanged || roleChanged) {
         await authRefreshSessionsRepository.deleteAllForActor('firm_user', memberId);
     }
 
@@ -321,7 +323,7 @@ async function updateMember({ firmId, memberId, actor, payload, req }) {
                 role: updated.role,
                 jobTitle: updated.jobTitle,
                 departmentId: updated.departmentId,
-                sessionsRevoked: emailChanged,
+                sessionsRevoked: emailChanged || roleChanged,
             },
             req,
         });

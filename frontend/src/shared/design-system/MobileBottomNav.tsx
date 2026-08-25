@@ -22,7 +22,7 @@ export function MobileBottomNav({ items }: { items: MobileBottomNavItem[] }) {
             key={item.to}
             to={item.to}
             end={item.end}
-            className={({ isActive }) =>
+            className={({ isActive }: { isActive: boolean }) =>
               cn(
                 'flex min-w-[4.5rem] flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 isActive ? 'text-primary' : 'text-muted-foreground',

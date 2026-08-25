@@ -7,6 +7,7 @@ const clientsRepository = require('../../db/supabase/repositories/clients.reposi
 const activityService = require('../../services/activity/activity.service');
 const clientPortalNotify = require('../../services/notifications/client-portal-notify.service');
 const { FAN_OUT_CHUNK } = require('./broadcast.constants');
+const { coerceExternalHttpsUrlOrNull } = require('../../utils/safe-url');
 
 function slugify(title) {
   return (
@@ -30,9 +31,22 @@ async function resolveUniqueSlug(firmId, base) {
   return `${base}-${Date.now()}`;
 }
 
+/** Garante que todos os IDs pertencem ao escritório actual; rejeita IDs externos. */
+async function assertSelectedClientsInFirm(firmId, targetClientIds) {
+  const ids = [...new Set((targetClientIds || []).filter(Boolean).map(String))];
+  if (!ids.length) return [];
+  const owned = await clientsRepository.findClientsByIds(firmId, ids);
+  if (owned.length !== ids.length) {
+    throw new AppError('Um ou mais clientes seleccionados não pertencem a este escritório.', 400, {
+      code: 'CLIENT_NOT_IN_FIRM',
+    });
+  }
+  return owned.map((c) => c.id);
+}
+
 async function resolveTargetClientIds(firmId, broadcast) {
   if (broadcast.targetType === 'SELECTED') {
-    return (broadcast.targetClientIds || []).filter(Boolean);
+    return assertSelectedClientsInFirm(firmId, broadcast.targetClientIds);
   }
   const clients = await clientsRepository.listClients(firmId, { limit: 5000, includeInactive: false });
   return clients.map((c) => c.id);
@@ -167,11 +181,11 @@ function normalizePayload(payload) {
     targetType: p.targetType || p.target_type || 'ALL_CLIENTS',
     targetClientIds: p.targetClientIds || p.target_client_ids || [],
     ctaLabel: p.ctaLabel || p.cta_label || null,
-    ctaUrl: p.ctaUrl || p.cta_url || null,
+    ctaUrl: coerceExternalHttpsUrlOrNull(p.ctaUrl || p.cta_url),
     attachments: Array.isArray(p.attachments) ? p.attachments : [],
     pinned: Boolean(p.pinned),
     readConfirmationRequired: Boolean(p.readConfirmationRequired ?? p.read_confirmation_required),
-    coverUrl: p.coverUrl || p.cover_url || null,
+    coverUrl: coerceExternalHttpsUrlOrNull(p.coverUrl || p.cover_url),
   };
 }
 
@@ -179,6 +193,10 @@ async function createBroadcast({ firmId, payload, author }) {
   const norm = normalizePayload(payload);
   if (!norm.title) throw new AppError('Título é obrigatório', 400);
   if (!norm.body) throw new AppError('Conteúdo é obrigatório', 400);
+
+  if (norm.targetType === 'SELECTED') {
+    norm.targetClientIds = await assertSelectedClientsInFirm(firmId, norm.targetClientIds);
+  }
 
   const slug = await resolveUniqueSlug(firmId, slugify(norm.title));
   let status = norm.status;
@@ -236,6 +254,9 @@ async function updateBroadcast({ firmId, id, payload }) {
   if (!existing) throw new AppError('Alerta não encontrado', 404);
 
   const norm = normalizePayload({ ...existing, ...payload });
+  if (norm.targetType === 'SELECTED') {
+    norm.targetClientIds = await assertSelectedClientsInFirm(firmId, norm.targetClientIds);
+  }
   const wasPublished = existing.status === 'PUBLISHED';
   let status = norm.status || existing.status;
 

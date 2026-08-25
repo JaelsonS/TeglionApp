@@ -28,6 +28,27 @@ async function deleteByJti(jti) {
   await sb.from('auth_refresh_sessions').delete().eq('jti', jti);
 }
 
+/**
+ * Apaga a sessão de refresh e devolve a linha apagada numa única operação atómica
+ * (DELETE ... RETURNING). Usado na rotação de refresh token: se dois pedidos
+ * apresentarem o mesmo token em simultâneo, só um consegue "reclamar" a linha —
+ * o outro recebe null e é tratado como token já usado, em vez de ambos passarem
+ * pela verificação e emitirem sessões novas a partir de um único token roubado.
+ */
+async function claimByJti(jti, tokenHash) {
+  if (!jti) return null;
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb
+    .from('auth_refresh_sessions')
+    .delete()
+    .eq('jti', jti)
+    .eq('token_hash', tokenHash)
+    .select()
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
 async function deleteAllForActor(actorType, actorId) {
   const sb = getSupabaseAdmin();
   await sb.from('auth_refresh_sessions').delete().eq('actor_type', actorType).eq('actor_id', actorId);
@@ -54,6 +75,7 @@ module.exports = {
   createSession,
   findByJti,
   deleteByJti,
+  claimByJti,
   deleteAllForActor,
   pruneOldSessions,
 };

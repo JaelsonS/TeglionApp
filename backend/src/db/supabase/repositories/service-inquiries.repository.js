@@ -1,10 +1,11 @@
 const { getSupabaseAdmin } = require('../client');
-const { encryptField, decryptField } = require('../../../utils/crypto-fields');
+const crypto = require('crypto');
+const { encryptField, decryptField, isEncrypted } = require('../../../utils/crypto-fields');
 
 /**
  * Encripta o blob inteiro de respostas (enc:v1), não campo a campo — as
  * perguntas são configuradas livremente pela contabilista, o Teglion não sabe
- * de antemão quais são sensíveis (ver especificação da sessão, v8, secção 1E).
+ * de antemão quais são sensíveis.
  */
 function encryptAnswers(answers) {
   if (!answers) return null;
@@ -14,6 +15,32 @@ function encryptAnswers(answers) {
 function decryptAnswers(value) {
   if (!value) return null;
   return JSON.parse(decryptField(value));
+}
+
+function hashIntakeAccessToken(raw) {
+  return crypto.createHash('sha256').update(`teglion-intake-v1:${String(raw)}`).digest('hex');
+}
+
+function resolveStoredAccessToken(row) {
+  if (!row?.access_token) return null;
+  if (isEncrypted(row.access_token)) {
+    try {
+      return decryptField(row.access_token);
+    } catch {
+      return null;
+    }
+  }
+  // Legado: token em texto plano (antes da selagem).
+  return row.access_token;
+}
+
+function sealAccessTokenFields(rawToken) {
+  const raw = String(rawToken || '').trim();
+  if (!raw) return { access_token: null, access_token_hash: null };
+  return {
+    access_token: encryptField(raw),
+    access_token_hash: hashIntakeAccessToken(raw),
+  };
 }
 
 function map(row) {
@@ -32,7 +59,7 @@ function map(row) {
     // fallback só para linhas antigas que possam existir de antes desta migration.
     answers: row.answers_enc ? decryptAnswers(row.answers_enc) : row.answers || null,
     submittedAt: row.submitted_at || null,
-    accessToken: row.access_token || null,
+    accessToken: resolveStoredAccessToken(row),
     accessTokenExpiresAt: row.access_token_expires_at || null,
     accessTokenRevokedAt: row.access_token_revoked_at || null,
     createdBy: row.created_by,
@@ -85,6 +112,7 @@ async function createRow({
   status,
 }) {
   const sb = getSupabaseAdmin();
+  const sealed = sealAccessTokenFields(accessToken);
   const insertRow = {
     firm_id: firmId,
     service_id: serviceId,
@@ -95,7 +123,8 @@ async function createRow({
     created_by: createdBy || null,
     answers_enc: encryptAnswers(answers),
     submitted_at: submittedAt || null,
-    access_token: accessToken || null,
+    access_token: sealed.access_token,
+    access_token_hash: sealed.access_token_hash,
     access_token_expires_at: accessTokenExpiresAt || null,
   };
   if (status) insertRow.status = status;
@@ -113,20 +142,44 @@ function isAccessTokenActive(inquiry) {
   return true;
 }
 
-/** Lookup público pelo token opaco do mini-portal — não faz .eq('firm_id', ...) porque
- * o token É a credencial (o chamador ainda não sabe a que firm pertence). Devolve null
- * (mesma resposta genérica de "não encontrado") se o token foi revogado ou expirou —
- * nunca distingue esse caso de "nunca existiu", evita dar pistas a quem tenta adivinhar. */
+/** Lookup público pelo token opaco do mini-portal. */
 async function findByAccessToken(token) {
   const value = String(token || '').trim();
   if (!value) return null;
   const sb = getSupabaseAdmin();
-  const { data, error } = await sb
+  const hash = hashIntakeAccessToken(value);
+
+  let { data, error } = await sb
     .from('service_inquiries')
     .select('*')
-    .eq('access_token', value)
+    .eq('access_token_hash', hash)
     .maybeSingle();
   if (error) throw error;
+
+  if (!data) {
+    // Compatibilidade: tokens antigos em texto plano sem hash.
+    const legacy = await sb
+      .from('service_inquiries')
+      .select('*')
+      .eq('access_token', value)
+      .is('access_token_hash', null)
+      .maybeSingle();
+    if (legacy.error) throw legacy.error;
+    data = legacy.data;
+    if (data) {
+      const sealed = sealAccessTokenFields(value);
+      await sb
+        .from('service_inquiries')
+        .update({
+          access_token: sealed.access_token,
+          access_token_hash: sealed.access_token_hash,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', data.id);
+      data = { ...data, access_token: sealed.access_token, access_token_hash: sealed.access_token_hash };
+    }
+  }
+
   const inquiry = map(data);
   return isAccessTokenActive(inquiry) ? inquiry : null;
 }
@@ -219,6 +272,8 @@ module.exports = {
   findByAccessToken,
   findOpenLeadCapture,
   isAccessTokenActive,
+  hashIntakeAccessToken,
+  sealAccessTokenFields,
   encryptAnswers,
   decryptAnswers,
   createRow,
