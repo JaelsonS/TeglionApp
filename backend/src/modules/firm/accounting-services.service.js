@@ -8,14 +8,14 @@ const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-
 const { titleForTag } = require('../../data/irs-modelo3-intake');
 const { BOOKING_TIMEZONES } = require('../booking/booking.service');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
-const { coerceExternalHttpsUrlOrNull } = require('../../utils/safe-url');
+const { coerceExternalHttpsUrlOrNull, isOwnFirmStorageKey } = require('../../utils/safe-url');
 
-/** Valida a referência de imagem antes de gravar: storage key própria ou URL https segura. */
-function sanitizeImageRefForStorage(value) {
+/** Valida a referência de imagem antes de gravar: storage key da própria firm ou URL https segura. */
+function sanitizeImageRefForStorage(value, firmId) {
   if (value == null) return null;
   const trimmed = String(value).trim();
   if (!trimmed) return null;
-  if (trimmed.startsWith('firm/')) return trimmed.slice(0, 500);
+  if (trimmed.startsWith('firm/')) return isOwnFirmStorageKey(trimmed, firmId) ? trimmed.slice(0, 500) : null;
   return coerceExternalHttpsUrlOrNull(trimmed);
 }
 
@@ -637,8 +637,8 @@ async function create({ firmId, payload }) {
     firmId,
     name,
     description: payload?.description,
-    imageUrl: sanitizeImageRefForStorage(payload?.imageStorageKey || payload?.imageUrl),
-    imageOriginalUrl: payload?.imageOriginalUrl || null,
+    imageUrl: sanitizeImageRefForStorage(payload?.imageStorageKey || payload?.imageUrl, firmId),
+    imageOriginalUrl: sanitizeImageRefForStorage(payload?.imageOriginalUrl, firmId),
     imageFocusX: normalizeImageFocus(payload?.imageFocusX, 0, 100) ?? null,
     imageFocusY: normalizeImageFocus(payload?.imageFocusY, 0, 100) ?? null,
     imageZoom: normalizeImageFocus(payload?.imageZoom, 1, 2.5) ?? null,
@@ -680,9 +680,11 @@ async function update({ firmId, id, payload }) {
     patch.name = name;
   }
   if (payload?.description !== undefined) patch.description = payload.description;
-  if (payload?.imageStorageKey !== undefined) patch.imageUrl = sanitizeImageRefForStorage(payload.imageStorageKey);
-  else if (payload?.imageUrl !== undefined) patch.imageUrl = sanitizeImageRefForStorage(payload.imageUrl);
-  if (payload?.imageOriginalUrl !== undefined) patch.imageOriginalUrl = payload.imageOriginalUrl;
+  if (payload?.imageStorageKey !== undefined) patch.imageUrl = sanitizeImageRefForStorage(payload.imageStorageKey, firmId);
+  else if (payload?.imageUrl !== undefined) patch.imageUrl = sanitizeImageRefForStorage(payload.imageUrl, firmId);
+  if (payload?.imageOriginalUrl !== undefined) {
+    patch.imageOriginalUrl = sanitizeImageRefForStorage(payload.imageOriginalUrl, firmId);
+  }
   if (payload?.imageFocusX !== undefined) patch.imageFocusX = normalizeImageFocus(payload.imageFocusX, 0, 100);
   if (payload?.imageFocusY !== undefined) patch.imageFocusY = normalizeImageFocus(payload.imageFocusY, 0, 100);
   if (payload?.imageZoom !== undefined) patch.imageZoom = normalizeImageFocus(payload.imageZoom, 1, 2.5);

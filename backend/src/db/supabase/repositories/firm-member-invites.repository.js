@@ -82,6 +82,22 @@ async function markInviteAccepted(id) {
     return data;
 }
 
+/**
+ * Reverte um convite reclamado de volta a PENDING (condicionado a status='ACCEPTED').
+ * Usado quando a reclamação teve sucesso mas o passo seguinte (gravar a senha) falha
+ * — sem isto, uma falha transitória queimaria o link do convite permanentemente,
+ * exigindo reenvio manual por um administrador para um problema que era só de rede/DB.
+ */
+async function revertInviteToPending(id) {
+    const sb = getSupabaseAdmin();
+    const { error } = await sb
+        .from('firm_member_invites')
+        .update({ status: 'PENDING', accepted_at: null, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .eq('status', 'ACCEPTED');
+    if (error) throw error;
+}
+
 module.exports = {
     createInvite,
     findInviteByToken,
@@ -89,4 +105,5 @@ module.exports = {
     revokePendingInvitesForMember,
     markInviteExpired,
     markInviteAccepted,
+    revertInviteToPending,
 };

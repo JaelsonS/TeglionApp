@@ -305,16 +305,25 @@ async function acceptInvite({ token, email, password, fullName, req }) {
         });
     }
 
-    const passwordHash = await hashPassword(String(password));
     const nextName = String(fullName || '').trim();
 
-    const updated = await firmUsersRepository.updateFirmMember(invite.firm_id, invite.member_id, {
-        fullName: nextName || member.fullName,
-        passwordHash,
-        inviteStatus: 'ACCEPTED',
-        isActive: false,
-        emailConfirmedAt: null,
-    });
+    let updated;
+    try {
+        const passwordHash = await hashPassword(String(password));
+        updated = await firmUsersRepository.updateFirmMember(invite.firm_id, invite.member_id, {
+            fullName: nextName || member.fullName,
+            passwordHash,
+            inviteStatus: 'ACCEPTED',
+            isActive: false,
+            emailConfirmedAt: null,
+        });
+    } catch (err) {
+        // A senha nunca chegou a ser gravada — devolve o convite a PENDING para que
+        // o mesmo link continue a funcionar, em vez de ficar queimado por uma falha
+        // transitória (rede/DB) que nada tem a ver com o utilizador.
+        await firmMemberInvitesRepository.revertInviteToPending(invite.id).catch(() => {});
+        throw err;
+    }
 
     const firm = await firmsRepository.findFirmById(invite.firm_id).catch(() => null);
     const confirmationDelivery = await sendEmailConfirmationForMember({

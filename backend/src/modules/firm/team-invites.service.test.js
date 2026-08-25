@@ -93,3 +93,36 @@ test('acceptInvite: caminho feliz — reclama o convite e grava a senha uma úni
     assert.equal(result.success, true);
     assert.equal(updateFirmMemberCalls, 1);
 });
+
+// Regressão (segunda auditoria): inverter a ordem para "reclamar antes de gravar a
+// senha" fechou a corrida, mas abriu uma nova falha — se updateFirmMember lançar
+// DEPOIS do convite já ter sido reclamado (blip de rede/DB), o convite ficava preso
+// em ACCEPTED para sempre, sem senha gravada, exigindo reenvio manual por um admin.
+test('acceptInvite: se updateFirmMember falhar depois do claim, o convite volta a PENDING (não fica queimado)', async () => {
+    resetMocks();
+    baseMocks();
+    mock.method(firmMemberInvitesRepository, 'markInviteAccepted', async () => ({
+        id: 'invite-1',
+        status: 'ACCEPTED',
+    }));
+    mock.method(firmUsersRepository, 'updateFirmMember', async () => {
+        throw new Error('falha transitória de rede/DB');
+    });
+    let revertedId = null;
+    mock.method(firmMemberInvitesRepository, 'revertInviteToPending', async (id) => {
+        revertedId = id;
+    });
+
+    await assert.rejects(
+        () =>
+            teamInvitesService.acceptInvite({
+                token: 'tok-1',
+                email: 'novo@firma.com',
+                password: 'SenhaForte!2026',
+                fullName: 'Novo Membro',
+            }),
+        (err) => err.message === 'falha transitória de rede/DB',
+    );
+
+    assert.equal(revertedId, 'invite-1', 'devia reverter o convite para PENDING para permitir nova tentativa');
+});

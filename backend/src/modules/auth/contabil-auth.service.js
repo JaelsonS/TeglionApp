@@ -493,6 +493,7 @@ async function loginClient({ email, password, firmSlug, req }) {
     const matches = await clientsRepository.findClientsByEmail(normalizedEmail);
     const withPortal = matches.filter((c) => c.hasPortalAccess);
     if (withPortal.length > 1) {
+      await loginSecurity.recordFailedLoginAttempt(accountKey, req, { scope: 'client' });
       throw new AppError(
         'Este e-mail está associado a mais do que um escritório. Utilize o link de acesso do seu contabilista.',
         409,

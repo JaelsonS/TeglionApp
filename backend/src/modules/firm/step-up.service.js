@@ -60,8 +60,10 @@ function readValidStepUpToken({ firmId, userId, stepUpToken, purpose }) {
     // Teto absoluto: mesmo um token dentro da sua janela de 10 minutos deixa de
     // renovar-se sozinho além de VAULT_STEPUP_MAX_SESSION_MS desde a confirmação
     // real (senha/TOTP) — força nova confirmação em vez de uma sessão indefinida.
+    // Falha fechada: um authenticatedAt ausente/inválido é tratado como expirado,
+    // nunca como "sempre válido".
     const anchoredAtMs = Number(payload.authenticatedAt) * 1000;
-    if (Number.isFinite(anchoredAtMs) && Date.now() - anchoredAtMs > VAULT_STEPUP_MAX_SESSION_MS) {
+    if (!Number.isFinite(anchoredAtMs) || Date.now() - anchoredAtMs > VAULT_STEPUP_MAX_SESSION_MS) {
       return null;
     }
     return payload;

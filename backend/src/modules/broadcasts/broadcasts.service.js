@@ -7,6 +7,7 @@ const clientsRepository = require('../../db/supabase/repositories/clients.reposi
 const activityService = require('../../services/activity/activity.service');
 const clientPortalNotify = require('../../services/notifications/client-portal-notify.service');
 const { FAN_OUT_CHUNK } = require('./broadcast.constants');
+const { coerceExternalHttpsUrlOrNull } = require('../../utils/safe-url');
 
 function slugify(title) {
   return (
@@ -180,11 +181,11 @@ function normalizePayload(payload) {
     targetType: p.targetType || p.target_type || 'ALL_CLIENTS',
     targetClientIds: p.targetClientIds || p.target_client_ids || [],
     ctaLabel: p.ctaLabel || p.cta_label || null,
-    ctaUrl: p.ctaUrl || p.cta_url || null,
+    ctaUrl: coerceExternalHttpsUrlOrNull(p.ctaUrl || p.cta_url),
     attachments: Array.isArray(p.attachments) ? p.attachments : [],
     pinned: Boolean(p.pinned),
     readConfirmationRequired: Boolean(p.readConfirmationRequired ?? p.read_confirmation_required),
-    coverUrl: p.coverUrl || p.cover_url || null,
+    coverUrl: coerceExternalHttpsUrlOrNull(p.coverUrl || p.cover_url),
   };
 }
 

@@ -168,6 +168,40 @@ describe('step-up.service vault password', () => {
     );
   });
 
+  // Regressão (segunda auditoria): a checagem do teto absoluto usava
+  // `Number.isFinite(anchoredAtMs) && ...ultrapassou o teto...` — se authenticatedAt
+  // viesse ausente/inválido (payload malformado, token legado hipotético),
+  // Number.isFinite(NaN) era false, o `&&` curto-circuitava, e a função devolvia o
+  // payload como válido (fail-open) em vez de rejeitar (fail-closed).
+  test('token vault-stepup sem authenticatedAt no payload é tratado como inválido (fail-closed, não fail-open)', async () => {
+    mockActor({ vault_password_hash: 'vault-hash' });
+    mock.method(passwordCrypto, 'verifyPassword', async () => false);
+    const jwt = require('jsonwebtoken');
+    const { env } = require('../../config/env');
+    const { VAULT_STEPUP_PURPOSES, VAULT_STEPUP_TYP } = require('../../config/jwt');
+    // Assina manualmente, simulando um payload malformado sem authenticatedAt —
+    // signVaultStepUpToken() nunca produz isto (sempre ancora um valor), mas a
+    // verificação não deve confiar nisso e deve rejeitar mesmo assim.
+    const malformedToken = jwt.sign(
+      { typ: VAULT_STEPUP_TYP, id: USER_ID, firmId: FIRM_ID, purpose: VAULT_STEPUP_PURPOSES.MUTATE },
+      env.JWT_ACCESS_SECRET,
+      { expiresIn: '10m', algorithm: 'HS256' },
+    );
+
+    await assert.rejects(
+      () =>
+        stepUp.verifyStaffPassword({
+          firmId: FIRM_ID,
+          userId: USER_ID,
+          stepUpToken: malformedToken,
+          rememberSession: true,
+          purpose: VAULT_STEPUP_PURPOSES.MUTATE,
+        }),
+      (err) => err.details?.code === 'INVALID_CURRENT_PASSWORD' || err.code === 'INVALID_CURRENT_PASSWORD',
+      'payload sem authenticatedAt deve ser rejeitado, nunca aceite como válido',
+    );
+  });
+
   test('getUnlockState: Google só desbloqueia depois de criar o cofre', async () => {
     mockActor({});
     const empty = await stepUp.getUnlockState({ firmId: FIRM_ID, userId: USER_ID });

@@ -38,8 +38,23 @@ function coerceExternalHttpsUrlOrNull(value) {
   return isSafeHttpsUrl(candidate) ? candidate.slice(0, 500) : null;
 }
 
+/**
+ * Confirma que uma storage key `firm/{firmId}/...` pertence mesmo à firm que a está
+ * a gravar. Sem isto, um utilizador podia apontar para o caminho de armazenamento de
+ * OUTRA firm (adivinhando/obtendo o UUID) e o servidor geraria despreocupadamente uma
+ * signed URL para um ficheiro que não lhe pertence (o storage usa service_role e
+ * ignora RLS — a validação de posse tem de acontecer aqui, não no Storage).
+ */
+function isOwnFirmStorageKey(value, firmId) {
+  const trimmed = String(value || '').trim();
+  if (!trimmed.startsWith('firm/') || !firmId) return false;
+  const owner = trimmed.split('/')[1];
+  return Boolean(owner) && owner === String(firmId);
+}
+
 module.exports = {
   isSafeHttpsUrl,
   normalizeHttpsUrlOrNull,
   coerceExternalHttpsUrlOrNull,
+  isOwnFirmStorageKey,
 };

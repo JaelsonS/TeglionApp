@@ -126,3 +126,36 @@ test('updateArticle: rejeita coverUrl com esquema data: no PATCH, não só no cr
 
   assert.equal(tables.news_articles[0].cover_url, null);
 });
+
+// Regressão (segunda auditoria): sanitizeCoverRefForStorage aceitava QUALQUER
+// storage key com prefixo "firm/", sem confirmar que pertence à própria firm que
+// está a gravar. Como createSignedDownloadUrl usa service_role (ignora RLS), um
+// utilizador da Firm B podia apontar coverStorageKey para "firm/<firm-A>/..." e
+// receber uma signed URL para um ficheiro de OUTRA firm — IDOR cross-tenant.
+test('createArticle: rejeita coverStorageKey que aponta para o storage de OUTRA firm', async () => {
+  const tables = { news_articles: [] };
+  const { createArticle } = setup(tables);
+
+  await createArticle({
+    firmId: 'firm-b',
+    authorId: 'staff-1',
+    authorName: 'Staff',
+    payload: { title: 'Notícia', body: 'Corpo', coverStorageKey: 'firm/firm-a/news/covers/segredo.png' },
+  });
+
+  assert.equal(tables.news_articles[0].cover_url, null, 'storage key de outra firm nunca deve ser aceite');
+});
+
+test('createArticle: aceita coverStorageKey que pertence à própria firm', async () => {
+  const tables = { news_articles: [] };
+  const { createArticle } = setup(tables);
+
+  await createArticle({
+    firmId: 'firm-a',
+    authorId: 'staff-1',
+    authorName: 'Staff',
+    payload: { title: 'Notícia', body: 'Corpo', coverStorageKey: 'firm/firm-a/news/covers/capa.png' },
+  });
+
+  assert.equal(tables.news_articles[0].cover_url, 'firm/firm-a/news/covers/capa.png');
+});

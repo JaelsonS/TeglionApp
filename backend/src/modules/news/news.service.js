@@ -5,14 +5,14 @@ const { AppError } = require('../../middlewares/error.middleware');
 const { getSupabaseAdmin, isSupabaseConfigured } = require('../../db/supabase/client');
 const activityService = require('../../services/activity/activity.service');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
-const { coerceExternalHttpsUrlOrNull } = require('../../utils/safe-url');
+const { coerceExternalHttpsUrlOrNull, isOwnFirmStorageKey } = require('../../utils/safe-url');
 
-/** Valida a referência de capa antes de gravar: storage key própria ou URL https segura. */
-function sanitizeCoverRefForStorage(value) {
+/** Valida a referência de capa antes de gravar: storage key da própria firm ou URL https segura. */
+function sanitizeCoverRefForStorage(value, firmId) {
   if (value == null) return null;
   const trimmed = String(value).trim();
   if (!trimmed) return null;
-  if (trimmed.startsWith('firm/')) return trimmed.slice(0, 500);
+  if (trimmed.startsWith('firm/')) return isOwnFirmStorageKey(trimmed, firmId) ? trimmed.slice(0, 500) : null;
   return coerceExternalHttpsUrlOrNull(trimmed);
 }
 
@@ -199,7 +199,7 @@ async function createArticle({ firmId, payload, authorId, authorName }) {
     slug,
     excerpt: payload.excerpt || null,
     body: payload.body,
-    cover_url: sanitizeCoverRefForStorage(payload.coverStorageKey || payload.coverUrl),
+    cover_url: sanitizeCoverRefForStorage(payload.coverStorageKey || payload.coverUrl, firmId),
     category: payload.category || null,
     tags: payload.tags || [],
     status: payload.status || 'DRAFT',
@@ -245,8 +245,8 @@ async function updateArticle({ firmId, id, payload }) {
     patch.body = payload.body;
     patch.reading_time_minutes = estimateReadingTime(payload.body);
   }
-  if (payload.coverStorageKey !== undefined) patch.cover_url = sanitizeCoverRefForStorage(payload.coverStorageKey);
-  else if (payload.coverUrl !== undefined) patch.cover_url = sanitizeCoverRefForStorage(payload.coverUrl);
+  if (payload.coverStorageKey !== undefined) patch.cover_url = sanitizeCoverRefForStorage(payload.coverStorageKey, firmId);
+  else if (payload.coverUrl !== undefined) patch.cover_url = sanitizeCoverRefForStorage(payload.coverUrl, firmId);
   if (payload.category !== undefined) patch.category = payload.category;
   if (payload.tags !== undefined) patch.tags = payload.tags;
   if (payload.isFeatured !== undefined) patch.is_featured = payload.isFeatured;
