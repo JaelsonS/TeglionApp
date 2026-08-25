@@ -8,6 +8,16 @@ const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-
 const { titleForTag } = require('../../data/irs-modelo3-intake');
 const { BOOKING_TIMEZONES } = require('../booking/booking.service');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
+const { coerceExternalHttpsUrlOrNull } = require('../../utils/safe-url');
+
+/** Valida a referência de imagem antes de gravar: storage key própria ou URL https segura. */
+function sanitizeImageRefForStorage(value) {
+  if (value == null) return null;
+  const trimmed = String(value).trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith('firm/')) return trimmed.slice(0, 500);
+  return coerceExternalHttpsUrlOrNull(trimmed);
+}
 
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -423,7 +433,7 @@ async function resolveServiceImageUrl(imageRef) {
   if (!imageRef) return null;
   const raw = String(imageRef).trim();
   if (!raw) return null;
-  if (/^https?:\/\//i.test(raw)) return raw;
+  if (/^https:\/\//i.test(raw)) return raw;
   if (raw.startsWith('firm/')) {
     try {
       return await contabilStorage.createSignedDownloadUrl(raw, 86400);
@@ -431,7 +441,7 @@ async function resolveServiceImageUrl(imageRef) {
       return null;
     }
   }
-  return raw;
+  return null;
 }
 
 async function enrichService(item, groupNameById) {
@@ -627,7 +637,7 @@ async function create({ firmId, payload }) {
     firmId,
     name,
     description: payload?.description,
-    imageUrl: payload?.imageStorageKey || payload?.imageUrl || null,
+    imageUrl: sanitizeImageRefForStorage(payload?.imageStorageKey || payload?.imageUrl),
     imageOriginalUrl: payload?.imageOriginalUrl || null,
     imageFocusX: normalizeImageFocus(payload?.imageFocusX, 0, 100) ?? null,
     imageFocusY: normalizeImageFocus(payload?.imageFocusY, 0, 100) ?? null,
@@ -670,8 +680,8 @@ async function update({ firmId, id, payload }) {
     patch.name = name;
   }
   if (payload?.description !== undefined) patch.description = payload.description;
-  if (payload?.imageStorageKey !== undefined) patch.imageUrl = payload.imageStorageKey;
-  else if (payload?.imageUrl !== undefined) patch.imageUrl = payload.imageUrl;
+  if (payload?.imageStorageKey !== undefined) patch.imageUrl = sanitizeImageRefForStorage(payload.imageStorageKey);
+  else if (payload?.imageUrl !== undefined) patch.imageUrl = sanitizeImageRefForStorage(payload.imageUrl);
   if (payload?.imageOriginalUrl !== undefined) patch.imageOriginalUrl = payload.imageOriginalUrl;
   if (payload?.imageFocusX !== undefined) patch.imageFocusX = normalizeImageFocus(payload.imageFocusX, 0, 100);
   if (payload?.imageFocusY !== undefined) patch.imageFocusY = normalizeImageFocus(payload.imageFocusY, 0, 100);

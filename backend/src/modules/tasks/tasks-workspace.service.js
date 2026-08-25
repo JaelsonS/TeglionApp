@@ -2,9 +2,35 @@ const { AppError } = require('../../middlewares/error.middleware');
 const { getRepository } = require('../../db/supabase/repositories');
 const tasksRepo = require('../../db/supabase/repositories/tasks.repository');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
+const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
 const activityService = require('../../services/activity/activity.service');
 const clientTasksFirm = require('./client-tasks-firm.service');
 const { normalizeStatus } = require('./task.constants');
+
+/** Valida FKs opcionais da tarefa contra o tenant da sessão. */
+async function assertTaskForeignKeysInFirm(firmId, { assigneeId, obligationId, dependsOnTaskId }) {
+  if (assigneeId) {
+    const staff = await firmUsersRepository.findFirmUserByIdForFirm(firmId, String(assigneeId));
+    if (!staff) {
+      throw new AppError('Responsável inválido para este escritório.', 400, { code: 'ASSIGNEE_NOT_IN_FIRM' });
+    }
+  }
+  if (obligationId) {
+    const repo = getRepository();
+    const obligation = await repo.findObligationById(String(obligationId), firmId).catch(() => null);
+    if (!obligation) {
+      throw new AppError('Obrigação inválida para este escritório.', 400, { code: 'OBLIGATION_NOT_IN_FIRM' });
+    }
+  }
+  if (dependsOnTaskId) {
+    const dep = await tasksRepo.findTaskById(firmId, String(dependsOnTaskId));
+    if (!dep) {
+      throw new AppError('Tarefa de dependência inválida para este escritório.', 400, {
+        code: 'DEPENDS_ON_NOT_IN_FIRM',
+      });
+    }
+  }
+}
 
 async function notifyFirmStaff({ firmId, firmUserId, category, type, title, body, entityType, entityId, actionUrl }) {
   const sb = require('../../db/supabase/client').getSupabaseAdmin();
@@ -228,6 +254,13 @@ async function createTask({ firmId, actor, payload, file }) {
     const found = await clientsRepository.findClientById(firmId, id);
     if (!found) throw new AppError('Cliente não encontrado', 404, { code: 'CLIENT_NOT_FOUND', clientId: id });
   }
+
+  await assertTaskForeignKeysInFirm(firmId, {
+    assigneeId: payload.assigneeId,
+    obligationId: payload.obligationId,
+    dependsOnTaskId: payload.dependsOnTaskId,
+  });
+
   const taskType = payload.taskType || 'internal_task';
   // Tarefas internas do escritório nunca notificam o cliente
   const notifyClient = taskType === 'internal_task' ? false : Boolean(payload.notifyClient);
@@ -370,10 +403,37 @@ async function updateTask({ firmId, taskId, actor, patch }) {
   const existing = await tasksRepo.findTaskById(firmId, taskId);
   if (!existing) throw new AppError('Tarefa não encontrada', 404);
 
-  const next = { ...patch };
+  const allowed = [
+    'title',
+    'description',
+    'status',
+    'priority',
+    'dueDate',
+    'assigneeId',
+    'obligationId',
+    'tags',
+    'dependsOnTaskId',
+    'recurrenceRule',
+    'taskType',
+    'clientIds',
+    'completedAt',
+    'archivedAt',
+    'submittedAt',
+  ];
+  const next = {};
+  for (const key of allowed) {
+    if (patch[key] !== undefined) next[key] = patch[key];
+  }
+
   if (next.status === 'DONE' && !existing.completedAt) next.completedAt = new Date().toISOString();
   if (next.status === 'ARCHIVED') next.archivedAt = new Date().toISOString();
   if (next.status === 'WAITING_CLIENT') next.submittedAt = new Date().toISOString();
+
+  await assertTaskForeignKeysInFirm(firmId, {
+    assigneeId: next.assigneeId,
+    obligationId: next.obligationId,
+    dependsOnTaskId: next.dependsOnTaskId,
+  });
 
   if (next.clientIds !== undefined) {
     const ids = [...new Set((next.clientIds || []).filter(Boolean).map(String))];

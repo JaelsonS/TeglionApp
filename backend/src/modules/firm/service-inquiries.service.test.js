@@ -161,7 +161,7 @@ test('update: transição para estado terminal aperta access_token_expires_at (n
 
   assert.ok(patchSent.accessTokenExpiresAt, 'devia apertar a expiração ao concluir');
   const daysUntilExpiry = (new Date(patchSent.accessTokenExpiresAt).getTime() - Date.now()) / (24 * 60 * 60 * 1000);
-  assert.ok(daysUntilExpiry <= 31 && daysUntilExpiry >= 29, 'janela de graça devia ser ~30 dias, não o tecto de 180');
+  assert.ok(daysUntilExpiry <= 15 && daysUntilExpiry >= 13, 'janela de graça devia ser ~14 dias, não o tecto longo');
 });
 
 test('update: transição não-terminal não mexe em access_token_expires_at', async () => {

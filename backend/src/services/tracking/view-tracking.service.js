@@ -4,6 +4,19 @@
 const { getSupabaseAdmin, isSupabaseConfigured } = require('../../db/supabase/client');
 const { parseUserAgent } = require('../../utils/user-agent-parse');
 const activityService = require('../activity/activity.service');
+const documentsRepository = require('../../db/supabase/repositories/contabil/documents.repository');
+const obligationsRepository = require('../../db/supabase/repositories/contabil/obligations.repository');
+
+/** Confirma que a entidade pertence à firm (e, se o ator for cliente, a esse cliente). */
+async function assertEntityVisibleToActor({ firmId, clientId, entityType, entityId, isClientView }) {
+  const entity =
+    entityType === 'OBLIGATION'
+      ? await obligationsRepository.findObligationById(entityId, firmId)
+      : await documentsRepository.findDocumentById(entityId, firmId);
+  if (!entity) return false;
+  if (isClientView && String(entity.clientId || '') !== String(clientId || '')) return false;
+  return true;
+}
 
 function ensureClient() {
   if (!isSupabaseConfigured()) return null;
@@ -40,6 +53,10 @@ async function recordView({
   const sb = ensureClient();
   if (!sb) return null;
 
+  const isClientView = String(viewerRole || '').toUpperCase() === 'CLIENT';
+  const visible = await assertEntityVisibleToActor({ firmId, clientId, entityType, entityId, isClientView });
+  if (!visible) return null;
+
   const parsed = parseUserAgent(userAgent);
 
   const { data: viewRow, error } = await sb
@@ -65,7 +82,6 @@ async function recordView({
   if (error) throw error;
 
   const table = entityType === 'OBLIGATION' ? 'obligations' : 'documents';
-  const isClientView = String(viewerRole || '').toUpperCase() === 'CLIENT';
 
   if (isClientView) {
     const { data: entity } = await sb
@@ -133,9 +149,9 @@ async function recordView({
   };
 }
 
-async function endView({ viewId, durationSeconds }) {
+async function endView({ viewId, durationSeconds, firmId, viewerId }) {
   const sb = ensureClient();
-  if (!sb || !viewId) return null;
+  if (!sb || !viewId || !firmId || !viewerId) return null;
   const { data, error } = await sb
     .from('content_views')
     .update({
@@ -143,8 +159,10 @@ async function endView({ viewId, durationSeconds }) {
       view_ended_at: new Date().toISOString(),
     })
     .eq('id', viewId)
+    .eq('firm_id', firmId)
+    .eq('viewer_id', viewerId)
     .select()
-    .single();
+    .maybeSingle();
   if (error) throw error;
   return data;
 }

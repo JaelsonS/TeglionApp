@@ -138,7 +138,10 @@ async function assertVaultSensitiveUnlock({
   if (actor.mfa_enabled === true) {
     const tokenPayload = stepUp.readValidStepUpToken({ firmId, userId, stepUpToken, purpose });
     if (tokenPayload) {
-      const issued = rememberSession !== false ? stepUp.issueVaultStepUp({ firmId, userId, purpose }) : {};
+      const issued =
+        rememberSession !== false
+          ? stepUp.issueVaultStepUp({ firmId, userId, purpose, authenticatedAt: tokenPayload.authenticatedAt })
+          : {};
       return { actor, method: 'vault_stepup', purpose, mfaEnabled: true, ...issued };
     }
     if (!totpCode || !String(totpCode).trim()) throw mfaRequiredError();

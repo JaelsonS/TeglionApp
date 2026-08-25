@@ -32,7 +32,7 @@ export function TasksOperationsTabBar({ active }: { active: TasksOperationsTab }
             key={id}
             to={{ pathname: firmTasksPath(id), search: search ? `?${search}` : '' }}
             data-testid={`firm-tasks-tab-${id}`}
-            className={({ isActive }) => cn('cb-tasks-tab', isActive && 'cb-tasks-tab-active')}
+            className={({ isActive }: { isActive: boolean }) => cn('cb-tasks-tab', isActive && 'cb-tasks-tab-active')}
           >
             {label}
           </NavLink>

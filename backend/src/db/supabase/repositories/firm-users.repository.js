@@ -84,11 +84,12 @@ async function findFirmUserByIdForFirm(firmId, id) {
   return mapFirmUser(data);
 }
 
-async function updateFirmUserProfile(id, firmId, { fullName, email }) {
+async function updateFirmUserProfile(id, firmId, { fullName, email, emailConfirmedAt }) {
   const sb = getSupabaseAdmin();
   const row = { updated_at: new Date().toISOString() };
   if (fullName != null) row.full_name = String(fullName).trim();
   if (email != null) row.email = String(email).trim().toLowerCase();
+  if (emailConfirmedAt !== undefined) row.email_confirmed_at = emailConfirmedAt;
   const { data, error } = await sb
     .from('firm_users')
     .update(row)

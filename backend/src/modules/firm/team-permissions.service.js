@@ -1,5 +1,6 @@
 const { AppError } = require('../../middlewares/error.middleware');
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
+const authRefreshSessionsRepository = require('../../db/supabase/repositories/auth-refresh-sessions.repository');
 const { PERMISSIONS, ROLE_PERMISSIONS } = require('../../utils/permissions');
 const securityAudit = require('../../services/audit/security-audit.service');
 
@@ -100,12 +101,18 @@ async function patchTeamPermissions({ firmId, memberId, actor, payload, req }) {
         permissionsOverride,
     });
 
+    await authRefreshSessionsRepository.deleteAllForActor('firm_user', memberId);
+
     await securityAudit.recordTeamMutation({
         action: 'team.member.permissions.updated',
         actor,
         firmId,
         targetUserId: memberId,
-        metadata: { mode, permissionsCount: permissionsOverride ? permissionsOverride.length : 0 },
+        metadata: {
+            mode,
+            permissionsCount: permissionsOverride ? permissionsOverride.length : 0,
+            sessionsRevoked: true,
+        },
         req,
     });
 

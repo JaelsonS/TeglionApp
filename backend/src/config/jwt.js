@@ -11,6 +11,7 @@ function generateId(length = 24) {
 function signAccessToken(payload) {
   return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
     expiresIn: env.JWT_ACCESS_EXPIRES_IN,
+    algorithm: 'HS256',
   });
 }
 
@@ -21,39 +22,47 @@ function signRefreshToken(payload) {
     jti,
     token: jwt.sign({ ...payload, jti }, env.JWT_REFRESH_SECRET, {
       expiresIn: env.JWT_REFRESH_EXPIRES_IN,
+      algorithm: 'HS256',
     }),
   };
 }
 
 function verifyAccessToken(token) {
-  return jwt.verify(token, env.JWT_ACCESS_SECRET);
+  return jwt.verify(token, env.JWT_ACCESS_SECRET, { algorithms: ['HS256'] });
 }
 
 const VAULT_STEPUP_TYP = 'vault-stepup';
 /** Produção: curto e purpose-bound (Gate 3 / main release). */
 const VAULT_STEPUP_EXPIRES_IN = '10m';
+/** Teto absoluto de vida da autorização do cofre, mesmo com renovações sucessivas. */
+const VAULT_STEPUP_MAX_SESSION_MS = 30 * 60 * 1000;
 const VAULT_STEPUP_PURPOSES = Object.freeze({
   REVEAL: 'vault_reveal',
   MUTATE: 'vault_mutate',
   IMPORT: 'vault_import',
 });
 
-function signVaultStepUpToken({ id, firmId, purpose }) {
+function signVaultStepUpToken({ id, firmId, purpose, authenticatedAt }) {
   if (!id || !firmId || !purpose) {
     throw new Error('VAULT_STEPUP_PAYLOAD_INCOMPLETE');
   }
   if (!Object.values(VAULT_STEPUP_PURPOSES).includes(purpose)) {
     throw new Error('VAULT_STEPUP_PURPOSE_INVALID');
   }
+  // authenticatedAt marca o momento da confirmação REAL (senha/TOTP), propagado
+  // através de renovações do token — não reinicia a cada renovação, para impor
+  // um teto absoluto de vida à autorização independente de quantas vezes o token
+  // em cache for reapresentado dentro da sua janela de 10 minutos.
+  const anchoredAt = Number.isFinite(authenticatedAt) ? authenticatedAt : Math.floor(Date.now() / 1000);
   return jwt.sign(
-    { typ: VAULT_STEPUP_TYP, id, firmId, purpose },
+    { typ: VAULT_STEPUP_TYP, id, firmId, purpose, authenticatedAt: anchoredAt },
     env.JWT_ACCESS_SECRET,
-    { expiresIn: VAULT_STEPUP_EXPIRES_IN },
+    { expiresIn: VAULT_STEPUP_EXPIRES_IN, algorithm: 'HS256' },
   );
 }
 
 function verifyVaultStepUpToken(token, { purpose } = {}) {
-  const payload = jwt.verify(token, env.JWT_ACCESS_SECRET);
+  const payload = jwt.verify(token, env.JWT_ACCESS_SECRET, { algorithms: ['HS256'] });
   if (!payload || payload.typ !== VAULT_STEPUP_TYP || !payload.id || !payload.firmId || !payload.purpose) {
     const err = new Error('INVALID_VAULT_STEPUP');
     err.name = 'JsonWebTokenError';
@@ -80,8 +89,7 @@ const MFA_PURPOSES = Object.freeze({
 });
 
 /**
- * JWT curto — NÃO é sessão autenticada.
- * Middleware de sessão deve rejeitar typ=mfa-challenge.
+ * JWT curto de desafio MFA — não substitui sessão autenticada.
  */
 function signMfaChallengeToken({ id, firmId, purpose }) {
   if (!id || !firmId || !purpose) {
@@ -94,13 +102,13 @@ function signMfaChallengeToken({ id, firmId, purpose }) {
   const token = jwt.sign(
     { typ: MFA_CHALLENGE_TYP, id, firmId, purpose, jti },
     env.JWT_ACCESS_SECRET,
-    { expiresIn: MFA_CHALLENGE_EXPIRES_IN },
+    { expiresIn: MFA_CHALLENGE_EXPIRES_IN, algorithm: 'HS256' },
   );
   return { token, jti };
 }
 
 function verifyMfaChallengeToken(token) {
-  const payload = jwt.verify(token, env.JWT_ACCESS_SECRET);
+  const payload = jwt.verify(token, env.JWT_ACCESS_SECRET, { algorithms: ['HS256'] });
   if (
     !payload ||
     payload.typ !== MFA_CHALLENGE_TYP ||
@@ -124,7 +132,7 @@ function verifyMfaChallengeToken(token) {
 function isAccessTokenSignatureValid(token) {
   if (!token || typeof token !== 'string') return false;
   try {
-    jwt.verify(token, env.JWT_ACCESS_SECRET, { ignoreExpiration: true });
+    jwt.verify(token, env.JWT_ACCESS_SECRET, { algorithms: ['HS256'], ignoreExpiration: true });
     return true;
   } catch {
     return false;
@@ -134,7 +142,7 @@ function isAccessTokenSignatureValid(token) {
 function isAccessTokenValid(token) {
   if (!token || typeof token !== 'string') return false;
   try {
-    const payload = jwt.verify(token, env.JWT_ACCESS_SECRET);
+    const payload = jwt.verify(token, env.JWT_ACCESS_SECRET, { algorithms: ['HS256'] });
     if (payload?.typ === VAULT_STEPUP_TYP || payload?.typ === MFA_CHALLENGE_TYP) {
       return false;
     }
@@ -145,7 +153,7 @@ function isAccessTokenValid(token) {
 }
 
 function verifyRefreshToken(token) {
-  return jwt.verify(token, env.JWT_REFRESH_SECRET);
+  return jwt.verify(token, env.JWT_REFRESH_SECRET, { algorithms: ['HS256'] });
 }
 
 module.exports = {
@@ -159,6 +167,7 @@ module.exports = {
   verifyVaultStepUpToken,
   VAULT_STEPUP_TYP,
   VAULT_STEPUP_EXPIRES_IN,
+  VAULT_STEPUP_MAX_SESSION_MS,
   VAULT_STEPUP_PURPOSES,
   signMfaChallengeToken,
   verifyMfaChallengeToken,

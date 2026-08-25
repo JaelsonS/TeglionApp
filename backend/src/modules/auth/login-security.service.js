@@ -41,7 +41,15 @@ async function assertLoginAllowed(accountKey, req, auditContext = {}) {
   });
 }
 
-async function recordFailedLogin(accountKey, req, auditContext = {}) {
+/**
+ * Regista uma tentativa falhada (incrementa o contador, aplica o atraso progressivo)
+ * e lança o erro de bloqueio se o limiar tiver sido atingido — sem forçar a mensagem
+ * genérica de "credenciais inválidas". Usado por ramos de login que precisam de dar
+ * um motivo específico ao utilizador (conta SSO-only, inactiva, e-mail por confirmar)
+ * sem deixar de contar para o mesmo limiar anti brute-force do resto do fluxo — caso
+ * contrário, esses ramos seriam um caminho sem penalização para enumerar contas.
+ */
+async function recordFailedLoginAttempt(accountKey, req, auditContext = {}) {
   const ip = clientIp(req);
   const row = await loginAttemptsRepository.upsertFailure(accountKey, {
     ip,
@@ -68,7 +76,10 @@ async function recordFailedLogin(accountKey, req, auditContext = {}) {
       retryAfterSeconds,
     });
   }
+}
 
+async function recordFailedLogin(accountKey, req, auditContext = {}) {
+  await recordFailedLoginAttempt(accountKey, req, auditContext);
   throw new AppError(INVALID_LOGIN_MESSAGE, 401, { code: 'INVALID_CREDENTIALS' });
 }
 
@@ -81,5 +92,6 @@ module.exports = {
   buildAccountKey,
   assertLoginAllowed,
   recordFailedLogin,
+  recordFailedLoginAttempt,
   recordSuccessfulLogin,
 };

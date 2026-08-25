@@ -216,14 +216,26 @@ async function updateMyProfile(firmId, userId, { fullName, email, totpCode, curr
   const row = await firmUsersRepository.updateFirmUserProfile(userId, firmId, {
     fullName: nextName ?? undefined,
     email: emailChanging ? nextEmail : undefined,
+    emailConfirmedAt: emailChanging ? null : undefined,
   });
 
   if (emailChanging) {
+    await authRefreshSessionsRepository.deleteAllForActor('firm_user', userId);
+    const firmsRepository = require('../../db/supabase/repositories/firms.repository');
+    const emailConfirmationService = require('../../services/email/email-confirmation.service');
+    const firm = await firmsRepository.findFirmById(firmId).catch(() => null);
+    await emailConfirmationService.issueAndSendFirmUserEmailConfirmation({
+      userId,
+      email: nextEmail,
+      fullName: row.full_name || actor.full_name,
+      firmName: firm?.name,
+      variant: actor.role === 'FIRM_OWNER' ? 'owner' : 'staff',
+    });
     await securityAudit.recordSettingsMutation({
       action: 'firm.profile.email.changed',
       actor: { id: userId, role: actor.role },
       firmId,
-      metadata: {},
+      metadata: { sessionsRevoked: true, confirmationRequired: true },
       req,
     });
   }

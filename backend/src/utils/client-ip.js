@@ -1,9 +1,10 @@
+/**
+ * IP do cliente para logs/auditoria. Usa req.ip (Express), que já resolve
+ * X-Forwarded-For respeitando `trust proxy` — nunca lê o header diretamente,
+ * que um chamador pode forjar livremente para corromper registos de auditoria.
+ */
 function clientIp(req) {
-  const forwarded = req?.headers?.['x-forwarded-for'];
-  if (typeof forwarded === 'string' && forwarded.trim()) {
-    return forwarded.split(',')[0].trim();
-  }
-  return req?.socket?.remoteAddress || req?.ip || null;
+  return req?.ip || req?.socket?.remoteAddress || null;
 }
 
 function clientUserAgent(req) {

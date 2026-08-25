@@ -16,6 +16,7 @@ async function listMyNotifications({ actor }) {
     .from('in_app_notifications')
     .select('*')
     .eq('client_id', client.id)
+    .eq('firm_id', client.firmId)
     .order('created_at', { ascending: false })
     .limit(30);
   return {
@@ -42,7 +43,8 @@ async function markNotificationRead({ actor, notificationId }) {
     .from('in_app_notifications')
     .update({ read_at: new Date().toISOString() })
     .eq('id', notificationId)
-    .eq('client_id', client.id);
+    .eq('client_id', client.id)
+    .eq('firm_id', client.firmId);
   if (error) throw error;
   return { ok: true };
 }
@@ -55,6 +57,7 @@ async function markAllNotificationsRead({ actor }) {
     .from('in_app_notifications')
     .update({ read_at: new Date().toISOString() })
     .eq('client_id', client.id)
+    .eq('firm_id', client.firmId)
     .is('read_at', null);
   if (error) throw error;
   return { ok: true };

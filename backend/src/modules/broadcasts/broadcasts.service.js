@@ -30,9 +30,22 @@ async function resolveUniqueSlug(firmId, base) {
   return `${base}-${Date.now()}`;
 }
 
+/** Garante que todos os IDs pertencem ao escritório actual; rejeita IDs externos. */
+async function assertSelectedClientsInFirm(firmId, targetClientIds) {
+  const ids = [...new Set((targetClientIds || []).filter(Boolean).map(String))];
+  if (!ids.length) return [];
+  const owned = await clientsRepository.findClientsByIds(firmId, ids);
+  if (owned.length !== ids.length) {
+    throw new AppError('Um ou mais clientes seleccionados não pertencem a este escritório.', 400, {
+      code: 'CLIENT_NOT_IN_FIRM',
+    });
+  }
+  return owned.map((c) => c.id);
+}
+
 async function resolveTargetClientIds(firmId, broadcast) {
   if (broadcast.targetType === 'SELECTED') {
-    return (broadcast.targetClientIds || []).filter(Boolean);
+    return assertSelectedClientsInFirm(firmId, broadcast.targetClientIds);
   }
   const clients = await clientsRepository.listClients(firmId, { limit: 5000, includeInactive: false });
   return clients.map((c) => c.id);
@@ -180,6 +193,10 @@ async function createBroadcast({ firmId, payload, author }) {
   if (!norm.title) throw new AppError('Título é obrigatório', 400);
   if (!norm.body) throw new AppError('Conteúdo é obrigatório', 400);
 
+  if (norm.targetType === 'SELECTED') {
+    norm.targetClientIds = await assertSelectedClientsInFirm(firmId, norm.targetClientIds);
+  }
+
   const slug = await resolveUniqueSlug(firmId, slugify(norm.title));
   let status = norm.status;
   if (norm.scheduledAt && new Date(norm.scheduledAt) > new Date()) {
@@ -236,6 +253,9 @@ async function updateBroadcast({ firmId, id, payload }) {
   if (!existing) throw new AppError('Alerta não encontrado', 404);
 
   const norm = normalizePayload({ ...existing, ...payload });
+  if (norm.targetType === 'SELECTED') {
+    norm.targetClientIds = await assertSelectedClientsInFirm(firmId, norm.targetClientIds);
+  }
   const wasPublished = existing.status === 'PUBLISHED';
   let status = norm.status || existing.status;
 

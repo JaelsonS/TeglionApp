@@ -44,6 +44,15 @@ async function createFromFirm({ firmId, actor, payload }) {
   const client = await clientsRepository.findClientById(firmId, clientId);
   if (!client) throw new AppError('Cliente não encontrado', 404);
 
+  let assigneeId = payload.assigneeId || actor?.id || null;
+  if (assigneeId) {
+    const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
+    const staff = await firmUsersRepository.findFirmUserByIdForFirm(firmId, String(assigneeId));
+    if (!staff) {
+      throw new AppError('Responsável inválido para este escritório.', 400, { code: 'ASSIGNEE_NOT_IN_FIRM' });
+    }
+  }
+
   const request = await serviceRequestsRepo.insert({
     firm_id: firmId,
     client_id: clientId,
@@ -52,7 +61,7 @@ async function createFromFirm({ firmId, actor, payload }) {
     description: payload.description?.trim() || null,
     status: payload.status || 'ASSIGNED',
     priority: payload.priority || 'NORMAL',
-    assignee_id: payload.assigneeId || actor?.id || null,
+    assignee_id: assigneeId,
     created_by_role: 'FIRM',
     created_by_id: actor?.id,
     submitted_at: new Date().toISOString(),

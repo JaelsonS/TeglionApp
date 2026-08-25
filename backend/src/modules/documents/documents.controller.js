@@ -52,6 +52,7 @@ async function preview(req, res, next) {
     res.setHeader('Content-Type', mimeType || 'application/octet-stream');
     res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(name)}"`);
     res.setHeader('Cache-Control', 'private, max-age=120');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
     return res.send(buffer);
   } catch (err) {
     return next(err);

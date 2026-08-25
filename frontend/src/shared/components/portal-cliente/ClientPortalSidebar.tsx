@@ -98,7 +98,7 @@ export function ClientPortalSidebar({
                 end={end}
                 onClick={onItemClick}
                 aria-current={active ? 'page' : undefined}
-                className={({ isActive }) =>
+                className={({ isActive }: { isActive: boolean }) =>
                   cn('pc-nav-item', (active ?? isActive) && 'pc-nav-item-active')
                 }
               >

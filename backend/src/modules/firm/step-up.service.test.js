@@ -110,6 +110,64 @@ describe('step-up.service vault password', () => {
     );
   });
 
+  // Regressão: reapresentar um token vault-stepup válido renovava-o com um TTL novo de
+  // 10 minutos sem qualquer teto — desde que usado pelo menos uma vez a cada 10 minutos,
+  // a autorização nunca expirava de facto. Um stepUpToken vazado (XSS, aba esquecida)
+  // dava acesso indefinido ao cofre sem nunca mais precisar da senha/TOTP.
+  test('token vault-stepup válido mas emitido há mais que o teto absoluto exige nova confirmação', async () => {
+    mockActor({ vault_password_hash: 'vault-hash' });
+    mock.method(passwordCrypto, 'verifyPassword', async () => false);
+    const { VAULT_STEPUP_PURPOSES, VAULT_STEPUP_MAX_SESSION_MS } = require('../../config/jwt');
+    const longAgo = Math.floor((Date.now() - VAULT_STEPUP_MAX_SESSION_MS - 60_000) / 1000);
+    const token = signVaultStepUpToken({
+      id: USER_ID,
+      firmId: FIRM_ID,
+      purpose: VAULT_STEPUP_PURPOSES.MUTATE,
+      authenticatedAt: longAgo,
+    });
+
+    await assert.rejects(
+      () =>
+        stepUp.verifyStaffPassword({
+          firmId: FIRM_ID,
+          userId: USER_ID,
+          stepUpToken: token,
+          rememberSession: true,
+          purpose: VAULT_STEPUP_PURPOSES.MUTATE,
+        }),
+      (err) => err.details?.code === 'INVALID_CURRENT_PASSWORD' || err.code === 'INVALID_CURRENT_PASSWORD',
+      'token além do teto absoluto deve ser tratado como inválido, caindo para a verificação de senha',
+    );
+  });
+
+  test('renovar um token vault-stepup dentro do teto preserva o authenticatedAt original (não reinicia o relógio)', async () => {
+    mockActor({ vault_password_hash: 'vault-hash' });
+    const { VAULT_STEPUP_PURPOSES } = require('../../config/jwt');
+    const originalAuthenticatedAt = Math.floor((Date.now() - 5 * 60 * 1000) / 1000);
+    const token = signVaultStepUpToken({
+      id: USER_ID,
+      firmId: FIRM_ID,
+      purpose: VAULT_STEPUP_PURPOSES.MUTATE,
+      authenticatedAt: originalAuthenticatedAt,
+    });
+
+    const result = await stepUp.verifyStaffPassword({
+      firmId: FIRM_ID,
+      userId: USER_ID,
+      stepUpToken: token,
+      rememberSession: true,
+      purpose: VAULT_STEPUP_PURPOSES.MUTATE,
+    });
+
+    const jwt = require('jsonwebtoken');
+    const renewedPayload = jwt.decode(result.stepUpToken);
+    assert.equal(
+      renewedPayload.authenticatedAt,
+      originalAuthenticatedAt,
+      'renovar não deve reiniciar o relógio da confirmação real',
+    );
+  });
+
   test('getUnlockState: Google só desbloqueia depois de criar o cofre', async () => {
     mockActor({});
     const empty = await stepUp.getUnlockState({ firmId: FIRM_ID, userId: USER_ID });

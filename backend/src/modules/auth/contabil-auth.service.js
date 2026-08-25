@@ -281,13 +281,32 @@ async function registerFirmWithGoogle({
       /* e-mail soft-fail — não bloquear registo Google */
     });
 
+    const mfa = require('./mfa.service');
+    const gate = mfa.resolvePostCredentialGate(firmUser);
+    if (gate.status !== mfa.STATUS.AUTHENTICATED) {
+      void securityAudit.recordSecurityEvent({
+        firmId: firm.id,
+        actorRole: sanitizeFirmUser(firmUser).role,
+        actorId: firmUser.id,
+        action:
+          gate.status === mfa.STATUS.MFA_ENROLLMENT_REQUIRED
+            ? 'mfa.register.enrollment_required'
+            : 'mfa.register.challenge_required',
+        entityType: 'auth',
+        entityId: firmUser.id,
+        metadata: { scope: 'firm', method: 'google' },
+        req,
+      });
+      return { ...gate, tokens: null };
+    }
+
     const issued = await issueTokensForFirmUser(firmUser);
     void securityAudit.recordAuthLoginSuccess({
       user: issued.user,
       req,
       scope: 'firm',
     });
-    return issued;
+    return { ...issued, status: mfa.STATUS.AUTHENTICATED };
   } catch (err) {
     throw mapDbError(err, 'Não foi possível criar a conta com Google');
   }
@@ -315,6 +334,7 @@ async function loginFirm({ email, password, req }) {
   }
   if (!row.password_hash) {
     if (row.sso_provider) {
+      await loginSecurity.recordFailedLoginAttempt(accountKey, req, { firmId: row.firm_id, scope: 'firm' });
       throw new AppError(
         'Esta conta foi criada com Google. Use «Entrar com Google».',
         401,
@@ -325,9 +345,11 @@ async function loginFirm({ email, password, req }) {
     await loginSecurity.recordFailedLogin(accountKey, req, { scope: 'firm' });
   }
   if (row.is_active === false) {
+    await loginSecurity.recordFailedLoginAttempt(accountKey, req, { firmId: row.firm_id, scope: 'firm' });
     throw new AppError('Conta inactiva. Contacte o administrador do escritório.', 403, { code: 'ACCOUNT_INACTIVE' });
   }
   if (!row.email_confirmed_at) {
+    await loginSecurity.recordFailedLoginAttempt(accountKey, req, { firmId: row.firm_id, scope: 'firm' });
     throw new AppError(
       'Confirmação de e-mail pendente. Abra o e-mail que lhe enviámos e clique em «Confirmar e-mail». Depois pode entrar aqui.',
       403,
@@ -391,6 +413,11 @@ async function loginFirmBySso({ email, req, provider = 'google', googleSub }) {
   }
   if (row.sso_subject && googleSub && row.sso_subject !== googleSub) {
     return { ok: false, reason: 'sso_mismatch' };
+  }
+  // Google já comprovou o controlo do e-mail (email_verified no IdP).
+  if (!row.email_confirmed_at) {
+    await firmUsersRepository.markFirmUserEmailConfirmed(row.id, row.firm_id);
+    row.email_confirmed_at = new Date().toISOString();
   }
   if (googleSub && !row.sso_subject) {
     await firmUsersRepository.updateFirmUserSso(row.id, {
@@ -485,9 +512,11 @@ async function loginClient({ email, password, firmSlug, req }) {
     await loginSecurity.recordFailedLogin(accountKey, req, { scope: 'client' });
   }
   if (row.status && row.status !== 'ACTIVE') {
+    await loginSecurity.recordFailedLoginAttempt(accountKey, req, { firmId: row.firm_id, scope: 'client' });
     throw new AppError('Conta de cliente inactiva. Contacte o seu escritório.', 403, { code: 'ACCOUNT_INACTIVE' });
   }
   if (row.portal_access_status === 'REVOKED') {
+    await loginSecurity.recordFailedLoginAttempt(accountKey, req, { firmId: row.firm_id, scope: 'client' });
     throw new AppError(
       'O acesso ao portal foi revogado pelo escritório. Peça um novo convite ao seu contabilista.',
       403,
@@ -495,6 +524,7 @@ async function loginClient({ email, password, firmSlug, req }) {
     );
   }
   if (!row.password_hash) {
+    await loginSecurity.recordFailedLoginAttempt(accountKey, req, { firmId: row.firm_id, scope: 'client' });
     throw new AppError(
       'Ainda não definiu a palavra-passe. Abra o link de convite enviado pelo escritório, crie a senha e só depois tente entrar. Se o link expirou, peça um novo convite.',
       401,
@@ -558,13 +588,16 @@ async function refreshSession({ refreshToken }) {
   }
 
   if (jti) {
-    const session = await authRefreshSessionsRepository.findByJti(jti);
-    if (session && session.token_hash === tokenHash) {
+    // Reclama a sessão atomicamente (DELETE...RETURNING): se dois pedidos
+    // concorrentes apresentarem o mesmo refresh token, só um consegue "ganhar"
+    // esta linha — o outro recebe null e cai no ramo legado abaixo, tratado
+    // como token já usado. Evita emitir duas sessões novas a partir de um único
+    // token reapresentado em corrida.
+    const session = await authRefreshSessionsRepository.claimByJti(jti, tokenHash);
+    if (session) {
       if (session.expires_at && new Date(session.expires_at) < new Date()) {
-        await authRefreshSessionsRepository.deleteByJti(jti);
         throw new AppError('Sessão expirada', 401, { code: 'SESSION_EXPIRED' });
       }
-      await authRefreshSessionsRepository.deleteByJti(jti);
       if (payload.actorType === 'client' || isClientRole(payload.role)) {
         const row = await clientsRepository.getClientRowById(payload.id);
         if (!row) throw new AppError('Sessão inválida', 401);

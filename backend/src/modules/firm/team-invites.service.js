@@ -294,6 +294,17 @@ async function acceptInvite({ token, email, password, fullName, req }) {
     const member = await firmUsersRepository.findFirmUserByIdForFirm(invite.firm_id, invite.member_id);
     if (!member) throw new AppError('Membro não encontrado.', 404);
 
+    // Reclama o convite ANTES de gravar a senha: se dois pedidos concorrentes
+    // apresentarem o mesmo token, só um consegue transitar PENDING -> ACCEPTED.
+    // O perdedor da corrida nunca chega a chamar updateFirmMember, evitando que
+    // sobreponha silenciosamente a senha já definida pelo vencedor.
+    const claimed = await firmMemberInvitesRepository.markInviteAccepted(invite.id);
+    if (!claimed) {
+        throw new AppError('Este convite já foi utilizado para criar acesso.', 410, {
+            code: 'INVITE_ALREADY_USED',
+        });
+    }
+
     const passwordHash = await hashPassword(String(password));
     const nextName = String(fullName || '').trim();
 
@@ -304,8 +315,6 @@ async function acceptInvite({ token, email, password, fullName, req }) {
         isActive: false,
         emailConfirmedAt: null,
     });
-
-    await firmMemberInvitesRepository.markInviteAccepted(invite.id);
 
     const firm = await firmsRepository.findFirmById(invite.firm_id).catch(() => null);
     const confirmationDelivery = await sendEmailConfirmationForMember({

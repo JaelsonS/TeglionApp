@@ -121,7 +121,7 @@ router.post(
   teamInvitesController.acceptPublic,
 );
 router.get('/team/email-confirm/:token', invitePreviewLimiter, teamInvitesController.confirmEmailPublic);
-router.get('/firm-branding', firmBrandingPublic.validators, firmBrandingPublic.getBySlug);
+router.get('/firm-branding', serviceViewLimiter, firmBrandingPublic.validators, firmBrandingPublic.getBySlug);
 router.post(
   '/blog/newsletter',
   newsletterLimiter,

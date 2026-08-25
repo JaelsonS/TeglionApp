@@ -51,12 +51,16 @@ function createFakeSupabase(tables) {
           return builder;
         },
         async maybeSingle() {
+          if (pendingUpdate) {
+            const affected = matches();
+            affected.forEach((r) => Object.assign(r, pendingUpdate));
+            return { data: affected[0] || null, error: null };
+          }
           const found = pendingInsert || matches()[0] || null;
           return { data: found, error: null };
         },
         async single() {
-          const found = pendingInsert || matches()[0] || null;
-          return { data: found, error: null };
+          return builder.maybeSingle();
         },
         then(resolve) {
           if (pendingUpdate) {
@@ -77,13 +81,27 @@ function setup(tables) {
     getSupabaseAdmin: () => fakeSb,
   });
   delete require.cache[require.resolve('../activity/activity.service')];
+  // contabil/shared.js desestrutura getSupabaseAdmin no carregamento do módulo —
+  // preciso invalidar a cadeia inteira para cada teste apanhar o stub actual.
+  delete require.cache[require.resolve('../../db/supabase/repositories/contabil/shared')];
+  delete require.cache[require.resolve('../../db/supabase/repositories/contabil/documents.repository')];
+  delete require.cache[require.resolve('../../db/supabase/repositories/contabil/obligations.repository')];
   delete require.cache[require.resolve('./view-tracking.service')];
   return require('./view-tracking.service');
 }
 
 test('recordView NÃO vaza view_count de outro escritório quando firmId não corresponde ao dono real do documento', async () => {
   const tables = {
-    documents: [{ id: 'doc-1', firm_id: 'firm-A', view_count: 47, first_viewed_at: '2026-01-01T00:00:00.000Z' }],
+    documents: [
+      {
+        id: 'doc-1',
+        firm_id: 'firm-A',
+        client_id: 'client-A-1',
+        is_active: true,
+        view_count: 47,
+        first_viewed_at: '2026-01-01T00:00:00.000Z',
+      },
+    ],
     content_views: [],
   };
   const { recordView } = setup(tables);
@@ -101,18 +119,29 @@ test('recordView NÃO vaza view_count de outro escritório quando firmId não co
   });
 
   // Antes da correção, isso retornava 47 (o contador real do escritório A) — vazamento.
-  // Depois da correção, o firm_id não bate, então a leitura não encontra a linha e o
-  // contador reportado ao chamador (de outro tenant) é 0, não o valor real de outro tenant.
-  assert.equal(result.viewCount, 0, 'não deve retornar o view_count real de outro escritório');
+  // Depois da correção, a entidade não é encontrada sob o firm_id do chamador — nem
+  // sequer chega a registar uma visualização (result é null), muito menos expor o
+  // contador real de outro tenant.
+  assert.equal(result, null, 'não deve registar nem retornar nada para uma entidade de outro escritório');
 
   // E a escrita continua protegida: o documento do escritório A não foi alterado por um
   // request autenticado como escritório B.
   assert.equal(tables.documents[0].view_count, 47, 'contador do escritório A não deve mudar por request de outro escritório');
+  assert.equal(tables.content_views.length, 0, 'nenhuma linha de content_views deve ser criada para entidade de outro escritório');
 });
 
 test('recordView continua funcionando normalmente quando firmId corresponde ao dono real do documento', async () => {
   const tables = {
-    documents: [{ id: 'doc-1', firm_id: 'firm-A', view_count: 3, first_viewed_at: '2026-01-01T00:00:00.000Z' }],
+    documents: [
+      {
+        id: 'doc-1',
+        firm_id: 'firm-A',
+        client_id: 'client-A-1',
+        is_active: true,
+        view_count: 3,
+        first_viewed_at: '2026-01-01T00:00:00.000Z',
+      },
+    ],
     content_views: [],
   };
   const { recordView } = setup(tables);
@@ -131,4 +160,68 @@ test('recordView continua funcionando normalmente quando firmId corresponde ao d
 
   assert.equal(result.viewCount, 4, 'contador do próprio escritório continua incrementando normalmente');
   assert.equal(tables.documents[0].view_count, 4);
+});
+
+// Regressão: recordView() gravava entityId directamente do req.params sem confirmar que
+// pertence ao firmId/clientId do ator. Um cliente conseguia apontar entityId para um
+// documento de OUTRO cliente da mesma firm, poluindo a trilha de actividade/analytics.
+test('recordView rejeita entityId de um documento pertencente a outro cliente da mesma firm', async () => {
+  const tables = {
+    documents: [{ id: 'doc-1', firm_id: 'firm-A', client_id: 'client-A-OUTRO', is_active: true, view_count: 0 }],
+    content_views: [],
+  };
+  const { recordView } = setup(tables);
+
+  const result = await recordView({
+    firmId: 'firm-A',
+    clientId: 'client-A-1',
+    entityType: 'DOCUMENT',
+    entityId: 'doc-1',
+    viewerRole: 'CLIENT',
+    viewerId: 'client-A-1',
+    viewerName: 'Cliente A',
+    ipAddress: '1.2.3.4',
+    userAgent: 'test-agent',
+  });
+
+  assert.equal(result, null, 'não deve registar visualização de um documento que não é do cliente autenticado');
+  assert.equal(tables.content_views.length, 0);
+});
+
+// Regressão: endView() actualizava content_views só por `id`, sem confirmar que a
+// visualização pertence ao firmId/viewerId de quem chama — permitia a um utilizador
+// autenticado (de qualquer firm) alterar duration_seconds/view_ended_at de qualquer
+// registo cujo UUID conseguisse obter.
+test('endView não altera uma visualização que não pertence ao firmId/viewerId do chamador', async () => {
+  const tables = {
+    content_views: [{ id: 'view-1', firm_id: 'firm-A', viewer_id: 'client-A-1', duration_seconds: 0 }],
+  };
+  const { endView } = setup(tables);
+
+  const result = await endView({
+    viewId: 'view-1',
+    durationSeconds: 999,
+    firmId: 'firm-B',
+    viewerId: 'client-B-attacker',
+  });
+
+  assert.equal(result, null, 'não deve conseguir reclamar/alterar uma visualização de outro tenant');
+  assert.equal(tables.content_views[0].duration_seconds, 0, 'a visualização real não deve ter sido alterada');
+});
+
+test('endView actualiza normalmente quando firmId/viewerId correspondem ao dono da visualização', async () => {
+  const tables = {
+    content_views: [{ id: 'view-1', firm_id: 'firm-A', viewer_id: 'client-A-1', duration_seconds: 0 }],
+  };
+  const { endView } = setup(tables);
+
+  const result = await endView({
+    viewId: 'view-1',
+    durationSeconds: 42,
+    firmId: 'firm-A',
+    viewerId: 'client-A-1',
+  });
+
+  assert.ok(result);
+  assert.equal(tables.content_views[0].duration_seconds, 42);
 });
