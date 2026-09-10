@@ -4,7 +4,8 @@
 
 Este documento é o ponto de entrada da minha pasta `security/`. Aqui eu resumo a postura de segurança do Teglion e aponto pra onde cada assunto está tratado em detalhe — não repito o conteúdo dos outros arquivos:
 
-- [`AUTHENTICATION.md`](./AUTHENTICATION.md) — login, sessão, JWT em cookie, senha, bloqueio de força bruta.
+- [`AUTHENTICATION.md`](./AUTHENTICATION.md) — login, sessão, JWT em cookie, senha, bloqueio de força bruta, e resumo do MFA.
+- [`MFA_FASE4.md`](./MFA_FASE4.md) — autenticação de dois factores (TOTP): quem é obrigado, trocar de app, códigos de recuperação, endpoints.
 - [`AUTHORIZATION.md`](./AUTHORIZATION.md) — papéis, permissões, e o achado de escalação de privilégio (SEC-H1).
 - [`TENANT_ISOLATION.md`](./TENANT_ISOLATION.md) — como o isolamento entre escritórios funciona de verdade, o que testa isso, e o risco conhecido que ainda está em aberto.
 - [`DATA_PROTECTION.md`](./DATA_PROTECTION.md) — dados em repouso e em trânsito, gestão de segredos, lacuna de LGPD/GDPR.

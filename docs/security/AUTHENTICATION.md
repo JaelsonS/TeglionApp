@@ -53,3 +53,13 @@ Ver detalhe completo, com evidência de teste, em [`AUTHORIZATION.md`](./AUTHORI
 ## O que não verifiquei nesta revisão
 
 Não reauditei em detalhe nesta rodada o fluxo de recuperação de senha (reset por e-mail) — os tokens (`password_reset_tokens`, `email_confirmation_tokens`) aparecem classificados como "token lifecycle (seguro)" na varredura estática de isolamento (ver `SECURITY_TESTING.md`), mas isso é uma checagem automática de padrão, não um teste funcional completo do fluxo que fiz. Não cubro autenticação via Google OAuth (login social) neste documento — ver [`docs/architecture/INTEGRATIONS.md`](../architecture/INTEGRATIONS.md) pra o que já tenho de integração Google; o gate de segurança (`SECURITY_TESTING.md`) trata OAuth do calendário, não login social geral.
+
+## Autenticação de dois factores (MFA) — `IMPLEMENTADO`
+
+O MFA TOTP está em produção no produto: dono do escritório é obrigado a configurar; equipa pode optar. Detalhe completo — incluindo **trocar de app sem desligar o MFA** e porque a recuperação **não** é por e-mail — está em [`MFA_FASE4.md`](./MFA_FASE4.md) (o nome do ficheiro ficou da fase de implementação; o conteúdo descreve o estado actual).
+
+Resumo do que importa para quem lê só este documento:
+
+- Depois da password (ou Google SSO), se MFA estiver activo, a sessão completa só chega depois do código da app (ou de um código de recuperação).
+- Segredo TOTP cifrado; códigos de recuperação one-shot; o dono **não** pode desactivar o MFA — troca a app pelo fluxo de rotação em Definições → Segurança.
+- Não envio códigos MFA por e-mail/SMS de propósito: quem controlasse o e-mail podia trocar o segundo factor.
