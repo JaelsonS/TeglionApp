@@ -29,10 +29,13 @@ import {
   resolveCompanyType,
   type CompanyTypeLabel,
 } from '@/features/firm/clients/clientCompanyAvatar'
+import { resolvePortalInviteUi } from '@/features/firm/clients/portalInviteStatus'
 import { FirmScrollPage } from '@/features/firm/FirmPageLayout'
 import { ClientsSpreadsheetDialog } from '@/features/firm/clients/ClientsSpreadsheetDialog'
 import { CreateCompanyWizard } from '@/features/firm/components/CreateCompanyWizard'
 import { FirmClientBulkInviteDialog } from '@/features/firm/components/FirmClientBulkInviteDialog'
+import { FirmClientInviteButton } from '@/features/firm/components/FirmClientInviteButton'
+import { FirmClientAccessManager } from '@/features/firm/components/FirmClientAccessManager'
 import { FirmTagBadge } from '@/features/firm/tags/FirmTagBadge'
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
@@ -416,11 +419,18 @@ export function FirmClientsPage() {
               />
             ) : (
               pageItems.map((c) => (
-                <button
+                <div
                   key={c._id}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
                   className="cb-clients-grid-card text-left"
                   onClick={() => openHub(c._id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      openHub(c._id)
+                    }
+                  }}
                 >
                   <div className="flex items-center gap-2">
                     <CompanyAvatar client={c} />
@@ -434,11 +444,22 @@ export function FirmClientsPage() {
                       {resolveCompanyType(c)}
                     </span>
                     <span className={cn(estadoPill(c).className)}>{estadoPill(c).label}</span>
+                    {(() => {
+                      const portal = resolvePortalInviteUi(c)
+                      return <span className={cn(portal.className)}>{portal.label}</span>
+                    })()}
                     {(c.tags || []).slice(0, 3).map((t) => (
                       <FirmTagBadge key={t.id} tag={t} />
                     ))}
                   </div>
-                </button>
+                  <div
+                    className="mt-2"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  >
+                    <ClientPortalAccessAction client={c} onChanged={() => void refreshClients()} />
+                  </div>
+                </div>
               ))
             )}
           </div>
@@ -460,13 +481,14 @@ export function FirmClientsPage() {
                   <th className="w-32 text-center">Obrigações pendentes</th>
                   <th className="w-28">Última actividade</th>
                   <th className="w-24">Estado</th>
+                  <th className="w-36">Acesso portal</th>
                   <th className="w-10" />
                 </tr>
               </thead>
               <tbody>
                 {pageItems.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="cb-dash-empty">
+                    <td colSpan={9} className="cb-dash-empty">
                       Nenhum cliente neste filtro.
                       <Button className="mt-2 h-8" size="sm" onClick={() => setOpenCreate(true)}>
                         Novo cliente
@@ -479,6 +501,7 @@ export function FirmClientsPage() {
                     const obCount = c.pendingObligationsCount ?? 0
                     const dot = pendingObligationDot(obCount)
                     const estado = estadoPill(c)
+                    const portal = resolvePortalInviteUi(c)
                     const isSelected = selected.has(c._id)
 
                     return (
@@ -528,6 +551,12 @@ export function FirmClientsPage() {
                         <td className="text-xs text-muted-foreground">{lastActivityLabel(c)}</td>
                         <td>
                           <span className={cn(estado.className)}>{estado.label}</span>
+                        </td>
+                        <td>
+                          <div className="flex flex-col items-start gap-1.5">
+                            <span className={cn(portal.className)}>{portal.label}</span>
+                            <ClientPortalAccessAction client={c} onChanged={() => void refreshClients()} />
+                          </div>
                         </td>
                         <td>
                           <DropdownMenu>
@@ -649,4 +678,48 @@ export function FirmClientsPage() {
       />
     </FirmScrollPage>
   )
+}
+
+function ClientPortalAccessAction({
+  client,
+  onChanged,
+}: {
+  client: Client
+  onChanged?: () => void
+}) {
+  const portal = resolvePortalInviteUi(client)
+  if (portal.primaryAction === 'send_invite' || portal.primaryAction === 'resend_invite') {
+    if (client.portalAccessStatus === 'ACTIVE' || client.portalAccessStatus === 'REVOKED') {
+      return (
+        <FirmClientAccessManager
+          clientId={client._id}
+          email={client.email}
+          portalAccessStatus={client.portalAccessStatus}
+          onChanged={onChanged}
+          size="sm"
+        />
+      )
+    }
+    return (
+      <FirmClientInviteButton
+        clientId={client._id}
+        email={client.email}
+        size="sm"
+        onDone={onChanged}
+        label={portal.primaryAction === 'resend_invite' ? 'Reenviar convite' : 'Enviar convite'}
+      />
+    )
+  }
+  if (portal.primaryAction === 'manage_access') {
+    return (
+      <FirmClientAccessManager
+        clientId={client._id}
+        email={client.email}
+        portalAccessStatus={client.portalAccessStatus || 'ACTIVE'}
+        onChanged={onChanged}
+        size="sm"
+      />
+    )
+  }
+  return null
 }

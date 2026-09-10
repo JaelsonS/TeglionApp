@@ -33,6 +33,7 @@ import { PublicSiteCtaButtons } from '@/features/public-intake/PublicSiteCtaButt
 import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
 import { priceTaxModeCaption } from '@/shared/utils/priceTaxMode'
 import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
+import { buildGoogleMapsUrl } from '@/shared/utils/googleMapsUrl'
 import {
   Accordion,
   AccordionContent,
@@ -745,7 +746,14 @@ export function ContactSection({
     content.showPhone && ctx.contact.phone
       ? { key: 'phone', icon: Phone, label: ctx.contact.phone, href: `tel:${ctx.contact.phone.replace(/[^\d+]/g, '')}` }
       : null,
-    content.showAddress && ctx.contact.address ? { key: 'address', icon: MapPin, label: ctx.contact.address, href: null } : null,
+    content.showAddress && ctx.contact.address
+      ? {
+          key: 'address',
+          icon: MapPin,
+          label: ctx.contact.address,
+          href: buildGoogleMapsUrl({ address: ctx.contact.address }),
+        }
+      : null,
   ].filter((r): r is NonNullable<typeof r> => Boolean(r))
   const hasCtas = (content.ctas?.length ?? 0) > 0
   if (rows.length === 0 && !hasCtas) return null
@@ -763,7 +771,15 @@ export function ContactSection({
       <div className={`mx-auto max-w-2xl lg:max-w-4xl space-y-2 ${text ? '' : 'text-muted-foreground'}`}>
         {rows.map(({ key, icon: Icon, label, href }) =>
           href ? (
-            <a key={key} href={href} className="flex items-center justify-center gap-1.5 hover:opacity-80" style={text ? { color: text } : undefined}>
+            <a
+              key={key}
+              href={href}
+              className="flex items-center justify-center gap-1.5 hover:opacity-80"
+              style={text ? { color: text } : undefined}
+              {...(key === 'address'
+                ? { target: '_blank', rel: 'noopener noreferrer' }
+                : {})}
+            >
               <Icon className="h-3.5 w-3.5" /> {label}
             </a>
           ) : (
@@ -801,6 +817,29 @@ export function FooterSection({
   ].filter((s): s is typeof s & { href: string } => Boolean(s.href))
   const bg = hexStyle(content?.backgroundColor)
   const text = hexStyle(content?.textColor)
+
+  const footerEmail = (content?.email || '').trim() || ctx.contact.email
+  const footerPhone = (content?.phone || '').trim() || ctx.contact.phone
+  const footerAddress = (content?.address || '').trim() || ctx.contact.address
+  const mapsHref = footerAddress ? buildGoogleMapsUrl({ address: footerAddress }) : null
+
+  const contactRows = [
+    footerEmail
+      ? { key: 'email', icon: Mail, label: footerEmail, href: `mailto:${footerEmail}` as string | null }
+      : null,
+    footerPhone
+      ? {
+          key: 'phone',
+          icon: Phone,
+          label: footerPhone,
+          href: `tel:${footerPhone.replace(/[^\d+]/g, '')}` as string | null,
+        }
+      : null,
+    footerAddress
+      ? { key: 'address', icon: MapPin, label: footerAddress, href: mapsHref }
+      : null,
+  ].filter((r): r is NonNullable<typeof r> => Boolean(r))
+
   return (
     <footer
       className={bg ? 'border-t border-black/5' : 'border-t border-border/40 bg-transparent'}
@@ -829,6 +868,31 @@ export function FooterSection({
         className="mx-auto flex max-w-2xl lg:max-w-4xl flex-col items-center gap-2 px-4 pb-6 text-center text-xs"
         style={text ? { color: text } : undefined}
       >
+        {contactRows.length > 0 ? (
+          <div className={`mb-2 space-y-1.5 ${text ? '' : 'text-muted-foreground'}`}>
+            {contactRows.map(({ key, icon: Icon, label, href }) =>
+              href ? (
+                <a
+                  key={key}
+                  href={href}
+                  className="flex items-center justify-center gap-1.5 hover:opacity-80"
+                  style={text ? { color: text } : undefined}
+                  {...(key === 'address' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                >
+                  <Icon className="h-3.5 w-3.5" /> {label}
+                </a>
+              ) : (
+                <p
+                  key={key}
+                  className="flex items-center justify-center gap-1.5"
+                  style={text ? { color: text } : undefined}
+                >
+                  <Icon className="h-3.5 w-3.5" /> {label}
+                </p>
+              ),
+            )}
+          </div>
+        ) : null}
         {ctx.complaintsBookUrl ? (
           <a
             href={ctx.complaintsBookUrl}

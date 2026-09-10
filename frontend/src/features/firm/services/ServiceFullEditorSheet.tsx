@@ -43,7 +43,12 @@ import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
 import { Dialog, DialogContent, DialogTitle } from '@/shared/components/ui/dialog'
 import { DurationMinutesField, EuroInput, RichTextEditor, UploadDropzone } from '@/shared/design-system'
-import { ImagePositionEditor } from '@/shared/components/media/ImagePositionEditor'
+import {
+  DEFAULT_IMAGE_POSITION,
+  ImagePositionFrame,
+  ImagePositionZoomSlider,
+  type ImagePosition,
+} from '@/shared/components/media/ImagePositionEditor'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -211,7 +216,9 @@ export function ServiceFullEditorSheet({
    * o `imageUrl` devolvido pela API gravaria uma URL assinada temporária. */
   const [imageDirty, setImageDirty] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [positionOpen, setPositionOpen] = useState(false)
+  /** Modo de reposicionamento no próprio contentor da imagem (sem modal). */
+  const [repositioning, setRepositioning] = useState(false)
+  const [draftPosition, setDraftPosition] = useState<ImagePosition>(DEFAULT_IMAGE_POSITION)
 
   const [slug, setSlug] = useState('')
   const [isPubliclyListed, setIsPubliclyListed] = useState(false)
@@ -257,6 +264,7 @@ export function ServiceFullEditorSheet({
     setTab('geral')
     setNewDocDraft({})
     setImageDirty(false)
+    setRepositioning(false)
     if (service) {
       const form = service.intakeForm
       const serviceQuestions = form?.questions ?? []
@@ -491,8 +499,9 @@ export function ServiceFullEditorSheet({
         setImageFocusY(50)
         setImageZoom(1)
         setImageDirty(true)
-        setPositionOpen(true)
-        toast.success('Imagem carregada — ajuste o enquadramento')
+        setDraftPosition(DEFAULT_IMAGE_POSITION)
+        setRepositioning(true)
+        toast.success('Imagem carregada — ajuste o enquadramento na imagem')
       } catch (err) {
         toast.error('Não foi possível carregar a imagem', { description: getErrorMessage(err) })
       } finally {
@@ -501,14 +510,29 @@ export function ServiceFullEditorSheet({
     })()
   }
 
-  const savePosition = (position: { focusX: number; focusY: number; zoom: number }) => {
-    setImageFocusX(position.focusX)
-    setImageFocusY(position.focusY)
-    setImageZoom(position.zoom)
+  const beginReposition = () => {
+    setDraftPosition({
+      focusX: imageFocusX ?? 50,
+      focusY: imageFocusY ?? 50,
+      zoom: imageZoom ?? 1,
+    })
+    setRepositioning(true)
+  }
+
+  const confirmReposition = () => {
+    setImageFocusX(draftPosition.focusX)
+    setImageFocusY(draftPosition.focusY)
+    setImageZoom(draftPosition.zoom)
     setImageDirty(true)
+    setRepositioning(false)
+  }
+
+  const cancelReposition = () => {
+    setRepositioning(false)
   }
 
   const removeBanner = () => {
+    setRepositioning(false)
     setImageStorageKey(null)
     setImageUrl(null)
     setImageOriginalUrl(null)
@@ -827,35 +851,69 @@ export function ServiceFullEditorSheet({
                 description="Aparece na página pública do serviço e no cartão do serviço."
               >
                 {imageUrl ? (
-                  <div className="relative overflow-hidden rounded-xl border border-brand/20">
-                    <img
-                      src={imageUrl}
-                      alt=""
-                      className="h-56 w-full"
-                      style={servicePositionedImageStyle({ imageFocusX, imageFocusY, imageZoom })}
-                    />
-                    <div className="absolute right-2 top-2 flex gap-1.5">
-                      {imageOriginalUrl ? (
-                        <button
-                          type="button"
-                          className="rounded-full bg-card/90 px-3 py-1 text-xs font-medium shadow-sm"
-                          onClick={() => setPositionOpen(true)}
-                        >
-                          Reposicionar
-                        </button>
+                  <div className="space-y-2">
+                    <div className="relative overflow-hidden rounded-xl border border-brand/20">
+                      {repositioning ? (
+                        <ImagePositionFrame
+                          imageUrl={imageUrl}
+                          position={draftPosition}
+                          onChange={setDraftPosition}
+                          className="h-56 w-full"
+                        />
+                      ) : (
+                        <img
+                          src={imageUrl}
+                          alt=""
+                          className="h-56 w-full"
+                          style={servicePositionedImageStyle({ imageFocusX, imageFocusY, imageZoom })}
+                        />
+                      )}
+                      {!repositioning ? (
+                        <div className="absolute right-2 top-2 flex gap-1.5">
+                          {imageOriginalUrl ? (
+                            <button
+                              type="button"
+                              className="rounded-full bg-card/90 px-3 py-1 text-xs font-medium shadow-sm"
+                              onClick={beginReposition}
+                            >
+                              Reposicionar
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            className="rounded-full bg-card/90 px-3 py-1 text-xs font-medium shadow-sm"
+                            onClick={removeBanner}
+                          >
+                            Remover imagem
+                          </button>
+                        </div>
                       ) : null}
-                      <button
-                        type="button"
-                        className="rounded-full bg-card/90 px-3 py-1 text-xs font-medium shadow-sm"
-                        onClick={removeBanner}
-                      >
-                        Remover imagem
-                      </button>
+                      {!imageOriginalUrl && !repositioning ? (
+                        <p className="absolute inset-x-0 bottom-0 bg-card/90 px-3 py-1.5 text-caption text-muted-foreground">
+                          Imagem antiga (recorte fixo) — envie uma nova para poder reposicionar.
+                        </p>
+                      ) : null}
+                      {repositioning ? (
+                        <p className="absolute inset-x-0 bottom-0 bg-card/90 px-3 py-1.5 text-caption text-muted-foreground">
+                          Arraste a imagem para escolher o que fica visível.
+                        </p>
+                      ) : null}
                     </div>
-                    {!imageOriginalUrl ? (
-                      <p className="absolute inset-x-0 bottom-0 bg-card/90 px-3 py-1.5 text-caption text-muted-foreground">
-                        Imagem antiga (recorte fixo) — envie uma nova para poder reposicionar.
-                      </p>
+                    {repositioning ? (
+                      <div className="space-y-2 rounded-xl border border-brand/20 bg-muted/20 p-3">
+                        <ImagePositionZoomSlider
+                          zoom={draftPosition.zoom}
+                          onChange={(zoom) => setDraftPosition((prev) => ({ ...prev, zoom }))}
+                        />
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <Button type="button" variant="outline" size="sm" onClick={cancelReposition}>
+                            Cancelar
+                          </Button>
+                          <Button type="button" size="sm" onClick={confirmReposition}>
+                            Concluir enquadramento
+                          </Button>
+                        </div>
+                      </div>
                     ) : null}
                   </div>
                 ) : (
@@ -1355,19 +1413,6 @@ export function ServiceFullEditorSheet({
         </AlertDialogContent>
       </AlertDialog>
 
-      <ImagePositionEditor
-        open={positionOpen}
-        onOpenChange={setPositionOpen}
-        imageUrl={imageUrl}
-        initialPosition={{
-          focusX: imageFocusX ?? 50,
-          focusY: imageFocusY ?? 50,
-          zoom: imageZoom ?? 1,
-        }}
-        aspect={16 / 9}
-        title="Reposicionar banner do serviço"
-        onSave={savePosition}
-      />
     </>
   )
 }

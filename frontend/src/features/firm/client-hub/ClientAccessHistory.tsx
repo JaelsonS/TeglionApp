@@ -4,8 +4,8 @@ import { History } from 'lucide-react'
 import { contabilClientsApi } from '@/infrastructure/api'
 
 const STATUS_LABELS: Record<string, string> = {
-  NO_ACCESS: 'Sem acesso',
-  PENDING_INVITE: 'Convite pendente',
+  NO_ACCESS: 'Convite não enviado',
+  PENDING_INVITE: 'Convite enviado',
   ACTIVE: 'Acesso activo',
   REVOKED: 'Acesso revogado',
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ExternalLink, Eye, Facebook, Globe, Instagram, Linkedin, Loader2, MessageCircle, Save, Trash2, Upload } from 'lucide-react'
+import { ExternalLink, Eye, Facebook, Globe, Instagram, Linkedin, Loader2, MessageCircle, Plus, Save, Trash2, Upload } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { toast } from 'sonner'
@@ -48,6 +48,10 @@ import {
   reindexPublicSiteSectionsOrder,
   reorderPublicSiteSections,
 } from './publicSiteSectionOrder'
+import {
+  addCustomCatalogSection,
+  removePublicSiteSection,
+} from './publicSiteSectionFactory'
 import { applyPageBackgroundColor, parsePublicSiteHex } from './publicSitePageBackground'
 
 const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
@@ -73,7 +77,7 @@ const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
   process: 'Passos do processo',
   faq: 'Perguntas e respostas',
   contact: 'Contactos e botões',
-  footer: 'Cores do rodapé',
+  footer: 'Cores e contactos do rodapé',
 }
 
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -341,6 +345,34 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     toast.success('Ordem recomendada aplicada.')
   }
 
+  const onAddSection = () => {
+    if (!draft) return
+    const result = addCustomCatalogSection(draft.sections)
+    if ('error' in result) {
+      toast.error(result.error)
+      return
+    }
+    setDraft({ ...draft, sections: reindexPublicSiteSectionsOrder(result.sections) })
+    setSectionOpenState((prev) => ({ ...prev, [result.focusKey]: true }))
+    toast.success('Secção adicionada — edite o título, as cores e os botões')
+  }
+
+  const onRemoveSection = (key: string) => {
+    if (!draft) return
+    const result = removePublicSiteSection(draft.sections, key)
+    if ('error' in result) {
+      toast.error(result.error)
+      return
+    }
+    setDraft({ ...draft, sections: reindexPublicSiteSectionsOrder(result.sections) })
+    setSectionOpenState((prev) => {
+      const next = { ...prev }
+      delete next[key]
+      return next
+    })
+    toast.success('Secção removida')
+  }
+
   if (siteQuery.isLoading || !draft) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -477,16 +509,23 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               2 · Secções do site
             </p>
-            <button
-              type="button"
-              className="text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-              onClick={onApplyRecommendedOrder}
-            >
-              Ordem recomendada
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button type="button" variant="outline" size="sm" className="h-8" onClick={onAddSection}>
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                Adicionar secção
+              </Button>
+              <button
+                type="button"
+                className="text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                onClick={onApplyRecommendedOrder}
+              >
+                Ordem recomendada
+              </button>
+            </div>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            À esquerda: arrastar para mudar a ordem. À direita: abrir as opções da secção.
+            À esquerda: arrastar para mudar a ordem. À direita: abrir as opções. As secções de modelo não se
+            apagam — só as que criar com «Adicionar secção».
           </p>
           <PublicSiteSectionsList
             sections={sortedSections}
@@ -501,29 +540,50 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               }
             }}
             onReorder={onReorderSections}
+            onRemove={onRemoveSection}
             renderEditor={(section) => (
-              <SectionEditorSwitch
-                section={section}
-                onChange={(content) => patchSectionContent(section.key, content)}
-                publicDisplayName={previewFirmName}
-                services={previewServices}
-                officePhone={bundle.contact?.phone}
-                socialWhatsapp={draft.socialLinks?.whatsapp}
-                imageUrl={
-                  section.type === 'hero'
-                    ? resolveSectionImageUrl(section, 'hero')
-                    : section.type === 'about'
-                      ? resolveSectionImageUrl(section, 'institutional')
-                      : null
-                }
-                uploadingImage={uploadingImageKey === section.key}
-                onUploadImage={(file: File) =>
-                  void uploadSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero', file)
-                }
-                onRemoveImage={() =>
-                  removeSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero')
-                }
-              />
+              <div className="space-y-3">
+                <SectionEditorSwitch
+                  section={section}
+                  onChange={(content) => patchSectionContent(section.key, content)}
+                  publicDisplayName={previewFirmName}
+                  services={previewServices}
+                  officePhone={bundle.contact?.phone}
+                  officeContact={bundle.contact}
+                  socialWhatsapp={draft.socialLinks?.whatsapp}
+                  bookingFilter={
+                    section.type === 'services' ? true : section.type === 'bookingServices' ? false : undefined
+                  }
+                  imageUrl={
+                    section.type === 'hero'
+                      ? resolveSectionImageUrl(section, 'hero')
+                      : section.type === 'about'
+                        ? resolveSectionImageUrl(section, 'institutional')
+                        : null
+                  }
+                  uploadingImage={uploadingImageKey === section.key}
+                  onUploadImage={(file: File) =>
+                    void uploadSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero', file)
+                  }
+                  onRemoveImage={() =>
+                    removeSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero')
+                  }
+                />
+                {section.custom ? (
+                  <div className="flex justify-end border-t border-border/40 pt-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive hover:bg-destructive/10"
+                      onClick={() => onRemoveSection(section.key)}
+                    >
+                      <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                      Apagar esta secção
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
             )}
           />
 
@@ -746,8 +806,10 @@ function SectionEditorSwitch({
   onRemoveImage,
   services,
   officePhone,
+  officeContact,
   publicDisplayName,
   socialWhatsapp,
+  bookingFilter,
 }: {
   section: PublicSiteSection
   onChange: (content: PublicSiteSection['content']) => void
@@ -757,8 +819,11 @@ function SectionEditorSwitch({
   onRemoveImage: () => void
   services: PublicFirmServiceSummary[]
   officePhone?: string | null
+  officeContact?: { email?: string | null; phone?: string | null; address?: string | null }
   publicDisplayName?: string
   socialWhatsapp?: string | null
+  /** true = só com agendamento; false = só sem agendamento */
+  bookingFilter?: boolean
 }) {
   switch (section.type) {
     case 'hero':
@@ -799,6 +864,7 @@ function SectionEditorSwitch({
           services={services}
           officePhone={officePhone}
           socialWhatsapp={socialWhatsapp}
+          bookingFilter={bookingFilter ?? true}
         />
       )
     case 'bookingServices':
@@ -810,6 +876,7 @@ function SectionEditorSwitch({
           services={services}
           officePhone={officePhone}
           socialWhatsapp={socialWhatsapp}
+          bookingFilter={bookingFilter ?? false}
         />
       )
     case 'features':
@@ -843,7 +910,15 @@ function SectionEditorSwitch({
         />
       )
     case 'footer':
-      return <ChromeSectionEditor content={section.content} onChange={onChange} title="Rodapé" />
+      return (
+        <ChromeSectionEditor
+          content={section.content}
+          onChange={onChange}
+          title="Rodapé"
+          showFooterContactFields
+          officeContact={officeContact}
+        />
+      )
     default:
       return null
   }

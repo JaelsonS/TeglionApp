@@ -28,12 +28,18 @@ export function FirmClientInviteButton({
   email,
   size = 'sm',
   onEditClient,
+  onDone,
+  label,
 }: {
   clientId: string
   email?: string | null
   size?: 'sm' | 'default'
   /** Abre a ficha do cliente para o escritório completar o e-mail. */
   onEditClient?: () => void
+  /** Chamado após convite/acesso criado com sucesso. */
+  onDone?: () => void
+  /** Texto do botão principal. */
+  label?: string
 }) {
   const [loading, setLoading] = useState(false)
   const [setupOpen, setSetupOpen] = useState(false)
@@ -109,6 +115,7 @@ export function FirmClientInviteButton({
           description: 'O cliente já pode entrar com o e-mail e a palavra-passe definidos.',
         })
       }
+      onDone?.()
     } catch (err) {
       toast.error(t.firm.inviteError, { description: getErrorMessage(err) })
     } finally {
@@ -132,7 +139,7 @@ export function FirmClientInviteButton({
         }}
       >
         <Link2 className="h-3.5 w-3.5" />
-        {loading ? '…' : t.firm.inviteLink}
+        {loading ? '…' : label || t.firm.inviteLink}
       </Button>
 
       <Dialog open={setupOpen} onOpenChange={setSetupOpen}>

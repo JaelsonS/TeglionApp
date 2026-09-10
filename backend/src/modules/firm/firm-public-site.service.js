@@ -280,6 +280,11 @@ function normalizeSectionContent(type, raw) {
       return {
         backgroundColor: normalizeOptionalHex(content.backgroundColor),
         textColor: normalizeOptionalHex(content.textColor),
+        // Contactos próprios do rodapé — independentes de firms.settings.contact.
+        // String vazia / ausente = herdar Escritório na renderização pública.
+        email: content.email != null ? String(content.email).trim().slice(0, 200) || null : null,
+        phone: content.phone != null ? String(content.phone).trim().slice(0, 40) || null : null,
+        address: content.address != null ? String(content.address).trim().slice(0, 300) || null : null,
       };
     default:
       return {};
@@ -298,6 +303,8 @@ function normalizeSections(rawSections) {
         type,
         enabled: s?.enabled !== false,
         order: Number.isFinite(s?.order) ? s.order : index,
+        // Secções criadas pela contabilista — as de modelo (false/ausente) não se apagam.
+        custom: s?.custom === true,
         content: normalizeSectionContent(type, s?.content),
       };
     })
