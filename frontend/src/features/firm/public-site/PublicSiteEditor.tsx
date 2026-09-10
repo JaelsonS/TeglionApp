@@ -22,7 +22,7 @@ import { firmPublicSiteApi } from '@/infrastructure/api/contabil/firmPublicSite'
 import { firmSettingsApi } from '@/infrastructure/api/contabil/firmSettings'
 import { contabilConsultationsApi, contabilPublicApi } from '@/infrastructure/api'
 import type { FirmSettingsBundle } from '@/shared/types/firmSettings'
-import type { PublicSiteConfig, PublicSiteSection, PublicSiteSectionType } from '@/shared/types/firmPublicSite'
+import type { PublicSiteConfig, PublicSiteSection } from '@/shared/types/firmPublicSite'
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
 import type { FirmBookingSettings } from '@/shared/types/contabil'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -48,7 +48,10 @@ import {
   reindexPublicSiteSectionsOrder,
   reorderPublicSiteSections,
 } from './publicSiteSectionOrder'
-import { ADDABLE_SECTION_TYPES, addOrEnablePublicSiteSection } from './publicSiteSectionFactory'
+import {
+  addCustomCatalogSection,
+  removePublicSiteSection,
+} from './publicSiteSectionFactory'
 import { applyPageBackgroundColor, parsePublicSiteHex } from './publicSitePageBackground'
 
 const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
@@ -101,7 +104,6 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const [savingDisplayName, setSavingDisplayName] = useState(false)
   /** Por secção (key). Ausente = aberto por defeito em header/hero. */
   const [sectionOpenState, setSectionOpenState] = useState<Record<string, boolean>>({})
-  const [addSectionOpen, setAddSectionOpen] = useState(false)
 
   const isSectionEditorOpen = (section: PublicSiteSection) => {
     if (Object.prototype.hasOwnProperty.call(sectionOpenState, section.key)) {
@@ -343,21 +345,32 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     toast.success('Ordem recomendada aplicada.')
   }
 
-  const onAddSection = (type: PublicSiteSectionType) => {
+  const onAddSection = () => {
     if (!draft) return
-    const result = addOrEnablePublicSiteSection(draft.sections, type)
+    const result = addCustomCatalogSection(draft.sections)
     if ('error' in result) {
       toast.error(result.error)
       return
     }
     setDraft({ ...draft, sections: reindexPublicSiteSectionsOrder(result.sections) })
     setSectionOpenState((prev) => ({ ...prev, [result.focusKey]: true }))
-    setAddSectionOpen(false)
-    toast.success(
-      result.created
-        ? `${SECTION_LABELS[type]} adicionada`
-        : `${SECTION_LABELS[type]} activada`,
-    )
+    toast.success('Secção adicionada — edite o título, as cores e os botões')
+  }
+
+  const onRemoveSection = (key: string) => {
+    if (!draft) return
+    const result = removePublicSiteSection(draft.sections, key)
+    if ('error' in result) {
+      toast.error(result.error)
+      return
+    }
+    setDraft({ ...draft, sections: reindexPublicSiteSectionsOrder(result.sections) })
+    setSectionOpenState((prev) => {
+      const next = { ...prev }
+      delete next[key]
+      return next
+    })
+    toast.success('Secção removida')
   }
 
   if (siteQuery.isLoading || !draft) {
@@ -497,7 +510,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               2 · Secções do site
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              <Button type="button" variant="outline" size="sm" className="h-8" onClick={() => setAddSectionOpen(true)}>
+              <Button type="button" variant="outline" size="sm" className="h-8" onClick={onAddSection}>
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
                 Adicionar secção
               </Button>
@@ -511,7 +524,8 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             </div>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            À esquerda: arrastar para mudar a ordem. À direita: abrir as opções da secção.
+            À esquerda: arrastar para mudar a ordem. À direita: abrir as opções. As secções de modelo não se
+            apagam — só as que criar com «Adicionar secção».
           </p>
           <PublicSiteSectionsList
             sections={sortedSections}
@@ -526,59 +540,53 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               }
             }}
             onReorder={onReorderSections}
+            onRemove={onRemoveSection}
             renderEditor={(section) => (
-              <SectionEditorSwitch
-                section={section}
-                onChange={(content) => patchSectionContent(section.key, content)}
-                publicDisplayName={previewFirmName}
-                services={previewServices}
-                officePhone={bundle.contact?.phone}
-                officeContact={bundle.contact}
-                socialWhatsapp={draft.socialLinks?.whatsapp}
-                bookingFilter={
-                  section.type === 'services' ? true : section.type === 'bookingServices' ? false : undefined
-                }
-                imageUrl={
-                  section.type === 'hero'
-                    ? resolveSectionImageUrl(section, 'hero')
-                    : section.type === 'about'
-                      ? resolveSectionImageUrl(section, 'institutional')
-                      : null
-                }
-                uploadingImage={uploadingImageKey === section.key}
-                onUploadImage={(file: File) =>
-                  void uploadSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero', file)
-                }
-                onRemoveImage={() =>
-                  removeSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero')
-                }
-              />
+              <div className="space-y-3">
+                <SectionEditorSwitch
+                  section={section}
+                  onChange={(content) => patchSectionContent(section.key, content)}
+                  publicDisplayName={previewFirmName}
+                  services={previewServices}
+                  officePhone={bundle.contact?.phone}
+                  officeContact={bundle.contact}
+                  socialWhatsapp={draft.socialLinks?.whatsapp}
+                  bookingFilter={
+                    section.type === 'services' ? true : section.type === 'bookingServices' ? false : undefined
+                  }
+                  imageUrl={
+                    section.type === 'hero'
+                      ? resolveSectionImageUrl(section, 'hero')
+                      : section.type === 'about'
+                        ? resolveSectionImageUrl(section, 'institutional')
+                        : null
+                  }
+                  uploadingImage={uploadingImageKey === section.key}
+                  onUploadImage={(file: File) =>
+                    void uploadSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero', file)
+                  }
+                  onRemoveImage={() =>
+                    removeSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero')
+                  }
+                />
+                {section.custom ? (
+                  <div className="flex justify-end border-t border-border/40 pt-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive hover:bg-destructive/10"
+                      onClick={() => onRemoveSection(section.key)}
+                    >
+                      <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                      Apagar esta secção
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
             )}
           />
 
-          {addSectionOpen ? (
-            <div className="rounded-xl border border-border/50 bg-card p-3 shadow-sm">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-foreground">Escolher tipo de secção</p>
-                <Button type="button" variant="ghost" size="sm" className="h-8" onClick={() => setAddSectionOpen(false)}>
-                  Fechar
-                </Button>
-              </div>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {ADDABLE_SECTION_TYPES.map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    className="rounded-lg border border-border/50 px-3 py-2 text-left text-sm hover:border-brand/40 hover:bg-brand/5"
-                    onClick={() => onAddSection(type)}
-                  >
-                    <span className="font-medium text-foreground">{SECTION_LABELS[type]}</span>
-                    <span className="mt-0.5 block text-[11px] text-muted-foreground">{SECTION_HINTS[type]}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
           <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             3 · Complementos
           </p>

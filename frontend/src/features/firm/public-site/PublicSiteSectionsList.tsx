@@ -14,17 +14,17 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { ChevronRight, GripVertical } from 'lucide-react'
+import { ChevronRight, GripVertical, Trash2 } from 'lucide-react'
 import type { ReactNode } from 'react'
 
+import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import type { PublicSiteSection } from '@/shared/types/firmPublicSite'
 import { cn } from '@/shared/lib/utils'
-
-type SectionMeta = {
-  label: string
-  hint: string
-}
+import {
+  isRemovablePublicSiteSection,
+  resolvePublicSiteSectionLabel,
+} from './publicSiteSectionFactory'
 
 type Props = {
   sections: PublicSiteSection[]
@@ -34,24 +34,31 @@ type Props = {
   onToggleOpen: (section: PublicSiteSection) => void
   onToggleEnabled: (key: string, enabled: boolean) => void
   onReorder: (activeKey: string, overKey: string) => void
+  onRemove?: (key: string) => void
   renderEditor: (section: PublicSiteSection) => ReactNode
 }
 
 function SortableSectionCard({
   section,
   index,
-  meta,
+  label,
+  hint,
   open,
+  removable,
   onToggleOpen,
   onToggleEnabled,
+  onRemove,
   children,
 }: {
   section: PublicSiteSection
   index: number
-  meta: SectionMeta
+  label: string
+  hint: string
   open: boolean
+  removable: boolean
   onToggleOpen: () => void
   onToggleEnabled: (enabled: boolean) => void
+  onRemove?: () => void
   children: ReactNode
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -73,14 +80,13 @@ function SortableSectionCard({
       )}
     >
       <div className="flex items-stretch gap-0">
-        {/* Único controlo de ordem: arrastar */}
         <button
           type="button"
           className={cn(
             'flex w-10 shrink-0 cursor-grab touch-none flex-col items-center justify-center gap-0.5 border-r border-border/40 text-muted-foreground',
             'hover:bg-muted/60 hover:text-foreground active:cursor-grabbing',
           )}
-          aria-label={`Arrastar para reordenar: ${meta.label}`}
+          aria-label={`Arrastar para reordenar: ${label}`}
           title="Arrastar para mudar a ordem"
           {...attributes}
           {...listeners}
@@ -93,15 +99,27 @@ function SortableSectionCard({
             <Checkbox
               checked={section.enabled}
               onCheckedChange={(v: boolean | 'indeterminate') => onToggleEnabled(v === true)}
-              aria-label={`Activar ${meta.label}`}
+              aria-label={`Activar ${label}`}
             />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-foreground">
-                {index + 1}. {meta.label}
+                {index + 1}. {label}
               </p>
-              <p className="text-[11px] text-muted-foreground">{meta.hint}</p>
+              <p className="text-[11px] text-muted-foreground">{hint}</p>
             </div>
-            {/* Único controlo de edição: abrir / fechar */}
+            {removable && onRemove ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 shrink-0 text-muted-foreground hover:text-destructive"
+                aria-label={`Apagar ${label}`}
+                title="Apagar esta secção"
+                onClick={onRemove}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            ) : null}
             <button
               type="button"
               onClick={onToggleOpen}
@@ -111,7 +129,7 @@ function SortableSectionCard({
                 open && 'border-brand/30 bg-brand/5 text-foreground',
               )}
               aria-expanded={open}
-              aria-label={open ? `Fechar ${meta.label}` : `Abrir ${meta.label}`}
+              aria-label={open ? `Fechar ${label}` : `Abrir ${label}`}
               title={open ? 'Fechar opções' : 'Abrir opções'}
             >
               <ChevronRight
@@ -138,6 +156,7 @@ export function PublicSiteSectionsList({
   onToggleOpen,
   onToggleEnabled,
   onReorder,
+  onRemove,
   renderEditor,
 }: Props) {
   const sensors = useSensors(
@@ -155,21 +174,30 @@ export function PublicSiteSectionsList({
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
       <SortableContext items={sections.map((s) => s.key)} strategy={verticalListSortingStrategy}>
         <div className="space-y-3">
-          {sections.map((section, index) => (
-            <SortableSectionCard
-              key={section.key}
-              section={section}
-              index={index}
-              meta={{ label: labels[section.type], hint: hints[section.type] }}
-              open={isOpen(section)}
-              onToggleOpen={() => onToggleOpen(section)}
-              onToggleEnabled={(enabled) => {
-                onToggleEnabled(section.key, enabled)
-              }}
-            >
-              {renderEditor(section)}
-            </SortableSectionCard>
-          ))}
+          {sections.map((section, index) => {
+            const label = resolvePublicSiteSectionLabel(section, labels, index)
+            const hint = section.custom
+              ? 'Secção criada por si — título, cores, serviços e botões'
+              : hints[section.type]
+            return (
+              <SortableSectionCard
+                key={section.key}
+                section={section}
+                index={index}
+                label={label}
+                hint={hint}
+                open={isOpen(section)}
+                removable={isRemovablePublicSiteSection(section)}
+                onToggleOpen={() => onToggleOpen(section)}
+                onToggleEnabled={(enabled) => {
+                  onToggleEnabled(section.key, enabled)
+                }}
+                onRemove={onRemove ? () => onRemove(section.key) : undefined}
+              >
+                {renderEditor(section)}
+              </SortableSectionCard>
+            )
+          })}
         </div>
       </SortableContext>
     </DndContext>

@@ -303,6 +303,8 @@ function normalizeSections(rawSections) {
         type,
         enabled: s?.enabled !== false,
         order: Number.isFinite(s?.order) ? s.order : index,
+        // Secções criadas pela contabilista — as de modelo (false/ausente) não se apagam.
+        custom: s?.custom === true,
         content: normalizeSectionContent(type, s?.content),
       };
     })

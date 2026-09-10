@@ -200,7 +200,16 @@ export type PublicSiteChromeContent = {
 
 export type PublicSiteEmptyContent = PublicSiteChromeContent
 
-type PublicSiteSectionBase = { key: string; enabled: boolean; order: number }
+type PublicSiteSectionBase = {
+  key: string
+  enabled: boolean
+  order: number
+  /**
+   * Secção criada pela contabilista («Adicionar secção»).
+   * As de modelo (`custom` ausente/false) não podem ser apagadas — só desactivadas.
+   */
+  custom?: boolean
+}
 
 /** União discriminada por `type` — deixa o TypeScript estreitar `content`
  * automaticamente num `switch(section.type)`, sem casts. */

@@ -16,6 +16,26 @@ function resetMocks() {
   mock.restoreAll();
 }
 
+test('normalizeSiteConfig: preserva custom=true em secções criadas pela contabilista', () => {
+  const config = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'services',
+        custom: true,
+        content: { heading: 'Secção 11', mode: 'auto' },
+      },
+      {
+        type: 'services',
+        content: { heading: 'Consultorias com agendamento', mode: 'auto' },
+      },
+    ],
+  });
+  const custom = config.sections.find((s) => s.content.heading === 'Secção 11');
+  const model = config.sections.find((s) => s.content.heading === 'Consultorias com agendamento');
+  assert.equal(custom.custom, true);
+  assert.equal(model.custom, false);
+});
+
 test('normalizeSiteConfig: footer guarda contactos próprios sem misturar com header title', () => {
   const config = firmPublicSiteService.normalizeSiteConfig({
     sections: [

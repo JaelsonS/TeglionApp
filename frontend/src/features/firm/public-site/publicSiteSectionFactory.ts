@@ -10,29 +10,6 @@ function generateStableId(prefix: string): string {
   return `${prefix}${random}`
 }
 
-/** Tipos que podem existir mais do que uma vez na página. */
-export const DUPLICATABLE_SECTION_TYPES: PublicSiteSectionType[] = [
-  'about',
-  'services',
-  'bookingServices',
-  'features',
-  'process',
-  'faq',
-]
-
-/** Tipos seleccionáveis no «Adicionar secção». */
-export const ADDABLE_SECTION_TYPES: PublicSiteSectionType[] = [
-  'hero',
-  'about',
-  'services',
-  'bookingServices',
-  'features',
-  'process',
-  'faq',
-  'contact',
-  'footer',
-]
-
 export function emptySectionContent(type: PublicSiteSectionType): PublicSiteSection['content'] {
   switch (type) {
     case 'header':
@@ -60,56 +37,71 @@ export function emptySectionContent(type: PublicSiteSectionType): PublicSiteSect
   }
 }
 
-export function createPublicSiteSection(
-  type: PublicSiteSectionType,
-  order: number,
-): PublicSiteSection {
+/**
+ * Secção criada pela contabilista («Adicionar secção»).
+ * Usa o editor de catálogo (cores, título, serviços, botões).
+ * As 10 de modelo (`custom !== true`) não podem ser apagadas.
+ */
+export function createCustomCatalogSection(order: number, displayIndex: number): PublicSiteSection {
   return {
     key: generateStableId('sec_'),
-    type,
+    type: 'services',
     enabled: true,
     order,
-    content: emptySectionContent(type),
-  } as PublicSiteSection
+    custom: true,
+    content: {
+      heading: `Secção ${displayIndex}`,
+      mode: 'auto',
+      ctas: [],
+      backgroundColor: null,
+      headingColor: null,
+    },
+  }
 }
 
 /**
- * Adiciona ou reactiva uma secção.
- * - Se existir desactivada e o tipo não for duplicável → reactiva.
- * - Se já estiver activa e for duplicável → cria nova instância.
- * - Header é único e não aparece no selector (barra do topo).
+ * Cria uma nova secção de catálogo editável (sem ecrã de escolher tipo).
  */
-export function addOrEnablePublicSiteSection(
+export function addCustomCatalogSection(
   sections: PublicSiteSection[],
-  type: PublicSiteSectionType,
-): { sections: PublicSiteSection[]; focusKey: string; created: boolean } | { error: string } {
+): { sections: PublicSiteSection[]; focusKey: string } | { error: string } {
   if (sections.length >= MAX_SECTIONS) {
     return { error: `Só é possível ter até ${MAX_SECTIONS} secções.` }
   }
-
-  const existing = sections.filter((s) => s.type === type)
-  const disabled = existing.find((s) => !s.enabled)
-  const canDuplicate = DUPLICATABLE_SECTION_TYPES.includes(type)
-
-  if (disabled && !canDuplicate) {
-    const next = sections.map((s) => (s.key === disabled.key ? { ...s, enabled: true } : s))
-    return { sections: next, focusKey: disabled.key, created: false }
-  }
-
-  if (existing.some((s) => s.enabled) && !canDuplicate) {
-    const active = existing.find((s) => s.enabled)!
-    return { sections, focusKey: active.key, created: false }
-  }
-
-  if (disabled && canDuplicate && existing.length === 1) {
-    // Prefer reactivar a única instância desligada antes de duplicar.
-    const next = sections.map((s) => (s.key === disabled.key ? { ...s, enabled: true } : s))
-    return { sections: next, focusKey: disabled.key, created: false }
-  }
-
   const maxOrder = sections.reduce((m, s) => Math.max(m, s.order), -1)
-  const created = createPublicSiteSection(type, maxOrder + 1)
-  return { sections: [...sections, created], focusKey: created.key, created: true }
+  const displayIndex = sections.length + 1
+  const created = createCustomCatalogSection(maxOrder + 1, displayIndex)
+  return { sections: [...sections, created], focusKey: created.key }
+}
+
+export function isRemovablePublicSiteSection(section: PublicSiteSection): boolean {
+  return section.custom === true
+}
+
+export function removePublicSiteSection(
+  sections: PublicSiteSection[],
+  key: string,
+): { sections: PublicSiteSection[] } | { error: string } {
+  const target = sections.find((s) => s.key === key)
+  if (!target) return { error: 'Secção não encontrada.' }
+  if (!isRemovablePublicSiteSection(target)) {
+    return { error: 'As secções de modelo não podem ser apagadas — pode desactivá-las.' }
+  }
+  return { sections: sections.filter((s) => s.key !== key) }
+}
+
+/** Rótulo na lista: título editado nas personalizadas; nome do modelo nas restantes. */
+export function resolvePublicSiteSectionLabel(
+  section: PublicSiteSection,
+  modelLabels: Record<PublicSiteSection['type'], string>,
+  index: number,
+): string {
+  if (section.custom) {
+    const heading =
+      'heading' in section.content ? String(section.content.heading || '').trim() : ''
+    return heading || `Secção ${index + 1}`
+  }
+  return modelLabels[section.type]
 }
 
 export function moveItemInArray<T>(items: T[], fromIndex: number, toIndex: number): T[] {
