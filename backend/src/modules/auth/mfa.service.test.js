@@ -296,3 +296,124 @@ describe('mfa.service enroll + verify TOTP', () => {
     assert.equal(result.verified, true);
   });
 });
+
+describe('mfa.service rotate factor', () => {
+  function mockStoredUser(initial) {
+    let stored = initial;
+    mock.method(firmUsersRepository, 'findFirmUserById', async () => stored);
+    mock.method(firmUsersRepository, 'updateFirmUserMfa', async (_id, _firmId, patch) => {
+      stored = {
+        ...stored,
+        mfa_enabled: patch.mfaEnabled ?? stored.mfa_enabled,
+        mfa_totp_secret_enc:
+          patch.mfaTotpSecretEnc === undefined ? stored.mfa_totp_secret_enc : patch.mfaTotpSecretEnc,
+        mfa_totp_pending_secret_enc:
+          patch.mfaTotpPendingSecretEnc === undefined
+            ? stored.mfa_totp_pending_secret_enc
+            : patch.mfaTotpPendingSecretEnc,
+        mfa_recovery_codes_hash:
+          patch.mfaRecoveryCodesHash === undefined
+            ? stored.mfa_recovery_codes_hash
+            : patch.mfaRecoveryCodesHash,
+        mfa_last_verified_at: patch.mfaLastVerifiedAt ?? stored.mfa_last_verified_at,
+      };
+      return stored;
+    });
+    mock.method(authRefreshSessionsRepository, 'deleteAllForActor', async () => {});
+    return {
+      get() {
+        return stored;
+      },
+    };
+  }
+
+  test('owner troca app com TOTP sem desactivar MFA', async () => {
+    mock.restoreAll();
+    const { generateSecret } = require('otplib');
+    const oldSecret = generateSecret();
+    const bag = mockStoredUser(
+      baseOwner({
+        mfa_enabled: true,
+        mfa_totp_secret_enc: encryptField(oldSecret),
+        mfa_recovery_codes_hash: await mfa.hashRecoveryCodes(mfa.generateRecoveryCodesPlain()),
+      }),
+    );
+
+    const proofCode = await generate({ secret: oldSecret });
+    const began = await mfa.beginRotateFactor({
+      userId: USER_A,
+      firmId: FIRM_A,
+      code: proofCode,
+    });
+    assert.ok(began.otpauthUrl.includes('otpauth://'));
+    assert.ok(bag.get().mfa_totp_pending_secret_enc);
+    assert.equal(bag.get().mfa_enabled, true);
+    assert.ok(bag.get().mfa_totp_secret_enc);
+
+    const { decryptField } = require('../../utils/crypto-fields');
+    assert.equal(decryptField(bag.get().mfa_totp_secret_enc), oldSecret);
+    const pendingPlain = decryptField(bag.get().mfa_totp_pending_secret_enc);
+    const newCode = await generate({ secret: pendingPlain });
+    const confirmed = await mfa.confirmRotateFactor({
+      userId: USER_A,
+      firmId: FIRM_A,
+      code: newCode,
+    });
+    assert.equal(confirmed.recoveryCodes.length, 10);
+    assert.equal(bag.get().mfa_totp_pending_secret_enc, null);
+    assert.equal(bag.get().mfa_enabled, true);
+    assert.equal(decryptField(bag.get().mfa_totp_secret_enc), pendingPlain);
+  });
+
+  test('rotate com recovery consome o código e owner não precisa desactivar', async () => {
+    mock.restoreAll();
+    const { generateSecret } = require('otplib');
+    const oldSecret = generateSecret();
+    const recoveryCodes = mfa.generateRecoveryCodesPlain();
+    const bag = mockStoredUser(
+      baseOwner({
+        mfa_enabled: true,
+        mfa_totp_secret_enc: encryptField(oldSecret),
+        mfa_recovery_codes_hash: await mfa.hashRecoveryCodes(recoveryCodes),
+      }),
+    );
+
+    const began = await mfa.beginRotateFactor({
+      userId: USER_A,
+      firmId: FIRM_A,
+      recoveryCode: recoveryCodes[0],
+    });
+    assert.ok(began.otpauthUrl);
+    assert.equal(bag.get().mfa_recovery_codes_hash.length, 9);
+
+    await assert.rejects(
+      () =>
+        mfa.beginRotateFactor({
+          userId: USER_A,
+          firmId: FIRM_A,
+          recoveryCode: recoveryCodes[0],
+        }),
+      (err) => err?.details?.code === 'MFA_INVALID_CODE',
+    );
+  });
+
+  test('cancelRotate limpa pending e mantém secret antigo', async () => {
+    mock.restoreAll();
+    const { generateSecret } = require('otplib');
+    const { decryptField } = require('../../utils/crypto-fields');
+    const oldSecret = generateSecret();
+    const bag = mockStoredUser(
+      baseOwner({
+        mfa_enabled: true,
+        mfa_totp_secret_enc: encryptField(oldSecret),
+      }),
+    );
+    const proofCode = await generate({ secret: oldSecret });
+    await mfa.beginRotateFactor({ userId: USER_A, firmId: FIRM_A, code: proofCode });
+    assert.ok(bag.get().mfa_totp_pending_secret_enc);
+    const cancelled = await mfa.cancelRotateFactor({ userId: USER_A, firmId: FIRM_A });
+    assert.equal(cancelled.cancelled, true);
+    assert.equal(bag.get().mfa_totp_pending_secret_enc, null);
+    assert.equal(decryptField(bag.get().mfa_totp_secret_enc), oldSecret);
+  });
+});

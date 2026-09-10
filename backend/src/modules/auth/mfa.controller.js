@@ -153,6 +153,50 @@ async function regenerateRecovery(req, res, next) {
   }
 }
 
+async function rotateBegin(req, res, next) {
+  try {
+    assertValid(req);
+    const result = await mfaService.beginRotateFactor({
+      userId: req.user.id,
+      firmId: req.user.firmId,
+      code: req.body.code,
+      recoveryCode: req.body.recoveryCode,
+      req,
+    });
+    return res.status(200).json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+async function rotateConfirm(req, res, next) {
+  try {
+    assertValid(req);
+    const result = await mfaService.confirmRotateFactor({
+      userId: req.user.id,
+      firmId: req.user.firmId,
+      code: req.body.code,
+      req,
+    });
+    return res.status(200).json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+async function rotateCancel(req, res, next) {
+  try {
+    const result = await mfaService.cancelRotateFactor({
+      userId: req.user.id,
+      firmId: req.user.firmId,
+      req,
+    });
+    return res.status(200).json(result);
+  } catch (err) {
+    return next(err);
+  }
+}
+
 const enrollConfirmValidators = [body('code').isString().matches(/^\d{6}$/)];
 const challengeVerifyValidators = [
   body('code').optional().isString().matches(/^\d{6}$/),
@@ -163,6 +207,11 @@ const disableValidators = [
   body('recoveryCode').optional().isString().isLength({ min: 8, max: 32 }),
 ];
 const regenerateValidators = [body('code').isString().matches(/^\d{6}$/)];
+const rotateBeginValidators = [
+  body('code').optional().isString().matches(/^\d{6}$/),
+  body('recoveryCode').optional().isString().isLength({ min: 8, max: 32 }),
+];
+const rotateConfirmValidators = [body('code').isString().matches(/^\d{6}$/)];
 
 module.exports = {
   challengeStatus,
@@ -172,10 +221,15 @@ module.exports = {
   challengeVerify,
   disable,
   regenerateRecovery,
+  rotateBegin,
+  rotateConfirm,
+  rotateCancel,
   enrollConfirmValidators,
   challengeVerifyValidators,
   disableValidators,
   regenerateValidators,
+  rotateBeginValidators,
+  rotateConfirmValidators,
   readChallengeToken,
   setMfaChallengeCookie,
 };

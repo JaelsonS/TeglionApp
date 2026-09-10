@@ -566,6 +566,156 @@ async function regenerateRecoveryCodes({ userId, firmId, code, req = null }) {
   return { recoveryCodes: recoveryPlain };
 }
 
+/* Prova identidade com TOTP activo ou código de recuperação (one-shot).*/
+async function proveActiveMfa(row, { code, recoveryCode }) {
+  if (recoveryCode) {
+    const consumed = await consumeRecoveryCode(row.mfa_recovery_codes_hash || [], recoveryCode);
+    if (!consumed.ok) throw invalidMfaCodeError();
+    return { method: 'recovery', remainingHashes: consumed.remaining };
+  }
+  if (!row.mfa_totp_secret_enc) {
+    throw new AppError('MFA não está activo.', 400, { code: 'MFA_NOT_ENABLED' });
+  }
+  let secretPlain;
+  try {
+    secretPlain = decryptField(row.mfa_totp_secret_enc);
+  } catch {
+    throw new AppError('Segredo MFA inválido.', 500, { code: 'MFA_SECRET_CORRUPT' });
+  }
+  const ok = await verifyTotpCode(secretPlain, code, row.id);
+  if (!ok) throw invalidMfaCodeError();
+  return { method: 'totp', remainingHashes: null };
+}
+
+/**
+ * Troca de app TOTP sem desactivar MFA.
+ * 1) Prova com app actual OU recovery → gera pending.
+ * 2) Confirm com código do app novo → substitui secret, emite novos recovery, revoga sessões.
+ */
+async function beginRotateFactor({ userId, firmId, code, recoveryCode, req = null }) {
+  const row = await firmUsersRepository.findFirmUserById(userId, firmId);
+  assertSameTenant(row, firmId);
+  if (!row.mfa_enabled || !row.mfa_totp_secret_enc) {
+    throw new AppError('MFA não está activo.', 400, { code: 'MFA_NOT_ENABLED' });
+  }
+  if (!code && !recoveryCode) {
+    throw new AppError('Indique o código da app actual ou um código de recuperação.', 400, {
+      code: 'MFA_PROOF_REQUIRED',
+    });
+  }
+
+  const proof = await proveActiveMfa(row, { code, recoveryCode });
+  const secret = generateSecret();
+  const otpauthUrl = await generateURI({
+    issuer: ISSUER,
+    label: String(row.email || row.id),
+    secret,
+  });
+  const pendingEnc = encryptField(secret);
+  const patch = {
+    mfaTotpPendingSecretEnc: pendingEnc,
+    mfaLastVerifiedAt: new Date().toISOString(),
+  };
+  if (proof.method === 'recovery') {
+    patch.mfaRecoveryCodesHash = proof.remainingHashes;
+  }
+  await firmUsersRepository.updateFirmUserMfa(row.id, firmId, patch);
+
+  void securityAudit.recordSecurityEvent({
+    firmId,
+    actorRole: firmUsersRepository.jwtRoleFromFirmRole(row.role),
+    actorId: row.id,
+    action: 'mfa.rotate.begin',
+    entityType: 'firm_user',
+    entityId: row.id,
+    metadata: { proof: proof.method },
+    req,
+  });
+
+  return { otpauthUrl };
+}
+
+async function confirmRotateFactor({ userId, firmId, code, req = null }) {
+  const row = await firmUsersRepository.findFirmUserById(userId, firmId);
+  assertSameTenant(row, firmId);
+  if (!row.mfa_enabled || !row.mfa_totp_secret_enc) {
+    throw new AppError('MFA não está activo.', 400, { code: 'MFA_NOT_ENABLED' });
+  }
+  if (!row.mfa_totp_pending_secret_enc) {
+    throw new AppError('Inicie a troca da aplicação de autenticação primeiro.', 400, {
+      code: 'MFA_ROTATE_NOT_STARTED',
+    });
+  }
+
+  let pendingPlain;
+  try {
+    pendingPlain = decryptField(row.mfa_totp_pending_secret_enc);
+  } catch {
+    throw new AppError('Segredo MFA inválido. Reinicie a troca.', 500, { code: 'MFA_SECRET_CORRUPT' });
+  }
+
+  const ok = await verifyTotpCode(pendingPlain, code, `${row.id}:rotate`);
+  if (!ok) {
+    void securityAudit.recordSecurityEvent({
+      firmId,
+      actorRole: firmUsersRepository.jwtRoleFromFirmRole(row.role),
+      actorId: row.id,
+      action: 'mfa.rotate.confirm_failed',
+      entityType: 'firm_user',
+      entityId: row.id,
+      req,
+    });
+    throw invalidMfaCodeError();
+  }
+
+  const recoveryPlain = generateRecoveryCodesPlain();
+  const recoveryHashes = await hashRecoveryCodes(recoveryPlain);
+  const now = new Date().toISOString();
+  await firmUsersRepository.updateFirmUserMfa(row.id, firmId, {
+    mfaEnabled: true,
+    mfaTotpSecretEnc: encryptField(pendingPlain),
+    mfaTotpPendingSecretEnc: null,
+    mfaRecoveryCodesHash: recoveryHashes,
+    mfaLastVerifiedAt: now,
+  });
+
+  await authRefreshSessionsRepository.deleteAllForActor('firm_user', row.id).catch(() => {});
+
+  void securityAudit.recordSecurityEvent({
+    firmId,
+    actorRole: firmUsersRepository.jwtRoleFromFirmRole(row.role),
+    actorId: row.id,
+    action: 'mfa.rotate.confirmed',
+    entityType: 'firm_user',
+    entityId: row.id,
+    metadata: { recoveryCodesIssued: recoveryPlain.length },
+    req,
+  });
+
+  return { recoveryCodes: recoveryPlain, mfaEnabled: true };
+}
+
+async function cancelRotateFactor({ userId, firmId, req = null }) {
+  const row = await firmUsersRepository.findFirmUserById(userId, firmId);
+  assertSameTenant(row, firmId);
+  if (!row.mfa_totp_pending_secret_enc) {
+    return { cancelled: false };
+  }
+  await firmUsersRepository.updateFirmUserMfa(row.id, firmId, {
+    mfaTotpPendingSecretEnc: null,
+  });
+  void securityAudit.recordSecurityEvent({
+    firmId,
+    actorRole: firmUsersRepository.jwtRoleFromFirmRole(row.role),
+    actorId: row.id,
+    action: 'mfa.rotate.cancelled',
+    entityType: 'firm_user',
+    entityId: row.id,
+    req,
+  });
+  return { cancelled: true };
+}
+
 /**
  * Step-up mínimo (Fase 4): TOTP em sessão, ou password do cofre (existente).
  * Scopes completos ficam para Fase 5.
@@ -624,6 +774,9 @@ module.exports = {
   verifyChallenge,
   disableMfa,
   regenerateRecoveryCodes,
+  beginRotateFactor,
+  confirmRotateFactor,
+  cancelRotateFactor,
   verifyMfaOrVaultPassword,
   generateRecoveryCodesPlain,
   hashRecoveryCodes,

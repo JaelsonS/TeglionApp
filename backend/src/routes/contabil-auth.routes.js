@@ -169,5 +169,20 @@ router.post(
   mfaController.regenerateValidators,
   mfaController.regenerateRecovery,
 );
+router.post(
+  '/mfa/rotate/begin',
+  authMiddleware,
+  mfaVerifyLimiter,
+  mfaController.rotateBeginValidators,
+  mfaController.rotateBegin,
+);
+router.post(
+  '/mfa/rotate/confirm',
+  authMiddleware,
+  mfaVerifyLimiter,
+  mfaController.rotateConfirmValidators,
+  mfaController.rotateConfirm,
+);
+router.post('/mfa/rotate/cancel', authMiddleware, mfaVerifyLimiter, mfaController.rotateCancel);
 
 module.exports = router;

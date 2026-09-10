@@ -1,10 +1,8 @@
 # Production Readiness Checklist — Teglion
 
-**Actualizado:** 24/08/2026 (sessão de hardening final, sobre a auditoria independente de 21/08)  
-**Código:** `fix/main-release-blockers` (a promover para `staging` nesta sessão)  
-**Decisão actual:** ver relatório final da sessão de 24/08 — **READY WITH CONDITIONS**, condicionado ao UAT
-autenticado ao vivo (secções G–H, I, J, K, M continuam NOT TESTED — não há credenciais reais disponíveis
-nesta sessão para as validar em browser)
+**Actualizado:** 10/09/2026 (rotação MFA + docs alinhados; testes locais 650 backend / 207 frontend / `build:spa` OK)  
+**Código:** `staging` → promover para `main`  
+**Decisão actual:** código MFA rotate pronto para merge; UAT browser com conta real recomendado após deploy (trocar app + recovery)
 
 Legenda: `PASS` | `FAIL` | `BLOCKED` | `NOT TESTED` | `NOT APPLICABLE`
 
@@ -69,8 +67,10 @@ Legenda: `PASS` | `FAIL` | `BLOCKED` | `NOT TESTED` | `NOT APPLICABLE`
 | Challenge JWT anti-replay (jti) | PASS | 24/08 — achado novo durante o hardening, corrigido + testado |
 | Código TOTP anti-replay (por-utilizador) | PASS | 24/08 — mesmo código não serve 2x (login, sensitive-action, vault) |
 | Rate-limit MFA não multiplica por challenge novo | PASS | 24/08 — F-04, chave agora por identidade decodificada do JWT |
-| UAT MFA live formal | NOT TESTED | obrigatório antes de main — sem credenciais reais nesta sessão |
-| Copy autenticador | PASS | e-mail negado; SMS P2 |
+| Trocar app (rotate) sem desactivar MFA | PASS | 10/09 — begin/confirm/cancel; prova TOTP ou recovery; owner-safe |
+| Recuperação MFA por e-mail | NÃO APPLICÁVEL | deliberado — mailbox ≠ prova de 2FA; ver `MFA_FASE4.md` |
+| UAT MFA live formal | NOT TESTED | smoke de código OK; validar no browser com conta real após deploy |
+| Copy autenticador | PASS | e-mail negado; SMS P2; copy de troca de app em Definições → Segurança |
 
 ## I. Tenant isolation
 
