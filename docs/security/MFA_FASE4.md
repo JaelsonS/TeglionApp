@@ -25,8 +25,18 @@
 - `POST /api/auth/mfa/enroll/begin`
 - `POST /api/auth/mfa/enroll/confirm`
 - `GET /api/auth/mfa/status` (sessão)
-- `POST /api/auth/mfa/disable`
+- `POST /api/auth/mfa/disable` (não disponível para `FIRM_OWNER`)
 - `POST /api/auth/mfa/recovery/regenerate`
+- `POST /api/auth/mfa/rotate/begin` — prova com TOTP actual **ou** recovery; gera pending sem desactivar MFA
+- `POST /api/auth/mfa/rotate/confirm` — confirma TOTP do app novo; substitui secret; emite novos recovery; revoga refresh
+- `POST /api/auth/mfa/rotate/cancel` — limpa pending; MFA antigo mantém-se
+
+## Rotação de factor (trocar app)
+
+- Owner **não** pode desactivar MFA; usa **rotate**.
+- Prova: TOTP activo ou código de recuperação (one-shot). **Não** por e-mail (compromisso de mailbox ≠ prova de 2FA).
+- Até `confirm`, o secret antigo continua válido.
+- Após `confirm`: novos recovery codes; sessões refresh revogadas; audit `mfa.rotate.*`.
 
 ## Crypto
 

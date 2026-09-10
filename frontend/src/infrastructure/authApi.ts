@@ -134,6 +134,14 @@ export const authApi = {
   mfaRegenerateRecovery: (payload: { code: string }) =>
     api.post('/auth/mfa/recovery/regenerate', payload).then((r) => r.data),
 
+  mfaRotateBegin: (payload: { code?: string; recoveryCode?: string }) =>
+    api.post('/auth/mfa/rotate/begin', payload).then((r) => r.data),
+
+  mfaRotateConfirm: (payload: { code: string }) =>
+    api.post('/auth/mfa/rotate/confirm', payload).then((r) => r.data),
+
+  mfaRotateCancel: () => api.post('/auth/mfa/rotate/cancel').then((r) => r.data),
+
   reset: (payload: {
     token: string
     newPassword: string
