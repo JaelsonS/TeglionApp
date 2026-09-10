@@ -1,5 +1,7 @@
 import { useRef, useState, type ChangeEvent } from 'react'
-import { ImageIcon, Loader2, Plus, Trash2, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, ImageIcon, Loader2, Plus, Trash2, X } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 
 import { PublicSiteHeroBanner } from '@/features/public-intake/PublicSiteHeroBanner'
 import {
@@ -37,6 +39,10 @@ import {
   PUBLIC_SITE_SECTION_ANCHORS,
 } from '@/features/public-intake/publicSiteNavLinks'
 import { coerceExternalHttpsUrl, isPublicCtaRenderable } from '@/features/public-intake/publicSiteCtas'
+import { contabilAccountingServicesApi } from '@/infrastructure/api'
+import { getErrorMessage } from '@/shared/utils/errors'
+import type { AccountingService } from '@/shared/types/contabil'
+import { moveItemInArray } from './publicSiteSectionFactory'
 
 const HEX_RE = /^#[0-9a-f]{6}$/i
 
@@ -173,7 +179,15 @@ export function SectionCtasEditor({
         return (
           <div key={cta.id} className="space-y-2 rounded-lg border border-border/50 bg-muted/5 p-3">
             <div className="flex items-start justify-between gap-2">
-              <p className="text-caption font-medium text-muted-foreground">Botão {index + 1}</p>
+              <div className="flex items-start gap-2">
+                <ReorderButtons
+                  index={index}
+                  total={ctas.length}
+                  label={`botão ${index + 1}`}
+                  onMove={(from, to) => onChange(moveItemInArray(ctas, from, to))}
+                />
+                <p className="text-caption font-medium text-muted-foreground">Botão {index + 1}</p>
+              </div>
               <Button
                 type="button"
                 variant="ghost"
@@ -461,6 +475,8 @@ export function ChromeSectionEditor({
   titleHint,
   showNavControls = false,
   services = [],
+  showFooterContactFields = false,
+  officeContact,
 }: {
   content: PublicSiteChromeContent
   onChange: (next: PublicSiteChromeContent) => void
@@ -473,6 +489,9 @@ export function ChromeSectionEditor({
   /** Cabeçalho: texto e destino de cada link. */
   showNavControls?: boolean
   services?: PublicFirmServiceSummary[]
+  /** Rodapé: contactos próprios (independentes do Escritório). */
+  showFooterContactFields?: boolean
+  officeContact?: { email?: string | null; phone?: string | null; address?: string | null }
 }) {
   const navOn = content.showNav !== false
   return (
@@ -503,6 +522,51 @@ export function ChromeSectionEditor({
           services={services}
           onChange={onChange}
         />
+      ) : null}
+      {showFooterContactFields ? (
+        <div className="space-y-3 rounded-lg border border-border/40 p-3">
+          <div>
+            <Label className="text-sm font-semibold">Contactos no rodapé</Label>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Independentes do Escritório. Em branco, a página pública usa os dados de Definições → Escritório.
+              Alterar aqui não muda o Escritório.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="footer-email">Email</Label>
+            <Input
+              id="footer-email"
+              type="email"
+              value={content.email || ''}
+              onChange={(e: FormChangeEvent) => onChange({ ...content, email: e.target.value || null })}
+              placeholder={officeContact?.email || 'Ex.: contacto@empresa.pt'}
+              maxLength={200}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="footer-phone">Telefone</Label>
+            <Input
+              id="footer-phone"
+              value={content.phone || ''}
+              onChange={(e: FormChangeEvent) => onChange({ ...content, phone: e.target.value || null })}
+              placeholder={officeContact?.phone || 'Ex.: +351 …'}
+              maxLength={40}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="footer-address">Endereço</Label>
+            <Input
+              id="footer-address"
+              value={content.address || ''}
+              onChange={(e: FormChangeEvent) => onChange({ ...content, address: e.target.value || null })}
+              placeholder={officeContact?.address || 'Ex.: Rua …, Coimbra'}
+              maxLength={300}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Na página pública o endereço fica clicável e abre o Google Maps.
+            </p>
+          </div>
+        </div>
       ) : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <InlineColorField
@@ -1008,6 +1072,45 @@ export function AboutEditor({
   )
 }
 
+function ReorderButtons({
+  index,
+  total,
+  onMove,
+  label,
+}: {
+  index: number
+  total: number
+  onMove: (from: number, to: number) => void
+  label: string
+}) {
+  return (
+    <div className="flex shrink-0 flex-col gap-0.5">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7"
+        disabled={index <= 0}
+        aria-label={`Subir ${label}`}
+        onClick={() => onMove(index, index - 1)}
+      >
+        <ChevronUp className="h-3.5 w-3.5" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7"
+        disabled={index >= total - 1}
+        aria-label={`Descer ${label}`}
+        onClick={() => onMove(index, index + 1)}
+      >
+        <ChevronDown className="h-3.5 w-3.5" />
+      </Button>
+    </div>
+  )
+}
+
 export function ServicesHeadingEditor({
   content,
   onChange,
@@ -1015,6 +1118,7 @@ export function ServicesHeadingEditor({
   services,
   officePhone,
   socialWhatsapp,
+  bookingFilter,
 }: {
   content: PublicSiteServicesContent
   onChange: (next: PublicSiteServicesContent) => void
@@ -1022,7 +1126,53 @@ export function ServicesHeadingEditor({
   services: PublicFirmServiceSummary[]
   officePhone?: string | null
   socialWhatsapp?: string | null
+  /** true = consultorias com agendamento; false = outros serviços */
+  bookingFilter?: boolean
 }) {
+  const queryClient = useQueryClient()
+  const catalogQuery = useQuery({
+    queryKey: ['contabil-accounting-services', 'public-site-order'],
+    queryFn: () => contabilAccountingServicesApi.list({ activeOnly: true }),
+    staleTime: 15_000,
+  })
+  const [reordering, setReordering] = useState(false)
+
+  const firmServices: AccountingService[] = Array.isArray(catalogQuery.data?.items)
+    ? catalogQuery.data.items
+    : Array.isArray(catalogQuery.data)
+      ? catalogQuery.data
+      : []
+
+  const sectionServices = firmServices
+    .filter((s) => s.isPubliclyListed && s.isActive !== false)
+    .filter((s) => (bookingFilter == null ? true : Boolean(s.requiresBooking) === bookingFilter))
+    .slice()
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+
+  const reorderServices = async (from: number, to: number) => {
+    const a = sectionServices[from]
+    const b = sectionServices[to]
+    if (!a || !b) return
+    setReordering(true)
+    try {
+      // Troca só os sortOrder dos dois vizinhos — não reaplica a lista filtrada
+      // (evita baralhar serviços da outra secção / inactivos).
+      const orderA = a.sortOrder ?? from * 10
+      const orderB = b.sortOrder ?? to * 10
+      await Promise.all([
+        contabilAccountingServicesApi.patch(a.id, { sortOrder: orderB }),
+        contabilAccountingServicesApi.patch(b.id, { sortOrder: orderA }),
+      ])
+      await queryClient.invalidateQueries({ queryKey: ['contabil-accounting-services'] })
+      await queryClient.invalidateQueries({ queryKey: ['public-firm-services-preview'] })
+      toast.success('Ordem dos serviços actualizada')
+    } catch (err) {
+      toast.error('Não foi possível reordenar', { description: getErrorMessage(err) })
+    } finally {
+      setReordering(false)
+    }
+  }
+
   return (
     <div className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-2">
@@ -1053,6 +1203,42 @@ export function ServicesHeadingEditor({
           cada um.
         </p>
       </div>
+
+      <div className="space-y-2 rounded-lg border border-border/40 p-3">
+        <Label className="text-sm font-semibold">Serviços exibidos</Label>
+        {catalogQuery.isLoading ? (
+          <p className="text-caption text-muted-foreground">A carregar catálogo…</p>
+        ) : sectionServices.length === 0 ? (
+          <p className="text-caption text-muted-foreground">
+            Ainda não há serviços públicos
+            {bookingFilter === true ? ' com agendamento' : bookingFilter === false ? ' sem agendamento' : ''}
+            . Active «Aparece na página pública» em Serviços.
+          </p>
+        ) : (
+          <ul className="space-y-1.5">
+            {sectionServices.map((svc, index) => (
+              <li
+                key={svc.id}
+                className="flex items-center gap-2 rounded-md border border-border/40 bg-muted/10 px-2 py-1.5"
+              >
+                <ReorderButtons
+                  index={index}
+                  total={sectionServices.length}
+                  onMove={(from, to) => {
+                    if (!reordering) void reorderServices(from, to)
+                  }}
+                  label={svc.name}
+                />
+                <span className="min-w-0 flex-1 truncate text-sm text-foreground">{svc.name}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="text-[11px] text-muted-foreground">
+          A ordem fica guardada no catálogo de Serviços (não cria cópias).
+        </p>
+      </div>
+
       <SectionCtasEditor
         ctas={content.ctas || []}
         services={services}
@@ -1106,8 +1292,14 @@ export function FeaturesEditor({
           <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar
         </Button>
       </div>
-      {content.items.map((it) => (
+      {content.items.map((it, index) => (
         <div key={it.id} className="flex gap-2 rounded-lg border border-border/50 p-3">
+          <ReorderButtons
+            index={index}
+            total={content.items.length}
+            label={it.title || `diferencial ${index + 1}`}
+            onMove={(from, to) => onChange({ ...content, items: moveItemInArray(content.items, from, to) })}
+          />
           <div className="min-w-0 flex-1 space-y-2">
             <Input value={it.title} onChange={(e: FormChangeEvent) => patchItem(it.id, { title: e.target.value })} placeholder="Título" maxLength={120} />
             <Textarea value={it.description} onChange={(e: FormChangeEvent) => patchItem(it.id, { description: e.target.value })} placeholder="Descrição" rows={2} maxLength={400} />
@@ -1165,6 +1357,12 @@ export function ProcessEditor({
       </div>
       {content.steps.map((s, index) => (
         <div key={s.id} className="flex gap-2 rounded-lg border border-border/50 p-3">
+          <ReorderButtons
+            index={index}
+            total={content.steps.length}
+            label={s.title || `passo ${index + 1}`}
+            onMove={(from, to) => onChange({ ...content, steps: moveItemInArray(content.steps, from, to) })}
+          />
           <span className="mt-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold">{index + 1}</span>
           <div className="min-w-0 flex-1 space-y-2">
             <Input value={s.title} onChange={(e: FormChangeEvent) => patchStep(s.id, { title: e.target.value })} placeholder="Título do passo" maxLength={120} />
@@ -1215,8 +1413,14 @@ export function FaqEditor({ content, onChange }: { content: PublicSiteFaqContent
           <Plus className="mr-1.5 h-3.5 w-3.5" /> Adicionar pergunta
         </Button>
       </div>
-      {content.items.map((it) => (
+      {content.items.map((it, index) => (
         <div key={it.id} className="flex gap-2 rounded-lg border border-border/50 p-3">
+          <ReorderButtons
+            index={index}
+            total={content.items.length}
+            label={it.question || `pergunta ${index + 1}`}
+            onMove={(from, to) => onChange({ ...content, items: moveItemInArray(content.items, from, to) })}
+          />
           <div className="min-w-0 flex-1 space-y-2">
             <Input value={it.question} onChange={(e: FormChangeEvent) => patchItem(it.id, { question: e.target.value })} placeholder="Pergunta" maxLength={200} />
             <Textarea value={it.answer} onChange={(e: FormChangeEvent) => patchItem(it.id, { answer: e.target.value })} placeholder="Resposta" rows={2} maxLength={2000} />

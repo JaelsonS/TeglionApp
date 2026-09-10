@@ -1,6 +1,6 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ExternalLink, Eye, Facebook, Globe, Instagram, Linkedin, Loader2, MessageCircle, Save, Trash2, Upload } from 'lucide-react'
+import { ExternalLink, Eye, Facebook, Globe, Instagram, Linkedin, Loader2, MessageCircle, Plus, Save, Trash2, Upload } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { toast } from 'sonner'
@@ -22,7 +22,7 @@ import { firmPublicSiteApi } from '@/infrastructure/api/contabil/firmPublicSite'
 import { firmSettingsApi } from '@/infrastructure/api/contabil/firmSettings'
 import { contabilConsultationsApi, contabilPublicApi } from '@/infrastructure/api'
 import type { FirmSettingsBundle } from '@/shared/types/firmSettings'
-import type { PublicSiteConfig, PublicSiteSection } from '@/shared/types/firmPublicSite'
+import type { PublicSiteConfig, PublicSiteSection, PublicSiteSectionType } from '@/shared/types/firmPublicSite'
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
 import type { FirmBookingSettings } from '@/shared/types/contabil'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -48,6 +48,7 @@ import {
   reindexPublicSiteSectionsOrder,
   reorderPublicSiteSections,
 } from './publicSiteSectionOrder'
+import { ADDABLE_SECTION_TYPES, addOrEnablePublicSiteSection } from './publicSiteSectionFactory'
 import { applyPageBackgroundColor, parsePublicSiteHex } from './publicSitePageBackground'
 
 const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
@@ -73,7 +74,7 @@ const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
   process: 'Passos do processo',
   faq: 'Perguntas e respostas',
   contact: 'Contactos e botões',
-  footer: 'Cores do rodapé',
+  footer: 'Cores e contactos do rodapé',
 }
 
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -100,6 +101,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const [savingDisplayName, setSavingDisplayName] = useState(false)
   /** Por secção (key). Ausente = aberto por defeito em header/hero. */
   const [sectionOpenState, setSectionOpenState] = useState<Record<string, boolean>>({})
+  const [addSectionOpen, setAddSectionOpen] = useState(false)
 
   const isSectionEditorOpen = (section: PublicSiteSection) => {
     if (Object.prototype.hasOwnProperty.call(sectionOpenState, section.key)) {
@@ -341,6 +343,23 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     toast.success('Ordem recomendada aplicada.')
   }
 
+  const onAddSection = (type: PublicSiteSectionType) => {
+    if (!draft) return
+    const result = addOrEnablePublicSiteSection(draft.sections, type)
+    if ('error' in result) {
+      toast.error(result.error)
+      return
+    }
+    setDraft({ ...draft, sections: reindexPublicSiteSectionsOrder(result.sections) })
+    setSectionOpenState((prev) => ({ ...prev, [result.focusKey]: true }))
+    setAddSectionOpen(false)
+    toast.success(
+      result.created
+        ? `${SECTION_LABELS[type]} adicionada`
+        : `${SECTION_LABELS[type]} activada`,
+    )
+  }
+
   if (siteQuery.isLoading || !draft) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -477,13 +496,19 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               2 · Secções do site
             </p>
-            <button
-              type="button"
-              className="text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
-              onClick={onApplyRecommendedOrder}
-            >
-              Ordem recomendada
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button type="button" variant="outline" size="sm" className="h-8" onClick={() => setAddSectionOpen(true)}>
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                Adicionar secção
+              </Button>
+              <button
+                type="button"
+                className="text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                onClick={onApplyRecommendedOrder}
+              >
+                Ordem recomendada
+              </button>
+            </div>
           </div>
           <p className="text-[11px] text-muted-foreground">
             À esquerda: arrastar para mudar a ordem. À direita: abrir as opções da secção.
@@ -508,7 +533,11 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 publicDisplayName={previewFirmName}
                 services={previewServices}
                 officePhone={bundle.contact?.phone}
+                officeContact={bundle.contact}
                 socialWhatsapp={draft.socialLinks?.whatsapp}
+                bookingFilter={
+                  section.type === 'services' ? true : section.type === 'bookingServices' ? false : undefined
+                }
                 imageUrl={
                   section.type === 'hero'
                     ? resolveSectionImageUrl(section, 'hero')
@@ -527,6 +556,29 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             )}
           />
 
+          {addSectionOpen ? (
+            <div className="rounded-xl border border-border/50 bg-card p-3 shadow-sm">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-foreground">Escolher tipo de secção</p>
+                <Button type="button" variant="ghost" size="sm" className="h-8" onClick={() => setAddSectionOpen(false)}>
+                  Fechar
+                </Button>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {ADDABLE_SECTION_TYPES.map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    className="rounded-lg border border-border/50 px-3 py-2 text-left text-sm hover:border-brand/40 hover:bg-brand/5"
+                    onClick={() => onAddSection(type)}
+                  >
+                    <span className="font-medium text-foreground">{SECTION_LABELS[type]}</span>
+                    <span className="mt-0.5 block text-[11px] text-muted-foreground">{SECTION_HINTS[type]}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             3 · Complementos
           </p>
@@ -746,8 +798,10 @@ function SectionEditorSwitch({
   onRemoveImage,
   services,
   officePhone,
+  officeContact,
   publicDisplayName,
   socialWhatsapp,
+  bookingFilter,
 }: {
   section: PublicSiteSection
   onChange: (content: PublicSiteSection['content']) => void
@@ -757,8 +811,11 @@ function SectionEditorSwitch({
   onRemoveImage: () => void
   services: PublicFirmServiceSummary[]
   officePhone?: string | null
+  officeContact?: { email?: string | null; phone?: string | null; address?: string | null }
   publicDisplayName?: string
   socialWhatsapp?: string | null
+  /** true = só com agendamento; false = só sem agendamento */
+  bookingFilter?: boolean
 }) {
   switch (section.type) {
     case 'hero':
@@ -799,6 +856,7 @@ function SectionEditorSwitch({
           services={services}
           officePhone={officePhone}
           socialWhatsapp={socialWhatsapp}
+          bookingFilter={bookingFilter ?? true}
         />
       )
     case 'bookingServices':
@@ -810,6 +868,7 @@ function SectionEditorSwitch({
           services={services}
           officePhone={officePhone}
           socialWhatsapp={socialWhatsapp}
+          bookingFilter={bookingFilter ?? false}
         />
       )
     case 'features':
@@ -843,7 +902,15 @@ function SectionEditorSwitch({
         />
       )
     case 'footer':
-      return <ChromeSectionEditor content={section.content} onChange={onChange} title="Rodapé" />
+      return (
+        <ChromeSectionEditor
+          content={section.content}
+          onChange={onChange}
+          title="Rodapé"
+          showFooterContactFields
+          officeContact={officeContact}
+        />
+      )
     default:
       return null
   }

@@ -479,8 +479,10 @@ function normalizeFaqs(input) {
 /**
  * Conteúdo editorial da página pública (`/:firmSlug`) — separado de
  * `branding` (cor/logo) porque é "o que a página diz", não "a cara que tem".
- * Reaproveita `contact` (settings.contact, já preenchido em "Escritório")
- * para o rodapé de contactos — não duplica email/telefone aqui.
+ * Contacto do escritório (Definições → Escritório) continua em settings.contact.
+ * O rodapé da página pública pode ter email/telefone/endereço próprios
+ * em firm_public_sites (secção footer); esses campos não sobrescrevem
+ * nem são sobrescritos automaticamente pelo contacto do Escritório.
  */
 async function updatePublicProfile(firmId, actorUserId, payload) {
   const actor = await firmUsersRepository.findFirmUserById(actorUserId);

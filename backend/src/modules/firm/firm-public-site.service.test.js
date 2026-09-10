@@ -16,6 +16,28 @@ function resetMocks() {
   mock.restoreAll();
 }
 
+test('normalizeSiteConfig: footer guarda contactos próprios sem misturar com header title', () => {
+  const config = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'footer',
+        content: {
+          email: 'contacto@empresa.pt',
+          phone: '+351 210 000 000',
+          address: 'Rua Exemplo, Coimbra',
+          backgroundColor: '#abcdef',
+        },
+      },
+    ],
+  });
+  const footer = config.sections.find((s) => s.type === 'footer');
+  assert.equal(footer.content.email, 'contacto@empresa.pt');
+  assert.equal(footer.content.phone, '+351 210 000 000');
+  assert.equal(footer.content.address, 'Rua Exemplo, Coimbra');
+  assert.equal(footer.content.backgroundColor, '#abcdef');
+  assert.equal(Object.prototype.hasOwnProperty.call(footer.content, 'title'), false);
+});
+
 test('normalizeSiteConfig: sem input usa as secções por omissão, na ordem esperada', () => {
   const config = firmPublicSiteService.normalizeSiteConfig(null);
   assert.equal(config.schemaVersion, 1);

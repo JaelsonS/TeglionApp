@@ -143,7 +143,9 @@ export type PublicSiteContactContent = {
 
 /**
  * Cabeçalho / rodapé.
- * Cores + texto opcional no cabeçalho (no rodapé o texto continua a ser o nome legal/público).
+ * Cores + texto opcional no cabeçalho.
+ * No rodapé: cores + contactos próprios (independentes do Escritório).
+ * Campos de contacto vazios/null → herdam os dados do Escritório só na leitura pública.
  */
 export type PublicSiteNavLinkKind = 'section' | 'areas' | 'service' | 'external'
 
@@ -187,6 +189,13 @@ export type PublicSiteChromeContent = {
   showServicesLink?: boolean
   showAreasMenu?: boolean
   showContactLink?: boolean
+  /**
+   * Contactos do rodapé (opcionais). Vazios → usam Definições → Escritório na página pública.
+   * Não alteram nem são sobrescritos pelos dados do escritório depois de gravados.
+   */
+  email?: string | null
+  phone?: string | null
+  address?: string | null
 }
 
 export type PublicSiteEmptyContent = PublicSiteChromeContent
