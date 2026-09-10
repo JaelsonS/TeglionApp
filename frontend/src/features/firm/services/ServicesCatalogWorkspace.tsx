@@ -1,9 +1,27 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import {
   CheckCircle2,
   Eye,
   FolderCog,
+  GripVertical,
   Loader2,
   Pencil,
   Plus,
@@ -41,6 +59,21 @@ function isIrsEntry(s: { name: string; catalogKey?: string | null; category?: st
   return /\birs\b/i.test(blob) || /e-?fatura/i.test(blob) || /^irs-/.test(s.catalogKey || '')
 }
 
+function optionIdsOf(s: AccountingService): string[] {
+  if (s.optionServiceIds?.length) return s.optionServiceIds
+  return (s.options || []).map((o) => o.id).filter(Boolean)
+}
+
+function buildParentByChildId(all: AccountingService[]): Map<string, AccountingService> {
+  const map = new Map<string, AccountingService>()
+  for (const s of all) {
+    for (const id of optionIdsOf(s)) {
+      if (!map.has(id)) map.set(id, s)
+    }
+  }
+  return map
+}
+
 type Props = {
   services: AccountingService[]
   isLoading?: boolean
@@ -49,6 +82,229 @@ type Props = {
   excludeIrs?: boolean
   title?: string
   description?: string
+}
+
+function SortableServiceRow({
+  service,
+  index,
+  publicRank,
+  parentName,
+  optionNames,
+  busy,
+  canReorder,
+  firmSlug,
+  isFirst,
+  isLast,
+  onMove,
+  onToggleActive,
+  onEdit,
+}: {
+  service: AccountingService
+  index: number
+  /** Posição na página pública entre cartões de topo (null = não aparece como cartão). */
+  publicRank: number | null
+  parentName: string | null
+  optionNames: string[]
+  busy: boolean
+  canReorder: boolean
+  firmSlug?: string
+  isFirst: boolean
+  isLast: boolean
+  onMove: (direction: -1 | 1) => void
+  onToggleActive: () => void
+  onEdit: () => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: service.id,
+    disabled: !canReorder || busy,
+  })
+  const active = service.isActive !== false
+  const publish = getServicePublishPresentation(service)
+  const isOffer = optionNames.length > 0
+  const isNestedOption = Boolean(parentName)
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        'flex items-stretch gap-0 border-b border-border/40 hover:bg-brand/[0.03]',
+        isDragging && 'z-10 bg-card opacity-95 shadow-md ring-1 ring-brand/30',
+        isNestedOption && 'bg-muted/20',
+      )}
+    >
+      {canReorder ? (
+        <button
+          type="button"
+          className={cn(
+            'flex w-9 shrink-0 cursor-grab touch-none flex-col items-center justify-center gap-0.5 border-r border-border/40 text-muted-foreground',
+            'hover:bg-muted/60 hover:text-foreground active:cursor-grabbing',
+            busy && 'pointer-events-none opacity-40',
+          )}
+          aria-label={`Arrastar para reordenar: ${service.name}`}
+          title="Arrastar para mudar a ordem na página pública"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-4 w-4" aria-hidden />
+        </button>
+      ) : (
+        <div className="w-9 shrink-0 border-r border-border/40" aria-hidden />
+      )}
+
+      <div className={cn('flex min-w-0 flex-1 items-center gap-3 px-3 py-3', isNestedOption && 'pl-2')}>
+        <div
+          className={cn(
+            'flex h-8 w-8 shrink-0 flex-col items-center justify-center rounded-lg text-center',
+            publicRank != null
+              ? 'bg-brand/10 text-brand'
+              : isNestedOption
+                ? 'bg-muted text-muted-foreground'
+                : 'bg-muted/60 text-muted-foreground',
+          )}
+          title={
+            publicRank != null
+              ? `${publicRank}º cartão na página pública`
+              : isNestedOption
+                ? 'Aparece dentro da oferta (não como cartão separado)'
+                : 'Ordem na lista'
+          }
+        >
+          {publicRank != null ? (
+            <span className="text-xs font-bold leading-none">{publicRank}º</span>
+          ) : isNestedOption ? (
+            <span className="text-xs font-semibold">↳</span>
+          ) : (
+            <span className="text-xs font-semibold">{index + 1}</span>
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="truncate text-sm font-medium">{service.name}</p>
+            <span
+              className={cn(
+                'rounded-full px-2 py-0.5 text-caption font-bold uppercase',
+                active ? 'bg-emerald-100 text-emerald-800' : 'bg-muted text-muted-foreground',
+              )}
+            >
+              {active ? 'Activo' : 'Inactivo'}
+            </span>
+            <span
+              className={cn(
+                'rounded-full px-2 py-0.5 text-caption font-bold uppercase',
+                publish.id === 'published'
+                  ? 'bg-sky-100 text-sky-900'
+                  : publish.id === 'ready'
+                    ? 'bg-amber-100 text-amber-900'
+                    : 'bg-muted text-muted-foreground',
+              )}
+              title={publish.description}
+            >
+              {publish.label}
+            </span>
+            {isOffer ? (
+              <span className="rounded-full bg-violet-100 px-2 py-0.5 text-caption font-bold uppercase text-violet-900">
+                Oferta · {optionNames.length} {optionNames.length === 1 ? 'opção' : 'opções'}
+              </span>
+            ) : null}
+            {isNestedOption ? (
+              <span className="rounded-full bg-slate-200/80 px-2 py-0.5 text-caption font-medium text-slate-700">
+                Dentro de «{parentName}»
+              </span>
+            ) : null}
+            {publicRank === 1 ? (
+              <span className="rounded-full bg-brand/15 px-2 py-0.5 text-caption font-bold text-brand">
+                Aparece primeiro
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {service.durationMinutes} min · {formatEur(service.priceCents)}
+            {service.publicGroup ? ` · ${service.publicGroup}` : ''}
+            {service.requiresBooking ? ' · com agendamento' : ' · sem agendamento'}
+          </p>
+          {isOffer ? (
+            <p className="mt-1 text-caption text-muted-foreground">
+              Opções: {optionNames.join(' · ')}
+            </p>
+          ) : null}
+          {publish.id === 'draft' || publish.id === 'ready' ? (
+            <p className="mt-1 text-caption text-amber-800 dark:text-amber-400">{publish.description}</p>
+          ) : null}
+        </div>
+
+        <div className="flex shrink-0 items-center gap-1">
+          {canReorder ? (
+            <>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8"
+                title="Subir na Página Pública"
+                disabled={busy || isFirst}
+                onClick={() => onMove(-1)}
+              >
+                <ChevronUp className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8"
+                title="Descer na Página Pública"
+                disabled={busy || isLast}
+                onClick={() => onMove(1)}
+              >
+                <ChevronDown className="h-3.5 w-3.5" />
+              </Button>
+            </>
+          ) : null}
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8"
+            title={active ? 'Desactivar' : 'Activar'}
+            disabled={busy}
+            onClick={onToggleActive}
+          >
+            {active ? <PowerOff className="h-3.5 w-3.5" /> : <Power className="h-3.5 w-3.5" />}
+          </Button>
+          {firmSlug && service.slug && service.isPubliclyListed ? (
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              title="Ver página pública"
+              onClick={() =>
+                window.open(`/${firmSlug}/servicos/${service.slug}`, '_blank', 'noopener,noreferrer')
+              }
+            >
+              <Eye className="h-3.5 w-3.5" />
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            size="icon"
+            variant="outline"
+            className="h-8 w-8 border-brand/30 text-brand"
+            title="Editar completo (banner, formulário, publicação…)"
+            onClick={onEdit}
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
+    </li>
+  )
 }
 
 export function ServicesCatalogWorkspace({
@@ -84,6 +340,8 @@ export function ServicesCatalogWorkspace({
   })
   const groups = groupsQuery.data?.items ?? []
 
+  const parentByChildId = useMemo(() => buildParentByChildId(services), [services])
+
   const firmServices = useMemo(() => {
     let list = excludeIrs ? services.filter((s) => !isIrsEntry(s)) : services
     if (filter === 'active') list = list.filter((s) => s.isActive !== false)
@@ -98,6 +356,24 @@ export function ServicesCatalogWorkspace({
     }
     return list
   }, [services, excludeIrs, filter, search])
+
+  /** Cartões de topo na página pública (activos + públicos + não são opção de outra oferta). */
+  const publicTopLevelIds = useMemo(() => {
+    const ids: string[] = []
+    for (const s of firmServices) {
+      if (s.isActive === false) continue
+      if (!s.isPubliclyListed) continue
+      if (parentByChildId.has(s.id)) continue
+      ids.push(s.id)
+    }
+    return ids
+  }, [firmServices, parentByChildId])
+
+  const publicRankById = useMemo(() => {
+    const map = new Map<string, number>()
+    publicTopLevelIds.forEach((id, i) => map.set(id, i + 1))
+    return map
+  }, [publicTopLevelIds])
 
   const existingKeys = useMemo(
     () => new Set(services.map((s) => s.catalogKey).filter(Boolean) as string[]),
@@ -118,14 +394,17 @@ export function ServicesCatalogWorkspace({
     setEditorOpen(true)
   }
 
-  const canReorder = !search.trim()
-  const moveService = async (index: number, direction: -1 | 1) => {
-    const other = index + direction
-    if (other < 0 || other >= firmServices.length) return
-    const ordered = [...firmServices]
-    const [item] = ordered.splice(index, 1)
-    ordered.splice(other, 0, item)
-    setBusyKey(item.id)
+  const canReorder = !search.trim() && filter !== 'inactive'
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  const persistOrder = async (ordered: AccountingService[]) => {
+    const first = ordered[0]
+    if (!first) return
+    setBusyKey(first.id)
     try {
       await Promise.all(
         ordered.map((s, i) => contabilAccountingServicesApi.patch(s.id, { sortOrder: (i + 1) * 10 })),
@@ -138,6 +417,22 @@ export function ServicesCatalogWorkspace({
     }
   }
 
+  const moveService = async (index: number, direction: -1 | 1) => {
+    const other = index + direction
+    if (other < 0 || other >= firmServices.length) return
+    const ordered = arrayMove(firmServices, index, other)
+    await persistOrder(ordered)
+  }
+
+  const onDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = firmServices.findIndex((s) => s.id === active.id)
+    const newIndex = firmServices.findIndex((s) => s.id === over.id)
+    if (oldIndex < 0 || newIndex < 0) return
+    void persistOrder(arrayMove(firmServices, oldIndex, newIndex))
+  }
+
   const activate = async (entry: ConsultingCatalogEntry) => {
     setBusyKey(entry.catalogKey)
     try {
@@ -146,9 +441,9 @@ export function ServicesCatalogWorkspace({
       await onReload()
       const created =
         (res as { items?: AccountingService[] })?.items?.[0] ||
-        (
-          await contabilAccountingServicesApi.list()
-        )?.items?.find((s: AccountingService) => s.catalogKey === entry.catalogKey)
+        (await contabilAccountingServicesApi.list())?.items?.find(
+          (s: AccountingService) => s.catalogKey === entry.catalogKey,
+        )
       if (created) {
         openEditor(created)
       }
@@ -193,7 +488,9 @@ export function ServicesCatalogWorkspace({
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Comece pelos serviços que o escritório mais presta. Edite para configurar e publicar na página pública.
+              Arraste pela pega à esquerda para mudar a ordem. O número com «º» é a posição do cartão na página
+              pública (1º aparece primeiro). Serviços «Dentro de…» são opções de uma oferta — não saem como cartão
+              separado.
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <div className="relative min-w-[10rem] flex-1">
@@ -221,6 +518,11 @@ export function ServicesCatalogWorkspace({
                 </button>
               ))}
             </div>
+            {search.trim() ? (
+              <p className="text-[11px] text-amber-800">
+                Limpe a pesquisa para poder arrastar e reordenar.
+              </p>
+            ) : null}
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto">
@@ -252,112 +554,40 @@ export function ServicesCatalogWorkspace({
                 }
               />
             ) : (
-              <ul className="divide-y divide-border/40">
-                {firmServices.map((s, index) => {
-                  const active = s.isActive !== false
-                  const publish = getServicePublishPresentation(s)
-                  return (
-                    <li key={s.id} className="flex items-center gap-3 px-4 py-3 hover:bg-brand/[0.03]">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="truncate text-sm font-medium">{s.name}</p>
-                          <span
-                            className={cn(
-                              'rounded-full px-2 py-0.5 text-caption font-bold uppercase',
-                              active ? 'bg-emerald-100 text-emerald-800' : 'bg-muted text-muted-foreground',
-                            )}
-                          >
-                            {active ? 'Activo' : 'Inactivo'}
-                          </span>
-                          <span
-                            className={cn(
-                              'rounded-full px-2 py-0.5 text-caption font-bold uppercase',
-                              publish.id === 'published'
-                                ? 'bg-sky-100 text-sky-900'
-                                : publish.id === 'ready'
-                                  ? 'bg-amber-100 text-amber-900'
-                                  : 'bg-muted text-muted-foreground',
-                            )}
-                            title={publish.description}
-                          >
-                            {publish.label}
-                          </span>
-                        </div>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          {s.durationMinutes} min · {formatEur(s.priceCents)}
-                          {s.publicGroup ? ` · ${s.publicGroup}` : ''}
-                        </p>
-                        {publish.id === 'draft' || publish.id === 'ready' ? (
-                          <p className="mt-1 text-caption text-amber-800 dark:text-amber-400">{publish.description}</p>
-                        ) : null}
-                      </div>
-                      <div className="flex shrink-0 items-center gap-1">
-                        {canReorder ? (
-                          <>
-                            <Button
-                              type="button"
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8"
-                              title="Subir na Página Pública"
-                              disabled={busyKey === s.id || index === 0}
-                              onClick={() => void moveService(index, -1)}
-                            >
-                              <ChevronUp className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              type="button"
-                              size="icon"
-                              variant="ghost"
-                              className="h-8 w-8"
-                              title="Descer na Página Pública"
-                              disabled={busyKey === s.id || index === firmServices.length - 1}
-                              onClick={() => void moveService(index, 1)}
-                            >
-                              <ChevronDown className="h-3.5 w-3.5" />
-                            </Button>
-                          </>
-                        ) : null}
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8"
-                          title={active ? 'Desactivar' : 'Activar'}
-                          disabled={busyKey === s.id}
-                          onClick={() => void toggleActive(s)}
-                        >
-                          {active ? <PowerOff className="h-3.5 w-3.5" /> : <Power className="h-3.5 w-3.5" />}
-                        </Button>
-                        {firmSlug && s.slug && s.isPubliclyListed ? (
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            className="h-8 w-8"
-                            title="Ver página pública"
-                            onClick={() =>
-                              window.open(`/${firmSlug}/servicos/${s.slug}`, '_blank', 'noopener,noreferrer')
-                            }
-                          >
-                            <Eye className="h-3.5 w-3.5" />
-                          </Button>
-                        ) : null}
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="outline"
-                          className="h-8 w-8 border-brand/30 text-brand"
-                          title="Editar completo (banner, formulário, publicação…)"
-                          onClick={() => openEditor(s)}
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+                <SortableContext
+                  items={firmServices.map((s) => s.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <ul>
+                    {firmServices.map((s, index) => {
+                      const parent = parentByChildId.get(s.id) ?? null
+                      const childIds = optionIdsOf(s)
+                      const optionNames = childIds
+                        .map((id) => services.find((x) => x.id === id)?.name)
+                        .filter(Boolean) as string[]
+                      return (
+                        <SortableServiceRow
+                          key={s.id}
+                          service={s}
+                          index={index}
+                          publicRank={publicRankById.get(s.id) ?? null}
+                          parentName={parent?.name ?? null}
+                          optionNames={optionNames}
+                          busy={busyKey === s.id}
+                          canReorder={canReorder}
+                          firmSlug={firmSlug}
+                          isFirst={index === 0}
+                          isLast={index === firmServices.length - 1}
+                          onMove={(dir) => void moveService(index, dir)}
+                          onToggleActive={() => void toggleActive(s)}
+                          onEdit={() => openEditor(s)}
+                        />
+                      )
+                    })}
+                  </ul>
+                </SortableContext>
+              </DndContext>
             )}
           </div>
         </section>

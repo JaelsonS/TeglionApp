@@ -1,14 +1,120 @@
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { useMemo, useState } from 'react'
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Plus, Search, Trash2 } from 'lucide-react'
 
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
-import type { AccountingService, AccountingServiceOptionSummary } from '@/shared/types/contabil'
+import type { AccountingService } from '@/shared/types/contabil'
 import { cn } from '@/shared/lib/utils'
 
 function formatPrice(cents: number) {
   return (cents / 100).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })
+}
+
+function SortableOptionRow({
+  service,
+  index,
+  total,
+  onMove,
+  onRemove,
+}: {
+  service: AccountingService
+  index: number
+  total: number
+  onMove: (id: string, dir: -1 | 1) => void
+  onRemove: (id: string) => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: service.id,
+  })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        'flex flex-wrap items-center gap-2 rounded-xl border border-border/50 bg-background/80 px-3 py-2',
+        isDragging && 'z-10 opacity-95 shadow-md ring-1 ring-brand/30',
+      )}
+    >
+      <button
+        type="button"
+        className="cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
+        aria-label={`Arrastar opção ${service.name}`}
+        title="Arrastar para reordenar as opções"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted text-[11px] font-bold text-muted-foreground">
+        {index + 1}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-foreground">{service.name}</p>
+        <p className="text-xs text-muted-foreground">
+          {formatPrice(service.priceCents || 0)} · {service.durationMinutes || 60} min
+          {!service.isPubliclyListed ? ' · não publicado' : ''}
+          {service.isActive === false ? ' · inactivo' : ''}
+        </p>
+      </div>
+      <div className="flex items-center gap-1">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 px-2 text-xs"
+          disabled={index === 0}
+          onClick={() => onMove(service.id, -1)}
+          aria-label="Subir"
+        >
+          ↑
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 px-2 text-xs"
+          disabled={index === total - 1}
+          onClick={() => onMove(service.id, 1)}
+          aria-label="Descer"
+        >
+          ↓
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-destructive"
+          aria-label={`Remover ${service.name}`}
+          onClick={() => onRemove(service.id)}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    </li>
+  )
 }
 
 /**
@@ -29,11 +135,14 @@ export function ServiceOfferOptionsEditor({
   const [query, setQuery] = useState('')
   const [pickerOpen, setPickerOpen] = useState(false)
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
   const selected = useMemo(() => {
     const byId = new Map(allServices.map((s) => [s.id, s]))
-    return value
-      .map((id) => byId.get(id))
-      .filter(Boolean) as AccountingService[]
+    return value.map((id) => byId.get(id)).filter(Boolean) as AccountingService[]
   }, [allServices, value])
 
   const candidates = useMemo(() => {
@@ -63,11 +172,18 @@ export function ServiceOfferOptionsEditor({
   function move(id: string, dir: -1 | 1) {
     const idx = value.indexOf(id)
     if (idx < 0) return
-    const next = [...value]
     const j = idx + dir
-    if (j < 0 || j >= next.length) return
-    ;[next[idx], next[j]] = [next[j], next[idx]]
-    onChange(next)
+    if (j < 0 || j >= value.length) return
+    onChange(arrayMove(value, idx, j))
+  }
+
+  function onDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = value.indexOf(String(active.id))
+    const newIndex = value.indexOf(String(over.id))
+    if (oldIndex < 0 || newIndex < 0) return
+    onChange(arrayMove(value, oldIndex, newIndex))
   }
 
   return (
@@ -75,8 +191,8 @@ export function ServiceOfferOptionsEditor({
       <div>
         <p className="text-sm font-medium text-foreground">Opções para o cliente</p>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          Escolha os serviços que serão apresentados como opções dentro desta oferta. O cliente escolhe
-          uma modalidade; preço, duração e agendamento vêm do serviço real seleccionado.
+          Escolha os serviços que serão apresentados como opções dentro desta oferta. Arraste para definir a
+          ordem (1 = primeira escolha). Preço, duração e agendamento vêm do serviço real seleccionado.
         </p>
       </div>
 
@@ -85,60 +201,22 @@ export function ServiceOfferOptionsEditor({
           Nenhuma opção — este serviço funciona como oferta simples (comportamento actual).
         </p>
       ) : (
-        <ul className="space-y-2">
-          {selected.map((s, index) => (
-            <li
-              key={s.id}
-              className="flex flex-wrap items-center gap-2 rounded-xl border border-border/50 bg-background/80 px-3 py-2"
-            >
-              <span className="text-muted-foreground" aria-hidden>
-                <GripVertical className="h-4 w-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">{s.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {formatPrice(s.priceCents || 0)} · {s.durationMinutes || 60} min
-                  {!s.isPubliclyListed ? ' · não publicado' : ''}
-                  {s.isActive === false ? ' · inactivo' : ''}
-                </p>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2 text-xs"
-                  disabled={index === 0}
-                  onClick={() => move(s.id, -1)}
-                  aria-label="Subir"
-                >
-                  ↑
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2 text-xs"
-                  disabled={index === selected.length - 1}
-                  onClick={() => move(s.id, 1)}
-                  aria-label="Descer"
-                >
-                  ↓
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive"
-                  aria-label={`Remover ${s.name}`}
-                  onClick={() => remove(s.id)}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+          <SortableContext items={value} strategy={verticalListSortingStrategy}>
+            <ul className="space-y-2">
+              {selected.map((s, index) => (
+                <SortableOptionRow
+                  key={s.id}
+                  service={s}
+                  index={index}
+                  total={selected.length}
+                  onMove={move}
+                  onRemove={remove}
+                />
+              ))}
+            </ul>
+          </SortableContext>
+        </DndContext>
       )}
 
       {pickerOpen ? (
@@ -186,19 +264,11 @@ export function ServiceOfferOptionsEditor({
           </div>
         </div>
       ) : (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-1 rounded-full"
-          onClick={() => setPickerOpen(true)}
-        >
-          <Plus className="h-3.5 w-3.5" />
+        <Button type="button" variant="outline" size="sm" onClick={() => setPickerOpen(true)}>
+          <Plus className="mr-1.5 h-3.5 w-3.5" />
           Adicionar opção
         </Button>
       )}
     </div>
   )
 }
-
-export type { AccountingServiceOptionSummary }
