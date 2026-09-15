@@ -191,6 +191,109 @@ test('update: sem bookingOverrides no payload não inclui o campo no patch (não
   assert.equal(patchArg.name, 'Consultoria fiscal');
 });
 
+test('update: bookingOverrides com dateOverrides preserva excepções por data', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
+    id: 'service-1',
+    slug: 'consultoria-fiscal',
+    requiresBooking: true,
+    priceCents: 5000,
+    paymentRequired: false,
+    bookingOverrides: {
+      weekdays: [1, 2, 3, 4, 5],
+      schedule: {
+        1: [{ start: '09:00', end: '18:00' }],
+        2: [{ start: '09:00', end: '18:00' }],
+        3: [{ start: '09:00', end: '18:00' }],
+        4: [{ start: '09:00', end: '18:00' }],
+        5: [{ start: '09:00', end: '18:00' }],
+      },
+      dateOverrides: { '2026-09-20': [{ start: '10:00', end: '14:00' }] },
+    },
+  }));
+  let patchArg = null;
+  mock.method(accountingServicesRepository, 'updateRow', async (_id, _firmId, patch) => {
+    patchArg = patch;
+    return { id: 'service-1', name: 'Consultoria Fiscal' };
+  });
+
+  await accountingServicesService.update({
+    firmId: 'firm-x',
+    id: 'service-1',
+    payload: {
+      bookingOverrides: {
+        weekdays: [1, 2, 3, 4],
+        schedule: {
+          1: [{ start: '09:00', end: '18:00' }],
+          2: [{ start: '09:00', end: '18:00' }],
+          3: [{ start: '09:00', end: '18:00' }],
+          4: [{ start: '09:00', end: '18:00' }],
+        },
+        dateOverrides: { '2026-09-20': [{ start: '10:00', end: '14:00' }] },
+      },
+    },
+  });
+
+  assert.deepEqual(patchArg.bookingOverrides.dateOverrides, {
+    '2026-09-20': [{ start: '10:00', end: '14:00' }],
+  });
+});
+
+test('update: bookingOverrides sem dateOverrides substitui a coluna inteira (sem merge no backend)', async () => {
+  // O editor completo, após onScheduleChange sem preservar dateOverrides, envia
+  // um objecto só com weekdays+schedule. O backend normaliza e grava a coluna
+  // booking_overrides por substituição — a excepção 2026-09-20 desaparece.
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
+    id: 'service-1',
+    slug: 'consultoria-fiscal',
+    requiresBooking: true,
+    priceCents: 5000,
+    paymentRequired: false,
+    bookingOverrides: {
+      weekdays: [1, 2, 3, 4, 5],
+      schedule: {
+        1: [{ start: '09:00', end: '18:00' }],
+        2: [{ start: '09:00', end: '18:00' }],
+        3: [{ start: '09:00', end: '18:00' }],
+        4: [{ start: '09:00', end: '18:00' }],
+        5: [{ start: '09:00', end: '18:00' }],
+      },
+      dateOverrides: { '2026-09-20': [{ start: '10:00', end: '14:00' }] },
+    },
+  }));
+  let patchArg = null;
+  mock.method(accountingServicesRepository, 'updateRow', async (_id, _firmId, patch) => {
+    patchArg = patch;
+    return { id: 'service-1', name: 'Consultoria Fiscal' };
+  });
+
+  // Payload típico depois do wipe no React state (semana sem sexta, sem dateOverrides):
+  await accountingServicesService.update({
+    firmId: 'firm-x',
+    id: 'service-1',
+    payload: {
+      bookingOverrides: {
+        weekdays: [1, 2, 3, 4],
+        schedule: {
+          1: [{ start: '09:00', end: '18:00' }],
+          2: [{ start: '09:00', end: '18:00' }],
+          3: [{ start: '09:00', end: '18:00' }],
+          4: [{ start: '09:00', end: '18:00' }],
+        },
+      },
+    },
+  });
+
+  assert.ok(patchArg.bookingOverrides);
+  assert.deepEqual(patchArg.bookingOverrides.weekdays, [1, 2, 3, 4]);
+  assert.equal(
+    patchArg.bookingOverrides.dateOverrides,
+    undefined,
+    'coluna substituída sem dateOverrides — excepção 2026-09-20 perdida',
+  );
+});
+
 test('update: bookingOverrides null remove o override (volta a herdar do escritório)', async () => {
   resetMocks();
   mock.method(accountingServicesRepository, 'findByIdForFirm', async () => ({
