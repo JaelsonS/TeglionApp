@@ -587,11 +587,6 @@ async function proveActiveMfa(row, { code, recoveryCode }) {
   return { method: 'totp', remainingHashes: null };
 }
 
-/**
- * Troca de app TOTP sem desactivar MFA.
- * 1) Prova com app actual OU recovery → gera pending.
- * 2) Confirm com código do app novo → substitui secret, emite novos recovery, revoga sessões.
- */
 async function beginRotateFactor({ userId, firmId, code, recoveryCode, req = null }) {
   const row = await firmUsersRepository.findFirmUserById(userId, firmId);
   assertSameTenant(row, firmId);
