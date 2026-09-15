@@ -59,7 +59,7 @@ describe('ServiceBookingAvailabilitySection', () => {
       />,
     )
     expect(screen.getByTestId('service-booking-availability-inactive')).toBeTruthy()
-    expect(screen.queryByText('Personalizar horários deste serviço')).toBeNull()
+    expect(screen.queryByText('Personalizar horário deste serviço')).toBeNull()
   })
 
   it('starts inherited and seeds from the real firm schedule when enabled', async () => {
@@ -74,10 +74,10 @@ describe('ServiceBookingAvailabilitySection', () => {
       />,
     )
 
-    expect(await screen.findByText(/utiliza o horário geral do escritório/i)).toBeTruthy()
+    expect(await screen.findByText(/Usar horário do escritório/i)).toBeTruthy()
     await waitFor(() => expect(getBookingSettings).toHaveBeenCalled())
 
-    await user.click(screen.getByText('Personalizar horários deste serviço'))
+    await user.click(screen.getByRole('radio', { name: /Personalizar horário deste serviço/i }))
 
     await waitFor(() => expect(onChange).toHaveBeenCalled())
     const payload = onChange.mock.calls.at(-1)?.[0] as { schedule: Record<number, unknown>; weekdays: number[] }
@@ -115,7 +115,7 @@ describe('ServiceBookingAvailabilitySection', () => {
         onChange={onChange}
       />,
     )
-    await user.click(screen.getByText('Personalizar horários deste serviço'))
+    await user.click(screen.getByRole('radio', { name: /Usar horário do escritório/i }))
     expect(onChange).toHaveBeenCalledWith(null)
   })
 
@@ -181,5 +181,56 @@ describe('ServiceBookingAvailabilitySection', () => {
     expect(screen.getByTestId('service-booking-availability-loading')).toBeTruthy()
     resolveSettings({ booking: FIRM_BOOKING })
     await waitFor(() => expect(screen.queryByTestId('service-booking-availability-loading')).toBeNull())
+  })
+
+  it('alterar horário semanal preserva dateOverrides no onChange (regressão)', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    render(
+      <ServiceBookingAvailabilitySection
+        requiresBooking
+        durationMinutes={60}
+        value={{
+          weekdays: [1, 2, 3, 4, 5],
+          schedule: {
+            1: [{ start: '09:00', end: '18:00' }],
+            2: [{ start: '09:00', end: '18:00' }],
+            3: [{ start: '09:00', end: '18:00' }],
+            4: [{ start: '09:00', end: '18:00' }],
+            5: [{ start: '09:00', end: '18:00' }],
+          },
+          dateOverrides: { '2026-09-20': [{ start: '10:00', end: '14:00' }] },
+        }}
+        onChange={onChange}
+      />,
+    )
+
+    await user.click(screen.getByLabelText(/Sexta disponível/i))
+    expect(onChange).toHaveBeenCalled()
+    const payload = onChange.mock.calls.at(-1)?.[0] as {
+      weekdays: number[]
+      schedule: Record<number, unknown>
+      dateOverrides?: FirmBookingSettings['dateOverrides']
+    }
+
+    expect(payload.weekdays).not.toContain(5)
+    expect(payload.dateOverrides?.['2026-09-20']).toEqual([{ start: '10:00', end: '14:00' }])
+  })
+
+  it('mostra dias especiais quando personalizado', async () => {
+    render(
+      <ServiceBookingAvailabilitySection
+        requiresBooking
+        durationMinutes={60}
+        value={{
+          weekdays: [1],
+          schedule: { 1: [{ start: '09:00', end: '12:00' }] },
+          dateOverrides: { '2026-09-20': [{ start: '10:00', end: '14:00' }] },
+        }}
+        onChange={() => {}}
+      />,
+    )
+    expect(await screen.findByText('Dias especiais')).toBeTruthy()
+    expect(screen.getByTestId('agenda-date-overrides-calendar')).toBeTruthy()
   })
 })

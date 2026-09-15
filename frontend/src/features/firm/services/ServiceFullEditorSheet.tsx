@@ -555,9 +555,14 @@ export function ServiceFullEditorSheet({
     }
     const customized = hasCustomBookingHours(bookingOverrides)
     const nextBookingOverrides = computeServiceBookingOverridesPatch(bookingOverrides)
-    if (customized && (!nextBookingOverrides?.weekdays || nextBookingOverrides.weekdays.length === 0)) {
+    const hasWeeklyDays = (nextBookingOverrides?.weekdays?.length ?? 0) > 0
+    const hasSpecialDays =
+      !!nextBookingOverrides?.dateOverrides &&
+      Object.keys(nextBookingOverrides.dateOverrides).length > 0
+    if (customized && !hasWeeklyDays && !hasSpecialDays) {
       toast.error('Horário do serviço incompleto', {
-        description: 'Escolha pelo menos um dia, ou desligue «Personalizar horários deste serviço».',
+        description:
+          'Escolha pelo menos um dia no horário semanal ou adicione um dia especial, ou volte a «Usar horário do escritório».',
       })
       return
     }

@@ -61,6 +61,10 @@ type Props = {
   showSlotSettings?: boolean
   /** Intervalo usado ao reabrir um dia fechado. Omissão: 09:00–17:00. */
   defaultInterval?: TimeInterval
+  weeklyTitle?: string
+  weeklySubtitle?: string
+  exceptionsTitle?: string
+  exceptionsSubtitle?: string
   /** Serviços bookable — resumo/edição no dialog do dia (opcional). */
   bookableServices?: AccountingService[]
   /**
@@ -94,6 +98,10 @@ export function AgendaAvailabilityPanel(props: Props) {
     hideSaveButton,
     showSlotSettings = true,
     defaultInterval = DEFAULT_INTERVAL,
+    weeklyTitle = 'Horário semanal',
+    weeklySubtitle = 'Dias e intervalos em que o escritório atende.',
+    exceptionsTitle = 'Excepções do mês',
+    exceptionsSubtitle,
     bookableServices,
     onPersistDay,
   } = props
@@ -288,9 +296,9 @@ export function AgendaAvailabilityPanel(props: Props) {
         </span>
         <div>
           <h4 id="agenda-horario-semanal-title" className="cb-agenda-avail-card-title">
-            Horário semanal
+            {weeklyTitle}
           </h4>
-          <p className="cb-agenda-avail-card-sub">Dias e intervalos em que o escritório atende.</p>
+          <p className="cb-agenda-avail-card-sub">{weeklySubtitle}</p>
         </div>
       </div>
       <ul className="cb-agenda-week-list" role="list">
@@ -422,11 +430,11 @@ export function AgendaAvailabilityPanel(props: Props) {
         </span>
         <div className="min-w-0 flex-1">
           <h4 id="agenda-excepcoes-title" className="cb-agenda-avail-card-title">
-            Excepções do mês
+            {exceptionsTitle}
           </h4>
           <p className="cb-agenda-avail-card-sub">
-            Dias em que o horário normal não se aplica — feriados, férias ou datas especiais — em{' '}
-            {MONTH_NAMES_PT[calMonthIndex]} {calYear}.
+            {exceptionsSubtitle ??
+              `Dias em que o horário normal não se aplica — feriados, férias ou datas especiais — em ${MONTH_NAMES_PT[calMonthIndex]} ${calYear}.`}
           </p>
         </div>
       </div>

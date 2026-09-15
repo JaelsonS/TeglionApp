@@ -8,6 +8,7 @@ import {
   computeServiceBookingOverridesPatch,
   defaultIntervalFromSchedule,
   hasCustomBookingHours,
+  patchServiceBookingOverrides,
   scheduleFromFirmBooking,
   scheduleFromServiceOverrides,
   serviceAvailabilityLabel,
@@ -109,6 +110,35 @@ describe('bookingOverridesPayload', () => {
         3: [{ start: '14:00', end: '17:00' }],
       },
     })
+  })
+})
+
+describe('patchServiceBookingOverrides', () => {
+  it('preserva dateOverrides ao alterar só o schedule', () => {
+    const next = patchServiceBookingOverrides(
+      {
+        weekdays: [1, 2, 3, 4, 5],
+        schedule: {
+          1: [{ start: '09:00', end: '18:00' }],
+          2: [{ start: '09:00', end: '18:00' }],
+          3: [{ start: '09:00', end: '18:00' }],
+          4: [{ start: '09:00', end: '18:00' }],
+          5: [{ start: '09:00', end: '18:00' }],
+        },
+        dateOverrides: { '2026-09-20': [{ start: '10:00', end: '14:00' }] },
+      },
+      {
+        schedule: {
+          1: [{ start: '09:00', end: '18:00' }],
+          2: [{ start: '09:00', end: '18:00' }],
+          3: [{ start: '09:00', end: '18:00' }],
+          4: [{ start: '09:00', end: '18:00' }],
+        },
+      },
+      {},
+    )
+    expect(next?.dateOverrides?.['2026-09-20']).toEqual([{ start: '10:00', end: '14:00' }])
+    expect(next?.weekdays).toEqual([1, 2, 3, 4])
   })
 })
 

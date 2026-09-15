@@ -100,6 +100,21 @@ export function bookingOverridesPayload(
   return bookingOverridesFromSchedule(schedule, dateOverrides)
 }
 
+/** Actualiza horário semanal ou dias especiais preservando o resto do override. */
+export function patchServiceBookingOverrides(
+  current: Partial<FirmBookingSettings> | null | undefined,
+  patch: {
+    schedule?: BookingDaySchedule
+    dateOverrides?: FirmBookingSettings['dateOverrides']
+  },
+  firmSchedule: BookingDaySchedule,
+): Partial<FirmBookingSettings> | null {
+  const schedule = patch.schedule ?? scheduleFromServiceOverrides(current, firmSchedule)
+  const dateOverrides =
+    patch.dateOverrides !== undefined ? patch.dateOverrides : current?.dateOverrides
+  return bookingOverridesPayload(true, schedule, dateOverrides)
+}
+
 /**
  * Payload de `bookingOverrides` para o PATCH do serviço, a partir do estado local
  * do editor completo. Preserva `dateOverrides` já guardado — omiti-lo faria o
