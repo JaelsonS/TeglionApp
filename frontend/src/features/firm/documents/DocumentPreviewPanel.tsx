@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { useQuery } from '@tanstack/react-query'
 import {
+  CalendarClock,
   Check,
   Download,
   FileStack,
@@ -17,6 +18,7 @@ import { toast } from 'sonner'
 
 import { openGoogleDrivePicker } from '@/features/firm/chat/googleDrivePicker'
 import { Badge, Button, Input, SkeletonCard } from '@/shared/design-system'
+import { getCivilUrgency } from '@/shared/calendar'
 import { cn } from '@/shared/lib/utils'
 import { contabilDocumentsApi, contabilGoogleDriveApi, contabilMessagesApi, fetchDocumentBlobUrl } from '@/infrastructure/api'
 import { formatDateTime } from '@/shared/utils/date'
@@ -64,6 +66,16 @@ export function DocumentPreviewPanel({
   const [comment, setComment] = useState('')
   const [sendingComment, setSendingComment] = useState(false)
   const [importingDrive, setImportingDrive] = useState(false)
+  const [validFrom, setValidFrom] = useState('')
+  const [validUntil, setValidUntil] = useState('')
+  const [docDescription, setDocDescription] = useState('')
+  const [savingValidity, setSavingValidity] = useState(false)
+
+  useEffect(() => {
+    setValidFrom(doc?.validFrom || '')
+    setValidUntil(doc?.validUntil || '')
+    setDocDescription(doc?.description || '')
+  }, [doc?._id, doc?.validFrom, doc?.validUntil, doc?.description])
 
   const driveConfigQuery = useQuery({
     queryKey: ['google-drive-config'],
@@ -154,6 +166,34 @@ export function DocumentPreviewPanel({
       toast.error('Não foi possível enviar', { description: getErrorMessage(err) })
     } finally {
       setSendingComment(false)
+    }
+  }
+
+  const validityUrgency = validUntil ? getCivilUrgency(validUntil) : null
+  const validityBadgeClass =
+    validityUrgency === 'overdue'
+      ? 'border-rose-200 bg-rose-50 text-rose-900'
+      : validityUrgency === 'soon'
+        ? 'border-amber-200 bg-amber-50 text-amber-950'
+        : validityUrgency === 'upcoming'
+          ? 'border-sky-200 bg-sky-50 text-sky-950'
+          : 'border-border/60 bg-muted/30 text-muted-foreground'
+
+  const handleSaveValidity = async () => {
+    if (!doc) return
+    setSavingValidity(true)
+    try {
+      await contabilDocumentsApi.updateMetadata(doc._id, {
+        description: docDescription.trim() || null,
+        validFrom: validFrom || null,
+        validUntil: validUntil || null,
+      })
+      toast.success('Validade guardada — alerta automático 5 dias antes do fim')
+      await onRefresh()
+    } catch (err) {
+      toast.error('Não foi possível guardar', { description: getErrorMessage(err) })
+    } finally {
+      setSavingValidity(false)
     }
   }
 
@@ -334,6 +374,72 @@ export function DocumentPreviewPanel({
               ) : null}
             </dl>
           </section>
+
+          {!readOnly ? (
+            <section className="border-b border-border/60 p-4">
+              <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <CalendarClock className="h-3.5 w-3.5" />
+                Validade (certidões, licenças…)
+              </h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Ex.: Certidão permanente · início 17-09-2026 · fim 17-09-2027. O sistema avisa por email e
+                na app 5 dias antes do fim.
+              </p>
+              {validUntil ? (
+                <div className={cn('mt-3 rounded-xl border px-3 py-2 text-xs font-medium', validityBadgeClass)}>
+                  {validityUrgency === 'overdue'
+                    ? 'Expirado'
+                    : validityUrgency === 'soon'
+                      ? 'Expira em breve (≤ 7 dias)'
+                      : validityUrgency === 'upcoming'
+                        ? 'Validade a aproximar-se'
+                        : 'Validade registada'}
+                  {' · '}
+                  até {formatPtDate(validUntil, 'long')}
+                </div>
+              ) : null}
+              <div className="mt-3 space-y-2">
+                <label className="block text-xs text-muted-foreground">
+                  Descrição
+                  <Input
+                    value={docDescription}
+                    onChange={(e: FormChangeEvent) => setDocDescription(e.target.value)}
+                    placeholder="Ex.: Certidão permanente"
+                    className="mt-1 rounded-xl text-sm"
+                  />
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="block text-xs text-muted-foreground">
+                    Data início
+                    <Input
+                      type="date"
+                      value={validFrom}
+                      onChange={(e: FormChangeEvent) => setValidFrom(e.target.value)}
+                      className="mt-1 rounded-xl text-sm"
+                    />
+                  </label>
+                  <label className="block text-xs text-muted-foreground">
+                    Data fim
+                    <Input
+                      type="date"
+                      value={validUntil}
+                      onChange={(e: FormChangeEvent) => setValidUntil(e.target.value)}
+                      className="mt-1 rounded-xl text-sm"
+                    />
+                  </label>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="rounded-full"
+                  disabled={savingValidity}
+                  onClick={() => void handleSaveValidity()}
+                >
+                  {savingValidity ? 'A guardar…' : 'Guardar validade'}
+                </Button>
+              </div>
+            </section>
+          ) : null}
 
           {!readOnly ? (
           <section className="border-b border-border/60 p-4">

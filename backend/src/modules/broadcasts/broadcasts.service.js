@@ -10,6 +10,43 @@ const { FAN_OUT_CHUNK } = require('./broadcast.constants');
 const { coerceExternalHttpsUrlOrNull } = require('../../utils/safe-url');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
 
+async function resolveStorageUrl(raw) {
+  if (!raw) return null;
+  const s = String(raw).trim();
+  if (!s) return null;
+  if (/^https:\/\//i.test(s)) return s;
+  if (s.startsWith('firm/')) {
+    try {
+      return await contabilStorage.createSignedDownloadUrl(s, 86400);
+    } catch {
+      return null;
+    }
+  }
+  return s;
+}
+
+async function enrichAttachments(attachments) {
+  if (!Array.isArray(attachments)) return [];
+  return Promise.all(
+    attachments.map(async (att) => {
+      const key = att.storageKey || (String(att.url || '').startsWith('firm/') ? att.url : null);
+      const url = key
+        ? await resolveStorageUrl(key)
+        : await resolveStorageUrl(att.previewUrl || att.url);
+      return { ...att, url: url || att.url || att.previewUrl || null };
+    }),
+  );
+}
+
+async function enrichBroadcastForClient(broadcast) {
+  if (!broadcast) return broadcast;
+  const coverKey =
+    broadcast.coverUrl && String(broadcast.coverUrl).startsWith('firm/') ? broadcast.coverUrl : null;
+  const coverUrl = coverKey ? await resolveStorageUrl(coverKey) : broadcast.coverUrl;
+  const attachments = await enrichAttachments(broadcast.attachments);
+  return { ...broadcast, coverUrl, attachments };
+}
+
 function slugify(title) {
   return (
     String(title || 'alerta')
@@ -86,7 +123,7 @@ async function fanOutBroadcast(broadcast) {
           clientId,
           title: broadcast.title,
           body: broadcast.excerpt || broadcast.body?.slice(0, 200) || null,
-          actionUrl: '/app/client/updates',
+          actionUrl: `/app/client/updates?alert=${broadcast.id}`,
           skipInApp: true,
         })
         .catch(() => {});
@@ -303,7 +340,29 @@ async function deleteBroadcast({ firmId, id }) {
 }
 
 async function listClientFeed({ firmId, clientId, category, search }) {
-  return broadcastsRepository.listPublishedForClient(firmId, clientId, { category, search });
+  const items = await broadcastsRepository.listPublishedForClient(firmId, clientId, { category, search });
+  return Promise.all(items.map(enrichBroadcastForClient));
+}
+
+async function getClientAlert({ firmId, clientId, broadcastId }) {
+  const broadcast = await broadcastsRepository.findById(firmId, broadcastId);
+  if (!broadcast || broadcast.status !== 'PUBLISHED') {
+    throw new AppError('Alerta não encontrado', 404);
+  }
+  if (broadcast.targetType === 'SELECTED') {
+    const ids = broadcast.targetClientIds || [];
+    if (!ids.includes(clientId)) {
+      throw new AppError('Alerta não disponível para este cliente', 403);
+    }
+  }
+  const readRow = await broadcastsRepository.getReadRow(broadcastId, clientId);
+  const enriched = await enrichBroadcastForClient(broadcast);
+  return {
+    ...enriched,
+    readAt: readRow?.read_at || null,
+    isRead: Boolean(readRow?.read_at),
+    needsAck: Boolean(broadcast.readConfirmationRequired && !readRow?.acknowledged_at),
+  };
 }
 
 async function markClientRead({ firmId, clientId, broadcastId, acknowledge = false }) {
@@ -356,11 +415,11 @@ async function markClientRead({ firmId, clientId, broadcastId, acknowledge = fal
 }
 
 async function getUrgentBannerForClient(firmId, clientId) {
-  const items = await broadcastsRepository.listPublishedForClient(firmId, clientId, { limit: 20 });
+  const items = await listClientFeed({ firmId, clientId, search: undefined, category: undefined });
   const urgent = items.find(
     (a) =>
       (a.priority === 'URGENT' || a.category === 'URGENT') &&
-      (!a.isRead || a.needsAck)
+      (!a.isRead || a.needsAck),
   );
   return urgent || null;
 }
@@ -415,6 +474,7 @@ module.exports = {
   deleteBroadcast,
   getAnalytics,
   listClientFeed,
+  getClientAlert,
   markClientRead,
   getUrgentBannerForClient,
   getHubAlertsSummary,

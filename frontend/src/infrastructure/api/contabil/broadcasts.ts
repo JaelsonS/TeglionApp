@@ -76,3 +76,7 @@ export async function fetchClientAlerts(params?: { category?: string; search?: s
     unreadCount: number
   }>
 }
+
+export async function fetchClientAlert(id: string) {
+  return clientPortalContabilApi.getAlert(id) as Promise<{ alert: ClientAlertItem }>
+}

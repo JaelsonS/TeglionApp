@@ -8,6 +8,12 @@ export function createContabilDocumentsApi(api: AxiosInstance) {
     validate: (id: string, validationStatus: 'APPROVED' | 'REJECTED' | 'PENDING') =>
       api.patch(`/contabil/documents/${encodeURIComponent(id)}/validate`, { validationStatus }).then((r) => r.data),
 
+    updateMetadata: (
+      id: string,
+      payload: { title?: string; description?: string; validFrom?: string | null; validUntil?: string | null },
+    ) =>
+      api.patch(`/contabil/documents/${encodeURIComponent(id)}/metadata`, payload).then((r) => r.data),
+
     getDetail: (id: string) =>
       api.get(`/contabil/documents/${encodeURIComponent(id)}/detail`).then((r) => r.data),
 

@@ -104,7 +104,13 @@ export function ClientDashboardPage() {
           onGoObligations={() => navigate('/app/client/agenda')}
           onGoDocuments={() => navigate('/app/client/documents')}
           onGoMessages={() => navigate('/app/client/messages')}
-          onGoAlerts={() => navigate('/app/client/updates')}
+          onGoAlerts={() =>
+            navigate(
+              urgentBanner?.id
+                ? `/app/client/updates?alert=${encodeURIComponent(urgentBanner.id)}`
+                : '/app/client/updates',
+            )
+          }
           onGoNews={() => navigate('/app/client/updates?tab=news')}
           onGoRequests={() => navigate('/app/client/requests')}
           onGoServices={() => navigate('/app/client/services')}

@@ -372,6 +372,7 @@ router.get('/documents/check-duplicate', requirePermission(PERMISSIONS.FIRM_CLIE
 router.get('/documents/:id/detail', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), documentsFirmController.getById);
 router.post('/documents/:id/request-resend', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), documentsFirmController.requestResend);
 router.patch('/documents/:id/validate', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), documentsFirmController.validate);
+router.patch('/documents/:id/metadata', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), documentsFirmController.updateMetadata);
 router.delete('/documents/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), documentsFirmController.remove);
 router.get('/documents/:id/download', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), documentsController.download);
 router.get('/documents/:id/preview', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), documentsController.preview);

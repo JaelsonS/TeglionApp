@@ -17,6 +17,19 @@ export function patchNewsFeedSearchParams(
   return next
 }
 
+/** Deep link para abrir um alerta específico na aba Alertas. */
+export function patchAlertFeedSearchParams(
+  prev: URLSearchParams,
+  alertId: string | null,
+): URLSearchParams {
+  const next = new URLSearchParams(prev)
+  next.delete('tab')
+  next.delete('slug')
+  if (alertId) next.set('alert', alertId)
+  else next.delete('alert')
+  return next
+}
+
 export function patchUpdatesTabSearchParams(
   prev: URLSearchParams,
   tab: UpdatesTab,
@@ -27,6 +40,7 @@ export function patchUpdatesTabSearchParams(
   } else {
     next.delete('tab')
     next.delete('slug')
+    next.delete('alert')
   }
   return next
 }

@@ -446,6 +446,19 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
         </p>
       </div>
 
+      {security && canUnlock && !security.hasVaultPassword && !mfaRequired ? (
+        <div className="rounded-xl border border-sky-200 bg-sky-50 px-3 py-3 text-sm text-sky-950">
+          <p className="flex items-start gap-2">
+            <Shield className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <span>
+              <strong>Qual palavra-passe pedimos?</strong> Ao guardar ou ver senhas, confirme com a
+              palavra-passe dos Acessos oficiais. Se ainda não criou uma, pode usar a de entrada no
+              Teglion — ou crie uma dedicada em Definições → O seu perfil (recomendado para a equipa).
+            </span>
+          </p>
+        </div>
+      ) : null}
+
       {security && !canUnlock ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-950">
           <p className="mb-2 flex items-start gap-2">
@@ -583,6 +596,8 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
       <StepUpPasswordDialog
         open={Boolean(stepUp)}
         mfaEnabled={mfaRequired}
+        hasVaultPassword={Boolean(security?.hasVaultPassword)}
+        hasLoginPassword={Boolean(security?.hasLocalPassword)}
         title={
           stepUp?.kind === 'copy'
             ? 'Copiar senha do portal'

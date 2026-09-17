@@ -24,6 +24,8 @@ type Props = {
   error?: string | null
   /** Quando true, pede TOTP em vez da password do cofre. */
   mfaEnabled?: boolean
+  hasVaultPassword?: boolean
+  hasLoginPassword?: boolean
   onOpenChange: (open: boolean) => void
   onConfirm: (result: ConfirmResult) => void | Promise<void>
 }
@@ -35,6 +37,8 @@ export function StepUpPasswordDialog({
   confirmLabel = 'Confirmar',
   error,
   mfaEnabled = false,
+  hasVaultPassword = false,
+  hasLoginPassword = false,
   onOpenChange,
   onConfirm,
 }: Props) {
@@ -48,6 +52,26 @@ export function StepUpPasswordDialog({
     (mfaEnabled
       ? SENSITIVE_ACTION_MFA_COPY
       : 'Para continuar, introduza a palavra-passe dos Acessos oficiais. Esta confirmação fica registada.')
+
+  const passwordHint = !mfaEnabled
+    ? hasVaultPassword
+      ? 'Use a palavra-passe que criou para Acessos oficiais (Definições → O seu perfil).'
+      : hasLoginPassword
+        ? 'Ainda não criou uma palavra-passe só para este campo? Pode usar a palavra-passe com que entra no Teglion — ou crie uma dedicada abaixo.'
+        : 'Ainda não tem palavra-passe de Acessos oficiais. Crie uma neste ecrã (banner amarelo) ou em Definições → O seu perfil — não é a senha Google.'
+    : null
+
+  const passwordLabel = hasVaultPassword
+    ? 'Palavra-passe dos Acessos oficiais'
+    : hasLoginPassword
+      ? 'Palavra-passe de confirmação'
+      : 'Palavra-passe dos Acessos oficiais'
+
+  const passwordPlaceholder = hasVaultPassword
+    ? 'A palavra-passe deste cofre'
+    : hasLoginPassword
+      ? 'Palavra-passe de entrada no Teglion'
+      : 'Crie primeiro a palavra-passe do cofre'
 
   return (
     <ConfirmDialog
@@ -70,7 +94,9 @@ export function StepUpPasswordDialog({
           setLocalError(
             mfaEnabled
               ? 'Indique o código de 6 dígitos da aplicação autenticadora.'
-              : 'Indique a palavra-passe dos Acessos oficiais.',
+              : hasLoginPassword || hasVaultPassword
+                ? 'Indique a palavra-passe de confirmação.'
+                : 'Crie primeiro a palavra-passe dos Acessos oficiais (banner amarelo neste ecrã).',
           )
           return
         }
@@ -97,18 +123,33 @@ export function StepUpPasswordDialog({
         <>
           <div className="flex items-start gap-2 rounded-xl border border-border/60 bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
             <Shield className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
-            <p>
-              Esta palavra-passe é só deste campo (Acessos oficiais). Não é a senha dos portais do Estado
-              nem a de entrar no Teglion, se entra com Google.
-            </p>
+            <div className="space-y-2">
+              <p>
+                Esta confirmação protege as senhas dos portais do Estado (AT, SS, ViaCTT…). Não confunda
+                com a senha do portal do cliente nem com a conta Google.
+              </p>
+              {passwordHint ? <p className="font-medium text-foreground/90">{passwordHint}</p> : null}
+              {!hasVaultPassword && !hasLoginPassword ? (
+                <ol className="list-decimal space-y-1 pl-4">
+                  <li>No banner amarelo acima, crie uma palavra-passe só para Acessos oficiais.</li>
+                  <li>Volte a guardar ou ver a senha do portal — use essa palavra-passe aqui.</li>
+                </ol>
+              ) : !hasVaultPassword && hasLoginPassword ? (
+                <ol className="list-decimal space-y-1 pl-4">
+                  <li>Use a palavra-passe com que entra no Teglion, ou</li>
+                  <li>Crie uma palavra-passe dedicada em Definições → O seu perfil (recomendado).</li>
+                </ol>
+              ) : null}
+            </div>
           </div>
-          <FormField className="mt-3" label="Palavra-passe dos Acessos oficiais" htmlFor="official-access-step-up-password">
+          <FormField className="mt-3" label={passwordLabel} htmlFor="official-access-step-up-password">
             <PasswordInput
               id="official-access-step-up-password"
               autoComplete="current-password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="A palavra-passe deste cofre"
+              placeholder={passwordPlaceholder}
+              disabled={!hasVaultPassword && !hasLoginPassword}
             />
           </FormField>
         </>

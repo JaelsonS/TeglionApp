@@ -76,6 +76,9 @@ export function createClientPortalContabilApi(api: AxiosInstance) {
     listAlerts: (params?: { category?: string; search?: string }) =>
       api.get('/client-portal/me/contabil/alerts', { params }).then((r) => r.data),
 
+    getAlert: (id: string) =>
+      api.get(`/client-portal/me/contabil/alerts/${encodeURIComponent(id)}`).then((r) => r.data),
+
     markAlertRead: (id: string, acknowledge?: boolean) =>
       api
         .post(`/client-portal/me/contabil/alerts/${encodeURIComponent(id)}/read`, { acknowledge })
