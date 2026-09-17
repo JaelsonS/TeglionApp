@@ -9,7 +9,7 @@ import { FormField, UploadDropzone } from '@/shared/design-system'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import type { FirmBroadcast } from '@/infrastructure/api/contabil/broadcasts'
-import { contabilNewsApi } from '@/infrastructure/api'
+import { contabilBroadcastsApi, contabilNewsApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { toast } from 'sonner'
 import type { Client } from '@/shared/types/clients'
@@ -51,23 +51,30 @@ export function AlertComposer({ draft, onChange, clients, categories, onSaveDraf
   const uploadFile = useCallback(async (file: File) => {
     setUploading(true)
     try {
-      const res = await contabilNewsApi.uploadCover(file)
+      const isImage = file.type.startsWith('image/')
+      const isFirstImage = isImage && !draft.coverUrl
+
+      if (isFirstImage) {
+        const res = await contabilNewsApi.uploadCover(file)
+        onChange({ ...draft, coverUrl: res.previewUrl, attachments: draft.attachments || [] })
+        return
+      }
+
+      const res = isImage
+        ? await contabilNewsApi.uploadCover(file)
+        : await contabilBroadcastsApi.uploadAttachment(file)
+
       const att: BroadcastAttachment = {
         url: res.previewUrl,
         storageKey: res.storageKey,
         name: file.name,
         mimeType: file.type,
-        type: file.type.startsWith('image/') ? 'image' : 'file',
+        type: isImage ? 'image' : 'file',
       }
-      const isFirstImage = file.type.startsWith('image/') && !draft.coverUrl
-      if (isFirstImage) {
-        onChange({ ...draft, coverUrl: res.previewUrl, attachments: draft.attachments || [] })
-      } else {
-        onChange({
-          ...draft,
-          attachments: [...(draft.attachments || []), att],
-        })
-      }
+      onChange({
+        ...draft,
+        attachments: [...(draft.attachments || []), att],
+      })
     } catch (err) {
       toast.error('Não foi possível anexar', { description: getErrorMessage(err) })
     } finally {
@@ -156,6 +163,10 @@ export function AlertComposer({ draft, onChange, clients, categories, onSaveDraf
 
         <div>
           <p className="cb-field-label mb-2">Anexos</p>
+          <p className="mb-2 text-xs text-muted-foreground">
+            PDF, Word, Excel ou ZIP para o cliente descarregar. A primeira imagem (JPG/PNG/WebP) pode
+            aparecer como capa do alerta.
+          </p>
           <UploadDropzone
             loading={uploading}
             onFiles={(files) => void Promise.all(files.map((f) => uploadFile(f)))}

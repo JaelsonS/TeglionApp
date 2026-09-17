@@ -8,6 +8,7 @@ const activityService = require('../../services/activity/activity.service');
 const clientPortalNotify = require('../../services/notifications/client-portal-notify.service');
 const { FAN_OUT_CHUNK } = require('./broadcast.constants');
 const { coerceExternalHttpsUrlOrNull } = require('../../utils/safe-url');
+const contabilStorage = require('../../services/storage/contabil-storage.service');
 
 function slugify(title) {
   return (
@@ -393,6 +394,20 @@ function getEditorTemplates() {
   ];
 }
 
+async function uploadAttachment({ firmId, file }) {
+  if (!file?.buffer?.length) {
+    throw new AppError('Selecione um ficheiro para anexar.', 400);
+  }
+  const uploaded = await contabilStorage.uploadBroadcastAttachment({ firmId, file });
+  const previewUrl = await contabilStorage.createSignedDownloadUrl(uploaded.path, 86400);
+  return {
+    storageKey: uploaded.path,
+    previewUrl,
+    name: file.originalname,
+    mimeType: file.mimetype || 'application/octet-stream',
+  };
+}
+
 module.exports = {
   listForFirm,
   createBroadcast,
@@ -404,4 +419,5 @@ module.exports = {
   getUrgentBannerForClient,
   getHubAlertsSummary,
   getEditorTemplates,
+  uploadAttachment,
 };
