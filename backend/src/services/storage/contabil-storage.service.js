@@ -36,6 +36,11 @@ function buildNewsBodyImagePath(firmId, filename) {
   return `firm/${firmId}/news/body/${Date.now()}-${safe}`;
 }
 
+function buildBroadcastAttachmentPath(firmId, filename) {
+  const safe = sanitizeFilename(filename);
+  return `firm/${firmId}/broadcasts/attachments/${Date.now()}-${safe}`;
+}
+
 function buildServiceImagePath(firmId, filename) {
   const safe = sanitizeFilename(filename);
   return `firm/${firmId}/services/images/${Date.now()}-${safe}`;
@@ -117,6 +122,21 @@ async function uploadNewsCover({ firmId, file }) {
   });
   if (error) {
     throw new AppError(error.message || 'Falha ao guardar imagem', 500, { code: 'STORAGE_UPLOAD_FAILED' });
+  }
+  return { bucket: BUCKET, path, provider: 'supabase' };
+}
+
+/** Anexos de alertas/comunicados (PDF, Office, ZIP, imagens). */
+async function uploadBroadcastAttachment({ firmId, file }) {
+  if (!file?.buffer?.length) throw new AppError('Ficheiro vazio', 400);
+  const sb = ensureStorage();
+  const path = buildBroadcastAttachmentPath(firmId, file.originalname);
+  const { error } = await sb.storage.from(BUCKET).upload(path, file.buffer, {
+    contentType: file.mimetype || 'application/octet-stream',
+    upsert: false,
+  });
+  if (error) {
+    throw new AppError(error.message || 'Falha ao guardar anexo', 500, { code: 'STORAGE_UPLOAD_FAILED' });
   }
   return { bucket: BUCKET, path, provider: 'supabase' };
 }
@@ -231,6 +251,7 @@ module.exports = {
   buildFirmLogoPath,
   buildNewsCoverPath,
   buildNewsBodyImagePath,
+  buildBroadcastAttachmentPath,
   buildServiceImagePath,
   buildServiceInquiryDocumentPath,
   buildPublicSiteImagePath,
@@ -240,6 +261,7 @@ module.exports = {
   deleteObject,
   uploadFirmLogo,
   uploadNewsCover,
+  uploadBroadcastAttachment,
   uploadNewsBodyImage,
   uploadServiceImage,
   createSignedDownloadUrl,

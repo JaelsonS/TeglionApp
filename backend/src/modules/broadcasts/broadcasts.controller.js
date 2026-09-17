@@ -19,6 +19,18 @@ exports.listFirm = async (req, res, next) => {
   }
 };
 
+exports.uploadAttachment = async (req, res, next) => {
+  try {
+    const result = await broadcastsService.uploadAttachment({
+      firmId: String(req.user.firmId),
+      file: req.file,
+    });
+    return res.status(200).json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.getMeta = async (_req, res) => {
   return res.json({
     categories: BROADCAST_CATEGORIES,

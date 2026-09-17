@@ -540,6 +540,12 @@ router.post('/consultations', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_M
 router.patch('/consultations/:id', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), consultationsController.update);
 
 router.get('/broadcasts/meta', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), broadcastsController.getMeta);
+router.post(
+  '/broadcasts/attachment',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  uploadSingle('file'),
+  broadcastsController.uploadAttachment,
+);
 router.get('/broadcasts', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), broadcastsController.listFirm);
 router.post('/broadcasts', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), broadcastsController.create);
 router.get('/broadcasts/:id/analytics', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), broadcastsController.analytics);
