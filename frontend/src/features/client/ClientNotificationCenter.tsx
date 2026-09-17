@@ -23,6 +23,9 @@ function resolveNotificationRoute(n: PortalNotification) {
   if (n.actionUrl && n.actionUrl.startsWith('/app/client')) return n.actionUrl
   const entity = String(n.entityType || '').toUpperCase()
   const type = String(n.type || '').toUpperCase()
+  if (entity === 'BROADCAST' || type === 'BROADCAST') {
+    return n.entityId ? `/app/client/updates?alert=${encodeURIComponent(n.entityId)}` : '/app/client/updates'
+  }
   if (entity === 'MESSAGE' || type === 'MESSAGE') return '/app/client/messages'
   if (entity === 'DOCUMENT' || type.includes('DOCUMENT')) return '/app/client/documents'
   if (entity === 'OBLIGATION' || type.includes('OBLIGATION')) return '/app/client/agenda'

@@ -204,10 +204,66 @@ async function checkDuplicate({ firmId, clientId, title, period }) {
   return { duplicates: matches, exists: matches.length > 0 };
 }
 
+function parseDateOnly(value) {
+  if (value == null || value === '') return null;
+  const s = String(value).trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    throw new AppError('Data inválida. Use o formato AAAA-MM-DD.', 400);
+  }
+  return s;
+}
+
+async function updateMetadata({ firmId, documentId, staffId, payload }) {
+  const repo = getRepository();
+  const existing = await repo.findDocumentById(documentId, firmId);
+  if (!existing) throw new AppError('Documento não encontrado', 404);
+
+  const patch = {};
+  if (payload?.title !== undefined) {
+    const title = String(payload.title || '').trim();
+    if (!title) throw new AppError('Título é obrigatório', 400);
+    patch.title = title;
+  }
+  if (payload?.description !== undefined) {
+    patch.description = payload.description ? String(payload.description).trim() : null;
+  }
+  if (payload?.validFrom !== undefined) {
+    patch.valid_from = parseDateOnly(payload.validFrom);
+  }
+  if (payload?.validUntil !== undefined) {
+    patch.valid_until = parseDateOnly(payload.validUntil);
+  }
+
+  const validFrom = patch.valid_from !== undefined ? patch.valid_from : existing.validFrom;
+  const validUntil = patch.valid_until !== undefined ? patch.valid_until : existing.validUntil;
+  if (validFrom && validUntil && validFrom > validUntil) {
+    throw new AppError('A data de início não pode ser posterior à data de fim.', 400);
+  }
+
+  const doc = await repo.updateDocumentMetadata(documentId, firmId, patch);
+  if (!doc) throw new AppError('Documento não encontrado', 404);
+
+  void activityService.recordActivity({
+    firmId,
+    clientId: doc.clientId,
+    actorRole: 'FIRM',
+    actorId: staffId,
+    eventType: 'DOCUMENT_METADATA_UPDATED',
+    entityType: 'DOCUMENT',
+    entityId: documentId,
+    title: 'Validade do documento actualizada',
+    description: doc.title,
+    metadata: { validFrom: doc.validFrom, validUntil: doc.validUntil },
+  }).catch(() => {});
+
+  return { document: doc };
+}
+
 module.exports = {
   validateDocument,
   getDocumentDetail,
   requestResend,
   deleteDocument,
   checkDuplicate,
+  updateMetadata,
 };

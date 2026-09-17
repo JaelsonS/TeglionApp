@@ -89,6 +89,21 @@ exports.analytics = async (req, res, next) => {
   }
 };
 
+exports.getClientAlert = async (req, res, next) => {
+  try {
+    const firmId = String(req.user.firmId);
+    const clientId = req.user.clientId || req.user.id;
+    const alert = await broadcastsService.getClientAlert({
+      firmId,
+      clientId,
+      broadcastId: req.params.id,
+    });
+    return res.json({ alert });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.listClientFeed = async (req, res, next) => {
   try {
     const firmId = String(req.user.firmId);

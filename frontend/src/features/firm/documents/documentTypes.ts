@@ -25,6 +25,9 @@ export type FirmDocumentRow = {
   documentType?: string
   uploadedByRole?: string
   viewCount?: number
+  description?: string | null
+  validFrom?: string | null
+  validUntil?: string | null
 }
 
 export type DocumentHistoryItem = {

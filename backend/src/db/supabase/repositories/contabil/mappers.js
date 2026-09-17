@@ -94,6 +94,8 @@ function mapDocumentRow(row) {
     description: row.description,
     observations: row.observations,
     category: row.category,
+    validFrom: row.valid_from || null,
+    validUntil: row.valid_until || null,
     tags: row.tags || [],
     workflowStatus: row.workflow_status || 'SENT',
     viewCount: row.view_count || 0,
