@@ -58,6 +58,21 @@ exports.remove = async (req, res, next) => {
   }
 };
 
+exports.updateMetadata = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const result = await documentsFirmService.updateMetadata({
+      firmId,
+      documentId: parseEntityId(req.params.id, 'id'),
+      staffId: req.user?.id,
+      payload: req.body,
+    });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.checkDuplicate = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);

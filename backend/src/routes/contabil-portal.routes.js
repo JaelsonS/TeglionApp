@@ -41,6 +41,7 @@ router.get('/me/contabil/notifications', portalController.listNotifications);
 router.patch('/me/contabil/notifications/:id/read', portalController.markNotificationRead);
 router.post('/me/contabil/notifications/read-all', portalController.markAllNotificationsRead);
 router.get('/me/contabil/alerts', require('../modules/broadcasts/broadcasts.controller').listClientFeed);
+router.get('/me/contabil/alerts/:id', require('../modules/broadcasts/broadcasts.controller').getClientAlert);
 router.post('/me/contabil/alerts/:id/read', require('../modules/broadcasts/broadcasts.controller').markRead);
 router.get('/me/contabil/news', require('../modules/news/news.controller').listClientFeed);
 router.get('/me/contabil/news/:slug', require('../modules/news/news.controller').getClientArticle);

@@ -116,6 +116,20 @@ async function createDocument(row) {
   return data;
 }
 
+async function updateDocumentMetadata(id, firmId, patch) {
+  const sb = ensureClient();
+  const { data, error } = await sb
+    .from('documents')
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('firm_id', firmId)
+    .eq('is_active', true)
+    .select()
+    .maybeSingle();
+  if (error) throw error;
+  return data ? mapDocumentRow(data) : null;
+}
+
 async function softDeleteDocument(id, firmId) {
   const sb = ensureClient();
   const { data, error } = await sb
@@ -137,5 +151,6 @@ module.exports = {
   validateDocument,
   findDuplicateDocument,
   createDocument,
+  updateDocumentMetadata,
   softDeleteDocument,
 };

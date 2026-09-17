@@ -232,6 +232,60 @@ async function notifyClientObligationReminder({ clientEmail, clientName, obligat
   });
 }
 
+async function notifyFirmDocumentExpiryReminder({
+  staffEmail,
+  documentTitle,
+  clientName,
+  firmName,
+  validUntil,
+  daysLeft = 5,
+}) {
+  if (!staffEmail) return { skipped: true };
+  return sendEmail({
+    to: staffEmail,
+    subject: `${firmName || 'Escritório'} — documento expira em ${daysLeft} dias`,
+    tags: ['transactional', 'document-expiry'],
+    html: renderTransactionalEmail({
+      preheader: `${documentTitle || 'Documento'} expira em ${daysLeft} dias`,
+      title: 'Documento a expirar em breve',
+      bodyHtml: `<p style="margin:0 0 12px"><strong>${escapeHtml(documentTitle || 'Documento')}</strong>${clientName ? ` (${escapeHtml(clientName)})` : ''} expira a <strong>${escapeHtml(validUntil || '')}</strong>.</p><p style="margin:0">Faltam <strong>${daysLeft} dias</strong>. Renove ou actualize o registo no painel.</p>`,
+      ctaLabel: 'Ver documento',
+      ctaUrl: `${APP_URL}/app/firm/documents/files`,
+    }),
+    text: `Documento ${documentTitle} expira em ${validUntil}. Faltam ${daysLeft} dias.`,
+  });
+}
+
+async function notifyClientDocumentExpiryReminder({
+  clientEmail,
+  clientName,
+  documentTitle,
+  firmName,
+  validUntil,
+  daysLeft = 5,
+  body,
+}) {
+  if (!clientEmail) return { skipped: true };
+  return sendEmail({
+    to: clientEmail,
+    subject: `${firmName || 'Escritório'} — ${documentTitle || 'documento'} expira em ${daysLeft} dias`,
+    tags: ['transactional', 'document-expiry'],
+    html: renderTransactionalEmail({
+      preheader: documentTitle || 'Documento a expirar',
+      title: 'Documento a expirar em breve',
+      greeting: `Olá ${escapeHtml(clientName || 'Cliente')},`,
+      bodyHtml: `<p style="margin:0">${
+        body
+          ? escapeHtml(body)
+          : `O documento <strong>${escapeHtml(documentTitle || '')}</strong> expira a ${escapeHtml(validUntil || '')}.`
+      }</p>`,
+      ctaLabel: 'Abrir portal Teglion',
+      ctaUrl: portalUrl(),
+    }),
+    text: body || `Documento ${documentTitle} expira em ${validUntil}.`,
+  });
+}
+
 async function notifyFirmDocumentReceived({ staffEmail, clientName, documentTitle, firmName }) {
   if (!staffEmail) return { skipped: true };
   return sendEmail({
@@ -690,6 +744,8 @@ module.exports = {
   notifyClientNewTask,
   notifyClientObligationAssigned,
   notifyClientObligationReminder,
+  notifyClientDocumentExpiryReminder,
+  notifyFirmDocumentExpiryReminder,
   notifyFirmDocumentReceived,
   notifyFirmConsultationBooked,
   notifyLeadConsultationConfirmed,
