@@ -17,9 +17,12 @@ import { Label } from '@/shared/components/ui/label'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import type { FormChangeEvent } from '@/shared/types/react-events'
+import { firmPublicSiteApi } from '@/infrastructure/api/contabil/firmPublicSite'
+import { resolvePublicSitePreviewLogoUrl } from '@/features/firm/public-site/publicSitePreviewLogo'
 import type {
   PublicSiteAboutContent,
   PublicSiteChromeContent,
+  PublicSiteConfig,
   PublicSiteContactContent,
   PublicSiteCta,
   PublicSiteFaqContent,
@@ -474,6 +477,7 @@ export function ChromeSectionEditor({
   titlePlaceholder,
   titleHint,
   showNavControls = false,
+  showLogoControl = false,
   services = [],
   showFooterContactFields = false,
   officeContact,
@@ -488,6 +492,8 @@ export function ChromeSectionEditor({
   titleHint?: string
   /** Cabeçalho: texto e destino de cada link. */
   showNavControls?: boolean
+  /** Cabeçalho: mostrar ou ocultar logótipo na barra. */
+  showLogoControl?: boolean
   services?: PublicFirmServiceSummary[]
   /** Rodapé: contactos próprios (independentes do Escritório). */
   showFooterContactFields?: boolean
@@ -514,6 +520,22 @@ export function ChromeSectionEditor({
               'Opcional. Se vazio, a barra do topo usa o «Nome na barra do topo» definido acima.'}
           </p>
         </div>
+      ) : null}
+      {showLogoControl ? (
+        <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border/50 bg-background p-2.5 text-sm has-[:checked]:border-brand/40 has-[:checked]:bg-brand/[0.04]">
+          <input
+            type="checkbox"
+            className="mt-0.5"
+            checked={content.showLogo !== false}
+            onChange={(e) => onChange({ ...content, showLogo: e.target.checked })}
+          />
+          <span>
+            <span className="font-medium">Mostrar logótipo na barra do topo</span>
+            <span className="mt-0.5 block text-[11px] text-muted-foreground">
+              Só aparece se tiver logótipo (Página pública ou Definições → Logótipo).
+            </span>
+          </span>
+        </label>
       ) : null}
       {showNavControls ? (
         <HeaderNavLinksEditor
@@ -823,6 +845,20 @@ export function HeroEditor({
 
   return (
     <div className="space-y-5">
+      <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border/50 bg-background p-2.5 text-sm has-[:checked]:border-brand/40 has-[:checked]:bg-brand/[0.04]">
+        <input
+          type="checkbox"
+          className="mt-0.5"
+          checked={content.showLogo !== false}
+          onChange={(e) => onChange({ ...content, showLogo: e.target.checked })}
+        />
+        <span>
+          <span className="font-medium">Mostrar logótipo no destaque</span>
+          <span className="mt-0.5 block text-[11px] text-muted-foreground">
+            Círculo abaixo da foto de capa. Pode ocultar aqui e manter só na barra do topo.
+          </span>
+        </span>
+      </label>
       <div className="space-y-2 rounded-lg border border-border/40 bg-muted/10 p-3">
         <p className="text-sm font-semibold">1. Imagem de capa</p>
         <ImagePickerField
@@ -1494,6 +1530,102 @@ export function ContactEditor({
         socialWhatsapp={socialWhatsapp}
         onChange={(ctas) => onChange({ ...content, ctas })}
       />
+    </div>
+  )
+}
+
+const MAX_PUBLIC_LOGO_MB = 3
+
+export function PublicSiteLogoCard({
+  draft,
+  firmLogoUrl,
+  readOnly = false,
+  onDraftUpdate,
+}: {
+  draft: PublicSiteConfig
+  firmLogoUrl: string | null
+  readOnly?: boolean
+  onDraftUpdate: (next: PublicSiteConfig) => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [clearing, setClearing] = useState(false)
+  const previewUrl = resolvePublicSitePreviewLogoUrl(draft, firmLogoUrl)
+  const usesCustom = Boolean(draft.theme.logoStorageKey)
+
+  const onUpload = async (file: File) => {
+    if (readOnly) return
+    if (file.size > MAX_PUBLIC_LOGO_MB * 1024 * 1024) {
+      toast.error(`Imagem até ${MAX_PUBLIC_LOGO_MB} MB`)
+      return
+    }
+    setUploading(true)
+    try {
+      const res = await firmPublicSiteApi.uploadPublicLogo(file)
+      onDraftUpdate(res.draft)
+      toast.success('Logótipo da página pública guardado no rascunho.')
+    } catch (err) {
+      toast.error('Não foi possível guardar o logótipo', { description: getErrorMessage(err) })
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const onUseFirmLogo = async () => {
+    if (readOnly || !usesCustom) return
+    setClearing(true)
+    try {
+      const res = await firmPublicSiteApi.removePublicLogo()
+      onDraftUpdate(res.draft)
+      toast.success('A página pública volta a usar o logótipo das Definições.')
+    } catch (err) {
+      toast.error('Não foi possível repor o logótipo', { description: getErrorMessage(err) })
+    } finally {
+      setClearing(false)
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-border/50 bg-card p-3">
+      <p className="text-xs font-semibold text-foreground">Logótipo na página pública</p>
+      <p className="mt-0.5 text-[11px] text-muted-foreground">
+        Por omissão usa Definições → Logótipo. Pode carregar uma imagem só para teglion.com/… e escolher onde
+        aparece em «Barra do topo» e «Destaque principal».
+      </p>
+      {previewUrl ? (
+        <img src={previewUrl} alt="" className="mt-2 h-16 w-16 rounded-md border border-border/50 object-contain" />
+      ) : (
+        <p className="mt-2 text-[11px] text-muted-foreground">Sem logótipo — adicione em Definições ou abaixo.</p>
+      )}
+      <div className="mt-2 flex flex-wrap gap-2">
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) void onUpload(file)
+            e.target.value = ''
+          }}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={readOnly || uploading}
+          onClick={() => inputRef.current?.click()}
+        >
+          {uploading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+          {usesCustom ? 'Substituir logótipo desta página' : 'Logótipo só desta página'}
+        </Button>
+        {usesCustom ? (
+          <Button type="button" variant="ghost" size="sm" disabled={readOnly || clearing} onClick={() => void onUseFirmLogo()}>
+            {clearing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+            Usar logótipo das Definições
+          </Button>
+        ) : null}
+      </div>
     </div>
   )
 }

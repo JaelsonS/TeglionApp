@@ -5,6 +5,7 @@ const firmUsersRepository = require('../../db/supabase/repositories/firm-users.r
 const firmPublicSitesRepository = require('../../db/supabase/repositories/firm-public-sites.repository');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
+const firmBrandingService = require('./firm-branding.service');
 const { normalizeHttpsUrlOrNull, coerceExternalHttpsUrlOrNull } = require('../../utils/safe-url');
 
 const SECTION_TYPES = new Set([
@@ -186,6 +187,7 @@ function normalizeSectionContent(type, raw) {
         bioColor: normalizeOptionalHex(content.bioColor),
         imageFit: normalizeHeroImageFit(content.imageFit),
         imagePosition: normalizeHeroImagePosition(content.imagePosition),
+        showLogo: content.showLogo !== false,
       };
     case 'about':
       return {
@@ -274,6 +276,7 @@ function normalizeSectionContent(type, raw) {
         showServicesLink: navLinks.some((l) => l.enabled && l.kind === 'section' && l.sectionId === 'servicos'),
         showAreasMenu: navLinks.some((l) => l.enabled && l.kind === 'areas'),
         showContactLink: navLinks.some((l) => l.enabled && l.kind === 'section' && l.sectionId === 'contactos'),
+        showLogo: content.showLogo !== false,
       };
     }
     case 'footer':
@@ -499,6 +502,27 @@ async function assertOwner(firmId, actorUserId, message) {
  * padrão já usado no logótipo (`firm-branding.service.js`). Uma imagem cujo
  * ficheiro tenha sido removido do storage não deve rebentar a leitura do
  * resto da página — cai só essa, com `url: null`. */
+async function resolveThemeLogoUrl(theme) {
+  const key = theme?.logoStorageKey;
+  if (!key) return null;
+  try {
+    return await contabilStorage.createSignedDownloadUrl(key, PUBLIC_SITE_IMAGE_SIGNED_TTL);
+  } catch {
+    return null;
+  }
+}
+
+/** Logótipo na página pública: override em `theme.logoStorageKey`, senão branding do escritório. */
+async function resolvePublicSiteLogoUrl(config, firm) {
+  const customUrl = await resolveThemeLogoUrl(config?.theme);
+  if (customUrl) return customUrl;
+  try {
+    return await firmBrandingService.resolveLogoUrl(firm);
+  } catch {
+    return firm?.settings?.branding?.logoUrl || null;
+  }
+}
+
 async function resolveConfigImages(config) {
   if (!config) return config;
   const resolveList = async (list) =>
@@ -512,8 +536,13 @@ async function resolveConfigImages(config) {
         }
       }),
     );
+  const logoUrl = await resolveThemeLogoUrl(config.theme);
   return {
     ...config,
+    theme: {
+      ...config.theme,
+      ...(logoUrl != null ? { logoUrl } : {}),
+    },
     images: {
       hero: await resolveList(config.images?.hero),
       institutional: await resolveList(config.images?.institutional),
@@ -551,6 +580,44 @@ async function uploadImage(firmId, actorUserId, { slot, file }) {
   const uploaded = await contabilStorage.uploadPublicSiteImage({ firmId, slot: safeSlot, file });
   const url = await contabilStorage.createSignedDownloadUrl(uploaded.path, PUBLIC_SITE_IMAGE_SIGNED_TTL);
   return { id: generateStableId('img_'), storageKey: uploaded.path, alt: '', url };
+}
+
+async function loadDraftConfigForFirm(firmId) {
+  const existing = await firmPublicSitesRepository.findByFirmId(firmId);
+  if (existing?.draft) return existing.draft;
+  const firm = await firmsRepository.findFirmById(firmId);
+  if (!firm) throw new AppError('Escritório não encontrado', 404);
+  return buildConfigFromLegacySettings(firm);
+}
+
+async function uploadPublicLogo(firmId, actorUserId, file) {
+  await assertOwner(firmId, actorUserId, 'Apenas o dono do escritório pode alterar o logótipo da página pública.');
+  const uploaded = await contabilStorage.uploadPublicSiteLogo({ firmId, file });
+  const logoUrl = await contabilStorage.createSignedDownloadUrl(uploaded.path, PUBLIC_SITE_IMAGE_SIGNED_TTL);
+  const base = await loadDraftConfigForFirm(firmId);
+  const normalized = normalizeSiteConfig({
+    ...base,
+    theme: { ...base.theme, logoStorageKey: uploaded.path },
+  });
+  const services = await accountingServicesRepository.listByFirm(firmId);
+  const config = sanitizeSiteCtasForFirm(normalized, services);
+  const saved = await firmPublicSitesRepository.upsertDraft(firmId, config, actorUserId);
+  const draft = await resolveConfigImages(saved.draft);
+  return { logoStorageKey: uploaded.path, logoUrl, draft, draftUpdatedAt: saved.draftUpdatedAt };
+}
+
+async function removePublicLogo(firmId, actorUserId) {
+  await assertOwner(firmId, actorUserId, 'Apenas o dono do escritório pode alterar o logótipo da página pública.');
+  const base = await loadDraftConfigForFirm(firmId);
+  const normalized = normalizeSiteConfig({
+    ...base,
+    theme: { ...base.theme, logoStorageKey: null },
+  });
+  const services = await accountingServicesRepository.listByFirm(firmId);
+  const config = sanitizeSiteCtasForFirm(normalized, services);
+  const saved = await firmPublicSitesRepository.upsertDraft(firmId, config, actorUserId);
+  const draft = await resolveConfigImages(saved.draft);
+  return { draft, draftUpdatedAt: saved.draftUpdatedAt };
 }
 
 function resolveFirmServiceSlug(ref, services) {
@@ -710,12 +777,15 @@ module.exports = {
   publishSite,
   regeneratePreviewToken,
   uploadImage,
+  uploadPublicLogo,
+  removePublicLogo,
   resetPublicSite,
   normalizeSiteConfig,
   defaultSiteConfig,
   buildConfigFromLegacySettings,
   isPreviewTokenValid,
   resolveConfigImages,
+  resolvePublicSiteLogoUrl,
   sanitizeSiteCtasForFirm,
   filterPublicCtas,
 };

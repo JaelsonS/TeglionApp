@@ -41,7 +41,9 @@ import {
   HeroEditor,
   ProcessEditor,
   ServicesHeadingEditor,
+  PublicSiteLogoCard,
 } from './sectionEditors'
+import { resolvePublicSitePreviewLogoUrl } from './publicSitePreviewLogo'
 import { PublicSiteSectionsList } from './PublicSiteSectionsList'
 import {
   normalizePublicSiteSectionsOrder,
@@ -707,6 +709,12 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
         </div>
 
         <div className="order-2 min-w-0 space-y-3 lg:sticky lg:top-4 lg:self-start">
+          <PublicSiteLogoCard
+            draft={draft}
+            firmLogoUrl={bundle.logoUrl ?? null}
+            readOnly={!canEditLink}
+            onDraftUpdate={setDraft}
+          />
           <PageThemeColors draft={draft} onChange={setDraft} />
           <p className="text-caption font-semibold uppercase tracking-wide text-muted-foreground">
             Pré-visualização
@@ -733,7 +741,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               ctx={{
                 firmSlug,
                 firmName: previewFirmName,
-                logoUrl: bundle.logoUrl || null,
+                logoUrl: resolvePublicSitePreviewLogoUrl(draft, bundle.logoUrl),
                 services: previewServices,
                 contact: bundle.contact,
                 showPrices: draft.showPrices !== false,
@@ -902,6 +910,7 @@ function SectionEditorSwitch({
           onChange={onChange}
           title="Barra do topo"
           showTitleField
+          showLogoControl
           showNavControls
           services={services}
           titleFieldLabel="Texto curto na barra (opcional)"

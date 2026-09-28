@@ -53,8 +53,15 @@ function buildServiceInquiryDocumentPath(firmId, serviceInquiryId, filename) {
 
 function buildPublicSiteImagePath(firmId, slot, filename) {
   const safe = sanitizeFilename(filename);
+  if (slot === 'logo') {
+    return `firm/${firmId}/public-site/logo/${Date.now()}-${safe}`;
+  }
   const safeSlot = slot === 'institutional' ? 'institutional' : 'hero';
   return `firm/${firmId}/public-site/${safeSlot}/${Date.now()}-${safe}`;
+}
+
+function buildPublicSiteLogoPath(firmId) {
+  return `firm/${firmId}/public-site/logo/logo.webp`;
 }
 
 function ensureStorage() {
@@ -245,6 +252,25 @@ async function uploadPublicSiteImage({ firmId, slot, file }) {
   return { bucket: BUCKET, path, provider: 'supabase' };
 }
 
+/** Logótipo só da página pública — um ficheiro por escritório (`upsert: true`). */
+async function uploadPublicSiteLogo({ firmId, file }) {
+  if (!file?.buffer?.length) throw new AppError('Selecione uma imagem (JPG, PNG ou WebP).', 400);
+  const mime = String(file.mimetype || '').toLowerCase();
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(mime)) {
+    throw new AppError('Use JPG, PNG ou WebP para o logótipo.', 400, { code: 'INVALID_IMAGE_TYPE' });
+  }
+  const sb = ensureStorage();
+  const path = buildPublicSiteLogoPath(firmId);
+  const { error } = await sb.storage.from(BUCKET).upload(path, file.buffer, {
+    contentType: mime,
+    upsert: true,
+  });
+  if (error) {
+    throw new AppError(error.message || 'Falha ao guardar logótipo', 500, { code: 'STORAGE_UPLOAD_FAILED' });
+  }
+  return { bucket: BUCKET, path, provider: 'supabase' };
+}
+
 module.exports = {
   BUCKET,
   buildStoragePath,
@@ -255,9 +281,11 @@ module.exports = {
   buildServiceImagePath,
   buildServiceInquiryDocumentPath,
   buildPublicSiteImagePath,
+  buildPublicSiteLogoPath,
   uploadClientDocument,
   uploadServiceInquiryDocument,
   uploadPublicSiteImage,
+  uploadPublicSiteLogo,
   deleteObject,
   uploadFirmLogo,
   uploadNewsCover,

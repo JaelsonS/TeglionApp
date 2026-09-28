@@ -190,9 +190,9 @@ async function getPublicFirmSite(req, res, next) {
 
     let logoUrl = null;
     try {
-      logoUrl = await firmBrandingService.resolveLogoUrl(firm);
+      logoUrl = await firmPublicSiteService.resolvePublicSiteLogoUrl(config, firm);
     } catch {
-      logoUrl = firm.settings?.branding?.logoUrl || null;
+      logoUrl = null;
     }
     const contact = firm.settings?.contact || {};
 
