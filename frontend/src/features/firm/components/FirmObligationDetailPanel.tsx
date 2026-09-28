@@ -298,7 +298,11 @@ export function FirmObligationDetailPanel({
         <h2 className={cn('text-base font-bold text-foreground', !embedded && 'pr-8')}>{title}</h2>
         <p className="mt-1 text-[13px] font-medium text-brand">{clientName}</p>
         {!isCancelled ? (
-          <div className={cn('mt-3 flex flex-wrap gap-2', !embedded && 'pr-8')}>
+          <div className={cn('mt-3 space-y-2', !embedded && 'pr-8')}>
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">Editar</span> abre período, prazo, valor, prioridade, responsável e notas — como na criação.
+            </p>
+            <div className="flex flex-wrap gap-2">
             <Button type="button" size="sm" variant="secondary" className="h-8 rounded-full" onClick={() => setEditOpen(true)}>
               <Pencil className="mr-1.5 h-3.5 w-3.5" />
               Editar
@@ -540,6 +544,7 @@ export function FirmObligationDetailPanel({
         onOpenChange={setEditOpen}
         obligation={obligation}
         staff={staff}
+        clientName={clientName}
         onSaved={() => {
           onUpdated()
           void load()

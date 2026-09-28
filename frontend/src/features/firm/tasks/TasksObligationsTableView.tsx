@@ -372,6 +372,13 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
         onOpenChange={(open) => !open && setEditObligation(null)}
         obligation={editObligation}
         staff={hub.staff}
+        clientName={
+          editObligation
+            ? editObligation.clientName ||
+              clientById.get(String(editObligation.clientId))?.fullName ||
+              clientById.get(String(editObligation.clientId))?.name
+            : undefined
+        }
         onSaved={() => void hub.refresh()}
       />
 

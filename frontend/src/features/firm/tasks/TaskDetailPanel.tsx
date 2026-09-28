@@ -1,4 +1,5 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { Link } from 'react-router-dom'
 import {
@@ -31,7 +32,7 @@ import { DocumentPreviewModal } from '@/shared/components/contabil/DocumentPrevi
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Badge, SkeletonCard } from '@/shared/design-system'
-import { usePatchTask, useTaskComment, useTaskDetail } from '@/shared/hooks/queries/useTasksWorkspace'
+import { tasksWorkspaceKeys, usePatchTask, useTaskComment, useTaskDetail } from '@/shared/hooks/queries/useTasksWorkspace'
 import { fetchDocumentBlobUrl } from '@/infrastructure/api'
 import { formatTaskDueDate, formatTaskTitle } from '@/shared/utils/taskDisplay'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -50,7 +51,8 @@ type Props = {
 }
 
 export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose, onMutate, embedded = true }: Props) {
-  const { data, isLoading, refetch } = useTaskDetail(taskId)
+  const qc = useQueryClient()
+  const { data, isLoading, isError, isFetched, refetch } = useTaskDetail(taskId)
   const patchTask = usePatchTask()
   const commentMut = useTaskComment()
   const [comment, setComment] = useState('')
@@ -66,6 +68,13 @@ export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose
 
   const task = data?.task
   const timeline = data?.timeline || []
+
+  useEffect(() => {
+    if (!taskId || isLoading) return
+    if (isError || (isFetched && !task)) {
+      onClose()
+    }
+  }, [taskId, isLoading, isError, isFetched, task, onClose])
   const documents = data?.documents || []
   const obligation = data?.obligation
 
@@ -245,6 +254,9 @@ export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose
               )}
             </div>
 
+            <p className="text-xs text-muted-foreground">
+              Use <span className="font-medium text-foreground">Editar</span> para alterar título, prazo, estado, clientes e notas — como na criação.
+            </p>
             <div className="flex flex-wrap gap-2 rounded-xl border border-border/60 bg-muted/20 p-2">
               <Button size="sm" variant="default" className="rounded-full" onClick={() => setEditOpen(true)}>
                 <Pencil className="mr-1 h-3.5 w-3.5" /> Editar
@@ -403,8 +415,16 @@ export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose
           description="A tarefa será removida da lista. Esta acção não pode ser desfeita."
           confirmLabel="Apagar tarefa"
           onConfirm={async () => {
-            await run(() => tasksApi.remove(task.id), 'Removida')
-            setSimpleRemoveOpen(false)
+            try {
+              await tasksApi.remove(task.id)
+              qc.removeQueries({ queryKey: tasksWorkspaceKeys.detail(task.id) })
+              toast.success('Removida')
+              setSimpleRemoveOpen(false)
+              onMutate()
+              onClose()
+            } catch (e) {
+              toast.error(getErrorMessage(e))
+            }
           }}
         />
       ) : null}
@@ -422,6 +442,7 @@ export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose
             setRemovePending(true)
             try {
               await tasksApi.remove(task.id, removeScope)
+              qc.removeQueries({ queryKey: tasksWorkspaceKeys.detail(task.id) })
               toast.success(removeScope === 'series' ? 'Série removida' : 'Ocorrência removida')
               setRemoveOpen(false)
               onMutate()

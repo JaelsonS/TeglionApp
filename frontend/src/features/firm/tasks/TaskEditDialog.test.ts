@@ -6,6 +6,7 @@ function base(overrides: Partial<TaskEditValues> = {}): TaskEditValues {
   return {
     title: 'Solicitar documentos IRS',
     description: '',
+    status: 'TODO',
     priority: 'NORMAL',
     dueDate: '',
     assigneeId: '',

@@ -109,6 +109,14 @@ export function useObligationsHub() {
     setSelectedId(filters.obId)
   }, [filters.obId])
 
+  useEffect(() => {
+    if (!selectedId || loading) return
+    if (!items.some((o) => o._id === selectedId)) {
+      updateParams({ ob: null })
+      setSelectedId(null)
+    }
+  }, [selectedId, items, loading, updateParams])
+
   const selectObligation = useCallback(
     (id: string | null) => {
       setSelectedId(id)
