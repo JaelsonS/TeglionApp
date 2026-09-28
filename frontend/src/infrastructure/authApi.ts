@@ -111,8 +111,14 @@ export const authApi = {
       })
       .then((r) => r.data),
 
-  mfaChallengeVerify: (payload: { code?: string; recoveryCode?: string; challengeToken?: string }) =>
-    api.post('/auth/mfa/challenge/verify', payload).then((r) => r.data),
+  mfaChallengeVerify: (payload: { code?: string; recoveryCode?: string; challengeToken?: string }) => {
+    const challengeToken = payload.challengeToken?.trim()
+    return api
+      .post('/auth/mfa/challenge/verify', payload, {
+        headers: challengeToken ? { 'x-mfa-challenge': challengeToken } : undefined,
+      })
+      .then((r) => r.data)
+  },
 
   mfaEnrollBegin: (challengeToken?: string) =>
     api

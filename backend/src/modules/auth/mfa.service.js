@@ -242,6 +242,10 @@ async function getStatusFromChallenge({ challengeToken }) {
     expiresAt: payload.exp ? new Date(payload.exp * 1000).toISOString() : null,
     user: partialMfaUser(row),
     mfaEnabled: row.mfa_enabled === true,
+    mfa: {
+      challengeToken,
+      expiresAt: payload.exp ? new Date(payload.exp * 1000).toISOString() : null,
+    },
   };
 }
 
