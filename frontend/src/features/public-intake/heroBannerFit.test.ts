@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import {
-  PUBLIC_SITE_HERO_ASPECT_RATIO,
+  heroBackgroundObjectPosition,
   heroBannerObjectPosition,
   normalizeHeroImageFit,
+  normalizeHeroImageFocus,
   normalizeHeroImagePosition,
 } from './heroBannerFit'
 
@@ -16,20 +17,19 @@ describe('heroBannerFit', () => {
     expect(normalizeHeroImageFit('stretch')).toBe('cover')
   })
 
-  it('defaults missing position to center', () => {
-    expect(normalizeHeroImagePosition(undefined)).toBe('center')
+  it('defaults missing focus to center', () => {
+    expect(normalizeHeroImageFocus(undefined)).toBe('center')
+    expect(normalizeHeroImageFocus('top-left')).toBe('top-left')
+    expect(normalizeHeroImageFocus('bottom-right')).toBe('bottom-right')
+    expect(normalizeHeroImageFocus('left')).toBe('center-left')
     expect(normalizeHeroImagePosition('top')).toBe('top')
-    expect(normalizeHeroImagePosition('bottom')).toBe('bottom')
     expect(normalizeHeroImagePosition('left')).toBe('center')
   })
 
   it('maps focus to CSS object-position', () => {
-    expect(heroBannerObjectPosition('center')).toBe('center')
-    expect(heroBannerObjectPosition('top')).toBe('center top')
+    expect(heroBackgroundObjectPosition('center')).toBe('center')
+    expect(heroBackgroundObjectPosition('top')).toBe('center top')
+    expect(heroBackgroundObjectPosition('bottom-right')).toBe('right bottom')
     expect(heroBannerObjectPosition('bottom')).toBe('center bottom')
-  })
-
-  it('keeps a single 16:9 aspect for editor and public page', () => {
-    expect(PUBLIC_SITE_HERO_ASPECT_RATIO).toBe('16 / 9')
   })
 })

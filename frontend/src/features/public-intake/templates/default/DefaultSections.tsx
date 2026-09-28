@@ -30,7 +30,7 @@ import type {
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
 import { clusterPublicServices, uniquePublicServiceGroups } from '@/features/public-intake/clusterPublicServices'
 import { defaultPublicSiteNavLinks } from '@/features/public-intake/publicSiteNavLinks'
-import { PublicSiteHeroBanner } from '@/features/public-intake/PublicSiteHeroBanner'
+import { PublicSiteHeroSurface } from '@/features/public-intake/PublicSiteHeroSurface'
 import { PublicSiteCtaButtons } from '@/features/public-intake/PublicSiteCtaButtons'
 import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
 import { priceTaxModeCaption } from '@/shared/utils/priceTaxMode'
@@ -302,59 +302,60 @@ export function HeroSection({
   const heroTitle = String(content.title || '').trim()
   const heroLogo = ctx.heroLogoUrl ?? ctx.logoUrl
   const showLogo = Boolean(heroLogo) && content.showLogo !== false
+  const onPhoto = Boolean(heroPhotoUrl)
+  const defaultTitleClass = onPhoto
+    ? 'text-2xl font-bold text-white sm:text-3xl drop-shadow-md'
+    : 'text-2xl font-bold text-[hsl(var(--brand-text,var(--primary)))] sm:text-3xl'
+  const defaultTaglineClass = onPhoto
+    ? 'mt-2 text-base text-white/95 drop-shadow'
+    : 'mt-2 text-base text-[hsl(var(--brand-text,var(--primary)))]'
+  const defaultBioClass = onPhoto
+    ? 'mx-auto mt-3 max-w-xl text-sm text-white/90 drop-shadow'
+    : 'mx-auto mt-3 max-w-xl text-sm text-muted-foreground'
+
   return (
-    <section
-      className={bg ? 'border-b border-black/5' : 'border-b border-border/40 bg-transparent'}
-      style={bg ? { backgroundColor: bg } : undefined}
+    <PublicSiteHeroSurface
+      imageUrl={heroPhotoUrl}
+      imageAlt={heroTitle || ctx.firmName}
+      fit={content.imageFit}
+      focus={content.imagePosition}
+      backgroundColor={content.backgroundColor ?? bg}
+      backgroundOverlay={content.backgroundOverlay}
+      variant="public"
     >
-      {heroPhotoUrl ? (
-        <PublicSiteHeroBanner
-          src={heroPhotoUrl}
-          alt={heroTitle || ctx.firmName}
-          fit={content.imageFit}
-          position={content.imagePosition}
-          backgroundColor={content.backgroundColor}
+      {showLogo ? (
+        <img
+          src={heroLogo!}
+          alt={ctx.firmName}
+          className="mx-auto mb-4 h-20 w-20 rounded-full border-2 border-white/40 object-cover shadow-sm"
         />
       ) : null}
-      <div className="mx-auto max-w-2xl px-4 py-10 text-center lg:max-w-4xl">
-        {showLogo ? (
-          <img
-            src={heroLogo!}
-            alt={ctx.firmName}
-            className="mx-auto mb-4 h-20 w-20 rounded-full border-2 border-primary/30 object-cover shadow-sm"
-          />
-        ) : null}
-        {heroTitle ? (
-          <h1
-            className={titleColor ? 'text-2xl font-bold sm:text-3xl' : 'text-2xl font-bold text-[hsl(var(--brand-text,var(--primary)))] sm:text-3xl'}
-            style={titleColor ? { color: titleColor } : undefined}
-          >
-            {heroTitle}
-          </h1>
-        ) : null}
-        {content.tagline ? (
-          <p
-            className={
-              taglineColor
-                ? 'mt-2 text-base'
-                : 'mt-2 text-base text-[hsl(var(--brand-text,var(--primary)))]'
-            }
-            style={taglineColor ? { color: taglineColor } : undefined}
-          >
-            {content.tagline}
-          </p>
-        ) : null}
-        {content.bio ? (
-          <p
-            className={bioColor ? 'mx-auto mt-3 max-w-xl text-sm' : 'mx-auto mt-3 max-w-xl text-sm text-muted-foreground'}
-            style={bioColor ? { color: bioColor } : undefined}
-          >
-            {content.bio}
-          </p>
-        ) : null}
-        <PublicSiteCtaButtons ctas={content.ctas} ctx={ctx} socialLinks={socialLinks} />
-      </div>
-    </section>
+      {heroTitle ? (
+        <h1
+          className={titleColor ? 'text-2xl font-bold sm:text-3xl' : defaultTitleClass}
+          style={titleColor ? { color: titleColor } : undefined}
+        >
+          {heroTitle}
+        </h1>
+      ) : null}
+      {content.tagline ? (
+        <p
+          className={taglineColor ? 'mt-2 text-base' : defaultTaglineClass}
+          style={taglineColor ? { color: taglineColor } : undefined}
+        >
+          {content.tagline}
+        </p>
+      ) : null}
+      {content.bio ? (
+        <p
+          className={bioColor ? 'mx-auto mt-3 max-w-xl text-sm' : defaultBioClass}
+          style={bioColor ? { color: bioColor } : undefined}
+        >
+          {content.bio}
+        </p>
+      ) : null}
+      <PublicSiteCtaButtons ctas={content.ctas} ctx={ctx} socialLinks={socialLinks} />
+    </PublicSiteHeroSurface>
   )
 }
 

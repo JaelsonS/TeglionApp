@@ -73,7 +73,7 @@ const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
 
 const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
   header: 'Cores da barra',
-  hero: 'Foto, título, frase e botões',
+  hero: 'Imagem de fundo, texto por cima, botões',
   about: 'Texto, foto e botões',
   services: 'Título, catálogo e botões',
   bookingServices: 'Título, catálogo e botões',
