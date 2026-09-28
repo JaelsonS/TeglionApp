@@ -5,12 +5,22 @@ import { toast } from 'sonner'
 
 import { PublicSiteHeroBanner } from '@/features/public-intake/PublicSiteHeroBanner'
 import {
-  HERO_IMAGE_FOCUS_OPTIONS,
+  heroEditorImagePosition,
   normalizeHeroImageFit,
-  normalizeHeroImageFocus,
   type PublicSiteHeroImageFit,
   type PublicSiteHeroImageFocus,
 } from '@/features/public-intake/heroBannerFit'
+import {
+  normalizeSectionImageFit,
+  sectionBackgroundImagePosition,
+  sectionContentImagePosition,
+} from '@/features/public-intake/publicSiteSectionMedia'
+import {
+  ImagePositionFrame,
+  ImagePositionZoomSlider,
+  type ImagePosition,
+} from '@/shared/components/media/ImagePositionEditor'
+import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
 import { normalizeHeroBackgroundOverlay } from '@/features/public-intake/PublicSiteHeroSurface'
 import { Button } from '@/shared/components/ui/button'
 import { ImageCropDialog, type ImageCropAspect } from '@/shared/components/media/ImageCropDialog'
@@ -373,6 +383,97 @@ export function SectionCtasEditor({
   )
 }
 
+/** Preencher / enquadrar — partilhado entre hero e imagens de secção. */
+export function PublicSiteImageFramingBlock({
+  imageUrl,
+  imageFit,
+  position,
+  onFitChange,
+  onPositionChange,
+  fitRadioName,
+  zoomMax = 3,
+  showFitOptions = true,
+  alwaysShowFitOptions = false,
+}: {
+  imageUrl: string | null
+  imageFit: 'cover' | 'contain'
+  position: ImagePosition
+  onFitChange: (fit: 'cover' | 'contain') => void
+  onPositionChange: (next: ImagePosition) => void
+  fitRadioName: string
+  zoomMax?: number
+  showFitOptions?: boolean
+  /** Hero: escolher preencher/inteira antes de carregar foto. */
+  alwaysShowFitOptions?: boolean
+}) {
+  if (!imageUrl && !alwaysShowFitOptions) return null
+  return (
+    <div className="space-y-2">
+      {showFitOptions ? (
+      <fieldset className="space-y-2">
+        <legend className="text-caption font-medium text-muted-foreground">Como a imagem preenche o espaço</legend>
+        <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border/50 bg-background p-2.5 text-sm has-[:checked]:border-brand/40 has-[:checked]:bg-brand/[0.04]">
+          <input
+            type="radio"
+            name={fitRadioName}
+            className="mt-0.5"
+            checked={imageFit === 'cover'}
+            onChange={() => onFitChange('cover')}
+          />
+          <span>
+            <span className="font-medium">Preencher (recomendado)</span>
+            <span className="mt-0.5 block text-[11px] text-muted-foreground">
+              Fotografias — preenche o espaço; arraste abaixo e use zoom para imagens pequenas.
+            </span>
+          </span>
+        </label>
+        <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border/50 bg-background p-2.5 text-sm has-[:checked]:border-brand/40 has-[:checked]:bg-brand/[0.04]">
+          <input
+            type="radio"
+            name={fitRadioName}
+            className="mt-0.5"
+            checked={imageFit === 'contain'}
+            onChange={() => onFitChange('contain')}
+          />
+          <span>
+            <span className="font-medium">Mostrar imagem inteira</span>
+            <span className="mt-0.5 block text-[11px] text-muted-foreground">
+              Logótipos ou artes — margens com a cor de fundo da secção.
+            </span>
+          </span>
+        </label>
+      </fieldset>
+      ) : null}
+      {imageUrl ? (
+      <div className="space-y-2">
+        <p className="text-caption font-medium text-muted-foreground">Enquadrar (arrastar)</p>
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          Clique ou arraste na foto para escolher a zona visível — igual aos serviços.
+          {imageFit === 'cover'
+            ? ' Aumente o zoom para preencher todo o espaço (pode cortar bordas).'
+            : ' Arraste para centrar a imagem nas margens.'}
+        </p>
+        <ImagePositionFrame
+          imageUrl={imageUrl}
+          position={position}
+          onChange={onPositionChange}
+          objectFit={imageFit}
+          className="min-h-[200px] w-full rounded-lg border border-border/60"
+        />
+        {imageFit === 'cover' ? (
+          <ImagePositionZoomSlider
+            zoom={position.zoom}
+            max={zoomMax}
+            label="Zoom (preencher)"
+            onChange={(zoom) => onPositionChange({ ...position, zoom })}
+          />
+        ) : null}
+      </div>
+      ) : null}
+    </div>
+  )
+}
+
 /** Reaproveitado pelo Hero e pelo Sobre — um slot de imagem simples (v1: uma
  * foto por secção; o esquema já suporta várias, a UI não precisa disso já). */
 export function ImagePickerField({
@@ -386,8 +487,12 @@ export function ImagePickerField({
   skipCrop = false,
   previewFit,
   previewPosition,
+  previewFocusX,
+  previewFocusY,
+  previewZoom,
   previewBackgroundColor,
   previewOverlay,
+  previewVariant = 'hero',
 }: {
   label: string
   imageUrl: string | null
@@ -400,8 +505,13 @@ export function ImagePickerField({
   skipCrop?: boolean
   previewFit?: PublicSiteHeroImageFit | null
   previewPosition?: PublicSiteHeroImageFocus | string | null
+  previewFocusX?: number | null
+  previewFocusY?: number | null
+  previewZoom?: number | null
   previewBackgroundColor?: string | null
   previewOverlay?: number | null
+  /** Hero: banner com overlay; secção: caixa 4:3 com enquadramento CSS. */
+  previewVariant?: 'hero' | 'section'
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [cropFile, setCropFile] = useState<File | null>(null)
@@ -430,14 +540,34 @@ export function ImagePickerField({
       {imageUrl ? (
         <div className="relative w-full overflow-hidden rounded-lg border border-border/50">
           {skipCrop ? (
-            <PublicSiteHeroBanner
-              src={imageUrl}
-              alt=""
-              fit={previewFit}
-              position={previewPosition}
-              backgroundColor={previewBackgroundColor}
-              backgroundOverlay={previewOverlay}
-            />
+            previewVariant === 'section' ? (
+              <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted/40">
+                <img
+                  src={imageUrl}
+                  alt=""
+                  draggable={false}
+                  className="h-full w-full select-none"
+                  style={servicePositionedImageStyle({
+                    imageFocusX: previewFocusX,
+                    imageFocusY: previewFocusY,
+                    imageZoom: previewZoom,
+                    imageFit: previewFit === 'contain' ? 'contain' : 'cover',
+                  })}
+                />
+              </div>
+            ) : (
+              <PublicSiteHeroBanner
+                src={imageUrl}
+                alt=""
+                fit={previewFit}
+                position={previewPosition}
+                imageFocusX={previewFocusX}
+                imageFocusY={previewFocusY}
+                imageZoom={previewZoom}
+                backgroundColor={previewBackgroundColor}
+                backgroundOverlay={previewOverlay}
+              />
+            )
           ) : (
             <img src={imageUrl} alt="" className="h-32 w-full object-cover" />
           )}
@@ -507,6 +637,28 @@ export function SectionMediaEditor<T extends PublicSiteSectionMediaFields>({
 }: SectionMediaEditorProps<T>) {
   const placement = content.imagePlacement === 'left' || content.imagePlacement === 'right' ? content.imagePlacement : 'above'
   const size = content.imageSize === 'sm' || content.imageSize === 'md' || content.imageSize === 'lg' ? content.imageSize : 'full'
+  const contentFit = normalizeSectionImageFit(content.imageFit)
+  const contentPosition = sectionContentImagePosition(content)
+  const backgroundPosition = sectionBackgroundImagePosition(content)
+
+  const applyContentPosition = (next: ImagePosition) => {
+    onChange({
+      ...content,
+      imageFocusX: next.focusX,
+      imageFocusY: next.focusY,
+      imageZoom: next.zoom,
+    })
+  }
+
+  const applyBackgroundPosition = (next: ImagePosition) => {
+    onChange({
+      ...content,
+      backgroundImageFocusX: next.focusX,
+      backgroundImageFocusY: next.focusY,
+      backgroundImageZoom: next.zoom,
+    })
+  }
+
   return (
     <div className="space-y-3 rounded-lg border border-border/40 bg-muted/10 p-3">
       <p className="text-sm font-semibold">Imagens (só página pública)</p>
@@ -524,9 +676,23 @@ export function SectionMediaEditor<T extends PublicSiteSectionMediaFields>({
         uploading={uploadingContent}
         onUpload={onUploadContent}
         onRemove={onRemoveContent}
-        cropAspect="free"
-        cropTitle="Recortar imagem"
+        skipCrop
+        previewVariant="section"
+        previewFit={contentFit}
+        previewFocusX={content.imageFocusX}
+        previewFocusY={content.imageFocusY}
+        previewZoom={content.imageZoom}
       />
+      {contentImageUrl ? (
+        <PublicSiteImageFramingBlock
+          imageUrl={contentImageUrl}
+          imageFit={contentFit}
+          position={contentPosition}
+          fitRadioName={`section-content-fit-${contentLabel}`}
+          onFitChange={(imageFit) => onChange({ ...content, imageFit })}
+          onPositionChange={applyContentPosition}
+        />
+      ) : null}
       <div className="grid gap-2 sm:grid-cols-2">
         <div className="space-y-1">
           <Label className="text-caption text-muted-foreground">Posição</Label>
@@ -580,9 +746,24 @@ export function SectionMediaEditor<T extends PublicSiteSectionMediaFields>({
             uploading={uploadingBackground}
             onUpload={onUploadBackground}
             onRemove={onRemoveBackground}
-            cropAspect={16 / 9}
-            cropTitle="Recortar fundo"
+            skipCrop
+            previewVariant="section"
+            previewFit="cover"
+            previewFocusX={content.backgroundImageFocusX}
+            previewFocusY={content.backgroundImageFocusY}
+            previewZoom={content.backgroundImageZoom}
           />
+          {backgroundImageUrl ? (
+            <PublicSiteImageFramingBlock
+              imageUrl={backgroundImageUrl}
+              imageFit="cover"
+              position={backgroundPosition}
+              fitRadioName={`section-bg-fit-${contentLabel}`}
+              showFitOptions={false}
+              onFitChange={() => {}}
+              onPositionChange={applyBackgroundPosition}
+            />
+          ) : null}
         </>
       ) : null}
     </div>
@@ -962,8 +1143,17 @@ export function HeroEditor({
   socialWhatsapp?: string | null
 }) {
   const imageFit = normalizeHeroImageFit(content.imageFit)
-  const imageFocus = normalizeHeroImageFocus(content.imagePosition)
   const overlay = normalizeHeroBackgroundOverlay(content.backgroundOverlay)
+  const editorPosition = heroEditorImagePosition(content)
+
+  const applyPosition = (next: { focusX: number; focusY: number; zoom: number }) => {
+    onChange({
+      ...content,
+      imageFocusX: next.focusX,
+      imageFocusY: next.focusY,
+      imageZoom: next.zoom,
+    })
+  }
 
   return (
     <div className="space-y-5">
@@ -981,61 +1171,22 @@ export function HeroEditor({
           onRemove={onRemoveImage}
           skipCrop
           previewFit={imageFit}
-          previewPosition={imageFocus}
+          previewPosition={content.imagePosition}
+          previewFocusX={content.imageFocusX}
+          previewFocusY={content.imageFocusY}
+          previewZoom={content.imageZoom}
           previewBackgroundColor={content.backgroundColor}
           previewOverlay={overlay}
         />
-        <fieldset className="space-y-2">
-          <legend className="text-caption font-medium text-muted-foreground">Como a imagem preenche o fundo</legend>
-          <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border/50 bg-background p-2.5 text-sm has-[:checked]:border-brand/40 has-[:checked]:bg-brand/[0.04]">
-            <input
-              type="radio"
-              name="hero-image-fit"
-              className="mt-0.5"
-              checked={imageFit === 'cover'}
-              onChange={() => onChange({ ...content, imageFit: 'cover' })}
-            />
-            <span>
-              <span className="font-medium">Preencher (recomendado)</span>
-              <span className="mt-0.5 block text-[11px] text-muted-foreground">
-                Fotografias e ambientes — preenche o destaque; use o foco abaixo para reposicionar.
-              </span>
-            </span>
-          </label>
-          <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border/50 bg-background p-2.5 text-sm has-[:checked]:border-brand/40 has-[:checked]:bg-brand/[0.04]">
-            <input
-              type="radio"
-              name="hero-image-fit"
-              className="mt-0.5"
-              checked={imageFit === 'contain'}
-              onChange={() => onChange({ ...content, imageFit: 'contain' })}
-            />
-            <span>
-              <span className="font-medium">Mostrar imagem inteira</span>
-              <span className="mt-0.5 block text-[11px] text-muted-foreground">
-                Logótipos ou artes — a cor de fundo preenche as margens.
-              </span>
-            </span>
-          </label>
-        </fieldset>
-        <div className="space-y-2">
-          <p className="text-caption font-medium text-muted-foreground">Reposicionar foco da imagem</p>
-          <div className="inline-grid grid-cols-3 gap-1 rounded-lg border border-border/50 bg-background p-1.5">
-            {HERO_IMAGE_FOCUS_OPTIONS.map(({ value, label }) => (
-              <Button
-                key={value}
-                type="button"
-                size="sm"
-                variant={imageFocus === value ? 'primary' : 'ghost'}
-                className="h-9 w-11 px-0 text-base"
-                aria-label={value}
-                onClick={() => onChange({ ...content, imagePosition: value })}
-              >
-                {label}
-              </Button>
-            ))}
-          </div>
-        </div>
+        <PublicSiteImageFramingBlock
+          imageUrl={imageUrl}
+          imageFit={imageFit}
+          position={editorPosition}
+          fitRadioName="hero-image-fit"
+          alwaysShowFitOptions
+          onFitChange={(nextFit) => onChange({ ...content, imageFit: nextFit })}
+          onPositionChange={applyPosition}
+        />
         <div className="space-y-1.5">
           <div className="flex items-center justify-between gap-2">
             <Label htmlFor="hero-overlay" className="text-caption text-muted-foreground">
@@ -1188,8 +1339,12 @@ export function AboutEditor({
           uploading={uploadingImage}
           onUpload={onUploadImage}
           onRemove={onRemoveImage}
-          cropAspect="free"
-          cropTitle="Recortar foto"
+          skipCrop
+          previewVariant="section"
+          previewFit={normalizeSectionImageFit(content.imageFit)}
+          previewFocusX={content.imageFocusX}
+          previewFocusY={content.imageFocusY}
+          previewZoom={content.imageZoom}
         />
       )}
       <InlineColorField

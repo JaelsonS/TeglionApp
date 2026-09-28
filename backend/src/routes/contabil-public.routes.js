@@ -148,6 +148,18 @@ router.get(
   serviceIntakeController.getPublicFirmSite,
 );
 router.get(
+  '/firms/:firmSlug/share-meta',
+  serviceViewLimiter,
+  serviceIntakeController.getFirmShareValidators,
+  serviceIntakeController.getPublicFirmShareMeta,
+);
+router.get(
+  '/firms/:firmSlug/share-preview',
+  serviceViewLimiter,
+  serviceIntakeController.getFirmShareValidators,
+  serviceIntakeController.getPublicFirmSharePreview,
+);
+router.get(
   '/firms/:firmSlug/services/:serviceSlug',
   serviceViewLimiter,
   serviceIntakeController.getServiceValidators,

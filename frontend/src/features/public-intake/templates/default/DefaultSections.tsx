@@ -320,6 +320,9 @@ export function HeroSection({
       imageAlt={heroTitle || ctx.firmName}
       fit={content.imageFit}
       focus={content.imagePosition}
+      imageFocusX={content.imageFocusX}
+      imageFocusY={content.imageFocusY}
+      imageZoom={content.imageZoom}
       backgroundColor={content.backgroundColor ?? bg}
       backgroundOverlay={content.backgroundOverlay}
       variant="public"

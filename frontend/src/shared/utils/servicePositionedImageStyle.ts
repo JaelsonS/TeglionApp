@@ -11,13 +11,17 @@ export function servicePositionedImageStyle(service: {
   imageFocusX?: number | null
   imageFocusY?: number | null
   imageZoom?: number | null
+  imageFit?: 'cover' | 'contain' | null
 }): CSSProperties {
   const focusX = service.imageFocusX ?? 50
   const focusY = service.imageFocusY ?? 50
   const zoom = service.imageZoom ?? 1
+  const fit = service.imageFit === 'contain' ? 'contain' : 'cover'
   return {
-    objectFit: 'cover',
+    objectFit: fit,
     objectPosition: `${focusX}% ${focusY}%`,
-    ...(zoom !== 1 ? { transform: `scale(${zoom})`, transformOrigin: `${focusX}% ${focusY}%` } : {}),
+    ...(fit === 'cover' && zoom !== 1
+      ? { transform: `scale(${zoom})`, transformOrigin: `${focusX}% ${focusY}%` }
+      : {}),
   }
 }

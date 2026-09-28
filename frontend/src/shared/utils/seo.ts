@@ -7,8 +7,11 @@ export type PageSeoInput = {
   title: string
   description?: string
   path?: string
-  image?: string
+  /** null = sem imagem OG; undefined = imagem Teglion por omissão (só marketing). */
+  image?: string | null
   type?: 'website' | 'article'
+  /** Quando false, não usa og/teglion-og.png se image estiver vazio. */
+  useDefaultOgImage?: boolean
 }
 
 function upsertMeta(name: string, content: string, attr: 'name' | 'property' = 'name') {
@@ -32,23 +35,45 @@ function upsertLink(rel: string, href: string) {
   el.href = href
 }
 
+function removeMeta(name: string, attr: 'name' | 'property' = 'name') {
+  document.querySelector(`meta[${attr}="${name}"]`)?.remove()
+}
+
 /** Actualiza title + meta OG/Twitter para páginas públicas. */
-export function applyPageSeo({ title, description, path = '', image, type = 'website' }: PageSeoInput) {
+export function applyPageSeo({
+  title,
+  description,
+  path = '',
+  image,
+  type = 'website',
+  useDefaultOgImage = true,
+}: PageSeoInput) {
   const url = `${BRAND.url}${path.startsWith('/') ? path : path ? `/${path}` : ''}`
-  const ogImage = image || DEFAULT_OG_IMAGE
+  const ogImage =
+    image === null || image === ''
+      ? null
+      : image || (useDefaultOgImage ? DEFAULT_OG_IMAGE : null)
 
   document.title = title
   if (description) upsertMeta('description', description)
-  upsertMeta('og:site_name', BRAND.name, 'property')
+  upsertMeta('og:site_name', title, 'property')
   upsertMeta('og:title', title, 'property')
   if (description) upsertMeta('og:description', description, 'property')
+  else removeMeta('og:description', 'property')
   upsertMeta('og:url', url, 'property')
   upsertMeta('og:type', type, 'property')
-  upsertMeta('og:image', ogImage, 'property')
   upsertMeta('og:locale', 'pt_PT', 'property')
-  upsertMeta('twitter:card', 'summary_large_image')
+  if (ogImage) {
+    upsertMeta('og:image', ogImage, 'property')
+    upsertMeta('twitter:card', 'summary_large_image')
+    upsertMeta('twitter:image', ogImage)
+  } else {
+    removeMeta('og:image', 'property')
+    removeMeta('twitter:image')
+    upsertMeta('twitter:card', 'summary')
+  }
   upsertMeta('twitter:title', title)
   if (description) upsertMeta('twitter:description', description)
-  upsertMeta('twitter:image', ogImage)
+  else removeMeta('twitter:description')
   upsertLink('canonical', url)
 }

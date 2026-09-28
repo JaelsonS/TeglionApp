@@ -200,6 +200,46 @@ test('normalizeSiteConfig: hero imageFit ausente cai em cover; contain e foco s�
   });
   const heroFocus = focusGrid.sections.find((s) => s.type === 'hero');
   assert.equal(heroFocus.content.imagePosition, 'top-right');
+
+  const fineFocus = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'hero',
+        content: { tagline: 'Olá', imageFocusX: 120, imageFocusY: -5, imageZoom: 4.2 },
+      },
+    ],
+  });
+  const heroFine = fineFocus.sections.find((s) => s.type === 'hero');
+  assert.equal(heroFine.content.imageFocusX, 100);
+  assert.equal(heroFine.content.imageFocusY, 0);
+  assert.equal(heroFine.content.imageZoom, 3);
+});
+
+test('normalizeSiteConfig: secção about guarda enquadramento fino de imagem de conteúdo e fundo', () => {
+  const config = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'about',
+        content: {
+          heading: 'Sobre',
+          body: 'Texto',
+          imageFocusX: 33,
+          imageFocusY: 66,
+          imageZoom: 1.25,
+          backgroundImageFocusX: 10,
+          backgroundImageFocusY: 90,
+          backgroundImageZoom: 2,
+        },
+      },
+    ],
+  });
+  const about = config.sections.find((s) => s.type === 'about');
+  assert.equal(about.content.imageFocusX, 33);
+  assert.equal(about.content.imageFocusY, 66);
+  assert.equal(about.content.imageZoom, 1.25);
+  assert.equal(about.content.backgroundImageFocusX, 10);
+  assert.equal(about.content.backgroundImageFocusY, 90);
+  assert.equal(about.content.backgroundImageZoom, 2);
 });
 
 test('normalizeSiteConfig: header.title e hero.title são independentes e truncados', () => {
@@ -808,4 +848,22 @@ test('resolvePublicSiteLogoUrl: sem override usa branding do escritório', async
     { id: '1', settings: {} },
   );
   assert.equal(url, 'https://firm-logo.test/default.png');
+});
+
+test('resolvePublicShareImageUrl: prioriza hero e não usa imagem Teglion', async () => {
+  resetMocks();
+  mock.method(firmPublicSiteService, 'resolvePublicSiteZoneLogoUrl', async () => null);
+
+  const config = {
+    seo: { ogImage: null, title: null, description: null },
+    sections: [{ type: 'hero', enabled: true, content: { imageIds: ['img_hero'] } }],
+    images: {
+      hero: [{ id: 'img_hero', storageKey: 'k', url: 'https://cdn.test/hero.jpg', alt: '' }],
+      institutional: [],
+      bySection: {},
+    },
+    theme: {},
+  };
+  const url = await firmPublicSiteService.resolvePublicShareImageUrl(config, { id: '1', settings: {} });
+  assert.equal(url, 'https://cdn.test/hero.jpg');
 });

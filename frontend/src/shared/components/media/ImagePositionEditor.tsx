@@ -29,12 +29,14 @@ export function ImagePositionFrame({
   onChange,
   className,
   showFocusMarker = true,
+  objectFit = 'cover',
 }: {
   imageUrl: string | null
   position: ImagePosition
   onChange: (next: ImagePosition) => void
   className?: string
   showFocusMarker?: boolean
+  objectFit?: 'cover' | 'contain'
 }) {
   const [dragging, setDragging] = useState(false)
 
@@ -72,10 +74,14 @@ export function ImagePositionFrame({
           draggable={false}
           className="h-full w-full cursor-crosshair select-none"
           style={{
-            objectFit: 'cover',
+            objectFit,
             objectPosition: `${position.focusX}% ${position.focusY}%`,
-            transform: `scale(${position.zoom})`,
-            transformOrigin: `${position.focusX}% ${position.focusY}%`,
+            ...(objectFit === 'cover'
+              ? {
+                  transform: `scale(${position.zoom})`,
+                  transformOrigin: `${position.focusX}% ${position.focusY}%`,
+                }
+              : {}),
           }}
         />
       ) : null}
@@ -93,18 +99,22 @@ export function ImagePositionZoomSlider({
   zoom,
   onChange,
   className,
+  max = 2.5,
+  label = 'Zoom',
 }: {
   zoom: number
   onChange: (zoom: number) => void
   className?: string
+  max?: number
+  label?: string
 }) {
   return (
     <label className={cn('flex w-full items-center gap-2 text-xs text-muted-foreground', className)}>
-      Zoom
+      {label}
       <input
         type="range"
         min={1}
-        max={2.5}
+        max={max}
         step={0.05}
         value={zoom}
         onChange={(e) => onChange(Number(e.target.value))}
