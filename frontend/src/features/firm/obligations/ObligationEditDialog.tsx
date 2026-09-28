@@ -4,8 +4,12 @@ import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import {
   PRIORITY_LABELS,
+  TYPE_LABELS,
   dueDateToDateInput,
+  formatEurInputFromCents,
+  maskEurInput,
   monthInputToPeriod,
+  parseEurToCents,
   periodToMonthInput,
   type ObligationRow,
 } from '@/features/firm/obligations/obligationOperational'
@@ -42,6 +46,7 @@ export type ObligationEditValues = {
   status: ObligationStatus
   accountantNotes: string
   assignedStaffId: string
+  amountEur: string
 }
 
 function fromObligation(ob: ObligationRow): ObligationEditValues {
@@ -53,6 +58,10 @@ function fromObligation(ob: ObligationRow): ObligationEditValues {
     status: (ob.status || 'PENDING') as ObligationStatus,
     accountantNotes: ob.accountantNotes || '',
     assignedStaffId: ob.assignedStaffId || '',
+    amountEur:
+      ob.amountCents != null && Number.isFinite(Number(ob.amountCents))
+        ? formatEurInputFromCents(Number(ob.amountCents))
+        : '',
   }
 }
 
@@ -61,12 +70,14 @@ export function ObligationEditDialog({
   onOpenChange,
   obligation,
   staff,
+  clientName,
   onSaved,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   obligation: ObligationRow | null
   staff: { id: string; fullName?: string; email?: string }[]
+  clientName?: string
   onSaved: () => void
 }) {
   const [values, setValues] = useState<ObligationEditValues | null>(null)
@@ -104,6 +115,7 @@ export function ObligationEditDialog({
     setSaving(true)
     setError('')
     try {
+      const amountCents = parseEurToCents(values.amountEur)
       await contabilObligationsApi.update(obligation._id, {
         title: values.title.trim(),
         period,
@@ -112,6 +124,7 @@ export function ObligationEditDialog({
         status: values.status,
         accountantNotes: values.accountantNotes.trim() || null,
         assignedStaffId: values.assignedStaffId || null,
+        amountCents: amountCents ?? null,
       })
       toast.success('Obrigação actualizada')
       onOpenChange(false)
@@ -128,9 +141,39 @@ export function ObligationEditDialog({
       <DialogContent className="flex max-h-[90vh] max-w-lg flex-col gap-0 overflow-hidden rounded-2xl p-0">
         <DialogHeader className="shrink-0 border-b border-border/60 px-5 py-4 text-left">
           <DialogTitle>Editar obrigação</DialogTitle>
+          <p className="text-xs font-normal text-muted-foreground">
+            Alinhado com a criação — período, prazo, valor, prioridade, responsável e notas.
+          </p>
         </DialogHeader>
         <form onSubmit={(e) => void handleSubmit(e)} className="flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>Cliente</Label>
+                <p className="rounded-xl border border-border/50 bg-muted/20 px-3 py-2 text-sm">
+                  {clientName || obligation.clientName || '—'}
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Tipo fiscal</Label>
+                <p className="rounded-xl border border-border/50 bg-muted/20 px-3 py-2 text-sm">
+                  {TYPE_LABELS[obligation.type] || obligation.type}
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="ob-edit-amount">Valor (EUR)</Label>
+                <Input
+                  id="ob-edit-amount"
+                  value={values.amountEur}
+                  onChange={(e: FormChangeEvent) =>
+                    setValues({ ...values, amountEur: maskEurInput(e.target.value) })
+                  }
+                  placeholder="1.250,00"
+                  inputMode="decimal"
+                  className="rounded-xl"
+                />
+              </div>
+            </div>
             <div className="space-y-1.5">
               <Label htmlFor="ob-edit-title">Título</Label>
               <Input
