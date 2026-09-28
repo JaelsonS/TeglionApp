@@ -1,3 +1,5 @@
+import { Briefcase, FileText, Landmark } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
@@ -5,6 +7,13 @@ import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtm
 import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
 import { formatEuro } from '@/shared/utils/contabilLocale'
 import { priceTaxModeCaption } from '@/shared/utils/priceTaxMode'
+
+function hubIcon(name: string): LucideIcon {
+  const n = name.toLowerCase()
+  if (/irs|particular|declara/.test(n)) return FileText
+  if (/empresa|pme|contabil/.test(n)) return Landmark
+  return Briefcase
+}
 
 function FeaturedHubCard({
   firmSlug,
@@ -18,10 +27,13 @@ function FeaturedHubCard({
   openInNewTab: boolean
 }) {
   const href = `/${encodeURIComponent(firmSlug)}/servicos/${encodeURIComponent(service.slug)}`
+  const Icon = hubIcon(service.name)
+  const ctaLabel = service.hasOptions ? 'Ver opções →' : 'Saber mais →'
+
   const inner = (
-    <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-border/50 bg-card shadow-sm transition hover:border-primary/35 hover:shadow-md">
+    <article className="flex h-full flex-col rounded-2xl border border-border/40 bg-card p-5 shadow-sm transition hover:border-[hsl(var(--primary)/0.45)] hover:shadow-md">
       {service.imageUrl ? (
-        <div className="h-40 w-full overflow-hidden bg-muted/30">
+        <div className="mb-4 h-32 w-full overflow-hidden rounded-xl bg-muted/30">
           <img
             src={service.imageUrl}
             alt=""
@@ -31,49 +43,49 @@ function FeaturedHubCard({
           />
         </div>
       ) : (
-        <div className="h-2 w-full bg-[hsl(var(--primary)/0.35)]" aria-hidden />
-      )}
-      <div className="flex flex-1 flex-col p-5">
-        <h3 className="text-lg font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">{service.name}</h3>
-        {service.description ? (
-          <SanitizedServiceHtml html={service.description} className="mt-2 line-clamp-3 text-sm text-muted-foreground" />
-        ) : null}
-        {service.hasOptions && service.options && service.options.length > 0 ? (
-          <ul className="mt-4 space-y-1.5 border-t border-border/40 pt-3">
-            {service.options.slice(0, 5).map((opt) => (
-              <li key={opt.slug} className="text-sm text-foreground/85">
-                <span className="text-muted-foreground">·</span> {opt.name}
-              </li>
-            ))}
-            {service.options.length > 5 ? (
-              <li className="text-xs text-muted-foreground">+ {service.options.length - 5} modalidades</li>
-            ) : null}
-          </ul>
-        ) : null}
-        <div className="mt-auto flex items-end justify-between gap-2 pt-4">
-          {showPrices && service.hasOptions && (service.fromPriceCents ?? 0) > 0 ? (
-            <p className="text-sm">
-              <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">A partir de </span>
-              <span className="font-semibold text-[hsl(var(--brand-text,var(--primary)))]">
-                {formatEuro(service.fromPriceCents || 0)}
-              </span>
-            </p>
-          ) : showPrices && !service.hasOptions && service.priceCents > 0 ? (
-            <p className="text-sm font-semibold text-[hsl(var(--brand-text,var(--primary)))]">
-              {formatEuro(service.priceCents)}
-              {priceTaxModeCaption(service.priceTaxMode) ? (
-                <span className="ml-1 text-[10px] font-normal text-muted-foreground">
-                  {priceTaxModeCaption(service.priceTaxMode)}
-                </span>
-              ) : null}
-            </p>
-          ) : (
-            <span />
-          )}
-          <span className="shrink-0 text-sm font-medium text-[hsl(var(--brand-text,var(--primary)))]">
-            {service.hasOptions ? 'Ver opções →' : 'Saber mais →'}
-          </span>
+        <div
+          className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[hsl(var(--primary)/0.12)] text-[hsl(var(--brand-text,var(--primary)))]"
+          aria-hidden
+        >
+          <Icon className="h-6 w-6" />
         </div>
+      )}
+      <h3 className="text-lg font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">{service.name}</h3>
+      {service.description ? (
+        <SanitizedServiceHtml html={service.description} className="mt-2 line-clamp-3 text-sm text-muted-foreground" />
+      ) : null}
+      {service.hasOptions && service.options && service.options.length > 0 ? (
+        <ul className="mt-3 space-y-1 text-sm text-foreground/85">
+          {service.options.slice(0, 4).map((opt) => (
+            <li key={opt.slug}>
+              <span className="text-muted-foreground">·</span> {opt.name}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <div className="mt-auto flex flex-wrap items-end justify-between gap-2 pt-3">
+        {showPrices && service.hasOptions && (service.fromPriceCents ?? 0) > 0 ? (
+          <p className="text-xs text-muted-foreground">
+            A partir de{' '}
+            <span className="font-semibold text-[hsl(var(--brand-text,var(--primary)))]">
+              {formatEuro(service.fromPriceCents || 0)}
+            </span>
+          </p>
+        ) : showPrices && !service.hasOptions && service.priceCents > 0 ? (
+          <p className="text-xs font-semibold text-[hsl(var(--brand-text,var(--primary)))]">
+            {formatEuro(service.priceCents)}
+            {priceTaxModeCaption(service.priceTaxMode) ? (
+              <span className="ml-1 font-normal text-muted-foreground">
+                {priceTaxModeCaption(service.priceTaxMode)}
+              </span>
+            ) : null}
+          </p>
+        ) : (
+          <span />
+        )}
+        <span className="mt-4 inline-flex h-9 shrink-0 items-center rounded-lg bg-[hsl(var(--primary))] px-4 text-xs font-medium text-primary-foreground">
+          {ctaLabel}
+        </span>
       </div>
     </article>
   )
@@ -116,14 +128,12 @@ export function PublicSiteFeaturedServices({
 
   return (
     <div className="mb-10" data-testid="public-site-featured-services">
-      <h3 className="mb-4 text-base font-semibold uppercase tracking-wide text-[hsl(var(--brand-text,var(--muted-foreground)))]">
+      <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[hsl(var(--brand-text,var(--muted-foreground)))]">
         {title}
       </h3>
       <div
         className={
-          list.length >= 3
-            ? 'grid gap-4 md:grid-cols-2 xl:grid-cols-3'
-            : 'grid gap-4 sm:grid-cols-2'
+          list.length >= 3 ? 'grid gap-5 md:grid-cols-2 xl:grid-cols-3' : 'grid gap-5 sm:grid-cols-2'
         }
       >
         {list.map((service) => (

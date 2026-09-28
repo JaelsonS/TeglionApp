@@ -40,6 +40,7 @@ import {
   RecurrenceRemoveDialog,
   type RecurrenceRemoveScope,
 } from '@/features/firm/tasks/RecurrenceRemoveDialog'
+import { ConfirmRemoveDialog } from '@/features/firm/components/ConfirmRemoveDialog'
 import { Button } from '@/shared/components/ui/button'
 
 type TimelineItem = {
@@ -112,6 +113,8 @@ export function FirmObligationDetailPanel({
   const [removeOpen, setRemoveOpen] = useState(false)
   const [removeScope, setRemoveScope] = useState<RecurrenceRemoveScope>('occurrence')
   const [removePending, setRemovePending] = useState(false)
+  const [simpleRemoveOpen, setSimpleRemoveOpen] = useState(false)
+  const [simpleRemovePending, setSimpleRemovePending] = useState(false)
 
   const lane = (obligation.operationalLane || 'upcoming') as OperationalLane
   const laneBadge = LANE_BADGE[lane] ?? LANE_BADGE.upcoming
@@ -277,23 +280,25 @@ export function FirmObligationDetailPanel({
       }
     >
       <div className="cb-ob-det-header relative shrink-0">
-        <button
-          type="button"
-          className="absolute right-3 top-3 rounded-md p-1.5 text-muted-foreground hover:bg-muted/60"
-          onClick={onClose}
-          aria-label="Fechar"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        {!embedded ? (
+          <button
+            type="button"
+            className="absolute right-3 top-3 rounded-md p-1.5 text-muted-foreground hover:bg-muted/60"
+            onClick={onClose}
+            aria-label="Fechar"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
         <span className={cn('cb-ob-det-type-badge', laneBadge.className)}>
           <FileText className="h-3 w-3" />
           {typeLabel}
           {obligation.period ? ` · ${obligation.period}` : ''}
         </span>
-        <h2 className="pr-8 text-base font-bold text-foreground">{title}</h2>
+        <h2 className={cn('text-base font-bold text-foreground', !embedded && 'pr-8')}>{title}</h2>
         <p className="mt-1 text-[13px] font-medium text-brand">{clientName}</p>
         {!isCancelled ? (
-          <div className="mt-3 flex flex-wrap gap-2 pr-8">
+          <div className={cn('mt-3 flex flex-wrap gap-2', !embedded && 'pr-8')}>
             <Button type="button" size="sm" variant="secondary" className="h-8 rounded-full" onClick={() => setEditOpen(true)}>
               <Pencil className="mr-1.5 h-3.5 w-3.5" />
               Editar
@@ -309,20 +314,7 @@ export function FirmObligationDetailPanel({
                   setRemoveOpen(true)
                   return
                 }
-                if (!window.confirm('Remover esta obrigação da lista?')) return
-                void (async () => {
-                  try {
-                    await contabilObligationsApi.remove(obligation._id, {
-                      scope: 'occurrence',
-                      month: periodYm || undefined,
-                    })
-                    toast.success('Obrigação removida')
-                    onUpdated()
-                    onClose()
-                  } catch (err) {
-                    toast.error(getErrorMessage(err))
-                  }
-                })()
+                setSimpleRemoveOpen(true)
               }}
             >
               <Trash2 className="mr-1.5 h-3.5 w-3.5" />
@@ -577,6 +569,32 @@ export function FirmObligationDetailPanel({
             toast.error(getErrorMessage(err))
           } finally {
             setRemovePending(false)
+          }
+        }}
+      />
+
+      <ConfirmRemoveDialog
+        open={simpleRemoveOpen}
+        onOpenChange={setSimpleRemoveOpen}
+        title="Remover obrigação?"
+        description="Esta obrigação deixa de aparecer na lista deste período."
+        confirmLabel="Remover obrigação"
+        pending={simpleRemovePending}
+        onConfirm={async () => {
+          setSimpleRemovePending(true)
+          try {
+            await contabilObligationsApi.remove(obligation._id, {
+              scope: 'occurrence',
+              month: periodYm || undefined,
+            })
+            toast.success('Obrigação removida')
+            setSimpleRemoveOpen(false)
+            onUpdated()
+            onClose()
+          } catch (err) {
+            toast.error(getErrorMessage(err))
+          } finally {
+            setSimpleRemovePending(false)
           }
         }}
       />

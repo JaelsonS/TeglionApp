@@ -701,8 +701,8 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
           </div>
           <p className="text-[11px] leading-relaxed text-muted-foreground">
             Abra <span className="font-medium text-foreground">só a secção</span> que está a editar (ex.: Destaque
-            principal). Arraste à esquerda para reordenar. A pré-visualização ao vivo fica à direita — use{' '}
-            <span className="font-medium text-foreground">Expandir</span> para ver melhor.
+            principal). Arraste à esquerda para reordenar. Desça a página para ver todas as secções; a pré-visualização
+            fica fixa à direita — use <span className="font-medium text-foreground">Expandir</span> para ver melhor.
           </p>
           <PublicSiteSectionsList
             sections={sortedSections}
@@ -898,7 +898,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 Pré-visualização ao vivo
               </p>
               <p className="text-[11px] text-muted-foreground">
-                Scroll só nesta coluna — não precisa descer a página toda.
+                A pré-visualização acompanha enquanto desce o editor; use Expandir para ecrã completo.
               </p>
             </div>
             <Button

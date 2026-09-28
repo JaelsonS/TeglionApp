@@ -341,9 +341,9 @@ async function refreshPublicSite(firmId, ownerId, logoKey, heroPath, instPath, f
         enabled: true,
         order: 1,
         content: {
-          title: FIRM_NAME,
-          tagline: PUBLIC_TAGLINE,
-          bio: `${OWNER_NAME} e a equipa acompanham particulares e empresas em IRS, IVA, salários e consultoria — com portal do cliente, documentos e prazos num só sítio.`,
+          title: 'Soluções de contabilidade e fiscalidade que fazem a diferença.',
+          tagline: 'A sua empresa em boas mãos',
+          bio: `${FIRM_NAME} acompanha particulares e empresas em IRS, IVA, salários e consultoria — com portal do cliente, documentos e prazos num só sítio.`,
           imageIds: [heroId],
           imageFit: 'cover',
           imagePosition: 'center',

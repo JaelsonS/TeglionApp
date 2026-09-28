@@ -1065,8 +1065,29 @@ export function HeroEditor({
 
       <div className="space-y-2 rounded-lg border border-brand/25 bg-brand/[0.03] p-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
+          <Label htmlFor="hero-tagline" className="text-sm font-semibold">
+            Frase curta acima do título
+          </Label>
+          <InlineColorField
+            id="hero-tagline-color"
+            label="Cor da frase curta"
+            value={content.taglineColor}
+            onChange={(v) => onChange({ ...content, taglineColor: v })}
+          />
+        </div>
+        <Input
+          id="hero-tagline"
+          value={content.tagline}
+          onChange={(e: FormChangeEvent) => onChange({ ...content, tagline: e.target.value })}
+          placeholder="Ex.: A sua empresa em boas mãos"
+          maxLength={160}
+        />
+      </div>
+
+      <div className="space-y-2 rounded-lg border border-brand/25 bg-brand/[0.03] p-3">
+        <div className="flex flex-wrap items-end justify-between gap-2">
           <Label htmlFor="hero-title" className="text-sm font-semibold">
-            Título grande
+            Título principal (grande)
           </Label>
           <InlineColorField
             id="hero-title-color"
@@ -1079,29 +1100,8 @@ export function HeroEditor({
           id="hero-title"
           value={content.title || ''}
           onChange={(e: FormChangeEvent) => onChange({ ...content, title: e.target.value })}
-          placeholder="Ex.: Contabilidade clara para o seu negócio"
+          placeholder="Ex.: Soluções de contabilidade e fiscalidade que fazem a diferença"
           maxLength={120}
-        />
-      </div>
-
-      <div className="space-y-2 rounded-lg border border-brand/25 bg-brand/[0.03] p-3">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <Label htmlFor="hero-tagline" className="text-sm font-semibold">
-            Frase de destaque
-          </Label>
-          <InlineColorField
-            id="hero-tagline-color"
-            label="Cor da frase"
-            value={content.taglineColor}
-            onChange={(v) => onChange({ ...content, taglineColor: v })}
-          />
-        </div>
-        <Input
-          id="hero-tagline"
-          value={content.tagline}
-          onChange={(e: FormChangeEvent) => onChange({ ...content, tagline: e.target.value })}
-          placeholder="Ex.: Fiscalidade moderna para negócios e profissionais em Lisboa"
-          maxLength={160}
         />
       </div>
 

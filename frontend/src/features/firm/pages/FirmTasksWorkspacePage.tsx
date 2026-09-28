@@ -38,6 +38,7 @@ import { readClientIdFromSearch } from '@/shared/utils/clientQueryParam'
 import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
 import { AskMayaButton } from '@/features/maya'
 import { Button } from '@/shared/components/ui/button'
+import { ConfirmRemoveDialog } from '@/features/firm/components/ConfirmRemoveDialog'
 import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { formatTaskTitle } from '@/shared/utils/taskDisplay'
 import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
@@ -71,6 +72,8 @@ export function FirmTasksWorkspacePage() {
   const [removeTaskTarget, setRemoveTaskTarget] = useState<WorkspaceTask | null>(null)
   const [taskRemoveScope, setTaskRemoveScope] = useState<RecurrenceRemoveScope>('occurrence')
   const [taskRemovePending, setTaskRemovePending] = useState(false)
+  const [confirmDeleteTask, setConfirmDeleteTask] = useState<WorkspaceTask | null>(null)
+  const [confirmDeletePending, setConfirmDeletePending] = useState(false)
 
   const [form, setForm] = useState({
     clientIds: clientFilter ? [clientFilter] : ([] as string[]),
@@ -189,17 +192,9 @@ export function FirmTasksWorkspacePage() {
         setTaskRemoveScope('occurrence')
         return
       }
-      if (!window.confirm('Apagar esta tarefa?')) return
-      void tasksApi.remove(task.id).then(
-        () => {
-          toast.success('Tarefa removida')
-          invalidate()
-          if (openTaskId === task.id) updateParams({ task: null })
-        },
-        (err) => toast.error(getErrorMessage(err)),
-      )
+      setConfirmDeleteTask(task)
     },
-    [invalidate, openTaskId, updateParams],
+    [],
   )
 
   const onStatusChange = useCallback(
@@ -417,6 +412,30 @@ export function FirmTasksWorkspacePage() {
               onError: (err) => toast.error(getErrorMessage(err)),
             },
           )
+        }}
+      />
+
+      <ConfirmRemoveDialog
+        open={Boolean(confirmDeleteTask)}
+        onOpenChange={(open) => !open && setConfirmDeleteTask(null)}
+        title="Apagar tarefa?"
+        description="A tarefa será removida da lista. Esta acção não pode ser desfeita."
+        confirmLabel="Apagar tarefa"
+        pending={confirmDeletePending}
+        onConfirm={async () => {
+          if (!confirmDeleteTask) return
+          setConfirmDeletePending(true)
+          try {
+            await tasksApi.remove(confirmDeleteTask.id)
+            toast.success('Tarefa removida')
+            setConfirmDeleteTask(null)
+            invalidate()
+            if (openTaskId === confirmDeleteTask.id) updateParams({ task: null })
+          } catch (err) {
+            toast.error(getErrorMessage(err))
+          } finally {
+            setConfirmDeletePending(false)
+          }
         }}
       />
 

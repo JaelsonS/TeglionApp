@@ -6,7 +6,7 @@ O Teglion é um SaaS **multi-tenant** para **escritórios de contabilidade** em 
 
 ---
 
-## Verdade única (não negociar)
+## Verdade única
 
 | Pergunta | Documento canónico |
 |----------|-------------------|

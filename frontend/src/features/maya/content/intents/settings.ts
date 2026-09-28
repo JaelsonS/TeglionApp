@@ -162,9 +162,27 @@ export const SETTINGS_INTENTS = [
     nextSteps: [
       { label: 'Logótipos barra vs destaque', intentId: 'public-page-logos' },
       { label: 'Fotos e posição', intentId: 'public-page-media' },
+      { label: 'Destaques de serviços (estilo vitrine)', intentId: 'public-page-featured' },
       { label: 'Secções do site', intentId: 'public-page-sections' },
       { label: 'Publicar o site', intentId: 'public-page-publish' },
     ],
+  }),
+  defineIntent({
+    id: 'public-page-featured',
+    title: 'Destaques e catálogo na página pública (estilo vitrine)',
+    shortDescription: 'cartões de destaque e catálogo',
+    answer:
+      'Para um site profissional como a vitrine Silva: 1) Destaque principal — imagem de fundo, frase curta em cima (ex.: «A sua empresa em boas mãos»), título grande, parágrafo, escurecer fundo ~45%. 2) Secção «Outros serviços» ou «Consultorias» — bloco «Destaques (cartões grandes)»: marque até 6 ofertas principais (hubs com modalidades); o visitante vê cartões com opções listadas e botão «Ver opções». 3) Abaixo fica «Catálogo de serviços» em grelha por área — sem menu Áreas fechado; pode desactivar o link «Áreas» na Barra do topo. 4) Pré-visualização → Expandir → Publicar. Serviços vêm do Catálogo com «Aparece na página pública».',
+    steps: [
+      'Destaque principal: foto de fundo, foco 3×3, overlay',
+      'Frase curta acima do título + título grande + parágrafo',
+      'Outros serviços → Destaques: escolher 3–6 hubs',
+      'Barra do topo: Serviços + Contactos (desactivar Áreas se quiser)',
+      'Guardar rascunho → Publicar',
+    ],
+    deepLink: '/app/firm/settings?tab=pagina-publica',
+    relatedIntents: ['public-page', 'public-page-media', 'public-page-publish', 'service'],
+    ctaLabel: 'Abrir Página pública',
   }),
   defineIntent({
     id: 'public-page-logos',
@@ -246,7 +264,7 @@ export const SETTINGS_INTENTS = [
       {
         id: 'other-services',
         name: 'Outros serviços',
-        meaning: 'Título da zona dos restantes serviços publicados.',
+        meaning: 'Título da zona, bloco «Destaques (cartões grandes)» (até 6 ofertas com modalidades visíveis) e catálogo em grelha por grupo.',
       },
       {
         id: 'features',
