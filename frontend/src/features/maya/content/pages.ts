@@ -446,6 +446,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
       'Configure logótipos à direita se quiser site sem logo do portal; preencha o destaque; guarde → pré-visualize → publique.',
     topicIds: [
       'public-page',
+      'public-page-featured',
       'public-page-logos',
       'public-page-media',
       'public-page-sections',

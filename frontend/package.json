@@ -19,6 +19,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:local": "playwright test e2e/public-smoke.spec.ts e2e/public-routes.spec.ts",
+    "test:e2e:staging": "playwright test e2e/staging-firm-public.spec.ts",
     "test:e2e:install": "playwright install chromium",
     "preview": "vite preview --host 0.0.0.0 --port 3000",
     "vercel:deploy": "vercel deploy --prod --force --skip-build --no-confirm",

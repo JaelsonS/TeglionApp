@@ -9,7 +9,15 @@ import {
 } from '@dnd-kit/core'
 import { useDraggable, useDroppable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
-import { Calendar, CheckCircle2, MoreHorizontal } from 'lucide-react'
+import { Calendar, CheckCircle2, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/components/ui/dropdown-menu'
+import { Button } from '@/shared/components/ui/button'
+import type { MouseEvent } from 'react'
 import { useMemo, useState } from 'react'
 
 import type { WorkspaceTask, WorkspaceTaskStatus } from '@/infrastructure/api/contabil/tasks'
@@ -44,11 +52,15 @@ function TaskCard({
   task,
   teamNames,
   onSelect,
+  onQuickEdit,
+  onQuickDelete,
   isDragging,
 }: {
   task: WorkspaceTask
   teamNames: Map<string, string>
   onSelect: (t: WorkspaceTask) => void
+  onQuickEdit?: (t: WorkspaceTask) => void
+  onQuickDelete?: (t: WorkspaceTask) => void
   isDragging?: boolean
 }) {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({ id: task.id, data: { task } })
@@ -84,6 +96,36 @@ function TaskCard({
             <span className="cb-tasks-client-badge">{task.clientName}</span>
           ) : null}
         </div>
+        {onQuickEdit || onQuickDelete ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 shrink-0"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreHorizontal className="h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" onClick={(e: MouseEvent) => e.stopPropagation()}>
+              {onQuickEdit ? (
+                <DropdownMenuItem onClick={() => onQuickEdit(task)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Editar
+                </DropdownMenuItem>
+              ) : null}
+              {onQuickDelete ? (
+                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onQuickDelete(task)}>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Apagar
+                </DropdownMenuItem>
+              ) : null}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
       </div>
       {!done ? (
         <div className="mt-2 flex items-center justify-between">
@@ -112,12 +154,16 @@ function KanbanColumn({
   tasks,
   teamNames,
   onSelect,
+  onQuickEdit,
+  onQuickDelete,
 }: {
   label: string
   status: WorkspaceTaskStatus
   tasks: WorkspaceTask[]
   teamNames: Map<string, string>
   onSelect: (t: WorkspaceTask) => void
+  onQuickEdit?: (t: WorkspaceTask) => void
+  onQuickDelete?: (t: WorkspaceTask) => void
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status })
   return (
@@ -132,7 +178,14 @@ function KanbanColumn({
       </div>
       <div className="flex max-h-[calc(100vh-16rem)] flex-col gap-0 overflow-y-auto pb-2">
         {tasks.map((t) => (
-          <TaskCard key={t.id} task={t} teamNames={teamNames} onSelect={onSelect} />
+          <TaskCard
+            key={t.id}
+            task={t}
+            teamNames={teamNames}
+            onSelect={onSelect}
+            onQuickEdit={onQuickEdit}
+            onQuickDelete={onQuickDelete}
+          />
         ))}
       </div>
     </div>
@@ -144,11 +197,15 @@ export function TaskKanbanView({
   teamNames,
   onSelect,
   onStatusChange,
+  onQuickEdit,
+  onQuickDelete,
 }: {
   items: WorkspaceTask[]
   teamNames: Map<string, string>
   onSelect: (t: WorkspaceTask) => void
   onStatusChange: (taskId: string, status: WorkspaceTaskStatus) => void
+  onQuickEdit?: (t: WorkspaceTask) => void
+  onQuickDelete?: (t: WorkspaceTask) => void
 }) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
@@ -188,6 +245,8 @@ export function TaskKanbanView({
             tasks={byColumn[status]}
             teamNames={teamNames}
             onSelect={onSelect}
+            onQuickEdit={onQuickEdit}
+            onQuickDelete={onQuickDelete}
           />
         ))}
       </div>

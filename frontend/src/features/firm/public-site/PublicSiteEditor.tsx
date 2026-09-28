@@ -1,6 +1,20 @@
-import { useEffect, useState, type ChangeEvent } from 'react'
+import { useEffect, useState, type ChangeEvent, type CSSProperties } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ExternalLink, Eye, Facebook, Globe, Instagram, Linkedin, Loader2, MessageCircle, Plus, Save, Trash2, Upload } from 'lucide-react'
+import {
+  ExternalLink,
+  Eye,
+  Facebook,
+  Globe,
+  Instagram,
+  Linkedin,
+  Loader2,
+  Maximize2,
+  MessageCircle,
+  Plus,
+  Save,
+  Trash2,
+  Upload,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { toast } from 'sonner'
@@ -15,6 +29,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/components/ui/alert-dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
@@ -44,6 +64,7 @@ import {
   PublicSiteLogoCard,
 } from './sectionEditors'
 import { resolvePublicSitePreviewZoneLogoUrl } from './publicSitePreviewLogo'
+import { PublicSiteEditorPreviewFrame } from './PublicSiteEditorPreviewFrame'
 import { resolvePublicSiteImageUrl } from '@/features/public-intake/publicSiteImageResolve'
 import type { PublicSiteLogoSource } from '@/shared/types/firmPublicSite'
 import { PublicSiteSectionsList } from './PublicSiteSectionsList'
@@ -73,7 +94,7 @@ const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
 
 const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
   header: 'Cores da barra',
-  hero: 'Foto, título, frase e botões',
+  hero: 'Imagem de fundo, texto por cima, botões',
   about: 'Texto, foto e botões',
   services: 'Título, catálogo e botões',
   bookingServices: 'Título, catálogo e botões',
@@ -108,19 +129,26 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const [savingDisplayName, setSavingDisplayName] = useState(false)
   /** Por secção (key). Ausente = aberto por defeito em header/hero. */
   const [sectionOpenState, setSectionOpenState] = useState<Record<string, boolean>>({})
+  const [previewExpanded, setPreviewExpanded] = useState(false)
 
   const isSectionEditorOpen = (section: PublicSiteSection) => {
     if (Object.prototype.hasOwnProperty.call(sectionOpenState, section.key)) {
       return sectionOpenState[section.key]
     }
-    return section.type === 'header' || section.type === 'hero'
+    return section.type === 'hero'
+  }
+
+  const collapseAllSections = () => {
+    const next: Record<string, boolean> = {}
+    for (const s of draft?.sections || []) next[s.key] = false
+    setSectionOpenState(next)
   }
 
   const toggleSectionOpen = (section: PublicSiteSection) => {
     setSectionOpenState((prev) => {
       const currently = Object.prototype.hasOwnProperty.call(prev, section.key)
         ? prev[section.key]
-        : section.type === 'header' || section.type === 'hero'
+        : section.type === 'hero'
       return { ...prev, [section.key]: !currently }
     })
   }
@@ -486,8 +514,45 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     publicDisplayName.trim() || bundle.publicProfile.displayName?.trim() || bundle.firm.name
   const sortedSections = reindexPublicSiteSectionsOrder(draft.sections)
 
+  const previewPanel = (
+    <DefaultTemplate
+      config={draft}
+      ctx={{
+        firmSlug,
+        firmName: previewFirmName,
+        logoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
+        headerLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
+        heroLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'hero', bundle.logoUrl),
+        services: previewServices,
+        contact: bundle.contact,
+        showPrices: draft.showPrices !== false,
+        complaintsBookUrl: draft.complaintsBookUrl,
+        complaintsBookLabel: draft.complaintsBookLabel,
+        praiseUrl: draft.praiseUrl,
+        praiseLabel: draft.praiseLabel,
+        praiseContact: draft.praiseContact,
+        openInternalLinksInNewTab: true,
+        showTeglionCredit: true,
+      }}
+    />
+  )
+
+  const previewSurfaceStyle = {
+    ...resolveFirmBrandingCssVars({
+      primaryColor: draft.theme.primaryColor,
+      secondaryColor: draft.theme.secondaryColor,
+      textColor: draft.theme.textColor,
+      backgroundColor: draft.theme.backgroundColor,
+      surfaceColor: draft.theme.surfaceColor,
+      mutedTextColor: draft.theme.mutedTextColor,
+    }),
+    ...(parsePublicSiteHex(draft.theme.backgroundColor)
+      ? { backgroundColor: parsePublicSiteHex(draft.theme.backgroundColor)! }
+      : { backgroundColor: 'hsl(var(--background))' }),
+  } as CSSProperties
+
   return (
-    <div className="space-y-6">
+    <div className="cb-public-site-editor-root space-y-6">
       {/* Passo 1 — Identidade + publicar */}
       <section className="space-y-3 rounded-xl border border-border/50 bg-muted/20 p-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">1 · Identidade</p>
@@ -602,8 +667,18 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
         </div>
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,420px)]">
-        <div className="order-1 min-w-0 space-y-4">
+      <div className="cb-public-site-editor-grid">
+        <div className="cb-public-site-editor-main order-1 min-w-0 space-y-4">
+          <div className="space-y-3 rounded-xl border border-border/50 bg-card p-4 lg:hidden">
+            <PublicSiteLogoCard
+              draft={draft}
+              firmLogoUrl={bundle.logoUrl ?? null}
+              readOnly={!canEditLink}
+              onDraftUpdate={setDraft}
+              onLogoSourceChange={(zone, source) => void patchThemeLogoSource(zone, source)}
+            />
+            <PageThemeColors draft={draft} onChange={setDraft} />
+          </div>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               2 · Secções do site
@@ -612,6 +687,9 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               <Button type="button" variant="outline" size="sm" className="h-8" onClick={onAddSection}>
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
                 Adicionar secção
+              </Button>
+              <Button type="button" variant="ghost" size="sm" className="h-8 text-xs" onClick={collapseAllSections}>
+                Recolher todas
               </Button>
               <button
                 type="button"
@@ -622,9 +700,10 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               </button>
             </div>
           </div>
-          <p className="text-[11px] text-muted-foreground">
-            À esquerda: arrastar para mudar a ordem. À direita: abrir as opções. As secções de modelo não se
-            apagam — só as que criar com «Adicionar secção».
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            Abra <span className="font-medium text-foreground">só a secção</span> que está a editar (ex.: Destaque
+            principal). Arraste à esquerda para reordenar. Desça a página para ver todas as secções; a pré-visualização
+            fica fixa à direita — use <span className="font-medium text-foreground">Expandir</span> para ver melhor.
           </p>
           <PublicSiteSectionsList
             sections={sortedSections}
@@ -797,60 +876,63 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               />
             </label>
           </div>
-        </div>
 
-        <div className="order-2 min-w-0 space-y-3 lg:sticky lg:top-4 lg:self-start">
-          <PublicSiteLogoCard
-            draft={draft}
-            firmLogoUrl={bundle.logoUrl ?? null}
-            readOnly={!canEditLink}
-            onDraftUpdate={setDraft}
-            onLogoSourceChange={(zone, source) => void patchThemeLogoSource(zone, source)}
-          />
-          <PageThemeColors draft={draft} onChange={setDraft} />
-          <p className="text-caption font-semibold uppercase tracking-wide text-muted-foreground">
-            Pré-visualização
-          </p>
-          <div
-            key={`preview-bg-${draft.theme.backgroundColor || 'default'}-${draft.theme.surfaceColor || 'surface'}`}
-            className="max-h-[min(70vh,36rem)] overflow-y-auto overscroll-y-contain rounded-xl border border-border/50 lg:max-h-[80vh]"
-            style={{
-              ...resolveFirmBrandingCssVars({
-                primaryColor: draft.theme.primaryColor,
-                secondaryColor: draft.theme.secondaryColor,
-                textColor: draft.theme.textColor,
-                backgroundColor: draft.theme.backgroundColor,
-                surfaceColor: draft.theme.surfaceColor,
-                mutedTextColor: draft.theme.mutedTextColor,
-              }),
-              ...(parsePublicSiteHex(draft.theme.backgroundColor)
-                ? { backgroundColor: parsePublicSiteHex(draft.theme.backgroundColor)! }
-                : { backgroundColor: 'hsl(var(--background))' }),
-            }}
-          >
-            <DefaultTemplate
-              config={draft}
-              ctx={{
-                firmSlug,
-                firmName: previewFirmName,
-                logoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
-                headerLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
-                heroLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'hero', bundle.logoUrl),
-                services: previewServices,
-                contact: bundle.contact,
-                showPrices: draft.showPrices !== false,
-                complaintsBookUrl: draft.complaintsBookUrl,
-                complaintsBookLabel: draft.complaintsBookLabel,
-                praiseUrl: draft.praiseUrl,
-                praiseLabel: draft.praiseLabel,
-                praiseContact: draft.praiseContact,
-                openInternalLinksInNewTab: true,
-                showTeglionCredit: true,
-              }}
+          <div className="hidden space-y-3 rounded-xl border border-border/50 bg-muted/15 p-4 lg:block">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Visual rápido
+            </p>
+            <PublicSiteLogoCard
+              draft={draft}
+              firmLogoUrl={bundle.logoUrl ?? null}
+              readOnly={!canEditLink}
+              onDraftUpdate={setDraft}
+              onLogoSourceChange={(zone, source) => void patchThemeLogoSource(zone, source)}
             />
+            <PageThemeColors draft={draft} onChange={setDraft} />
           </div>
         </div>
+
+        <aside className="cb-public-site-editor-aside order-2 min-w-0">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 pb-2">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Pré-visualização ao vivo
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Miniatura proporcional (como num ecrã largo). Use Expandir para rever ao tamanho real antes de publicar.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 shrink-0"
+              onClick={() => setPreviewExpanded(true)}
+            >
+              <Maximize2 className="mr-1.5 h-3.5 w-3.5" />
+              Expandir
+            </Button>
+          </div>
+          <div
+            key={`preview-bg-${draft.theme.backgroundColor || 'default'}-${draft.theme.surfaceColor || 'surface'}`}
+            className="cb-public-site-editor-preview-scroll rounded-xl border border-border/50 shadow-sm"
+            style={previewSurfaceStyle}
+          >
+            <PublicSiteEditorPreviewFrame>{previewPanel}</PublicSiteEditorPreviewFrame>
+          </div>
+        </aside>
       </div>
+
+      <Dialog open={previewExpanded} onOpenChange={setPreviewExpanded}>
+        <DialogContent className="flex h-[min(92dvh,900px)] max-w-5xl flex-col gap-0 p-0">
+          <DialogHeader className="shrink-0 border-b border-border/60 px-4 py-3 text-left">
+            <DialogTitle className="text-base">Pré-visualização — site público</DialogTitle>
+          </DialogHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain" style={previewSurfaceStyle}>
+            <PublicSiteEditorPreviewFrame expanded>{previewPanel}</PublicSiteEditorPreviewFrame>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={confirmPublishOpen} onOpenChange={setConfirmPublishOpen}>
         <AlertDialogContent>

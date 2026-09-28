@@ -177,8 +177,29 @@ function normalizeHeroImageFit(value) {
   return value === 'contain' ? 'contain' : 'cover';
 }
 
+const HERO_IMAGE_FOCUS = new Set([
+  'top-left', 'top', 'top-right',
+  'center-left', 'center', 'center-right',
+  'bottom-left', 'bottom', 'bottom-right',
+]);
+
+function normalizeHeroImageFocus(value) {
+  const v = String(value || '').trim();
+  if (HERO_IMAGE_FOCUS.has(v)) return v;
+  if (v === 'left') return 'center-left';
+  if (v === 'right') return 'center-right';
+  if (v === 'top' || v === 'bottom') return v;
+  return 'center';
+}
+
 function normalizeHeroImagePosition(value) {
-  return value === 'top' || value === 'bottom' || value === 'center' ? value : 'center';
+  return normalizeHeroImageFocus(value);
+}
+
+function normalizeHeroBackgroundOverlay(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 42;
+  return Math.min(80, Math.max(0, Math.round(n)));
 }
 
 function normalizeSectionContent(type, raw) {
@@ -197,7 +218,8 @@ function normalizeSectionContent(type, raw) {
           taglineColor: normalizeOptionalHex(content.taglineColor),
           bioColor: normalizeOptionalHex(content.bioColor),
           imageFit: normalizeHeroImageFit(content.imageFit),
-          imagePosition: normalizeHeroImagePosition(content.imagePosition),
+          imagePosition: normalizeHeroImageFocus(content.imagePosition),
+          backgroundOverlay: normalizeHeroBackgroundOverlay(content.backgroundOverlay),
           showLogo: content.showLogo !== false,
         },
         content,
@@ -225,6 +247,13 @@ function normalizeSectionContent(type, raw) {
           ctas: normalizeCtas(content.ctas),
           backgroundColor: normalizeOptionalHex(content.backgroundColor),
           headingColor: normalizeOptionalHex(content.headingColor),
+          featuredHeading: content.featuredHeading ? String(content.featuredHeading).trim().slice(0, 80) : '',
+          featuredServiceSlugs: Array.isArray(content.featuredServiceSlugs)
+            ? content.featuredServiceSlugs
+                .slice(0, 6)
+                .map((slug) => String(slug || '').trim())
+                .filter(Boolean)
+            : [],
         },
         content,
       );

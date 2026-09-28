@@ -97,14 +97,25 @@ export type PublicSiteHeroContent = {
   /** Cor do texto «Sobre o escritório» no hero. */
   bioColor?: string | null
   /**
-   * Enquadramento da foto de capa. Ausente = `cover` (páginas já publicadas).
-   * `cover` = Preencher a faixa 16:9. `contain` = Mostrar a imagem inteira.
+   * Imagem de fundo do destaque (atrás do texto). `cover` = preencher; `contain` = mostrar inteira.
    */
   imageFit?: 'cover' | 'contain' | null
   /**
-   * Foco vertical quando `imageFit` é `cover`. Ausente = `center`.
+   * Ponto de foco / reposicionamento (9 posições). Valores antigos `top`/`center`/`bottom` mantêm-se.
    */
-  imagePosition?: 'center' | 'top' | 'bottom' | null
+  imagePosition?:
+    | 'top-left'
+    | 'top'
+    | 'top-right'
+    | 'center-left'
+    | 'center'
+    | 'center-right'
+    | 'bottom-left'
+    | 'bottom'
+    | 'bottom-right'
+    | null
+  /** Escurece o fundo (0–80) para legibilidade do texto por cima da foto. */
+  backgroundOverlay?: number | null
   /** Omissão = mostrar logótipo no destaque quando existir URL. */
   showLogo?: boolean
 } & PublicSiteSectionMediaFields
@@ -126,6 +137,10 @@ export type PublicSiteServicesContent = {
   ctas?: PublicSiteCta[]
   backgroundColor?: string | null
   headingColor?: string | null
+  /** Título do bloco de cartões em destaque (ex.: «Destaques»). */
+  featuredHeading?: string | null
+  /** Slugs de ofertas principais — cartões grandes com opções visíveis (máx. 6). */
+  featuredServiceSlugs?: string[] | null
 } & PublicSiteSectionMediaFields
 
 export type PublicSiteFeaturesContent = {

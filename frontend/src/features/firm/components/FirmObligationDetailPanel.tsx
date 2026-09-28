@@ -8,6 +8,7 @@ import {
   History,
   Upload,
   User,
+  Pencil,
   Trash2,
   X,
 } from 'lucide-react'
@@ -30,10 +31,17 @@ import { MAX_UPLOAD_MB, validateUploadFileSize } from '@/shared/utils/uploadLimi
 import { formatEuro, formatPtDate } from '@/shared/utils/contabilLocale'
 import type { Obligation } from '@/shared/types/contabil'
 import { cn } from '@/shared/lib/utils'
+import { ObligationEditDialog } from '@/features/firm/obligations/ObligationEditDialog'
+import {
+  obligationHasRecurrenceSeries,
+  obligationPeriodYm,
+} from '@/features/firm/obligations/obligationRemoveHelpers'
 import {
   RecurrenceRemoveDialog,
   type RecurrenceRemoveScope,
 } from '@/features/firm/tasks/RecurrenceRemoveDialog'
+import { ConfirmRemoveDialog } from '@/features/firm/components/ConfirmRemoveDialog'
+import { Button } from '@/shared/components/ui/button'
 
 type TimelineItem = {
   id: string
@@ -74,6 +82,7 @@ type Props = {
   onClose: () => void
   onUpdated: () => void
   embedded?: boolean
+  staff?: { id: string; fullName?: string; email?: string }[]
 }
 
 export function FirmObligationDetailPanel({
@@ -82,6 +91,7 @@ export function FirmObligationDetailPanel({
   onClose,
   onUpdated,
   embedded = false,
+  staff = [],
 }: Props) {
   const [timeline, setTimeline] = useState<TimelineItem[]>([])
   const [viewStats, setViewStats] = useState<ViewStats | null>(obligation.viewStats || null)
@@ -99,9 +109,12 @@ export function FirmObligationDetailPanel({
   const [dueDateDraft, setDueDateDraft] = useState(dueDateToDateInput(String(obligation.dueDate || '')))
   const [savingPeriod, setSavingPeriod] = useState(false)
   const [savingDueDate, setSavingDueDate] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
   const [removeOpen, setRemoveOpen] = useState(false)
   const [removeScope, setRemoveScope] = useState<RecurrenceRemoveScope>('occurrence')
   const [removePending, setRemovePending] = useState(false)
+  const [simpleRemoveOpen, setSimpleRemoveOpen] = useState(false)
+  const [simpleRemovePending, setSimpleRemovePending] = useState(false)
 
   const lane = (obligation.operationalLane || 'upcoming') as OperationalLane
   const laneBadge = LANE_BADGE[lane] ?? LANE_BADGE.upcoming
@@ -109,8 +122,8 @@ export function FirmObligationDetailPanel({
   const title = displayObligationTitle(obligation)
   const isDelivered = String(obligation.status).toUpperCase() === 'DELIVERED'
   const isCancelled = String(obligation.status).toUpperCase() === 'CANCELLED'
-  const hasRecurrenceSeries = Boolean(obligation.recurrenceRuleId || obligation.templateId)
-  const periodYm = String(obligation.period || '').slice(0, 7)
+  const hasRecurrenceSeries = obligationHasRecurrenceSeries(obligation)
+  const periodYm = obligationPeriodYm(obligation)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -267,21 +280,48 @@ export function FirmObligationDetailPanel({
       }
     >
       <div className="cb-ob-det-header relative shrink-0">
-        <button
-          type="button"
-          className="absolute right-3 top-3 rounded-md p-1.5 text-muted-foreground hover:bg-muted/60"
-          onClick={onClose}
-          aria-label="Fechar"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        {!embedded ? (
+          <button
+            type="button"
+            className="absolute right-3 top-3 rounded-md p-1.5 text-muted-foreground hover:bg-muted/60"
+            onClick={onClose}
+            aria-label="Fechar"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
         <span className={cn('cb-ob-det-type-badge', laneBadge.className)}>
           <FileText className="h-3 w-3" />
           {typeLabel}
           {obligation.period ? ` · ${obligation.period}` : ''}
         </span>
-        <h2 className="pr-8 text-base font-bold text-foreground">{title}</h2>
+        <h2 className={cn('text-base font-bold text-foreground', !embedded && 'pr-8')}>{title}</h2>
         <p className="mt-1 text-[13px] font-medium text-brand">{clientName}</p>
+        {!isCancelled ? (
+          <div className={cn('mt-3 flex flex-wrap gap-2', !embedded && 'pr-8')}>
+            <Button type="button" size="sm" variant="secondary" className="h-8 rounded-full" onClick={() => setEditOpen(true)}>
+              <Pencil className="mr-1.5 h-3.5 w-3.5" />
+              Editar
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-8 rounded-full border-destructive/40 text-destructive hover:bg-destructive/10"
+              onClick={() => {
+                if (hasRecurrenceSeries) {
+                  setRemoveScope('occurrence')
+                  setRemoveOpen(true)
+                  return
+                }
+                setSimpleRemoveOpen(true)
+              }}
+            >
+              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+              Remover
+            </Button>
+          </div>
+        ) : null}
         <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 cb-text-caption">
           {obligation.dueDate ? (
             <span className="inline-flex items-center gap-1">
@@ -493,37 +533,18 @@ export function FirmObligationDetailPanel({
             Pré-visualizar
           </button>
         ) : null}
-        {!isCancelled ? (
-          <button
-            type="button"
-            className="cb-ob-det-btn cb-ob-det-btn-secondary text-destructive hover:bg-destructive/10"
-            onClick={() => {
-              if (hasRecurrenceSeries) {
-                setRemoveScope('occurrence')
-                setRemoveOpen(true)
-                return
-              }
-              if (!window.confirm('Remover esta obrigação da lista deste mês?')) return
-              void (async () => {
-                try {
-                  await contabilObligationsApi.remove(obligation._id, {
-                    scope: 'occurrence',
-                    month: periodYm || undefined,
-                  })
-                  toast.success('Obrigação removida')
-                  onUpdated()
-                  onClose()
-                } catch (err) {
-                  toast.error(getErrorMessage(err))
-                }
-              })()
-            }}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Remover
-          </button>
-        ) : null}
       </div>
+
+      <ObligationEditDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        obligation={obligation}
+        staff={staff}
+        onSaved={() => {
+          onUpdated()
+          void load()
+        }}
+      />
 
       <RecurrenceRemoveDialog
         open={removeOpen}
@@ -548,6 +569,32 @@ export function FirmObligationDetailPanel({
             toast.error(getErrorMessage(err))
           } finally {
             setRemovePending(false)
+          }
+        }}
+      />
+
+      <ConfirmRemoveDialog
+        open={simpleRemoveOpen}
+        onOpenChange={setSimpleRemoveOpen}
+        title="Remover obrigação?"
+        description="Esta obrigação deixa de aparecer na lista deste período."
+        confirmLabel="Remover obrigação"
+        pending={simpleRemovePending}
+        onConfirm={async () => {
+          setSimpleRemovePending(true)
+          try {
+            await contabilObligationsApi.remove(obligation._id, {
+              scope: 'occurrence',
+              month: periodYm || undefined,
+            })
+            toast.success('Obrigação removida')
+            setSimpleRemoveOpen(false)
+            onUpdated()
+            onClose()
+          } catch (err) {
+            toast.error(getErrorMessage(err))
+          } finally {
+            setSimpleRemovePending(false)
           }
         }}
       />

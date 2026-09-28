@@ -162,9 +162,27 @@ export const SETTINGS_INTENTS = [
     nextSteps: [
       { label: 'Logótipos barra vs destaque', intentId: 'public-page-logos' },
       { label: 'Fotos e posição', intentId: 'public-page-media' },
+      { label: 'Destaques de serviços (estilo vitrine)', intentId: 'public-page-featured' },
       { label: 'Secções do site', intentId: 'public-page-sections' },
       { label: 'Publicar o site', intentId: 'public-page-publish' },
     ],
+  }),
+  defineIntent({
+    id: 'public-page-featured',
+    title: 'Destaques e catálogo na página pública (estilo vitrine)',
+    shortDescription: 'cartões de destaque e catálogo',
+    answer:
+      'Para um site profissional como a vitrine Silva: 1) Destaque principal — imagem de fundo, frase curta em cima (ex.: «A sua empresa em boas mãos»), título grande, parágrafo, escurecer fundo ~45%. 2) Secção «Outros serviços» ou «Consultorias» — bloco «Destaques (cartões grandes)»: marque até 6 ofertas principais (hubs com modalidades); o visitante vê cartões com opções listadas e botão «Ver opções». 3) Abaixo fica «Catálogo de serviços» em grelha por área — sem menu Áreas fechado; pode desactivar o link «Áreas» na Barra do topo. 4) Pré-visualização → Expandir → Publicar. Serviços vêm do Catálogo com «Aparece na página pública».',
+    steps: [
+      'Destaque principal: foto de fundo, foco 3×3, overlay',
+      'Frase curta acima do título + título grande + parágrafo',
+      'Outros serviços → Destaques: escolher 3–6 hubs',
+      'Barra do topo: Serviços + Contactos (desactivar Áreas se quiser)',
+      'Guardar rascunho → Publicar',
+    ],
+    deepLink: '/app/firm/settings?tab=pagina-publica',
+    relatedIntents: ['public-page', 'public-page-media', 'public-page-publish', 'service'],
+    ctaLabel: 'Abrir Página pública',
   }),
   defineIntent({
     id: 'public-page-logos',
@@ -193,7 +211,7 @@ export const SETTINGS_INTENTS = [
     title: 'Imagens nas secções da página pública',
     shortDescription: 'fotos, posição e fundo',
     answer:
-      'Em Sobre o escritório, Diferenciais, Como funciona, Perguntas frequentes, Contactos (e outras secções com o bloco «Imagens») pode carregar uma foto de conteúdo, escolher posição (acima, esquerda ou direita do texto), tamanho (pequeno a largura total) e, opcionalmente, imagem de fundo suave por baixo do texto. O Destaque principal continua a ter a foto de capa (faixa grande) à parte. Isto não altera Definições → Identidade nem Escritório — só o site teglion.com/…. Desmarque «Mostrar imagem de conteúdo» para esconder a foto mantendo o texto.',
+      'Em Sobre o escritório, Diferenciais, Como funciona, Perguntas frequentes, Contactos (e outras secções com o bloco «Imagens») pode carregar uma foto de conteúdo, escolher posição (acima, esquerda ou direita do texto), tamanho (pequeno a largura total) e, opcionalmente, imagem de fundo suave por baixo do texto. No Destaque principal a imagem é de fundo atrás do título e da frase (não uma faixa gigante acima): use o painel de foco 3×3, «Preencher» ou «Mostrar inteira» e o slider para escurecer o fundo e ler o texto. Isto não altera Definições → Identidade nem Escritório — só o site teglion.com/…. Desmarque «Mostrar imagem de conteúdo» para esconder a foto mantendo o texto.',
     steps: [
       'Abra a secção na lista (ex.: Sobre o escritório)',
       'Use «Imagens (só página pública)»',
@@ -210,11 +228,11 @@ export const SETTINGS_INTENTS = [
     title: 'Secções da página pública',
     shortDescription: 'secções do site',
     answer:
-      'As secções seguem a ordem da lista: Barra do topo (cores, links, mostrar logótipo), Destaque principal (capa, título, frase, logótipo redondo opcional), Sobre, Consultorias com agendamento, Outros serviços, Diferenciais, Como funciona, FAQ, Contactos, Rodapé. Várias secções têm bloco «Imagens (só página pública)». Serviços concretos criam-se em Serviços ou IRS — aqui só títulos e apresentação.',
+      'As secções seguem a ordem da lista: Barra do topo (cores, links, mostrar logótipo), Destaque principal (imagem de fundo, título e frase por cima, logótipo redondo opcional), Sobre, Consultorias com agendamento, Outros serviços, Diferenciais, Como funciona, FAQ, Contactos, Rodapé. Várias secções têm bloco «Imagens (só página pública)». Serviços concretos criam-se em Serviços ou IRS — aqui só títulos e apresentação.',
     steps: [
       'Siga a lista — é a ordem do visitante',
       'Configure logótipos no painel à direita se precisar',
-      'Preencha o Destaque com frase clara e foto de capa opcional',
+      'Preencha o Destaque com frase clara e imagem de fundo opcional (reposicione com a grelha de foco)',
       'Em Sobre/FAQ/Contactos use imagens se quiser',
       'Guarde o rascunho com frequência',
     ],
@@ -230,7 +248,7 @@ export const SETTINGS_INTENTS = [
       {
         id: 'hero',
         name: 'Destaque principal',
-        meaning: 'Foto de capa (faixa), título, frase, parágrafo, botões e «Mostrar logótipo no destaque». Logótipo redondo: painel à direita — Destaque.',
+        meaning: 'Imagem de fundo atrás do texto, título, frase, parágrafo, botões, grelha de foco e escurecer fundo. «Mostrar logótipo no destaque». Logótipos barra vs destaque: painel à direita.',
         usedWhere: 'Topo do site público.',
       },
       {
@@ -246,7 +264,7 @@ export const SETTINGS_INTENTS = [
       {
         id: 'other-services',
         name: 'Outros serviços',
-        meaning: 'Título da zona dos restantes serviços publicados.',
+        meaning: 'Título da zona, bloco «Destaques (cartões grandes)» (até 6 ofertas com modalidades visíveis) e catálogo em grelha por grupo.',
       },
       {
         id: 'features',
