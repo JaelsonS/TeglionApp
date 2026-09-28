@@ -324,6 +324,7 @@ export function FirmObligationDetailPanel({
               <Trash2 className="mr-1.5 h-3.5 w-3.5" />
               Remover
             </Button>
+            </div>
           </div>
         ) : null}
         <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 cb-text-caption">
