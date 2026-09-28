@@ -132,9 +132,9 @@ export function PublicSiteFeaturedServices({
         {title}
       </h3>
       <div
-        className={
-          list.length >= 3 ? 'grid gap-5 md:grid-cols-2 xl:grid-cols-3' : 'grid gap-5 sm:grid-cols-2'
-        }
+        className={`ps-featured-grid grid gap-5 ${
+          list.length >= 3 ? 'ps-featured-grid--triple' : 'ps-featured-grid--pair'
+        }`}
       >
         {list.map((service) => (
           <FeaturedHubCard

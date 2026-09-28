@@ -10,7 +10,7 @@ Este documento é onde eu registro a estratégia de testes real do Teglion — o
 | Testes unitários frontend (Vitest) | Sim — **48** ficheiros, **224** testes | Sim |
 | Teste de isolamento entre tenants | Sim — script dedicado, grava dados reais em Supabase de staging | Sim, camada de serviço/repositório. A camada HTTP do mesmo script **não** roda em CI hoje (ver abaixo) |
 | Auditoria de segurança estática | Sim — checklist fixo de ~12 verificações | Sim |
-| Testes E2E (Playwright) | Sim — 1 arquivo, 3 testes, superfície pública | **Não** — não está no workflow de CI |
+| Testes E2E (Playwright) | Sim — `public-smoke`, `public-routes` (local CI), `staging-firm-public` (opcional com `E2E_STAGING_BASE_URL`) | Sim — `test:e2e:local` no workflow; staging se secret `STAGING_E2E_BASE_URL` |
 | Lint (ESLint) | Instalado como dependência, sem config e sem script | Não existe |
 | Cobertura de testes (%) | Não existe ferramenta configurada | — |
 
@@ -108,13 +108,15 @@ Direto do `.github/workflows/ci.yml` que eu configurei (dispara em push/PR pra `
 | File size limits | `node tools/ci/check-file-sizes.mjs` — guarda de regressão específica: três arquivos que já foram "monólitos" (`api.ts`, `contabil.routes.js`, `contabil.repository.js`) têm um teto de linhas para nunca voltarem a crescer sem controle |
 | Secret scan | `node tools/ci/secret-scan.mjs` — regex contra chaves conhecidas (Stripe, Brevo, Google OAuth, Sentry, Supabase, JWT, Redis) coladas em texto plano nos arquivos rastreados pelo git |
 
-**O que eu ainda não coloquei no CI**: testes E2E do frontend (`test:e2e`), lint (não tenho script), auditoria de dependências (`npm audit` ou similar não aparece no workflow), e a camada HTTP do teste de isolamento entre tenants.
+**E2E no CI (Set/2026):** `npm run test:e2e:local` sobe o dev server e corre smoke público; `test:e2e:staging` corre só se `STAGING_E2E_BASE_URL` estiver nos secrets. Local completo: `npm run test:e2e` ou `npm run release:readiness` na raiz.
+
+**O que eu ainda não coloquei no CI**: fluxos E2E autenticados (login escritório, tarefas, editor página pública), lint, auditoria de dependências, e a camada HTTP do teste de isolamento entre tenants.
 
 ## O que falta
 
 Lacunas reais, sem eu tentar suavizar:
 
-- **E2E não roda em CI.** É manual. Só tenho um arquivo de spec, cobrindo só a superfície pública — nenhum fluxo autenticado tem teste E2E ainda.
+- **E2E autenticado ainda não existe** — só superfície pública + slug staging opcional; dashboard/tarefas/editor continuam UAT manual.
 - **A camada HTTP do teste de isolamento entre tenants eu ainda não exercito automaticamente.** O gate de CI de hoje só prova isolamento na camada de serviço/repositório; as rotas reais, com middleware de autenticação e roteamento Express reais, não passam por esse teste no pipeline automatizado.
 - **Sem SAST genérico.** A minha "auditoria de segurança estática" é um checklist fixo de ~12 itens conhecidos, não uma ferramenta que descobre problemas novos.
 - **Sem auditoria de dependências automatizada visível no CI** (nem `npm audit`, nem Dependabot configurado em `.github/`).

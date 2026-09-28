@@ -538,7 +538,7 @@ function ClusteredServiceGroups({
   const useCompactGrid = catalogGrid || total > 8
 
   return (
-    <div className={catalogGrid ? 'grid gap-6 sm:grid-cols-2' : 'space-y-8'}>
+    <div className={catalogGrid ? 'ps-catalog-area-grid grid gap-6' : 'space-y-8'}>
       {clusters.map((cluster) => {
         const visible = cluster.items.filter((s) => !excludeSlugs?.has(s.slug))
         if (visible.length === 0) return null
@@ -553,8 +553,8 @@ function ClusteredServiceGroups({
           <ul
             className={
               useCompactGrid && !catalogGrid
-                ? 'grid gap-3 sm:grid-cols-2'
-                : 'grid gap-3 sm:grid-cols-1'
+                ? 'ps-catalog-items-grid ps-catalog-items-grid--multi grid gap-3'
+                : 'grid gap-3 grid-cols-1'
             }
           >
             {cluster.items

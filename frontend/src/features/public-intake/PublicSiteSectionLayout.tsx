@@ -57,7 +57,9 @@ export function PublicSiteSectionLayout({
         </>
       ) : (
         <div
-          className={`flex flex-col gap-4 ${placement === 'right' ? 'lg:flex-row-reverse lg:items-start' : 'lg:flex-row lg:items-start'}`}
+          className={`ps-section-media-inner flex flex-col gap-4 ${
+            placement === 'right' ? 'ps-section-media-inner--right' : 'ps-section-media-inner--left'
+          }`}
         >
           {imageNode}
           <div className="min-w-0 flex-1">{children}</div>
