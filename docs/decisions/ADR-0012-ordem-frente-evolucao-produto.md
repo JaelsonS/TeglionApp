@@ -44,4 +44,4 @@ Fonte de prioridade geral do produto continua a ser `docs/ROADMAP.md` (secção 
 ## Relação com outros ADRs
 
 - [ADR-0010](./ADR-0010-agenda-calendario-excepcoes-e-copia-mes.md) — Agenda (fase 3 desta frente); Google Calendar fora do âmbito e agora fase 9.
-- Auditoria de origem: `AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md` (achados mantêm-se; a **ordem de execução** passa a seguir este ADR).
+- Auditoria de origem (arquivo): [`../historico/auditorias/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md`](../historico/auditorias/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md) — achados históricos; **ordem de execução** segue este ADR.

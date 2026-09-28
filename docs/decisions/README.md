@@ -1,5 +1,7 @@
 # Architecture Decision Records (ADRs)
 
+Relatório de auditoria Fase 0 (Ago/2026, read-only) → [`../historico/auditorias/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md`](../historico/auditorias/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md) (arquivo; decisões adoptadas estão nos ADRs abaixo).
+
 ## O que é um ADR
 
 Aqui eu registro as decisões de arquitetura que já tomei e já implementei — não uma ideia solta, não uma proposta em aberto, não uma preferência pessoal disfarçada de decisão. Cada ADR nesta pasta existe porque encontrei evidência real no código do Teglion sustentando a decisão descrita: um arquivo, uma migration, uma constraint, um comentário, um comportamento observável.

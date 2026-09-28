@@ -14,7 +14,7 @@ Cada área tem um veredito rápido e depois o detalhe. O veredito não é uma no
 
 ## Arquitetura
 
-**Veredito:** Monólito modular bem estruturado para o estágio atual (4 escritórios), com decisões de isolamento corretas na base. Não foi testado além da escala atual — qualquer afirmação sobre suportar volume maior é hipótese de engenharia, não fato comprovado.
+**Veredito:** Monólito modular bem estruturado para o estágio atual (5 escritórios, Set/2026), com decisões de isolamento corretas na base. Não foi testado além da escala atual — qualquer afirmação sobre suportar volume maior é hipótese de engenharia, não fato comprovado.
 
 Backend em Node/Express, frontend em React/Vite, banco Postgres via Supabase (que também fornece autenticação e armazenamento de arquivos), Stripe para cobrança, Google Calendar/Drive como integrações de produtividade, Brevo para e-mail e SMS transacional. A separação em módulos por domínio (clientes, documentos, obrigações, mensagens, agendamento, faturamento) é consistente — não é um monólito desorganizado, é um monólito com fronteiras internas claras.
 
@@ -64,7 +64,7 @@ Detalhe completo: [`docs/infrastructure/`](../infrastructure/).
 
 ## Escalabilidade
 
-**Veredito:** Nenhuma capacidade de escala além do volume atual (4 escritórios) foi comprovada por teste de carga real. Existe uma análise de engenharia sobre onde os primeiros gargalos apareceriam (ver roadmap), baseada em código lido, não em medição sob carga.
+**Veredito:** Nenhuma capacidade de escala além do volume atual (5 escritórios, Set/2026) foi comprovada por teste de carga real. Existe uma análise de engenharia sobre onde os primeiros gargalos apareceriam (ver roadmap), baseada em código lido, não em medição sob carga.
 
 Isso não significa que o sistema não escale — significa que a afirmação "escala para X" não pode ser feita com honestidade sem o teste. O caminho de escala planejado, estágio por estágio, com o que precisa ser comprovado em cada um, está em [`docs/ROADMAP.md`](../ROADMAP.md), seção "Caminho de escala: 4 → 100.000 escritórios".
 
@@ -76,7 +76,7 @@ Detalhe completo: [`docs/testing/TESTING.md`](../testing/TESTING.md).
 
 ## Operação e continuidade
 
-**Veredito:** Processo de deploy documentado e usado na prática (staging antes de produção), com um gate de segurança automatizado que bloqueia merge se secrets de staging estiverem ausentes. Não existe, até onde foi confirmado, um processo formal de plantão (on-call) fora do horário em que o fundador está disponível — o que é esperado para o estágio atual (4 escritórios pilotos), mas é um ponto real a resolver antes de operar em escala com clientes pagantes dependentes de disponibilidade contínua.
+**Veredito:** Processo de deploy documentado e usado na prática (staging antes de produção), com um gate de segurança automatizado que bloqueia merge se secrets de staging estiverem ausentes. Não existe, até onde foi confirmado, um processo formal de plantão (on-call) fora do horário em que o fundador está disponível — o que é esperado para o estágio atual (5 escritórios em produção, Set/2026), mas é um ponto real a resolver antes de operar em escala com clientes pagantes dependentes de disponibilidade contínua.
 
 ## O que uma due diligence real deveria aprofundar
 

@@ -1,20 +1,33 @@
 # Inventário de funcionalidades
 
-> Aqui eu consolidei o conteúdo que antes estava espalhado em `docs/03-PRODUTO/MODULOS.md`, `docs/03-PRODUTO/ALERTAS.md`, `docs/03-PRODUTO/BOOKING.md`, `docs/03-PRODUTO/CALENDARIO-FISCAL.md`, `docs/03-PRODUTO/CLIENTES.md`, `docs/03-PRODUTO/DOCUMENTOS.md`, `docs/03-PRODUTO/IRS.md`, `docs/03-PRODUTO/MENSAGENS.md`, `docs/03-PRODUTO/PAGINA-PUBLICA.md` e `docs/03-PRODUTO/SERVICOS.md` (arquivos que removi nesta reorganização de 19/08/2026). Estado que verifiquei na auditoria de 12/08/2026, salvo indicação em contrário.
+> **Actualizado:** 28/09/2026 · **5 escritórios** em produção · Snapshot: [`../production/CURRENT_STATE.md`](../production/CURRENT_STATE.md).  
+> Base consolidada Ago/2026; secção «Entregas recentes» reflecte releases #99–#102.
 
-Verifiquei cada módulo listado aqui em código, não copiei de intenção antiga. Os estados que uso seguem o padrão do restante da minha documentação técnica: **IMPLEMENTADO**, **PARCIAL**, **EM DESENVOLVIMENTO**, **PLANEJADO**, **NÃO EXISTE**.
+Estados: **IMPLEMENTADO**, **PARCIAL**, **EM DESENVOLVIMENTO**, **PLANEJADO**, **NÃO EXISTE**.
 
 | Módulo | Status |
 |---|---|
 | Clientes | IMPLEMENTADO |
 | Serviços | IMPLEMENTADO |
-| Booking / Agendamento | IMPLEMENTADO, incluindo proteção contra agendamento duplo no banco (constraint de exclusão) |
-| Captação pública ("IRS") | IMPLEMENTADO como ferramenta de captação |
+| Booking / Agendamento | IMPLEMENTADO (constraint anti-overlap no banco) |
+| Captação pública ("IRS") | IMPLEMENTADO |
 | Calendário Fiscal | PARCIAL |
-| Documentos | IMPLEMENTADO |
-| Mensagens | IMPLEMENTADO (tempo real é polling, não push) |
-| Alertas / Notícias | IMPLEMENTADO |
-| Página pública | IMPLEMENTADO para o que verifiquei; alguns pontos fora do escopo desta rodada |
+| Documentos | IMPLEMENTADO (+ validade e lembretes, Set/2026) |
+| Mensagens | IMPLEMENTADO (polling ~2 min, não push) |
+| Alertas / Notícias | IMPLEMENTADO (+ detalhe portal cliente, Set/2026) |
+| Portal cliente (alertas, hub) | IMPLEMENTADO |
+| Billing SaaS / trial | IMPLEMENTADO (+ banner owner, Set/2026) |
+| Cofre / acessos oficiais | IMPLEMENTADO (+ UX password step-up, Set/2026) |
+| Página pública | IMPLEMENTADO (SEO/legal: A VALIDAR pontual) |
+
+## Entregas recentes (Set/2026, main)
+
+| Entrega | O que faz | Onde |
+|---------|-----------|------|
+| Alertas no portal | Detalhe de alerta, anexos, deep links | `ClientAlertsFeed`, API client-portal |
+| Validade documentos | `valid_from` / `valid_until`, lembrete automático ~5 dias antes | scheduler + UI firm |
+| Cofre | Guia step-up para password de acesso oficial | `ClientHubOfficialAccessesPanel` |
+| Trial comercial | Banner dias restantes só `FIRM_OWNER`; CTAs billing + WhatsApp | `FirmTrialReminderBanner` |
 
 Módulos de infraestrutura de negócio — billing, Stripe Connect, entitlements — deixei em [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) e em [`docs/architecture/INTEGRATIONS.md`](../architecture/INTEGRATIONS.md), não aqui, porque não são funcionalidade fim para o usuário, são camada de suporte.
 
@@ -30,7 +43,7 @@ Toda operação de cliente é filtrada por escritório na camada de repositório
 
 ## Documentos — IMPLEMENTADO
 
-Um dos módulos que mais protegi no sistema, verifiquei com detalhe na auditoria de 12/08/2026.
+Um dos módulos que mais protegi no sistema, verifiquei com detalhe na auditoria de 12/08/2026. **Set/2026:** metadados **valid_from** / **valid_until** na pré-visualização; lembretes automáticos ~5 dias antes do fim (`20261014000000_document_validity_dates.sql`).
 
 Cliente ou escritório sobe um arquivo — categorizado (fatura, extrato bancário, recibo, contrato, declaração, comprovante, entre outros), com período de referência e observação opcional, podendo estar vinculado a um pedido específico, a uma obrigação ou a uma tarefa. O escritório aprova, rejeita com motivo, ou pede reenvio, com histórico auditável de cada mudança. Pedido de documento tem ciclo de vida próprio: criado pelo escritório, marcado como visto pelo cliente, respondido com o arquivo, concluído.
 

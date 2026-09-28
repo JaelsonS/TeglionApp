@@ -1,13 +1,13 @@
 # Testes
 
-Este documento é onde eu registro a estratégia de testes real do Teglion — o que eu de fato tenho hoje, com evidência de código, não o que eu gostaria de ter. Levantei isso em 19/08/2026 lendo diretamente os scripts, os `package.json` e o workflow de CI — não copiei de documentação anterior.
+Este documento é onde eu registro a estratégia de testes real do Teglion — o que eu de fato tenho hoje, com evidência de código, não o que eu gostaria de ter. **Actualizado:** 28/09/2026 (contagens verificadas no repo).
 
 ## Resumo do estado
 
 | Camada | Existe de verdade? | Roda em CI? |
 |---|---|---|
-| Testes unitários backend (`node:test`) | Sim — 63 arquivos | Sim |
-| Testes unitários frontend (Vitest) | Sim — 33 arquivos | Sim |
+| Testes unitários backend (`node:test`) | Sim — **97** ficheiros, **652** testes | Sim (quando Actions activo) |
+| Testes unitários frontend (Vitest) | Sim — **48** ficheiros, **224** testes | Sim |
 | Teste de isolamento entre tenants | Sim — script dedicado, grava dados reais em Supabase de staging | Sim, camada de serviço/repositório. A camada HTTP do mesmo script **não** roda em CI hoje (ver abaixo) |
 | Auditoria de segurança estática | Sim — checklist fixo de ~12 verificações | Sim |
 | Testes E2E (Playwright) | Sim — 1 arquivo, 3 testes, superfície pública | **Não** — não está no workflow de CI |
@@ -18,7 +18,7 @@ Este documento é onde eu registro a estratégia de testes real do Teglion — o
 
 Runner: eu uso `node:test`, o test runner nativo do Node — não tenho Jest, Mocha nem Vitest no backend. Pro mocking eu uso o `mock` embutido do próprio `node:test` (dá pra ver em `backend/src/modules/booking/booking.service.test.js`, onde eu uso `mock.method` pra substituir chamadas de repositório).
 
-- Eu tenho 63 arquivos `*.test.js`, todos colocados ao lado do código que testam (não crio pasta `__tests__` separada). Alguns exemplos reais:
+- Eu tenho **97** ficheiros `*.test.js`, todos colocados ao lado do código que testam (não crio pasta `__tests__` separada). Alguns exemplos reais:
   - `backend/src/modules/booking/booking.service.test.js`
   - `backend/src/modules/entitlements/entitlements.service.test.js`
   - `backend/src/db/supabase/repositories/comments-firm-id.test.js`
@@ -34,7 +34,7 @@ Runner: eu uso `node:test`, o test runner nativo do Node — não tenho Jest, Mo
 
 Runner: eu uso Vitest, com `happy-dom` como ambiente DOM e Testing Library (`@testing-library/react`, `@testing-library/user-event`).
 
-- Eu tenho 33 arquivos `*.test.ts`/`*.test.tsx`, também colocados ao lado do código (mesmo padrão que uso no backend), concentrados em `src/features/firm/`, `src/features/client/` e `src/features/public-intake/`.
+- Eu tenho **48** ficheiros `*.test.ts`/`*.test.tsx`, também colocados ao lado do código (mesmo padrão que uso no backend), concentrados em `src/features/firm/`, `src/features/client/` e `src/features/public-intake/` (incl. `trialReminderUtils.test.ts`, Set/2026).
 - A maioria testa funções auxiliares puras — parsing, formatação, cálculo de datas, regras de navegação, regras de publicação de serviço — não renderização de componente. Só 3 dos 33 arquivos efetivamente montam um componente React: `AgendaServiceHoursPanel.test.tsx`, `ServiceBookingAvailabilitySection.test.tsx` e `TeglionPublicCredit.test.tsx`. O resto é lógica isolada de UI, que testo sem DOM.
 - Script real: `test` roda `vitest run`, e é o que roda no CI (`npm test`, que na raiz do monorepo aponta pro workspace `frontend`).
 - Preciso lembrar de não confundir isso com o número "28/28 PASS" que cito no registro histórico da Fase 1B (`docs/historico/PHASE-1B.md`) — aquilo era a contagem de testes (não de arquivos) num momento específico de meados de agosto de 2026; o conjunto de arquivos cresceu desde então e eu não tento reconciliar os dois números aqui.
@@ -46,6 +46,8 @@ Esse é o teste mais importante do produto pra mim, porque o Teglion é multi-te
 **O que não é**: não faz parte da suíte `node --test`. É um script standalone, que eu rodo via `npm run test:tenant-isolation` (ou dentro de `test:security`, que encadeia ele depois da auditoria estática).
 
 **Como roda**: precisa de credenciais reais de Supabase (`SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`). No CI, essas credenciais apontam pro projeto Supabase de **staging** (`STAGING_SUPABASE_URL` / `STAGING_SUPABASE_SERVICE_ROLE_KEY`), nunca produção — deixei um comentário explícito nesse sentido no próprio `ci.yml`, e ele falha cedo se as secrets não estiverem configuradas.
+
+**Falha comum (Set/2026):** `getaddrinfo ENOTFOUND …supabase.co` ao correr localmente — o projecto Supabase (tipicamente staging `xscriwhchdblmwmpglby`) está **pausado/inactivo** ou o URL no `.env` está errado. Reactivar no painel Supabase; ver [`../security/TENANT_ISOLATION.md`](../security/TENANT_ISOLATION.md) e [`../production/CURRENT_STATE.md`](../production/CURRENT_STATE.md). **Não** interpretar como bug de isolamento no código.
 
 **O que ele faz de verdade**:
 1. Cria dois escritórios reais (`firmX`, `firmY`), cada um com dono, clientes, documentos (upload real no storage), tarefas e obrigações — dados de verdade gravados no banco de staging, com um prefixo de execução (`iso-<timestamp>`) pra eu conseguir limpar depois.

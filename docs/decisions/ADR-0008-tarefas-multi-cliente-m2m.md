@@ -2,7 +2,7 @@
 
 ## Status
 
-Aceito. Decisão em vigor — implementada em 20/08/2026, como Fase 1 da evolução aprovada a partir da auditoria de 20/08/2026 (`docs/decisions/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md`).
+Aceito. Decisão em vigor — implementada em 20/08/2026, como Fase 1 da evolução aprovada a partir da auditoria de 20/08/2026 ([`../historico/auditorias/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md`](../historico/auditorias/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md)).
 
 ## Contexto
 

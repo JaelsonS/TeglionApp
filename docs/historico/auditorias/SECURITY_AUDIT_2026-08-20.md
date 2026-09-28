@@ -149,7 +149,9 @@ CORS nunca emite `Access-Control-Allow-Origin: *` (confirmado lendo o código-fo
 
 ## 23. Documentação
 
-Este relatório fica em `docs/security/SECURITY_AUDIT_2026-08-20.md`, como registo pontual desta rodada. `docs/security/SECURITY.md`, `AUTHENTICATION.md`, `AUTHORIZATION.md`, `TENANT_ISOLATION.md`, `DATA_PROTECTION.md`, `SECURITY_TESTING.md` (reescritos na reestruturação de documentação anterior desta sessão) continuam sendo a fonte de verdade viva sobre o estado de segurança — devem ser atualizados para refletir as correções desta rodada num passo seguinte, fora do escopo desta entrega (é trabalho de documentação, não de correção de código).
+> **Arquivo (Set/2026):** este relatório foi movido para `docs/historico/auditorias/`. Fonte viva: [`../../security/SECURITY.md`](../../security/SECURITY.md).
+
+Este relatório fica aqui como registo pontual da rodada de 20/08/2026. `docs/security/SECURITY.md`, `AUTHENTICATION.md`, `AUTHORIZATION.md`, `TENANT_ISOLATION.md`, `DATA_PROTECTION.md`, `SECURITY_TESTING.md` (reescritos na reestruturação de documentação anterior desta sessão) continuam sendo a fonte de verdade viva sobre o estado de segurança — devem ser atualizados para refletir as correções desta rodada num passo seguinte, fora do escopo desta entrega (é trabalho de documentação, não de correção de código).
 
 ## 24-25. Segurança contínua / Backlog técnico
 
