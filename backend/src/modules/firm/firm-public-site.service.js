@@ -247,6 +247,13 @@ function normalizeSectionContent(type, raw) {
           ctas: normalizeCtas(content.ctas),
           backgroundColor: normalizeOptionalHex(content.backgroundColor),
           headingColor: normalizeOptionalHex(content.headingColor),
+          featuredHeading: content.featuredHeading ? String(content.featuredHeading).trim().slice(0, 80) : '',
+          featuredServiceSlugs: Array.isArray(content.featuredServiceSlugs)
+            ? content.featuredServiceSlugs
+                .slice(0, 6)
+                .map((slug) => String(slug || '').trim())
+                .filter(Boolean)
+            : [],
         },
         content,
       );

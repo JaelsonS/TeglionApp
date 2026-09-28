@@ -50,6 +50,7 @@ import {
 import { coerceExternalHttpsUrl, isPublicCtaRenderable } from '@/features/public-intake/publicSiteCtas'
 import { contabilAccountingServicesApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { cn } from '@/shared/lib/utils'
 import type { AccountingService } from '@/shared/types/contabil'
 import { moveItemInArray } from './publicSiteSectionFactory'
 
@@ -1376,8 +1377,72 @@ export function ServicesHeadingEditor({
         </p>
       </div>
 
+      <div className="space-y-3 rounded-lg border border-brand/25 bg-brand/[0.03] p-3">
+        <div>
+          <Label className="text-sm font-semibold">Destaques (cartões grandes)</Label>
+          <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+            Escolha até 6 ofertas para aparecerem em cartões no topo da secção — com as modalidades listadas por baixo.
+            Ideal para substituir o menu «Áreas» confuso; pode desactivar «Áreas» na barra do topo.
+          </p>
+        </div>
+        <div className="space-y-1">
+          <Label htmlFor="featured-heading" className="text-caption text-muted-foreground">
+            Título do bloco
+          </Label>
+          <Input
+            id="featured-heading"
+            value={content.featuredHeading || ''}
+            onChange={(e: FormChangeEvent) => onChange({ ...content, featuredHeading: e.target.value })}
+            placeholder="Destaques"
+            maxLength={80}
+          />
+        </div>
+        {catalogQuery.isLoading ? null : sectionServices.length === 0 ? null : (
+          <ul className="space-y-1.5">
+            {sectionServices.map((svc) => {
+              const slug = String(svc.slug || '').trim()
+              if (!slug) return null
+              const featured = content.featuredServiceSlugs || []
+              const checked = featured.includes(slug)
+              const atMax = featured.length >= 6 && !checked
+              return (
+                <li key={svc.id}>
+                  <label
+                    className={cn(
+                      'flex cursor-pointer items-start gap-2 rounded-md border border-border/40 bg-background px-2.5 py-2 text-sm',
+                      atMax && 'cursor-not-allowed opacity-50',
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      className="mt-0.5"
+                      checked={checked}
+                      disabled={atMax}
+                      onChange={() => {
+                        const next = new Set(featured)
+                        if (next.has(slug)) next.delete(slug)
+                        else next.add(slug)
+                        onChange({ ...content, featuredServiceSlugs: [...next] })
+                      }}
+                    />
+                    <span className="min-w-0">
+                      <span className="font-medium">{svc.name}</span>
+                      {(svc.options?.length || 0) > 0 ? (
+                        <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                          {svc.options!.length} modalidades
+                        </span>
+                      ) : null}
+                    </span>
+                  </label>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
+
       <div className="space-y-2 rounded-lg border border-border/40 p-3">
-        <Label className="text-sm font-semibold">Serviços exibidos</Label>
+        <Label className="text-sm font-semibold">Ordem no catálogo</Label>
         {catalogQuery.isLoading ? (
           <p className="text-caption text-muted-foreground">A carregar catálogo…</p>
         ) : sectionServices.length === 0 ? (
