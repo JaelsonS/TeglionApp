@@ -42,6 +42,8 @@ export function TasksManualView({
   onCreateSubmit,
   createPending,
   embeddedInShell,
+  onQuickEdit,
+  onQuickDelete,
 }: {
   items: WorkspaceTask[]
   loading: boolean
@@ -77,6 +79,8 @@ export function TasksManualView({
   onCreateSubmit: (e: React.FormEvent) => void
   createPending: boolean
   embeddedInShell?: boolean
+  onQuickEdit?: (task: WorkspaceTask) => void
+  onQuickDelete?: (task: WorkspaceTask) => void
 }) {
   const recurrenceFrequency = (form.recurrenceFrequency || 'NONE') as RecurrenceFrequency
   const hasRecurrence = recurrenceFrequency !== 'NONE'
@@ -351,6 +355,8 @@ export function TasksManualView({
             teamNames={teamNames}
             onSelect={onSelectTask}
             onStatusChange={onTaskStatusChange}
+            onQuickEdit={onQuickEdit}
+            onQuickDelete={onQuickDelete}
           />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -362,7 +368,8 @@ export function TasksManualView({
                 assigneeName={t.assigneeId ? teamNames.get(t.assigneeId) : undefined}
                 onSelect={() => onSelectTask(t)}
                 onComplete={() => onCompleteTask(t.id)}
-                onEdit={() => onSelectTask(t)}
+                onEdit={() => (onQuickEdit ? onQuickEdit(t) : onSelectTask(t))}
+                onDelete={onQuickDelete ? () => onQuickDelete(t) : undefined}
               />
             ))}
           </div>

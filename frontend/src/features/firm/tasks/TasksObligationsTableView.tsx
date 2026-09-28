@@ -1,10 +1,22 @@
-import { ChevronLeft, ChevronRight, MoreVertical, Plus, Upload } from 'lucide-react'
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { ChevronLeft, ChevronRight, MoreVertical, Pencil, Plus, Trash2, Upload } from 'lucide-react'
+import { toast } from 'sonner'
+import { useEffect, useMemo, useState } from 'react'
 
 import { FirmObligationDetailPanel } from '@/features/firm/components/FirmObligationDetailPanel'
 import { ObligationCreatePanel } from '@/features/firm/obligations/ObligationCreatePanel'
+import { ObligationEditDialog } from '@/features/firm/obligations/ObligationEditDialog'
+import {
+  obligationHasRecurrenceSeries,
+  obligationPeriodYm,
+} from '@/features/firm/obligations/obligationRemoveHelpers'
 import type { useObligationsHub } from '@/features/firm/obligations/useObligationsHub'
-import { displayObligationTitle } from '@/features/firm/obligations/obligationOperational'
+import { displayObligationTitle, type ObligationRow } from '@/features/firm/obligations/obligationOperational'
+import {
+  RecurrenceRemoveDialog,
+  type RecurrenceRemoveScope,
+} from '@/features/firm/tasks/RecurrenceRemoveDialog'
+import { contabilObligationsApi } from '@/infrastructure/api'
+import { getErrorMessage } from '@/shared/utils/errors'
 import {
   currentPeriodYm,
   formatPeriodLabel,
@@ -18,15 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
-import {
-  FirmSplitColumn,
-  FirmSplitBody,
-  FirmSplitHost,
-} from '@/features/firm/FirmPageLayout'
-import {
-  Sheet,
-  SheetContent,
-} from '@/shared/components/ui/sheet'
+import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { formatNif } from '@/shared/utils/formatNif'
 import { formatPtDate } from '@/shared/utils/contabilLocale'
 import { safeDisplayText } from '@/shared/utils/safeDisplayText'
@@ -35,18 +39,6 @@ import { cn } from '@/shared/lib/utils'
 type Hub = ReturnType<typeof useObligationsHub>
 
 const PAGE_SIZE = 14
-
-function useMinWidthXl() {
-  return useSyncExternalStore(
-    (onStoreChange) => {
-      const mq = window.matchMedia('(min-width: 1280px)')
-      mq.addEventListener('change', onStoreChange)
-      return () => mq.removeEventListener('change', onStoreChange)
-    },
-    () => window.matchMedia('(min-width: 1280px)').matches,
-    () => false,
-  )
-}
 
 function periodicityLabel(ob: Hub['items'][0]) {
   const r = String(ob.recurrence || ob.periodicity || '').toLowerCase()
@@ -57,13 +49,16 @@ function periodicityLabel(ob: Hub['items'][0]) {
 }
 
 export function TasksObligationsTableView({ hub }: { hub: Hub }) {
-  const isDesktopSplit = useMinWidthXl()
   const period = currentPeriodYm()
   const [typeFilter, setTypeFilter] = useState('todos')
   const [monthFilter, setMonthFilter] = useState('todos')
   const [statusFilter, setStatusFilter] = useState('todos')
   const [clientFilter, setClientFilter] = useState('todos')
   const [page, setPage] = useState(1)
+  const [editObligation, setEditObligation] = useState<ObligationRow | null>(null)
+  const [removeObligation, setRemoveObligation] = useState<ObligationRow | null>(null)
+  const [removeScope, setRemoveScope] = useState<RecurrenceRemoveScope>('occurrence')
+  const [removePending, setRemovePending] = useState(false)
 
   const clientById = hub.clientById
 
@@ -210,13 +205,7 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
         </div>
       </div>
 
-      <FirmSplitHost className="cb-obligations-split-host min-h-0 flex-1">
-        <FirmSplitColumn
-          className={cn(
-            'min-h-0 w-full flex-1 border-border/60 xl:min-w-0',
-            hub.selectedId ? 'xl:w-[min(52%,720px)] xl:border-r' : 'xl:flex-1',
-          )}
-        >
+      <div className="flex min-h-0 flex-1 flex-col">
           <div className="cb-tasks-table-wrap cb-table-scroll min-h-0 flex-1">
             <table className="cb-tasks-table cb-table-mobile-cards">
               <thead className="cb-tasks-thead">
@@ -286,6 +275,37 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => setEditObligation(ob)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => {
+                                  if (obligationHasRecurrenceSeries(ob)) {
+                                    setRemoveScope('occurrence')
+                                    setRemoveObligation(ob)
+                                    return
+                                  }
+                                  if (!window.confirm('Remover esta obrigação da lista?')) return
+                                  void (async () => {
+                                    try {
+                                      await contabilObligationsApi.remove(ob._id, {
+                                        scope: 'occurrence',
+                                        month: obligationPeriodYm(ob) || undefined,
+                                      })
+                                      toast.success('Obrigação removida')
+                                      if (hub.selectedId === ob._id) hub.selectObligation(null)
+                                      void hub.refresh()
+                                    } catch (err) {
+                                      toast.error(getErrorMessage(err))
+                                    }
+                                  })()
+                                }}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Remover
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => hub.selectObligation(ob._id)}>
                                 Abrir detalhe
                               </DropdownMenuItem>
@@ -336,47 +356,63 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
               </button>
             </div>
           </div>
-        </FirmSplitColumn>
+      </div>
 
-        <FirmSplitColumn
-          className={cn(
-            'hidden min-h-0 min-w-0 flex-1 xl:flex',
-            !hub.selectedId && 'xl:hidden',
-          )}
-        >
-          {selected ? (
-            <FirmSplitBody className="flex min-h-0 flex-1 flex-col overflow-hidden p-0">
-              <FirmObligationDetailPanel
-                embedded
-                obligation={selected}
-                clientName={clientName}
-                onClose={() => hub.selectObligation(null)}
-                onUpdated={() => void hub.refresh()}
-              />
-            </FirmSplitBody>
-          ) : null}
-        </FirmSplitColumn>
-      </FirmSplitHost>
-
-      {hub.selectedId && !isDesktopSplit ? (
-        <Sheet open onOpenChange={(open: boolean) => !open && hub.selectObligation(null)}>
-          <SheetContent side="right" className="cb-firm-split-sheet flex h-full max-h-dvh w-full flex-col overflow-hidden p-0 sm:max-w-lg">
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              {selected ? (
-                <FirmObligationDetailPanel
-                  embedded
-                  obligation={selected}
-                  clientName={clientName}
-                  onClose={() => hub.selectObligation(null)}
-                  onUpdated={() => void hub.refresh()}
-                />
-              ) : null}
-            </div>
-          </SheetContent>
-        </Sheet>
-      ) : null}
+      <FirmWorkspaceFocusDialog
+        open={Boolean(hub.selectedId && selected)}
+        onOpenChange={(open) => !open && hub.selectObligation(null)}
+        title={selected ? displayObligationTitle(selected) : 'Obrigação'}
+      >
+        {selected ? (
+          <FirmObligationDetailPanel
+            embedded
+            obligation={selected}
+            clientName={clientName}
+            staff={hub.staff}
+            onClose={() => hub.selectObligation(null)}
+            onUpdated={() => void hub.refresh()}
+          />
+        ) : null}
+      </FirmWorkspaceFocusDialog>
         </>
       )}
+
+      <ObligationEditDialog
+        open={Boolean(editObligation)}
+        onOpenChange={(open) => !open && setEditObligation(null)}
+        obligation={editObligation}
+        staff={hub.staff}
+        onSaved={() => void hub.refresh()}
+      />
+
+      {removeObligation ? (
+        <RecurrenceRemoveDialog
+          open
+          onOpenChange={(open) => !open && setRemoveObligation(null)}
+          entityLabel="obrigação"
+          periodLabel={obligationPeriodYm(removeObligation) || undefined}
+          scope={removeScope}
+          onScopeChange={setRemoveScope}
+          pending={removePending}
+          onConfirm={async () => {
+            setRemovePending(true)
+            try {
+              await contabilObligationsApi.remove(removeObligation._id, {
+                scope: removeScope,
+                month: obligationPeriodYm(removeObligation) || undefined,
+              })
+              toast.success(removeScope === 'series' ? 'Série desactivada' : 'Obrigação removida')
+              setRemoveObligation(null)
+              if (hub.selectedId === removeObligation._id) hub.selectObligation(null)
+              void hub.refresh()
+            } catch (err) {
+              toast.error(getErrorMessage(err))
+            } finally {
+              setRemovePending(false)
+            }
+          }}
+        />
+      ) : null}
     </div>
   )
 }
