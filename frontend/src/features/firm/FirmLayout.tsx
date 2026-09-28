@@ -6,6 +6,7 @@ import { FirmSidebar } from '@/features/firm/FirmSidebar'
 import { FirmTabletRail } from '@/features/firm/FirmTabletRail'
 import { FirmTopbar } from '@/features/firm/FirmTopbar'
 import { FIRM_SHELL_CHROME_CLASSES } from '@/features/firm/firmShellChrome'
+import { FirmTrialReminderBanner } from '@/features/firm/billing/FirmTrialReminderBanner'
 import { FirmShellFooter } from '@/features/firm/support/FirmShellFooter'
 import { MayaAssistant } from '@/features/maya'
 import { PageRouteFallback } from '@/shared/components/layout/PageRouteFallback'
@@ -48,6 +49,8 @@ export function FirmLayout() {
           <div className={FIRM_SHELL_CHROME_CLASSES.compactTopbarHost}>
             <FirmTopbar compact />
           </div>
+
+          <FirmTrialReminderBanner />
 
           <main className="cb-firm-unified-main" data-testid="firm-main">
             <div className="staff-app-content-wrap cb-firm-content-wrap">
