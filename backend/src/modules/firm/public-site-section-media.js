@@ -27,6 +27,11 @@ function normalizeImageZoom(value) {
   return Math.min(3, Math.max(1, Math.round(n * 100) / 100));
 }
 
+function normalizeContentAlign(value) {
+  if (value === 'left' || value === 'center' || value === 'right') return value;
+  return null;
+}
+
 /** Campos de media opcionais partilhados por secções da página pública. */
 function normalizeSectionMediaFields(content) {
   const raw = content && typeof content === 'object' ? content : {};
@@ -43,6 +48,7 @@ function normalizeSectionMediaFields(content) {
     backgroundImageFocusX: normalizeFocusPercent(raw.backgroundImageFocusX),
     backgroundImageFocusY: normalizeFocusPercent(raw.backgroundImageFocusY),
     backgroundImageZoom: normalizeImageZoom(raw.backgroundImageZoom),
+    contentAlign: normalizeContentAlign(raw.contentAlign),
   };
 }
 

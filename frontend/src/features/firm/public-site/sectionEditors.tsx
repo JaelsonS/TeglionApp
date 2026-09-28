@@ -20,6 +20,13 @@ import {
 } from '@/features/public-intake/publicSiteSectionMedia'
 import { normalizeHeroBackgroundOverlay } from '@/features/public-intake/PublicSiteHeroSurface'
 import {
+  heroContentAlignUiValue,
+  patchHeroContentAlign,
+  patchSectionContentAlign,
+  sectionContentAlignUiValue,
+  type PublicSiteContentAlign,
+} from '@/features/public-intake/publicSiteContentAlign'
+import {
   ImagePositionFrame,
   ImagePositionZoomSlider,
   type ImagePosition,
@@ -665,6 +672,44 @@ export function ImagePickerField({
   )
 }
 
+function PublicSiteContentAlignField<T extends PublicSiteSectionMediaFields>({
+  content,
+  onChange,
+  variant = 'section',
+}: {
+  content: T
+  onChange: (next: T) => void
+  variant?: 'section' | 'hero'
+}) {
+  const uiValue = variant === 'hero' ? heroContentAlignUiValue(content) : sectionContentAlignUiValue(content)
+  return (
+    <div className="space-y-1">
+      <Label className="text-caption text-muted-foreground">Alinhamento do texto e botões</Label>
+      <select
+        className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+        value={uiValue}
+        onChange={(e) => {
+          const next = e.target.value as PublicSiteContentAlign
+          onChange(
+            (variant === 'hero'
+              ? { ...content, ...patchHeroContentAlign(content, next) }
+              : patchSectionContentAlign(content, next)) as T,
+          )
+        }}
+      >
+        <option value="left">Esquerda</option>
+        <option value="center">Centro</option>
+        <option value="right">Direita</option>
+      </select>
+      <p className="text-[11px] text-muted-foreground">
+        {variant === 'hero'
+          ? 'Afecta título, frase, parágrafo e botões no destaque. Por omissão fica ao centro.'
+          : 'Afecta títulos, texto e botões desta secção. A grelha de serviços mantém a largura total.'}
+      </p>
+    </div>
+  )
+}
+
 type SectionMediaEditorProps<T extends PublicSiteSectionMediaFields> = {
   content: T
   onChange: (next: T) => void
@@ -718,6 +763,7 @@ export function SectionMediaEditor<T extends PublicSiteSectionMediaFields>({
 
   return (
     <div className="space-y-3 rounded-lg border border-border/40 bg-muted/10 p-3">
+      <PublicSiteContentAlignField content={content} onChange={onChange} />
       <p className="text-sm font-semibold">Imagens (só página pública)</p>
       <label className="flex items-center gap-2 text-sm">
         <input
@@ -1280,6 +1326,10 @@ export function HeroEditor({
         />
       </div>
 
+      <div className="rounded-lg border border-border/40 bg-muted/10 p-3">
+        <PublicSiteContentAlignField content={content} onChange={onChange} variant="hero" />
+      </div>
+
       <div className="space-y-2 rounded-lg border border-brand/25 bg-brand/[0.03] p-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <Label htmlFor="hero-tagline" className="text-sm font-semibold">
@@ -1584,6 +1634,7 @@ export function ServicesHeadingEditor({
           onChange={(v) => onChange({ ...content, headingColor: v })}
         />
       </div>
+      <PublicSiteContentAlignField content={content} onChange={onChange} />
       <div className="space-y-2">
         <Label>Título da secção</Label>
         <Input
