@@ -241,8 +241,8 @@ export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose
               )}
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="secondary" className="rounded-full" onClick={() => setEditOpen(true)}>
+            <div className="flex flex-wrap gap-2 rounded-xl border border-border/60 bg-muted/20 p-2">
+              <Button size="sm" variant="default" className="rounded-full" onClick={() => setEditOpen(true)}>
                 <Pencil className="mr-1 h-3.5 w-3.5" /> Editar
               </Button>
               <Button size="sm" variant="secondary" className="rounded-full" onClick={() => run(() => tasksApi.duplicate(task.id), 'Duplicada')}>

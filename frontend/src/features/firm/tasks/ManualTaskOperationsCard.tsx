@@ -1,4 +1,4 @@
-import { Calendar, Check, MoreHorizontal, Pencil } from 'lucide-react'
+import { Calendar, Check, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 
 import type { WorkspaceTask } from '@/infrastructure/api/contabil/tasks'
 import { PRIORITY_LABEL, STATUS_LABEL } from '@/features/firm/tasks/taskWorkspaceConstants'
@@ -36,6 +36,7 @@ export function ManualTaskOperationsCard({
   onSelect,
   onComplete,
   onEdit,
+  onDelete,
 }: {
   task: WorkspaceTask
   selected?: boolean
@@ -43,6 +44,7 @@ export function ManualTaskOperationsCard({
   onSelect: () => void
   onComplete?: () => void
   onEdit?: () => void
+  onDelete?: () => void
 }) {
   const done = task.status === 'DONE' || task.status === 'ARCHIVED'
 
@@ -86,8 +88,17 @@ export function ManualTaskOperationsCard({
             ) : null}
             <DropdownMenuItem onClick={onEdit || onSelect}>
               <Pencil className="mr-2 h-4 w-4" />
-              Editar / detalhe
+              Editar
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={onSelect}>
+              Abrir detalhe
+            </DropdownMenuItem>
+            {onDelete ? (
+              <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={onDelete}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Apagar
+              </DropdownMenuItem>
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -5,11 +5,13 @@ import { toast } from 'sonner'
 
 import { PublicSiteHeroBanner } from '@/features/public-intake/PublicSiteHeroBanner'
 import {
+  HERO_IMAGE_FOCUS_OPTIONS,
   normalizeHeroImageFit,
-  normalizeHeroImagePosition,
+  normalizeHeroImageFocus,
   type PublicSiteHeroImageFit,
-  type PublicSiteHeroImagePosition,
+  type PublicSiteHeroImageFocus,
 } from '@/features/public-intake/heroBannerFit'
+import { normalizeHeroBackgroundOverlay } from '@/features/public-intake/PublicSiteHeroSurface'
 import { Button } from '@/shared/components/ui/button'
 import { ImageCropDialog, type ImageCropAspect } from '@/shared/components/media/ImageCropDialog'
 import { Input } from '@/shared/components/ui/input'
@@ -384,6 +386,7 @@ export function ImagePickerField({
   previewFit,
   previewPosition,
   previewBackgroundColor,
+  previewOverlay,
 }: {
   label: string
   imageUrl: string | null
@@ -395,8 +398,9 @@ export function ImagePickerField({
   /** Hero: enviar o ficheiro original. Recorte opcional fica no enquadramento CSS. */
   skipCrop?: boolean
   previewFit?: PublicSiteHeroImageFit | null
-  previewPosition?: PublicSiteHeroImagePosition | null
+  previewPosition?: PublicSiteHeroImageFocus | string | null
   previewBackgroundColor?: string | null
+  previewOverlay?: number | null
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [cropFile, setCropFile] = useState<File | null>(null)
@@ -431,6 +435,7 @@ export function ImagePickerField({
               fit={previewFit}
               position={previewPosition}
               backgroundColor={previewBackgroundColor}
+              backgroundOverlay={previewOverlay}
             />
           ) : (
             <img src={imageUrl} alt="" className="h-32 w-full object-cover" />
@@ -956,43 +961,31 @@ export function HeroEditor({
   socialWhatsapp?: string | null
 }) {
   const imageFit = normalizeHeroImageFit(content.imageFit)
-  const imagePosition = normalizeHeroImagePosition(content.imagePosition)
+  const imageFocus = normalizeHeroImageFocus(content.imagePosition)
+  const overlay = normalizeHeroBackgroundOverlay(content.backgroundOverlay)
 
   return (
     <div className="space-y-5">
-      <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border/50 bg-background p-2.5 text-sm has-[:checked]:border-brand/40 has-[:checked]:bg-brand/[0.04]">
-        <input
-          type="checkbox"
-          className="mt-0.5"
-          checked={content.showLogo !== false}
-          onChange={(e) => onChange({ ...content, showLogo: e.target.checked })}
-        />
-        <span>
-          <span className="font-medium">Mostrar logótipo no destaque</span>
-          <span className="mt-0.5 block text-[11px] text-muted-foreground">
-            Círculo abaixo da foto de capa. Pode ocultar aqui e manter só na barra do topo.
-          </span>
-        </span>
-      </label>
-      <div className="space-y-2 rounded-lg border border-border/40 bg-muted/10 p-3">
-        <p className="text-sm font-semibold">1. Imagem de capa</p>
+      <div className="space-y-2 rounded-lg border border-brand/30 bg-brand/[0.04] p-3">
+        <p className="text-sm font-semibold text-foreground">Imagem de fundo do destaque</p>
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          A foto fica <span className="font-medium text-foreground">atrás</span> do título e da frase
+          — não aparece como faixa gigante acima. O visitante lê o texto por cima da imagem.
+        </p>
         <ImagePickerField
-          label="Foto (qualquer proporção)"
+          label="Carregar imagem de fundo"
           imageUrl={imageUrl}
           uploading={uploadingImage}
           onUpload={onUploadImage}
           onRemove={onRemoveImage}
           skipCrop
           previewFit={imageFit}
-          previewPosition={imagePosition}
+          previewPosition={imageFocus}
           previewBackgroundColor={content.backgroundColor}
+          previewOverlay={overlay}
         />
-        <p className="text-[11px] text-muted-foreground">
-          A imagem original é guardada. O enquadramento abaixo aplica-se na Página Pública — o
-          preview é o mesmo que o visitante vê.
-        </p>
         <fieldset className="space-y-2">
-          <legend className="text-caption font-medium text-muted-foreground">Enquadramento</legend>
+          <legend className="text-caption font-medium text-muted-foreground">Como a imagem preenche o fundo</legend>
           <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border/50 bg-background p-2.5 text-sm has-[:checked]:border-brand/40 has-[:checked]:bg-brand/[0.04]">
             <input
               type="radio"
@@ -1002,9 +995,9 @@ export function HeroEditor({
               onChange={() => onChange({ ...content, imageFit: 'cover' })}
             />
             <span>
-              <span className="font-medium">Preencher</span>
+              <span className="font-medium">Preencher (recomendado)</span>
               <span className="mt-0.5 block text-[11px] text-muted-foreground">
-                A foto ocupa toda a faixa. Pode cortar bordas — adequado para fotografias.
+                Fotografias e ambientes — preenche o destaque; use o foco abaixo para reposicionar.
               </span>
             </span>
           </label>
@@ -1017,42 +1010,52 @@ export function HeroEditor({
               onChange={() => onChange({ ...content, imageFit: 'contain' })}
             />
             <span>
-              <span className="font-medium">Mostrar tudo</span>
+              <span className="font-medium">Mostrar imagem inteira</span>
               <span className="mt-0.5 block text-[11px] text-muted-foreground">
-                A imagem aparece inteira. A cor de fundo preenche o espaço restante — adequado
-                para cartazes, texto ou logótipos.
+                Logótipos ou artes — a cor de fundo preenche as margens.
               </span>
             </span>
           </label>
         </fieldset>
-        {imageFit === 'cover' ? (
-          <div className="space-y-1">
-            <p className="text-caption text-muted-foreground">Foco (se a foto for cortada)</p>
-            <div className="flex flex-wrap gap-1.5">
-              {(
-                [
-                  ['top', 'Topo'],
-                  ['center', 'Centro'],
-                  ['bottom', 'Base'],
-                ] as const
-              ).map(([value, label]) => (
-                <Button
-                  key={value}
-                  type="button"
-                  size="sm"
-                  variant={imagePosition === value ? 'primary' : 'outline'}
-                  className="h-8"
-                  onClick={() => onChange({ ...content, imagePosition: value })}
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
+        <div className="space-y-2">
+          <p className="text-caption font-medium text-muted-foreground">Reposicionar foco da imagem</p>
+          <div className="inline-grid grid-cols-3 gap-1 rounded-lg border border-border/50 bg-background p-1.5">
+            {HERO_IMAGE_FOCUS_OPTIONS.map(({ value, label }) => (
+              <Button
+                key={value}
+                type="button"
+                size="sm"
+                variant={imageFocus === value ? 'primary' : 'ghost'}
+                className="h-9 w-11 px-0 text-base"
+                aria-label={value}
+                onClick={() => onChange({ ...content, imagePosition: value })}
+              >
+                {label}
+              </Button>
+            ))}
           </div>
-        ) : null}
+        </div>
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <Label htmlFor="hero-overlay" className="text-caption text-muted-foreground">
+              Escurecer fundo para ler o texto
+            </Label>
+            <span className="text-caption tabular-nums text-muted-foreground">{overlay}%</span>
+          </div>
+          <input
+            id="hero-overlay"
+            type="range"
+            min={0}
+            max={80}
+            step={2}
+            value={overlay}
+            className="w-full accent-[hsl(var(--primary))]"
+            onChange={(e) => onChange({ ...content, backgroundOverlay: Number(e.target.value) })}
+          />
+        </div>
         <InlineColorField
           id="hero-bg"
-          label="Cor de fundo"
+          label="Cor de fundo (sem foto ou margens)"
           value={content.backgroundColor}
           fallback="#e8f0ec"
           onChange={(v) => onChange({ ...content, backgroundColor: v })}
@@ -1062,7 +1065,7 @@ export function HeroEditor({
       <div className="space-y-2 rounded-lg border border-brand/25 bg-brand/[0.03] p-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <Label htmlFor="hero-title" className="text-sm font-semibold">
-            2. Título grande
+            Título grande
           </Label>
           <InlineColorField
             id="hero-title-color"
@@ -1083,7 +1086,7 @@ export function HeroEditor({
       <div className="space-y-2 rounded-lg border border-brand/25 bg-brand/[0.03] p-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <Label htmlFor="hero-tagline" className="text-sm font-semibold">
-            3. Frase de destaque
+            Frase de destaque
           </Label>
           <InlineColorField
             id="hero-tagline-color"
@@ -1104,7 +1107,7 @@ export function HeroEditor({
       <div className="space-y-2 rounded-lg border border-border/40 p-3">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <Label htmlFor="hero-bio" className="text-sm font-semibold">
-            4. Parágrafo
+            Parágrafo
           </Label>
           <InlineColorField
             id="hero-bio-color"
@@ -1123,6 +1126,21 @@ export function HeroEditor({
           placeholder="Quem ajudam, como trabalham, em que região…"
         />
       </div>
+
+      <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-border/50 bg-background p-2.5 text-sm has-[:checked]:border-brand/40 has-[:checked]:bg-brand/[0.04]">
+        <input
+          type="checkbox"
+          className="mt-0.5"
+          checked={content.showLogo !== false}
+          onChange={(e) => onChange({ ...content, showLogo: e.target.checked })}
+        />
+        <span>
+          <span className="font-medium">Mostrar logótipo no destaque</span>
+          <span className="mt-0.5 block text-[11px] text-muted-foreground">
+            Círculo por cima do fundo, acima do título. Pode ocultar e manter só na barra do topo.
+          </span>
+        </span>
+      </label>
 
       <SectionCtasEditor
         ctas={content.ctas || []}

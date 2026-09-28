@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import {
   AlertTriangle,
   Building2,
@@ -109,6 +110,14 @@ export function FirmSettingsPage() {
   )
 
   const navRef = useRef<HTMLElement>(null)
+  const [settingsNavCollapsed, setSettingsNavCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return window.localStorage.getItem('teglion_settings_nav_collapsed') === '1'
+  })
+
+  useEffect(() => {
+    window.localStorage.setItem('teglion_settings_nav_collapsed', settingsNavCollapsed ? '1' : '0')
+  }, [settingsNavCollapsed])
 
   useEffect(() => {
     const nav = navRef.current
@@ -144,8 +153,12 @@ export function FirmSettingsPage() {
             <div className="h-64 animate-pulse rounded-xl bg-muted/50" />
           </div>
         ) : bundle ? (
-          <div className="cb-settings-hub">
-            <nav ref={navRef} className="cb-settings-side-nav" aria-label="Secções de configuração">
+          <div className={cn('cb-settings-hub', settingsNavCollapsed && 'cb-settings-hub--nav-collapsed')}>
+            <nav
+              ref={navRef}
+              className={cn('cb-settings-side-nav', settingsNavCollapsed && 'cb-settings-side-nav--collapsed')}
+              aria-label="Secções de configuração"
+            >
               {visibleTabs.map((item) => {
                 const Icon = item.icon
                 const active = item.id === activeTab
@@ -161,6 +174,7 @@ export function FirmSettingsPage() {
                     )}
                     aria-current={active ? 'page' : undefined}
                     aria-label={item.label}
+                    title={settingsNavCollapsed ? item.label : undefined}
                     onClick={() => setTab(item.id)}
                   >
                     <span className="cb-settings-side-nav-icon">
@@ -176,9 +190,31 @@ export function FirmSettingsPage() {
                   </button>
                 )
               })}
+              <button
+                type="button"
+                className="cb-settings-side-nav-collapse hidden lg:flex"
+                aria-expanded={!settingsNavCollapsed}
+                aria-label={settingsNavCollapsed ? 'Expandir menu de definições' : 'Minimizar menu de definições'}
+                title={settingsNavCollapsed ? 'Expandir menu' : 'Minimizar menu'}
+                onClick={() => setSettingsNavCollapsed((v) => !v)}
+              >
+                {settingsNavCollapsed ? (
+                  <PanelLeftOpen className="h-4 w-4" aria-hidden />
+                ) : (
+                  <PanelLeftClose className="h-4 w-4" aria-hidden />
+                )}
+                {!settingsNavCollapsed ? (
+                  <span className="text-xs font-medium">Minimizar menu</span>
+                ) : null}
+              </button>
             </nav>
 
-            <div className="cb-settings-hub-main">
+            <div
+              className={cn(
+                'cb-settings-hub-main',
+                activeTab === 'pagina-publica' && 'cb-settings-hub-main--public-site',
+              )}
+            >
               <div className="cb-settings-hub-panel-hd">
                 <div className="min-w-0">
                   <h2 className="cb-settings-hub-panel-title">{activeMeta.label}</h2>

@@ -192,7 +192,14 @@ test('normalizeSiteConfig: hero imageFit ausente cai em cover; contain e foco s�
   });
   const heroInvalid = invalid.sections.find((s) => s.type === 'hero');
   assert.equal(heroInvalid.content.imageFit, 'cover');
-  assert.equal(heroInvalid.content.imagePosition, 'center');
+  assert.equal(heroInvalid.content.imagePosition, 'center-left');
+  assert.equal(heroInvalid.content.backgroundOverlay, 42);
+
+  const focusGrid = firmPublicSiteService.normalizeSiteConfig({
+    sections: [{ type: 'hero', content: { tagline: 'Olá', imagePosition: 'top-right' } }],
+  });
+  const heroFocus = focusGrid.sections.find((s) => s.type === 'hero');
+  assert.equal(heroFocus.content.imagePosition, 'top-right');
 });
 
 test('normalizeSiteConfig: header.title e hero.title são independentes e truncados', () => {

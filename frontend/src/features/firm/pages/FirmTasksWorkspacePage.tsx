@@ -9,6 +9,13 @@ import { teamApi } from '@/infrastructure/api/contabil/tasks'
 import type { WorkspaceTask, WorkspaceTaskStatus } from '@/infrastructure/api/contabil/tasks'
 import { useObligationsHub } from '@/features/firm/obligations/useObligationsHub'
 import { TaskDetailPanel } from '@/features/firm/tasks/TaskDetailPanel'
+import { TaskEditDialog, buildTaskEditPatch } from '@/features/firm/tasks/TaskEditDialog'
+import {
+  RecurrenceRemoveDialog,
+  type RecurrenceRemoveScope,
+} from '@/features/firm/tasks/RecurrenceRemoveDialog'
+import { taskHasRecurrenceSeries } from '@/features/firm/tasks/taskRemoveHelpers'
+import { tasksApi } from '@/infrastructure/api/contabil/tasks'
 import { TasksByClientTableView } from '@/features/firm/tasks/TasksByClientTableView'
 import { TasksManualView } from '@/features/firm/tasks/TasksManualView'
 import { TasksObligationsView } from '@/features/firm/tasks/TasksObligationsView'
@@ -31,12 +38,8 @@ import { readClientIdFromSearch } from '@/shared/utils/clientQueryParam'
 import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
 import { AskMayaButton } from '@/features/maya'
 import { Button } from '@/shared/components/ui/button'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/shared/components/ui/sheet'
+import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
+import { formatTaskTitle } from '@/shared/utils/taskDisplay'
 import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
 import { getErrorMessage } from '@/shared/utils/errors'
 type ManualViewMode = 'board' | 'grid'
@@ -64,6 +67,11 @@ export function FirmTasksWorkspacePage() {
   )
   const clientsQuery = useFirmClientsDirectory({ limit: 500 })
   const clients = clientsQuery.data?.items || []
+  const [quickEditTask, setQuickEditTask] = useState<WorkspaceTask | null>(null)
+  const [removeTaskTarget, setRemoveTaskTarget] = useState<WorkspaceTask | null>(null)
+  const [taskRemoveScope, setTaskRemoveScope] = useState<RecurrenceRemoveScope>('occurrence')
+  const [taskRemovePending, setTaskRemovePending] = useState(false)
+
   const [form, setForm] = useState({
     clientIds: clientFilter ? [clientFilter] : ([] as string[]),
     title: '',
@@ -173,6 +181,26 @@ export function FirmTasksWorkspacePage() {
     void qc.invalidateQueries({ queryKey: tasksWorkspaceKeys.all })
     void obligationsHub.refresh()
   }, [qc, obligationsHub])
+
+  const handleQuickDeleteTask = useCallback(
+    (task: WorkspaceTask) => {
+      if (taskHasRecurrenceSeries(task)) {
+        setRemoveTaskTarget(task)
+        setTaskRemoveScope('occurrence')
+        return
+      }
+      if (!window.confirm('Apagar esta tarefa?')) return
+      void tasksApi.remove(task.id).then(
+        () => {
+          toast.success('Tarefa removida')
+          invalidate()
+          if (openTaskId === task.id) updateParams({ task: null })
+        },
+        (err) => toast.error(getErrorMessage(err)),
+      )
+    },
+    [invalidate, openTaskId, updateParams],
+  )
 
   const onStatusChange = useCallback(
     (taskId: string, status: WorkspaceTaskStatus) => {
@@ -321,6 +349,8 @@ export function FirmTasksWorkspacePage() {
             onCreateSubmit={handleCreate}
             createPending={createTask.isPending}
             embeddedInShell
+            onQuickEdit={setQuickEditTask}
+            onQuickDelete={handleQuickDeleteTask}
           />
         ) : null}
 
@@ -346,24 +376,74 @@ export function FirmTasksWorkspacePage() {
       </TasksWorkspaceShell>
 
       {Boolean(openTaskId) && tab !== 'obligations' ? (
-        <Sheet open onOpenChange={(o: { id?: string; value?: string; label?: string;[key: string]: unknown }) => !o && updateParams({ task: null })}>
-          <SheetContent side="right" className="flex h-full max-h-dvh w-full flex-col p-0 sm:max-w-lg">
-            <SheetHeader className="shrink-0 border-b border-border/60 px-4 py-3 text-left">
-              <SheetTitle className="text-base">Detalhe da tarefa</SheetTitle>
-            </SheetHeader>
-            <div className="min-h-0 flex-1 overflow-hidden">
-              <TaskDetailPanel
-                embedded
-                taskId={openTaskId}
-                teamNames={teamNames}
-                clients={clients}
-                teamItems={teamData?.items || []}
-                onClose={() => updateParams({ task: null })}
-                onMutate={invalidate}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
+        <FirmWorkspaceFocusDialog
+          open
+          onOpenChange={(open) => !open && updateParams({ task: null })}
+          title={
+            openTaskId
+              ? formatTaskTitle(displayItems.find((t) => t.id === openTaskId)?.title || 'Tarefa')
+              : 'Tarefa'
+          }
+        >
+          <TaskDetailPanel
+            embedded
+            taskId={openTaskId}
+            teamNames={teamNames}
+            clients={clients}
+            teamItems={teamData?.items || []}
+            onClose={() => updateParams({ task: null })}
+            onMutate={invalidate}
+          />
+        </FirmWorkspaceFocusDialog>
+      ) : null}
+
+      <TaskEditDialog
+        open={Boolean(quickEditTask)}
+        onOpenChange={(open) => !open && setQuickEditTask(null)}
+        task={quickEditTask}
+        clients={clients}
+        teamItems={teamData?.items || []}
+        saving={patchTask.isPending}
+        onSubmit={async (values) => {
+          if (!quickEditTask) return
+          patchTask.mutate(
+            { id: quickEditTask.id, patch: buildTaskEditPatch(values) },
+            {
+              onSuccess: () => {
+                toast.success('Tarefa actualizada')
+                setQuickEditTask(null)
+                invalidate()
+              },
+              onError: (err) => toast.error(getErrorMessage(err)),
+            },
+          )
+        }}
+      />
+
+      {removeTaskTarget ? (
+        <RecurrenceRemoveDialog
+          open
+          onOpenChange={(open) => !open && setRemoveTaskTarget(null)}
+          entityLabel="tarefa"
+          periodLabel={removeTaskTarget.periodMonth || removeTaskTarget.dueDate?.slice(0, 7) || undefined}
+          scope={taskRemoveScope}
+          onScopeChange={setTaskRemoveScope}
+          pending={taskRemovePending}
+          onConfirm={async () => {
+            setTaskRemovePending(true)
+            try {
+              await tasksApi.remove(removeTaskTarget.id, taskRemoveScope)
+              toast.success(taskRemoveScope === 'series' ? 'Série removida' : 'Tarefa removida')
+              setRemoveTaskTarget(null)
+              if (openTaskId === removeTaskTarget.id) updateParams({ task: null })
+              invalidate()
+            } catch (err) {
+              toast.error(getErrorMessage(err))
+            } finally {
+              setTaskRemovePending(false)
+            }
+          }}
+        />
       ) : null}
     </FirmWorkspacePage>
   )
