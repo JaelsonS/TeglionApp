@@ -83,6 +83,7 @@ function resolveImageUrlById(imageId, images, sectionKey) {
 
 module.exports = {
   normalizeSectionMediaFields,
+  normalizeContentAlign,
   normalizeBySectionImages,
   normalizeImagePlacement,
   normalizeImageSize,

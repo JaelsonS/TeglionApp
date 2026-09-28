@@ -62,6 +62,7 @@ import {
   ProcessEditor,
   ServicesHeadingEditor,
   PublicSiteLogoCard,
+  PublicSiteSectionAlignField,
 } from './sectionEditors'
 import { resolvePublicSitePreviewZoneLogoUrl } from './publicSitePreviewLogo'
 import {
@@ -97,7 +98,7 @@ const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
 }
 
 const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
-  header: 'Cores da barra · menu hamburger em telemóvel/tablet (automático)',
+  header: 'Alinhamento da marca, cores · menu hamburger em telemóvel/tablet',
   hero: 'Alinhamento, imagem de fundo, texto e botões',
   about: 'Alinhamento, texto, foto e botões',
   services: 'Alinhamento, título, catálogo e botões',
@@ -106,7 +107,7 @@ const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
   process: 'Alinhamento e passos',
   faq: 'Alinhamento e perguntas',
   contact: 'Alinhamento, contactos e botões',
-  footer: 'Cores e contactos do rodapé',
+  footer: 'Alinhamento, cores e contactos do rodapé',
 }
 
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -729,6 +730,17 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             onRemove={onRemoveSection}
             renderEditor={(section) => (
               <div className="space-y-3">
+                <PublicSiteSectionAlignField
+                  content={section.content}
+                  variant={
+                    section.type === 'hero'
+                      ? 'hero'
+                      : section.type === 'header' || section.type === 'footer'
+                        ? 'chrome'
+                        : 'section'
+                  }
+                  onChange={(next) => patchSectionContent(section.key, next as PublicSiteSection['content'])}
+                />
                 <SectionEditorSwitch
                   section={section}
                   onChange={(content) => patchSectionContent(section.key, content)}
