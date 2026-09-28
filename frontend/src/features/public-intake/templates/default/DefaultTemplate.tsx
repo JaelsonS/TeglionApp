@@ -36,7 +36,7 @@ export function DefaultTemplate({ config, ctx }: Props) {
 
   return (
     <div
-      className={pageBg ? 'relative min-h-full' : 'relative min-h-full bg-background'}
+      className={`cb-public-site-container relative min-h-full w-full ${pageBg ? '' : 'bg-background'}`}
       style={pageBg ? { backgroundColor: pageBg } : undefined}
       data-public-page-bg={pageBg || undefined}
     >

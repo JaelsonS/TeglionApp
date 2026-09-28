@@ -85,3 +85,22 @@ jobs:
 
       - name: Secret scan
         run: npm run security:secrets
+
+      - name: Install Playwright (Chromium)
+        run: npm run test:e2e:install -w frontend
+
+      - name: Frontend E2E smoke (local dev server)
+        env:
+          CI: true
+        run: npm run test:e2e:local -w frontend
+
+      - name: Staging public firm E2E (optional)
+        env:
+          E2E_STAGING_BASE_URL: ${{ secrets.STAGING_E2E_BASE_URL }}
+          E2E_STAGING_FIRM_SLUG: silva-associados
+        run: |
+          if [ -z "$E2E_STAGING_BASE_URL" ]; then
+            echo "STAGING_E2E_BASE_URL não configurado — a saltar smoke da página pública em staging."
+            exit 0
+          fi
+          npm run test:e2e:staging -w frontend

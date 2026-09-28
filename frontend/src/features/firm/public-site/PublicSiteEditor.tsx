@@ -64,6 +64,7 @@ import {
   PublicSiteLogoCard,
 } from './sectionEditors'
 import { resolvePublicSitePreviewZoneLogoUrl } from './publicSitePreviewLogo'
+import { PublicSiteEditorPreviewFrame } from './PublicSiteEditorPreviewFrame'
 import { resolvePublicSiteImageUrl } from '@/features/public-intake/publicSiteImageResolve'
 import type { PublicSiteLogoSource } from '@/shared/types/firmPublicSite'
 import { PublicSiteSectionsList } from './PublicSiteSectionsList'
@@ -898,7 +899,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 Pré-visualização ao vivo
               </p>
               <p className="text-[11px] text-muted-foreground">
-                A pré-visualização acompanha enquanto desce o editor; use Expandir para ecrã completo.
+                Miniatura proporcional (como num ecrã largo). Use Expandir para rever ao tamanho real antes de publicar.
               </p>
             </div>
             <Button
@@ -917,7 +918,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             className="cb-public-site-editor-preview-scroll rounded-xl border border-border/50 shadow-sm"
             style={previewSurfaceStyle}
           >
-            {previewPanel}
+            <PublicSiteEditorPreviewFrame>{previewPanel}</PublicSiteEditorPreviewFrame>
           </div>
         </aside>
       </div>
@@ -928,7 +929,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             <DialogTitle className="text-base">Pré-visualização — site público</DialogTitle>
           </DialogHeader>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain" style={previewSurfaceStyle}>
-            {previewPanel}
+            <PublicSiteEditorPreviewFrame expanded>{previewPanel}</PublicSiteEditorPreviewFrame>
           </div>
         </DialogContent>
       </Dialog>
