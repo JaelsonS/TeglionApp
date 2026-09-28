@@ -44,4 +44,12 @@ describe('heroBannerFit', () => {
     expect(style.objectPosition).toBe('30% 70%')
     expect(String(style.transform)).toContain('scale(1.5)')
   })
+
+  it('heroPositionedImageStyle: preset antigo vira percentagens no mesmo estilo', () => {
+    const style = heroPositionedImageStyle({
+      imageFit: 'cover',
+      imagePosition: 'top-right',
+    })
+    expect(style.objectPosition).toBe('88% 12%')
+  })
 })
