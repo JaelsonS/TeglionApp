@@ -5,7 +5,13 @@ const firmUsersRepository = require('../../db/supabase/repositories/firm-users.r
 const firmPublicSitesRepository = require('../../db/supabase/repositories/firm-public-sites.repository');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
-const firmBrandingService = require('./firm-branding.service');
+const {
+  normalizeThemeLogos,
+  resolvePublicSiteLogoUrl,
+  resolvePublicSiteZoneLogoUrl,
+  resolveThemeLogoPreviewUrls,
+} = require('./public-site-logo');
+const { normalizeSectionMediaFields, normalizeBySectionImages } = require('./public-site-section-media');
 const { normalizeHttpsUrlOrNull, coerceExternalHttpsUrlOrNull } = require('../../utils/safe-url');
 
 const SECTION_TYPES = new Set([
@@ -30,7 +36,11 @@ const MAX_IMAGES_PER_SLOT = 10;
 const HEX_RE = /^#[0-9a-f]{6}$/i;
 const PREVIEW_TOKEN_TTL_HOURS = 24;
 const PUBLIC_SITE_IMAGE_SIGNED_TTL = 86400; // 24h, mesmo padrão do logótipo/capa de notícia
-const IMAGE_SLOTS = new Set(['hero', 'institutional']);
+const IMAGE_SLOTS = new Set(['hero', 'institutional', 'section']);
+
+function withSectionMedia(base, rawContent) {
+  return { ...base, ...normalizeSectionMediaFields(rawContent) };
+}
 
 /** Mesmo padrão de `generateStableId()` já usado no intake_form (Fase B/C) e
  * nas FAQs da página pública (v8/hoje): o id nasce no cliente e nunca é
@@ -175,96 +185,122 @@ function normalizeSectionContent(type, raw) {
   const content = raw && typeof raw === 'object' ? raw : {};
   switch (type) {
     case 'hero':
-      return {
-        title: content.title ? String(content.title).trim().slice(0, 120) : '',
-        tagline: content.tagline ? String(content.tagline).trim().slice(0, 160) : '',
-        bio: content.bio ? String(content.bio).trim().slice(0, 2000) : '',
-        imageIds: Array.isArray(content.imageIds) ? content.imageIds.slice(0, 5).map((id) => String(id).slice(0, 80)) : [],
-        ctas: normalizeCtas(content.ctas),
-        backgroundColor: normalizeOptionalHex(content.backgroundColor),
-        titleColor: normalizeOptionalHex(content.titleColor),
-        taglineColor: normalizeOptionalHex(content.taglineColor),
-        bioColor: normalizeOptionalHex(content.bioColor),
-        imageFit: normalizeHeroImageFit(content.imageFit),
-        imagePosition: normalizeHeroImagePosition(content.imagePosition),
-        showLogo: content.showLogo !== false,
-      };
+      return withSectionMedia(
+        {
+          title: content.title ? String(content.title).trim().slice(0, 120) : '',
+          tagline: content.tagline ? String(content.tagline).trim().slice(0, 160) : '',
+          bio: content.bio ? String(content.bio).trim().slice(0, 2000) : '',
+          imageIds: Array.isArray(content.imageIds) ? content.imageIds.slice(0, 5).map((id) => String(id).slice(0, 80)) : [],
+          ctas: normalizeCtas(content.ctas),
+          backgroundColor: normalizeOptionalHex(content.backgroundColor),
+          titleColor: normalizeOptionalHex(content.titleColor),
+          taglineColor: normalizeOptionalHex(content.taglineColor),
+          bioColor: normalizeOptionalHex(content.bioColor),
+          imageFit: normalizeHeroImageFit(content.imageFit),
+          imagePosition: normalizeHeroImagePosition(content.imagePosition),
+          showLogo: content.showLogo !== false,
+        },
+        content,
+      );
     case 'about':
-      return {
-        heading: content.heading ? String(content.heading).trim().slice(0, 160) : '',
-        body: content.body ? String(content.body).trim().slice(0, 4000) : '',
-        imageIds: Array.isArray(content.imageIds) ? content.imageIds.slice(0, 5).map((id) => String(id).slice(0, 80)) : [],
-        ctas: normalizeCtas(content.ctas),
-        backgroundColor: normalizeOptionalHex(content.backgroundColor),
-        headingColor: normalizeOptionalHex(content.headingColor),
-        bodyColor: normalizeOptionalHex(content.bodyColor),
-      };
+      return withSectionMedia(
+        {
+          heading: content.heading ? String(content.heading).trim().slice(0, 160) : '',
+          body: content.body ? String(content.body).trim().slice(0, 4000) : '',
+          imageIds: Array.isArray(content.imageIds) ? content.imageIds.slice(0, 5).map((id) => String(id).slice(0, 80)) : [],
+          ctas: normalizeCtas(content.ctas),
+          backgroundColor: normalizeOptionalHex(content.backgroundColor),
+          headingColor: normalizeOptionalHex(content.headingColor),
+          bodyColor: normalizeOptionalHex(content.bodyColor),
+        },
+        content,
+      );
     case 'services':
     case 'bookingServices':
-      return {
-        heading: content.heading ? String(content.heading).trim().slice(0, 160) : '',
-        mode: 'auto',
-        ctas: normalizeCtas(content.ctas),
-        backgroundColor: normalizeOptionalHex(content.backgroundColor),
-        headingColor: normalizeOptionalHex(content.headingColor),
-      };
+      return withSectionMedia(
+        {
+          heading: content.heading ? String(content.heading).trim().slice(0, 160) : '',
+          mode: 'auto',
+          imageIds: Array.isArray(content.imageIds) ? content.imageIds.slice(0, 5).map((id) => String(id).slice(0, 80)) : [],
+          ctas: normalizeCtas(content.ctas),
+          backgroundColor: normalizeOptionalHex(content.backgroundColor),
+          headingColor: normalizeOptionalHex(content.headingColor),
+        },
+        content,
+      );
     case 'features':
-      return {
-        items: Array.isArray(content.items)
-          ? content.items
-              .slice(0, 12)
-              .map((it) => ({
-                id: String(it?.id || generateStableId('feat_')).slice(0, 80),
-                title: String(it?.title || '').trim().slice(0, 120),
-                description: String(it?.description || '').trim().slice(0, 400),
-              }))
-              .filter((it) => it.title)
-          : [],
-        backgroundColor: normalizeOptionalHex(content.backgroundColor),
-        titleColor: normalizeOptionalHex(content.titleColor),
-        textColor: normalizeOptionalHex(content.textColor),
-      };
+      return withSectionMedia(
+        {
+          items: Array.isArray(content.items)
+            ? content.items
+                .slice(0, 12)
+                .map((it) => ({
+                  id: String(it?.id || generateStableId('feat_')).slice(0, 80),
+                  title: String(it?.title || '').trim().slice(0, 120),
+                  description: String(it?.description || '').trim().slice(0, 400),
+                }))
+                .filter((it) => it.title)
+            : [],
+          imageIds: Array.isArray(content.imageIds) ? content.imageIds.slice(0, 5).map((id) => String(id).slice(0, 80)) : [],
+          backgroundColor: normalizeOptionalHex(content.backgroundColor),
+          titleColor: normalizeOptionalHex(content.titleColor),
+          textColor: normalizeOptionalHex(content.textColor),
+        },
+        content,
+      );
     case 'process':
-      return {
-        steps: Array.isArray(content.steps)
-          ? content.steps
-              .slice(0, 10)
-              .map((s) => ({
-                id: String(s?.id || generateStableId('step_')).slice(0, 80),
-                title: String(s?.title || '').trim().slice(0, 120),
-                description: String(s?.description || '').trim().slice(0, 400),
-              }))
-              .filter((s) => s.title)
-          : [],
-        backgroundColor: normalizeOptionalHex(content.backgroundColor),
-        titleColor: normalizeOptionalHex(content.titleColor),
-        textColor: normalizeOptionalHex(content.textColor),
-      };
+      return withSectionMedia(
+        {
+          steps: Array.isArray(content.steps)
+            ? content.steps
+                .slice(0, 10)
+                .map((s) => ({
+                  id: String(s?.id || generateStableId('step_')).slice(0, 80),
+                  title: String(s?.title || '').trim().slice(0, 120),
+                  description: String(s?.description || '').trim().slice(0, 400),
+                }))
+                .filter((s) => s.title)
+            : [],
+          imageIds: Array.isArray(content.imageIds) ? content.imageIds.slice(0, 5).map((id) => String(id).slice(0, 80)) : [],
+          backgroundColor: normalizeOptionalHex(content.backgroundColor),
+          titleColor: normalizeOptionalHex(content.titleColor),
+          textColor: normalizeOptionalHex(content.textColor),
+        },
+        content,
+      );
     case 'faq':
-      return {
-        items: Array.isArray(content.items)
-          ? content.items
-              .slice(0, MAX_ITEMS)
-              .map((f) => ({
-                id: String(f?.id || generateStableId('faq_')).slice(0, 80),
-                question: String(f?.question || '').trim().slice(0, 200),
-                answer: String(f?.answer || '').trim().slice(0, 2000),
-              }))
-              .filter((f) => f.question && f.answer)
-          : [],
-        backgroundColor: normalizeOptionalHex(content.backgroundColor),
-        titleColor: normalizeOptionalHex(content.titleColor),
-        textColor: normalizeOptionalHex(content.textColor),
-      };
+      return withSectionMedia(
+        {
+          items: Array.isArray(content.items)
+            ? content.items
+                .slice(0, MAX_ITEMS)
+                .map((f) => ({
+                  id: String(f?.id || generateStableId('faq_')).slice(0, 80),
+                  question: String(f?.question || '').trim().slice(0, 200),
+                  answer: String(f?.answer || '').trim().slice(0, 2000),
+                }))
+                .filter((f) => f.question && f.answer)
+            : [],
+          imageIds: Array.isArray(content.imageIds) ? content.imageIds.slice(0, 5).map((id) => String(id).slice(0, 80)) : [],
+          backgroundColor: normalizeOptionalHex(content.backgroundColor),
+          titleColor: normalizeOptionalHex(content.titleColor),
+          textColor: normalizeOptionalHex(content.textColor),
+        },
+        content,
+      );
     case 'contact':
-      return {
-        showEmail: content.showEmail !== false,
-        showPhone: content.showPhone !== false,
-        showAddress: content.showAddress !== false,
-        ctas: normalizeCtas(content.ctas),
-        backgroundColor: normalizeOptionalHex(content.backgroundColor),
-        textColor: normalizeOptionalHex(content.textColor),
-      };
+      return withSectionMedia(
+        {
+          showEmail: content.showEmail !== false,
+          showPhone: content.showPhone !== false,
+          showAddress: content.showAddress !== false,
+          imageIds: Array.isArray(content.imageIds) ? content.imageIds.slice(0, 5).map((id) => String(id).slice(0, 80)) : [],
+          ctas: normalizeCtas(content.ctas),
+          backgroundColor: normalizeOptionalHex(content.backgroundColor),
+          textColor: normalizeOptionalHex(content.textColor),
+        },
+        content,
+      );
     case 'header': {
       const navLinks = normalizeNavLinks(content);
       return {
@@ -392,9 +428,13 @@ function defaultSiteConfig() {
       backgroundColor: null,
       surfaceColor: null,
       mutedTextColor: null,
+      headerLogoSource: 'firm',
+      heroLogoSource: 'firm',
       logoStorageKey: null,
+      headerLogoStorageKey: null,
+      heroLogoStorageKey: null,
     },
-    images: { hero: [], institutional: [] },
+    images: { hero: [], institutional: [], bySection: {} },
     socialLinks: normalizeSocialLinks(null),
     sections: defaultSections(),
     showPrices: true,
@@ -427,7 +467,7 @@ function normalizeSiteConfig(raw) {
       backgroundColor: normalizeHexOrNull(input.theme?.backgroundColor),
       surfaceColor: normalizeHexOrNull(input.theme?.surfaceColor),
       mutedTextColor: normalizeHexOrNull(input.theme?.mutedTextColor),
-      logoStorageKey: input.theme?.logoStorageKey ? String(input.theme.logoStorageKey).trim().slice(0, 300) : null,
+      ...normalizeThemeLogos(input.theme),
     },
     images: {
       hero: Array.isArray(input.images?.hero)
@@ -436,6 +476,7 @@ function normalizeSiteConfig(raw) {
       institutional: Array.isArray(input.images?.institutional)
         ? input.images.institutional.slice(0, MAX_IMAGES_PER_SLOT).map(normalizeImageRef).filter(Boolean)
         : [],
+      bySection: normalizeBySectionImages(input.images?.bySection, normalizeImageRef),
     },
     socialLinks: normalizeSocialLinks(input.socialLinks),
     sections: normalizeSections(input.sections),
@@ -484,7 +525,8 @@ function buildConfigFromLegacySettings(firm) {
   config.theme.backgroundColor = branding.backgroundColor || null;
   config.theme.surfaceColor = branding.surfaceColor || null;
   config.theme.mutedTextColor = branding.mutedTextColor || null;
-  config.theme.logoStorageKey = branding.logoStorageKey || null;
+  config.theme.headerLogoSource = 'firm';
+  config.theme.heroLogoSource = 'firm';
   config.socialLinks = normalizeSocialLinks(publicProfile.socialLinks);
 
   return config;
@@ -502,27 +544,6 @@ async function assertOwner(firmId, actorUserId, message) {
  * padrão já usado no logótipo (`firm-branding.service.js`). Uma imagem cujo
  * ficheiro tenha sido removido do storage não deve rebentar a leitura do
  * resto da página — cai só essa, com `url: null`. */
-async function resolveThemeLogoUrl(theme) {
-  const key = theme?.logoStorageKey;
-  if (!key) return null;
-  try {
-    return await contabilStorage.createSignedDownloadUrl(key, PUBLIC_SITE_IMAGE_SIGNED_TTL);
-  } catch {
-    return null;
-  }
-}
-
-/** Logótipo na página pública: override em `theme.logoStorageKey`, senão branding do escritório. */
-async function resolvePublicSiteLogoUrl(config, firm) {
-  const customUrl = await resolveThemeLogoUrl(config?.theme);
-  if (customUrl) return customUrl;
-  try {
-    return await firmBrandingService.resolveLogoUrl(firm);
-  } catch {
-    return firm?.settings?.branding?.logoUrl || null;
-  }
-}
-
 async function resolveConfigImages(config) {
   if (!config) return config;
   const resolveList = async (list) =>
@@ -536,16 +557,23 @@ async function resolveConfigImages(config) {
         }
       }),
     );
-  const logoUrl = await resolveThemeLogoUrl(config.theme);
+  const bySectionRaw = config.images?.bySection && typeof config.images.bySection === 'object' ? config.images.bySection : {};
+  const bySection = {};
+  for (const [sectionKey, list] of Object.entries(bySectionRaw)) {
+    bySection[sectionKey] = await resolveList(list);
+  }
+  const logoPreviews = await resolveThemeLogoPreviewUrls(config.theme);
   return {
     ...config,
     theme: {
       ...config.theme,
-      ...(logoUrl != null ? { logoUrl } : {}),
+      ...normalizeThemeLogos(config.theme),
+      ...logoPreviews,
     },
     images: {
       hero: await resolveList(config.images?.hero),
       institutional: await resolveList(config.images?.institutional),
+      bySection,
     },
   };
 }
@@ -574,9 +602,16 @@ async function getSite(firmId) {
   };
 }
 
-async function uploadImage(firmId, actorUserId, { slot, file }) {
+async function uploadImage(firmId, actorUserId, { slot, file, sectionKey }) {
   await assertOwner(firmId, actorUserId, 'Apenas o dono do escritório pode adicionar imagens.');
-  const safeSlot = IMAGE_SLOTS.has(slot) ? slot : 'hero';
+  if (slot === 'section') {
+    const key = String(sectionKey || '').trim().slice(0, 80);
+    if (!key) throw new AppError('Secção inválida.', 400);
+    const uploaded = await contabilStorage.uploadPublicSiteSectionImage({ firmId, sectionKey: key, file });
+    const url = await contabilStorage.createSignedDownloadUrl(uploaded.path, PUBLIC_SITE_IMAGE_SIGNED_TTL);
+    return { id: generateStableId('img_'), storageKey: uploaded.path, alt: '', url, sectionKey: key };
+  }
+  const safeSlot = slot === 'institutional' ? 'institutional' : 'hero';
   const uploaded = await contabilStorage.uploadPublicSiteImage({ firmId, slot: safeSlot, file });
   const url = await contabilStorage.createSignedDownloadUrl(uploaded.path, PUBLIC_SITE_IMAGE_SIGNED_TTL);
   return { id: generateStableId('img_'), storageKey: uploaded.path, alt: '', url };
@@ -590,34 +625,53 @@ async function loadDraftConfigForFirm(firmId) {
   return buildConfigFromLegacySettings(firm);
 }
 
-async function uploadPublicLogo(firmId, actorUserId, file) {
-  await assertOwner(firmId, actorUserId, 'Apenas o dono do escritório pode alterar o logótipo da página pública.');
-  const uploaded = await contabilStorage.uploadPublicSiteLogo({ firmId, file });
-  const logoUrl = await contabilStorage.createSignedDownloadUrl(uploaded.path, PUBLIC_SITE_IMAGE_SIGNED_TTL);
-  const base = await loadDraftConfigForFirm(firmId);
-  const normalized = normalizeSiteConfig({
-    ...base,
-    theme: { ...base.theme, logoStorageKey: uploaded.path },
-  });
-  const services = await accountingServicesRepository.listByFirm(firmId);
-  const config = sanitizeSiteCtasForFirm(normalized, services);
-  const saved = await firmPublicSitesRepository.upsertDraft(firmId, config, actorUserId);
-  const draft = await resolveConfigImages(saved.draft);
-  return { logoStorageKey: uploaded.path, logoUrl, draft, draftUpdatedAt: saved.draftUpdatedAt };
+function normalizeLogoZone(zone) {
+  if (zone === 'header' || zone === 'hero') return zone;
+  return 'shared';
 }
 
-async function removePublicLogo(firmId, actorUserId) {
+async function uploadPublicLogo(firmId, actorUserId, file, zone = 'shared') {
   await assertOwner(firmId, actorUserId, 'Apenas o dono do escritório pode alterar o logótipo da página pública.');
+  const safeZone = normalizeLogoZone(zone);
+  const uploaded = await contabilStorage.uploadPublicSiteLogo({ firmId, file, zone: safeZone });
+  const logoUrl = await contabilStorage.createSignedDownloadUrl(uploaded.path, PUBLIC_SITE_IMAGE_SIGNED_TTL);
   const base = await loadDraftConfigForFirm(firmId);
+  const themePatch =
+    safeZone === 'header'
+      ? { headerLogoSource: 'custom', headerLogoStorageKey: uploaded.path }
+      : safeZone === 'hero'
+        ? { heroLogoSource: 'custom', heroLogoStorageKey: uploaded.path }
+        : { logoStorageKey: uploaded.path, headerLogoSource: 'custom', heroLogoSource: 'custom' };
   const normalized = normalizeSiteConfig({
     ...base,
-    theme: { ...base.theme, logoStorageKey: null },
+    theme: { ...base.theme, ...themePatch },
   });
   const services = await accountingServicesRepository.listByFirm(firmId);
   const config = sanitizeSiteCtasForFirm(normalized, services);
   const saved = await firmPublicSitesRepository.upsertDraft(firmId, config, actorUserId);
   const draft = await resolveConfigImages(saved.draft);
-  return { draft, draftUpdatedAt: saved.draftUpdatedAt };
+  return { logoStorageKey: uploaded.path, logoUrl, zone: safeZone, draft, draftUpdatedAt: saved.draftUpdatedAt };
+}
+
+async function removePublicLogo(firmId, actorUserId, zone = 'shared') {
+  await assertOwner(firmId, actorUserId, 'Apenas o dono do escritório pode alterar o logótipo da página pública.');
+  const base = await loadDraftConfigForFirm(firmId);
+  const safeZone = normalizeLogoZone(zone);
+  const themePatch =
+    safeZone === 'header'
+      ? { headerLogoSource: 'firm', headerLogoStorageKey: null }
+      : safeZone === 'hero'
+        ? { heroLogoSource: 'firm', heroLogoStorageKey: null }
+        : { logoStorageKey: null, headerLogoSource: 'firm', heroLogoSource: 'firm', headerLogoStorageKey: null, heroLogoStorageKey: null };
+  const normalized = normalizeSiteConfig({
+    ...base,
+    theme: { ...base.theme, ...themePatch },
+  });
+  const services = await accountingServicesRepository.listByFirm(firmId);
+  const config = sanitizeSiteCtasForFirm(normalized, services);
+  const saved = await firmPublicSitesRepository.upsertDraft(firmId, config, actorUserId);
+  const draft = await resolveConfigImages(saved.draft);
+  return { draft, draftUpdatedAt: saved.draftUpdatedAt, zone: safeZone };
 }
 
 function resolveFirmServiceSlug(ref, services) {
@@ -786,6 +840,7 @@ module.exports = {
   isPreviewTokenValid,
   resolveConfigImages,
   resolvePublicSiteLogoUrl,
+  resolvePublicSiteZoneLogoUrl,
   sanitizeSiteCtasForFirm,
   filterPublicCtas,
 };

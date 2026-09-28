@@ -48,6 +48,17 @@ export type PublicSiteImageRef = {
   url?: string | null
 }
 
+export type PublicSiteLogoSource = 'firm' | 'custom' | 'none'
+
+export type PublicSiteSectionMediaFields = {
+  showImage?: boolean
+  imagePlacement?: 'above' | 'left' | 'right'
+  imageSize?: 'sm' | 'md' | 'lg' | 'full'
+  imageFit?: 'cover' | 'contain'
+  backgroundImageId?: string | null
+  showBackgroundImage?: boolean
+}
+
 export type PublicSiteFaqItem = {
   id: string
   question: string
@@ -96,7 +107,7 @@ export type PublicSiteHeroContent = {
   imagePosition?: 'center' | 'top' | 'bottom' | null
   /** Omissão = mostrar logótipo no destaque quando existir URL. */
   showLogo?: boolean
-}
+} & PublicSiteSectionMediaFields
 
 export type PublicSiteAboutContent = {
   heading: string
@@ -106,42 +117,47 @@ export type PublicSiteAboutContent = {
   backgroundColor?: string | null
   headingColor?: string | null
   bodyColor?: string | null
-}
+} & PublicSiteSectionMediaFields
 
 export type PublicSiteServicesContent = {
   heading: string
   mode: 'auto'
+  imageIds?: string[]
   ctas?: PublicSiteCta[]
   backgroundColor?: string | null
   headingColor?: string | null
-}
+} & PublicSiteSectionMediaFields
 
 export type PublicSiteFeaturesContent = {
   items: PublicSiteFeatureItem[]
+  imageIds?: string[]
   backgroundColor?: string | null
   titleColor?: string | null
   textColor?: string | null
-}
+} & PublicSiteSectionMediaFields
 export type PublicSiteProcessContent = {
   steps: PublicSiteProcessStep[]
+  imageIds?: string[]
   backgroundColor?: string | null
   titleColor?: string | null
   textColor?: string | null
-}
+} & PublicSiteSectionMediaFields
 export type PublicSiteFaqContent = {
   items: PublicSiteFaqItem[]
+  imageIds?: string[]
   backgroundColor?: string | null
   titleColor?: string | null
   textColor?: string | null
-}
+} & PublicSiteSectionMediaFields
 export type PublicSiteContactContent = {
   showEmail: boolean
   showPhone: boolean
   showAddress: boolean
+  imageIds?: string[]
   ctas?: PublicSiteCta[]
   backgroundColor?: string | null
   textColor?: string | null
-}
+} & PublicSiteSectionMediaFields
 
 /**
  * Cabeçalho / rodapé.
@@ -253,11 +269,21 @@ export type PublicSiteConfig = {
     surfaceColor: string | null
     /** Descrições e texto auxiliar (fallback). */
     mutedTextColor: string | null
+    headerLogoSource?: PublicSiteLogoSource
+    heroLogoSource?: PublicSiteLogoSource
     logoStorageKey: string | null
-    /** Resolvido pelo backend (URL assinada do logótipo só da página pública). */
+    headerLogoStorageKey?: string | null
+    heroLogoStorageKey?: string | null
+    /** Resolvido pelo backend (URL assinada; nunca persistir). */
     logoUrl?: string | null
+    headerLogoUrl?: string | null
+    heroLogoUrl?: string | null
   }
-  images: { hero: PublicSiteImageRef[]; institutional: PublicSiteImageRef[] }
+  images: {
+    hero: PublicSiteImageRef[]
+    institutional: PublicSiteImageRef[]
+    bySection?: Record<string, PublicSiteImageRef[]>
+  }
   socialLinks: PublicSiteSocialLinks
   sections: PublicSiteSection[]
   /** Quando false, esconde preços na página pública. Default true. */

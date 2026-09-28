@@ -70,6 +70,7 @@ export function DefaultTemplate({ config, ctx }: Props) {
                 images={config.images}
                 ctx={ctx}
                 socialLinks={config.socialLinks}
+                sectionKey={section.key}
               />
             )
           case 'services':
@@ -91,11 +92,32 @@ export function DefaultTemplate({ config, ctx }: Props) {
             )
           }
           case 'features':
-            return <FeaturesSection key={section.key} content={section.content} />
+            return (
+              <FeaturesSection
+                key={section.key}
+                content={section.content}
+                images={config.images}
+                sectionKey={section.key}
+              />
+            )
           case 'process':
-            return <ProcessSection key={section.key} content={section.content} />
+            return (
+              <ProcessSection
+                key={section.key}
+                content={section.content}
+                images={config.images}
+                sectionKey={section.key}
+              />
+            )
           case 'faq':
-            return <FaqSection key={section.key} content={section.content} />
+            return (
+              <FaqSection
+                key={section.key}
+                content={section.content}
+                images={config.images}
+                sectionKey={section.key}
+              />
+            )
           case 'contact':
             return <ContactSection key={section.key} content={section.content} ctx={ctx} socialLinks={config.socialLinks} />
           case 'footer':

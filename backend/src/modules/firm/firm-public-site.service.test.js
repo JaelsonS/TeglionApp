@@ -774,16 +774,22 @@ test('normalizeSiteConfig: header e hero respeitam showLogo=false', () => {
   assert.equal(hero.content.showLogo, false);
 });
 
-test('resolvePublicSiteLogoUrl: theme.logoStorageKey tem prioridade sobre branding', async () => {
+test('resolvePublicSiteZoneLogoUrl: custom na barra tem prioridade sobre branding', async () => {
   resetMocks();
   mock.method(contabilStorage, 'createSignedDownloadUrl', async (key) => `signed://${key}`);
   mock.method(firmBrandingService, 'resolveLogoUrl', async () => 'https://firm-logo.test/logo.png');
 
-  const url = await firmPublicSiteService.resolvePublicSiteLogoUrl(
-    { theme: { logoStorageKey: 'firm/1/public-site/logo/logo.webp' } },
+  const url = await firmPublicSiteService.resolvePublicSiteZoneLogoUrl(
+    'header',
+    {
+      theme: {
+        headerLogoSource: 'custom',
+        headerLogoStorageKey: 'firm/1/public-site/logo/header.webp',
+      },
+    },
     { id: '1', settings: {} },
   );
-  assert.equal(url, 'signed://firm/1/public-site/logo/logo.webp');
+  assert.equal(url, 'signed://firm/1/public-site/logo/header.webp');
 });
 
 test('resolvePublicSiteLogoUrl: sem override usa branding do escritório', async () => {

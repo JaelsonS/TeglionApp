@@ -43,7 +43,9 @@ import {
   ServicesHeadingEditor,
   PublicSiteLogoCard,
 } from './sectionEditors'
-import { resolvePublicSitePreviewLogoUrl } from './publicSitePreviewLogo'
+import { resolvePublicSitePreviewZoneLogoUrl } from './publicSitePreviewLogo'
+import { resolvePublicSiteImageUrl } from '@/features/public-intake/publicSiteImageResolve'
+import type { PublicSiteLogoSource } from '@/shared/types/firmPublicSite'
 import { PublicSiteSectionsList } from './PublicSiteSectionsList'
 import {
   normalizePublicSiteSectionsOrder,
@@ -161,7 +163,18 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
           backgroundColor: incoming.theme?.backgroundColor ?? null,
           surfaceColor: incoming.theme?.surfaceColor ?? null,
           mutedTextColor: incoming.theme?.mutedTextColor ?? null,
+          headerLogoSource: incoming.theme?.headerLogoSource ?? 'firm',
+          heroLogoSource: incoming.theme?.heroLogoSource ?? 'firm',
           logoStorageKey: incoming.theme?.logoStorageKey ?? null,
+          headerLogoStorageKey: incoming.theme?.headerLogoStorageKey ?? null,
+          heroLogoStorageKey: incoming.theme?.heroLogoStorageKey ?? null,
+          headerLogoUrl: incoming.theme?.headerLogoUrl ?? null,
+          heroLogoUrl: incoming.theme?.heroLogoUrl ?? null,
+        },
+        images: {
+          hero: incoming.images?.hero ?? [],
+          institutional: incoming.images?.institutional ?? [],
+          bySection: incoming.images?.bySection ?? {},
         },
       })
     }
@@ -182,21 +195,42 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
 
   const [uploadingImageKey, setUploadingImageKey] = useState<string | null>(null)
 
-  const uploadSectionImage = async (sectionKey: string, slot: 'hero' | 'institutional', file: File) => {
-    setUploadingImageKey(sectionKey)
+  const uploadSectionMedia = async (
+    section: PublicSiteSection,
+    role: 'content' | 'background',
+    file: File,
+  ) => {
+    setUploadingImageKey(`${section.key}-${role}`)
     try {
-      const image = await firmPublicSiteApi.uploadImage(slot, file)
+      let slot: 'hero' | 'institutional' | 'section' = 'section'
+      if (section.type === 'hero' && role === 'content') slot = 'hero'
+      else if (section.type === 'about' && role === 'content') slot = 'institutional'
+      else slot = 'section'
+      const image = await firmPublicSiteApi.uploadImage(slot, file, slot === 'section' ? section.key : undefined)
       setDraft((prev) => {
         if (!prev) return prev
-        return {
-          ...prev,
-          images: { ...prev.images, [slot]: [...prev.images[slot], image] },
-          sections: prev.sections.map((s) =>
-            s.key === sectionKey && 'imageIds' in s.content
-              ? ({ ...s, content: { ...s.content, imageIds: [image.id] } } as PublicSiteSection)
-              : s,
-          ),
-        }
+        const bySection = { ...(prev.images.bySection || {}) }
+        const images =
+          slot === 'section'
+            ? {
+                ...prev.images,
+                bySection: { ...bySection, [section.key]: [...(bySection[section.key] || []), image] },
+              }
+            : { ...prev.images, [slot]: [...prev.images[slot], image] }
+        const sections = prev.sections.map((s) => {
+          if (s.key !== section.key) return s
+          if (role === 'background' && 'backgroundImageId' in s.content) {
+            return {
+              ...s,
+              content: { ...s.content, backgroundImageId: image.id, showBackgroundImage: true },
+            } as PublicSiteSection
+          }
+          if ('imageIds' in s.content) {
+            return { ...s, content: { ...s.content, imageIds: [image.id] } } as PublicSiteSection
+          }
+          return s
+        })
+        return { ...prev, images, sections }
       })
     } catch (err) {
       toast.error('Não foi possível enviar a imagem', { description: getErrorMessage(err) })
@@ -205,26 +239,89 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     }
   }
 
-  const removeSectionImage = (sectionKey: string, slot: 'hero' | 'institutional') => {
+  const removeSectionMedia = (section: PublicSiteSection, role: 'content' | 'background') => {
     setDraft((prev) => {
       if (!prev) return prev
-      const section = prev.sections.find((s) => s.key === sectionKey)
-      const imageId = section && 'imageIds' in section.content ? section.content.imageIds[0] : undefined
+      const content = section.content
+      if (role === 'background' && 'backgroundImageId' in content) {
+        const bgId = content.backgroundImageId
+        const bySection = { ...(prev.images.bySection || {}) }
+        if (bgId && bySection[section.key]) {
+          bySection[section.key] = bySection[section.key].filter((img) => img.id !== bgId)
+        }
+        return {
+          ...prev,
+          images: { ...prev.images, bySection },
+          sections: prev.sections.map((s) =>
+            s.key === section.key && 'backgroundImageId' in s.content
+              ? ({ ...s, content: { ...s.content, backgroundImageId: null, showBackgroundImage: false } } as PublicSiteSection)
+              : s,
+          ),
+        }
+      }
+      if (!('imageIds' in content)) return prev
+      const imageId = content.imageIds?.[0]
+      let slot: 'hero' | 'institutional' = section.type === 'about' ? 'institutional' : 'hero'
+      if (section.type !== 'hero' && section.type !== 'about') {
+        const bySection = { ...(prev.images.bySection || {}) }
+        bySection[section.key] = (bySection[section.key] || []).filter((img) => img.id !== imageId)
+        return {
+          ...prev,
+          images: { ...prev.images, bySection },
+          sections: prev.sections.map((s) =>
+            s.key === section.key && 'imageIds' in s.content
+              ? ({ ...s, content: { ...s.content, imageIds: [] } } as PublicSiteSection)
+              : s,
+          ),
+        }
+      }
       return {
         ...prev,
         images: { ...prev.images, [slot]: prev.images[slot].filter((img) => img.id !== imageId) },
         sections: prev.sections.map((s) =>
-          s.key === sectionKey && 'imageIds' in s.content ? ({ ...s, content: { ...s.content, imageIds: [] } } as PublicSiteSection) : s,
+          s.key === section.key && 'imageIds' in s.content
+            ? ({ ...s, content: { ...s.content, imageIds: [] } } as PublicSiteSection)
+            : s,
         ),
       }
     })
   }
 
-  function resolveSectionImageUrl(section: PublicSiteSection, slot: 'hero' | 'institutional'): string | null {
+  function resolveSectionContentImageUrl(section: PublicSiteSection): string | null {
     if (!draft || !('imageIds' in section.content)) return null
-    const id = section.content.imageIds[0]
+    const id = section.content.imageIds?.[0]
     if (!id) return null
-    return draft.images[slot].find((img) => img.id === id)?.url || null
+    if (section.type === 'hero') return draft.images.hero.find((img) => img.id === id)?.url || null
+    if (section.type === 'about') {
+      return (
+        draft.images.institutional.find((img) => img.id === id)?.url ||
+        resolvePublicSiteImageUrl(id, draft.images, section.key)
+      )
+    }
+    return resolvePublicSiteImageUrl(id, draft.images, section.key)
+  }
+
+  function resolveSectionBackgroundImageUrl(section: PublicSiteSection): string | null {
+    if (!draft || !('backgroundImageId' in section.content)) return null
+    return resolvePublicSiteImageUrl(section.content.backgroundImageId, draft.images, section.key)
+  }
+
+  const patchThemeLogoSource = async (zone: 'header' | 'hero', source: PublicSiteLogoSource) => {
+    if (!draft) return
+    const next: PublicSiteConfig = {
+      ...draft,
+      theme: {
+        ...draft.theme,
+        ...(zone === 'header' ? { headerLogoSource: source } : { heroLogoSource: source }),
+      },
+    }
+    setDraft(next)
+    try {
+      const saved = await firmPublicSiteApi.saveDraft(next)
+      setDraft(saved.draft)
+    } catch (err) {
+      toast.error('Não foi possível guardar a opção de logótipo', { description: getErrorMessage(err) })
+    }
   }
 
   const withReindexedSections = (config: PublicSiteConfig): PublicSiteConfig => ({
@@ -556,20 +653,14 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                   bookingFilter={
                     section.type === 'services' ? true : section.type === 'bookingServices' ? false : undefined
                   }
-                  imageUrl={
-                    section.type === 'hero'
-                      ? resolveSectionImageUrl(section, 'hero')
-                      : section.type === 'about'
-                        ? resolveSectionImageUrl(section, 'institutional')
-                        : null
-                  }
-                  uploadingImage={uploadingImageKey === section.key}
-                  onUploadImage={(file: File) =>
-                    void uploadSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero', file)
-                  }
-                  onRemoveImage={() =>
-                    removeSectionImage(section.key, section.type === 'about' ? 'institutional' : 'hero')
-                  }
+                  imageUrl={resolveSectionContentImageUrl(section)}
+                  backgroundImageUrl={resolveSectionBackgroundImageUrl(section)}
+                  uploadingImage={uploadingImageKey === `${section.key}-content`}
+                  uploadingBackgroundImage={uploadingImageKey === `${section.key}-background`}
+                  onUploadImage={(file: File) => void uploadSectionMedia(section, 'content', file)}
+                  onRemoveImage={() => removeSectionMedia(section, 'content')}
+                  onUploadBackgroundImage={(file: File) => void uploadSectionMedia(section, 'background', file)}
+                  onRemoveBackgroundImage={() => removeSectionMedia(section, 'background')}
                 />
                 {section.custom ? (
                   <div className="flex justify-end border-t border-border/40 pt-3">
@@ -714,6 +805,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             firmLogoUrl={bundle.logoUrl ?? null}
             readOnly={!canEditLink}
             onDraftUpdate={setDraft}
+            onLogoSourceChange={(zone, source) => void patchThemeLogoSource(zone, source)}
           />
           <PageThemeColors draft={draft} onChange={setDraft} />
           <p className="text-caption font-semibold uppercase tracking-wide text-muted-foreground">
@@ -741,7 +833,9 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               ctx={{
                 firmSlug,
                 firmName: previewFirmName,
-                logoUrl: resolvePublicSitePreviewLogoUrl(draft, bundle.logoUrl),
+                logoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
+                headerLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
+                heroLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'hero', bundle.logoUrl),
                 services: previewServices,
                 contact: bundle.contact,
                 showPrices: draft.showPrices !== false,
@@ -809,9 +903,13 @@ function SectionEditorSwitch({
   section,
   onChange,
   imageUrl,
+  backgroundImageUrl,
   uploadingImage,
+  uploadingBackgroundImage,
   onUploadImage,
   onRemoveImage,
+  onUploadBackgroundImage,
+  onRemoveBackgroundImage,
   services,
   officePhone,
   officeContact,
@@ -822,9 +920,13 @@ function SectionEditorSwitch({
   section: PublicSiteSection
   onChange: (content: PublicSiteSection['content']) => void
   imageUrl: string | null
+  backgroundImageUrl?: string | null
   uploadingImage: boolean
+  uploadingBackgroundImage?: boolean
   onUploadImage: (file: File) => void
   onRemoveImage: () => void
+  onUploadBackgroundImage?: (file: File) => void
+  onRemoveBackgroundImage?: () => void
   services: PublicFirmServiceSummary[]
   officePhone?: string | null
   officeContact?: { email?: string | null; phone?: string | null; address?: string | null }
@@ -861,6 +963,18 @@ function SectionEditorSwitch({
           services={services}
           officePhone={officePhone}
           socialWhatsapp={socialWhatsapp}
+          sectionMedia={{
+            content: section.content,
+            onChange,
+            contentImageUrl: imageUrl,
+            backgroundImageUrl: backgroundImageUrl ?? null,
+            uploadingContent: uploadingImage,
+            uploadingBackground: uploadingBackgroundImage ?? false,
+            onUploadContent: onUploadImage,
+            onRemoveContent: onRemoveImage,
+            onUploadBackground: onUploadBackgroundImage,
+            onRemoveBackground: onRemoveBackgroundImage,
+          }}
         />
       )
     case 'services':
@@ -888,9 +1002,43 @@ function SectionEditorSwitch({
         />
       )
     case 'features':
-      return <FeaturesEditor content={section.content} onChange={onChange} />
+      return (
+        <FeaturesEditor
+          content={section.content}
+          onChange={onChange}
+          sectionMedia={{
+            content: section.content,
+            onChange,
+            contentImageUrl: imageUrl,
+            backgroundImageUrl: backgroundImageUrl ?? null,
+            uploadingContent: uploadingImage,
+            uploadingBackground: uploadingBackgroundImage ?? false,
+            onUploadContent: onUploadImage,
+            onRemoveContent: onRemoveImage,
+            onUploadBackground: onUploadBackgroundImage,
+            onRemoveBackground: onRemoveBackgroundImage,
+          }}
+        />
+      )
     case 'process':
-      return <ProcessEditor content={section.content} onChange={onChange} />
+      return (
+        <ProcessEditor
+          content={section.content}
+          onChange={onChange}
+          sectionMedia={{
+            content: section.content,
+            onChange,
+            contentImageUrl: imageUrl,
+            backgroundImageUrl: backgroundImageUrl ?? null,
+            uploadingContent: uploadingImage,
+            uploadingBackground: uploadingBackgroundImage ?? false,
+            onUploadContent: onUploadImage,
+            onRemoveContent: onRemoveImage,
+            onUploadBackground: onUploadBackgroundImage,
+            onRemoveBackground: onRemoveBackgroundImage,
+          }}
+        />
+      )
     case 'faq':
       return <FaqEditor content={section.content} onChange={onChange} />
     case 'contact':

@@ -64,6 +64,20 @@ function buildPublicSiteLogoPath(firmId) {
   return `firm/${firmId}/public-site/logo/logo.webp`;
 }
 
+function buildPublicSiteZoneLogoPath(firmId, zone) {
+  if (zone === 'header') return `firm/${firmId}/public-site/logo/header.webp`;
+  if (zone === 'hero') return `firm/${firmId}/public-site/logo/hero.webp`;
+  return buildPublicSiteLogoPath(firmId);
+}
+
+function buildPublicSiteSectionImagePath(firmId, sectionKey, filename) {
+  const safe = sanitizeFilename(filename);
+  const safeKey = String(sectionKey || 'section')
+    .replace(/[^a-zA-Z0-9_-]/g, '')
+    .slice(0, 80) || 'section';
+  return `firm/${firmId}/public-site/sections/${safeKey}/${Date.now()}-${safe}`;
+}
+
 function ensureStorage() {
   if (!isSupabaseConfigured()) {
     throw new AppError('Armazenamento não configurado (Supabase).', 503, { code: 'STORAGE_NOT_CONFIGURED' });
@@ -253,20 +267,38 @@ async function uploadPublicSiteImage({ firmId, slot, file }) {
 }
 
 /** Logótipo só da página pública — um ficheiro por escritório (`upsert: true`). */
-async function uploadPublicSiteLogo({ firmId, file }) {
+async function uploadPublicSiteLogo({ firmId, file, zone }) {
   if (!file?.buffer?.length) throw new AppError('Selecione uma imagem (JPG, PNG ou WebP).', 400);
   const mime = String(file.mimetype || '').toLowerCase();
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(mime)) {
     throw new AppError('Use JPG, PNG ou WebP para o logótipo.', 400, { code: 'INVALID_IMAGE_TYPE' });
   }
   const sb = ensureStorage();
-  const path = buildPublicSiteLogoPath(firmId);
+  const path = buildPublicSiteZoneLogoPath(firmId, zone);
   const { error } = await sb.storage.from(BUCKET).upload(path, file.buffer, {
     contentType: mime,
     upsert: true,
   });
   if (error) {
     throw new AppError(error.message || 'Falha ao guardar logótipo', 500, { code: 'STORAGE_UPLOAD_FAILED' });
+  }
+  return { bucket: BUCKET, path, provider: 'supabase' };
+}
+
+async function uploadPublicSiteSectionImage({ firmId, sectionKey, file }) {
+  if (!file?.buffer?.length) throw new AppError('Selecione uma imagem (JPG, PNG ou WebP).', 400);
+  const mime = String(file.mimetype || '').toLowerCase();
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(mime)) {
+    throw new AppError('Use JPG, PNG ou WebP para a imagem.', 400, { code: 'INVALID_IMAGE_TYPE' });
+  }
+  const sb = ensureStorage();
+  const path = buildPublicSiteSectionImagePath(firmId, sectionKey, file.originalname);
+  const { error } = await sb.storage.from(BUCKET).upload(path, file.buffer, {
+    contentType: mime,
+    upsert: false,
+  });
+  if (error) {
+    throw new AppError(error.message || 'Falha ao guardar imagem', 500, { code: 'STORAGE_UPLOAD_FAILED' });
   }
   return { bucket: BUCKET, path, provider: 'supabase' };
 }
@@ -282,10 +314,13 @@ module.exports = {
   buildServiceInquiryDocumentPath,
   buildPublicSiteImagePath,
   buildPublicSiteLogoPath,
+  buildPublicSiteZoneLogoPath,
+  buildPublicSiteSectionImagePath,
   uploadClientDocument,
   uploadServiceInquiryDocument,
   uploadPublicSiteImage,
   uploadPublicSiteLogo,
+  uploadPublicSiteSectionImage,
   deleteObject,
   uploadFirmLogo,
   uploadNewsCover,

@@ -249,8 +249,21 @@ router.post(
   uploadAvatarSingle('image'),
   firmPublicSiteController.uploadPublicLogo,
 );
+router.post(
+  '/firm/public-site/logo/:zone',
+  requireFirmOwner,
+  requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
+  uploadAvatarSingle('image'),
+  firmPublicSiteController.uploadPublicLogo,
+);
 router.delete(
   '/firm/public-site/logo',
+  requireFirmOwner,
+  requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
+  firmPublicSiteController.removePublicLogo,
+);
+router.delete(
+  '/firm/public-site/logo/:zone',
   requireFirmOwner,
   requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
   firmPublicSiteController.removePublicLogo,
