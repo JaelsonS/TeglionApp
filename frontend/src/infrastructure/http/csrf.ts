@@ -34,24 +34,37 @@ function isCrossOriginApiBase(api: AxiosInstance): boolean {
   }
 }
 
+/** Staging partilha TLD com produção; cookies `Domain=.teglion.com` não podem ser lidos como CSRF local. */
+function isStagingFrontendHost(): boolean {
+  if (typeof window === 'undefined') return false
+  const host = String(window.location.hostname || '').toLowerCase()
+  return host === 'staging.teglion.com' || host === 'www.staging.teglion.com'
+}
+
+/** Só confiar em `document.cookie` quando prod e API são o mesmo ambiente first-party. */
+function trustDocumentCsrfCookie(api: AxiosInstance): boolean {
+  if (isCrossOriginApiBase(api)) return false
+  if (isStagingFrontendHost()) return false
+  return true
+}
+
 export async function ensureCsrfToken(refreshApi: AxiosInstance): Promise<string | null> {
-  const crossOrigin = isCrossOriginApiBase(refreshApi)
-  // Same-origin (/api rewrite): page cookie is authoritative.
-  // Cross-origin: only trust in-memory token from this API's /csrf JSON body.
-  const existing = crossOrigin ? csrfTokenMemory : readCookie(CSRF_COOKIE_NAME) || csrfTokenMemory
+  const trustCookie = trustDocumentCsrfCookie(refreshApi)
+  const existing = trustCookie ? readCookie(CSRF_COOKIE_NAME) || csrfTokenMemory : csrfTokenMemory
   if (existing) return existing
 
   if (!csrfRefreshPromise) {
     csrfRefreshPromise = refreshApi
       .get('/csrf')
       .then((response) => {
-        const token = response?.data?.token || (!crossOrigin ? readCookie(CSRF_COOKIE_NAME) : null) || null
+        const token =
+          response?.data?.token || (trustCookie ? readCookie(CSRF_COOKIE_NAME) : null) || null
         if (token) csrfTokenMemory = token
         return token
       })
-      .catch(() => csrfTokenMemory || (!crossOrigin ? readCookie(CSRF_COOKIE_NAME) : null))
+      .catch(() => csrfTokenMemory || (trustCookie ? readCookie(CSRF_COOKIE_NAME) : null))
       .finally(() => {
-        if (csrfTokenMemory || (!crossOrigin && readCookie(CSRF_COOKIE_NAME))) {
+        if (csrfTokenMemory || (trustCookie && readCookie(CSRF_COOKIE_NAME))) {
           csrfRefreshPromise = null
         }
       })
