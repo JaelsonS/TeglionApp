@@ -53,6 +53,27 @@ exports.uploadImage = async (req, res, next) => {
   }
 };
 
+exports.uploadPublicLogo = async (req, res, next) => {
+  try {
+    const firmId = String(req.user.firmId);
+    if (!req.file) throw new AppError('Selecione uma imagem (JPG, PNG ou WebP).', 400);
+    const data = await firmPublicSiteService.uploadPublicLogo(firmId, String(req.user.id), req.file);
+    return res.status(201).json(data);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.removePublicLogo = async (req, res, next) => {
+  try {
+    const firmId = String(req.user.firmId);
+    const data = await firmPublicSiteService.removePublicLogo(firmId, String(req.user.id));
+    return res.status(200).json(data);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.resetSite = async (req, res, next) => {
   try {
     const firmId = String(req.user.firmId);

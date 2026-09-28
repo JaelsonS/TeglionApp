@@ -94,6 +94,8 @@ export type PublicSiteHeroContent = {
    * Foco vertical quando `imageFit` é `cover`. Ausente = `center`.
    */
   imagePosition?: 'center' | 'top' | 'bottom' | null
+  /** Omissão = mostrar logótipo no destaque quando existir URL. */
+  showLogo?: boolean
 }
 
 export type PublicSiteAboutContent = {
@@ -196,6 +198,8 @@ export type PublicSiteChromeContent = {
   email?: string | null
   phone?: string | null
   address?: string | null
+  /** Omissão = mostrar logótipo na barra quando existir URL. */
+  showLogo?: boolean
 }
 
 export type PublicSiteEmptyContent = PublicSiteChromeContent
@@ -250,6 +254,8 @@ export type PublicSiteConfig = {
     /** Descrições e texto auxiliar (fallback). */
     mutedTextColor: string | null
     logoStorageKey: string | null
+    /** Resolvido pelo backend (URL assinada do logótipo só da página pública). */
+    logoUrl?: string | null
   }
   images: { hero: PublicSiteImageRef[]; institutional: PublicSiteImageRef[] }
   socialLinks: PublicSiteSocialLinks
