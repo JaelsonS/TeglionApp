@@ -281,6 +281,9 @@ const csrfProtectionWithSkip = (req, res, next) => {
 };
 
 const ensureCsrfCookie = (req, res, next) => {
+  const pathOnly = pathWithoutQuery(req);
+  if (pathOnly === '/api/csrf') return next();
+
   const existing = req.cookies?.[CSRF_COOKIE_NAME];
   if (existing) return next();
 
