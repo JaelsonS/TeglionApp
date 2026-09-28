@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import {
   heroPositionedImageStyle,
   normalizeHeroImageFit,
+  PUBLIC_SITE_HERO_EDITOR_FRAME_CLASS,
   type PublicSiteHeroImageFit,
   type PublicSiteHeroImageFocus,
 } from '@/features/public-intake/heroBannerFit'
@@ -60,7 +61,9 @@ export function PublicSiteHeroSurface({
   const hasImage = Boolean(imageUrl)
 
   const minHeight =
-    variant === 'preview' ? 'min-h-[220px]' : 'min-h-[min(52vh,520px)] sm:min-h-[min(58vh,560px)]'
+    variant === 'preview'
+      ? PUBLIC_SITE_HERO_EDITOR_FRAME_CLASS
+      : 'min-h-[min(52vh,520px)] sm:min-h-[min(58vh,560px)]'
 
   const imageStyle: CSSProperties = heroPositionedImageStyle({
     imageFit: fit,

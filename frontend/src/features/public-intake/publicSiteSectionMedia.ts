@@ -38,3 +38,22 @@ export function sectionBackgroundPositionedStyle(content: PublicSiteSectionMedia
     imageFit: 'cover' as const,
   }
 }
+
+/** Mesmas dimensões no editor e na página publicada (PublicSiteSectionLayout). */
+export function sectionContentFramingFrameClass(content: PublicSiteSectionMediaFields): string {
+  const placement =
+    content.imagePlacement === 'left' || content.imagePlacement === 'right' ? content.imagePlacement : 'above'
+  const size = content.imageSize === 'sm' || content.imageSize === 'md' || content.imageSize === 'lg' ? content.imageSize : 'full'
+  const sizeClass = {
+    sm: 'max-w-[8rem] min-h-[8rem]',
+    md: 'max-w-[12rem] min-h-[12rem]',
+    lg: 'max-w-[18rem] min-h-[16rem]',
+    full: 'w-full min-h-[12rem]',
+  }[size]
+  const widthClass = placement === 'above' ? 'w-full' : 'w-full max-w-[18rem]'
+  return `${sizeClass} ${widthClass}`
+}
+
+export function sectionBackgroundFramingFrameClass(): string {
+  return 'aspect-[16/9] w-full min-h-[160px]'
+}

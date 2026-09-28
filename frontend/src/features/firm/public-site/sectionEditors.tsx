@@ -7,21 +7,24 @@ import { PublicSiteHeroBanner } from '@/features/public-intake/PublicSiteHeroBan
 import {
   heroEditorImagePosition,
   normalizeHeroImageFit,
+  PUBLIC_SITE_HERO_EDITOR_FRAME_CLASS,
   type PublicSiteHeroImageFit,
   type PublicSiteHeroImageFocus,
 } from '@/features/public-intake/heroBannerFit'
 import {
   normalizeSectionImageFit,
+  sectionBackgroundFramingFrameClass,
   sectionBackgroundImagePosition,
+  sectionContentFramingFrameClass,
   sectionContentImagePosition,
 } from '@/features/public-intake/publicSiteSectionMedia'
+import { normalizeHeroBackgroundOverlay } from '@/features/public-intake/PublicSiteHeroSurface'
 import {
   ImagePositionFrame,
   ImagePositionZoomSlider,
   type ImagePosition,
 } from '@/shared/components/media/ImagePositionEditor'
 import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
-import { normalizeHeroBackgroundOverlay } from '@/features/public-intake/PublicSiteHeroSurface'
 import { Button } from '@/shared/components/ui/button'
 import { ImageCropDialog, type ImageCropAspect } from '@/shared/components/media/ImageCropDialog'
 import { Input } from '@/shared/components/ui/input'
@@ -394,6 +397,10 @@ export function PublicSiteImageFramingBlock({
   zoomMax = 3,
   showFitOptions = true,
   alwaysShowFitOptions = false,
+  frameVariant = 'section',
+  heroBackgroundColor,
+  heroBackgroundOverlay,
+  sectionMedia,
 }: {
   imageUrl: string | null
   imageFit: 'cover' | 'contain'
@@ -405,6 +412,11 @@ export function PublicSiteImageFramingBlock({
   showFitOptions?: boolean
   /** Hero: escolher preencher/inteira antes de carregar foto. */
   alwaysShowFitOptions?: boolean
+  /** hero = mesmo quadro do preview lateral; section = dimensões da secção publicada. */
+  frameVariant?: 'hero' | 'section' | 'section-background'
+  heroBackgroundColor?: string | null
+  heroBackgroundOverlay?: number | null
+  sectionMedia?: PublicSiteSectionMediaFields
 }) {
   if (!imageUrl && !alwaysShowFitOptions) return null
   return (
@@ -453,13 +465,45 @@ export function PublicSiteImageFramingBlock({
             ? ' Aumente o zoom para preencher todo o espaço (pode cortar bordas).'
             : ' Arraste para centrar a imagem nas margens.'}
         </p>
-        <ImagePositionFrame
-          imageUrl={imageUrl}
-          position={position}
-          onChange={onPositionChange}
-          objectFit={imageFit}
-          className="min-h-[200px] w-full rounded-lg border border-border/60"
-        />
+        <div
+          className={`relative overflow-hidden rounded-lg border border-border/60 ${
+            frameVariant === 'hero'
+              ? PUBLIC_SITE_HERO_EDITOR_FRAME_CLASS
+              : frameVariant === 'section-background'
+                ? sectionBackgroundFramingFrameClass()
+                : sectionMedia
+                  ? sectionContentFramingFrameClass(sectionMedia)
+                  : 'min-h-[12rem] w-full'
+          }`}
+          style={
+            frameVariant === 'hero' && heroBackgroundColor
+              ? { backgroundColor: /^#[0-9a-f]{6}$/i.test(String(heroBackgroundColor)) ? String(heroBackgroundColor) : '#e8f0ec' }
+              : undefined
+          }
+        >
+          <ImagePositionFrame
+            imageUrl={imageUrl}
+            position={position}
+            onChange={onPositionChange}
+            objectFit={imageFit}
+            className="h-full min-h-[inherit] w-full"
+            showFocusMarker={frameVariant !== 'hero'}
+          />
+          {frameVariant === 'hero' ? (
+            <>
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  backgroundColor: `rgba(15, 23, 42, ${normalizeHeroBackgroundOverlay(heroBackgroundOverlay) / 100})`,
+                }}
+              />
+              <p className="pointer-events-none absolute inset-x-0 bottom-3 z-10 px-3 text-center text-[11px] font-medium text-white/90 drop-shadow">
+                Arraste na imagem — igual ao preview à direita
+              </p>
+            </>
+          ) : null}
+        </div>
         {imageFit === 'cover' ? (
           <ImagePositionZoomSlider
             zoom={position.zoom}
@@ -493,6 +537,7 @@ export function ImagePickerField({
   previewBackgroundColor,
   previewOverlay,
   previewVariant = 'hero',
+  compactWhenFraming = false,
 }: {
   label: string
   imageUrl: string | null
@@ -512,6 +557,8 @@ export function ImagePickerField({
   previewOverlay?: number | null
   /** Hero: banner com overlay; secção: caixa 4:3 com enquadramento CSS. */
   previewVariant?: 'hero' | 'section'
+  /** Com enquadramento abaixo: só botões substituir/remover (evita duas pré-visualizações). */
+  compactWhenFraming?: boolean
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [cropFile, setCropFile] = useState<File | null>(null)
@@ -537,7 +584,17 @@ export function ImagePickerField({
           e.target.value = ''
         }}
       />
-      {imageUrl ? (
+      {imageUrl && compactWhenFraming ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => inputRef.current?.click()}>
+            Substituir foto
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={onRemove}>
+            Remover
+          </Button>
+        </div>
+      ) : null}
+      {imageUrl && !compactWhenFraming ? (
         <div className="relative w-full overflow-hidden rounded-lg border border-border/50">
           {skipCrop ? (
             previewVariant === 'section' ? (
@@ -582,13 +639,13 @@ export function ImagePickerField({
             <X className="h-3.5 w-3.5" />
           </Button>
         </div>
-      ) : (
+      ) : !imageUrl ? (
         <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => inputRef.current?.click()}>
           {uploading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="mr-1.5 h-3.5 w-3.5" />}
           Adicionar foto
         </Button>
-      )}
-      {imageUrl && skipCrop ? (
+      ) : null}
+      {imageUrl && skipCrop && !compactWhenFraming ? (
         <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => inputRef.current?.click()}>
           Substituir foto
         </Button>
@@ -677,22 +734,13 @@ export function SectionMediaEditor<T extends PublicSiteSectionMediaFields>({
         onUpload={onUploadContent}
         onRemove={onRemoveContent}
         skipCrop
+        compactWhenFraming={Boolean(contentImageUrl)}
         previewVariant="section"
         previewFit={contentFit}
         previewFocusX={content.imageFocusX}
         previewFocusY={content.imageFocusY}
         previewZoom={content.imageZoom}
       />
-      {contentImageUrl ? (
-        <PublicSiteImageFramingBlock
-          imageUrl={contentImageUrl}
-          imageFit={contentFit}
-          position={contentPosition}
-          fitRadioName={`section-content-fit-${contentLabel}`}
-          onFitChange={(imageFit) => onChange({ ...content, imageFit })}
-          onPositionChange={applyContentPosition}
-        />
-      ) : null}
       <div className="grid gap-2 sm:grid-cols-2">
         <div className="space-y-1">
           <Label className="text-caption text-muted-foreground">Posição</Label>
@@ -730,6 +778,18 @@ export function SectionMediaEditor<T extends PublicSiteSectionMediaFields>({
           </select>
         </div>
       </div>
+      {contentImageUrl ? (
+        <PublicSiteImageFramingBlock
+          imageUrl={contentImageUrl}
+          imageFit={contentFit}
+          position={contentPosition}
+          fitRadioName={`section-content-fit-${contentLabel}`}
+          frameVariant="section"
+          sectionMedia={content}
+          onFitChange={(imageFit) => onChange({ ...content, imageFit })}
+          onPositionChange={applyContentPosition}
+        />
+      ) : null}
       {onUploadBackground && onRemoveBackground ? (
         <>
           <label className="flex items-center gap-2 text-sm">
@@ -747,6 +807,7 @@ export function SectionMediaEditor<T extends PublicSiteSectionMediaFields>({
             onUpload={onUploadBackground}
             onRemove={onRemoveBackground}
             skipCrop
+            compactWhenFraming={Boolean(backgroundImageUrl)}
             previewVariant="section"
             previewFit="cover"
             previewFocusX={content.backgroundImageFocusX}
@@ -759,6 +820,7 @@ export function SectionMediaEditor<T extends PublicSiteSectionMediaFields>({
               imageFit="cover"
               position={backgroundPosition}
               fitRadioName={`section-bg-fit-${contentLabel}`}
+              frameVariant="section-background"
               showFitOptions={false}
               onFitChange={() => {}}
               onPositionChange={applyBackgroundPosition}
@@ -1170,6 +1232,7 @@ export function HeroEditor({
           onUpload={onUploadImage}
           onRemove={onRemoveImage}
           skipCrop
+          compactWhenFraming={Boolean(imageUrl)}
           previewFit={imageFit}
           previewPosition={content.imagePosition}
           previewFocusX={content.imageFocusX}
@@ -1183,6 +1246,9 @@ export function HeroEditor({
           imageFit={imageFit}
           position={editorPosition}
           fitRadioName="hero-image-fit"
+          frameVariant="hero"
+          heroBackgroundColor={content.backgroundColor}
+          heroBackgroundOverlay={overlay}
           alwaysShowFitOptions
           onFitChange={(nextFit) => onChange({ ...content, imageFit: nextFit })}
           onPositionChange={applyPosition}

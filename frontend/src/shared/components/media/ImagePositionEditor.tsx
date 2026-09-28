@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from '@/shared/components/ui/dialog'
 import { cn } from '@/shared/lib/utils'
+import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
 
 export type ImagePosition = { focusX: number; focusY: number; zoom: number }
 
@@ -73,16 +74,12 @@ export function ImagePositionFrame({
           alt=""
           draggable={false}
           className="h-full w-full cursor-crosshair select-none"
-          style={{
-            objectFit,
-            objectPosition: `${position.focusX}% ${position.focusY}%`,
-            ...(objectFit === 'cover'
-              ? {
-                  transform: `scale(${position.zoom})`,
-                  transformOrigin: `${position.focusX}% ${position.focusY}%`,
-                }
-              : {}),
-          }}
+          style={servicePositionedImageStyle({
+            imageFocusX: position.focusX,
+            imageFocusY: position.focusY,
+            imageZoom: position.zoom,
+            imageFit: objectFit,
+          })}
         />
       ) : null}
       {showFocusMarker ? (
