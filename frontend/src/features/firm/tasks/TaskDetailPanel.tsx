@@ -170,9 +170,11 @@ export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose
             </>
           )}
         </div>
-        <Button type="button" size="icon" variant="ghost" className="shrink-0 rounded-full" onClick={onClose}>
-          <X className="h-5 w-5" />
-        </Button>
+        {!embedded ? (
+          <Button type="button" size="icon" variant="ghost" className="shrink-0 rounded-full" onClick={onClose}>
+            <X className="h-5 w-5" />
+          </Button>
+        ) : null}
       </header>
 
       {isLoading || !task ? (
