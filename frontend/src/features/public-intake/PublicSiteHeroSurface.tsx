@@ -7,6 +7,10 @@ import {
   type PublicSiteHeroImageFit,
   type PublicSiteHeroImageFocus,
 } from '@/features/public-intake/heroBannerFit'
+import {
+  contentAlignBlockClass,
+  type PublicSiteContentAlign,
+} from '@/features/public-intake/publicSiteContentAlign'
 
 type Props = {
   imageUrl?: string | null
@@ -24,6 +28,7 @@ type Props = {
   /** Editor: preview compacto. Página pública: altura generosa. */
   variant?: 'public' | 'preview'
   className?: string
+  contentAlign?: PublicSiteContentAlign
 }
 
 function resolveBgHex(color?: string | null): string | undefined {
@@ -54,6 +59,7 @@ export function PublicSiteHeroSurface({
   children,
   variant = 'public',
   className = '',
+  contentAlign = 'center',
 }: Props) {
   const resolvedFit = normalizeHeroImageFit(fit)
   const bgHex = resolveBgHex(backgroundColor) ?? '#e8f0ec'
@@ -95,7 +101,9 @@ export function PublicSiteHeroSurface({
           />
         </>
       ) : null}
-      <div className="relative z-10 flex h-full flex-col items-center justify-center px-4 py-12 text-center sm:py-16 lg:max-w-none">
+      <div
+        className={`relative z-10 flex h-full min-h-[inherit] flex-col justify-center px-4 py-12 sm:py-16 lg:max-w-none ${contentAlignBlockClass(contentAlign)}`}
+      >
         <div className="mx-auto w-full max-w-2xl lg:max-w-4xl">{children}</div>
       </div>
     </section>

@@ -2,7 +2,6 @@ import type React from 'react'
 import { Link } from 'react-router-dom'
 import {
   CalendarClock,
-  ChevronDown,
   Facebook,
   Globe,
   Instagram,
@@ -22,15 +21,21 @@ import type {
   PublicSiteFaqContent,
   PublicSiteFeaturesContent,
   PublicSiteHeroContent,
-  PublicSiteNavLink,
   PublicSiteProcessContent,
   PublicSiteServicesContent,
   PublicSiteSocialLinks,
 } from '@/shared/types/firmPublicSite'
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
 import { clusterPublicServices, uniquePublicServiceGroups } from '@/features/public-intake/clusterPublicServices'
-import { defaultPublicSiteNavLinks } from '@/features/public-intake/publicSiteNavLinks'
 import { PublicSiteHeroSurface } from '@/features/public-intake/PublicSiteHeroSurface'
+import {
+  contentAlignBlockClass,
+  contentAlignFlexClass,
+  contentAlignProseWidthClass,
+  contentAlignSelfClass,
+  resolveHeroContentAlign,
+  resolveSectionContentAlign,
+} from '@/features/public-intake/publicSiteContentAlign'
 import { PublicSiteCtaButtons } from '@/features/public-intake/PublicSiteCtaButtons'
 import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtml'
 import { priceTaxModeCaption } from '@/shared/utils/priceTaxMode'
@@ -133,158 +138,6 @@ function SectionWithMedia({
   )
 }
 
-export function HeaderSection({
-  ctx,
-  content,
-}: {
-  ctx: PublicSiteRenderContext
-  content?: PublicSiteChromeContent
-}) {
-  const bg = hexStyle(content?.backgroundColor)
-  const text = hexStyle(content?.textColor)
-  const headerLabel = String(content?.title || '').trim() || ctx.firmName
-  const labelStyle = text ? { color: text } : undefined
-  const labelClass = text
-    ? 'font-semibold tracking-wide'
-    : 'font-semibold tracking-wide text-[hsl(var(--brand-text,var(--primary)))]'
-  const navClass = text
-    ? 'text-sm font-medium opacity-90 hover:opacity-100'
-    : 'text-sm font-medium text-[hsl(var(--brand-text,var(--muted-foreground)))] hover:text-[hsl(var(--brand-text,var(--foreground)))]'
-  const groups = uniquePublicServiceGroups(ctx.services)
-  const homeHref = `/${encodeURIComponent(ctx.firmSlug)}`
-  const showNav = content?.showNav !== false
-  const headerLogo = ctx.headerLogoUrl ?? ctx.logoUrl
-  const showLogo = Boolean(headerLogo) && content?.showLogo !== false
-  const navLinks = defaultPublicSiteNavLinks(content).filter((link) => link.enabled)
-  const publicSlugs = new Set(ctx.services.map((s) => s.slug).filter(Boolean))
-  const visibleLinks = navLinks.filter((link) => {
-    if (link.kind === 'areas') return groups.length > 0
-    if (link.kind === 'external') return Boolean(link.url)
-    if (link.kind === 'service') return Boolean(link.serviceId && publicSlugs.has(link.serviceId))
-    return Boolean(link.label)
-  })
-
-  return (
-    <header
-      className={bg ? 'border-b border-black/5' : 'border-b border-primary/20 bg-transparent'}
-      style={bg ? { backgroundColor: bg } : undefined}
-    >
-      <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3 lg:max-w-4xl">
-        {showLogo ? (
-          <Link to={homeHref} className="shrink-0" aria-label={headerLabel}>
-            <img src={headerLogo!} alt="" className="h-9 w-9 rounded-md object-contain" />
-          </Link>
-        ) : null}
-        <Link to={homeHref} className={labelClass} style={labelStyle}>
-          {headerLabel}
-        </Link>
-        {showNav && visibleLinks.length > 0 ? (
-          <nav
-            className="ml-auto flex min-w-0 items-center gap-1 overflow-x-auto text-sm"
-            aria-label="Navegação do site"
-          >
-            {visibleLinks.map((link) => (
-              <HeaderNavItem
-                key={link.id}
-                link={link}
-                ctx={ctx}
-                groups={groups}
-                navClass={navClass}
-                labelStyle={labelStyle}
-              />
-            ))}
-          </nav>
-        ) : null}
-      </div>
-    </header>
-  )
-}
-
-function HeaderNavItem({
-  link,
-  ctx,
-  groups,
-  navClass,
-  labelStyle,
-}: {
-  link: PublicSiteNavLink
-  ctx: PublicSiteRenderContext
-  groups: ReturnType<typeof uniquePublicServiceGroups>
-  navClass: string
-  labelStyle?: { color: string }
-}) {
-  if (link.kind === 'areas') {
-    return (
-      <details className="group relative shrink-0">
-        <summary
-          className={`flex cursor-pointer list-none items-center gap-1 rounded-lg px-2.5 py-1.5 marker:content-none ${navClass}`}
-          style={labelStyle}
-        >
-          {link.label}
-          <ChevronDown className="h-3.5 w-3.5 opacity-70 transition group-open:rotate-180" aria-hidden />
-        </summary>
-        <div className="absolute right-0 z-30 mt-1 max-h-[70vh] w-72 overflow-y-auto rounded-xl border border-border/70 bg-card p-2 shadow-lg">
-          {groups.map((group) => (
-            <div key={group.heading || 'outros'} className="border-b border-border/40 py-2 last:border-0">
-              <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                {group.heading}
-              </p>
-              <ul>
-                {group.items.slice(0, 16).map((service) => (
-                  <li key={service.slug}>
-                    <Link
-                      to={`/${encodeURIComponent(ctx.firmSlug)}/servicos/${encodeURIComponent(service.slug)}`}
-                      className="block rounded-md px-2 py-1.5 text-sm text-foreground/90 hover:bg-muted hover:text-foreground"
-                    >
-                      {service.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </details>
-    )
-  }
-
-  if (link.kind === 'external' && link.url) {
-    return (
-      <a
-        href={link.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`shrink-0 rounded-lg px-2.5 py-1.5 ${navClass}`}
-        style={labelStyle}
-      >
-        {link.label}
-      </a>
-    )
-  }
-
-  if (link.kind === 'service' && link.serviceId) {
-    const href = `/${encodeURIComponent(ctx.firmSlug)}/servicos/${encodeURIComponent(link.serviceId)}`
-    return (
-      <Link
-        to={href}
-        target={ctx.openInternalLinksInNewTab ? '_blank' : undefined}
-        rel={ctx.openInternalLinksInNewTab ? 'noopener noreferrer' : undefined}
-        className={`shrink-0 rounded-lg px-2.5 py-1.5 ${navClass}`}
-        style={labelStyle}
-      >
-        {link.label}
-      </Link>
-    )
-  }
-
-  const sectionId = link.sectionId || 'servicos'
-  return (
-    <a href={`#${sectionId}`} className={`shrink-0 rounded-lg px-2.5 py-1.5 ${navClass}`} style={labelStyle}>
-      {link.label}
-    </a>
-  )
-}
-
 export function HeroSection({
   content,
   ctx,
@@ -312,9 +165,11 @@ export function HeroSection({
   const defaultTaglineClass = onPhoto
     ? 'mt-2 text-base text-white/95 drop-shadow'
     : 'mt-2 text-base text-[hsl(var(--brand-text,var(--primary)))]'
+  const align = resolveHeroContentAlign(content)
+  const proseWidth = contentAlignProseWidthClass(align)
   const defaultBioClass = onPhoto
-    ? 'mx-auto mt-3 max-w-xl text-sm text-white/90 drop-shadow'
-    : 'mx-auto mt-3 max-w-xl text-sm text-muted-foreground'
+    ? `mt-3 ${proseWidth} text-sm text-white/90 drop-shadow`
+    : `mt-3 ${proseWidth} text-sm text-muted-foreground`
 
   return (
     <PublicSiteHeroSurface
@@ -328,12 +183,13 @@ export function HeroSection({
       backgroundColor={content.backgroundColor ?? bg}
       backgroundOverlay={content.backgroundOverlay}
       variant={ctx.useEditorHeroFrame ? 'preview' : 'public'}
+      contentAlign={align}
     >
       {showLogo ? (
         <img
           src={heroLogo!}
           alt={ctx.firmName}
-          className="mx-auto mb-4 h-20 w-20 rounded-full border-2 border-white/40 object-cover shadow-sm"
+          className={`${contentAlignSelfClass(align)} mb-4 h-20 w-20 rounded-full border-2 border-white/40 object-cover shadow-sm`}
         />
       ) : null}
       {content.tagline ? (
@@ -364,13 +220,18 @@ export function HeroSection({
       ) : null}
       {content.bio ? (
         <p
-          className={bioColor ? 'mx-auto mt-3 max-w-xl text-sm' : defaultBioClass}
+          className={bioColor ? `${proseWidth} mt-3 text-sm` : defaultBioClass}
           style={bioColor ? { color: bioColor } : undefined}
         >
           {content.bio}
         </p>
       ) : null}
-      <PublicSiteCtaButtons ctas={content.ctas} ctx={ctx} socialLinks={socialLinks} />
+      <PublicSiteCtaButtons
+        ctas={content.ctas}
+        ctx={ctx}
+        socialLinks={socialLinks}
+        className={`mt-5 flex flex-wrap items-center gap-2 ${contentAlignFlexClass(align)}`}
+      />
     </PublicSiteHeroSurface>
   )
 }
@@ -395,6 +256,7 @@ export function AboutSection({
   const bgImageUrl = resolvePublicSiteImageUrl(content.backgroundImageId, images, sectionKey)
   const headingColor = hexStyle(content.headingColor)
   const bodyColor = hexStyle(content.bodyColor)
+  const align = resolveSectionContentAlign(content)
   return (
     <PublicSiteSectionLayout
       sectionId="sobre"
@@ -430,7 +292,7 @@ export function AboutSection({
         ctas={content.ctas}
         ctx={ctx}
         socialLinks={socialLinks}
-        className="flex flex-wrap gap-2"
+        className={`flex flex-wrap items-center gap-2 ${contentAlignFlexClass(align)}`}
       />
     </PublicSiteSectionLayout>
   )
@@ -596,9 +458,10 @@ export function ServicesSection({
   if (items.length === 0 && !hasCtas) return null
   const bg = hexStyle(content.backgroundColor)
   const headingColor = hexStyle(content.headingColor)
+  const align = resolveSectionContentAlign(content)
   return (
     <section id="servicos" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
-      <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">
+      <div className={`mx-auto flex max-w-2xl flex-col space-y-3 lg:max-w-4xl ${contentAlignBlockClass(align)}`}>
         <h2
           className={
             headingColor
@@ -634,7 +497,7 @@ export function ServicesSection({
           ctas={content.ctas}
           ctx={ctx}
           socialLinks={socialLinks}
-          className="flex flex-wrap gap-2"
+          className={`flex w-full flex-wrap items-center gap-2 ${contentAlignFlexClass(align)}`}
         />
       </div>
     </section>
@@ -655,9 +518,10 @@ export function BookingServicesSection({
   if (items.length === 0 && !hasCtas) return null
   const bg = hexStyle(content.backgroundColor)
   const headingColor = hexStyle(content.headingColor)
+  const align = resolveSectionContentAlign(content)
   return (
     <section id="outros-servicos" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
-      <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">
+      <div className={`mx-auto flex max-w-2xl flex-col space-y-3 lg:max-w-4xl ${contentAlignBlockClass(align)}`}>
         <h2
           className={
             headingColor
@@ -693,7 +557,7 @@ export function BookingServicesSection({
           ctas={content.ctas}
           ctx={ctx}
           socialLinks={socialLinks}
-          className="flex flex-wrap gap-2"
+          className={`flex w-full flex-wrap items-center gap-2 ${contentAlignFlexClass(align)}`}
         />
       </div>
     </section>
@@ -760,9 +624,12 @@ export function FeaturesSection({
     )
   }
   const bg = hexStyle(content.backgroundColor)
+  const align = resolveSectionContentAlign(content)
   return (
     <section id="destaques" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
-      <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">{body}</div>
+      <div className={`mx-auto flex max-w-2xl flex-col space-y-3 lg:max-w-4xl ${contentAlignBlockClass(align)}`}>
+        {body}
+      </div>
     </section>
   )
 }
@@ -818,9 +685,10 @@ export function ProcessSection({
     )
   }
   const bg = hexStyle(content.backgroundColor)
+  const align = resolveSectionContentAlign(content)
   return (
     <section id="como-trabalhamos" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
-      <div className="mx-auto max-w-2xl lg:max-w-4xl">{body}</div>
+      <div className={`mx-auto flex max-w-2xl flex-col lg:max-w-4xl ${contentAlignBlockClass(align)}`}>{body}</div>
     </section>
   )
 }
@@ -881,9 +749,12 @@ export function FaqSection({
     )
   }
   const bg = hexStyle(content.backgroundColor)
+  const align = resolveSectionContentAlign(content)
   return (
     <section id="faq" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
-      <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">{inner}</div>
+      <div className={`mx-auto flex max-w-2xl flex-col space-y-3 lg:max-w-4xl ${contentAlignBlockClass(align)}`}>
+        {inner}
+      </div>
     </section>
   )
 }
@@ -918,24 +789,29 @@ export function ContactSection({
   const hasCtas = (content.ctas?.length ?? 0) > 0
   if (rows.length === 0 && !hasCtas) return null
   const text = hexStyle(content.textColor)
+  const align = resolveSectionContentAlign(content)
+  const rowClass = `flex items-center gap-1.5 ${contentAlignFlexClass(align)}`
   const inner = (
-    <div className={`space-y-2 text-center text-sm ${text ? '' : 'text-muted-foreground'}`} style={text ? { color: text } : undefined}>
+    <div
+      className={`space-y-2 text-sm ${contentAlignBlockClass(align)} ${text ? '' : 'text-muted-foreground'}`}
+      style={text ? { color: text } : undefined}
+    >
         {rows.map(({ key, icon: Icon, label, href }) =>
           href ? (
             <a
               key={key}
               href={href}
-              className="flex items-center justify-center gap-1.5 hover:opacity-80"
+              className={`${rowClass} hover:opacity-80`}
               style={text ? { color: text } : undefined}
               {...(key === 'address'
                 ? { target: '_blank', rel: 'noopener noreferrer' }
                 : {})}
             >
-              <Icon className="h-3.5 w-3.5" /> {label}
+              <Icon className="h-3.5 w-3.5 shrink-0" /> {label}
             </a>
           ) : (
-            <p key={key} className="flex items-center justify-center gap-1.5" style={text ? { color: text } : undefined}>
-              <Icon className="h-3.5 w-3.5" /> {label}
+            <p key={key} className={rowClass} style={text ? { color: text } : undefined}>
+              <Icon className="h-3.5 w-3.5 shrink-0" /> {label}
             </p>
           ),
         )}
@@ -943,7 +819,7 @@ export function ContactSection({
           ctas={content.ctas}
           ctx={ctx}
           socialLinks={socialLinks}
-          className="flex flex-wrap items-center justify-center gap-2 pt-2"
+          className={`flex flex-wrap items-center gap-2 pt-2 ${contentAlignFlexClass(align)}`}
         />
     </div>
   )
@@ -956,11 +832,7 @@ export function ContactSection({
   }
   const bg = hexStyle(content.backgroundColor)
   return (
-    <section
-      id="contactos"
-      className="px-4 py-6 text-center text-sm"
-      style={{ backgroundColor: bg, color: text || undefined }}
-    >
+    <section id="contactos" className="px-4 py-6 text-sm" style={{ backgroundColor: bg, color: text || undefined }}>
       <div className="mx-auto max-w-2xl lg:max-w-4xl">{inner}</div>
     </section>
   )

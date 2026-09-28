@@ -1,5 +1,6 @@
 import type { PublicSiteConfig } from '@/shared/types/firmPublicSite'
 import { TeglionPublicCredit } from '@/features/public-intake/TeglionPublicCredit'
+import { HeaderSection } from '@/features/public-intake/PublicSiteHeader'
 import {
   AboutSection,
   BookingServicesSection,
@@ -8,7 +9,6 @@ import {
   FaqSection,
   FeaturesSection,
   FooterSection,
-  HeaderSection,
   HeroSection,
   ProcessSection,
   ServicesSection,

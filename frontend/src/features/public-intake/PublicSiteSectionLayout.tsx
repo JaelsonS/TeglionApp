@@ -5,6 +5,10 @@ import {
   sectionContentPositionedStyle,
 } from '@/features/public-intake/publicSiteSectionMedia'
 import type { PublicSiteSectionMediaFields } from '@/shared/types/firmPublicSite'
+import {
+  contentAlignBlockClass,
+  resolveSectionContentAlign,
+} from '@/features/public-intake/publicSiteContentAlign'
 import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
 
 const SIZE_CLASS = {
@@ -51,6 +55,10 @@ export function PublicSiteSectionLayout({
   const size = media?.imageSize && media.imageSize in SIZE_CLASS ? media.imageSize : 'full'
   const contentStyle = media ? servicePositionedImageStyle(sectionContentPositionedStyle(media)) : undefined
   const bgStyle = media ? servicePositionedImageStyle(sectionBackgroundPositionedStyle(media)) : undefined
+  const align = resolveSectionContentAlign(media)
+  const alignedChildren = (
+    <div className={`flex flex-col space-y-3 ${contentAlignBlockClass(align)}`}>{children}</div>
+  )
 
   const imageNode = showImage ? (
     <div
@@ -74,7 +82,7 @@ export function PublicSiteSectionLayout({
       {placement === 'above' ? (
         <>
           {imageNode}
-          {children}
+          {alignedChildren}
         </>
       ) : (
         <div
@@ -83,7 +91,7 @@ export function PublicSiteSectionLayout({
           }`}
         >
           {imageNode}
-          <div className="min-w-0 flex-1">{children}</div>
+          <div className="min-w-0 flex-1">{alignedChildren}</div>
         </div>
       )}
     </>

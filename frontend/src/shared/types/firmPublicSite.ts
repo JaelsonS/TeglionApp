@@ -65,6 +65,8 @@ export type PublicSiteSectionMediaFields = {
   backgroundImageFocusX?: number | null
   backgroundImageFocusY?: number | null
   backgroundImageZoom?: number | null
+  /** Alinhamento do bloco de texto (e CTAs) na secção. */
+  contentAlign?: 'left' | 'center' | 'right' | null
 }
 
 export type PublicSiteFaqItem = {
