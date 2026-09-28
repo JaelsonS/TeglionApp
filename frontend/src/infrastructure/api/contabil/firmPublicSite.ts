@@ -26,6 +26,27 @@ export const firmPublicSiteApi = {
     return api.post('/contabil/firm/public-site/images', form).then((r) => r.data as PublicSiteImageRef)
   },
 
+  uploadPublicLogo: (file: File) => {
+    const form = new FormData()
+    form.append('image', file)
+    return api
+      .post('/contabil/firm/public-site/logo', form)
+      .then(
+        (r) =>
+          r.data as {
+            logoStorageKey: string
+            logoUrl: string
+            draft: PublicSiteConfig
+            draftUpdatedAt: string
+          },
+      )
+  },
+
+  removePublicLogo: () =>
+    api
+      .delete('/contabil/firm/public-site/logo')
+      .then((r) => r.data as { draft: PublicSiteConfig; draftUpdatedAt: string }),
+
   /** Apaga página publicada/rascunho e devolve rascunho limpo (default). */
   reset: () =>
     api.post('/contabil/firm/public-site/reset').then(

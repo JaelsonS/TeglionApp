@@ -7,6 +7,7 @@ const firmUsersRepository = require('../../db/supabase/repositories/firm-users.r
 const firmPublicSitesRepository = require('../../db/supabase/repositories/firm-public-sites.repository');
 const accountingServicesRepository = require('../../db/supabase/repositories/accounting-services.repository');
 const contabilStorage = require('../../services/storage/contabil-storage.service');
+const firmBrandingService = require('./firm-branding.service');
 const firmPublicSiteService = require('./firm-public-site.service');
 
 const OWNER = { id: 'user-1', firm_id: 'firm-1', role: 'FIRM_OWNER' };
@@ -758,4 +759,40 @@ test('filterPublicCtas: esconde serviço despublicado e mantém booking genéric
     filtered[0].content.ctas.map((c) => c.label),
     ['Público', 'Agenda'],
   );
+});
+
+test('normalizeSiteConfig: header e hero respeitam showLogo=false', () => {
+  const config = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      { type: 'header', content: { showLogo: false, title: 'Marca' } },
+      { type: 'hero', content: { showLogo: false, tagline: 'Olá' } },
+    ],
+  });
+  const header = config.sections.find((s) => s.type === 'header');
+  const hero = config.sections.find((s) => s.type === 'hero');
+  assert.equal(header.content.showLogo, false);
+  assert.equal(hero.content.showLogo, false);
+});
+
+test('resolvePublicSiteLogoUrl: theme.logoStorageKey tem prioridade sobre branding', async () => {
+  resetMocks();
+  mock.method(contabilStorage, 'createSignedDownloadUrl', async (key) => `signed://${key}`);
+  mock.method(firmBrandingService, 'resolveLogoUrl', async () => 'https://firm-logo.test/logo.png');
+
+  const url = await firmPublicSiteService.resolvePublicSiteLogoUrl(
+    { theme: { logoStorageKey: 'firm/1/public-site/logo/logo.webp' } },
+    { id: '1', settings: {} },
+  );
+  assert.equal(url, 'signed://firm/1/public-site/logo/logo.webp');
+});
+
+test('resolvePublicSiteLogoUrl: sem override usa branding do escritório', async () => {
+  resetMocks();
+  mock.method(firmBrandingService, 'resolveLogoUrl', async () => 'https://firm-logo.test/default.png');
+
+  const url = await firmPublicSiteService.resolvePublicSiteLogoUrl(
+    { theme: { logoStorageKey: null } },
+    { id: '1', settings: {} },
+  );
+  assert.equal(url, 'https://firm-logo.test/default.png');
 });

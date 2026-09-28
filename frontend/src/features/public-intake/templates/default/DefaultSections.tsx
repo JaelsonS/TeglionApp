@@ -107,6 +107,7 @@ export function HeaderSection({
   const groups = uniquePublicServiceGroups(ctx.services)
   const homeHref = `/${encodeURIComponent(ctx.firmSlug)}`
   const showNav = content?.showNav !== false
+  const showLogo = Boolean(ctx.logoUrl) && content?.showLogo !== false
   const navLinks = defaultPublicSiteNavLinks(content).filter((link) => link.enabled)
   const publicSlugs = new Set(ctx.services.map((s) => s.slug).filter(Boolean))
   const visibleLinks = navLinks.filter((link) => {
@@ -122,9 +123,9 @@ export function HeaderSection({
       style={bg ? { backgroundColor: bg } : undefined}
     >
       <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3 lg:max-w-4xl">
-        {ctx.logoUrl ? (
+        {showLogo ? (
           <Link to={homeHref} className="shrink-0" aria-label={headerLabel}>
-            <img src={ctx.logoUrl} alt="" className="h-9 w-9 rounded-md object-contain" />
+            <img src={ctx.logoUrl!} alt="" className="h-9 w-9 rounded-md object-contain" />
           </Link>
         ) : null}
         <Link to={homeHref} className={labelClass} style={labelStyle}>
@@ -255,6 +256,7 @@ export function HeroSection({
   const bioColor = hexStyle(content.bioColor)
   // Título de destaque ≠ nome do header. Sem fallback para firmName (evita duplicar).
   const heroTitle = String(content.title || '').trim()
+  const showLogo = Boolean(ctx.logoUrl) && content.showLogo !== false
   return (
     <section
       className={bg ? 'border-b border-black/5' : 'border-b border-border/40 bg-transparent'}
@@ -270,9 +272,9 @@ export function HeroSection({
         />
       ) : null}
       <div className="mx-auto max-w-2xl px-4 py-10 text-center lg:max-w-4xl">
-        {ctx.logoUrl ? (
+        {showLogo ? (
           <img
-            src={ctx.logoUrl}
+            src={ctx.logoUrl!}
             alt={ctx.firmName}
             className="mx-auto mb-4 h-20 w-20 rounded-full border-2 border-primary/30 object-cover shadow-sm"
           />
