@@ -176,7 +176,18 @@ async function generateNextFromRule({ firmId, ruleId, createdByUserId }) {
   if (!rule || !rule.is_active) throw new AppError('Regra de recorrência não encontrada', 404);
 
   const tpl = rule.obligation_templates;
-  const period = rule.next_period || nextPeriodFromFrequency(rule.frequency, rule.last_period);
+  const recurringRemoval = require('../recurrence/recurring-removal.service');
+  let period = rule.next_period || nextPeriodFromFrequency(rule.frequency, rule.last_period);
+  for (let i = 0; i < 24; i += 1) {
+    const skipped = await recurringRemoval.isObligationPeriodSkippedByRule({
+      firmId,
+      clientId: rule.client_id,
+      ruleId: rule.id,
+      period,
+    });
+    if (!skipped) break;
+    period = nextPeriodFromFrequency(rule.frequency, period);
+  }
   const due = rule.next_due_date || dueDateForPeriod(period, tpl?.default_due_day);
 
   const result = await createFromTemplate({

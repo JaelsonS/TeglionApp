@@ -59,7 +59,15 @@ async function processFirm(firmId) {
 
         const months = FREQUENCY_MONTHS[String(rule.recurrence_frequency || 'MONTHLY').toUpperCase()] || 1
         const nextDue = addMonths(latestDue, months)
-        const nextPeriod = periodMonthFromDate(nextDue)
+        let nextPeriod = periodMonthFromDate(nextDue)
+        const recurringRemoval = require('../../recurrence/recurring-removal.service')
+        nextPeriod = await recurringRemoval.nextNonExcludedTaskPeriod({
+            firmId,
+            clientId: rule.client_id,
+            ruleId: rule.id,
+            startPeriod: nextPeriod,
+            frequency: rule.recurrence_frequency || 'MONTHLY',
+        })
         const exists = await tasksRepo.findTaskByRecurringRulePeriod(firmId, rule.id, nextPeriod)
         if (exists) continue
 
@@ -70,7 +78,10 @@ async function processFirm(firmId) {
             description: rule.description || null,
             status: 'TODO',
             priority: latest.priority || 'NORMAL',
-            due_date: dueDateForPeriod(nextPeriod, rule.due_day_of_month || Number(String(nextDue.getDate()).padStart(2, '0'))),
+            due_date: dueDateForPeriod(
+                nextPeriod,
+                rule.due_day_of_month || Number(String(nextDue.getDate()).padStart(2, '0')),
+            ),
             assignee_id: latest.assigneeId || null,
             tags: latest.tags || [],
             recurrence_rule: { frequency: rule.recurrence_frequency || 'MONTHLY', ruleId: rule.id },

@@ -68,6 +68,7 @@ async function restoreObligationForMonth({ firmId, obligationId, month }) {
 }
 
 module.exports = {
+  normalizeMonth,
   collectMonthsFromItems,
   listExclusionsForFirm,
   applyExclusionsToObligations,

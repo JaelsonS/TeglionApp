@@ -8,6 +8,8 @@ function mapRow(row) {
     clientId: row.client_id,
     obligationId: row.obligation_id,
     taskId: row.task_id,
+    taskRecurringRuleId: row.task_recurring_rule_id,
+    obligationRecurrenceRuleId: row.obligation_recurrence_rule_id,
     month: row.month,
     excluded: row.excluded === true,
     createdBy: row.created_by,
@@ -117,9 +119,123 @@ function isObligationExcluded(exclusions, ob) {
   );
 }
 
+async function upsertTaskRuleExclusionSafe({ firmId, clientId, taskRecurringRuleId, month, createdBy }) {
+  const sb = ensureClient();
+  const existing = await sb
+    .from('task_month_exclusions')
+    .select('id')
+    .eq('firm_id', firmId)
+    .eq('client_id', clientId)
+    .eq('month', month)
+    .eq('task_recurring_rule_id', taskRecurringRuleId)
+    .maybeSingle();
+  if (existing.error) throw existing.error;
+  if (existing.data?.id) {
+    const { data, error } = await sb
+      .from('task_month_exclusions')
+      .update({ excluded: true, created_by: createdBy || null })
+      .eq('id', existing.data.id)
+      .select()
+      .single();
+    if (error) throw error;
+    return mapRow(data);
+  }
+  const { data, error } = await sb
+    .from('task_month_exclusions')
+    .insert({
+      firm_id: firmId,
+      client_id: clientId,
+      task_recurring_rule_id: taskRecurringRuleId,
+      month,
+      excluded: true,
+      created_by: createdBy || null,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return mapRow(data);
+}
+
+async function upsertObligationRuleExclusionSafe({
+  firmId,
+  clientId,
+  obligationRecurrenceRuleId,
+  month,
+  createdBy,
+}) {
+  const sb = ensureClient();
+  const existing = await sb
+    .from('task_month_exclusions')
+    .select('id')
+    .eq('firm_id', firmId)
+    .eq('client_id', clientId)
+    .eq('month', month)
+    .eq('obligation_recurrence_rule_id', obligationRecurrenceRuleId)
+    .maybeSingle();
+  if (existing.error) throw existing.error;
+  if (existing.data?.id) {
+    const { data, error } = await sb
+      .from('task_month_exclusions')
+      .update({ excluded: true, created_by: createdBy || null })
+      .eq('id', existing.data.id)
+      .select()
+      .single();
+    if (error) throw error;
+    return mapRow(data);
+  }
+  const { data, error } = await sb
+    .from('task_month_exclusions')
+    .insert({
+      firm_id: firmId,
+      client_id: clientId,
+      obligation_recurrence_rule_id: obligationRecurrenceRuleId,
+      month,
+      excluded: true,
+      created_by: createdBy || null,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return mapRow(data);
+}
+
+async function isTaskRuleMonthExcluded({ firmId, clientId, taskRecurringRuleId, month }) {
+  const sb = ensureClient();
+  const { data, error } = await sb
+    .from('task_month_exclusions')
+    .select('id')
+    .eq('firm_id', firmId)
+    .eq('client_id', clientId)
+    .eq('month', month)
+    .eq('task_recurring_rule_id', taskRecurringRuleId)
+    .eq('excluded', true)
+    .maybeSingle();
+  if (error) throw error;
+  return Boolean(data?.id);
+}
+
+async function isObligationRuleMonthExcluded({ firmId, clientId, obligationRecurrenceRuleId, month }) {
+  const sb = ensureClient();
+  const { data, error } = await sb
+    .from('task_month_exclusions')
+    .select('id')
+    .eq('firm_id', firmId)
+    .eq('client_id', clientId)
+    .eq('month', month)
+    .eq('obligation_recurrence_rule_id', obligationRecurrenceRuleId)
+    .eq('excluded', true)
+    .maybeSingle();
+  if (error) throw error;
+  return Boolean(data?.id);
+}
+
 module.exports = {
   listForFirm,
   upsertObligationExclusionSafe,
+  upsertTaskRuleExclusionSafe,
+  upsertObligationRuleExclusionSafe,
   removeObligationExclusion,
   isObligationExcluded,
+  isTaskRuleMonthExcluded,
+  isObligationRuleMonthExcluded,
 };

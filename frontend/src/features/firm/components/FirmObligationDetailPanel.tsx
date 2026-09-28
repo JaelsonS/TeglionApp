@@ -8,6 +8,7 @@ import {
   History,
   Upload,
   User,
+  Trash2,
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -29,6 +30,10 @@ import { MAX_UPLOAD_MB, validateUploadFileSize } from '@/shared/utils/uploadLimi
 import { formatEuro, formatPtDate } from '@/shared/utils/contabilLocale'
 import type { Obligation } from '@/shared/types/contabil'
 import { cn } from '@/shared/lib/utils'
+import {
+  RecurrenceRemoveDialog,
+  type RecurrenceRemoveScope,
+} from '@/features/firm/tasks/RecurrenceRemoveDialog'
 
 type TimelineItem = {
   id: string
@@ -94,12 +99,18 @@ export function FirmObligationDetailPanel({
   const [dueDateDraft, setDueDateDraft] = useState(dueDateToDateInput(String(obligation.dueDate || '')))
   const [savingPeriod, setSavingPeriod] = useState(false)
   const [savingDueDate, setSavingDueDate] = useState(false)
+  const [removeOpen, setRemoveOpen] = useState(false)
+  const [removeScope, setRemoveScope] = useState<RecurrenceRemoveScope>('occurrence')
+  const [removePending, setRemovePending] = useState(false)
 
   const lane = (obligation.operationalLane || 'upcoming') as OperationalLane
   const laneBadge = LANE_BADGE[lane] ?? LANE_BADGE.upcoming
   const typeLabel = TYPE_LABELS[obligation.type] || obligation.type
   const title = displayObligationTitle(obligation)
   const isDelivered = String(obligation.status).toUpperCase() === 'DELIVERED'
+  const isCancelled = String(obligation.status).toUpperCase() === 'CANCELLED'
+  const hasRecurrenceSeries = Boolean(obligation.recurrenceRuleId || obligation.templateId)
+  const periodYm = String(obligation.period || '').slice(0, 7)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -461,7 +472,7 @@ export function FirmObligationDetailPanel({
       </div>
 
       <div className="cb-ob-det-actions">
-        {!isDelivered ? (
+        {!isDelivered && !isCancelled ? (
           <button
             type="button"
             disabled={marking}
@@ -482,7 +493,64 @@ export function FirmObligationDetailPanel({
             Pré-visualizar
           </button>
         ) : null}
+        {!isCancelled ? (
+          <button
+            type="button"
+            className="cb-ob-det-btn cb-ob-det-btn-secondary text-destructive hover:bg-destructive/10"
+            onClick={() => {
+              if (hasRecurrenceSeries) {
+                setRemoveScope('occurrence')
+                setRemoveOpen(true)
+                return
+              }
+              if (!window.confirm('Remover esta obrigação da lista deste mês?')) return
+              void (async () => {
+                try {
+                  await contabilObligationsApi.remove(obligation._id, {
+                    scope: 'occurrence',
+                    month: periodYm || undefined,
+                  })
+                  toast.success('Obrigação removida')
+                  onUpdated()
+                  onClose()
+                } catch (err) {
+                  toast.error(getErrorMessage(err))
+                }
+              })()
+            }}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Remover
+          </button>
+        ) : null}
       </div>
+
+      <RecurrenceRemoveDialog
+        open={removeOpen}
+        onOpenChange={setRemoveOpen}
+        entityLabel="obrigação"
+        periodLabel={periodYm || undefined}
+        scope={removeScope}
+        onScopeChange={setRemoveScope}
+        pending={removePending}
+        onConfirm={async () => {
+          setRemovePending(true)
+          try {
+            await contabilObligationsApi.remove(obligation._id, {
+              scope: removeScope,
+              month: periodYm || undefined,
+            })
+            toast.success(removeScope === 'series' ? 'Série de recorrência desactivada' : 'Ocorrência removida')
+            setRemoveOpen(false)
+            onUpdated()
+            onClose()
+          } catch (err) {
+            toast.error(getErrorMessage(err))
+          } finally {
+            setRemovePending(false)
+          }
+        }}
+      />
 
       <DocumentPreviewModal
         open={previewOpen}

@@ -512,11 +512,9 @@ async function duplicateTask({ firmId, taskId, actor }) {
   return { task };
 }
 
-async function deleteTask({ firmId, taskId }) {
-  const existing = await tasksRepo.findTaskById(firmId, taskId);
-  if (!existing) throw new AppError('Tarefa não encontrada', 404);
-  await tasksRepo.deleteTask(taskId, firmId);
-  return { ok: true };
+async function deleteTask({ firmId, taskId, scope, actorId }) {
+  const recurringRemoval = require('../recurrence/recurring-removal.service');
+  return recurringRemoval.deleteTaskWithScope({ firmId, taskId, scope, actorId });
 }
 
 async function addComment({ firmId, taskId, actor, body, authorRole = 'FIRM' }) {
