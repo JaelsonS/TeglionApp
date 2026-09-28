@@ -220,25 +220,25 @@ function HeaderNavItem({
           {link.label}
           <ChevronDown className="h-3.5 w-3.5 opacity-70 transition group-open:rotate-180" aria-hidden />
         </summary>
-        <div className="absolute right-0 z-30 mt-1 max-h-[70vh] w-64 overflow-y-auto rounded-xl border border-border/70 bg-card p-2 shadow-lg">
+        <div className="absolute right-0 z-30 mt-1 max-h-[70vh] w-72 overflow-y-auto rounded-xl border border-border/70 bg-card p-2 shadow-lg">
           {groups.map((group) => (
-            <details key={group.heading || 'outros'} className="rounded-lg">
-              <summary className="cursor-pointer list-none rounded-md px-2 py-1.5 text-sm font-semibold text-foreground marker:content-none hover:bg-muted/60">
+            <div key={group.heading || 'outros'} className="border-b border-border/40 py-2 last:border-0">
+              <p className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {group.heading}
-              </summary>
-              <ul className="pb-1 pl-1">
-                {group.items.slice(0, 12).map((service) => (
+              </p>
+              <ul>
+                {group.items.slice(0, 16).map((service) => (
                   <li key={service.slug}>
                     <Link
                       to={`/${encodeURIComponent(ctx.firmSlug)}/servicos/${encodeURIComponent(service.slug)}`}
-                      className="block rounded-md px-2 py-1 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                      className="block rounded-md px-2 py-1.5 text-sm text-foreground/90 hover:bg-muted hover:text-foreground"
                     >
                       {service.name}
                     </Link>
                   </li>
                 ))}
               </ul>
-            </details>
+            </div>
           ))}
         </div>
       </details>
@@ -507,7 +507,7 @@ function ServiceCard({
   )
 }
 
-/** Grupo → serviços: accordion colapsado por defeito (melhor com 20–50 serviços). */
+/** Grupos visíveis em grelha — sem accordions fechados (visitante vê logo o catálogo). */
 function ClusteredServiceGroups({
   clusters,
   firmSlug,
@@ -519,43 +519,40 @@ function ClusteredServiceGroups({
   showPrices: boolean
   openInNewTab: boolean
 }) {
+  const total = clusters.reduce((n, c) => n + c.items.length, 0)
+  const useCompactGrid = total > 14
+
   return (
-    <Accordion type="multiple" defaultValue={[]} className="space-y-2">
-      {clusters.map((cluster) =>
-        cluster.heading ? (
-          <AccordionItem key={cluster.heading} value={cluster.heading} className="border-none">
-            <AccordionTrigger className="text-[hsl(var(--brand-text,var(--foreground)))]">
-              <span>
-                {cluster.heading}
-                <span className="ml-2 text-sm font-normal opacity-70">({cluster.items.length})</span>
-              </span>
-            </AccordionTrigger>
-            <AccordionContent>
-              <ul className="space-y-3">
-                {cluster.items.map((s) => (
-                  <li key={s.slug}>
-                    <ServiceCard
-                      firmSlug={firmSlug}
-                      service={s}
-                      showPrices={showPrices}
-                      openInNewTab={openInNewTab}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </AccordionContent>
-          </AccordionItem>
-        ) : (
-          <ul key="__ungrouped" className="space-y-3">
+    <div className="space-y-8">
+      {clusters.map((cluster) => (
+        <div key={cluster.heading || '__ungrouped'}>
+          {cluster.heading ? (
+            <h3 className="mb-3 text-base font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">
+              {cluster.heading}
+              <span className="ml-2 text-sm font-normal text-muted-foreground">({cluster.items.length})</span>
+            </h3>
+          ) : null}
+          <ul
+            className={
+              useCompactGrid
+                ? 'grid gap-3 sm:grid-cols-2'
+                : 'grid gap-3 sm:grid-cols-1'
+            }
+          >
             {cluster.items.map((s) => (
-              <li key={s.slug}>
-                <ServiceCard firmSlug={firmSlug} service={s} showPrices={showPrices} openInNewTab={openInNewTab} />
+              <li key={s.slug} className="min-h-0">
+                <ServiceCard
+                  firmSlug={firmSlug}
+                  service={s}
+                  showPrices={showPrices}
+                  openInNewTab={openInNewTab}
+                />
               </li>
             ))}
           </ul>
-        ),
-      )}
-    </Accordion>
+        </div>
+      ))}
+    </div>
   )
 }
 

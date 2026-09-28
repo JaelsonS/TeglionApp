@@ -134,14 +134,20 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     if (Object.prototype.hasOwnProperty.call(sectionOpenState, section.key)) {
       return sectionOpenState[section.key]
     }
-    return section.type === 'header' || section.type === 'hero'
+    return section.type === 'hero'
+  }
+
+  const collapseAllSections = () => {
+    const next: Record<string, boolean> = {}
+    for (const s of draft?.sections || []) next[s.key] = false
+    setSectionOpenState(next)
   }
 
   const toggleSectionOpen = (section: PublicSiteSection) => {
     setSectionOpenState((prev) => {
       const currently = Object.prototype.hasOwnProperty.call(prev, section.key)
         ? prev[section.key]
-        : section.type === 'header' || section.type === 'hero'
+        : section.type === 'hero'
       return { ...prev, [section.key]: !currently }
     })
   }
@@ -681,6 +687,9 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
                 Adicionar secção
               </Button>
+              <Button type="button" variant="ghost" size="sm" className="h-8 text-xs" onClick={collapseAllSections}>
+                Recolher todas
+              </Button>
               <button
                 type="button"
                 className="text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
@@ -690,9 +699,10 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               </button>
             </div>
           </div>
-          <p className="text-[11px] text-muted-foreground">
-            À esquerda: arrastar para mudar a ordem. À direita: abrir as opções. As secções de modelo não se
-            apagam — só as que criar com «Adicionar secção».
+          <p className="text-[11px] leading-relaxed text-muted-foreground">
+            Abra <span className="font-medium text-foreground">só a secção</span> que está a editar (ex.: Destaque
+            principal). Arraste à esquerda para reordenar. A pré-visualização ao vivo fica à direita — use{' '}
+            <span className="font-medium text-foreground">Expandir</span> para ver melhor.
           </p>
           <PublicSiteSectionsList
             sections={sortedSections}
