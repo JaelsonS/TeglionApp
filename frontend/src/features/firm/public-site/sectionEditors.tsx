@@ -672,17 +672,20 @@ export function ImagePickerField({
   )
 }
 
-/** Controlo visível em Destaque, Sobre, Serviços, etc. */
-export function PublicSiteSectionAlignField<T extends PublicSiteSectionMediaFields>({
+type ContentWithAlign = { contentAlign?: PublicSiteContentAlign | null }
+
+/** Controlo visível no topo de cada card de secção (modelo, personalizada, cabeçalho, rodapé). */
+export function PublicSiteSectionAlignField<T extends ContentWithAlign>({
   content,
   onChange,
   variant = 'section',
 }: {
   content: T
   onChange: (next: T) => void
-  variant?: 'section' | 'hero'
+  variant?: 'section' | 'hero' | 'chrome'
 }) {
-  const uiValue = variant === 'hero' ? heroContentAlignUiValue(content) : sectionContentAlignUiValue(content)
+  const uiValue =
+    variant === 'hero' ? heroContentAlignUiValue(content) : sectionContentAlignUiValue(content as PublicSiteSectionMediaFields)
   return (
     <div className="space-y-1.5 rounded-lg border border-brand/35 bg-brand/[0.05] p-3">
       <p className="text-sm font-semibold text-foreground">Alinhamento do conteúdo</p>
@@ -698,7 +701,10 @@ export function PublicSiteSectionAlignField<T extends PublicSiteSectionMediaFiel
           onChange(
             (variant === 'hero'
               ? { ...content, ...patchHeroContentAlign(content, next) }
-              : patchSectionContentAlign(content, next)) as T,
+              : {
+                  ...content,
+                  ...patchSectionContentAlign(content as PublicSiteSectionMediaFields, next),
+                }) as T,
           )
         }}
       >
@@ -709,7 +715,9 @@ export function PublicSiteSectionAlignField<T extends PublicSiteSectionMediaFiel
       <p className="text-[11px] text-muted-foreground">
         {variant === 'hero'
           ? 'Afecta título, frase, parágrafo e botões no destaque. Por omissão fica ao centro.'
-          : 'Afecta títulos, texto e botões desta secção. A grelha de serviços mantém a largura total.'}
+          : variant === 'chrome'
+            ? 'Barra do topo: marca e título. Rodapé: contactos e texto. Links e menu mantêm-se funcionais.'
+            : 'Afecta títulos, texto e botões desta secção. A grelha de serviços mantém a largura total.'}
       </p>
     </div>
   )
@@ -767,9 +775,7 @@ export function SectionMediaEditor<T extends PublicSiteSectionMediaFields>({
   }
 
   return (
-    <div className="space-y-3">
-      <PublicSiteSectionAlignField content={content} onChange={onChange} />
-      <div className="space-y-3 rounded-lg border border-border/40 bg-muted/10 p-3">
+    <div className="space-y-3 rounded-lg border border-border/40 bg-muted/10 p-3">
       <p className="text-sm font-semibold">Imagens (só página pública)</p>
       <label className="flex items-center gap-2 text-sm">
         <input
@@ -880,7 +886,6 @@ export function SectionMediaEditor<T extends PublicSiteSectionMediaFields>({
           ) : null}
         </>
       ) : null}
-      </div>
     </div>
   )
 }
@@ -1272,8 +1277,6 @@ export function HeroEditor({
 
   return (
     <div className="space-y-5">
-      <PublicSiteSectionAlignField content={content} onChange={onChange} variant="hero" />
-
       <div className="space-y-2 rounded-lg border border-brand/30 bg-brand/[0.04] p-3">
         <p className="text-sm font-semibold text-foreground">Imagem de fundo do destaque</p>
         <p className="text-[11px] leading-relaxed text-muted-foreground">
@@ -1639,7 +1642,6 @@ export function ServicesHeadingEditor({
           onChange={(v) => onChange({ ...content, headingColor: v })}
         />
       </div>
-      <PublicSiteSectionAlignField content={content} onChange={onChange} />
       <div className="space-y-2">
         <Label>Título da secção</Label>
         <Input

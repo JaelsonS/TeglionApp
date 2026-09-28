@@ -245,6 +245,8 @@ export type PublicSiteChromeContent = {
   address?: string | null
   /** Omissão = mostrar logótipo na barra quando existir URL. */
   showLogo?: boolean
+  /** Alinhamento da marca/título (barra) ou bloco do rodapé. */
+  contentAlign?: 'left' | 'center' | 'right' | null
 }
 
 export type PublicSiteEmptyContent = PublicSiteChromeContent

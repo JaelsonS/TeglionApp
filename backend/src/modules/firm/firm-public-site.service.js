@@ -11,7 +11,11 @@ const {
   resolvePublicSiteZoneLogoUrl,
   resolveThemeLogoPreviewUrls,
 } = require('./public-site-logo');
-const { normalizeSectionMediaFields, normalizeBySectionImages } = require('./public-site-section-media');
+const {
+  normalizeSectionMediaFields,
+  normalizeContentAlign,
+  normalizeBySectionImages,
+} = require('./public-site-section-media');
 const { normalizeHttpsUrlOrNull, coerceExternalHttpsUrlOrNull } = require('../../utils/safe-url');
 
 const SECTION_TYPES = new Set([
@@ -359,6 +363,7 @@ function normalizeSectionContent(type, raw) {
         showAreasMenu: navLinks.some((l) => l.enabled && l.kind === 'areas'),
         showContactLink: navLinks.some((l) => l.enabled && l.kind === 'section' && l.sectionId === 'contactos'),
         showLogo: content.showLogo !== false,
+        contentAlign: normalizeContentAlign(content.contentAlign),
       };
     }
     case 'footer':
@@ -370,6 +375,7 @@ function normalizeSectionContent(type, raw) {
         email: content.email != null ? String(content.email).trim().slice(0, 200) || null : null,
         phone: content.phone != null ? String(content.phone).trim().slice(0, 40) || null : null,
         address: content.address != null ? String(content.address).trim().slice(0, 300) || null : null,
+        contentAlign: normalizeContentAlign(content.contentAlign),
       };
     default:
       return {};

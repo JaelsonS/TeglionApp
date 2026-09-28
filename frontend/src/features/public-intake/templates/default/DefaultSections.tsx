@@ -856,6 +856,8 @@ export function FooterSection({
   ].filter((s): s is typeof s & { href: string } => Boolean(s.href))
   const bg = hexStyle(content?.backgroundColor)
   const text = hexStyle(content?.textColor)
+  const align = resolveSectionContentAlign(content)
+  const rowJustify = contentAlignFlexClass(align)
 
   const footerEmail = (content?.email || '').trim() || ctx.contact.email
   const footerPhone = (content?.phone || '').trim() || ctx.contact.phone
@@ -885,7 +887,9 @@ export function FooterSection({
       style={bg ? { backgroundColor: bg } : undefined}
     >
       {entries.length > 0 ? (
-        <div className="mx-auto flex max-w-2xl lg:max-w-4xl flex-wrap items-center justify-center gap-3 px-4 py-8">
+        <div
+          className={`mx-auto flex max-w-2xl flex-wrap items-center gap-3 px-4 py-8 lg:max-w-4xl ${contentAlignFlexClass(align)}`}
+        >
           {entries.map(({ key, href, label, Icon }) => (
             <a
               key={key}
@@ -904,7 +908,7 @@ export function FooterSection({
         <div className="pt-6" />
       )}
       <div
-        className="mx-auto flex max-w-2xl lg:max-w-4xl flex-col items-center gap-2 px-4 pb-6 text-center text-xs"
+        className={`mx-auto flex max-w-2xl flex-col gap-2 px-4 pb-6 text-xs lg:max-w-4xl ${contentAlignBlockClass(align)}`}
         style={text ? { color: text } : undefined}
       >
         {contactRows.length > 0 ? (
@@ -914,7 +918,7 @@ export function FooterSection({
                 <a
                   key={key}
                   href={href}
-                  className="flex items-center justify-center gap-1.5 hover:opacity-80"
+                  className={`flex items-center gap-1.5 hover:opacity-80 ${rowJustify}`}
                   style={text ? { color: text } : undefined}
                   {...(key === 'address' ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                 >
@@ -923,10 +927,10 @@ export function FooterSection({
               ) : (
                 <p
                   key={key}
-                  className="flex items-center justify-center gap-1.5"
+                  className={`flex items-center gap-1.5 ${rowJustify}`}
                   style={text ? { color: text } : undefined}
                 >
-                  <Icon className="h-3.5 w-3.5" /> {label}
+                  <Icon className="h-3.5 w-3.5 shrink-0" /> {label}
                 </p>
               ),
             )}

@@ -5,6 +5,10 @@ import { Link } from 'react-router-dom'
 import { ChevronDown, Menu } from 'lucide-react'
 
 import type { PublicSiteChromeContent, PublicSiteNavLink } from '@/shared/types/firmPublicSite'
+import {
+  contentAlignFlexClass,
+  resolveSectionContentAlign,
+} from '@/features/public-intake/publicSiteContentAlign'
 import { defaultPublicSiteNavLinks } from '@/features/public-intake/publicSiteNavLinks'
 import { uniquePublicServiceGroups } from '@/features/public-intake/clusterPublicServices'
 import type { PublicSiteRenderContext } from '@/features/public-intake/templates/default/DefaultSections'
@@ -217,6 +221,7 @@ export function HeaderSection({
   })
 
   const closeMenu = () => setMenuOpen(false)
+  const align = resolveSectionContentAlign(content)
 
   return (
     <header
@@ -224,14 +229,16 @@ export function HeaderSection({
       style={bg ? { backgroundColor: bg } : undefined}
     >
       <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3 lg:max-w-4xl">
-        {showLogo ? (
-          <Link to={homeHref} className="shrink-0" aria-label={headerLabel}>
-            <img src={headerLogo!} alt="" className="h-9 w-9 rounded-md object-contain" />
+        <div className={`flex min-w-0 flex-1 items-center gap-3 ${contentAlignFlexClass(align)}`}>
+          {showLogo ? (
+            <Link to={homeHref} className="shrink-0" aria-label={headerLabel}>
+              <img src={headerLogo!} alt="" className="h-9 w-9 rounded-md object-contain" />
+            </Link>
+          ) : null}
+          <Link to={homeHref} className={`min-w-0 truncate ${labelClass}`} style={labelStyle}>
+            {headerLabel}
           </Link>
-        ) : null}
-        <Link to={homeHref} className={`min-w-0 truncate ${labelClass}`} style={labelStyle}>
-          {headerLabel}
-        </Link>
+        </div>
         {showNav && visibleLinks.length > 0 ? (
           <>
             <nav
