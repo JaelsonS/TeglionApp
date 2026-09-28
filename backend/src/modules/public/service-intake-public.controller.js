@@ -236,10 +236,14 @@ async function getPublicFirmSite(req, res, next) {
     const publicSlugs = items.map((s) => s.slug).filter(Boolean);
     const publicSections = firmPublicSiteService.filterPublicCtas(config.sections, publicSlugs);
 
-    const shareImageUrl =
-      previewValid || !site.published
-        ? null
-        : await firmPublicSiteService.resolvePublicShareImageUrl(config, firm);
+    let shareImageUrl = null;
+    if (!previewValid && site.published) {
+      const shareMeta = await firmPublicSiteService.resolvePublicShareMeta(config, firm, {
+        firmSlug: String(req.params.firmSlug || '').trim(),
+        publicOrigin: env.FRONTEND_URL,
+      });
+      shareImageUrl = shareMeta.imageUrl;
+    }
 
     return res.json({
       firmName: resolvePublicFirmName(firm),
@@ -332,6 +336,10 @@ async function getPublicFirmSharePreview(req, res, next) {
     const url = escapeShareHtml(meta.url);
     const imageTags = meta.imageUrl
       ? `<meta property="og:image" content="${escapeShareHtml(meta.imageUrl)}" />
+    <meta property="og:image:secure_url" content="${escapeShareHtml(meta.imageUrl)}" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="${escapeShareHtml(meta.imageUrl)}" />`
       : `<meta name="twitter:card" content="summary" />`;
@@ -354,6 +362,23 @@ async function getPublicFirmSharePreview(req, res, next) {
     res.set('Content-Type', 'text/html; charset=utf-8');
     res.set('Cache-Control', 'public, max-age=300');
     return res.send(html);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+/** Redireciona para a imagem OG actual (URL assinada). Meta tags apontam aqui — URL estável para WhatsApp/Facebook. */
+async function getPublicFirmShareOgImage(req, res, next) {
+  try {
+    assertValid(req);
+    const firmSlug = String(req.params.firmSlug || '').trim();
+    const { firm, config } = await loadPublishedFirmSiteForShare(firmSlug);
+    const imageUrl = await firmPublicSiteService.resolvePublicShareImageUrl(config, firm);
+    if (!imageUrl) {
+      return res.status(404).json({ error: 'NO_SHARE_IMAGE' });
+    }
+    res.set('Cache-Control', 'public, max-age=300');
+    return res.redirect(302, imageUrl);
   } catch (err) {
     return next(err);
   }
@@ -674,6 +699,7 @@ module.exports = {
   getPublicFirmSite,
   getPublicFirmShareMeta,
   getPublicFirmSharePreview,
+  getPublicFirmShareOgImage,
   getPublicService,
   getPublicSlots,
   holdPublicSlot,
