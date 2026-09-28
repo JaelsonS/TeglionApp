@@ -32,6 +32,7 @@ export type WorkspaceTask = {
   taskType?: 'recurring_obligation' | 'manual_task' | 'internal_task'
   periodMonth?: string | null
   recurringRuleId?: string | null
+  recurrenceRule?: { frequency?: string; ruleId?: string } | null
   createdAt?: string
   updatedAt?: string
 }
@@ -125,7 +126,12 @@ export const tasksApi = {
 
   duplicate: (id: string) => api.post(`/contabil/client-tasks/${encodeURIComponent(id)}/duplicate`).then((r) => r.data),
 
-  remove: (id: string) => api.delete(`/contabil/client-tasks/${encodeURIComponent(id)}`).then((r) => r.data),
+  remove: (id: string, scope?: 'occurrence' | 'series') =>
+    api
+      .delete(`/contabil/client-tasks/${encodeURIComponent(id)}`, {
+        params: scope ? { scope } : undefined,
+      })
+      .then((r) => r.data),
 
   addComment: (id: string, body: string) =>
     api.post(`/contabil/client-tasks/${encodeURIComponent(id)}/comments`, { body }).then((r) => r.data),

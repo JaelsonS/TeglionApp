@@ -67,7 +67,7 @@ export const LANDING_INTENTS = [
       'O trial de 14 dias deixa o escritório criar a conta, configurar a página pública, publicar serviços e convidar clientes. Não precisa de cartão para começar. No fim do período escolhe o plano — ou fala connosco se quiser uma demonstração guiada.',
     steps: [
       'Crie a conta do escritório',
-      'Coloque o logótipo e publique a página',
+      'Logótipo do portal (Identidade) e publique a página pública',
       'Active um serviço (por exemplo IRS ou um pedido de documentos)',
       'Convide um cliente ao portal para ver o fluxo completo',
     ],
@@ -85,12 +85,12 @@ export const LANDING_INTENTS = [
     shortDescription: 'site do escritório',
     surface: 'landing',
     answer:
-      'Cada escritório tem uma página pública no Teglion: marca, serviços, áreas, contactos e pedidos. O cliente escolhe o serviço, preenche o formulário e o pedido chega ao painel — sem perder conversas no WhatsApp. No editor, em «1. Barra do topo», o escritório edita o texto de cada link e escolhe se rola nesta página, abre um serviço ou vai para um site https.',
+      'Cada escritório tem uma página pública no Teglion: marca, serviços, contactos e pedidos online. No editor (Definições → Página pública) configura logótipos só do site (independentes do portal), fotos por secção, destaque e publicação em teglion.com/o-seu-slug. Os serviços publicados no catálogo aparecem automaticamente no site.',
     steps: [
-      'Defina o nome e o logótipo',
-      'Publique serviços no catálogo',
-      'No editor, em «1. Barra do topo», edite o texto e o destino de cada link',
-      'Partilhe o link da página com os clientes',
+      'Logótipo do portal em Identidade; site público em Página pública',
+      'Publique serviços no catálogo ou IRS',
+      'Configure destaque, secções e publique o site',
+      'Partilhe o link com clientes',
     ],
     deepLink: '/#produto',
     relatedIntents: ['landing-portal', 'landing-trial', 'landing-what'],

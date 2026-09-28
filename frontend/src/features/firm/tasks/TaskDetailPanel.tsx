@@ -22,6 +22,10 @@ import type { WorkspaceTaskStatus } from '@/infrastructure/api/contabil/tasks'
 import { tasksApi } from '@/infrastructure/api/contabil/tasks'
 import { PRIORITY_LABEL, STATUS_LABEL } from '@/features/firm/tasks/taskWorkspaceConstants'
 import { TaskEditDialog, buildTaskEditPatch } from '@/features/firm/tasks/TaskEditDialog'
+import {
+  RecurrenceRemoveDialog,
+  type RecurrenceRemoveScope,
+} from '@/features/firm/tasks/RecurrenceRemoveDialog'
 import { DocumentPreviewModal } from '@/shared/components/contabil/DocumentPreviewModal'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
@@ -54,6 +58,9 @@ export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewTitle, setPreviewTitle] = useState('')
   const [editOpen, setEditOpen] = useState(false)
+  const [removeOpen, setRemoveOpen] = useState(false)
+  const [removeScope, setRemoveScope] = useState<RecurrenceRemoveScope>('occurrence')
+  const [removePending, setRemovePending] = useState(false)
 
   const task = data?.task
   const timeline = data?.timeline || []
@@ -250,7 +257,26 @@ export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose
                   <Archive className="mr-1 h-3.5 w-3.5" /> Arquivar
                 </Button>
               )}
-              <Button size="sm" variant="ghost" className="rounded-full text-destructive" onClick={() => run(() => tasksApi.remove(task.id), 'Removida')}>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="rounded-full text-destructive"
+                onClick={() => {
+                  const recurring = Boolean(
+                    task.recurringRuleId ||
+                      (task.recurrenceRule && typeof task.recurrenceRule === 'object' && 'ruleId' in task.recurrenceRule
+                        ? (task.recurrenceRule as { ruleId?: string }).ruleId
+                        : null),
+                  )
+                  if (recurring) {
+                    setRemoveScope('occurrence')
+                    setRemoveOpen(true)
+                    return
+                  }
+                  if (!window.confirm('Apagar esta tarefa?')) return
+                  void run(() => tasksApi.remove(task.id), 'Removida')
+                }}
+              >
                 <Trash2 className="mr-1 h-3.5 w-3.5" /> Apagar
               </Button>
             </div>
@@ -365,6 +391,32 @@ export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose
         title={previewTitle}
         previewUrl={previewUrl}
       />
+
+      {task ? (
+        <RecurrenceRemoveDialog
+          open={removeOpen}
+          onOpenChange={setRemoveOpen}
+          entityLabel="tarefa"
+          periodLabel={task.periodMonth || task.dueDate?.slice(0, 7) || undefined}
+          scope={removeScope}
+          onScopeChange={setRemoveScope}
+          pending={removePending}
+          onConfirm={async () => {
+            setRemovePending(true)
+            try {
+              await tasksApi.remove(task.id, removeScope)
+              toast.success(removeScope === 'series' ? 'Série removida' : 'Ocorrência removida')
+              setRemoveOpen(false)
+              onMutate()
+              onClose()
+            } catch (e) {
+              toast.error(getErrorMessage(e))
+            } finally {
+              setRemovePending(false)
+            }
+          }}
+        />
+      ) : null}
 
       <TaskEditDialog
         open={editOpen}

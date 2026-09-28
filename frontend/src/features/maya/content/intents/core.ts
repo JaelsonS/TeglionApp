@@ -9,7 +9,7 @@ export const CORE_INTENTS = [
       'O Teglion é o sistema do seu escritório de contabilidade: carteira de clientes, documentos, prazos, agenda, página pública, serviços e pedidos. Não substitui o software de contabilidade clássico — organiza a relação com o cliente e a captação de trabalho. Eu sou a Maya: explico cada ecrã com base no que realmente existe nesta página.',
     steps: [
       'Abra o Painel — o cartão «Próximo passo» diz por onde começar',
-      'Em Definições, coloque o logótipo e publique a página pública',
+      'Em Definições → Identidade, logótipo do portal; em Página pública, configure o site e publique',
       'Em Serviços ou IRS, publique pelo menos um serviço',
       'Quando chegar um pedido, trate-o em Solicitações',
       'Depois adicione clientes à carteira e convide-os ao portal',

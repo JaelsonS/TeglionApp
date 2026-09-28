@@ -50,6 +50,9 @@ export function createContabilObligationsApi(api: AxiosInstance) {
     update: (id: string, payload: Record<string, unknown>) =>
       api.patch(`/contabil/obligations/${encodeURIComponent(id)}`, payload).then((r) => r.data),
 
+    remove: (id: string, payload: { scope: 'occurrence' | 'series'; month?: string }) =>
+      api.post(`/contabil/obligations/${encodeURIComponent(id)}/remove`, payload).then((r) => r.data),
+
     getViews: (id: string) =>
       api.get(`/contabil/obligations/${encodeURIComponent(id)}/views`).then((r) => r.data),
 

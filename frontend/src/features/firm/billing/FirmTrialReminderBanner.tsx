@@ -9,6 +9,7 @@ import {
   trialBannerMessage,
   trialBannerTone,
   trialDaysRemaining,
+  shouldShowTrialReminderBanner,
 } from '@/features/firm/billing/trialReminderUtils'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { isFirmSessionUser } from '@/shared/utils/authNormalize'
@@ -43,7 +44,7 @@ export function FirmTrialReminderBanner() {
   const model = useMemo(() => {
     if (!trialEndsAt || status !== 'TRIAL') return null
     const daysLeft = trialDaysRemaining(trialEndsAt)
-    if (daysLeft <= 0) return null
+    if (!shouldShowTrialReminderBanner(daysLeft)) return null
     return {
       daysLeft,
       tone: trialBannerTone(daysLeft),

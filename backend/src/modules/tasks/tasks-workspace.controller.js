@@ -111,7 +111,13 @@ exports.remove = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);
     const taskId = parseEntityId(req.params.id, 'taskId');
-    const result = await workspace.deleteTask({ firmId, taskId });
+    const scope = req.query.scope || req.body?.scope;
+    const result = await workspace.deleteTask({
+      firmId,
+      taskId,
+      scope,
+      actorId: req.user?.id || req.user?._id,
+    });
     return res.json(result);
   } catch (err) {
     return next(err);
