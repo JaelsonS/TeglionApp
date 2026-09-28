@@ -4,7 +4,7 @@
 
 ## Visão geral
 
-Construí o Teglion como um monólito modular: um backend Express único, organizado em módulos de domínio, servindo uma aplicação React única. Não é microsserviços — foi decisão minha, consciente, não limitação. Com o tamanho de time e de produto que tenho hoje (4 escritórios pilotos), separar em serviços distintos criaria custo de coordenação sem benefício real. A modularidade que importa agora acontece dentro do próprio backend: cada domínio de negócio (cliente, documento, agendamento, cobrança, integração) vive no próprio módulo, com fronteira clara, mesmo rodando no mesmo processo.
+Construí o Teglion como um monólito modular: um backend Express único, organizado em módulos de domínio, servindo uma aplicação React única. Não é microsserviços — foi decisão minha, consciente, não limitação. Com o tamanho de time e de produto que tenho hoje (5 escritórios em produção, Set/2026), separar em serviços distintos criaria custo de coordenação sem benefício real. A modularidade que importa agora acontece dentro do próprio backend: cada domínio de negócio (cliente, documento, agendamento, cobrança, integração) vive no próprio módulo, com fronteira clara, mesmo rodando no mesmo processo.
 
 ```
 Frontend (React SPA, Vercel)  →  Backend (Express API, Render)  →  Supabase (Postgres + Storage)

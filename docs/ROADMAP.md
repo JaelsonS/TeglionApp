@@ -2,7 +2,7 @@
 
 **Esse é o único roadmap que eu uso.** Se eu esbarrar em qualquer outro documento com lista de tarefas, sprints ou "próximos passos" que não seja esse arquivo, já sei que ele está desatualizado — corrijo ou arquivo. Nenhuma outra lista de prioridades no repositório tem autoridade sobre essa aqui.
 
-Última vez que eu atualizei: 21 de agosto de 2026 (Fase 3 Agenda formalmente encerrada após UAT; Fase 4 MFA bloqueada até autorização explícita — ver [ADR-0012](./decisions/ADR-0012-ordem-frente-evolucao-produto.md)). Antes disso: 18/08/2026 (auditorias multi-tenancy, HTTP/polling, expansão internacional). Onde uma afirmação vem de uma dessas auditorias, eu marco isso. Onde eu ainda não investiguei fundo o suficiente pra ter certeza, eu também marco — não quero fingir que sei o que ainda não sei.
+Última vez que eu atualizei: **28 de setembro de 2026** (5 escritórios em produção; releases #99–#102; snapshot em [`docs/production/CURRENT_STATE.md`](./production/CURRENT_STATE.md)). Antes: 21/08/2026 (Agenda UAT; MFA). Onde uma afirmação vem de auditoria antiga, eu marco a data. Onde ainda não comprovei, uso `A VALIDAR`.
 
 ---
 
@@ -38,13 +38,14 @@ Minha visão de dez anos é uma plataforma que um escritório de qualquer tamanh
 
 Isso não é uma promessa de que eu já cheguei lá. É a régua contra a qual eu meço cada decisão de arquitetura desse roadmap.
 
-## Onde eu estou (agosto de 2026)
+## Onde eu estou (setembro de 2026)
 
-- **4 escritórios pilotos** usando o sistema em produção/staging.
-- Monólito modular: backend Node/Express, frontend React/Vite, Postgres via Supabase (Auth + Storage + RLS), Stripe pra cobrança, integração com Google Calendar/Drive, e-mail transacional via Brevo.
-- Isolamento multi-tenant por `firm_id`, que eu apliquei de forma consistente nos repositórios de dados, com RLS como camada adicional de defesa (não a fronteira principal — meu backend acessa via `service_role`, que ignora RLS; a fronteira real é o filtro explícito que eu coloco em cada consulta).
-- Reescrevi minha documentação recentemente (12/08/2026) com disciplina real de "implementado vs. parcial vs. não existe" — mas meu roadmap tinha ficado fragmentado em onze arquivos contando duas histórias diferentes, o que esse documento aqui resolve.
-- Estou no meio de uma auditoria de segurança e multi-tenancy mais ampla (comecei em paralelo a esse trabalho de documentação) e ainda não terminei todos os módulos dela — o que já tem evidência concreta eu já listei na Fase 0; o resto eu incorporo aqui assim que terminar, não antes.
+- **5 escritórios** cadastrados e a utilizar o sistema em **produção** (`www.teglion.com`); meta comercial imediata ~**10 escritórios**.
+- **Main** inclui: alertas cliente + validade documentos + lembretes (#99–#100), banner trial para `FIRM_OWNER` (#101–#102), dependências auditadas (#97–#98).
+- Monólito modular: backend Node/Express, frontend React/Vite, Postgres via Supabase (Storage + RLS defesa), Stripe billing, Google Calendar/Drive, Brevo.
+- Isolamento multi-tenant por `firm_id` nos repositórios; teste `tenant-isolation-test.js` no CI **quando** staging Supabase + GitHub Actions estão activos (localmente falhou Set/2026 com `ENOTFOUND` — projecto staging pausado, não regressão de código).
+- **Ops crítico aprendido:** Supabase prod **INACTIVE** (faturação) derruba login (`ENOTFOUND` → 500); runbook em [`docs/operations/INCIDENTS.md`](./operations/INCIDENTS.md).
+- Testes: **652** backend + **224** frontend (28/09/2026).
 
 ---
 
@@ -76,7 +77,7 @@ Minha prioridade absoluta. Nada do resto importa se a base não é sólida.
 - **Prioridade:** P0 (era)
 - **O que era:** `syncOverdueObligations` (`backend/src/db/supabase/repositories/contabil/obligations.repository.js`) e `runAutomationsForFirm` (`automation.service.js`) calculavam "hoje" com `new Date().toISOString().slice(0, 10)` — sempre UTC, nunca o fuso real do escritório.
 - **O que corrigi em 20/08/2026:** criei `backend/src/utils/firm-timezone.js` (usa `dayjs` + plugin de timezone, que já era dependência do módulo de Booking) com `resolveFirmTimezone()` (lê `firm.settings.booking.timezone`, cai pra `Europe/Lisbon` se não houver valor válido) e `todayInTimezone()`. Liguei os dois pontos que eu tinha identificado a esse utilitário — ambos agora buscam a `firm` antes de calcular "hoje", em vez de assumir UTC direto. Escrevi um teste isolado provando o bug real com datas concretas (`2026-07-15T23:30:00Z` é `15/07` em UTC mas já `16/07` em Lisboa no horário de verão) e testes de integração nos dois pontos, usando Atlantic/Azores (UTC-1 sem DST) pra ficar determinístico o ano inteiro.
-- **Ressalva honesta:** isso resolve o bug real pra Portugal (meus 4 escritórios pilotos de hoje) — o fuso agora reflete `settings.booking.timezone` de cada escritório em vez de UTC fixo. Não criei a coluna `firms.timezone` nem ampliei a allow-list de fusos pra incluir horários brasileiros — isso continua sendo o item 3.2, que eu não fiz nessa rodada (estava fora do escopo que eu combinei: só Fase 0 + Fase 1). Ou seja: o bug que eu tinha (erro de fuso pra quem já está em produção) está corrigido; o pré-requisito pro Brasil (item 4.1) continua pendente do 3.2.
+- **Ressalva honesta:** isso resolve o bug real pra Portugal (meus 5 escritórios em produção (Set/2026)) — o fuso agora reflete `settings.booking.timezone` de cada escritório em vez de UTC fixo. Não criei a coluna `firms.timezone` nem ampliei a allow-list de fusos pra incluir horários brasileiros — isso continua sendo o item 3.2, que eu não fiz nessa rodada (estava fora do escopo que eu combinei: só Fase 0 + Fase 1). Ou seja: o bug que eu tinha (erro de fuso pra quem já está em produção) está corrigido; o pré-requisito pro Brasil (item 4.1) continua pendente do 3.2.
 - **Como terminei:** `backend/src/utils/firm-timezone.test.js` (6 testes), mais um teste de integração cada em `obligations.repository.test.js` e no novo `automation.service.test.js` — suíte completa do backend (500 testes) passando.
 - **Evidência:** `backend/src/utils/firm-timezone.js` (novo), `backend/src/utils/firm-timezone.test.js` (novo), `backend/src/modules/automations/automation.service.test.js` (novo), commit ainda não criado (fica no working tree, conforme combinado).
 
@@ -173,13 +174,13 @@ Minha prioridade absoluta. Nada do resto importa se a base não é sólida.
 
 ## FASE 2 — Produto Portugal
 
-Portugal é o único mercado onde eu tenho uso real hoje (4 escritórios pilotos) e continua sendo minha prioridade de estabilidade de produto. Itens específicos de produto (não arquitetura) eu guardo em `docs/product/` e adiciono aqui conforme eu for decidindo — não quero listar aqui funcionalidade que eu ainda nem desenhei, pra não inventar prioridade que não existe.
+Portugal é o único mercado onde eu tenho uso real hoje (5 escritórios em produção) e continua sendo minha prioridade de estabilidade de produto. Itens específicos de produto (não arquitetura) eu guardo em `docs/product/` e adiciono aqui conforme eu for decidindo — não quero listar aqui funcionalidade que eu ainda nem desenhei, pra não inventar prioridade que não existe.
 
 - **Regra que eu sigo nessa fase:** nenhuma mudança que eu fizer nas Fases 3-5 (arquitetura multi-país, Brasil) pode alterar o comportamento que um escritório português vê hoje. Ver Fase 3 pros testes de regressão que eu preciso rodar.
 
 ### Frente de evolução de produto/segurança (iniciada 20/08/2026)
 
-Abri uma frente própria, maior que um item avulso desta fase. A auditoria item a item fica em [`docs/decisions/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md`](./decisions/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md). A **ordem obrigatória** das fases desta frente (actualizada 21/08/2026) está em [ADR-0012](./decisions/ADR-0012-ordem-frente-evolucao-produto.md) — **não alterar sem autorização explícita**.
+Abri uma frente própria, maior que um item avulso desta fase. A auditoria item a item (arquivo) fica em [`historico/auditorias/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md`](./historico/auditorias/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md). A **ordem obrigatória** das fases desta frente (actualizada 21/08/2026) está em [ADR-0012](./decisions/ADR-0012-ordem-frente-evolucao-produto.md) — **não alterar sem autorização explícita**.
 
 **Ordem actual (única válida para esta frente):**
 
@@ -310,11 +311,11 @@ O menor conjunto que eu preciso pra deixar um escritório brasileiro real operar
 
 ### Meu caminho de escala: 4 → 100.000 escritórios
 
-Essa seção existe pra eu responder com honestidade uma pergunta que qualquer investidor técnico ou comprador em due diligence vai me fazer: *"isso aguenta crescer?"* Minha resposta curta é: a arquitetura de isolamento (por `firm_id`) não me impede de escalar — mas hoje eu não tenho evidência de que já testei o sistema além de 4 escritórios reais, e na minha auditoria de requisições eu já encontrei pontos concretos que vão doer antes dos outros.
+Essa seção existe pra eu responder com honestidade uma pergunta que qualquer investidor técnico ou comprador em due diligence vai me fazer: *"isso aguenta crescer?"* Minha resposta curta é: a arquitetura de isolamento (por `firm_id`) não me impede de escalar — mas hoje eu não tenho evidência de que já testei o sistema além de 5 escritórios reais (Set/2026), e na minha auditoria de requisições eu já encontrei pontos concretos que vão doer antes dos outros.
 
 | Estágio | O que eu tenho hoje | O que eu preciso comprovar | Gargalo que eu espero | Solução provável | Evidência que eu preciso |
 |---|---|---|---|---|---|
-| **4 escritórios (atual)** | Em produção real | — | Nenhum que eu tenha observado até agora | — | — |
+| **5 escritórios (atual, Set/2026)** | Em produção real | — | Incidente Supabase pausado 28/09 (resolvido) | — | Ver `CURRENT_STATE.md` |
 | **~50 escritórios** | Minha arquitetura suporta sem mudança | Comportamento do polling central com múltiplos escritórios simultâneos | `live/events` sem cache, chamado por todo usuário a cada 120s (item 1.4); `operational-dashboard` escrevendo no banco a cada poll (item 1.3) | Corrigir 1.3 e 1.4 antes de eu chegar aqui | Teste de carga simulando N escritórios com M usuários cada, medindo consultas ao banco por segundo |
 | **~500 escritórios** | Não comprovado | Meus índices atuais (`firm_id`) continuam suficientes; conexões de banco não esgotam | Volume de consultas duplicadas do frontend (lista de clientes pedida em 9 lugares sem cache — item 1.2) começa a pesar em banda e em carga do backend | Consolidar as duplicações da Fase 1; avaliar connection pooling se eu ainda não tiver | Métrica de queries/segundo por escritório ativo, antes e depois das correções da Fase 1 |
 | **~5.000 escritórios** | Não comprovado | Cache (Redis já está na minha stack) sendo usada de forma consistente, não só pontual | Consultas de agregação sem cache (dashboard sem TTL, contagens recalculadas) ficam caras em volume | Expandir o padrão de cache que eu já uso em `firm-dashboard.repository.js` (TTL de 45s) pros outros endpoints de agregação | Latência p95 dos endpoints de dashboard/badges sob carga simulada |

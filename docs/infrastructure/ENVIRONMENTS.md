@@ -37,9 +37,12 @@ API_BASE=http://localhost:8001 npm run smoke:pilot
 Testes que rodo antes de abrir PR:
 
 ```bash
-cd frontend && npx tsc --noEmit && npm run build
-cd backend && npm run test:unit
+npm run tsc && npm test                    # raiz: frontend Vitest + typecheck (ver package.json)
+cd backend && npm test                     # suíte completa (652 testes)
+npm run test:tenant-isolation -w backend   # só com Supabase staging ACTIVO — ver CURRENT_STATE.md
 ```
+
+**Nota:** `npm run test:unit` no backend corre **um** ficheiro isolado — não substitui `npm test`.
 
 ### Problemas comuns
 
@@ -49,6 +52,7 @@ cd backend && npm run test:unit
 | 429 / logout inesperado | Rate limit — evito muitas abas simultâneas; confiro se backend e frontend estão na mesma versão |
 | Link de email aponta para lugar errado | `FRONTEND_URL=http://localhost:3000` ausente em `.env.local` |
 | Upload falha | Migration de storage (`20260703000000_storage_contabil_documents.sql`) não aplicada nesse projeto Supabase |
+| Tenant isolation `ENOTFOUND` | Projecto Supabase do `.env` pausado — reactivar staging; nunca apontar teste para prod |
 
 ## Categorias de variável de ambiente
 

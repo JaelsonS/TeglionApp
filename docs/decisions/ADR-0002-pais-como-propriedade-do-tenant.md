@@ -38,7 +38,7 @@ Nunca uso país como critério de autorização. Auditei isso em 18/08/2026, len
 
 ## Consequências negativas
 
-- Não tenho hoje um mecanismo para um escritório com operação genuinamente multi-jurisdição (ex.: uma rede de escritórios com filiais em países diferentes usando a mesma conta) — meu modelo assume um país por escritório. Isso não é um problema no estágio atual (4 escritórios pilotos, nenhum caso assim), mas é uma limitação estrutural que conheço.
+- Não tenho hoje um mecanismo para um escritório com operação genuinamente multi-jurisdição (ex.: uma rede de escritórios com filiais em países diferentes usando a mesma conta) — meu modelo assume um país por escritório. Isso não é um problema no estágio atual (**5 escritórios** em prod, Set/2026; nenhum caso assim), mas é uma limitação estrutural que conheço.
 - Se no futuro eu (ou alguém da minha equipe) adicionar `country` a queries de relatório ou agregação (por exemplo, um relatório cross-tenant para uso interno da Teglion), existe o risco de essa coluna ser usada, por engano ou atalho, como se fosse um filtro de isolamento — não é, e nunca deve substituir o filtro por `firm_id`. É um risco para eu vigiar, não um problema que já aconteceu.
 
 ## Riscos

@@ -68,7 +68,7 @@ jobs:
             echo "::error::STAGING_SUPABASE_URL / STAGING_SUPABASE_SERVICE_ROLE_KEY em falta."
             echo "Cria o projeto Supabase de staging e cadastra os secrets no repositório."
             echo "Nunca apontes isto para o Supabase de produção: este teste escreve dados reais."
-            echo "Ver docs/06-SEGURANCA/SECURITY-GATES.md"
+            echo "Ver docs/security/TENANT_ISOLATION.md e docs/testing/TESTING.md"
             exit 1
           fi
           # Fail-fast se alguém colou a chave anon no secret service_role (causa 42501 em firms).

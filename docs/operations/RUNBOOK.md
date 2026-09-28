@@ -4,6 +4,8 @@
 
 Esse é o índice operacional do Teglion pra mim mesmo: o que faço pra preparar, lançar, monitorar e recuperar produção, e onde está cada guia de configuração de integração.
 
+**Estado actual (Set/2026):** [`../production/CURRENT_STATE.md`](../production/CURRENT_STATE.md) — **5 escritórios** em produção; checklist [`../production/PRODUCTION_READINESS_CHECKLIST.md`](../production/PRODUCTION_READINESS_CHECKLIST.md).
+
 ## Infraestrutura (onde tudo roda)
 
 | Documento | Quando ler |

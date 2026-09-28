@@ -10,7 +10,7 @@ Percebi que isso não é falta de organização de quem trabalha ali. É a ausê
 
 Construí o Teglion para ser o lugar único onde essa operação acontece: cliente, documento, prazo, conversa e agenda amarrados uns aos outros, visíveis para quem precisa, sem depender da memória de uma pessoa ou da paciência de vasculhar um histórico de WhatsApp. Não é sobre adicionar tecnologia por adicionar — é sobre tirar do escritório o trabalho de segurar tudo isso junto manualmente, para que ele gaste esse tempo com o que só um contador consegue fazer: cuidar do cliente.
 
-Comecei o produto com um escritório real, usando o sistema no dia a dia — não em ambiente de teste — e hoje somo quatro escritórios pilotos nessa mesma condição (ver `docs/ROADMAP.md`). Isso importa mais para mim do que qualquer funcionalidade nova: testo cada decisão de produto contra o que um contador de verdade precisa amanhã de manhã, não contra o que parece boa ideia numa reunião.
+Comecei o produto com um escritório real, usando o sistema no dia a dia — não em ambiente de teste — e hoje somo **cinco escritórios** nessa mesma condição (produção, Set/2026) (ver `docs/ROADMAP.md`). Isso importa mais para mim do que qualquer funcionalidade nova: testo cada decisão de produto contra o que um contador de verdade precisa amanhã de manhã, não contra o que parece boa ideia numa reunião.
 
 A ambição não para em Portugal — mas sei que essa ambição só vale alguma coisa se o que tenho hoje, em Portugal, for sólido o bastante para sustentar o próximo passo. A visão de expansão detalhei em [VISION.md](./VISION.md).
 

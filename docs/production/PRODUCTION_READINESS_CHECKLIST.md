@@ -1,136 +1,107 @@
 # Production Readiness Checklist — Teglion
 
-**Actualizado:** 10/09/2026 (rotação MFA + docs alinhados; testes locais 650 backend / 207 frontend / `build:spa` OK)  
-**Código:** `staging` → promover para `main`  
-**Decisão actual:** código MFA rotate pronto para merge; UAT browser com conta real recomendado após deploy (trocar app + recovery)
+**Actualizado:** 28/09/2026  
+**Snapshot:** [`CURRENT_STATE.md`](./CURRENT_STATE.md) — **5 escritórios** em produção; `main` alinhado com releases #97–#102.  
+**Testes locais (28/09):** backend **652/652**, frontend **224/224**, `tsc` OK, `npm audit` 0 (prod).
 
 Legenda: `PASS` | `FAIL` | `BLOCKED` | `NOT TESTED` | `NOT APPLICABLE`
 
 ---
 
-## A. Git
+## A. Git e release
 
 | Item | Status | Nota |
 |------|--------|------|
-| Trabalho fora de `main` | PASS | |
-| Staging contém MFA + Gate1/2 + vault harden | PASS | PR #82 |
-| `main` alinhado com staging | FAIL | 26 commits atrás |
-| Sem force-push / repair prod | PASS | política |
+| Fluxo staging → main | PASS | PRs #101 (feature) → #102 (promoção staging→main), Set/2026 |
+| `main` desactualizado vs staging | PASS | Após #102, `main` inclui banner trial + fixes recentes |
+| Force-push / repair prod | PASS | Política mantida |
 
 ## B. CI
 
 | Item | Status | Nota |
 |------|--------|------|
-| CI staging verde | NOT TESTED | verificar Actions antes do PR main |
-| Hooks locais | NOT TESTED | |
+| Workflow `validate` (`.github/workflows/ci.yml`) | BLOCKED | Conta GitHub Actions pode falhar por **billing locked** — job nem arranca |
+| Tenant isolation no CI | NOT TESTED | Depende de secrets + projecto **staging ACTIVE** |
+| Hooks locais | NOT TESTED | Opcional |
 
 ## C. Backend
 
 | Item | Status | Nota |
 |------|--------|------|
-| Unit tests | PASS | **586/586** (24/08, +21 desde 21/08: F-01, F-04, F-05, F-08, F-10, replay MFA) |
-| Security static | PASS | |
-| Tenant isolation script | PASS | **24/0** (API_BASE skip) |
+| Unit tests | PASS | **652/652** (97 ficheiros `*.test.js`) |
+| Security static | PASS | `npm run test:security-static -w backend` |
+| Tenant isolation (script) | NOT TESTED | Local 28/09: `ENOTFOUND xscriwhchdblmwmpglby` — staging pausado/inactivo |
 
 ## D. Frontend
 
 | Item | Status | Nota |
 |------|--------|------|
-| Vitest | PASS | **192/192** (24/08, +11 desde 21/08) |
+| Vitest | PASS | **224/224** (48 ficheiros) |
 | `tsc --noEmit` | PASS | |
-| `vite build` | PASS | |
-| `build:spa` completo (seo+tsx) | BLOCKED env | EPERM tsx IPC; vite build OK |
+| `vite build` | PASS | CI/Vercel preview OK nos PRs recentes |
 
 ## E. Database
 
 | Item | Status | Nota |
 |------|--------|------|
-| Staging schema coerente com app | PASS | objectos presentes |
-| Prod schema tem F1/F2/MFA | PASS | app `main` ainda antiga |
-| Ledger `202610*` | FAIL | 0 em stg e prod — repair depois |
+| Prod schema vs app | PASS | Migrations document expiry (`20261014000000_*`) aplicadas prod+staging (sessão Set/2026) |
+| Ledger migrations | A VALIDAR | Checklist antigo citava dessincronia — rever [`../database/MIGRATIONS.md`](../database/MIGRATIONS.md) antes de declarar PASS |
 
-## F. Migrations
-
-| Item | Status | Nota |
-|------|--------|------|
-| Ledger ↔ ficheiros | FAIL | dessincronizado |
-| Plano repair | BLOCKED | sem autorização; **não** blocker de código |
-
-## G–H. Auth / MFA
+## F. Auth / MFA
 
 | Item | Status | Nota |
 |------|--------|------|
-| Password + MFA gate (código) | PASS | |
-| Owner MFA obrigatório | PASS | |
-| Staff MFA opcional | PASS | |
-| Challenge ≠ access token | PASS | |
-| Challenge JWT anti-replay (jti) | PASS | 24/08 — achado novo durante o hardening, corrigido + testado |
-| Código TOTP anti-replay (por-utilizador) | PASS | 24/08 — mesmo código não serve 2x (login, sensitive-action, vault) |
-| Rate-limit MFA não multiplica por challenge novo | PASS | 24/08 — F-04, chave agora por identidade decodificada do JWT |
-| Trocar app (rotate) sem desactivar MFA | PASS | 10/09 — begin/confirm/cancel; prova TOTP ou recovery; owner-safe |
-| Recuperação MFA por e-mail | NÃO APPLICÁVEL | deliberado — mailbox ≠ prova de 2FA; ver `MFA_FASE4.md` |
-| UAT MFA live formal | NOT TESTED | smoke de código OK; validar no browser com conta real após deploy |
-| Copy autenticador | PASS | e-mail negado; SMS P2; copy de troca de app em Definições → Segurança |
+| Password + MFA + anti-replay | PASS | Código + testes (ver [`../security/MFA_FASE4.md`](../security/MFA_FASE4.md)) |
+| UAT MFA live formal | NOT TESTED | Recomendado após cada release major |
 
-## I. Tenant isolation
+## G. Tenant isolation
 
 | Item | Status | Nota |
 |------|--------|------|
-| Script live Firm A≠B | PASS | 24 checks |
-| HTTP cross-tenant com API_BASE | NOT TESTED | skip sem API_BASE |
+| Script repositório/serviço | NOT TESTED | Bloqueado por Supabase staging inactivo localmente |
+| HTTP layer (`API_BASE`) | NOT TESTED | Opcional no script; CI não define `API_BASE` |
+| View tracking cross-tenant (0.1) | PASS | Corrigido Ago/2026 — `.eq('firm_id', firmId)` em leituras |
 
-## J. Vault / sensitive
-
-| Item | Status | Nota |
-|------|--------|------|
-| Step-up 10m purpose-bound | PASS | |
-| List sem plaintext | PASS | |
-| Gate 2 backend | PASS | |
-| Logout limpa step-up do cofre (sessionStorage) | PASS | 24/08 — F-02 |
-| Reactivar membro exige o mesmo step-up que desactivar | PASS | 24/08 — F-01 (era o único achado HIGH) |
-| Rotação da palavra-passe do cofre exige TOTP com MFA on | PASS | 24/08 — F-10 |
-| UAT vault live | NOT TESTED | antes de main — sem credenciais reais nesta sessão |
-
-## K. Rate limit
+## H. Vault / sensitive
 
 | Item | Status | Nota |
 |------|--------|------|
-| Gate 1 código | PASS | |
-| Smoke 15–30 min | NOT TESTED | operador |
+| Step-up + gates | PASS | Testes de regressão (F-01, F-02, F-10, etc.) |
+| UAT vault live | NOT TESTED | Operador com conta real |
 
-## L. Produto piloto
-
-| Item | Status | Nota |
-|------|--------|------|
-| Tasks M2M | PASS | 24/08 — testes de regressão dedicados p/ createClientTask + updateTask (F-08) |
-| Services / groups | PASS | 24/08 — grupo inactivo deixou de aparecer publicamente (F-05, testado) |
-| Public accordion | PASS | path-based; confirmado agrupado, não lista plana |
-| Agenda dateOverrides | **PASS** | 24/08 — P1 corrigido: `ServiceFullEditorSheet` preserva excepções ao guardar |
-| Agenda: acessibilidade do calendário mensal | PASS | 24/08 — F-06, aria-label por dia; F-12, label do fuso horário |
-| Images públicas | PASS | round-trip editor↔público confirmado no código |
-| Subdomain | NOT APPLICABLE | fase posterior; `COOKIE_DOMAIN` de produção por confirmar (F-07) |
-| Demo AFDigital rica | NOT TESTED / FOLLOW-UP | 2 svc / 0 groups — fora de escopo de segurança |
-
-## M. Release ops
+## I. Rate limit / Redis
 
 | Item | Status | Nota |
 |------|--------|------|
-| Backup prod DB | NOT TESTED | obrigatório pré-main |
-| Rollback plan | NOT TESTED | |
-| Aprovação humana | BLOCKED | até P1 + UAT |
+| Redis em produção | A VALIDAR | Fallback in-memory se Redis falhar; monitorizar Sentry |
+| Smoke 15–30 min | NOT TESTED | Operador |
+
+## J. Produto piloto (5 escritórios)
+
+| Item | Status | Nota |
+|------|--------|------|
+| Portal cliente + alertas + documentos | PASS | Release #99–#100 |
+| Banner trial owner | PASS | Release #101–#102 |
+| Demo staging rica (seed/polish scripts) | NOT APPLICABLE | Scripts locais opcionais; não blocker |
+
+## K. Release ops
+
+| Item | Status | Nota |
+|------|--------|------|
+| Backup prod DB + drill | NOT TESTED | Último drill documentado Ago/2026 — repetir trimestral |
+| Rollback plan | NOT TESTED | Ver [`../infrastructure/DEPLOYMENT.md`](../infrastructure/DEPLOYMENT.md) |
+| Runbook Supabase pausado | PASS | Incidente 28/09/2026 em [`../operations/INCIDENTS.md`](../operations/INCIDENTS.md) |
 
 ---
 
-## Gate mínimo para declarar READY
+## Gate mínimo para **10 escritórios** (comercial)
 
-- [x] P1-AGENDA-DATEOVERRIDES corrigido e testado (24/08)
-- [x] F-01 a F-05, F-08, F-10 corrigidos e testados (24/08)
-- [ ] MFA UAT staging — precisa de operador com conta real
-- [ ] Vault UAT staging — precisa de operador com conta real
-- [ ] Agenda UAT (firm + per-serviço + guardar serviço) — precisa de operador
-- [ ] Backup prod + rollback escrito
-- [ ] Confirmar `COOKIE_DOMAIN` real de produção (F-07)
-- [ ] PR staging → main + aprovação humana
+- [x] Multi-tenant com teste automatizado (código + CI quando staging activo)
+- [x] Auth/MFA/cofre endurecidos (Fase 0)
+- [x] Billing/trial + Stripe em produção
+- [ ] Staging Supabase **sempre activo** + CI verde
+- [ ] Backup restore drill registado (< 90 dias)
+- [ ] UAT browser (owner + contabilista + cliente) por release major
+- [ ] Alertas de faturação Supabase + GitHub + Render
 
-Fonte de decisão: relatório final da sessão de hardening de 24/08/2026 (ver conversa/artefacto entregue ao founder).
-`FINAL_MAIN_RELEASE_GATE_2026-08-21.md` fica como registo histórico do estado em 21/08.
+Registo histórico: [`../historico/FINAL_MAIN_RELEASE_GATE_2026-08-21.md`](../historico/FINAL_MAIN_RELEASE_GATE_2026-08-21.md) (Agosto 2026).
