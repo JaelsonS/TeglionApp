@@ -6,11 +6,10 @@
 |---|---|
 | **Produto** | [teglion.com](https://teglion.com) |
 | **Marca** | Teglion · um produto da **AfDigital — Soluções Tecnológicas** |
-| **Estado** | Produção controlada com **4 escritórios pilotos** |
+| **Estado** | **5 escritórios** em produção (Set/2026) — [`docs/production/CURRENT_STATE.md`](docs/production/CURRENT_STATE.md) |
 | **Mercado inicial** | Portugal (expansão internacional no roadmap) |
 
-Índice da documentação: [`docs/README.md`](docs/README.md)  
-Roadmap (única fonte de prioridades): [`docs/ROADMAP.md`](docs/ROADMAP.md)
+**Documentação:** comece em [`docs/START_HERE.md`](docs/START_HERE.md) · roadmap: [`docs/ROADMAP.md`](docs/ROADMAP.md)
 
 ---
 

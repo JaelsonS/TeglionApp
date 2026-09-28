@@ -17,6 +17,8 @@ Montei um único workflow, `.github/workflows/ci.yml`, job `validate`, disparado
 
 O job `validate` é obrigatório pra merge na `main` — é um status check exigido pela branch protection/ruleset do GitHub (`strict`, branch precisa estar atualizada), com `enforce_admins: true` e force push/delete desligados nessa branch.
 
+**Actualização Set/2026:** se o job falhar em ~2s com *“account is locked due to a billing issue”*, é **billing GitHub Actions**, não regressão de testes. Merges recentes (#101–#102) foram feitos com CI cloud indisponível; validação local: 652 + 224 testes + `tsc`. Manter **Supabase staging activo** para o step `Tenant isolation test` voltar a correr no cloud.
+
 Isso corrige uma limitação real que existia antes: a suíte de teste do backend rodava só um arquivo no CI, e o teste de isolamento entre escritórios não rodava sozinho — fechei os dois gaps durante o Sprint 0 (itens 4 e 7, registro preservado em `docs/historico/SPRINT-0.md`). Se eu encontrar algum documento mais antigo que ainda descreva "só um arquivo de teste roda no CI" ou "isolamento não roda automaticamente", está desatualizado.
 
 ## O que ainda é manual
@@ -41,5 +43,7 @@ Como o `validate` já roda a suíte completa de backend e o teste de isolamento 
 
 ```bash
 cd backend && npm test                                    # suíte completa, local
-node backend/scripts/tenant-isolation-test.js              # contra um ambiente que não seja produção
+npm run test:tenant-isolation -w backend                  # exige SUPABASE_URL staging ACTIVO
 ```
+
+Ver [`../production/CURRENT_STATE.md`](../production/CURRENT_STATE.md) se aparecer `ENOTFOUND …supabase.co`.

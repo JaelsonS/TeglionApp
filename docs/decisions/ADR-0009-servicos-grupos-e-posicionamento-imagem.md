@@ -2,7 +2,7 @@
 
 ## Status
 
-Aceito. Decisão em vigor — implementada em 21/08/2026, como Fase 2 da evolução aprovada a partir da auditoria de 20/08/2026 (`docs/decisions/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md`).
+Aceito. Decisão em vigor — implementada em 21/08/2026, como Fase 2 da evolução aprovada a partir da auditoria de 20/08/2026 ([`../historico/auditorias/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md`](../historico/auditorias/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md)).
 
 ## Contexto
 
@@ -24,7 +24,7 @@ Em vez de estender `ImageCropDialog.tsx` (usado também pela logo do escritório
 
 - **Estender `ImageCropDialog.tsx` para guardar metadado de recorte reversível.** Descartei nesta fase porque esse componente tem dois outros consumidores fora do escopo aprovado (logo do escritório, imagens de seção da Página Pública) — mudar seu contrato arriscaria regressão em fluxos que a Fase 2 não deveria tocar ("não faça alterações não relacionadas a esta fase").
 - **Guardar o recorte como um retângulo (x, y, largura, altura) em vez de ponto focal + zoom.** Descartei porque um retângulo fixo não se adapta bem a contêineres de proporções diferentes (card da listagem pública é mais baixo que o banner do editor) sem recalcular a cada breakpoint. Ponto focal + zoom com `object-position`/`transform` é a técnica padrão para "mesmo enquadramento em qualquer proporção de contêiner" — resolve isso nativamente via CSS, sem JavaScript de recálculo.
-- **Hierarquia de grupos com múltiplos níveis (grupo > subgrupo).** Rejeitada explicitamente na decisão aprovada — nenhum dos quatro escritórios piloto tem catálogo grande o bastante para justificar isso agora, e adicionaria complexidade de UI (árvore, drag entre níveis) sem necessidade comprovada.
+- **Hierarquia de grupos com múltiplos níveis (grupo > subgrupo).** Rejeitada explicitamente na decisão aprovada — nenhum dos escritórios em prod (5 em Set/2026) tinha catálogo grande o bastante na altura da decisão para justificar isso agora, e adicionaria complexidade de UI (árvore, drag entre níveis) sem necessidade comprovada.
 
 ## Motivos da decisão
 

@@ -1,6 +1,7 @@
 # Testes de segurança — o que roda sozinho e o que ainda depende de mim
 
-> **Fontes que consolidei neste documento:** `docs/06-SEGURANCA/SECURITY-GATES.md`, `docs/security/TEGLION_SECURITY_GATE.md`, `docs/security/BURP_PUBLIC_PORTAL_PLAYBOOK.md`, `docs/security/PUBLIC_SURFACE_AUDIT.md` (arquivos que removi depois desta migração, 19/08/2026). Verificação de código extra que fiz nesta reescrita (19/08/2026): `.github/workflows/ci.yml`, `package.json`, `backend/package.json`.
+> **Actualizado:** 28/09/2026 · Gates históricos → [`../historico/security-gates/`](../historico/security-gates/).  
+> **CI:** job `validate` pode falhar por billing GitHub; tenant test exige Supabase **staging ACTIVE** (ver [`TENANT_ISOLATION.md`](./TENANT_ISOLATION.md)).
 
 A distinção mais importante deste documento: existe uma diferença grande entre "o teste existe" e "o teste protege alguma coisa". Um teste que só roda quando eu lembro de digitar o comando não é uma rede de segurança — é um documento com sintaxe de código.
 

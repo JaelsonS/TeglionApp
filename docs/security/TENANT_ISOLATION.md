@@ -1,10 +1,10 @@
 # Isolamento entre escritórios (multi-tenant)
 
-> **Fontes que consolidei neste documento:** `docs/06-SEGURANCA/MULTI-TENANT-SECURITY.md`, `docs/06-SEGURANCA/SECURITY-GATES.md` (arquivos que removi depois desta migração, 19/08/2026). Verificação de código extra que fiz nesta reescrita (19/08/2026): `.github/workflows/ci.yml`, `backend/src/services/tracking/view-tracking.service.js`, `backend/src/db/supabase/repositories/**`, `backend/scripts/tenant-isolation-test.js`, `docs/ROADMAP.md` (itens 0.1 e 0.4).
+> **Actualizado:** 28/09/2026. Snapshot produção: [`docs/production/CURRENT_STATE.md`](../production/CURRENT_STATE.md) (**5 escritórios**). Fontes históricas: migração 19/08/2026; item 0.1 view-tracking **fechado** Ago/2026.
 
-Este é o documento mais importante da minha pasta `security/`. A pergunta que ele responde: **um usuário de um escritório consegue ver dado de outro escritório?**
+Este é o documento mais importante da minha pasta `security/`. A pergunta que ele responde: **um utilizador de um escritório consegue ver dados de outro escritório?**
 
-Resposta curta: **hoje, não pelas rotas normais do produto — exceto um caminho que já confirmei e registrei como prioridade máxima de correção (ver abaixo).** Verifiquei essa resposta em código, não estou presumindo, e explico abaixo exatamente por que é verdade e o que sustenta isso.
+Resposta curta (**Set/2026):** **não pelas rotas normais do produto**, desde que cada repositório filtre `firm_id` — o padrão que auditamos com script + CI. O vazamento conhecido de *view tracking* (metadata por UUID) **já foi corrigido**; risco residual = regressão humana (endpoint novo) ou **service_role** exposta.
 
 ## Como garanto o isolamento de verdade
 
@@ -64,31 +64,29 @@ O comportamento é **fail-closed**: se os secrets de staging (`STAGING_SUPABASE_
 
 Além do teste de isolamento contra staging, cada PR também roda um scanner estático (parte de `test:security-static`) que procura por consultas `.eq('id', …)` sem `.eq('firm_id', …)` acompanhando — hoje configurei ele pra não falhar o build (`TENANT_ISOLATION_FAIL_ON_WARNINGS=false`), só sinalizar. Uma classificação desses avisos (auditoria 13/08) resultou em 0 avisos depois que fiz allowlist de casos legítimos (tokens de convite, tabelas sem conceito de tenant) e endureci queries genuinamente frouxas.
 
-## O risco real, que confirmei e está em aberto hoje: rastreamento de visualizações
+## Rastreamento de visualizações (item 0.1) — **CORRIGIDO**
 
-Duas leituras em `backend/src/services/tracking/view-tracking.service.js` filtram **só por `id`**, sem `firm_id`:
+**Estado (Set/2026):** `CONCLUÍDO` desde Ago/2026. Em `backend/src/services/tracking/view-tracking.service.js`, as leituras de contadores usam `.eq('id', entityId).eq('firm_id', firmId)` e `assertEntityVisibleToActor` valida posse antes de gravar. Testes: `view-tracking.service.test.js`.
 
-```js
-// recordView() — linha ~71
-const { data: entity } = await sb.from(table).select('view_count, first_viewed_at').eq('id', entityId).maybeSingle();
+O achado original (leituras só por `id`) está descrito no [`ROADMAP.md`](../ROADMAP.md) item 0.1 como histórico fechado — não reabrir como risco activo.
 
-// recordView() — linha ~87-91 (retorno de contagem)
-const { data: entity } = await sb.from(table).select('view_count, last_viewed_at').eq('id', entityId).maybeSingle();
-```
+## Executar o teste de isolamento localmente (Set/2026)
 
-(A escrita, no meio dessas duas leituras, está corretamente filtrada: `.eq('id', entityId).eq('firm_id', firmId)`. Só as duas leituras que compõem a resposta ao chamador não têm o filtro.)
+`npm run test:tenant-isolation -w backend` lê `SUPABASE_URL` do ambiente local (sou `.env` / `.env.local`).
 
-**Impacto:** um usuário autenticado com papel `CLIENT` de qualquer escritório que descubra o UUID de um documento ou obrigação de outro escritório consegue, através dos endpoints `POST /api/me/contabil/documents/:id/view` e `.../obligations/:id/view`, ler `view_count` e `lastViewedAt` desse recurso — metadado de outro tenant, não o conteúdo do documento em si, mas ainda assim um vazamento cross-tenant real que confirmei por leitura direta de código.
-
-**Status:** `NÃO CORRIGIDO` — registrei isso como item **P0 (0.1)** no [`ROADMAP.md`](../ROADMAP.md#01--corrigir-vazamento-cross-tenant-confirmado-no-rastreamento-de-visualizações), com critério de conclusão definido (as duas leituras passam a filtrar também por `firm_id`; teste automatizado cobrindo o cenário). Não escondo o problema neste documento — é o risco mais concreto e acionável que descrevo em toda esta pasta. Consulte o `ROADMAP.md` pro estado de progresso mais atual; não trate este documento como fonte de verdade sobre se já corrigi isso.
+| Sintoma | Causa | Acção |
+|---------|--------|--------|
+| `ENOTFOUND …supabase.co` | Projecto Supabase **pausado**, removido ou URL errada | Reactivar no painel Supabase ou corrigir URL; **nunca** usar produção |
+| Passou estático, falhou na execução | Mesmo que acima | CI usa `STAGING_SUPABASE_*`; local deve apontar para staging **activo** (`teglion-staging`, ref. `xscriwhchdblmwmpglby`) |
+| Aviso `service-inquiries.repository.js:172` | Heurística `.eq('id')` sem `firm_id` na mesma cadeia | Revisar call site; não falha unless `TENANT_ISOLATION_FAIL_ON_WARNINGS=true` |
 
 ## Ponto de atenção estrutural — não é vulnerabilidade hoje, mas é risco de desenho
 
-Algumas funções internas de repositório (por exemplo, comentários/mensagens vinculados a uma tarefa ou a um pedido de serviço) filtram só pelo ID do registro pai, sem repetir o filtro de `firm_id` na própria função interna. Hoje isso não é explorável, porque todo lugar que chama essas funções já validou o registro pai antes de chegar nelas. Mas é exatamente o padrão que produziu o vazamento do rastreamento de visualizações acima — uma função que parece segura porque hoje só é chamada de um jeito seguro, até eu (ou alguém no futuro) reaproveitar ela num endpoint novo sem perceber que falta essa camada.
+Algumas funções internas de repositório (por exemplo, comentários/mensagens vinculados a uma tarefa ou a um pedido de serviço) filtram só pelo ID do registro pai, sem repetir o filtro de `firm_id` na própria função interna. Hoje isso não é explorável, porque todo lugar que chama essas funções já validou o registro pai antes de chegar nelas. Mas é o mesmo padrão que **já** causou o vazamento de view tracking (corrigido) — uma função que parece segura porque hoje só é chamada de um jeito seguro, até reutilização num endpoint novo sem `firm_id`.
 
 ## Por que a resposta não é um "sim" simples
 
-Zero rede de segurança no banco de dados (na prática, para o tráfego real) significa que um único filtro de `firm_id` esquecido, num endpoint novo, é um vazamento silencioso até eu encontrar. O gate de CI (fail-closed contra staging) e o scanner estático reduzem bastante a chance disso passar despercebido — mas o scanner não bloqueia o build hoje, só avisa, e o teste de isolamento cobre os fluxos que escrevi o script pra cobrir, não necessariamente todo endpoint novo automaticamente. A resposta honesta é: **isolamento é verificado, testado automaticamente no CI, com uma falha real conhecida e rastreada — não "está tudo garantido para sempre".**
+Zero rede de segurança no banco de dados (na prática, para o tráfego real) significa que um único filtro de `firm_id` esquecido, num endpoint novo, é um vazamento silencioso até eu encontrar. O gate de CI (fail-closed contra staging) e o scanner estático reduzem bastante a chance disso passar despercebido — mas o scanner não bloqueia o build hoje, só avisa, e o teste de isolamento cobre os fluxos que escrevi o script pra cobrir, não necessariamente todo endpoint novo automaticamente. A resposta honesta (Set/2026): **isolamento é verificado no código e pelo script de isolamento**, mas o CI só corre com **GitHub Actions activo + Supabase staging activo**; localmente `ENOTFOUND` no host staging indica projecto pausado, não falha de lógica. Não é “garantido para sempre” — é **disciplina + testes + ops**.
 
 ## O que não verifiquei nesta revisão
 

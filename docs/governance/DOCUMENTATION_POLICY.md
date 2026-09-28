@@ -1,6 +1,6 @@
 # Como a documentação se mantém viva
 
-Documentação desatualizada é pior do que documentação ausente — ela engana em vez de admitir que não sabe. Escrevi esta política para que a reestruturação de agosto de 2026 não vire, em seis meses, o mesmo problema que ela tentou resolver: uma pilha de documentos otimistas, desconectados do estado real do código.
+Documentação desatualizada é pior do que documentação ausente — ela engana em vez de admitir que não sabe. **Actualizado Set/2026:** entrada única [`docs/START_HERE.md`](../START_HERE.md); estado de produção [`docs/production/CURRENT_STATE.md`](../production/CURRENT_STATE.md); arquivo congelado em [`docs/historico/`](../historico/README.md).
 
 ## A regra central
 

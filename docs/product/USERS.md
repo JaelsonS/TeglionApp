@@ -4,7 +4,9 @@
 
 ## Quem usa hoje
 
-Um escritório de contabilidade em Portugal, de porte pequeno a médio, onde o próprio dono ainda está envolvido diretamente no atendimento — não uma estrutura grande com departamentos separados de vendas, operação e suporte. É o perfil que valida o piloto atual do produto: uma pessoa que usa o sistema no dia a dia para a operação real do escritório, não em ambiente de teste.
+**Setembro de 2026:** **5 escritórios de contabilidade em Portugal** (pequeno a médio porte) usam o Teglion em produção — donos, equipa e clientes no portal. O perfil típico continua a ser o dono ainda envolvido no atendimento directo; a contabilista e staff usam o mesmo escritório com permissões mais restritas (sem ver billing/trial do owner, por desenho).
+
+Um escritório de contabilidade em Portugal, de porte pequeno a médio, onde o próprio dono ainda está envolvido diretamente no atendimento — não uma estrutura grande com departamentos separados de vendas, operação e suporte. É o perfil que valida o piloto comercial actual: operação real, não ambiente de teste.
 
 Dentro do escritório, mapeei dois papéis que usam o Teglion de formas diferentes:
 

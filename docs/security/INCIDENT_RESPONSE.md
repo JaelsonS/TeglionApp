@@ -24,7 +24,7 @@ Não tenho hoje, em nenhum documento que encontrei:
 
 ## Por que isso importa no estágio atual
 
-Com 4 escritórios pilotos pagantes e um risco cross-tenant que já confirmei e está em aberto (ver `TENANT_ISOLATION.md`), a pergunta "o que faço se descobrir que esse vazamento foi explorado de verdade, não só teoricamente possível" não tem resposta escrita hoje. Isso não me impede de operar o produto no estágio de piloto, mas é uma lacuna que fica mais cara de resolver depois de um incidente real do que antes — e é exatamente o tipo de item que uma due diligence de aquisição ou um auditor de segurança externo vai perguntar primeiro.
+Com **5 escritórios** em produção (Set/2026) e isolamento tenant verificado por script (ver `TENANT_ISOLATION.md`; item view-tracking **fechado**), a pergunta "o que faço se descobrir que esse vazamento foi explorado de verdade, não só teoricamente possível" não tem resposta escrita hoje. Isso não me impede de operar o produto no estágio de piloto, mas é uma lacuna que fica mais cara de resolver depois de um incidente real do que antes — e é exatamente o tipo de item que uma due diligence de aquisição ou um auditor de segurança externo vai perguntar primeiro.
 
 ## O que não verifiquei nesta revisão
 

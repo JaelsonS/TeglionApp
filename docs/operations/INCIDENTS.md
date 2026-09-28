@@ -85,6 +85,22 @@ O detalhe do procedimento passo a passo e o registro completo de cada drill est�
 
 ## Incidentes registrados
 
+### 2026-09-28 — Supabase produção pausado (login escritório)
+
+| Campo | Valor |
+|-------|-------|
+| Severidade | **P0** (indisponibilidade total de login/API dependentes de DB) |
+| Sintoma | Contabilista/equipa não conseguem entrar; `POST /api/auth/login-firm` **500** |
+| Erro | `getaddrinfo ENOTFOUND zanjbscfumxtdkglmpfb.supabase.co` (projecto `teglion-production` **INACTIVE** — faturação org Supabase) |
+| Impacto | Todos os **5 escritórios** em produção afectados até reactivação |
+| Resolução | Pagamento/reativação no painel Supabase → projecto **ACTIVE_HEALTHY**; `/api/health` 200 |
+| Collateral | Logs secundários: scheduler Connect payments, Redis `NOSCRIPT` (rate limit fallback) |
+| Prevenção | Plano pago + alertas billing Supabase; runbook abaixo |
+
+**Runbook rápido:** confirmar estado do projecto no dashboard Supabase → se INACTIVE, billing org → após ACTIVE, testar DNS e `curl https://teglionapp.onrender.com/api/health`. Não confundir com password ou CSRF.
+
+**Relacionado (dev/CI):** teste local `npm run test:tenant-isolation` com `ENOTFOUND xscriwhchdblmwmpglby` = **staging** pausado — mesma classe de problema, ambiente diferente.
+
 ### 2026-07-20 — Postal lookup PT (produção)
 
 | Campo | Valor |

@@ -29,7 +29,7 @@ Montei um handler central de erro que padroniza a resposta, evita vazar detalhe 
 
 ## Jobs e tarefas em segundo plano
 
-Este é o ponto mais importante pra mim pensar em escala: hoje tenho apenas um mecanismo real de fila, baseado em Redis, usado para um único tipo de tarefa — lembrete de obrigação por escritório. Todo o resto, envio de email por exemplo, roda de forma síncrona, dentro da própria requisição HTTP que o originou. Isso funciona bem no volume atual (4 escritórios pilotos), mas é o primeiro lugar onde sinto a arquitetura tensionar conforme o número de escritórios ativos cresce.
+Este é o ponto mais importante pra mim pensar em escala: hoje tenho apenas um mecanismo real de fila, baseado em Redis, usado para um único tipo de tarefa — lembrete de obrigação por escritório. Todo o resto, envio de email por exemplo, roda de forma síncrona, dentro da própria requisição HTTP que o originou. Isso funciona bem no volume atual (5 escritórios em produção, Set/2026), mas é o primeiro lugar onde sinto a arquitetura tensionar conforme o número de escritórios ativos cresce.
 
 ## Agendadores (schedulers)
 

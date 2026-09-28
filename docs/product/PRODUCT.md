@@ -2,7 +2,7 @@
 
 > Aqui eu consolidei o conteúdo que antes estava espalhado em `docs/03-PRODUTO/MODULOS.md`, `docs/03-PRODUTO/ALERTAS.md`, `docs/03-PRODUTO/BOOKING.md`, `docs/03-PRODUTO/CALENDARIO-FISCAL.md`, `docs/03-PRODUTO/CLIENTES.md`, `docs/03-PRODUTO/DOCUMENTOS.md`, `docs/03-PRODUTO/IRS.md`, `docs/03-PRODUTO/MENSAGENS.md`, `docs/03-PRODUTO/PAGINA-PUBLICA.md`, `docs/03-PRODUTO/SERVICOS.md` e `docs/00-PRODUTO/MISSION.md` (arquivos que removi nesta reorganização de 19/08/2026). Pra maturidade detalhada de cada funcionalidade, deixei tudo em [FEATURES.md](./FEATURES.md).
 
-O Teglion é o SaaS multi-tenant que estou construindo para escritórios de contabilidade. É um produto da AfDigital — Soluções Tecnológicas (ver [PRODUCT_PRINCIPLES.md](./PRODUCT_PRINCIPLES.md) para a distinção entre marca e entidade). Comecei em Portugal, sou brasileiro, e hoje tenho quatro escritórios pilotos usando o sistema em produção/staging no dia a dia real da operação deles — não em ambiente de teste (ver `docs/ROADMAP.md`).
+O Teglion é o SaaS multi-tenant que estou construindo para escritórios de contabilidade. É um produto da AfDigital — Soluções Tecnológicas (ver [PRODUCT_PRINCIPLES.md](./PRODUCT_PRINCIPLES.md) para a distinção entre marca e entidade). Comecei em Portugal, sou brasileiro, e hoje tenho **cinco escritórios** a utilizar o sistema em **produção**, no dia a dia real da operação — não em ambiente de demo (ver [`docs/ROADMAP.md`](../ROADMAP.md) e [`docs/production/CURRENT_STATE.md`](../production/CURRENT_STATE.md)).
 
 ## Que problema resolve
 

@@ -105,7 +105,7 @@ Quatro escritórios de contabilidade pilotos usando o Teglion hoje, em produçã
 Não existe hoje MRR, ARR, ou número de clientes pagantes documentado para apresentar aqui — se e quando esses números existirem, eles entram neste slide, com a fonte (extrato Stripe, não estimativa).
 
 *Notas do fundador:*
-> "Eu não vou inflar isso. São quatro escritórios, usando de verdade, todos os dias. É pouco em número absoluto e é exatamente a prova que eu preciso: que o problema é real e que a solução que eu construí resolve ele na prática, não só na teoria."
+> "Eu não vou inflar isso. São cinco escritórios, usando de verdade (Set/2026), todos os dias. É pouco em número absoluto e é exatamente a prova que eu preciso: que o problema é real e que a solução que eu construí resolve ele na prática, não só na teoria."
 
 ---
 

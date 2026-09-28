@@ -8,7 +8,7 @@ Aceito. Decisão já em vigor — documentei retroativamente em 18/08/2026.
 
 O Teglion precisa de banco de dados relacional, algum mecanismo de autenticação/identidade, armazenamento de arquivos (documentos enviados por clientes e escritórios) e, dado que é multi-tenant, uma camada de controle de acesso a nível de linha. Eu podia montar isso juntando peças separadas (Postgres gerenciado + serviço de auth próprio ou terceiro + S3 ou equivalente + lógica de autorização só na aplicação), ou usar uma plataforma que já entrega várias dessas peças integradas.
 
-Minha equipe é pequena — o roadmap descreve o estado atual como 4 escritórios pilotos, sem eu ainda ter evidência de operação em escala maior.
+Minha equipe é pequena — na decisão original eram 4 escritórios pilotos; **Set/2026: 5 em produção** (ver [`../production/CURRENT_STATE.md`](../production/CURRENT_STATE.md)), sem evidência de operação muito acima disso.
 
 ## Problema
 

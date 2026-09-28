@@ -1,7 +1,7 @@
 # Vault security — estado actual (Gate 3)
 
 **Actualizado:** 21/08/2026  
-**Fonte canónica de decisão de release:** `docs/production/FINAL_MAIN_RELEASE_GATE_2026-08-21.md`
+**Estado actual:** [`../production/CURRENT_STATE.md`](../production/CURRENT_STATE.md) · Gate histórico: [`../historico/FINAL_MAIN_RELEASE_GATE_2026-08-21.md`](../historico/FINAL_MAIN_RELEASE_GATE_2026-08-21.md)
 
 ## Garantias no código (`5916b2b` / staging)
 
@@ -18,4 +18,4 @@
 | Audit sem password/TOTP/token | Sim (redaction) |
 | Cross-tenant | Bloqueado por `firmId` + checks |
 
-Detalhe da matriz de acções: `docs/security/GATE2_SENSITIVE_ACTIONS.md`.
+Detalhe da matriz de acções (registo histórico): [`../historico/security-gates/GATE2_SENSITIVE_ACTIONS.md`](../historico/security-gates/GATE2_SENSITIVE_ACTIONS.md). Comportamento actual → [`AUTHORIZATION.md`](./AUTHORIZATION.md).
