@@ -37,6 +37,7 @@ import { priceTaxModeCaption } from '@/shared/utils/priceTaxMode'
 import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
 import { buildGoogleMapsUrl } from '@/shared/utils/googleMapsUrl'
 import { resolveFirstPublicSiteImageUrl, resolvePublicSiteImageUrl } from '@/features/public-intake/publicSiteImageResolve'
+import { PublicSiteFeaturedServices } from '@/features/public-intake/PublicSiteFeaturedServices'
 import { PublicSiteSectionLayout } from '@/features/public-intake/PublicSiteSectionLayout'
 import {
   Accordion,
@@ -513,11 +514,13 @@ function ClusteredServiceGroups({
   firmSlug,
   showPrices,
   openInNewTab,
+  excludeSlugs,
 }: {
   clusters: ReturnType<typeof clusterPublicServices>
   firmSlug: string
   showPrices: boolean
   openInNewTab: boolean
+  excludeSlugs?: Set<string>
 }) {
   const total = clusters.reduce((n, c) => n + c.items.length, 0)
   const useCompactGrid = total > 14
@@ -539,7 +542,9 @@ function ClusteredServiceGroups({
                 : 'grid gap-3 sm:grid-cols-1'
             }
           >
-            {cluster.items.map((s) => (
+            {cluster.items
+              .filter((s) => !excludeSlugs?.has(s.slug))
+              .map((s) => (
               <li key={s.slug} className="min-h-0">
                 <ServiceCard
                   firmSlug={firmSlug}
@@ -583,11 +588,20 @@ export function ServicesSection({
         >
           {content.heading || 'Serviços com marcação'}
         </h2>
+        <PublicSiteFeaturedServices
+          heading={content.featuredHeading}
+          slugs={content.featuredServiceSlugs}
+          catalog={items}
+          firmSlug={ctx.firmSlug}
+          showPrices={ctx.showPrices !== false}
+          openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
+        />
         <ClusteredServiceGroups
           clusters={clusterPublicServices(items)}
           firmSlug={ctx.firmSlug}
           showPrices={ctx.showPrices !== false}
           openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
+          excludeSlugs={new Set(content.featuredServiceSlugs || [])}
         />
         <PublicSiteCtaButtons
           ctas={content.ctas}
@@ -627,11 +641,20 @@ export function BookingServicesSection({
         >
           {content.heading || 'Serviços sob pedido'}
         </h2>
+        <PublicSiteFeaturedServices
+          heading={content.featuredHeading}
+          slugs={content.featuredServiceSlugs}
+          catalog={items}
+          firmSlug={ctx.firmSlug}
+          showPrices={ctx.showPrices !== false}
+          openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
+        />
         <ClusteredServiceGroups
           clusters={clusterPublicServices(items)}
           firmSlug={ctx.firmSlug}
           showPrices={ctx.showPrices !== false}
           openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
+          excludeSlugs={new Set(content.featuredServiceSlugs || [])}
         />
         <PublicSiteCtaButtons
           ctas={content.ctas}

@@ -347,6 +347,7 @@ async function refreshPublicSite(firmId, ownerId, logoKey, heroPath, instPath, f
           imageIds: [heroId],
           imageFit: 'cover',
           imagePosition: 'center',
+          backgroundOverlay: 48,
           backgroundColor: SURFACE,
           ctas: [
             consultoria
@@ -391,9 +392,11 @@ async function refreshPublicSite(firmId, ownerId, logoKey, heroPath, instPath, f
         enabled: true,
         order: 4,
         content: {
-          heading: 'Ofertas principais — escolha a modalidade',
+          heading: 'Todas as ofertas',
           mode: 'auto',
           backgroundColor: SURFACE,
+          featuredHeading: 'Destaques',
+          featuredServiceSlugs: HUBS.slice(0, 3).map((h) => h.slug),
         },
       },
       {
