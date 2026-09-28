@@ -62,6 +62,7 @@ export function FirmMfaChallengePage() {
   const { setSession } = useAuth()
 
   const reason = params.get('reason') === 'enroll' ? 'enroll' : 'challenge'
+  const fromRegistration = params.get('flow') === 'register'
   const [step, setStep] = useState<Step>(reason === 'enroll' ? 'enroll-qr' : 'challenge')
   const [ownerEnrollment, setOwnerEnrollment] = useState(reason === 'enroll')
   const [code, setCode] = useState('')
@@ -175,8 +176,8 @@ export function FirmMfaChallengePage() {
       ? 'Na próxima vez que iniciar sessão, será necessário introduzir o código apresentado na sua aplicação de autenticação.'
       : step === 'challenge'
         ? 'Confirme a sua identidade'
-        : ownerEnrollment
-          ? 'Para proteger a conta do proprietário do escritório, é necessário configurar a autenticação de dois factores antes de continuar.'
+        : fromRegistration || ownerEnrollment
+          ? 'Conta criada. Antes de entrar no Teglion, configure a autenticação de dois factores (obrigatório para o proprietário do escritório).'
           : 'Use uma aplicação de autenticação compatível para configurar o Teglion.'
 
   return (

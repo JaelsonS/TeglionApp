@@ -37,6 +37,7 @@ import {
   oauthPendingHeaders,
   readStoredOAuthPendingToken,
 } from '@/features/auth/firm/oauthPendingToken'
+import { redirectFirmMfaGateIfNeeded } from '@/features/auth/firm/firmMfaGateRedirect'
 
 const schema = z.object({
   firmName: z.string().min(2, 'Nome do escritório obrigatório'),
@@ -163,6 +164,10 @@ export function FirmRegisterGooglePage() {
         ),
       )
       clearStoredOAuthPendingToken()
+      if (redirectFirmMfaGateIfNeeded(res, navigate, { fromRegistration: true })) {
+        toast.success('Escritório criado. Configure a autenticação de dois factores para continuar.')
+        return
+      }
       if (!setSession(res.user)) {
         toast.warning('Conta criada. Inicie sessão com Google novamente.')
         navigate(authFirmLoginUrl(), { replace: true })

@@ -252,6 +252,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const registerFirm = useCallback(
     async (payload: Parameters<AuthContextValue['registerFirm']>[0]) => {
       const res = await authApi.registerFirm(payload)
+      if (res.status === 'MFA_CHALLENGE_REQUIRED' || res.status === 'MFA_ENROLLMENT_REQUIRED') {
+        const { setMfaChallengeToken } = await import('@/shared/security/mfaChallengeStore')
+        if (res.mfa?.challengeToken) {
+          setMfaChallengeToken(res.mfa.challengeToken, res.mfa.expiresAt ?? null)
+        }
+        return res
+      }
       if (!setSession(res.user)) {
         throw new Error(String(t('errors.authPayloadInvalid', { defaultValue: 'Resposta de autenticação inválida.' })))
       }
