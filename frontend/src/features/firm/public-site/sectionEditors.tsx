@@ -20,6 +20,13 @@ import {
 } from '@/features/public-intake/publicSiteSectionMedia'
 import { normalizeHeroBackgroundOverlay } from '@/features/public-intake/PublicSiteHeroSurface'
 import {
+  heroContentAlignUiValue,
+  patchHeroContentAlign,
+  patchSectionContentAlign,
+  sectionContentAlignUiValue,
+  type PublicSiteContentAlign,
+} from '@/features/public-intake/publicSiteContentAlign'
+import {
   ImagePositionFrame,
   ImagePositionZoomSlider,
   type ImagePosition,
@@ -661,6 +668,57 @@ export function ImagePickerField({
         aspect={cropAspect}
         onCropped={(cropped) => onUpload(cropped)}
       />
+    </div>
+  )
+}
+
+type ContentWithAlign = { contentAlign?: PublicSiteContentAlign | null }
+
+/** Controlo visível no topo de cada card de secção (modelo, personalizada, cabeçalho, rodapé). */
+export function PublicSiteSectionAlignField<T extends ContentWithAlign>({
+  content,
+  onChange,
+  variant = 'section',
+}: {
+  content: T
+  onChange: (next: T) => void
+  variant?: 'section' | 'hero' | 'chrome'
+}) {
+  const uiValue =
+    variant === 'hero' ? heroContentAlignUiValue(content) : sectionContentAlignUiValue(content as PublicSiteSectionMediaFields)
+  return (
+    <div className="space-y-1.5 rounded-lg border border-brand/35 bg-brand/[0.05] p-3">
+      <p className="text-sm font-semibold text-foreground">Alinhamento do conteúdo</p>
+      <Label className="sr-only" htmlFor={`content-align-${variant}`}>
+        Alinhamento do texto e botões
+      </Label>
+      <select
+        id={`content-align-${variant}`}
+        className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+        value={uiValue}
+        onChange={(e) => {
+          const next = e.target.value as PublicSiteContentAlign
+          onChange(
+            (variant === 'hero'
+              ? { ...content, ...patchHeroContentAlign(content, next) }
+              : {
+                  ...content,
+                  ...patchSectionContentAlign(content as PublicSiteSectionMediaFields, next),
+                }) as T,
+          )
+        }}
+      >
+        <option value="left">Esquerda</option>
+        <option value="center">Centro</option>
+        <option value="right">Direita</option>
+      </select>
+      <p className="text-[11px] text-muted-foreground">
+        {variant === 'hero'
+          ? 'Afecta título, frase, parágrafo e botões no destaque. Por omissão fica ao centro.'
+          : variant === 'chrome'
+            ? 'Barra do topo: marca e título. Rodapé: contactos e texto. Links e menu mantêm-se funcionais.'
+            : 'Afecta títulos, texto e botões desta secção. A grelha de serviços mantém a largura total.'}
+      </p>
     </div>
   )
 }

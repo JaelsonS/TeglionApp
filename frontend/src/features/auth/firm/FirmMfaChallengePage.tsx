@@ -27,11 +27,24 @@ const MFA_INVALID_GENERIC =
 const MFA_TEMP_GENERIC =
   'O código não pôde ser validado. Abra a sua aplicação de autenticação e introduza o código atualmente apresentado.'
 
+const MFA_SESSION_LOST =
+  'A sessão de verificação expirou ou foi interrompida. Volte ao login, introduza email e palavra-passe e tente outra vez (use um código novo da app).'
+
 function mfaUserFacingError(err: unknown): string {
   if (isAxiosError(err)) {
     const code = String((err.response?.data as { code?: string })?.code || '').toUpperCase()
-    if (code === 'MFA_INVALID_CODE' || code === 'MFA_CHALLENGE_INVALID' || err.response?.status === 401) {
+    if (
+      code === 'MFA_CHALLENGE_MISSING' ||
+      code === 'MFA_CHALLENGE_INVALID' ||
+      code === 'MFA_CHALLENGE_ALREADY_USED'
+    ) {
+      return MFA_SESSION_LOST
+    }
+    if (code === 'MFA_INVALID_CODE') {
       return MFA_INVALID_GENERIC
+    }
+    if (code === 'CSRF_INVALID' || err.response?.status === 403) {
+      return 'Não foi possível concluir a verificação. Recarregue a página, faça login de novo e tente outra vez.'
     }
     if (code === 'RATE_LIMIT' || err.response?.status === 429) {
       return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.'
@@ -49,6 +62,7 @@ export function FirmMfaChallengePage() {
   const { setSession } = useAuth()
 
   const reason = params.get('reason') === 'enroll' ? 'enroll' : 'challenge'
+  const fromRegistration = params.get('flow') === 'register'
   const [step, setStep] = useState<Step>(reason === 'enroll' ? 'enroll-qr' : 'challenge')
   const [ownerEnrollment, setOwnerEnrollment] = useState(reason === 'enroll')
   const [code, setCode] = useState('')
@@ -63,9 +77,12 @@ export function FirmMfaChallengePage() {
     let cancelled = false
     async function boot() {
       try {
+        await prefetchAuthCsrf()
         const status = await authApi.mfaChallengeStatus(getMfaChallengeToken() || undefined)
         if (cancelled) return
-        if (status?.mfa?.challengeToken) setMfaChallengeToken(status.mfa.challengeToken)
+        if (status?.mfa?.challengeToken) {
+          setMfaChallengeToken(status.mfa.challengeToken, status.mfa.expiresAt ?? status.expiresAt ?? null)
+        }
         if (status.status === 'MFA_ENROLLMENT_REQUIRED' || reason === 'enroll') {
           setOwnerEnrollment(true)
           setStep('enroll-qr')
@@ -75,7 +92,10 @@ export function FirmMfaChallengePage() {
           setOwnerEnrollment(false)
           setStep('challenge')
         }
-      } catch {
+      } catch (err) {
+        if (!getMfaChallengeToken() && reason === 'challenge') {
+          setFieldError(MFA_SESSION_LOST)
+        }
         if (reason === 'enroll') {
           try {
             const begin = await authApi.mfaEnrollBegin(getMfaChallengeToken() || undefined)
@@ -156,8 +176,8 @@ export function FirmMfaChallengePage() {
       ? 'Na próxima vez que iniciar sessão, será necessário introduzir o código apresentado na sua aplicação de autenticação.'
       : step === 'challenge'
         ? 'Confirme a sua identidade'
-        : ownerEnrollment
-          ? 'Para proteger a conta do proprietário do escritório, é necessário configurar a autenticação de dois factores antes de continuar.'
+        : fromRegistration || ownerEnrollment
+          ? 'Conta criada. Antes de entrar no Teglion, configure a autenticação de dois factores (obrigatório para o proprietário do escritório).'
           : 'Use uma aplicação de autenticação compatível para configurar o Teglion.'
 
   return (

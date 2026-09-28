@@ -110,7 +110,9 @@ function isAuthEndpoint(url?: string): boolean {
     url.includes('/auth/reset-password') ||
     url.includes('/auth/recover') ||
     url.includes('/auth/validate-reset-token') ||
-    url.includes('/auth/validate-password')
+    url.includes('/auth/validate-password') ||
+    url.includes('/auth/mfa/challenge') ||
+    url.includes('/auth/mfa/enroll')
   )
 }
 
