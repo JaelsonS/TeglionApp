@@ -867,3 +867,28 @@ test('resolvePublicShareImageUrl: prioriza hero e não usa imagem Teglion', asyn
   const url = await firmPublicSiteService.resolvePublicShareImageUrl(config, { id: '1', settings: {} });
   assert.equal(url, 'https://cdn.test/hero.jpg');
 });
+
+test('resolvePublicShareMeta: imageUrl estável no domínio público (WhatsApp)', async () => {
+  resetMocks();
+  mock.method(firmPublicSiteService, 'resolvePublicSiteZoneLogoUrl', async () => null);
+
+  const config = {
+    seo: { title: 'Escritório X', description: 'Descrição' },
+    sections: [{ type: 'hero', enabled: true, content: { bio: 'Bio curta', imageIds: ['img_hero'] } }],
+    images: {
+      hero: [{ id: 'img_hero', storageKey: 'k', url: 'https://cdn.test/hero.jpg', alt: '' }],
+      institutional: [],
+      bySection: {},
+    },
+    theme: {},
+  };
+  const meta = await firmPublicSiteService.resolvePublicShareMeta(config, { name: 'Escritório X', settings: {} }, {
+    firmSlug: 'escritorio-x',
+    publicOrigin: 'https://staging.teglion.com',
+  });
+  assert.equal(meta.url, 'https://staging.teglion.com/escritorio-x');
+  assert.equal(
+    meta.imageUrl,
+    'https://staging.teglion.com/api/public/firms/escritorio-x/share-og-image',
+  );
+});

@@ -160,6 +160,12 @@ router.get(
   serviceIntakeController.getPublicFirmSharePreview,
 );
 router.get(
+  '/firms/:firmSlug/share-og-image',
+  serviceViewLimiter,
+  serviceIntakeController.getFirmShareValidators,
+  serviceIntakeController.getPublicFirmShareOgImage,
+);
+router.get(
   '/firms/:firmSlug/services/:serviceSlug',
   serviceViewLimiter,
   serviceIntakeController.getServiceValidators,

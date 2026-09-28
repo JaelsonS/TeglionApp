@@ -664,7 +664,12 @@ async function resolvePublicShareMeta(config, firm, { firmSlug, publicOrigin }) 
   const origin = String(publicOrigin || '').replace(/\/$/, '');
   const path = slug ? `/${encodeURIComponent(slug)}` : '/';
   const pageUrl = origin ? `${origin}${path}` : path;
-  const imageUrl = await resolvePublicShareImageUrl(config, firm);
+  const rawImageUrl = await resolvePublicShareImageUrl(config, firm);
+  /** URL estável no domínio Teglion — crawlers (WhatsApp) não dependem de links Supabase longos/expirados. */
+  const imageUrl =
+    rawImageUrl && origin && slug
+      ? `${origin}/api/public/firms/${encodeURIComponent(slug)}/share-og-image`
+      : rawImageUrl;
   return { title, description: bio, imageUrl, url: pageUrl };
 }
 
