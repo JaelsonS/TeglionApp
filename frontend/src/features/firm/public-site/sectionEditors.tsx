@@ -672,7 +672,8 @@ export function ImagePickerField({
   )
 }
 
-function PublicSiteContentAlignField<T extends PublicSiteSectionMediaFields>({
+/** Controlo visível em Destaque, Sobre, Serviços, etc. */
+export function PublicSiteSectionAlignField<T extends PublicSiteSectionMediaFields>({
   content,
   onChange,
   variant = 'section',
@@ -683,9 +684,13 @@ function PublicSiteContentAlignField<T extends PublicSiteSectionMediaFields>({
 }) {
   const uiValue = variant === 'hero' ? heroContentAlignUiValue(content) : sectionContentAlignUiValue(content)
   return (
-    <div className="space-y-1">
-      <Label className="text-caption text-muted-foreground">Alinhamento do texto e botões</Label>
+    <div className="space-y-1.5 rounded-lg border border-brand/35 bg-brand/[0.05] p-3">
+      <p className="text-sm font-semibold text-foreground">Alinhamento do conteúdo</p>
+      <Label className="sr-only" htmlFor={`content-align-${variant}`}>
+        Alinhamento do texto e botões
+      </Label>
       <select
+        id={`content-align-${variant}`}
         className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
         value={uiValue}
         onChange={(e) => {
@@ -762,8 +767,9 @@ export function SectionMediaEditor<T extends PublicSiteSectionMediaFields>({
   }
 
   return (
-    <div className="space-y-3 rounded-lg border border-border/40 bg-muted/10 p-3">
-      <PublicSiteContentAlignField content={content} onChange={onChange} />
+    <div className="space-y-3">
+      <PublicSiteSectionAlignField content={content} onChange={onChange} />
+      <div className="space-y-3 rounded-lg border border-border/40 bg-muted/10 p-3">
       <p className="text-sm font-semibold">Imagens (só página pública)</p>
       <label className="flex items-center gap-2 text-sm">
         <input
@@ -874,6 +880,7 @@ export function SectionMediaEditor<T extends PublicSiteSectionMediaFields>({
           ) : null}
         </>
       ) : null}
+      </div>
     </div>
   )
 }
@@ -1265,6 +1272,8 @@ export function HeroEditor({
 
   return (
     <div className="space-y-5">
+      <PublicSiteSectionAlignField content={content} onChange={onChange} variant="hero" />
+
       <div className="space-y-2 rounded-lg border border-brand/30 bg-brand/[0.04] p-3">
         <p className="text-sm font-semibold text-foreground">Imagem de fundo do destaque</p>
         <p className="text-[11px] leading-relaxed text-muted-foreground">
@@ -1324,10 +1333,6 @@ export function HeroEditor({
           fallback="#e8f0ec"
           onChange={(v) => onChange({ ...content, backgroundColor: v })}
         />
-      </div>
-
-      <div className="rounded-lg border border-border/40 bg-muted/10 p-3">
-        <PublicSiteContentAlignField content={content} onChange={onChange} variant="hero" />
       </div>
 
       <div className="space-y-2 rounded-lg border border-brand/25 bg-brand/[0.03] p-3">
@@ -1634,7 +1639,7 @@ export function ServicesHeadingEditor({
           onChange={(v) => onChange({ ...content, headingColor: v })}
         />
       </div>
-      <PublicSiteContentAlignField content={content} onChange={onChange} />
+      <PublicSiteSectionAlignField content={content} onChange={onChange} />
       <div className="space-y-2">
         <Label>Título da secção</Label>
         <Input

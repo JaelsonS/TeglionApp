@@ -64,7 +64,11 @@ import {
   PublicSiteLogoCard,
 } from './sectionEditors'
 import { resolvePublicSitePreviewZoneLogoUrl } from './publicSitePreviewLogo'
-import { PublicSiteEditorPreviewFrame } from './PublicSiteEditorPreviewFrame'
+import {
+  PublicSiteEditorPreviewFrame,
+  publicSiteEditorPreviewCanvasPx,
+  type PublicSiteEditorPreviewDevice,
+} from './PublicSiteEditorPreviewFrame'
 import { resolvePublicSiteImageUrl } from '@/features/public-intake/publicSiteImageResolve'
 import type { PublicSiteLogoSource } from '@/shared/types/firmPublicSite'
 import { PublicSiteSectionsList } from './PublicSiteSectionsList'
@@ -93,15 +97,15 @@ const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
 }
 
 const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
-  header: 'Cores da barra',
-  hero: 'Imagem de fundo, texto por cima, botões',
-  about: 'Texto, foto e botões',
-  services: 'Título, catálogo e botões',
-  bookingServices: 'Título, catálogo e botões',
-  features: 'Pontos fortes',
-  process: 'Passos do processo',
-  faq: 'Perguntas e respostas',
-  contact: 'Contactos e botões',
+  header: 'Cores da barra · menu hamburger em telemóvel/tablet (automático)',
+  hero: 'Alinhamento, imagem de fundo, texto e botões',
+  about: 'Alinhamento, texto, foto e botões',
+  services: 'Alinhamento, título, catálogo e botões',
+  bookingServices: 'Alinhamento, título, catálogo e botões',
+  features: 'Alinhamento e pontos fortes',
+  process: 'Alinhamento e passos',
+  faq: 'Alinhamento e perguntas',
+  contact: 'Alinhamento, contactos e botões',
   footer: 'Cores e contactos do rodapé',
 }
 
@@ -130,6 +134,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   /** Por secção (key). Ausente = aberto por defeito em header/hero. */
   const [sectionOpenState, setSectionOpenState] = useState<Record<string, boolean>>({})
   const [previewExpanded, setPreviewExpanded] = useState(false)
+  const [previewDevice, setPreviewDevice] = useState<PublicSiteEditorPreviewDevice>('tablet')
 
   const isSectionEditorOpen = (section: PublicSiteSection) => {
     if (Object.prototype.hasOwnProperty.call(sectionOpenState, section.key)) {
@@ -703,8 +708,10 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
           </div>
           <p className="text-[11px] leading-relaxed text-muted-foreground">
             Abra <span className="font-medium text-foreground">só a secção</span> que está a editar (ex.: Destaque
-            principal). Arraste à esquerda para reordenar. Desça a página para ver todas as secções; a pré-visualização
-            fica fixa à direita — use <span className="font-medium text-foreground">Expandir</span> para ver melhor.
+            principal). Em cada secção, o bloco{' '}
+            <span className="font-medium text-foreground">Alinhamento do conteúdo</span> (esquerda / centro / direita)
+            fica no topo. Arraste à esquerda para reordenar. A pré-visualização à direita simula telemóvel/tablet — aí vê
+            o menu hamburger.
           </p>
           <PublicSiteSectionsList
             sections={sortedSections}
@@ -900,26 +907,48 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 Pré-visualização ao vivo
               </p>
               <p className="text-[11px] text-muted-foreground">
-                Miniatura proporcional (como num ecrã largo). Use Expandir para rever ao tamanho real antes de publicar.
+                Escolha telemóvel ou tablet para ver o menu hamburger. Desktop mostra a barra horizontal (ecrãs largos).
               </p>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 shrink-0"
-              onClick={() => setPreviewExpanded(true)}
-            >
-              <Maximize2 className="mr-1.5 h-3.5 w-3.5" />
-              Expandir
-            </Button>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {(
+                [
+                  ['mobile', 'Telemóvel'],
+                  ['tablet', 'Tablet'],
+                  ['desktop', 'Desktop'],
+                ] as const
+              ).map(([id, label]) => (
+                <Button
+                  key={id}
+                  type="button"
+                  variant={previewDevice === id ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-8 px-2.5 text-xs"
+                  onClick={() => setPreviewDevice(id)}
+                >
+                  {label}
+                </Button>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 shrink-0"
+                onClick={() => setPreviewExpanded(true)}
+              >
+                <Maximize2 className="mr-1.5 h-3.5 w-3.5" />
+                Expandir
+              </Button>
+            </div>
           </div>
           <div
-            key={`preview-bg-${draft.theme.backgroundColor || 'default'}-${draft.theme.surfaceColor || 'surface'}`}
+            key={`preview-bg-${draft.theme.backgroundColor || 'default'}-${draft.theme.surfaceColor || 'surface'}-${previewDevice}`}
             className="cb-public-site-editor-preview-scroll rounded-xl border border-border/50 shadow-sm"
             style={previewSurfaceStyle}
           >
-            <PublicSiteEditorPreviewFrame>{previewPanel}</PublicSiteEditorPreviewFrame>
+            <PublicSiteEditorPreviewFrame canvasWidthPx={publicSiteEditorPreviewCanvasPx(previewDevice)}>
+              {previewPanel}
+            </PublicSiteEditorPreviewFrame>
           </div>
         </aside>
       </div>
@@ -930,7 +959,9 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             <DialogTitle className="text-base">Pré-visualização — site público</DialogTitle>
           </DialogHeader>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain" style={previewSurfaceStyle}>
-            <PublicSiteEditorPreviewFrame expanded>{previewPanel}</PublicSiteEditorPreviewFrame>
+            <PublicSiteEditorPreviewFrame expanded canvasWidthPx={publicSiteEditorPreviewCanvasPx(previewDevice)}>
+              {previewPanel}
+            </PublicSiteEditorPreviewFrame>
           </div>
         </DialogContent>
       </Dialog>
