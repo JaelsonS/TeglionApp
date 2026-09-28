@@ -1,3 +1,4 @@
+import type React from 'react'
 import { Link } from 'react-router-dom'
 import {
   CalendarClock,
@@ -16,6 +17,7 @@ import type {
   PublicSiteAboutContent,
   PublicSiteChromeContent,
   PublicSiteConfig,
+  PublicSiteSectionMediaFields,
   PublicSiteContactContent,
   PublicSiteFaqContent,
   PublicSiteFeaturesContent,
@@ -34,6 +36,8 @@ import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtm
 import { priceTaxModeCaption } from '@/shared/utils/priceTaxMode'
 import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
 import { buildGoogleMapsUrl } from '@/shared/utils/googleMapsUrl'
+import { resolveFirstPublicSiteImageUrl, resolvePublicSiteImageUrl } from '@/features/public-intake/publicSiteImageResolve'
+import { PublicSiteSectionLayout } from '@/features/public-intake/PublicSiteSectionLayout'
 import {
   Accordion,
   AccordionContent,
@@ -41,11 +45,12 @@ import {
   AccordionTrigger,
 } from '@/shared/components/ui/accordion'
 
-function resolveFirstImageUrl(imageIds: string[], images: PublicSiteConfig['images']): string | null {
-  const id = imageIds[0]
-  if (!id) return null
-  const found = [...images.hero, ...images.institutional].find((img) => img.id === id)
-  return found?.url || null
+function resolveFirstImageUrl(
+  imageIds: string[],
+  images: PublicSiteConfig['images'],
+  sectionKey?: string,
+): string | null {
+  return resolveFirstPublicSiteImageUrl(imageIds, images, sectionKey)
 }
 
 /**
@@ -58,7 +63,10 @@ function resolveFirstImageUrl(imageIds: string[], images: PublicSiteConfig['imag
 export type PublicSiteRenderContext = {
   firmSlug: string
   firmName: string
+  /** @deprecated Preferir headerLogoUrl / heroLogoUrl */
   logoUrl: string | null
+  headerLogoUrl?: string | null
+  heroLogoUrl?: string | null
   services: PublicFirmServiceSummary[]
   contact: { email: string | null; phone: string | null; address: string | null }
   showPrices?: boolean
@@ -87,6 +95,41 @@ function hexStyle(color?: string | null): string | undefined {
   return /^#[0-9a-f]{6}$/i.test(v) ? v : undefined
 }
 
+type SectionWithMediaContent = {
+  backgroundColor?: string | null
+  imageIds?: string[]
+} & PublicSiteSectionMediaFields
+
+function SectionWithMedia({
+  sectionId,
+  content,
+  images,
+  sectionKey,
+  children,
+}: {
+  sectionId: string
+  content: SectionWithMediaContent
+  images: PublicSiteConfig['images']
+  sectionKey?: string
+  children: React.ReactNode
+}) {
+  const ids = 'imageIds' in content && Array.isArray(content.imageIds) ? content.imageIds : []
+  const photoUrl = resolveFirstImageUrl(ids, images, sectionKey)
+  const bg = hexStyle(content.backgroundColor)
+  const bgImageUrl = resolvePublicSiteImageUrl(content.backgroundImageId, images, sectionKey)
+  return (
+    <PublicSiteSectionLayout
+      sectionId={sectionId}
+      backgroundColor={bg}
+      backgroundImageUrl={bgImageUrl}
+      media={content}
+      imageUrl={photoUrl}
+    >
+      {children}
+    </PublicSiteSectionLayout>
+  )
+}
+
 export function HeaderSection({
   ctx,
   content,
@@ -107,7 +150,8 @@ export function HeaderSection({
   const groups = uniquePublicServiceGroups(ctx.services)
   const homeHref = `/${encodeURIComponent(ctx.firmSlug)}`
   const showNav = content?.showNav !== false
-  const showLogo = Boolean(ctx.logoUrl) && content?.showLogo !== false
+  const headerLogo = ctx.headerLogoUrl ?? ctx.logoUrl
+  const showLogo = Boolean(headerLogo) && content?.showLogo !== false
   const navLinks = defaultPublicSiteNavLinks(content).filter((link) => link.enabled)
   const publicSlugs = new Set(ctx.services.map((s) => s.slug).filter(Boolean))
   const visibleLinks = navLinks.filter((link) => {
@@ -125,7 +169,7 @@ export function HeaderSection({
       <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3 lg:max-w-4xl">
         {showLogo ? (
           <Link to={homeHref} className="shrink-0" aria-label={headerLabel}>
-            <img src={ctx.logoUrl!} alt="" className="h-9 w-9 rounded-md object-contain" />
+            <img src={headerLogo!} alt="" className="h-9 w-9 rounded-md object-contain" />
           </Link>
         ) : null}
         <Link to={homeHref} className={labelClass} style={labelStyle}>
@@ -256,7 +300,8 @@ export function HeroSection({
   const bioColor = hexStyle(content.bioColor)
   // Título de destaque ≠ nome do header. Sem fallback para firmName (evita duplicar).
   const heroTitle = String(content.title || '').trim()
-  const showLogo = Boolean(ctx.logoUrl) && content.showLogo !== false
+  const heroLogo = ctx.heroLogoUrl ?? ctx.logoUrl
+  const showLogo = Boolean(heroLogo) && content.showLogo !== false
   return (
     <section
       className={bg ? 'border-b border-black/5' : 'border-b border-border/40 bg-transparent'}
@@ -274,7 +319,7 @@ export function HeroSection({
       <div className="mx-auto max-w-2xl px-4 py-10 text-center lg:max-w-4xl">
         {showLogo ? (
           <img
-            src={ctx.logoUrl!}
+            src={heroLogo!}
             alt={ctx.firmName}
             className="mx-auto mb-4 h-20 w-20 rounded-full border-2 border-primary/30 object-cover shadow-sm"
           />
@@ -318,56 +363,59 @@ export function AboutSection({
   images,
   ctx,
   socialLinks,
+  sectionKey,
 }: {
   content: PublicSiteAboutContent
   images: PublicSiteConfig['images']
   ctx: PublicSiteRenderContext
   socialLinks: PublicSiteSocialLinks
+  sectionKey?: string
 }) {
   const hasCtas = (content.ctas?.length ?? 0) > 0
   if (!content.heading && !content.body && !hasCtas && content.imageIds.length === 0) return null
-  const photoUrl = resolveFirstImageUrl(content.imageIds, images)
+  const photoUrl = resolveFirstImageUrl(content.imageIds, images, sectionKey)
   const bg = hexStyle(content.backgroundColor)
+  const bgImageUrl = resolvePublicSiteImageUrl(content.backgroundImageId, images, sectionKey)
   const headingColor = hexStyle(content.headingColor)
   const bodyColor = hexStyle(content.bodyColor)
   return (
-    <section
-      id="sobre"
-      className="px-4 py-6"
-      style={bg ? { backgroundColor: bg } : undefined}
+    <PublicSiteSectionLayout
+      sectionId="sobre"
+      backgroundColor={bg}
+      backgroundImageUrl={bgImageUrl}
+      media={content}
+      imageUrl={photoUrl}
+      imageAlt={content.heading || ctx.firmName}
     >
-      <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">
-        {photoUrl ? <img src={photoUrl} alt="" loading="lazy" className="w-full rounded-xl object-cover" /> : null}
-        {content.heading ? (
-          <h2
-            className={
-              headingColor
-                ? 'text-lg font-semibold'
-                : 'text-lg font-semibold text-[hsl(var(--brand-text,var(--foreground)))]'
-            }
-            style={headingColor ? { color: headingColor } : undefined}
-          >
-            {content.heading}
-          </h2>
-        ) : null}
-        {content.body ? (
-          <p
-            className={
-              bodyColor ? 'whitespace-pre-line text-sm' : 'whitespace-pre-line text-sm text-muted-foreground'
-            }
-            style={bodyColor ? { color: bodyColor } : undefined}
-          >
-            {content.body}
-          </p>
-        ) : null}
-        <PublicSiteCtaButtons
-          ctas={content.ctas}
-          ctx={ctx}
-          socialLinks={socialLinks}
-          className="flex flex-wrap gap-2"
-        />
-      </div>
-    </section>
+      {content.heading ? (
+        <h2
+          className={
+            headingColor
+              ? 'text-lg font-semibold'
+              : 'text-lg font-semibold text-[hsl(var(--brand-text,var(--foreground)))]'
+          }
+          style={headingColor ? { color: headingColor } : undefined}
+        >
+          {content.heading}
+        </h2>
+      ) : null}
+      {content.body ? (
+        <p
+          className={
+            bodyColor ? 'whitespace-pre-line text-sm' : 'whitespace-pre-line text-sm text-muted-foreground'
+          }
+          style={bodyColor ? { color: bodyColor } : undefined}
+        >
+          {content.body}
+        </p>
+      ) : null}
+      <PublicSiteCtaButtons
+        ctas={content.ctas}
+        ctx={ctx}
+        socialLinks={socialLinks}
+        className="flex flex-wrap gap-2"
+      />
+    </PublicSiteSectionLayout>
   )
 }
 
@@ -612,15 +660,20 @@ export function EmptyPublicServicesSection() {
   )
 }
 
-export function FeaturesSection({ content }: { content: PublicSiteFeaturesContent }) {
+export function FeaturesSection({
+  content,
+  images,
+  sectionKey,
+}: {
+  content: PublicSiteFeaturesContent
+  images?: PublicSiteConfig['images']
+  sectionKey?: string
+}) {
   if (content.items.length === 0) return null
-  const bg = hexStyle(content.backgroundColor)
   const titleColor = hexStyle(content.titleColor)
   const textColor = hexStyle(content.textColor)
-  return (
-    <section id="destaques" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
-      <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">
-        <div className="grid gap-4 sm:grid-cols-2">
+  const body = (
+    <div className="grid gap-4 sm:grid-cols-2">
           {content.items.map((it) => (
             <div key={it.id} className="rounded-xl border border-border/50 bg-card p-4">
               <h3
@@ -643,20 +696,37 @@ export function FeaturesSection({ content }: { content: PublicSiteFeaturesConten
               ) : null}
             </div>
           ))}
-        </div>
-      </div>
+    </div>
+  )
+  if (images) {
+    return (
+      <SectionWithMedia sectionId="destaques" content={content} images={images} sectionKey={sectionKey}>
+        {body}
+      </SectionWithMedia>
+    )
+  }
+  const bg = hexStyle(content.backgroundColor)
+  return (
+    <section id="destaques" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
+      <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">{body}</div>
     </section>
   )
 }
 
-export function ProcessSection({ content }: { content: PublicSiteProcessContent }) {
+export function ProcessSection({
+  content,
+  images,
+  sectionKey,
+}: {
+  content: PublicSiteProcessContent
+  images?: PublicSiteConfig['images']
+  sectionKey?: string
+}) {
   if (content.steps.length === 0) return null
-  const bg = hexStyle(content.backgroundColor)
   const titleColor = hexStyle(content.titleColor)
   const textColor = hexStyle(content.textColor)
-  return (
-    <section id="como-trabalhamos" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
-      <ol className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">
+  const body = (
+    <ol className="space-y-3">
         {content.steps.map((step, index) => (
           <li key={step.id} className="flex gap-3 rounded-xl border border-border/50 bg-card p-4">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
@@ -684,19 +754,37 @@ export function ProcessSection({ content }: { content: PublicSiteProcessContent 
             </div>
           </li>
         ))}
-      </ol>
+    </ol>
+  )
+  if (images) {
+    return (
+      <SectionWithMedia sectionId="como-trabalhamos" content={content} images={images} sectionKey={sectionKey}>
+        {body}
+      </SectionWithMedia>
+    )
+  }
+  const bg = hexStyle(content.backgroundColor)
+  return (
+    <section id="como-trabalhamos" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
+      <div className="mx-auto max-w-2xl lg:max-w-4xl">{body}</div>
     </section>
   )
 }
 
-export function FaqSection({ content }: { content: PublicSiteFaqContent }) {
+export function FaqSection({
+  content,
+  images,
+  sectionKey,
+}: {
+  content: PublicSiteFaqContent
+  images?: PublicSiteConfig['images']
+  sectionKey?: string
+}) {
   if (content.items.length === 0) return null
-  const bg = hexStyle(content.backgroundColor)
   const titleColor = hexStyle(content.titleColor)
   const textColor = hexStyle(content.textColor)
-  return (
-    <section id="faq" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
-      <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">
+  const inner = (
+    <>
         <h2
           className={
             titleColor
@@ -729,7 +817,19 @@ export function FaqSection({ content }: { content: PublicSiteFaqContent }) {
             </details>
           ))}
         </div>
-      </div>
+    </>
+  )
+  if (images) {
+    return (
+      <SectionWithMedia sectionId="faq" content={content} images={images} sectionKey={sectionKey}>
+        <div className="space-y-3">{inner}</div>
+      </SectionWithMedia>
+    )
+  }
+  const bg = hexStyle(content.backgroundColor)
+  return (
+    <section id="faq" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
+      <div className="mx-auto max-w-2xl lg:max-w-4xl space-y-3">{inner}</div>
     </section>
   )
 }

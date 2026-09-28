@@ -46,7 +46,12 @@ exports.uploadImage = async (req, res, next) => {
     const firmId = String(req.user.firmId);
     if (!req.file) throw new AppError('Selecione uma imagem (JPG, PNG ou WebP).', 400);
     const slot = String(req.body?.slot || 'hero');
-    const data = await firmPublicSiteService.uploadImage(firmId, String(req.user.id), { slot, file: req.file });
+    const sectionKey = req.body?.sectionKey ? String(req.body.sectionKey) : undefined;
+    const data = await firmPublicSiteService.uploadImage(firmId, String(req.user.id), {
+      slot,
+      sectionKey,
+      file: req.file,
+    });
     return res.status(201).json(data);
   } catch (err) {
     return next(err);
@@ -57,7 +62,8 @@ exports.uploadPublicLogo = async (req, res, next) => {
   try {
     const firmId = String(req.user.firmId);
     if (!req.file) throw new AppError('Selecione uma imagem (JPG, PNG ou WebP).', 400);
-    const data = await firmPublicSiteService.uploadPublicLogo(firmId, String(req.user.id), req.file);
+    const zone = String(req.params?.zone || req.body?.zone || 'shared');
+    const data = await firmPublicSiteService.uploadPublicLogo(firmId, String(req.user.id), req.file, zone);
     return res.status(201).json(data);
   } catch (err) {
     return next(err);
@@ -67,7 +73,8 @@ exports.uploadPublicLogo = async (req, res, next) => {
 exports.removePublicLogo = async (req, res, next) => {
   try {
     const firmId = String(req.user.firmId);
-    const data = await firmPublicSiteService.removePublicLogo(firmId, String(req.user.id));
+    const zone = String(req.params?.zone || req.query?.zone || 'shared');
+    const data = await firmPublicSiteService.removePublicLogo(firmId, String(req.user.id), zone);
     return res.status(200).json(data);
   } catch (err) {
     return next(err);

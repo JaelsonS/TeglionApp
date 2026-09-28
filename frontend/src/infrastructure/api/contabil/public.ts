@@ -99,6 +99,8 @@ export type PublicFirmServices = {
 export type PublicFirmSite = {
   firmName: string
   logoUrl: string | null
+  headerLogoUrl?: string | null
+  heroLogoUrl?: string | null
   isPreview: boolean
   templateKey: string
   seo: PublicSiteConfig['seo']

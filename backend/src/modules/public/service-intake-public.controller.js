@@ -188,10 +188,16 @@ async function getPublicFirmSite(req, res, next) {
 
     const items = await listPublicCatalogServices(firm.id);
 
+    let headerLogoUrl = null;
+    let heroLogoUrl = null;
     let logoUrl = null;
     try {
-      logoUrl = await firmPublicSiteService.resolvePublicSiteLogoUrl(config, firm);
+      headerLogoUrl = await firmPublicSiteService.resolvePublicSiteZoneLogoUrl('header', config, firm);
+      heroLogoUrl = await firmPublicSiteService.resolvePublicSiteZoneLogoUrl('hero', config, firm);
+      logoUrl = headerLogoUrl;
     } catch {
+      headerLogoUrl = null;
+      heroLogoUrl = null;
       logoUrl = null;
     }
     const contact = firm.settings?.contact || {};
@@ -212,6 +218,16 @@ async function getPublicFirmSite(req, res, next) {
         alt: img.alt || '',
         url: img.url || null,
       })),
+      bySection: Object.fromEntries(
+        Object.entries(config.images?.bySection || {}).map(([sectionKey, list]) => [
+          sectionKey,
+          (list || []).map((img) => ({
+            id: img.id || null,
+            alt: img.alt || '',
+            url: img.url || null,
+          })),
+        ]),
+      ),
     };
 
     const showTeglionCredit = await entitlements.showTeglionBranding(firm.id);
@@ -222,10 +238,21 @@ async function getPublicFirmSite(req, res, next) {
     return res.json({
       firmName: resolvePublicFirmName(firm),
       logoUrl,
+      headerLogoUrl,
+      heroLogoUrl,
       isPreview: previewValid,
       templateKey: site.templateKey || 'default',
       seo: config.seo,
-      theme: config.theme,
+      theme: {
+        primaryColor: config.theme?.primaryColor ?? null,
+        secondaryColor: config.theme?.secondaryColor ?? null,
+        textColor: config.theme?.textColor ?? null,
+        backgroundColor: config.theme?.backgroundColor ?? null,
+        surfaceColor: config.theme?.surfaceColor ?? null,
+        mutedTextColor: config.theme?.mutedTextColor ?? null,
+        headerLogoSource: config.theme?.headerLogoSource ?? 'firm',
+        heroLogoSource: config.theme?.heroLogoSource ?? 'firm',
+      },
       images: publicImages,
       socialLinks: config.socialLinks,
       sections: publicSections,

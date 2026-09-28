@@ -1,6 +1,8 @@
 import { api } from '@/infrastructure/api'
 import type { FirmPublicSiteBundle, PublicSiteConfig, PublicSiteImageRef } from '@/shared/types/firmPublicSite'
 
+export type PublicSiteLogoZone = 'header' | 'hero' | 'shared'
+
 export const firmPublicSiteApi = {
   get: () => api.get('/contabil/firm/public-site').then((r) => r.data as FirmPublicSiteBundle),
 
@@ -19,35 +21,37 @@ export const firmPublicSiteApi = {
       .post('/contabil/firm/public-site/preview-token')
       .then((r) => r.data as { previewToken: string; previewTokenExpiresAt: string }),
 
-  uploadImage: (slot: 'hero' | 'institutional', file: File) => {
+  uploadImage: (slot: 'hero' | 'institutional' | 'section', file: File, sectionKey?: string) => {
     const form = new FormData()
     form.append('slot', slot)
     form.append('image', file)
+    if (sectionKey) form.append('sectionKey', sectionKey)
     return api.post('/contabil/firm/public-site/images', form).then((r) => r.data as PublicSiteImageRef)
   },
 
-  uploadPublicLogo: (file: File) => {
+  uploadPublicLogo: (file: File, zone: PublicSiteLogoZone = 'shared') => {
     const form = new FormData()
     form.append('image', file)
-    return api
-      .post('/contabil/firm/public-site/logo', form)
-      .then(
-        (r) =>
-          r.data as {
-            logoStorageKey: string
-            logoUrl: string
-            draft: PublicSiteConfig
-            draftUpdatedAt: string
-          },
-      )
+    const path = zone === 'shared' ? '/contabil/firm/public-site/logo' : `/contabil/firm/public-site/logo/${zone}`
+    return api.post(path, form).then(
+      (r) =>
+        r.data as {
+          logoStorageKey: string
+          logoUrl: string
+          zone: PublicSiteLogoZone
+          draft: PublicSiteConfig
+          draftUpdatedAt: string
+        },
+    )
   },
 
-  removePublicLogo: () =>
-    api
-      .delete('/contabil/firm/public-site/logo')
-      .then((r) => r.data as { draft: PublicSiteConfig; draftUpdatedAt: string }),
+  removePublicLogo: (zone: PublicSiteLogoZone = 'shared') => {
+    const path = zone === 'shared' ? '/contabil/firm/public-site/logo' : `/contabil/firm/public-site/logo/${zone}`
+    return api
+      .delete(path)
+      .then((r) => r.data as { draft: PublicSiteConfig; draftUpdatedAt: string; zone: PublicSiteLogoZone })
+  },
 
-  /** Apaga página publicada/rascunho e devolve rascunho limpo (default). */
   reset: () =>
     api.post('/contabil/firm/public-site/reset').then(
       (r) =>
