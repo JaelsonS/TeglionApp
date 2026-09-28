@@ -11,6 +11,9 @@ type Props = {
   fit?: PublicSiteHeroImageFit | null
   /** Foco da imagem (9 posições). Aceita valores antigos top/center/bottom. */
   position?: PublicSiteHeroImageFocus | string | null
+  imageFocusX?: number | null
+  imageFocusY?: number | null
+  imageZoom?: number | null
   backgroundColor?: string | null
   backgroundOverlay?: number | null
   className?: string
@@ -24,6 +27,9 @@ export function PublicSiteHeroBanner({
   alt,
   fit,
   position,
+  imageFocusX,
+  imageFocusY,
+  imageZoom,
   backgroundColor,
   backgroundOverlay,
   className,
@@ -35,6 +41,9 @@ export function PublicSiteHeroBanner({
       imageAlt={alt}
       fit={fit}
       focus={normalizeHeroImageFocus(position)}
+      imageFocusX={imageFocusX}
+      imageFocusY={imageFocusY}
+      imageZoom={imageZoom}
       backgroundColor={backgroundColor}
       backgroundOverlay={backgroundOverlay}
       className={className}

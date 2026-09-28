@@ -19,6 +19,7 @@ const firmPublicSiteService = require('../firm/firm-public-site.service');
 const accountingServicesService = require('../firm/accounting-services.service');
 const entitlements = require('../entitlements/entitlements.service');
 const { interpolateServiceTemplate } = require('../../utils/service-text-template');
+const { env } = require('../../config/env');
 
 /** Resolve Firm + Service publicado pelo par (firmSlug, serviceSlug) — nunca aceita ids crus. */
 async function resolvePublicService(firmSlug, serviceSlug) {
@@ -235,11 +236,17 @@ async function getPublicFirmSite(req, res, next) {
     const publicSlugs = items.map((s) => s.slug).filter(Boolean);
     const publicSections = firmPublicSiteService.filterPublicCtas(config.sections, publicSlugs);
 
+    const shareImageUrl =
+      previewValid || !site.published
+        ? null
+        : await firmPublicSiteService.resolvePublicShareImageUrl(config, firm);
+
     return res.json({
       firmName: resolvePublicFirmName(firm),
       logoUrl,
       headerLogoUrl,
       heroLogoUrl,
+      shareImageUrl,
       isPreview: previewValid,
       templateKey: site.templateKey || 'default',
       seo: config.seo,
@@ -272,6 +279,81 @@ async function getPublicFirmSite(req, res, next) {
       },
       services: items,
     });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+function escapeShareHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+async function loadPublishedFirmSiteForShare(firmSlug) {
+  const firm = await firmsRepository.findFirmBySlugOrLabel(firmSlug);
+  if (!firm) throw new AppError('Escritório não encontrado', 404, { code: 'NOT_FOUND' });
+  const site = await firmPublicSiteService.getSite(firm.id);
+  if (!site.published) throw new AppError('Página não publicada', 404, { code: 'NOT_FOUND' });
+  return { firm, config: site.published };
+}
+
+/** Meta para partilha social (JSON) — só site publicado. */
+async function getPublicFirmShareMeta(req, res, next) {
+  try {
+    assertValid(req);
+    const firmSlug = String(req.params.firmSlug || '').trim();
+    const { firm, config } = await loadPublishedFirmSiteForShare(firmSlug);
+    const meta = await firmPublicSiteService.resolvePublicShareMeta(config, firm, {
+      firmSlug,
+      publicOrigin: env.FRONTEND_URL,
+    });
+    res.set('Cache-Control', 'public, max-age=300');
+    return res.json(meta);
+  } catch (err) {
+    return next(err);
+  }
+}
+
+/** HTML mínimo com Open Graph para crawlers (WhatsApp, Facebook, etc.). */
+async function getPublicFirmSharePreview(req, res, next) {
+  try {
+    assertValid(req);
+    const firmSlug = String(req.params.firmSlug || '').trim();
+    const { firm, config } = await loadPublishedFirmSiteForShare(firmSlug);
+    const meta = await firmPublicSiteService.resolvePublicShareMeta(config, firm, {
+      firmSlug,
+      publicOrigin: env.FRONTEND_URL,
+    });
+    const title = escapeShareHtml(meta.title);
+    const description = meta.description ? escapeShareHtml(meta.description) : '';
+    const url = escapeShareHtml(meta.url);
+    const imageTags = meta.imageUrl
+      ? `<meta property="og:image" content="${escapeShareHtml(meta.imageUrl)}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="${escapeShareHtml(meta.imageUrl)}" />`
+      : `<meta name="twitter:card" content="summary" />`;
+    const html = `<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8" />
+  <title>${title}</title>
+  ${description ? `<meta name="description" content="${description}" />` : ''}
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="${title}" />
+  ${description ? `<meta property="og:description" content="${description}" />` : ''}
+  <meta property="og:url" content="${url}" />
+  ${imageTags}
+  <meta http-equiv="refresh" content="0;url=${url}" />
+  <link rel="canonical" href="${url}" />
+</head>
+<body><p><a href="${url}">${title}</a></p></body>
+</html>`;
+    res.set('Content-Type', 'text/html; charset=utf-8');
+    res.set('Cache-Control', 'public, max-age=300');
+    return res.send(html);
   } catch (err) {
     return next(err);
   }
@@ -590,6 +672,8 @@ const bookingPaymentStatusValidators = [
 module.exports = {
   getPublicFirmServices,
   getPublicFirmSite,
+  getPublicFirmShareMeta,
+  getPublicFirmSharePreview,
   getPublicService,
   getPublicSlots,
   holdPublicSlot,
@@ -601,6 +685,7 @@ module.exports = {
   submitReply,
   getFirmServicesValidators,
   getFirmSiteValidators,
+  getFirmShareValidators: getFirmSiteValidators,
   getServiceValidators,
   captureLeadValidators,
   submitValidators,

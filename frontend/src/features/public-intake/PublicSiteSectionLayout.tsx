@@ -1,12 +1,24 @@
 import type { ReactNode } from 'react'
 
+import {
+  sectionBackgroundPositionedStyle,
+  sectionContentPositionedStyle,
+} from '@/features/public-intake/publicSiteSectionMedia'
 import type { PublicSiteSectionMediaFields } from '@/shared/types/firmPublicSite'
+import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
 
 const SIZE_CLASS = {
   sm: 'max-w-[8rem]',
   md: 'max-w-[12rem]',
   lg: 'max-w-[18rem]',
   full: 'w-full',
+} as const
+
+const SIZE_MIN_H = {
+  sm: 'min-h-[8rem]',
+  md: 'min-h-[12rem]',
+  lg: 'min-h-[16rem]',
+  full: 'min-h-[12rem]',
 } as const
 
 type Props = {
@@ -37,15 +49,24 @@ export function PublicSiteSectionLayout({
   const showImage = Boolean(imageUrl && media?.showImage !== false)
   const placement = media?.imagePlacement === 'left' || media?.imagePlacement === 'right' ? media.imagePlacement : 'above'
   const size = media?.imageSize && media.imageSize in SIZE_CLASS ? media.imageSize : 'full'
-  const fitClass = media?.imageFit === 'contain' ? 'object-contain' : 'object-cover'
+  const contentStyle = media ? servicePositionedImageStyle(sectionContentPositionedStyle(media)) : undefined
+  const bgStyle = media ? servicePositionedImageStyle(sectionBackgroundPositionedStyle(media)) : undefined
 
   const imageNode = showImage ? (
-    <img
-      src={imageUrl!}
-      alt={imageAlt}
-      loading="lazy"
-      className={`rounded-xl ${fitClass} ${SIZE_CLASS[size]} ${placement === 'above' ? 'w-full' : 'shrink-0'}`}
-    />
+    <div
+      className={`overflow-hidden rounded-xl ${SIZE_CLASS[size]} ${SIZE_MIN_H[size]} ${
+        placement === 'above' ? 'w-full' : 'shrink-0'
+      }`}
+    >
+      <img
+        src={imageUrl!}
+        alt={imageAlt}
+        loading="lazy"
+        className="h-full w-full select-none"
+        style={contentStyle}
+        draggable={false}
+      />
+    </div>
   ) : null
 
   const inner = (
@@ -76,11 +97,15 @@ export function PublicSiteSectionLayout({
     >
       {showBgImage ? (
         <>
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-30"
-            style={{ backgroundImage: `url(${backgroundImageUrl})` }}
-          />
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden opacity-30">
+            <img
+              src={backgroundImageUrl!}
+              alt=""
+              className="h-full w-full select-none"
+              style={bgStyle}
+              draggable={false}
+            />
+          </div>
           <div aria-hidden className="pointer-events-none absolute inset-0 bg-background/70" />
         </>
       ) : null}

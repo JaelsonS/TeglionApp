@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   heroBackgroundObjectPosition,
   heroBannerObjectPosition,
+  heroPositionedImageStyle,
   normalizeHeroImageFit,
   normalizeHeroImageFocus,
   normalizeHeroImagePosition,
@@ -31,5 +32,16 @@ describe('heroBannerFit', () => {
     expect(heroBackgroundObjectPosition('top')).toBe('center top')
     expect(heroBackgroundObjectPosition('bottom-right')).toBe('right bottom')
     expect(heroBannerObjectPosition('bottom')).toBe('center bottom')
+  })
+
+  it('heroPositionedImageStyle: zoom fino como nos serviços', () => {
+    const style = heroPositionedImageStyle({
+      imageFit: 'cover',
+      imageFocusX: 30,
+      imageFocusY: 70,
+      imageZoom: 1.5,
+    })
+    expect(style.objectPosition).toBe('30% 70%')
+    expect(String(style.transform)).toContain('scale(1.5)')
   })
 })

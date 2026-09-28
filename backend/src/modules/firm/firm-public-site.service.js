@@ -202,6 +202,20 @@ function normalizeHeroBackgroundOverlay(value) {
   return Math.min(80, Math.max(0, Math.round(n)));
 }
 
+function normalizeHeroFocusPercent(value) {
+  if (value == null || value === '') return null;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  return Math.min(100, Math.max(0, Math.round(n)));
+}
+
+function normalizeHeroImageZoom(value) {
+  if (value == null || value === '') return null;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  return Math.min(3, Math.max(1, Math.round(n * 100) / 100));
+}
+
 function normalizeSectionContent(type, raw) {
   const content = raw && typeof raw === 'object' ? raw : {};
   switch (type) {
@@ -219,6 +233,9 @@ function normalizeSectionContent(type, raw) {
           bioColor: normalizeOptionalHex(content.bioColor),
           imageFit: normalizeHeroImageFit(content.imageFit),
           imagePosition: normalizeHeroImageFocus(content.imagePosition),
+          imageFocusX: normalizeHeroFocusPercent(content.imageFocusX),
+          imageFocusY: normalizeHeroFocusPercent(content.imageFocusY),
+          imageZoom: normalizeHeroImageZoom(content.imageZoom),
           backgroundOverlay: normalizeHeroBackgroundOverlay(content.backgroundOverlay),
           showLogo: content.showLogo !== false,
         },
@@ -573,6 +590,84 @@ async function assertOwner(firmId, actorUserId, message) {
  * padrão já usado no logótipo (`firm-branding.service.js`). Uma imagem cujo
  * ficheiro tenha sido removido do storage não deve rebentar a leitura do
  * resto da página — cai só essa, com `url: null`. */
+function findImageUrlById(config, imageId) {
+  if (!imageId || !config?.images) return null;
+  const id = String(imageId).trim();
+  if (!id) return null;
+  const pools = [
+    ...(config.images.hero || []),
+    ...(config.images.institutional || []),
+    ...Object.values(config.images.bySection || {}).flat(),
+  ];
+  const hit = pools.find((img) => img && img.id === id && img.url);
+  return hit?.url || null;
+}
+
+/**
+ * Imagem para partilha social (WhatsApp, etc.): ogImage explícito → destaque/hero →
+ * logótipo do site público → logótipo do escritório. Nunca imagem genérica Teglion.
+ */
+async function resolvePublicShareImageUrl(config, firm) {
+  if (!config) return null;
+
+  const ogRef = config.seo?.ogImage;
+  if (ogRef && typeof ogRef === 'object') {
+    const fromPool = ogRef.id ? findImageUrlById(config, ogRef.id) : null;
+    if (fromPool) return fromPool;
+    if (ogRef.storageKey) {
+      try {
+        return await contabilStorage.createSignedDownloadUrl(String(ogRef.storageKey), PUBLIC_SITE_IMAGE_SIGNED_TTL);
+      } catch {
+        /* ficheiro removido */
+      }
+    }
+  }
+
+  const heroSection = (config.sections || []).find((s) => s.type === 'hero' && s.enabled !== false);
+  if (heroSection?.content && typeof heroSection.content === 'object') {
+    const bgId = heroSection.content.backgroundImageId;
+    if (bgId) {
+      const bgUrl = findImageUrlById(config, bgId);
+      if (bgUrl) return bgUrl;
+    }
+    const imageIds = Array.isArray(heroSection.content.imageIds) ? heroSection.content.imageIds : [];
+    for (const iid of imageIds) {
+      const u = findImageUrlById(config, iid);
+      if (u) return u;
+    }
+  }
+
+  const heroFirst = (config.images?.hero || []).find((img) => img?.url);
+  if (heroFirst?.url) return heroFirst.url;
+
+  try {
+    const heroLogo = await resolvePublicSiteZoneLogoUrl('hero', config, firm);
+    if (heroLogo) return heroLogo;
+    const headerLogo = await resolvePublicSiteZoneLogoUrl('header', config, firm);
+    if (headerLogo) return headerLogo;
+  } catch {
+    /* sem logótipo */
+  }
+
+  return null;
+}
+
+async function resolvePublicShareMeta(config, firm, { firmSlug, publicOrigin }) {
+  const firmName = firm?.name || firm?.settings?.publicProfile?.displayName || 'Escritório';
+  const title = (config.seo?.title && String(config.seo.title).trim()) || firmName;
+  const hero = (config.sections || []).find((s) => s.type === 'hero');
+  const bio =
+    (config.seo?.description && String(config.seo.description).trim()) ||
+    (hero?.content?.bio && String(hero.content.bio).trim().slice(0, 200)) ||
+    null;
+  const slug = String(firmSlug || '').trim();
+  const origin = String(publicOrigin || '').replace(/\/$/, '');
+  const path = slug ? `/${encodeURIComponent(slug)}` : '/';
+  const pageUrl = origin ? `${origin}${path}` : path;
+  const imageUrl = await resolvePublicShareImageUrl(config, firm);
+  return { title, description: bio, imageUrl, url: pageUrl };
+}
+
 async function resolveConfigImages(config) {
   if (!config) return config;
   const resolveList = async (list) =>
@@ -870,6 +965,8 @@ module.exports = {
   resolveConfigImages,
   resolvePublicSiteLogoUrl,
   resolvePublicSiteZoneLogoUrl,
+  resolvePublicShareImageUrl,
+  resolvePublicShareMeta,
   sanitizeSiteCtasForFirm,
   filterPublicCtas,
 };
