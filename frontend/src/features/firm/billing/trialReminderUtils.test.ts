@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   canDismissTrialBanner,
+  shouldShowTrialReminderBanner,
   trialBannerMessage,
   trialBannerTone,
   trialDaysRemaining,
@@ -25,6 +26,16 @@ describe('trialBannerTone', () => {
     expect(trialBannerTone(10)).toBe('neutral')
     expect(trialBannerTone(5)).toBe('warning')
     expect(trialBannerTone(1)).toBe('critical')
+  })
+})
+
+describe('shouldShowTrialReminderBanner', () => {
+  it('só mostra o banner na reta final (≤5 dias)', () => {
+    expect(shouldShowTrialReminderBanner(14)).toBe(false)
+    expect(shouldShowTrialReminderBanner(6)).toBe(false)
+    expect(shouldShowTrialReminderBanner(5)).toBe(true)
+    expect(shouldShowTrialReminderBanner(1)).toBe(true)
+    expect(shouldShowTrialReminderBanner(0)).toBe(false)
   })
 })
 

@@ -119,7 +119,16 @@ export function DefaultTemplate({ config, ctx }: Props) {
               />
             )
           case 'contact':
-            return <ContactSection key={section.key} content={section.content} ctx={ctx} socialLinks={config.socialLinks} />
+            return (
+              <ContactSection
+                key={section.key}
+                content={section.content}
+                ctx={ctx}
+                socialLinks={config.socialLinks}
+                images={config.images}
+                sectionKey={section.key}
+              />
+            )
           case 'footer':
             return (
               <FooterSection key={section.key} ctx={ctx} socialLinks={config.socialLinks} content={section.content} />

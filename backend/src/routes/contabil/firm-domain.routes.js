@@ -345,6 +345,11 @@ router.post(
 );
 router.patch('/obligations/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationsController.update);
 router.post(
+  '/obligations/:id/remove',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  obligationsController.removeWithScope,
+);
+router.post(
   '/obligations/:id/upload-guide',
   requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
   uploadSingle('file'),

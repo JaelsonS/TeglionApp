@@ -838,10 +838,14 @@ export function ContactSection({
   content,
   ctx,
   socialLinks,
+  images,
+  sectionKey,
 }: {
   content: PublicSiteContactContent
   ctx: PublicSiteRenderContext
   socialLinks: PublicSiteSocialLinks
+  images?: PublicSiteConfig['images']
+  sectionKey?: string
 }) {
   const rows = [
     content.showEmail && ctx.contact.email ? { key: 'email', icon: Mail, label: ctx.contact.email, href: `mailto:${ctx.contact.email}` } : null,
@@ -859,18 +863,9 @@ export function ContactSection({
   ].filter((r): r is NonNullable<typeof r> => Boolean(r))
   const hasCtas = (content.ctas?.length ?? 0) > 0
   if (rows.length === 0 && !hasCtas) return null
-  const bg = hexStyle(content.backgroundColor)
   const text = hexStyle(content.textColor)
-  return (
-    <section
-      id="contactos"
-      className="px-4 py-6 text-center text-sm"
-      style={{
-        backgroundColor: bg,
-        color: text || undefined,
-      }}
-    >
-      <div className={`mx-auto max-w-2xl lg:max-w-4xl space-y-2 ${text ? '' : 'text-muted-foreground'}`}>
+  const inner = (
+    <div className={`space-y-2 text-center text-sm ${text ? '' : 'text-muted-foreground'}`} style={text ? { color: text } : undefined}>
         {rows.map(({ key, icon: Icon, label, href }) =>
           href ? (
             <a
@@ -896,7 +891,23 @@ export function ContactSection({
           socialLinks={socialLinks}
           className="flex flex-wrap items-center justify-center gap-2 pt-2"
         />
-      </div>
+    </div>
+  )
+  if (images) {
+    return (
+      <SectionWithMedia sectionId="contactos" content={content} images={images} sectionKey={sectionKey}>
+        {inner}
+      </SectionWithMedia>
+    )
+  }
+  const bg = hexStyle(content.backgroundColor)
+  return (
+    <section
+      id="contactos"
+      className="px-4 py-6 text-center text-sm"
+      style={{ backgroundColor: bg, color: text || undefined }}
+    >
+      <div className="mx-auto max-w-2xl lg:max-w-4xl">{inner}</div>
     </section>
   )
 }

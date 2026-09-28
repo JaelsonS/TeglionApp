@@ -15,7 +15,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     audience: 'Toda a equipa do escritório',
     goal: 'Saber por onde começar o dia e o que precisa de atenção.',
     firstTimeHint:
-      'Se acabou de chegar, siga o cartão «Próximo passo» — normalmente começa pelo logótipo, pela página pública e pelo primeiro serviço publicado.',
+      'Se acabou de chegar, siga o cartão «Próximo passo» — logótipo do portal (Identidade), página pública publicada e primeiro serviço no catálogo.',
     topicIds: ['tour', 'public-page', 'service', 'clients', 'dashboard-kpis'],
     primaryIntentId: 'tour',
   },
@@ -439,13 +439,15 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     search: { key: 'tab', value: 'pagina-publica' },
     where: 'Definições → Página pública',
     summary:
-      'Aqui edita o site público do escritório: link, destaque, secções, rodapé e publicação. Sem publicar, o site não fica visível na internet.',
+      'Aqui edita o site público: link, logótipos só do site (barra vs destaque), secções com imagens, rodapé e publicação. Não confundir com Identidade (portal).',
     audience: 'Quem trata da presença pública do escritório',
     goal: 'Publicar o link teglion.com/o-seu-slug e partilhá-lo.',
     firstTimeHint:
-      'Defina o link (slug) e o nome na barra, preencha o destaque, guarde o rascunho, pré-visualize e só depois publique.',
+      'Configure logótipos à direita se quiser site sem logo do portal; preencha o destaque; guarde → pré-visualize → publique.',
     topicIds: [
       'public-page',
+      'public-page-logos',
+      'public-page-media',
       'public-page-sections',
       'public-page-publish',
       'service',
@@ -507,11 +509,11 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     search: { key: 'tab', value: 'identidade' },
     where: 'Definições → Identidade',
     summary:
-      'Aqui define o logótipo e o aspeto visual do escritório no menu e no portal dos clientes.',
+      'Logótipo do menu do escritório e do portal dos clientes — não substitui a configuração do site público (Página pública).',
     audience: 'Quem trata da imagem do escritório',
     goal: 'O escritório ser reconhecível dentro do Teglion e no portal.',
-    firstTimeHint: 'Carregar o logótipo é normalmente o primeiro passo do painel.',
-    topicIds: ['settings-identity', 'public-page', 'settings'],
+    firstTimeHint: 'Carregue o logótipo do portal; depois, se quiser, ajuste logótipos só do site em Página pública.',
+    topicIds: ['settings-identity', 'public-page-logos', 'public-page', 'settings'],
     primaryIntentId: 'settings',
   },
   {

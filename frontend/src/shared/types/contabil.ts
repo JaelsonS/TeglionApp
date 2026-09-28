@@ -69,6 +69,7 @@ export type Obligation = {
   operationalLane?: OperationalLane
   clientName?: string | null
   templateId?: string | null
+  recurrenceRuleId?: string | null
   checklist?: string[]
   expectedDocuments?: string[]
   assignedStaffId?: string | null

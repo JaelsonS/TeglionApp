@@ -2,6 +2,7 @@ const firmObligations = require('./firm-obligations.service');
 const obligationsFirm = require('./obligations-firm.service');
 const operationalService = require('./obligation-operational.service');
 const monthExclusionsService = require('./task-month-exclusions.service');
+const recurringRemoval = require('../recurrence/recurring-removal.service');
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
 const { getRepository } = require('../../db/supabase/repositories');
 const { requireUserFirmId, parseEntityId, parseClientIdFromRequest } = require('../../utils/contabil-scope');
@@ -164,6 +165,24 @@ exports.getTimeline = async (req, res, next) => {
     const result = await obligationsFirm.getObligationTimeline({
       firmId: firmId,
       obligationId: parseEntityId(req.params.id, 'id'),
+    });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.removeWithScope = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const obligationId = parseEntityId(req.params.id, 'id');
+    const body = req.body || {};
+    const result = await recurringRemoval.removeObligationWithScope({
+      firmId,
+      obligationId,
+      scope: body.scope,
+      month: body.month,
+      actorId: req.user?.id || req.user?._id,
     });
     return res.json(result);
   } catch (err) {

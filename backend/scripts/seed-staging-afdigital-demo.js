@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 /**
- * Seed STAGING — operação AfDigital (Maya Valentina) para o email do piloto.
+ * Seed STAGING — demo completa de escritório (catálogo, clientes, portal, notícias).
  *
  * Só corre contra STAGING (.env.staging). Recusa PROD.
  *
  *   node backend/scripts/seed-staging-afdigital-demo.js
+ *   node backend/scripts/seed-staging-silva-full.js
+ *
+ * Variáveis opcionais: SEED_OWNER_EMAIL, SEED_FIRM_NAME, SEED_OWNER_NAME,
+ * SEED_FIRM_SLUG, SEED_CITY, SEED_DEMO_ID, SEED_PUBLIC_TAGLINE
  */
 const fs = require('fs');
 const path = require('path');
@@ -18,14 +22,20 @@ if (!fs.existsSync(STAGING_ENV)) {
 }
 dotenv.config({ path: STAGING_ENV, override: true });
 
-const OWNER_EMAIL = 'afdigitalweb.st@gmail.com';
-const FIRM_NAME = 'AfDigital';
-const OWNER_NAME = 'Maya Valentina';
-const DESIRED_SLUG = 'afdigital';
-const DEMO_SEED = 'afdigital-v1';
-const MARKER = '<!--afdigital-demo-->';
+const OWNER_EMAIL = (process.env.SEED_OWNER_EMAIL || 'afdigitalweb.st@gmail.com').trim().toLowerCase();
+const FIRM_NAME = process.env.SEED_FIRM_NAME || 'AfDigital';
+const OWNER_NAME = process.env.SEED_OWNER_NAME || 'Maya Valentina';
+const DESIRED_SLUG = process.env.SEED_FIRM_SLUG || 'afdigital';
+const DEMO_SEED = process.env.SEED_DEMO_ID || 'afdigital-v1';
+const MARKER = `<!--${DEMO_SEED}-->`;
+const CITY_LABEL = process.env.SEED_CITY || 'Coimbra, Portugal';
+const PUBLIC_TAGLINE =
+  process.env.SEED_PUBLIC_TAGLINE ||
+  'Contabilidade e consultoria fiscal com a exigência de quem acompanha famílias e empresas há mais de 50 anos.';
 const BRANDING_DIR = path.join(REPO_ROOT, 'frontend/public/branding');
-const AF_BLUE = '#0056B3';
+const PRIMARY_COLOR = process.env.SEED_PRIMARY_COLOR || '#0056B3';
+const SECONDARY_COLOR = process.env.SEED_SECONDARY_COLOR || '#0A2540';
+const OWNER_JOB_TITLE = process.env.SEED_OWNER_JOB || 'Sócia-gerente';
 
 const { CONSULTING_SERVICES_CATALOG } = require('../src/data/consulting-services-catalog');
 const { isSupabaseConfigured } = require('../src/db/supabase/client');
@@ -208,6 +218,11 @@ const EXTRA_SERVICES = [
 ];
 
 const DEMO_COMPANIES = [
+  {
+    displayName: 'João Nunes — Unipessoal, Lda.',
+    email: 'demo.joao.nunes@example.test',
+    taxId: '510000000',
+  },
   { displayName: 'Atlântico Têxteis, Lda.', email: 'demo.atlantico@example.test', taxId: '510000001' },
   { displayName: 'Ribeiro & Filhos Construção', email: 'demo.ribeiro@example.test', taxId: '510000002' },
   { displayName: 'Costa Verde Restauração', email: 'demo.costa@example.test', taxId: '510000003' },
@@ -258,7 +273,7 @@ function readPng(filename) {
 }
 
 function fakePdf(title) {
-  const body = `${title}\nDocumento de demonstração AfDigital.\n${MARKER}`;
+  const body = `${title}\nDocumento de demonstração ${FIRM_NAME}.\n${MARKER}`;
   return Buffer.from(
     `%PDF-1.1\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>endobj\n4 0 obj<</Length ${body.length}>>stream\n${body}\nendstream\nendobj\ntrailer<</Root 1 0 R>>\n%%EOF\n`,
   );
@@ -372,7 +387,7 @@ async function main() {
   }
   await firmUsersRepository.updateFirmMember(firmId, owner.id, {
     fullName: OWNER_NAME,
-    jobTitle: 'Sócia-gerente',
+    jobTitle: OWNER_JOB_TITLE,
     email: OWNER_EMAIL,
   });
 
@@ -485,13 +500,12 @@ async function main() {
 
   const siteConfig = normalizeSiteConfig({
     seo: {
-      title: 'AfDigital — Contabilidade e consultoria fiscal',
-      description:
-        'Escritório de contabilidade em Coimbra. IRS, empresas, salários e consultoria fiscal com mais de 50 anos de prática.',
+      title: `${FIRM_NAME} — Contabilidade e consultoria fiscal`,
+      description: `Escritório de contabilidade em ${CITY_LABEL}. IRS, empresas, salários e consultoria com portal do cliente.`,
     },
     theme: {
-      primaryColor: AF_BLUE,
-      secondaryColor: '#0A2540',
+      primaryColor: PRIMARY_COLOR,
+      secondaryColor: SECONDARY_COLOR,
       textColor: '#0F172A',
       backgroundColor: '#F7F8FA',
       surfaceColor: '#FFFFFF',
@@ -499,21 +513,21 @@ async function main() {
       logoStorageKey: logoKey,
     },
     images: {
-      hero: [{ id: heroId, storageKey: heroUpload.path, alt: 'Sala de reuniões da AfDigital' }],
-      institutional: [{ id: aboutId, storageKey: instUpload.path, alt: 'Escritório AfDigital' }],
+      hero: [{ id: heroId, storageKey: heroUpload.path, alt: `Sala de reuniões — ${FIRM_NAME}` }],
+      institutional: [{ id: aboutId, storageKey: instUpload.path, alt: `Escritório ${FIRM_NAME}` }],
     },
     socialLinks: {},
     showPrices: true,
     sections: [
-      { type: 'header', enabled: true, order: 0, content: { title: 'AfDigital' } },
+      { type: 'header', enabled: true, order: 0, content: { title: FIRM_NAME } },
       {
         type: 'hero',
         enabled: true,
         order: 1,
         content: {
-          title: 'AfDigital',
-          tagline: 'Contabilidade e consultoria fiscal com a exigência de quem acompanha famílias e empresas há mais de 50 anos.',
-          bio: 'A Maya Valentina e a equipa tratam do que tem prazo, do que precisa de documentos e do que convém decidir com calma — IRS, empresas, salários e consultoria.',
+          title: FIRM_NAME,
+          tagline: PUBLIC_TAGLINE,
+          bio: `${OWNER_NAME} e a equipa tratam do que tem prazo, do que precisa de documentos e do que convém decidir com calma — IRS, empresas, salários e consultoria.`,
           imageIds: [heroId],
           imageFit: 'cover',
           imagePosition: 'center',
@@ -533,7 +547,7 @@ async function main() {
         order: 2,
         content: {
           heading: 'Um escritório com história — e operação ao dia',
-          body: 'A AfDigital nasceu da prática contabilística de várias gerações e hoje combina esse ofício com uma operação digital: portal do cliente, pedidos de documentos, prazos, mensagens e agenda de consultorias. Maya Valentina lidera a equipa em Coimbra. Não inventamos atalhos fiscais — organizamos o que a lei e o calendário já pedem.',
+          body: `${FIRM_NAME} combina prática contabilística com operação digital: portal do cliente, pedidos de documentos, prazos, mensagens e agenda de consultorias. ${OWNER_NAME} lidera a equipa em ${CITY_LABEL}. Organizamos o que a lei e o calendário já pedem — com clareza para o cliente.`,
           imageIds: [aboutId],
         },
       },
@@ -598,7 +612,7 @@ async function main() {
             {
               id: 'q4',
               question: 'Há atendimento presencial?',
-              answer: 'Sim, em Coimbra, com marcação. Muita da operação resolve-se no portal sem deslocação.',
+              answer: `Sim, em ${CITY_LABEL}, com marcação. Muita da operação resolve-se no portal sem deslocação.`,
             },
           ],
         },
@@ -617,14 +631,14 @@ async function main() {
   await firmPublicSitesRepository.publish(firmId, owner.id);
   await firmsRepository.updateFirmPublicProfile(firmId, {
     displayName: FIRM_NAME,
-    tagline: 'Contabilidade e consultoria fiscal há mais de 50 anos.',
-    bio: 'Maya Valentina e equipa — Coimbra. Portal do cliente, prazos e consultorias no mesmo sítio.',
+    tagline: PUBLIC_TAGLINE.slice(0, 120),
+    bio: `${OWNER_NAME} e equipa — ${CITY_LABEL}. Portal do cliente, prazos e consultorias no mesmo sítio.`,
     email: OWNER_EMAIL,
-    address: 'Coimbra, Portugal',
+    address: CITY_LABEL,
   });
   await firmsRepository.updateFirmBranding(firmId, {
-    primaryColor: AF_BLUE,
-    secondaryColor: '#0A2540',
+    primaryColor: PRIMARY_COLOR,
+    secondaryColor: SECONDARY_COLOR,
     textColor: '#0F172A',
   });
   const publishedFirm = await firmsRepository.findFirmById(firmId);
@@ -657,7 +671,7 @@ async function main() {
       clientId: portalClient.id,
       limit: 200,
     });
-    const hasDemoObl = existingObligations.some((o) => String(o.notes || '').includes('afdigital-demo'));
+    const hasDemoObl = existingObligations.some((o) => String(o.notes || '').includes(MARKER));
     if (!hasDemoObl) {
       const obligationSpecs = [
         { type: 'IVA', title: 'IVA mensal', period: periodFor(-1), dueDate: dateDaysFromNow(-3), status: 'OVERDUE' },
@@ -687,7 +701,7 @@ async function main() {
       clientId: portalClient.id,
       limit: 50,
     });
-    if (!existingTasks.some((t) => String(t.description || '').includes('afdigital-demo'))) {
+    if (!existingTasks.some((t) => String(t.description || '').includes(MARKER))) {
       const taskSpecs = [
         { title: 'Enviar extractos bancários de Julho', status: 'WAITING_CLIENT', priority: 'HIGH', dueDate: dateDaysFromNow(2) },
         { title: 'Confirmar quadro de pessoal', status: 'TODO', priority: 'NORMAL', dueDate: dateDaysFromNow(6) },
@@ -699,7 +713,7 @@ async function main() {
           firm_id: firmId,
           client_id: portalClient.id,
           title: spec.title,
-          description: `Pedido da equipa AfDigital. ${MARKER}`,
+          description: `Pedido da equipa ${FIRM_NAME}. ${MARKER}`,
           status: spec.status,
           priority: spec.priority,
           due_date: spec.dueDate,
@@ -759,7 +773,7 @@ async function main() {
       clientId: portalClient.id,
       limit: 20,
     });
-    if (!existingRequests.some((r) => String(r.instructions || '').includes('afdigital-demo'))) {
+    if (!existingRequests.some((r) => String(r.instructions || '').includes(MARKER))) {
       const conversation = await conversationsRepository.getOrCreate({
         firmId,
         clientId: portalClient.id,
@@ -789,7 +803,7 @@ async function main() {
       clientId: portalClient.id,
       limit: 30,
     });
-    if (!existingMessages.some((m) => String(m.body || '').includes('afdigital-demo'))) {
+    if (!existingMessages.some((m) => String(m.body || '').includes(MARKER))) {
       await messagesRepository.createMessage({
         firmId,
         clientId: portalClient.id,
@@ -849,7 +863,7 @@ async function main() {
 
   const existingBroadcasts = await broadcastsRepository.listBroadcasts(firmId, { limit: 20 });
   const items = existingBroadcasts.items || [];
-  const hasDemoBroadcast = Array.isArray(items) && items.some((b) => String(b.body || '').includes('afdigital-demo'));
+  const hasDemoBroadcast = Array.isArray(items) && items.some((b) => String(b.body || '').includes(MARKER));
   if (!hasDemoBroadcast) {
     await broadcastsRepository.insertBroadcast({
       firm_id: firmId,
@@ -940,7 +954,7 @@ async function main() {
     });
   }
 
-  console.log('Seed AfDigital concluído.');
+  console.log(`Seed ${FIRM_NAME} concluído.`);
   console.log(`Pública: https://staging.teglion.com/${publishedFirm.slug}`);
   console.log('Portal cliente: https://staging.teglion.com/app/client');
   console.log('Escritório: https://staging.teglion.com/app/firm');

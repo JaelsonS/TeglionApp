@@ -18,9 +18,16 @@ export function trialBannerTone(daysLeft: number): TrialBannerTone {
   return 'neutral'
 }
 
-/** Só nos últimos 5 dias o aviso fica sempre visível. */
+/** Banner global só entra na reta final do teste (não nos 14 dias inteiros). */
+export const TRIAL_REMINDER_BANNER_MAX_DAYS = 5
+
+export function shouldShowTrialReminderBanner(daysLeft: number): boolean {
+  return daysLeft > 0 && daysLeft <= TRIAL_REMINDER_BANNER_MAX_DAYS
+}
+
+/** Com o banner só visível ≤5 dias, o fechar fica disponível nos 6–5 (se voltarmos a mostrar antes). */
 export function canDismissTrialBanner(daysLeft: number): boolean {
-  return daysLeft > 5
+  return daysLeft > TRIAL_REMINDER_BANNER_MAX_DAYS
 }
 
 export function trialBannerDismissStorageKey(tenantSlug: string, trialEndsAtIso: string): string {
