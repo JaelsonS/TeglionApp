@@ -184,7 +184,7 @@ export function DocumentPreviewPanel({
     setSavingValidity(true)
     try {
       await contabilDocumentsApi.updateMetadata(doc._id, {
-        description: docDescription.trim() || null,
+        description: docDescription.trim() || undefined,
         validFrom: validFrom || null,
         validUntil: validUntil || null,
       })

@@ -23,9 +23,9 @@ export function canDismissTrialBanner(daysLeft: number): boolean {
   return daysLeft > 5
 }
 
-export function trialBannerDismissStorageKey(firmId: string, trialEndsAtIso: string): string {
+export function trialBannerDismissStorageKey(tenantSlug: string, trialEndsAtIso: string): string {
   const day = String(trialEndsAtIso || '').slice(0, 10) || 'unknown'
-  return `teglion-firm-trial-banner-dismissed:${firmId}:${day}`
+  return `teglion-firm-trial-banner-dismissed:${tenantSlug}:${day}`
 }
 
 export function formatTrialEndPt(trialEndsAt: Date): string {

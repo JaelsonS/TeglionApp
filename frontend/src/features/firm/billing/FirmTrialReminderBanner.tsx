@@ -11,6 +11,7 @@ import {
   trialDaysRemaining,
 } from '@/features/firm/billing/trialReminderUtils'
 import { useAuth } from '@/shared/hooks/useAuth'
+import { isFirmSessionUser } from '@/shared/utils/authNormalize'
 import { useFirmAccess } from '@/shared/hooks/useFirmAccess'
 import { whatsappSupportUrl } from '@/shared/config/supportLinks'
 import { cn } from '@/shared/lib/utils'
@@ -23,11 +24,12 @@ function isFirmOwner(firmRole: string | undefined | null, role: string | undefin
 export function FirmTrialReminderBanner() {
   const { user } = useAuth()
   const { pathname } = useLocation()
-  const { status, trialEndsAt, isLoading } = useFirmAccess(Boolean(user?.firmId))
+  const firmSession = isFirmSessionUser(user)
+  const { status, trialEndsAt, isLoading } = useFirmAccess(firmSession)
 
-  const firmId = user?.firmId || ''
+  const tenantSlug = user?.tenant.slug || ''
   const trialIso = trialEndsAt?.toISOString() || ''
-  const dismissKey = firmId && trialIso ? trialBannerDismissStorageKey(firmId, trialIso) : ''
+  const dismissKey = tenantSlug && trialIso ? trialBannerDismissStorageKey(tenantSlug, trialIso) : ''
 
   const [dismissed, setDismissed] = useState(() => {
     if (!dismissKey) return false
