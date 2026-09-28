@@ -1040,7 +1040,24 @@ function SectionEditorSwitch({
         />
       )
     case 'faq':
-      return <FaqEditor content={section.content} onChange={onChange} />
+      return (
+        <FaqEditor
+          content={section.content}
+          onChange={onChange}
+          sectionMedia={{
+            content: section.content,
+            onChange,
+            contentImageUrl: imageUrl,
+            backgroundImageUrl: backgroundImageUrl ?? null,
+            uploadingContent: uploadingImage,
+            uploadingBackground: uploadingBackgroundImage ?? false,
+            onUploadContent: onUploadImage,
+            onRemoveContent: onRemoveImage,
+            onUploadBackground: onUploadBackgroundImage,
+            onRemoveBackground: onRemoveBackgroundImage,
+          }}
+        />
+      )
     case 'contact':
       return (
         <ContactEditor
@@ -1049,6 +1066,18 @@ function SectionEditorSwitch({
           services={services}
           officePhone={officePhone}
           socialWhatsapp={socialWhatsapp}
+          sectionMedia={{
+            content: section.content,
+            onChange,
+            contentImageUrl: imageUrl,
+            backgroundImageUrl: backgroundImageUrl ?? null,
+            uploadingContent: uploadingImage,
+            uploadingBackground: uploadingBackgroundImage ?? false,
+            onUploadContent: onUploadImage,
+            onRemoveContent: onRemoveImage,
+            onUploadBackground: onUploadBackgroundImage,
+            onRemoveBackground: onRemoveBackgroundImage,
+          }}
         />
       )
     case 'header':

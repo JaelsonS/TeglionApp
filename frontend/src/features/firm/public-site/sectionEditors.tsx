@@ -647,7 +647,7 @@ export function ChromeSectionEditor({
           <span>
             <span className="font-medium">Mostrar logótipo na barra do topo</span>
             <span className="mt-0.5 block text-[11px] text-muted-foreground">
-              Só aparece se tiver logótipo (Página pública ou Definições → Logótipo).
+              Depende do painel «Logótipos (só site público)» e desta opção.
             </span>
           </span>
         </label>
@@ -1537,7 +1537,15 @@ export function ProcessEditor({
   )
 }
 
-export function FaqEditor({ content, onChange }: { content: PublicSiteFaqContent; onChange: (next: PublicSiteFaqContent) => void }) {
+export function FaqEditor({
+  content,
+  onChange,
+  sectionMedia,
+}: {
+  content: PublicSiteFaqContent
+  onChange: (next: PublicSiteFaqContent) => void
+  sectionMedia?: SectionMediaEditorProps<PublicSiteFaqContent>
+}) {
   const addItem = () => onChange({ ...content, items: [...content.items, { id: generateStableId('faq_'), question: '', answer: '' }] })
   const patchItem = (id: string, patch: Partial<PublicSiteFaqContent['items'][number]>) =>
     onChange({ ...content, items: content.items.map((it) => (it.id === id ? { ...it, ...patch } : it)) })
@@ -1545,6 +1553,7 @@ export function FaqEditor({ content, onChange }: { content: PublicSiteFaqContent
 
   return (
     <div className="space-y-3">
+      {sectionMedia ? <SectionMediaEditor {...sectionMedia} contentLabel="Imagem ilustrativa (opcional)" /> : null}
       <div className="grid gap-3 sm:grid-cols-3">
         <InlineColorField
           id="faq-bg"
@@ -1600,15 +1609,18 @@ export function ContactEditor({
   services,
   officePhone,
   socialWhatsapp,
+  sectionMedia,
 }: {
   content: PublicSiteContactContent
   onChange: (next: PublicSiteContactContent) => void
   services: PublicFirmServiceSummary[]
   officePhone?: string | null
   socialWhatsapp?: string | null
+  sectionMedia?: SectionMediaEditorProps<PublicSiteContactContent>
 }) {
   return (
     <div className="space-y-3">
+      {sectionMedia ? <SectionMediaEditor {...sectionMedia} contentLabel="Imagem (opcional)" /> : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <InlineColorField
           id="contact-bg"
