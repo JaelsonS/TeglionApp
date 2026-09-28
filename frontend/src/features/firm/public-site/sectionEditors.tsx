@@ -18,11 +18,15 @@ import { Textarea } from '@/shared/components/ui/textarea'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { firmPublicSiteApi } from '@/infrastructure/api/contabil/firmPublicSite'
-import { resolvePublicSitePreviewLogoUrl } from '@/features/firm/public-site/publicSitePreviewLogo'
+import {
+  resolvePublicSitePreviewZoneLogoUrl,
+} from '@/features/firm/public-site/publicSitePreviewLogo'
 import type {
   PublicSiteAboutContent,
   PublicSiteChromeContent,
   PublicSiteConfig,
+  PublicSiteLogoSource,
+  PublicSiteSectionMediaFields,
   PublicSiteContactContent,
   PublicSiteCta,
   PublicSiteFaqContent,
@@ -464,6 +468,117 @@ export function ImagePickerField({
         aspect={cropAspect}
         onCropped={(cropped) => onUpload(cropped)}
       />
+    </div>
+  )
+}
+
+type SectionMediaEditorProps<T extends PublicSiteSectionMediaFields> = {
+  content: T
+  onChange: (next: T) => void
+  contentImageUrl: string | null
+  backgroundImageUrl: string | null
+  uploadingContent: boolean
+  uploadingBackground: boolean
+  onUploadContent: (file: File) => void
+  onRemoveContent: () => void
+  onUploadBackground?: (file: File) => void
+  onRemoveBackground?: () => void
+  contentLabel?: string
+}
+
+export function SectionMediaEditor<T extends PublicSiteSectionMediaFields>({
+  content,
+  onChange,
+  contentImageUrl,
+  backgroundImageUrl,
+  uploadingContent,
+  uploadingBackground,
+  onUploadContent,
+  onRemoveContent,
+  onUploadBackground,
+  onRemoveBackground,
+  contentLabel = 'Imagem desta secção',
+}: SectionMediaEditorProps<T>) {
+  const placement = content.imagePlacement === 'left' || content.imagePlacement === 'right' ? content.imagePlacement : 'above'
+  const size = content.imageSize === 'sm' || content.imageSize === 'md' || content.imageSize === 'lg' ? content.imageSize : 'full'
+  return (
+    <div className="space-y-3 rounded-lg border border-border/40 bg-muted/10 p-3">
+      <p className="text-sm font-semibold">Imagens (só página pública)</p>
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={content.showImage !== false}
+          onChange={(e) => onChange({ ...content, showImage: e.target.checked })}
+        />
+        Mostrar imagem de conteúdo
+      </label>
+      <ImagePickerField
+        label={contentLabel}
+        imageUrl={contentImageUrl}
+        uploading={uploadingContent}
+        onUpload={onUploadContent}
+        onRemove={onRemoveContent}
+        cropAspect="free"
+        cropTitle="Recortar imagem"
+      />
+      <div className="grid gap-2 sm:grid-cols-2">
+        <div className="space-y-1">
+          <Label className="text-caption text-muted-foreground">Posição</Label>
+          <select
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+            value={placement}
+            onChange={(e) =>
+              onChange({
+                ...content,
+                imagePlacement: e.target.value as 'above' | 'left' | 'right',
+              })
+            }
+          >
+            <option value="above">Acima do texto</option>
+            <option value="left">Esquerda do texto</option>
+            <option value="right">Direita do texto</option>
+          </select>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-caption text-muted-foreground">Tamanho</Label>
+          <select
+            className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+            value={size}
+            onChange={(e) =>
+              onChange({
+                ...content,
+                imageSize: e.target.value as 'sm' | 'md' | 'lg' | 'full',
+              })
+            }
+          >
+            <option value="sm">Pequeno</option>
+            <option value="md">Médio</option>
+            <option value="lg">Grande</option>
+            <option value="full">Largura total</option>
+          </select>
+        </div>
+      </div>
+      {onUploadBackground && onRemoveBackground ? (
+        <>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={content.showBackgroundImage === true}
+              onChange={(e) => onChange({ ...content, showBackgroundImage: e.target.checked })}
+            />
+            Imagem de fundo (suave, por baixo do texto)
+          </label>
+          <ImagePickerField
+            label="Fundo (opcional)"
+            imageUrl={backgroundImageUrl}
+            uploading={uploadingBackground}
+            onUpload={onUploadBackground}
+            onRemove={onRemoveBackground}
+            cropAspect={16 / 9}
+            cropTitle="Recortar fundo"
+          />
+        </>
+      ) : null}
     </div>
   )
 }
@@ -1030,6 +1145,7 @@ export function AboutEditor({
   services,
   officePhone,
   socialWhatsapp,
+  sectionMedia,
 }: {
   content: PublicSiteAboutContent
   onChange: (next: PublicSiteAboutContent) => void
@@ -1040,11 +1156,13 @@ export function AboutEditor({
   services: PublicFirmServiceSummary[]
   officePhone?: string | null
   socialWhatsapp?: string | null
+  sectionMedia?: SectionMediaEditorProps<PublicSiteAboutContent>
 }) {
   return (
     <div className="space-y-4">
-      <div className="space-y-2 rounded-lg border border-border/40 bg-muted/10 p-3">
-        <p className="text-caption font-medium">Fundo da secção</p>
+      {sectionMedia ? (
+        <SectionMediaEditor {...sectionMedia} contentLabel="Foto (ex.: retrato)" />
+      ) : (
         <ImagePickerField
           label="Foto (opcional)"
           imageUrl={imageUrl}
@@ -1054,14 +1172,14 @@ export function AboutEditor({
           cropAspect="free"
           cropTitle="Recortar foto"
         />
-        <InlineColorField
-          id="about-bg"
-          label="Cor de fundo (em vez de / além da foto)"
-          value={content.backgroundColor}
-          fallback="#ffffff"
-          onChange={(v) => onChange({ ...content, backgroundColor: v })}
-        />
-      </div>
+      )}
+      <InlineColorField
+        id="about-bg"
+        label="Cor de fundo da secção"
+        value={content.backgroundColor}
+        fallback="#ffffff"
+        onChange={(v) => onChange({ ...content, backgroundColor: v })}
+      />
       <div className="space-y-2">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <Label>Título</Label>
@@ -1289,9 +1407,11 @@ export function ServicesHeadingEditor({
 export function FeaturesEditor({
   content,
   onChange,
+  sectionMedia,
 }: {
   content: PublicSiteFeaturesContent
   onChange: (next: PublicSiteFeaturesContent) => void
+  sectionMedia?: SectionMediaEditorProps<PublicSiteFeaturesContent>
 }) {
   const addItem = () => onChange({ ...content, items: [...content.items, { id: generateStableId('feat_'), title: '', description: '' }] })
   const patchItem = (id: string, patch: Partial<PublicSiteFeaturesContent['items'][number]>) =>
@@ -1300,6 +1420,7 @@ export function FeaturesEditor({
 
   return (
     <div className="space-y-3">
+      {sectionMedia ? <SectionMediaEditor {...sectionMedia} contentLabel="Imagem ilustrativa" /> : null}
       <div className="grid gap-3 sm:grid-cols-3">
         <InlineColorField
           id="feat-bg"
@@ -1352,9 +1473,11 @@ export function FeaturesEditor({
 export function ProcessEditor({
   content,
   onChange,
+  sectionMedia,
 }: {
   content: PublicSiteProcessContent
   onChange: (next: PublicSiteProcessContent) => void
+  sectionMedia?: SectionMediaEditorProps<PublicSiteProcessContent>
 }) {
   const addStep = () => onChange({ ...content, steps: [...content.steps, { id: generateStableId('step_'), title: '', description: '' }] })
   const patchStep = (id: string, patch: Partial<PublicSiteProcessContent['steps'][number]>) =>
@@ -1363,6 +1486,7 @@ export function ProcessEditor({
 
   return (
     <div className="space-y-3">
+      {sectionMedia ? <SectionMediaEditor {...sectionMedia} contentLabel="Imagem ilustrativa" /> : null}
       <div className="grid gap-3 sm:grid-cols-3">
         <InlineColorField
           id="process-bg"
@@ -1536,22 +1660,33 @@ export function ContactEditor({
 
 const MAX_PUBLIC_LOGO_MB = 3
 
-export function PublicSiteLogoCard({
+const LOGO_SOURCE_OPTIONS: { value: PublicSiteLogoSource; label: string }[] = [
+  { value: 'firm', label: 'Definições → Logótipo' },
+  { value: 'custom', label: 'Imagem só desta página' },
+  { value: 'none', label: 'Sem logótipo aqui' },
+]
+
+function ZoneLogoEditor({
+  zone,
+  title,
   draft,
   firmLogoUrl,
-  readOnly = false,
+  readOnly,
   onDraftUpdate,
+  onLogoSourceChange,
 }: {
+  zone: 'header' | 'hero'
+  title: string
   draft: PublicSiteConfig
   firmLogoUrl: string | null
-  readOnly?: boolean
+  readOnly: boolean
   onDraftUpdate: (next: PublicSiteConfig) => void
+  onLogoSourceChange: (zone: 'header' | 'hero', source: PublicSiteLogoSource) => void
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
-  const [clearing, setClearing] = useState(false)
-  const previewUrl = resolvePublicSitePreviewLogoUrl(draft, firmLogoUrl)
-  const usesCustom = Boolean(draft.theme.logoStorageKey)
+  const source = zone === 'header' ? draft.theme.headerLogoSource ?? 'firm' : draft.theme.heroLogoSource ?? 'firm'
+  const previewUrl = resolvePublicSitePreviewZoneLogoUrl(draft, zone, firmLogoUrl)
 
   const onUpload = async (file: File) => {
     if (readOnly) return
@@ -1561,9 +1696,9 @@ export function PublicSiteLogoCard({
     }
     setUploading(true)
     try {
-      const res = await firmPublicSiteApi.uploadPublicLogo(file)
+      const res = await firmPublicSiteApi.uploadPublicLogo(file, zone)
       onDraftUpdate(res.draft)
-      toast.success('Logótipo da página pública guardado no rascunho.')
+      toast.success(`Logótipo (${title}) guardado no rascunho.`)
     } catch (err) {
       toast.error('Não foi possível guardar o logótipo', { description: getErrorMessage(err) })
     } finally {
@@ -1571,60 +1706,93 @@ export function PublicSiteLogoCard({
     }
   }
 
-  const onUseFirmLogo = async () => {
-    if (readOnly || !usesCustom) return
-    setClearing(true)
-    try {
-      const res = await firmPublicSiteApi.removePublicLogo()
-      onDraftUpdate(res.draft)
-      toast.success('A página pública volta a usar o logótipo das Definições.')
-    } catch (err) {
-      toast.error('Não foi possível repor o logótipo', { description: getErrorMessage(err) })
-    } finally {
-      setClearing(false)
-    }
-  }
+  return (
+    <div className="space-y-2 rounded-lg border border-border/40 p-2.5">
+      <p className="text-[11px] font-semibold">{title}</p>
+      <select
+        className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+        disabled={readOnly}
+        value={source}
+        onChange={(e) => onLogoSourceChange(zone, e.target.value as PublicSiteLogoSource)}
+      >
+        {LOGO_SOURCE_OPTIONS.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      {previewUrl ? (
+        <img src={previewUrl} alt="" className="h-14 w-14 rounded-md border border-border/50 object-contain" />
+      ) : (
+        <p className="text-[11px] text-muted-foreground">Nenhuma imagem nesta zona.</p>
+      )}
+      {source === 'custom' ? (
+        <>
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) void onUpload(file)
+              e.target.value = ''
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={readOnly || uploading}
+            onClick={() => inputRef.current?.click()}
+          >
+            {uploading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+            Carregar imagem
+          </Button>
+        </>
+      ) : null}
+    </div>
+  )
+}
 
+export function PublicSiteLogoCard({
+  draft,
+  firmLogoUrl,
+  readOnly = false,
+  onDraftUpdate,
+  onLogoSourceChange,
+}: {
+  draft: PublicSiteConfig
+  firmLogoUrl: string | null
+  readOnly?: boolean
+  onDraftUpdate: (next: PublicSiteConfig) => void
+  onLogoSourceChange: (zone: 'header' | 'hero', source: PublicSiteLogoSource) => void
+}) {
   return (
     <div className="rounded-xl border border-border/50 bg-card p-3">
-      <p className="text-xs font-semibold text-foreground">Logótipo na página pública</p>
+      <p className="text-xs font-semibold text-foreground">Logótipos (só site público)</p>
       <p className="mt-0.5 text-[11px] text-muted-foreground">
-        Por omissão usa Definições → Logótipo. Pode carregar uma imagem só para teglion.com/… e escolher onde
-        aparece em «Barra do topo» e «Destaque principal».
+        Independentes de Definições → Logótipo (portal). Pode ser diferente na barra e no destaque, ou sem imagem.
       </p>
-      {previewUrl ? (
-        <img src={previewUrl} alt="" className="mt-2 h-16 w-16 rounded-md border border-border/50 object-contain" />
-      ) : (
-        <p className="mt-2 text-[11px] text-muted-foreground">Sem logótipo — adicione em Definições ou abaixo.</p>
-      )}
-      <div className="mt-2 flex flex-wrap gap-2">
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            if (file) void onUpload(file)
-            e.target.value = ''
-          }}
+      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+        <ZoneLogoEditor
+          zone="header"
+          title="Barra do topo"
+          draft={draft}
+          firmLogoUrl={firmLogoUrl}
+          readOnly={readOnly}
+          onDraftUpdate={onDraftUpdate}
+          onLogoSourceChange={onLogoSourceChange}
         />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={readOnly || uploading}
-          onClick={() => inputRef.current?.click()}
-        >
-          {uploading ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-          {usesCustom ? 'Substituir logótipo desta página' : 'Logótipo só desta página'}
-        </Button>
-        {usesCustom ? (
-          <Button type="button" variant="ghost" size="sm" disabled={readOnly || clearing} onClick={() => void onUseFirmLogo()}>
-            {clearing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-            Usar logótipo das Definições
-          </Button>
-        ) : null}
+        <ZoneLogoEditor
+          zone="hero"
+          title="Destaque principal"
+          draft={draft}
+          firmLogoUrl={firmLogoUrl}
+          readOnly={readOnly}
+          onDraftUpdate={onDraftUpdate}
+          onLogoSourceChange={onLogoSourceChange}
+        />
       </div>
     </div>
   )

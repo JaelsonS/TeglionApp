@@ -106,7 +106,9 @@ export function FirmPublicSitePage() {
         ctx={{
           firmSlug,
           firmName: data.firmName,
-          logoUrl: data.logoUrl,
+          logoUrl: data.headerLogoUrl ?? data.logoUrl,
+          headerLogoUrl: data.headerLogoUrl ?? data.logoUrl,
+          heroLogoUrl: data.heroLogoUrl ?? data.logoUrl,
           services: data.services,
           contact: data.contact,
           showPrices: data.showPrices !== false,
