@@ -179,6 +179,7 @@ async function registerFirm(req, res, next) {
         ipAddress: clientIp(req),
         userAgent: clientUserAgent(req),
       },
+      req,
     });
     if (result.needsEmailConfirmation) {
       return res.status(201).json({
@@ -187,6 +188,31 @@ async function registerFirm(req, res, next) {
         email: result.email,
         firmName: result.firmName,
         message: result.message,
+      });
+    }
+    const mfaStatus = result.status;
+    if (
+      mfaStatus === 'MFA_CHALLENGE_REQUIRED' ||
+      mfaStatus === 'MFA_ENROLLMENT_REQUIRED'
+    ) {
+      const {
+        setMfaChallengeCookie,
+        clearAccessTokenCookie: clearAccess,
+        clearRefreshTokenCookie: clearRefresh,
+      } = require('../../utils/auth-cookies');
+      clearAccess(res, { req });
+      clearRefresh(res, { req });
+      if (result.mfa?.challengeToken) {
+        setMfaChallengeCookie(res, result.mfa.challengeToken, { req });
+      }
+      return res.status(201).json({
+        status: mfaStatus,
+        user: result.user,
+        mfa: {
+          purpose: result.mfa?.purpose,
+          expiresAt: result.mfa?.expiresAt,
+          challengeToken: result.mfa?.challengeToken,
+        },
       });
     }
     setRefreshTokenCookie(res, result.tokens.refreshToken, { req });

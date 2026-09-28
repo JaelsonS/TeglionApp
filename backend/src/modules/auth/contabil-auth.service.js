@@ -149,7 +149,7 @@ async function issueTokensForClient(row) {
   return { user: publicUser, tokens: { accessToken, refreshToken: refresh.token } };
 }
 
-async function registerFirm({ firmName, ownerName, email, password, countryCode = 'PT', legalConsents }) {
+async function registerFirm({ firmName, ownerName, email, password, countryCode = 'PT', legalConsents, req }) {
   try {
     legalConsentsService.validateFirmLegalPayload(legalConsents);
     const normalizedEmail = String(email || '').trim().toLowerCase();
@@ -203,8 +203,27 @@ async function registerFirm({ firmName, ownerName, email, password, countryCode 
     // Sem Brevo em local: auto-confirma para não bloquear desenvolvimento.
     if (!delivery.emailSent && delivery.emailError === 'email_disabled') {
       await firmUsersRepository.markFirmUserEmailConfirmed(firmUser.id, firm.id);
-      const confirmed = await firmUsersRepository.findFirmUserById(firmUser.id);
-      return issueTokensForFirmUser(confirmed || firmUser);
+      const confirmed = await firmUsersRepository.findFirmUserById(firmUser.id, firm.id);
+      const row = confirmed || firmUser;
+      const mfa = require('./mfa.service');
+      const gate = mfa.resolvePostCredentialGate(row);
+      if (gate.status !== mfa.STATUS.AUTHENTICATED) {
+        void securityAudit.recordSecurityEvent({
+          firmId: firm.id,
+          actorRole: sanitizeFirmUser(row).role,
+          actorId: row.id,
+          action:
+            gate.status === mfa.STATUS.MFA_ENROLLMENT_REQUIRED
+              ? 'mfa.register.enrollment_required'
+              : 'mfa.register.challenge_required',
+          entityType: 'auth',
+          entityId: row.id,
+          metadata: { scope: 'firm', method: 'password' },
+          req,
+        });
+        return { ...gate, tokens: null };
+      }
+      return issueTokensForFirmUser(row);
     }
 
     return {

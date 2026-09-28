@@ -34,6 +34,7 @@ import {
   type FirmLegalConsentState,
 } from '@/shared/components/legal/LegalConsentBlock'
 import { passwordPolicySchema } from '@/shared/utils/passwordPolicy'
+import { redirectFirmMfaGateIfNeeded } from '@/features/auth/firm/firmMfaGateRedirect'
 
 const schema = z.object({
   firmName: z.string().min(2, 'Nome do escritório obrigatório'),
@@ -93,6 +94,8 @@ export function FirmRegisterPage() {
         firmName?: string
         message?: string
         user?: unknown
+        status?: string
+        mfa?: { challengeToken?: string; expiresAt?: string | null }
       }
 
       if (res.needsEmailConfirmation) {
@@ -102,6 +105,11 @@ export function FirmRegisterPage() {
           emailSent: res.emailSent !== false,
         })
         toast.success('Conta criada — confirme o e-mail para activar')
+        return
+      }
+
+      if (redirectFirmMfaGateIfNeeded(res, navigate, { fromRegistration: true })) {
+        toast.success('Conta criada. Configure a autenticação de dois factores para continuar.')
         return
       }
 
