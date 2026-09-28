@@ -30,6 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
+import { ConfirmRemoveDialog } from '@/features/firm/components/ConfirmRemoveDialog'
 import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { formatNif } from '@/shared/utils/formatNif'
 import { formatPtDate } from '@/shared/utils/contabilLocale'
@@ -59,6 +60,8 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
   const [removeObligation, setRemoveObligation] = useState<ObligationRow | null>(null)
   const [removeScope, setRemoveScope] = useState<RecurrenceRemoveScope>('occurrence')
   const [removePending, setRemovePending] = useState(false)
+  const [quickRemove, setQuickRemove] = useState<ObligationRow | null>(null)
+  const [quickRemovePending, setQuickRemovePending] = useState(false)
 
   const clientById = hub.clientById
 
@@ -287,20 +290,7 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
                                     setRemoveObligation(ob)
                                     return
                                   }
-                                  if (!window.confirm('Remover esta obrigação da lista?')) return
-                                  void (async () => {
-                                    try {
-                                      await contabilObligationsApi.remove(ob._id, {
-                                        scope: 'occurrence',
-                                        month: obligationPeriodYm(ob) || undefined,
-                                      })
-                                      toast.success('Obrigação removida')
-                                      if (hub.selectedId === ob._id) hub.selectObligation(null)
-                                      void hub.refresh()
-                                    } catch (err) {
-                                      toast.error(getErrorMessage(err))
-                                    }
-                                  })()
+                                  setQuickRemove(ob)
                                 }}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
@@ -413,6 +403,33 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
           }}
         />
       ) : null}
+
+      <ConfirmRemoveDialog
+        open={Boolean(quickRemove)}
+        onOpenChange={(open) => !open && setQuickRemove(null)}
+        title="Remover obrigação?"
+        description="Esta obrigação deixa de aparecer na lista deste período. Pode voltar a criá-la manualmente se precisar."
+        confirmLabel="Remover obrigação"
+        pending={quickRemovePending}
+        onConfirm={async () => {
+          if (!quickRemove) return
+          setQuickRemovePending(true)
+          try {
+            await contabilObligationsApi.remove(quickRemove._id, {
+              scope: 'occurrence',
+              month: obligationPeriodYm(quickRemove) || undefined,
+            })
+            toast.success('Obrigação removida')
+            setQuickRemove(null)
+            if (hub.selectedId === quickRemove._id) hub.selectObligation(null)
+            void hub.refresh()
+          } catch (err) {
+            toast.error(getErrorMessage(err))
+          } finally {
+            setQuickRemovePending(false)
+          }
+        }}
+      />
     </div>
   )
 }

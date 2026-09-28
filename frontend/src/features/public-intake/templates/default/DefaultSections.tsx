@@ -331,21 +331,31 @@ export function HeroSection({
           className="mx-auto mb-4 h-20 w-20 rounded-full border-2 border-white/40 object-cover shadow-sm"
         />
       ) : null}
-      {heroTitle ? (
-        <h1
-          className={titleColor ? 'text-2xl font-bold sm:text-3xl' : defaultTitleClass}
-          style={titleColor ? { color: titleColor } : undefined}
-        >
-          {heroTitle}
-        </h1>
-      ) : null}
       {content.tagline ? (
         <p
-          className={taglineColor ? 'mt-2 text-base' : defaultTaglineClass}
+          className={
+            taglineColor
+              ? 'mb-3 text-[11px] font-semibold uppercase tracking-[0.14em]'
+              : onPhoto
+                ? 'mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/90 drop-shadow'
+                : 'mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[hsl(var(--brand-text,var(--primary)))]'
+          }
           style={taglineColor ? { color: taglineColor } : undefined}
         >
           {content.tagline}
         </p>
+      ) : null}
+      {heroTitle ? (
+        <h1
+          className={
+            titleColor
+              ? 'text-balance text-3xl font-bold leading-tight sm:text-4xl'
+              : `${defaultTitleClass} text-balance text-3xl leading-tight sm:text-4xl`
+          }
+          style={titleColor ? { color: titleColor } : undefined}
+        >
+          {heroTitle}
+        </h1>
       ) : null}
       {content.bio ? (
         <p
@@ -515,29 +525,34 @@ function ClusteredServiceGroups({
   showPrices,
   openInNewTab,
   excludeSlugs,
+  catalogGrid,
 }: {
   clusters: ReturnType<typeof clusterPublicServices>
   firmSlug: string
   showPrices: boolean
   openInNewTab: boolean
   excludeSlugs?: Set<string>
+  catalogGrid?: boolean
 }) {
   const total = clusters.reduce((n, c) => n + c.items.length, 0)
-  const useCompactGrid = total > 14
+  const useCompactGrid = catalogGrid || total > 8
 
   return (
-    <div className="space-y-8">
-      {clusters.map((cluster) => (
-        <div key={cluster.heading || '__ungrouped'}>
+    <div className={catalogGrid ? 'grid gap-6 sm:grid-cols-2' : 'space-y-8'}>
+      {clusters.map((cluster) => {
+        const visible = cluster.items.filter((s) => !excludeSlugs?.has(s.slug))
+        if (visible.length === 0) return null
+        return (
+        <div key={cluster.heading || '__ungrouped'} className={catalogGrid ? 'rounded-2xl border border-border/40 bg-card/50 p-4' : undefined}>
           {cluster.heading ? (
-            <h3 className="mb-3 text-base font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[hsl(var(--brand-text,var(--primary)))]">
               {cluster.heading}
-              <span className="ml-2 text-sm font-normal text-muted-foreground">({cluster.items.length})</span>
+              <span className="ml-2 text-xs font-normal normal-case text-muted-foreground">({visible.length})</span>
             </h3>
           ) : null}
           <ul
             className={
-              useCompactGrid
+              useCompactGrid && !catalogGrid
                 ? 'grid gap-3 sm:grid-cols-2'
                 : 'grid gap-3 sm:grid-cols-1'
             }
@@ -556,7 +571,8 @@ function ClusteredServiceGroups({
             ))}
           </ul>
         </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
@@ -596,12 +612,18 @@ export function ServicesSection({
           showPrices={ctx.showPrices !== false}
           openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
         />
+        {(content.featuredServiceSlugs?.length ?? 0) > 0 ? (
+          <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-[hsl(var(--brand-text,var(--muted-foreground)))]">
+            Catálogo completo
+          </p>
+        ) : null}
         <ClusteredServiceGroups
           clusters={clusterPublicServices(items)}
           firmSlug={ctx.firmSlug}
           showPrices={ctx.showPrices !== false}
           openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
           excludeSlugs={new Set(content.featuredServiceSlugs || [])}
+          catalogGrid
         />
         <PublicSiteCtaButtons
           ctas={content.ctas}
@@ -649,12 +671,18 @@ export function BookingServicesSection({
           showPrices={ctx.showPrices !== false}
           openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
         />
+        {(content.featuredServiceSlugs?.length ?? 0) > 0 ? (
+          <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-[hsl(var(--brand-text,var(--muted-foreground)))]">
+            Catálogo de serviços
+          </p>
+        ) : null}
         <ClusteredServiceGroups
           clusters={clusterPublicServices(items)}
           firmSlug={ctx.firmSlug}
           showPrices={ctx.showPrices !== false}
           openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
           excludeSlugs={new Set(content.featuredServiceSlugs || [])}
+          catalogGrid={(content.featuredServiceSlugs?.length ?? 0) > 0}
         />
         <PublicSiteCtaButtons
           ctas={content.ctas}

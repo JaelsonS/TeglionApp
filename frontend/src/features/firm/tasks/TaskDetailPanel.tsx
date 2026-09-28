@@ -21,6 +21,7 @@ import { toast } from 'sonner'
 import type { WorkspaceTaskStatus } from '@/infrastructure/api/contabil/tasks'
 import { tasksApi } from '@/infrastructure/api/contabil/tasks'
 import { PRIORITY_LABEL, STATUS_LABEL } from '@/features/firm/tasks/taskWorkspaceConstants'
+import { ConfirmRemoveDialog } from '@/features/firm/components/ConfirmRemoveDialog'
 import { TaskEditDialog, buildTaskEditPatch } from '@/features/firm/tasks/TaskEditDialog'
 import {
   RecurrenceRemoveDialog,
@@ -61,6 +62,7 @@ export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose
   const [removeOpen, setRemoveOpen] = useState(false)
   const [removeScope, setRemoveScope] = useState<RecurrenceRemoveScope>('occurrence')
   const [removePending, setRemovePending] = useState(false)
+  const [simpleRemoveOpen, setSimpleRemoveOpen] = useState(false)
 
   const task = data?.task
   const timeline = data?.timeline || []
@@ -273,8 +275,7 @@ export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose
                     setRemoveOpen(true)
                     return
                   }
-                  if (!window.confirm('Apagar esta tarefa?')) return
-                  void run(() => tasksApi.remove(task.id), 'Removida')
+                  setSimpleRemoveOpen(true)
                 }}
               >
                 <Trash2 className="mr-1 h-3.5 w-3.5" /> Apagar
@@ -391,6 +392,20 @@ export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose
         title={previewTitle}
         previewUrl={previewUrl}
       />
+
+      {task ? (
+        <ConfirmRemoveDialog
+          open={simpleRemoveOpen}
+          onOpenChange={setSimpleRemoveOpen}
+          title="Apagar tarefa?"
+          description="A tarefa será removida da lista. Esta acção não pode ser desfeita."
+          confirmLabel="Apagar tarefa"
+          onConfirm={async () => {
+            await run(() => tasksApi.remove(task.id), 'Removida')
+            setSimpleRemoveOpen(false)
+          }}
+        />
+      ) : null}
 
       {task ? (
         <RecurrenceRemoveDialog
