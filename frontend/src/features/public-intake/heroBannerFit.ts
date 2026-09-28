@@ -128,6 +128,10 @@ export function heroEditorImagePosition(content: {
   return { focusX: preset.x, focusY: preset.y, zoom: 1 }
 }
 
+/** Altura do hero no editor (enquadramento + preview lateral) — mesma proporção visual. */
+export const PUBLIC_SITE_HERO_EDITOR_FRAME_CLASS =
+  'min-h-[360px] w-full sm:min-h-[400px]'
+
 export function heroPositionedImageStyle(content: {
   imageFit?: unknown
   imagePosition?: unknown
@@ -136,21 +140,11 @@ export function heroPositionedImageStyle(content: {
   imageZoom?: number | null
 }): CSSProperties {
   const fit = normalizeHeroImageFit(content.imageFit)
-  const hasFine =
-    content.imageFocusX != null ||
-    content.imageFocusY != null ||
-    (content.imageZoom != null && Number(content.imageZoom) !== 1)
-
-  if (fit === 'cover' && hasFine) {
-    return servicePositionedImageStyle({
-      imageFocusX: content.imageFocusX,
-      imageFocusY: content.imageFocusY,
-      imageZoom: content.imageZoom,
-    })
-  }
-
-  return {
-    objectFit: fit === 'contain' ? 'contain' : 'cover',
-    objectPosition: heroBackgroundObjectPosition(normalizeHeroImageFocus(content.imagePosition)),
-  }
+  const { focusX, focusY, zoom } = heroEditorImagePosition(content)
+  return servicePositionedImageStyle({
+    imageFocusX: focusX,
+    imageFocusY: focusY,
+    imageZoom: zoom,
+    imageFit: fit,
+  })
 }

@@ -533,6 +533,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
         praiseContact: draft.praiseContact,
         openInternalLinksInNewTab: true,
         showTeglionCredit: true,
+        useEditorHeroFrame: true,
       }}
     />
   )

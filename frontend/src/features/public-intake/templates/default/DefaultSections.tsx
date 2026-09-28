@@ -85,6 +85,8 @@ export type PublicSiteRenderContext = {
   openInternalLinksInNewTab?: boolean
   /** Crédito «Página criada com Teglion». Default true. */
   showTeglionCredit?: boolean
+  /** Preview lateral do editor: hero com a mesma altura do painel «Enquadrar (arrastar)». */
+  useEditorHeroFrame?: boolean
 }
 
 function formatPrice(cents: number) {
@@ -325,7 +327,7 @@ export function HeroSection({
       imageZoom={content.imageZoom}
       backgroundColor={content.backgroundColor ?? bg}
       backgroundOverlay={content.backgroundOverlay}
-      variant="public"
+      variant={ctx.useEditorHeroFrame ? 'preview' : 'public'}
     >
       {showLogo ? (
         <img

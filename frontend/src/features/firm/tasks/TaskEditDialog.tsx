@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import { ClientMultiSelect } from '@/features/firm/components/ClientMultiSelect'
-import type { WorkspaceTask } from '@/infrastructure/api/contabil/tasks'
+import type { WorkspaceTask, WorkspaceTaskStatus } from '@/infrastructure/api/contabil/tasks'
+import { STATUS_LABEL } from '@/features/firm/tasks/taskWorkspaceConstants'
 import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
@@ -20,6 +21,7 @@ import type { Client } from '@/shared/types/clients'
 export type TaskEditValues = {
   title: string
   description: string
+  status: WorkspaceTaskStatus
   priority: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'
   dueDate: string
   assigneeId: string
@@ -27,13 +29,22 @@ export type TaskEditValues = {
 }
 
 function emptyValues(): TaskEditValues {
-  return { title: '', description: '', priority: 'NORMAL', dueDate: '', assigneeId: '', clientIds: [] }
+  return {
+    title: '',
+    description: '',
+    status: 'TODO',
+    priority: 'NORMAL',
+    dueDate: '',
+    assigneeId: '',
+    clientIds: [],
+  }
 }
 
 function fromTask(task: WorkspaceTask): TaskEditValues {
   return {
     title: task.title || '',
     description: task.description || '',
+    status: task.status || 'TODO',
     priority: task.priority || 'NORMAL',
     dueDate: task.dueDate ? task.dueDate.slice(0, 10) : '',
     assigneeId: task.assigneeId || '',
@@ -92,6 +103,9 @@ export function TaskEditDialog({
       <DialogContent className="flex max-h-[90vh] max-w-xl flex-col gap-0 overflow-hidden rounded-2xl p-0">
         <DialogHeader className="shrink-0 border-b border-border/60 px-5 py-4 text-left">
           <DialogTitle>Editar tarefa</DialogTitle>
+          <p className="text-xs font-normal text-muted-foreground">
+            Mesmos campos da criação — título, prazo, prioridade, responsável, clientes e notas.
+          </p>
         </DialogHeader>
 
         <form onSubmit={(e) => void handleSubmit(e)} className="flex min-h-0 flex-1 flex-col">
@@ -119,6 +133,21 @@ export function TaskEditDialog({
             </section>
 
             <section className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="task-edit-status">Estado</Label>
+                <select
+                  id="task-edit-status"
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  value={values.status}
+                  onChange={(e) => setField('status', e.target.value as WorkspaceTaskStatus)}
+                >
+                  {Object.entries(STATUS_LABEL).map(([k, v]) => (
+                    <option key={k} value={k}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="space-y-1.5">
                 <Label htmlFor="task-edit-due">Prazo</Label>
                 <Input
@@ -189,6 +218,7 @@ export function buildTaskEditPatch(values: TaskEditValues) {
   return {
     title: values.title.trim(),
     description: values.description.trim() || null,
+    status: values.status,
     priority: values.priority,
     dueDate: values.dueDate || null,
     assigneeId: values.assigneeId || null,
