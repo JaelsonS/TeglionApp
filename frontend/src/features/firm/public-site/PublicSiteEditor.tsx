@@ -941,7 +941,8 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             <AlertDialogDescription>
               A partir de agora, teglion.com/{firmSlug} passa a mostrar esta versão a qualquer visitante.
               Confirme só depois de ter guardado o que quer publicar (o botão Publicar também guarda o rascunho
-              actual automaticamente).
+              actual automaticamente). Ao partilhar o link no WhatsApp, a miniatura usa a imagem do destaque ou o
+              logótipo do site público — não a imagem comercial do Teglion.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

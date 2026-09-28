@@ -3,6 +3,10 @@
  * Editor e página pública usam os mesmos defaults — o preview não diverge.
  */
 
+import type { CSSProperties } from 'react'
+
+import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
+
 export type PublicSiteHeroImageFit = 'cover' | 'contain'
 
 /** @deprecated Use PublicSiteHeroImageFocus — mantido para leitura de valores antigos. */
@@ -86,3 +90,67 @@ export const HERO_IMAGE_FOCUS_OPTIONS: { value: PublicSiteHeroImageFocus; label:
   { value: 'bottom', label: '↓' },
   { value: 'bottom-right', label: '↘' },
 ]
+
+const FOCUS_PRESET_PERCENT: Record<PublicSiteHeroImageFocus, { x: number; y: number }> = {
+  'top-left': { x: 12, y: 12 },
+  top: { x: 50, y: 12 },
+  'top-right': { x: 88, y: 12 },
+  'center-left': { x: 12, y: 50 },
+  center: { x: 50, y: 50 },
+  'center-right': { x: 88, y: 50 },
+  'bottom-left': { x: 12, y: 88 },
+  bottom: { x: 50, y: 88 },
+  'bottom-right': { x: 88, y: 88 },
+}
+
+export function heroFocusPresetToPercents(focus: PublicSiteHeroImageFocus): { x: number; y: number } {
+  return FOCUS_PRESET_PERCENT[focus] ?? FOCUS_PRESET_PERCENT.center
+}
+
+export function heroEditorImagePosition(content: {
+  imageFocusX?: number | null
+  imageFocusY?: number | null
+  imageZoom?: number | null
+  imagePosition?: unknown
+}): { focusX: number; focusY: number; zoom: number } {
+  const hasFine =
+    content.imageFocusX != null ||
+    content.imageFocusY != null ||
+    (content.imageZoom != null && Number(content.imageZoom) !== 1)
+  if (hasFine) {
+    return {
+      focusX: content.imageFocusX ?? 50,
+      focusY: content.imageFocusY ?? 50,
+      zoom: content.imageZoom ?? 1,
+    }
+  }
+  const preset = heroFocusPresetToPercents(normalizeHeroImageFocus(content.imagePosition))
+  return { focusX: preset.x, focusY: preset.y, zoom: 1 }
+}
+
+export function heroPositionedImageStyle(content: {
+  imageFit?: unknown
+  imagePosition?: unknown
+  imageFocusX?: number | null
+  imageFocusY?: number | null
+  imageZoom?: number | null
+}): CSSProperties {
+  const fit = normalizeHeroImageFit(content.imageFit)
+  const hasFine =
+    content.imageFocusX != null ||
+    content.imageFocusY != null ||
+    (content.imageZoom != null && Number(content.imageZoom) !== 1)
+
+  if (fit === 'cover' && hasFine) {
+    return servicePositionedImageStyle({
+      imageFocusX: content.imageFocusX,
+      imageFocusY: content.imageFocusY,
+      imageZoom: content.imageZoom,
+    })
+  }
+
+  return {
+    objectFit: fit === 'contain' ? 'contain' : 'cover',
+    objectPosition: heroBackgroundObjectPosition(normalizeHeroImageFocus(content.imagePosition)),
+  }
+}

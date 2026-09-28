@@ -49,6 +49,8 @@ export function FirmPublicSitePage() {
       title: query.data.seo.title || query.data.firmName,
       description: query.data.seo.description || undefined,
       path: `/${firmSlug}`,
+      image: query.data.shareImageUrl ?? null,
+      useDefaultOgImage: false,
     })
     setRobotsMeta(query.data.isPreview ? 'noindex' : 'index, follow')
     return () => {

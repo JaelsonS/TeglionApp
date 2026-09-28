@@ -1,9 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react'
 
 import {
-  heroBackgroundObjectPosition,
+  heroPositionedImageStyle,
   normalizeHeroImageFit,
-  normalizeHeroImageFocus,
   type PublicSiteHeroImageFit,
   type PublicSiteHeroImageFocus,
 } from '@/features/public-intake/heroBannerFit'
@@ -13,6 +12,9 @@ type Props = {
   imageAlt?: string
   fit?: PublicSiteHeroImageFit | null
   focus?: PublicSiteHeroImageFocus | null
+  imageFocusX?: number | null
+  imageFocusY?: number | null
+  imageZoom?: number | null
   /** Cor sólida quando não há foto, ou por baixo da foto em modo contain. */
   backgroundColor?: string | null
   /** 0–80: escurece o fundo para o texto destacar. */
@@ -43,6 +45,9 @@ export function PublicSiteHeroSurface({
   imageAlt = '',
   fit,
   focus,
+  imageFocusX,
+  imageFocusY,
+  imageZoom,
   backgroundColor,
   backgroundOverlay,
   children,
@@ -50,7 +55,6 @@ export function PublicSiteHeroSurface({
   className = '',
 }: Props) {
   const resolvedFit = normalizeHeroImageFit(fit)
-  const resolvedFocus = normalizeHeroImageFocus(focus)
   const bgHex = resolveBgHex(backgroundColor) ?? '#e8f0ec'
   const overlay = normalizeOverlay(backgroundOverlay)
   const hasImage = Boolean(imageUrl)
@@ -58,10 +62,13 @@ export function PublicSiteHeroSurface({
   const minHeight =
     variant === 'preview' ? 'min-h-[220px]' : 'min-h-[min(52vh,520px)] sm:min-h-[min(58vh,560px)]'
 
-  const imageStyle: CSSProperties = {
-    objectFit: resolvedFit === 'contain' ? 'contain' : 'cover',
-    objectPosition: heroBackgroundObjectPosition(resolvedFocus),
-  }
+  const imageStyle: CSSProperties = heroPositionedImageStyle({
+    imageFit: fit,
+    imagePosition: focus,
+    imageFocusX,
+    imageFocusY,
+    imageZoom,
+  })
 
   return (
     <section
@@ -69,7 +76,6 @@ export function PublicSiteHeroSurface({
       style={{ backgroundColor: bgHex }}
       data-testid="public-site-hero-surface"
       data-fit={resolvedFit}
-      data-focus={resolvedFocus}
     >
       {hasImage ? (
         <>

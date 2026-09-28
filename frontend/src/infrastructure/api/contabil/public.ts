@@ -101,6 +101,8 @@ export type PublicFirmSite = {
   logoUrl: string | null
   headerLogoUrl?: string | null
   heroLogoUrl?: string | null
+  /** Imagem para WhatsApp/redes — logótipo ou destaque do escritório; null se nenhuma. */
+  shareImageUrl?: string | null
   isPreview: boolean
   templateKey: string
   seo: PublicSiteConfig['seo']

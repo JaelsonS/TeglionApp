@@ -55,8 +55,16 @@ export type PublicSiteSectionMediaFields = {
   imagePlacement?: 'above' | 'left' | 'right'
   imageSize?: 'sm' | 'md' | 'lg' | 'full'
   imageFit?: 'cover' | 'contain'
+  /** Enquadramento fino da imagem de conteúdo (arrastar + zoom no editor). */
+  imageFocusX?: number | null
+  imageFocusY?: number | null
+  imageZoom?: number | null
   backgroundImageId?: string | null
   showBackgroundImage?: boolean
+  /** Enquadramento da imagem de fundo suave da secção. */
+  backgroundImageFocusX?: number | null
+  backgroundImageFocusY?: number | null
+  backgroundImageZoom?: number | null
 }
 
 export type PublicSiteFaqItem = {
@@ -114,6 +122,10 @@ export type PublicSiteHeroContent = {
     | 'bottom'
     | 'bottom-right'
     | null
+  /** Enquadramento fino (arrastar no editor) — mesma lógica dos serviços. */
+  imageFocusX?: number | null
+  imageFocusY?: number | null
+  imageZoom?: number | null
   /** Escurece o fundo (0–80) para legibilidade do texto por cima da foto. */
   backgroundOverlay?: number | null
   /** Omissão = mostrar logótipo no destaque quando existir URL. */
