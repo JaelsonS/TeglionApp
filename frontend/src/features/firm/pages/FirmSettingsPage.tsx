@@ -178,7 +178,12 @@ export function FirmSettingsPage() {
               })}
             </nav>
 
-            <div className="cb-settings-hub-main">
+            <div
+              className={cn(
+                'cb-settings-hub-main',
+                activeTab === 'pagina-publica' && 'cb-settings-hub-main--public-site',
+              )}
+            >
               <div className="cb-settings-hub-panel-hd">
                 <div className="min-w-0">
                   <h2 className="cb-settings-hub-panel-title">{activeMeta.label}</h2>
