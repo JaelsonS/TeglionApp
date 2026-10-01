@@ -557,7 +557,7 @@ test('publishSite: rejeita quem não é FIRM_OWNER', async () => {
 test('publishSite: sem nenhum rascunho gravado ainda, rejeita com 400', async () => {
   resetMocks();
   mock.method(firmUsersRepository, 'findFirmUserById', async () => OWNER);
-  mock.method(firmPublicSitesRepository, 'publish', async () => null);
+  mock.method(firmPublicSitesRepository, 'findByFirmId', async () => null);
 
   await assert.rejects(
     () => firmPublicSiteService.publishSite('firm-1', 'user-1'),
@@ -568,9 +568,33 @@ test('publishSite: sem nenhum rascunho gravado ainda, rejeita com 400', async ()
   );
 });
 
+test('publishSite: exige aceitação legal quando faltam documentos', async () => {
+  resetMocks();
+  mock.method(firmUsersRepository, 'findFirmUserById', async () => OWNER);
+  mock.method(firmPublicSitesRepository, 'findByFirmId', async () => ({
+    draft: { complaintsBookUrl: null, termsText: null, privacyText: null },
+  }));
+
+  await assert.rejects(
+    () => firmPublicSiteService.publishSite('firm-1', 'user-1'),
+    (err) => {
+      assert.equal(err.statusCode, 400);
+      assert.equal(err.details?.code, 'LEGAL_ACK_REQUIRED');
+      return true;
+    },
+  );
+});
+
 test('publishSite: copia draft para published e espelha a cor para firm.settings.branding', async () => {
   resetMocks();
   mock.method(firmUsersRepository, 'findFirmUserById', async () => OWNER);
+  mock.method(firmPublicSitesRepository, 'findByFirmId', async () => ({
+    draft: {
+      complaintsBookUrl: 'https://www.livroreclamacoes.pt/Pedido/Iniciar',
+      termsText: 'Termos adaptados pelo escritório.',
+      privacyText: 'Privacidade adaptada.',
+    },
+  }));
   mock.method(firmPublicSitesRepository, 'publish', async () => ({
     published: { theme: { primaryColor: '#abcdef', secondaryColor: null } },
     publishedAt: '2026-08-11T00:00:00Z',

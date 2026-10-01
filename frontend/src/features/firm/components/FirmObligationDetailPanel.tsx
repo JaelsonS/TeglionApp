@@ -16,6 +16,7 @@ import { toast } from 'sonner'
 
 import {
   TYPE_LABELS,
+  displayObligationNotes,
   displayObligationTitle,
   dueDateToDateInput,
   monthInputToPeriod,
@@ -405,9 +406,9 @@ export function FirmObligationDetailPanel({
           </div>
         </section>
 
-        {obligation.accountantNotes ? (
+        {displayObligationNotes(obligation.accountantNotes, obligation.notes) ? (
           <p className="rounded-lg border border-border/60 bg-card px-3 py-2 text-xs text-muted-foreground">
-            {obligation.accountantNotes}
+            {displayObligationNotes(obligation.accountantNotes, obligation.notes)}
           </p>
         ) : null}
 

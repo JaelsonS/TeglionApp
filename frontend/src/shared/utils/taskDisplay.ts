@@ -1,3 +1,4 @@
+import { stripDemoContentMarkers } from '@/shared/utils/demoContentMarkers'
 import { looksEncrypted, safeDisplayText } from '@/shared/utils/safeDisplayText'
 
 /** Texto amigável para tarefas — oculta notas internas do sistema. */
@@ -35,7 +36,9 @@ const HIDDEN_DESCRIPTION_PATTERNS = [
 export function sanitizeTaskDescription(description?: string | null): string | null {
   if (!description?.trim()) return null
   if (looksEncrypted(description)) return null
-  const lines = description
+  const withoutMarkers = stripDemoContentMarkers(description)
+  if (!withoutMarkers) return null
+  const lines = withoutMarkers
     .split('\n')
     .map((l) => l.trim())
     .filter(Boolean)

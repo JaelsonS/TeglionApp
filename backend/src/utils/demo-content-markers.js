@@ -13,6 +13,35 @@ function stripDemoContentMarkers(raw) {
   return s;
 }
 
+/** Texto para APIs/UI do escritório — remove marcadores de demo; vazio → null. */
+function sanitizeFirmDisplayText(raw) {
+  if (raw == null) return raw;
+  const s = stripDemoContentMarkers(raw);
+  return s.length ? s : null;
+}
+
+function sanitizeTaskForFirmDisplay(task) {
+  if (!task || typeof task !== 'object') return task;
+  return {
+    ...task,
+    title: sanitizeFirmDisplayText(task.title) ?? task.title,
+    description: sanitizeFirmDisplayText(task.description),
+  };
+}
+
+function sanitizeObligationForFirmDisplay(ob) {
+  if (!ob || typeof ob !== 'object') return ob;
+  return {
+    ...ob,
+    title: sanitizeFirmDisplayText(ob.title) ?? ob.title,
+    notes: sanitizeFirmDisplayText(ob.notes),
+    accountantNotes: sanitizeFirmDisplayText(ob.accountantNotes),
+  };
+}
+
 module.exports = {
   stripDemoContentMarkers,
+  sanitizeFirmDisplayText,
+  sanitizeTaskForFirmDisplay,
+  sanitizeObligationForFirmDisplay,
 };

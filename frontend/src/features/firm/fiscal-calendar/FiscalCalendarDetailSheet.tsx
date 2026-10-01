@@ -23,6 +23,7 @@ import type { ObligationType } from '@/shared/types/contabil'
 import type { Client } from '@/shared/types/clients'
 import { contabilObligationsApi } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { safeDisplayText } from '@/shared/utils/safeDisplayText'
 
 export function FiscalCalendarDetailSheet({
   item,
@@ -214,13 +215,13 @@ export function FiscalCalendarDetailSheet({
             {current.description ? (
               <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
                 <dt className="text-xs font-medium text-muted-foreground">Descrição</dt>
-                <dd className="mt-1 text-sm text-foreground">{current.description}</dd>
+                <dd className="mt-1 text-sm text-foreground">{safeDisplayText(current.description, '')}</dd>
               </div>
             ) : null}
-            {current.notes ? (
+            {safeDisplayText(current.notes, '') ? (
               <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
                 <dt className="text-xs font-medium text-muted-foreground">Observações</dt>
-                <dd className="mt-1 text-sm text-foreground">{current.notes}</dd>
+                <dd className="mt-1 text-sm text-foreground">{safeDisplayText(current.notes, '')}</dd>
               </div>
             ) : null}
           </dl>

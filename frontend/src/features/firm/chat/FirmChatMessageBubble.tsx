@@ -1,6 +1,7 @@
 import { FileText } from 'lucide-react'
 
 import { cn } from '@/shared/lib/utils'
+import { safeDisplayText } from '@/shared/utils/safeDisplayText'
 import { formatChatMessageTime } from './chatUi'
 import type { ContabilMessage } from '@/shared/types/contabil'
 
@@ -25,12 +26,12 @@ export function FirmChatMessageBubble({
     (viewerRole === 'CLIENT' && message.senderRole === 'CLIENT')
 
   const hasAttachment = Boolean(message.attachmentName || message.attachmentStorageKey)
-  const body = String(message.body || '').trim()
+  const body = safeDisplayText(message.body, '')
 
   return (
     <div className={cn('cb-chat-msg-row', isMine ? 'cb-chat-msg-row-out' : 'cb-chat-msg-row-in')}>
       <div className={cn('cb-chat-bubble', isMine ? 'cb-chat-bubble-out' : 'cb-chat-bubble-in')}>
-        {body ? <p className="cb-chat-bubble-text">{message.body}</p> : null}
+        {body ? <p className="cb-chat-bubble-text">{body}</p> : null}
         {hasAttachment ? (
           <div className="cb-chat-attach-card">
             <span
