@@ -1,41 +1,24 @@
 import type { ReactNode } from 'react'
-import { Calendar, Palette, Scale, Tag } from 'lucide-react'
+import { Calendar, Palette, Tag } from 'lucide-react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 
-import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import type { PublicSiteConfig } from '@/shared/types/firmPublicSite'
 import type { FirmBookingSettings } from '@/shared/types/contabil'
-import {
-  DEFAULT_PRIVACY_TEMPLATE,
-  DEFAULT_TERMS_TEMPLATE,
-} from '@/features/firm/public-site/publicSiteLegalTemplates'
-import {
-  DEFAULT_COMPLAINTS_BOOK_LABEL,
-  DEFAULT_COMPLAINTS_BOOK_URL,
-} from '@/features/firm/public-site/publicSiteLegalDefaults'
-import { publicSiteLegalFieldsDomId } from '@/features/firm/public-site/publicSiteLegalCompliance'
 
 function SectionCard({
-  id,
   icon: Icon,
   title,
   description,
   children,
-  className,
 }: {
-  id?: string
   icon: typeof Palette
   title: string
   description?: string
   children: ReactNode
-  className?: string
 }) {
   return (
-    <section
-      id={id}
-      className={`rounded-xl border border-border/50 bg-card/90 p-4 shadow-sm ${className ?? ''}`}
-    >
+    <section className="rounded-xl border border-border/50 bg-card/90 p-4 shadow-sm">
       <div className="mb-3 flex items-start gap-2.5">
         <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
           <Icon className="h-4 w-4" aria-hidden />
@@ -101,9 +84,10 @@ export function PublicSiteExtrasPanel({
   return (
     <div className="space-y-4">
       <p className="text-sm leading-relaxed text-muted-foreground">
-        Ordem sugerida: <span className="font-medium text-foreground">preços e marcação</span>, identidade/SEO, e por
-        fim o <span className="font-medium text-foreground">rodapé legal</span>. Contactos e redes → secção{' '}
-        <span className="font-medium text-foreground">Contactos e redes</span> na lista de secções.
+        <span className="font-medium text-foreground">C</span> = preços, marca e Google. Contactos, redes e textos
+        legais ficam nas secções{' '}
+        <span className="font-medium text-foreground">Contactos e redes</span> e{' '}
+        <span className="font-medium text-foreground">Rodapé legal (visual)</span> acima.
       </p>
 
       <div className="flex flex-col gap-4">
@@ -206,114 +190,6 @@ export function PublicSiteExtrasPanel({
               </label>
             </div>
           </IdentitySubsection>
-        </SectionCard>
-
-        <SectionCard
-          id={publicSiteLegalFieldsDomId()}
-          icon={Scale}
-          title="Rodapé legal (site público)"
-          description="Termos, Privacidade, Livro de Reclamações e elogios — aparecem no rodapé da página. Responsabilidade do escritório."
-        >
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() =>
-                onDraftChange({
-                  ...draft,
-                  complaintsBookUrl: draft.complaintsBookUrl || DEFAULT_COMPLAINTS_BOOK_URL,
-                  complaintsBookLabel: draft.complaintsBookLabel || DEFAULT_COMPLAINTS_BOOK_LABEL,
-                  termsText: draft.termsText || DEFAULT_TERMS_TEMPLATE,
-                  privacyText: draft.privacyText || DEFAULT_PRIVACY_TEMPLATE,
-                })
-              }
-            >
-              Preencher sugestões legais
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              className="text-xs"
-              onClick={() =>
-                onDraftChange({
-                  ...draft,
-                  termsText: DEFAULT_TERMS_TEMPLATE,
-                  privacyText: DEFAULT_PRIVACY_TEMPLATE,
-                })
-              }
-            >
-              Só modelos de termos e privacidade
-            </Button>
-          </div>
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <label className="block space-y-1.5 text-sm lg:col-span-2">
-              <span className="font-medium">Termos de Utilização</span>
-              <textarea
-                className="min-h-[100px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-                value={draft.termsText || ''}
-                onChange={(e: FormChangeEvent) => onDraftChange({ ...draft, termsText: e.target.value || null })}
-              />
-            </label>
-            <label className="block space-y-1.5 text-sm lg:col-span-2">
-              <span className="font-medium">Política de Privacidade</span>
-              <textarea
-                className="min-h-[100px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-                value={draft.privacyText || ''}
-                onChange={(e: FormChangeEvent) => onDraftChange({ ...draft, privacyText: e.target.value || null })}
-              />
-            </label>
-            <label className="block space-y-1.5 text-sm">
-              <span className="font-medium">Livro de Reclamações — link</span>
-              <Input
-                placeholder={DEFAULT_COMPLAINTS_BOOK_URL}
-                value={draft.complaintsBookUrl || ''}
-                onChange={(e: FormChangeEvent) =>
-                  onDraftChange({ ...draft, complaintsBookUrl: e.target.value || null })
-                }
-              />
-              <button
-                type="button"
-                className="text-caption font-medium text-brand hover:underline"
-                onClick={() =>
-                  onDraftChange({
-                    ...draft,
-                    complaintsBookUrl: DEFAULT_COMPLAINTS_BOOK_URL,
-                    complaintsBookLabel: draft.complaintsBookLabel || DEFAULT_COMPLAINTS_BOOK_LABEL,
-                  })
-                }
-              >
-                Usar link oficial (livroreclamacoes.pt)
-              </button>
-            </label>
-            <label className="block space-y-1.5 text-sm">
-              <span className="font-medium">Texto do link — Livro de Reclamações</span>
-              <Input
-                placeholder="Livro de Reclamações"
-                value={draft.complaintsBookLabel || ''}
-                onChange={(e: FormChangeEvent) =>
-                  onDraftChange({ ...draft, complaintsBookLabel: e.target.value || null })
-                }
-              />
-            </label>
-            <label className="block space-y-1.5 text-sm">
-              <span className="font-medium">Elogios / avaliações — link</span>
-              <Input
-                placeholder="https://g.page/r/... (Google Reviews)"
-                value={draft.praiseUrl || ''}
-                onChange={(e: FormChangeEvent) => onDraftChange({ ...draft, praiseUrl: e.target.value || null })}
-              />
-            </label>
-            <label className="block space-y-1.5 text-sm">
-              <span className="font-medium">Texto do link — elogios</span>
-              <Input
-                placeholder="Deixe a sua avaliação no Google"
-                value={draft.praiseLabel || ''}
-                onChange={(e: FormChangeEvent) => onDraftChange({ ...draft, praiseLabel: e.target.value || null })}
-              />
-            </label>
-          </div>
         </SectionCard>
       </div>
     </div>
