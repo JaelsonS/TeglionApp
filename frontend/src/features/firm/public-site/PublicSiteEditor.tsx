@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type CSSProperties } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   ExternalLink,
@@ -105,8 +113,8 @@ const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
   features: 'Alinhamento e pontos fortes',
   process: 'Alinhamento e passos',
   faq: 'Alinhamento e perguntas',
-  contact: 'Alinhamento, contactos e botões',
-  footer: 'Redes sociais, contactos (se Contactos off), cores e alinhamento',
+  contact: 'Email, telefone, morada, redes sociais e botões',
+  footer: 'Cores e alinhamento — links legais no bloco C',
 }
 
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -737,6 +745,17 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                   officePhone={bundle.contact?.phone}
                   officeContact={bundle.contact}
                   socialWhatsapp={draft.socialLinks?.whatsapp}
+                  footerSection={draft.sections.find((s) => s.type === 'footer')}
+                  onFooterContactChange={(patch) => {
+                    const footer = draft.sections.find((s) => s.type === 'footer')
+                    if (footer?.type !== 'footer') return
+                    patchSectionContent(footer.key, { ...footer.content, ...patch })
+                  }}
+                  socialLinksSection={
+                    section.type === 'contact' ? (
+                      <ThemeEditor draft={draft} onChange={setDraft} embedded />
+                    ) : undefined
+                  }
                   bookingFilter={
                     section.type === 'services' ? true : section.type === 'bookingServices' ? false : undefined
                   }
@@ -863,7 +882,6 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             />
           }
           pageColorsSection={<PageThemeColors draft={draft} onChange={setDraft} embedded />}
-          themeEditorSection={<ThemeEditor draft={draft} onChange={setDraft} embedded />}
         />
       </PublicSiteEditorFold>
 
@@ -980,6 +998,9 @@ function SectionEditorSwitch({
   publicDisplayName,
   socialWhatsapp,
   bookingFilter,
+  footerSection,
+  onFooterContactChange,
+  socialLinksSection,
 }: {
   section: PublicSiteSection
   onChange: (content: PublicSiteSection['content']) => void
@@ -998,6 +1019,13 @@ function SectionEditorSwitch({
   socialWhatsapp?: string | null
   /** true = só com agendamento; false = só sem agendamento */
   bookingFilter?: boolean
+  footerSection?: PublicSiteSection
+  onFooterContactChange?: (patch: {
+    email?: string | null
+    phone?: string | null
+    address?: string | null
+  }) => void
+  socialLinksSection?: ReactNode
 }) {
   switch (section.type) {
     case 'hero':
@@ -1128,6 +1156,18 @@ function SectionEditorSwitch({
           services={services}
           officePhone={officePhone}
           socialWhatsapp={socialWhatsapp}
+          officeContact={officeContact}
+          footerContact={
+            footerSection?.type === 'footer'
+              ? {
+                  email: footerSection.content.email,
+                  phone: footerSection.content.phone,
+                  address: footerSection.content.address,
+                }
+              : undefined
+          }
+          onFooterContactChange={onFooterContactChange}
+          socialLinksSection={socialLinksSection}
           sectionMedia={{
             content: section.content,
             onChange,
@@ -1164,7 +1204,6 @@ function SectionEditorSwitch({
           onChange={onChange}
           title="Rodapé"
           showFooterContactFields
-          officeContact={officeContact}
         />
       )
     default:

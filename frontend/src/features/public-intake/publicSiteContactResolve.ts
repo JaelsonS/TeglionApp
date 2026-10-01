@@ -12,8 +12,8 @@ function pickOverride(value: string | null | undefined): string | null {
 }
 
 /**
- * Contactos na página pública: cada campo do rodapé (se preenchido) substitui
- * o valor de Definições → Escritório. Campos vazios no rodapé herdam o escritório.
+ * Contactos na página pública: overrides guardados na secção rodapé (editados em Contactos)
+ * substituem Definições → Escritório quando preenchidos.
  */
 export function resolvePublicSiteContact(
   firmContact: PublicSiteContactFields,

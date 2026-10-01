@@ -170,6 +170,7 @@ export function DefaultTemplate({ config, ctx }: Props) {
                   socialLinks={config.socialLinks}
                   content={section.content}
                   showContactDetails={!contactSectionEnabled}
+                  showSocialIcons={!contactSectionEnabled}
                 />
               </PublicSitePreviewZone>
             )
