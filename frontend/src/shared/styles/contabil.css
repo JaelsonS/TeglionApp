@@ -3417,9 +3417,9 @@
 
     .cb-public-site-editor-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(20rem, min(42%, 26rem));
+      grid-template-columns: minmax(0, 1fr) minmax(18rem, min(44vw, 28rem));
       gap: 1.25rem;
-      align-items: start;
+      align-items: stretch;
     }
 
     .cb-public-site-editor-main {
@@ -3435,13 +3435,27 @@
       flex-direction: column;
       min-width: 0;
       min-height: 0;
-      max-height: calc(100dvh - 6rem);
+      height: calc(100dvh - 5.75rem);
+      max-height: calc(100dvh - 5.75rem);
+    }
+
+    .cb-public-site-editor-preview-panel {
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      min-height: 0;
+      height: 100%;
+      gap: 0.5rem;
+      border-radius: 0.75rem;
+      border: 1px solid color-mix(in oklab, var(--border) 55%, transparent);
+      background: color-mix(in oklab, var(--card) 92%, var(--muted));
+      padding: 0.65rem;
     }
 
     .cb-public-site-editor-preview-scroll {
-      min-height: 0;
       flex: 1 1 auto;
-      max-height: calc(100dvh - 10.5rem);
+      min-height: min(62dvh, 720px);
+      overflow-x: hidden;
       overflow-y: auto;
       overscroll-behavior: contain;
       -webkit-overflow-scrolling: touch;
@@ -3455,8 +3469,18 @@
       gap: 1.5rem;
     }
 
+    .cb-public-site-editor-aside {
+      position: static;
+      height: auto;
+      max-height: none;
+    }
+
+    .cb-public-site-editor-preview-panel {
+      padding: 0.5rem;
+    }
+
     .cb-public-site-editor-preview-scroll {
-      max-height: min(70vh, 28rem);
+      min-height: min(72dvh, 40rem);
       overflow-y: auto;
       overscroll-behavior: contain;
     }
