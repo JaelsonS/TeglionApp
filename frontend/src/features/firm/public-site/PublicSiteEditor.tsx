@@ -91,6 +91,7 @@ import {
 } from './publicSitePublishReadiness'
 import { resolvePublicSiteSectionVisitorSummary } from './publicSiteSectionVisitorSummary'
 import { usePublicSiteEditorPreviewAssist } from './usePublicSiteEditorPreviewAssist'
+import { PublicSiteEditorFold } from './PublicSiteEditorFold'
 
 const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
   header: 'Barra do topo',
@@ -144,6 +145,8 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const [sectionOpenState, setSectionOpenState] = useState<Record<string, boolean>>({})
   const [previewExpanded, setPreviewExpanded] = useState(false)
   const [previewDevice, setPreviewDevice] = useState<PublicSiteEditorPreviewDevice>('tablet')
+  const [linkPublishOpen, setLinkPublishOpen] = useState(false)
+  const [extrasOpen, setExtrasOpen] = useState(false)
 
   const isSectionEditorOpen = (section: PublicSiteSection) => {
     if (Object.prototype.hasOwnProperty.call(sectionOpenState, section.key)) {
@@ -554,6 +557,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
 
   const onPublishReadinessFocus = (item: PublicSitePublishReadinessItem) => {
     if (item.focus.kind === 'identity') {
+      setLinkPublishOpen(true)
       document.getElementById('public-site-identity')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       return
     }
@@ -604,11 +608,28 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
       : { backgroundColor: 'hsl(var(--background))' }),
   } as CSSProperties
 
+  const linkPublishClosedSummary = [
+    firmSlug ? `teglion.com/${firmSlug}` : 'Defina o link público',
+    siteQuery.data?.publishedAt ? 'Publicado' : 'Rascunho',
+  ].join(' · ')
+
   return (
     <div className="cb-public-site-editor-root space-y-6">
-      {/* Passo 1 — Identidade + publicar */}
-      <section id="public-site-identity" className="space-y-3 rounded-xl border border-border/50 bg-muted/20 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">A · Link e publicar</p>
+      <section
+        className="rounded-xl border border-brand/25 bg-gradient-to-br from-brand/[0.07] via-card to-card p-4 shadow-sm"
+        aria-label="Pronto para publicar"
+      >
+        <PublicSitePublishReadinessChecklist items={publishReadinessItems} onFocus={onPublishReadinessFocus} />
+      </section>
+
+      <PublicSiteEditorFold
+        id="public-site-identity"
+        title="A · Link e publicar"
+        closedSummary={linkPublishClosedSummary}
+        hint="Link, nome na barra, guardar rascunho, pré-visualizar e publicar."
+        open={linkPublishOpen}
+        onOpenChange={setLinkPublishOpen}
+      >
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1 space-y-2">
           <p className="text-sm font-medium">
@@ -718,8 +739,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
           ) : null}
         </div>
         </div>
-        <PublicSitePublishReadinessChecklist items={publishReadinessItems} onFocus={onPublishReadinessFocus} />
-      </section>
+      </PublicSiteEditorFold>
 
       <div className="cb-public-site-editor-grid">
         <div className="cb-public-site-editor-main order-1 min-w-0 space-y-4">
@@ -880,13 +900,15 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
         </aside>
       </div>
 
-      <section
+      <PublicSiteEditorFold
         id="public-site-extras"
-        className="space-y-4 rounded-xl border border-border/50 bg-muted/15 p-4"
+        title="C · Marca e extras"
+        closedSummary="Logótipos, cores, SEO, agendamento, termos e preços na página"
+        hint="Logótipos, cores da página, SEO, horários, termos legais e opções de preços."
+        open={extrasOpen}
+        onOpenChange={setExtrasOpen}
+        className="bg-muted/15"
       >
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            C · Marca e extras
-          </p>
           <div className="space-y-3">
             <PublicSiteLogoCard
               draft={draft}
@@ -1052,7 +1074,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               />
             </label>
           </div>
-      </section>
+      </PublicSiteEditorFold>
 
       <Dialog open={previewExpanded} onOpenChange={setPreviewExpanded}>
         <DialogContent className="flex h-[min(92dvh,900px)] max-w-5xl flex-col gap-0 p-0">

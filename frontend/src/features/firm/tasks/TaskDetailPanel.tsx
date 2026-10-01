@@ -34,7 +34,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Badge, SkeletonCard } from '@/shared/design-system'
 import { tasksWorkspaceKeys, usePatchTask, useTaskComment, useTaskDetail } from '@/shared/hooks/queries/useTasksWorkspace'
 import { fetchDocumentBlobUrl } from '@/infrastructure/api'
-import { formatTaskDueDate, formatTaskTitle } from '@/shared/utils/taskDisplay'
+import { formatTaskDueDate, formatTaskTitle, sanitizeTaskDescription } from '@/shared/utils/taskDisplay'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { formatPtDate } from '@/shared/utils/contabilLocale'
 import { cn } from '@/shared/lib/utils'
@@ -227,8 +227,10 @@ export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose
               </div>
             </div>
 
-            {task.description ? (
-              <p className="rounded-xl bg-muted/30 px-3 py-2 text-sm text-muted-foreground">{task.description}</p>
+            {sanitizeTaskDescription(task.description) ? (
+              <p className="rounded-xl bg-muted/30 px-3 py-2 text-sm text-muted-foreground">
+                {sanitizeTaskDescription(task.description)}
+              </p>
             ) : null}
 
             <div className="flex flex-wrap gap-2">

@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
-import { formatTaskDueDate, formatTaskTitle } from '@/shared/utils/taskDisplay'
+import { formatTaskDueDate, formatTaskTitle, sanitizeTaskDescription } from '@/shared/utils/taskDisplay'
 import { cn } from '@/shared/lib/utils'
 
 const STATUS_PILL: Record<string, string> = {
@@ -69,8 +69,10 @@ export function ManualTaskOperationsCard({
           {task.clientName ? (
             <p className="mt-1 text-xs text-muted-foreground">{task.clientName}</p>
           ) : null}
-          {task.description ? (
-            <p className="mt-2 line-clamp-2 text-xs text-muted-foreground/90">{task.description}</p>
+          {sanitizeTaskDescription(task.description) ? (
+            <p className="mt-2 line-clamp-2 text-xs text-muted-foreground/90">
+              {sanitizeTaskDescription(task.description)}
+            </p>
           ) : null}
         </button>
         <DropdownMenu>
