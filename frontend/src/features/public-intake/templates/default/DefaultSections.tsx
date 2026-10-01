@@ -859,9 +859,7 @@ export function FooterSection({
   const align = resolveSectionContentAlign(content)
   const rowJustify = contentAlignFlexClass(align)
 
-  const footerEmail = (content?.email || '').trim() || ctx.contact.email
-  const footerPhone = (content?.phone || '').trim() || ctx.contact.phone
-  const footerAddress = (content?.address || '').trim() || ctx.contact.address
+  const { email: footerEmail, phone: footerPhone, address: footerAddress } = ctx.contact
   const mapsHref = footerAddress ? buildGoogleMapsUrl({ address: footerAddress }) : null
 
   const contactRows = [
