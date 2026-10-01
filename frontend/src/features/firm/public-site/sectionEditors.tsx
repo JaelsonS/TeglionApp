@@ -972,8 +972,8 @@ export function ChromeSectionEditor({
           <div>
             <Label className="text-sm font-semibold">Contactos no rodapé</Label>
             <p className="mt-1 text-[11px] text-muted-foreground">
-              Independentes do Escritório. Em branco, a página pública usa os dados de Definições → Escritório.
-              Alterar aqui não muda o Escritório.
+              Estes contactos aparecem no rodapé e na secção Contactos (um único conjunto). Campo em branco →
+              herda Definições → Escritório. Não altera os dados do Escritório.
             </p>
           </div>
           <div className="space-y-2">
@@ -2020,7 +2020,9 @@ export function ContactEditor({
         />{' '}
         Mostrar morada
       </label>
-      <p className="text-caption text-muted-foreground">Editar os valores em Definições → Escritório.</p>
+      <p className="text-caption text-muted-foreground">
+        Os valores vêm do rodapé (secção Rodapé) ou, se vazios, de Definições → Escritório.
+      </p>
       <SectionCtasEditor
         ctas={content.ctas || []}
         services={services}
