@@ -9,6 +9,7 @@ const { nextPeriodFromFrequency, dueDateForPeriod } = require('./obligation-oper
 const { AppError } = require('../../middlewares/error.middleware');
 const ttlCache = require('../../utils/cache/ttl-cache');
 const { operationalDashboardKey } = require('../../utils/cache/tenant-scoped-keys');
+const { sanitizeObligationForFirmDisplay } = require('../../utils/demo-content-markers');
 
 const OPERATIONAL_DASHBOARD_TTL_SEC = 45;
 
@@ -32,7 +33,7 @@ async function listObligationsOperational({
   });
 
   const withLane = items.map((ob) => ({
-    ...ob,
+    ...sanitizeObligationForFirmDisplay(ob),
     operationalLane: classifyObligationLane(ob),
   }));
 
@@ -58,8 +59,9 @@ async function loadOperationalDashboard(firmId) {
   const clientsAtRisk = new Map();
 
   for (const ob of items) {
-    const lane = classifyObligationLane(ob, now);
-    lanes[lane].push({ ...ob, operationalLane: lane });
+    const sanitized = sanitizeObligationForFirmDisplay(ob);
+    const lane = classifyObligationLane(sanitized, now);
+    lanes[lane].push({ ...sanitized, operationalLane: lane });
 
     if (lane === 'overdue' || lane === 'critical') {
       clientsAtRisk.set(ob.clientId, (clientsAtRisk.get(ob.clientId) || 0) + 1);

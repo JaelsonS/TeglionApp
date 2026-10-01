@@ -228,7 +228,7 @@ export function HeaderSection({
       className={bg ? 'border-b border-black/5' : 'border-b border-primary/20 bg-transparent'}
       style={bg ? { backgroundColor: bg } : undefined}
     >
-      <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3 lg:max-w-4xl">
+      <div className="ps-header-inner mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
         <div className={`flex min-w-0 flex-1 items-center gap-3 ${contentAlignFlexClass(align)}`}>
           {showLogo ? (
             <Link to={homeHref} className="shrink-0" aria-label={headerLabel}>
@@ -242,7 +242,7 @@ export function HeaderSection({
         {showNav && visibleLinks.length > 0 ? (
           <>
             <nav
-              className="ml-auto hidden min-w-0 items-center gap-1 overflow-x-auto text-sm lg:flex"
+              className="ps-header-nav-desktop ml-auto min-w-0 items-center gap-1 overflow-x-auto text-sm"
               aria-label="Navegação do site"
             >
               {visibleLinks.map((link) => (
@@ -262,7 +262,7 @@ export function HeaderSection({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="ml-auto shrink-0 lg:hidden"
+                  className="ps-header-nav-mobile-btn ml-auto shrink-0"
                   aria-label="Abrir menu"
                 >
                   <Menu className="h-5 w-5" />

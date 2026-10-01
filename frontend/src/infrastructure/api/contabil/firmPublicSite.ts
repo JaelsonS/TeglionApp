@@ -11,9 +11,13 @@ export const firmPublicSiteApi = {
       .patch('/contabil/firm/public-site/draft', config)
       .then((r) => r.data as { draft: PublicSiteConfig; draftUpdatedAt: string }),
 
-  publish: () =>
+  publish: (options?: {
+    legalPublishAcknowledgement?: { accepted: true; missingItems: string[] }
+  }) =>
     api
-      .post('/contabil/firm/public-site/publish')
+      .post('/contabil/firm/public-site/publish', options?.legalPublishAcknowledgement
+        ? { legalPublishAcknowledgement: options.legalPublishAcknowledgement }
+        : undefined)
       .then((r) => r.data as { published: PublicSiteConfig; publishedAt: string }),
 
   regeneratePreviewToken: () =>

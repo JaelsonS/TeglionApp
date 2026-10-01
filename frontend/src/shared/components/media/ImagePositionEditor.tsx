@@ -1,4 +1,4 @@
-import { useEffect, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useState, type PointerEvent as ReactPointerEvent, type WheelEvent as ReactWheelEvent } from 'react'
 
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -31,6 +31,8 @@ export function ImagePositionFrame({
   className,
   showFocusMarker = true,
   objectFit = 'cover',
+  maxZoom = 2.5,
+  enableWheelZoom = true,
 }: {
   imageUrl: string | null
   position: ImagePosition
@@ -38,6 +40,9 @@ export function ImagePositionFrame({
   className?: string
   showFocusMarker?: boolean
   objectFit?: 'cover' | 'contain'
+  maxZoom?: number
+  /** Scroll / trackpad na imagem ajusta o zoom (modo editar). */
+  enableWheelZoom?: boolean
 }) {
   const [dragging, setDragging] = useState(false)
 
@@ -60,6 +65,16 @@ export function ImagePositionFrame({
     applyPointer(e)
   }
 
+  const onWheel = (e: ReactWheelEvent<HTMLDivElement>) => {
+    if (!enableWheelZoom) return
+    e.preventDefault()
+    const step = e.deltaY > 0 ? -0.06 : 0.06
+    const nextZoom = clamp(Number((position.zoom + step).toFixed(2)), 1, maxZoom)
+    if (nextZoom !== position.zoom) {
+      onChange({ ...position, zoom: nextZoom })
+    }
+  }
+
   return (
     <div
       className={cn('relative touch-none overflow-hidden bg-slate-900', className)}
@@ -67,6 +82,9 @@ export function ImagePositionFrame({
       onPointerMove={onPointerMove}
       onPointerUp={() => setDragging(false)}
       onPointerCancel={() => setDragging(false)}
+      onWheel={onWheel}
+      role="application"
+      aria-label="Arraste para reposicionar; scroll ou slider para zoom"
     >
       {imageUrl ? (
         <img

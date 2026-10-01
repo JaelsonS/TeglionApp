@@ -24,7 +24,13 @@ exports.saveDraft = async (req, res, next) => {
 exports.publish = async (req, res, next) => {
   try {
     const firmId = String(req.user.firmId);
-    const data = await firmPublicSiteService.publishSite(firmId, String(req.user.id));
+    const { parseLegalPublishAcknowledgement } = require('./public-site-legal-compliance');
+    const legalPublishAcknowledgement = parseLegalPublishAcknowledgement(req.body);
+    const data = await firmPublicSiteService.publishSite(firmId, String(req.user.id), {
+      actor: req.user,
+      legalPublishAcknowledgement,
+      ipAddress: req.ip || req.headers['x-forwarded-for'] || null,
+    });
     return res.status(200).json(data);
   } catch (err) {
     return next(err);

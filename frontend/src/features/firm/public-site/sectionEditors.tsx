@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent } from 'react'
+import { useRef, useState, type ChangeEvent, type ReactNode } from 'react'
 import { ChevronDown, ChevronUp, ImageIcon, Loader2, Plus, Trash2, X } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -901,7 +901,6 @@ export function ChromeSectionEditor({
   showNavControls = false,
   showLogoControl = false,
   services = [],
-  showFooterContactFields = false,
   officeContact,
 }: {
   content: PublicSiteChromeContent
@@ -917,8 +916,6 @@ export function ChromeSectionEditor({
   /** Cabeçalho: mostrar ou ocultar logótipo na barra. */
   showLogoControl?: boolean
   services?: PublicFirmServiceSummary[]
-  /** Rodapé: contactos próprios (independentes do Escritório). */
-  showFooterContactFields?: boolean
   officeContact?: { email?: string | null; phone?: string | null; address?: string | null }
 }) {
   const navOn = content.showNav !== false
@@ -966,52 +963,6 @@ export function ChromeSectionEditor({
           services={services}
           onChange={onChange}
         />
-      ) : null}
-      {showFooterContactFields ? (
-        <div className="space-y-3 rounded-lg border border-border/40 p-3">
-          <div>
-            <Label className="text-sm font-semibold">Contactos no rodapé</Label>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Usados na secção Contactos e, se essa secção estiver desactivada, também no rodapé. Com Contactos activa,
-              o rodapé deixa de repetir email/telefone/morada (só redes e links legais). Campo em branco → herda
-              Definições → Escritório.
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="footer-email">Email</Label>
-            <Input
-              id="footer-email"
-              type="email"
-              value={content.email || ''}
-              onChange={(e: FormChangeEvent) => onChange({ ...content, email: e.target.value || null })}
-              placeholder={officeContact?.email || 'Ex.: contacto@empresa.pt'}
-              maxLength={200}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="footer-phone">Telefone</Label>
-            <Input
-              id="footer-phone"
-              value={content.phone || ''}
-              onChange={(e: FormChangeEvent) => onChange({ ...content, phone: e.target.value || null })}
-              placeholder={officeContact?.phone || 'Ex.: +351 …'}
-              maxLength={40}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="footer-address">Endereço</Label>
-            <Input
-              id="footer-address"
-              value={content.address || ''}
-              onChange={(e: FormChangeEvent) => onChange({ ...content, address: e.target.value || null })}
-              placeholder={officeContact?.address || 'Ex.: Rua …, Coimbra'}
-              maxLength={300}
-            />
-            <p className="text-[11px] text-muted-foreground">
-              Na página pública o endereço fica clicável e abre o Google Maps.
-            </p>
-          </div>
-        </div>
       ) : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <InlineColorField
@@ -1986,6 +1937,125 @@ export function FaqEditor({
   )
 }
 
+function PublicSiteContactFieldRow({
+  id,
+  label,
+  showChecked,
+  onShowChange,
+  showToggleLabel,
+  children,
+}: {
+  id: string
+  label: string
+  showChecked?: boolean
+  onShowChange?: (show: boolean) => void
+  showToggleLabel: string
+  children: ReactNode
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <Label htmlFor={id}>{label}</Label>
+        {onShowChange ? (
+          <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+            <Checkbox
+              checked={showChecked === true}
+              onCheckedChange={(v: boolean | 'indeterminate') => onShowChange(v === true)}
+            />
+            {showToggleLabel}
+          </label>
+        ) : null}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+export function PublicSiteContactDetailsFields({
+  email,
+  phone,
+  address,
+  officeContact,
+  onChange,
+  idPrefix = 'contact',
+  visibility,
+  onVisibilityChange,
+}: {
+  email: string | null | undefined
+  phone: string | null | undefined
+  address: string | null | undefined
+  officeContact?: { email?: string | null; phone?: string | null; address?: string | null }
+  onChange: (patch: { email?: string | null; phone?: string | null; address?: string | null }) => void
+  idPrefix?: string
+  visibility?: { showEmail: boolean; showPhone: boolean; showAddress: boolean }
+  onVisibilityChange?: (patch: Partial<{ showEmail: boolean; showPhone: boolean; showAddress: boolean }>) => void
+}) {
+  return (
+    <div className="space-y-3 rounded-lg border border-border/40 p-3">
+      <div>
+        <Label className="text-sm font-semibold">Email, telefone e morada</Label>
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Aparecem na secção Contactos e redes. Campo em branco → usa Definições → Escritório. Desactive «Mostrar» para
+          ocultar na página (o rodapé legal mantém só políticas e links institucionais).
+        </p>
+      </div>
+      <PublicSiteContactFieldRow
+        id={`${idPrefix}-email`}
+        label="Email"
+        showChecked={visibility?.showEmail}
+        onShowChange={
+          onVisibilityChange ? (show) => onVisibilityChange({ showEmail: show }) : undefined
+        }
+        showToggleLabel="Mostrar e-mail"
+      >
+        <Input
+          id={`${idPrefix}-email`}
+          type="email"
+          value={email || ''}
+          onChange={(e: FormChangeEvent) => onChange({ email: e.target.value || null })}
+          placeholder={officeContact?.email || 'Ex.: contacto@empresa.pt'}
+          maxLength={200}
+        />
+      </PublicSiteContactFieldRow>
+      <PublicSiteContactFieldRow
+        id={`${idPrefix}-phone`}
+        label="Telefone"
+        showChecked={visibility?.showPhone}
+        onShowChange={
+          onVisibilityChange ? (show) => onVisibilityChange({ showPhone: show }) : undefined
+        }
+        showToggleLabel="Mostrar telefone"
+      >
+        <Input
+          id={`${idPrefix}-phone`}
+          value={phone || ''}
+          onChange={(e: FormChangeEvent) => onChange({ phone: e.target.value || null })}
+          placeholder={officeContact?.phone || 'Ex.: +351 …'}
+          maxLength={40}
+        />
+      </PublicSiteContactFieldRow>
+      <PublicSiteContactFieldRow
+        id={`${idPrefix}-address`}
+        label="Morada"
+        showChecked={visibility?.showAddress}
+        onShowChange={
+          onVisibilityChange ? (show) => onVisibilityChange({ showAddress: show }) : undefined
+        }
+        showToggleLabel="Mostrar morada"
+      >
+        <Input
+          id={`${idPrefix}-address`}
+          value={address || ''}
+          onChange={(e: FormChangeEvent) => onChange({ address: e.target.value || null })}
+          placeholder={officeContact?.address || 'Ex.: Rua …, Coimbra'}
+          maxLength={300}
+        />
+        <p className="text-[11px] text-muted-foreground">Na página pública abre o Google Maps ao clicar.</p>
+      </PublicSiteContactFieldRow>
+    </div>
+  )
+}
+
 export function ContactEditor({
   content,
   onChange,
@@ -1993,6 +2063,10 @@ export function ContactEditor({
   officePhone,
   socialWhatsapp,
   sectionMedia,
+  footerContact,
+  onFooterContactChange,
+  officeContact,
+  socialLinksSection,
 }: {
   content: PublicSiteContactContent
   onChange: (next: PublicSiteContactContent) => void
@@ -2000,9 +2074,37 @@ export function ContactEditor({
   officePhone?: string | null
   socialWhatsapp?: string | null
   sectionMedia?: SectionMediaEditorProps<PublicSiteContactContent>
+  footerContact?: { email?: string | null; phone?: string | null; address?: string | null }
+  onFooterContactChange?: (patch: { email?: string | null; phone?: string | null; address?: string | null }) => void
+  officeContact?: { email?: string | null; phone?: string | null; address?: string | null }
+  socialLinksSection?: ReactNode
 }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {onFooterContactChange ? (
+        <PublicSiteContactDetailsFields
+          email={footerContact?.email}
+          phone={footerContact?.phone}
+          address={footerContact?.address}
+          officeContact={officeContact}
+          onChange={onFooterContactChange}
+          visibility={{
+            showEmail: content.showEmail,
+            showPhone: content.showPhone,
+            showAddress: content.showAddress,
+          }}
+          onVisibilityChange={(patch) => onChange({ ...content, ...patch })}
+        />
+      ) : null}
+      {socialLinksSection ? (
+        <div className="space-y-2 rounded-lg border border-border/40 p-3">
+          <Label className="text-sm font-semibold">Redes sociais e site</Label>
+          <p className="text-[11px] text-muted-foreground">
+            Ícones na secção Contactos e redes (não no rodapé legal).
+          </p>
+          {socialLinksSection}
+        </div>
+      ) : null}
       {sectionMedia ? <SectionMediaEditor {...sectionMedia} contentLabel="Imagem (opcional)" /> : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <InlineColorField
@@ -2020,31 +2122,6 @@ export function ContactEditor({
           onChange={(v) => onChange({ ...content, textColor: v })}
         />
       </div>
-      <label className="flex items-center gap-2 text-sm">
-        <Checkbox
-          checked={content.showEmail}
-          onCheckedChange={(v: boolean | 'indeterminate') => onChange({ ...content, showEmail: v === true })}
-        />{' '}
-        Mostrar e-mail
-      </label>
-      <label className="flex items-center gap-2 text-sm">
-        <Checkbox
-          checked={content.showPhone}
-          onCheckedChange={(v: boolean | 'indeterminate') => onChange({ ...content, showPhone: v === true })}
-        />{' '}
-        Mostrar telefone
-      </label>
-      <label className="flex items-center gap-2 text-sm">
-        <Checkbox
-          checked={content.showAddress}
-          onCheckedChange={(v: boolean | 'indeterminate') => onChange({ ...content, showAddress: v === true })}
-        />{' '}
-        Mostrar morada
-      </label>
-      <p className="text-caption text-muted-foreground">
-        Email, telefone e morada vêm do Rodapé (ou Definições → Escritório se vazios). Com esta secção activa, o rodapé
-        não repete estes dados — só redes sociais e links legais.
-      </p>
       <SectionCtasEditor
         ctas={content.ctas || []}
         services={services}
@@ -2159,39 +2236,48 @@ export function PublicSiteLogoCard({
   readOnly = false,
   onDraftUpdate,
   onLogoSourceChange,
+  embedded = false,
 }: {
   draft: PublicSiteConfig
   firmLogoUrl: string | null
   readOnly?: boolean
   onDraftUpdate: (next: PublicSiteConfig) => void
   onLogoSourceChange: (zone: 'header' | 'hero', source: PublicSiteLogoSource) => void
+  /** Dentro do cartão «Identidade visual» — sem borda/título duplicados. */
+  embedded?: boolean
 }) {
+  const grid = (
+    <div className={`grid gap-3 ${embedded ? 'sm:grid-cols-2' : 'mt-2 grid gap-2 sm:grid-cols-2'}`}>
+      <ZoneLogoEditor
+        zone="header"
+        title="Barra do topo"
+        draft={draft}
+        firmLogoUrl={firmLogoUrl}
+        readOnly={readOnly}
+        onDraftUpdate={onDraftUpdate}
+        onLogoSourceChange={onLogoSourceChange}
+      />
+      <ZoneLogoEditor
+        zone="hero"
+        title="Destaque principal"
+        draft={draft}
+        firmLogoUrl={firmLogoUrl}
+        readOnly={readOnly}
+        onDraftUpdate={onDraftUpdate}
+        onLogoSourceChange={onLogoSourceChange}
+      />
+    </div>
+  )
+
+  if (embedded) return grid
+
   return (
     <div className="rounded-xl border border-border/50 bg-card p-3">
       <p className="text-xs font-semibold text-foreground">Logótipos (só site público)</p>
       <p className="mt-0.5 text-[11px] text-muted-foreground">
         Independentes de Definições → Logótipo (portal). Pode ser diferente na barra e no destaque, ou sem imagem.
       </p>
-      <div className="mt-2 grid gap-2 sm:grid-cols-2">
-        <ZoneLogoEditor
-          zone="header"
-          title="Barra do topo"
-          draft={draft}
-          firmLogoUrl={firmLogoUrl}
-          readOnly={readOnly}
-          onDraftUpdate={onDraftUpdate}
-          onLogoSourceChange={onLogoSourceChange}
-        />
-        <ZoneLogoEditor
-          zone="hero"
-          title="Destaque principal"
-          draft={draft}
-          firmLogoUrl={firmLogoUrl}
-          readOnly={readOnly}
-          onDraftUpdate={onDraftUpdate}
-          onLogoSourceChange={onLogoSourceChange}
-        />
-      </div>
+      {grid}
     </div>
   )
 }

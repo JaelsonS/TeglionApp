@@ -1,19 +1,23 @@
-import { useEffect, useState, type ChangeEvent, type CSSProperties } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type CSSProperties,
+  type ReactNode,
+} from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   ExternalLink,
-  Eye,
   Facebook,
   Globe,
   Instagram,
   Linkedin,
   Loader2,
-  Maximize2,
   MessageCircle,
   Plus,
-  Save,
   Trash2,
-  Upload,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
@@ -29,12 +33,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/components/ui/alert-dialog'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/components/ui/dialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
@@ -48,10 +46,6 @@ import type { FirmBookingSettings } from '@/shared/types/contabil'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { resolveFirmBrandingCssVars } from '@/shared/utils/firmBranding'
 import { DefaultTemplate } from '@/features/public-intake/templates/default/DefaultTemplate'
-import {
-  DEFAULT_PRIVACY_TEMPLATE,
-  DEFAULT_TERMS_TEMPLATE,
-} from '@/features/firm/public-site/publicSiteLegalTemplates'
 import {
   AboutEditor,
   ChromeSectionEditor,
@@ -83,33 +77,45 @@ import {
   removePublicSiteSection,
 } from './publicSiteSectionFactory'
 import { applyPageBackgroundColor, parsePublicSiteHex } from './publicSitePageBackground'
+import { PublicSitePublishReadinessChecklist } from './PublicSitePublishReadinessChecklist'
+import {
+  evaluatePublicSitePublishReadiness,
+  publicSiteSectionCardDomId,
+  type PublicSitePublishReadinessItem,
+} from './publicSitePublishReadiness'
+import { resolvePublicSiteSectionVisitorSummary } from './publicSiteSectionVisitorSummary'
+import { usePublicSiteEditorPreviewAssist } from './usePublicSiteEditorPreviewAssist'
+import { PublicSiteEditorFold } from './PublicSiteEditorFold'
+import { PublicSiteLinkPublishPanel } from './PublicSiteLinkPublishPanel'
+import { PublicSiteEditorDeviceChrome } from './PublicSiteEditorDeviceChrome'
+import { PublicSiteExtrasPanel } from './PublicSiteExtrasPanel'
+import { PublicSiteLegalFieldsEditor } from './PublicSiteLegalFieldsEditor'
+import { evaluatePublicSiteLegalGaps, publicSiteLegalFieldsDomId } from './publicSiteLegalCompliance'
 
 const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
   header: 'Barra do topo',
   hero: 'Destaque principal',
   about: 'Sobre o escritório',
-  services: 'Consultorias com agendamento',
-  bookingServices: 'Outros serviços',
+  services: 'Serviços com marcação online',
+  bookingServices: 'Serviços por formulário (sem horário)',
   features: 'Diferenciais',
   process: 'Como funciona',
   faq: 'Perguntas frequentes',
-  contact: 'Contactos',
-  footer: 'Rodapé',
+  contact: 'Contactos e redes',
+  footer: 'Rodapé legal (visual)',
 }
 
 const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
   header: 'Alinhamento da marca, cores · menu hamburger em telemóvel/tablet',
   hero: 'Alinhamento, imagem de fundo, texto e botões',
   about: 'Alinhamento, texto, foto e botões',
-  services:
-    'Título opcional · cartões em destaque · subtítulo da grelha · ordem do catálogo (consultorias com agendamento)',
-  bookingServices:
-    'Título opcional · cartões em destaque · subtítulo da grelha · ordem do catálogo (serviços sob pedido)',
+  services: 'Título opcional · destaques · grelha · ordem (marcação online)',
+  bookingServices: 'Título opcional · destaques · grelha · ordem (formulário, sem horário)',
   features: 'Alinhamento e pontos fortes',
   process: 'Alinhamento e passos',
   faq: 'Alinhamento e perguntas',
-  contact: 'Alinhamento, contactos e botões',
-  footer: 'Redes sociais, contactos (se Contactos off), cores e alinhamento',
+  contact: 'Email, telefone, morada, redes sociais e botões de acção',
+  footer: 'Cores, alinhamento e links legais (termos, privacidade, livro de reclamações)',
 }
 
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -134,16 +140,18 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const [savingSlug, setSavingSlug] = useState(false)
   const [publicDisplayName, setPublicDisplayName] = useState(bundle.publicProfile.displayName ?? '')
   const [savingDisplayName, setSavingDisplayName] = useState(false)
-  /** Por secção (key). Ausente = aberto por defeito em header/hero. */
+  /** Por secção (key). Ausente = fechado — a contabilista abre só o que está a editar. */
   const [sectionOpenState, setSectionOpenState] = useState<Record<string, boolean>>({})
-  const [previewExpanded, setPreviewExpanded] = useState(false)
   const [previewDevice, setPreviewDevice] = useState<PublicSiteEditorPreviewDevice>('tablet')
+  const [linkPublishOpen, setLinkPublishOpen] = useState(false)
+  const [extrasOpen, setExtrasOpen] = useState(false)
+  const [legalPublishAckChecked, setLegalPublishAckChecked] = useState(false)
 
   const isSectionEditorOpen = (section: PublicSiteSection) => {
     if (Object.prototype.hasOwnProperty.call(sectionOpenState, section.key)) {
       return sectionOpenState[section.key]
     }
-    return section.type === 'hero'
+    return false
   }
 
   const collapseAllSections = () => {
@@ -154,9 +162,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
 
   const toggleSectionOpen = (section: PublicSiteSection) => {
     setSectionOpenState((prev) => {
-      const currently = Object.prototype.hasOwnProperty.call(prev, section.key)
-        ? prev[section.key]
-        : section.type === 'hero'
+      const currently = Object.prototype.hasOwnProperty.call(prev, section.key) ? prev[section.key] : false
       return { ...prev, [section.key]: !currently }
     })
   }
@@ -184,6 +190,19 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const bookingQuery = useQuery({
     queryKey: ['booking-settings-summary'],
     queryFn: () => contabilConsultationsApi.getBookingSettings() as Promise<{ booking: FirmBookingSettings }>,
+  })
+
+  const previewAssistSections = draft ? reindexPublicSiteSectionsOrder(draft.sections) : []
+
+  const openSectionFromPreview = useCallback((sectionKey: string) => {
+    setSectionOpenState((prev) => ({ ...prev, [sectionKey]: true }))
+  }, [])
+
+  usePublicSiteEditorPreviewAssist({
+    enabled: Boolean(draft && !siteQuery.isLoading),
+    sections: previewAssistSections,
+    labels: SECTION_LABELS,
+    onOpenSection: openSectionFromPreview,
   })
 
   useEffect(() => {
@@ -405,9 +424,20 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
         await firmPublicSiteApi.saveDraft(normalized)
         setDraft(normalized)
       }
-      await firmPublicSiteApi.publish()
+      const legalGapsNow = draft ? evaluatePublicSiteLegalGaps(draft) : []
+      await firmPublicSiteApi.publish(
+        legalGapsNow.length > 0
+          ? {
+              legalPublishAcknowledgement: {
+                accepted: true,
+                missingItems: legalGapsNow.map((g) => g.id),
+              },
+            }
+          : undefined,
+      )
       toast.success('Página pública publicada.')
       setConfirmPublishOpen(false)
+      setLegalPublishAckChecked(false)
       void siteQuery.refetch()
     } catch (err) {
       toast.error('Não foi possível publicar', { description: getErrorMessage(err) })
@@ -508,6 +538,20 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     toast.success('Secção removida')
   }
 
+  const legalGaps = useMemo(() => (draft ? evaluatePublicSiteLegalGaps(draft) : []), [draft])
+
+  const focusLegalFields = useCallback(() => {
+    const footer = draft?.sections.find((s) => s.type === 'footer')
+    if (!footer) return
+    setSectionOpenState((prev) => ({ ...prev, [footer.key]: true }))
+    requestAnimationFrame(() => {
+      document.getElementById(publicSiteSectionCardDomId(footer.key))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      window.setTimeout(() => {
+        document.getElementById(publicSiteLegalFieldsDomId())?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }, 280)
+    })
+  }, [draft?.sections])
+
   if (siteQuery.isLoading || !draft) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -522,29 +566,57 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     publicDisplayName.trim() || bundle.publicProfile.displayName?.trim() || bundle.firm.name
   const sortedSections = reindexPublicSiteSectionsOrder(draft.sections)
 
-  const previewPanel = (
-    <DefaultTemplate
-      config={draft}
-      ctx={{
-        firmSlug,
-        firmName: previewFirmName,
-        logoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
-        headerLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
-        heroLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'hero', bundle.logoUrl),
-        services: previewServices,
-        contact: bundle.contact,
-        showPrices: draft.showPrices !== false,
-        complaintsBookUrl: draft.complaintsBookUrl,
-        complaintsBookLabel: draft.complaintsBookLabel,
-        praiseUrl: draft.praiseUrl,
-        praiseLabel: draft.praiseLabel,
-        praiseContact: draft.praiseContact,
-        openInternalLinksInNewTab: true,
-        showTeglionCredit: true,
-        useEditorHeroFrame: true,
-      }}
-    />
-  )
+  const editorPreviewHighlightKeys = sortedSections.filter(isSectionEditorOpen).map((s) => s.key)
+
+  const publishReadinessItems = evaluatePublicSitePublishReadiness({
+    firmSlug,
+    config: draft,
+    services: previewServices,
+    firmContact: {
+      email: bundle.contact?.email ?? null,
+      phone: bundle.contact?.phone ?? null,
+      address: bundle.contact?.address ?? null,
+    },
+  })
+
+  const onPublishReadinessFocus = (item: PublicSitePublishReadinessItem) => {
+    if (item.focus.kind === 'identity') {
+      setLinkPublishOpen(true)
+      document.getElementById('public-site-identity')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      return
+    }
+    if (item.focus.kind === 'servicesCatalog') {
+      window.location.assign('/app/firm/services')
+      return
+    }
+    const key = item.focus.sectionKey
+    setSectionOpenState((prev) => ({ ...prev, [key]: true }))
+    requestAnimationFrame(() => {
+      document.getElementById(publicSiteSectionCardDomId(key))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }
+
+  const previewRenderCtx = {
+    firmSlug,
+    firmName: previewFirmName,
+    logoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
+    headerLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
+    heroLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'hero', bundle.logoUrl),
+    services: previewServices,
+    contact: bundle.contact,
+    showPrices: draft.showPrices !== false,
+    complaintsBookUrl: draft.complaintsBookUrl,
+    complaintsBookLabel: draft.complaintsBookLabel,
+    praiseUrl: draft.praiseUrl,
+    praiseLabel: draft.praiseLabel,
+    praiseContact: draft.praiseContact,
+    openInternalLinksInNewTab: true,
+    showTeglionCredit: false,
+    useEditorHeroFrame: true,
+    editorPreviewHighlightKeys,
+  }
+
+  const previewPanel = <DefaultTemplate config={draft} ctx={previewRenderCtx} />
 
   const previewSurfaceStyle = {
     ...resolveFirmBrandingCssVars({
@@ -560,142 +632,69 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
       : { backgroundColor: 'hsl(var(--background))' }),
   } as CSSProperties
 
+  const linkPublishClosedSummary = [
+    firmSlug ? `teglion.com/${firmSlug}` : 'Defina o link público',
+    siteQuery.data?.publishedAt ? 'Publicado' : 'Rascunho',
+  ].join(' · ')
+
   return (
     <div className="cb-public-site-editor-root space-y-6">
-      {/* Passo 1 — Identidade + publicar */}
-      <section className="space-y-3 rounded-xl border border-border/50 bg-muted/20 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">1 · Identidade</p>
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1 space-y-2">
-          <p className="text-sm font-medium">
-            {siteQuery.data?.publishedAt
-              ? `Publicado pela última vez em ${new Date(siteQuery.data.publishedAt).toLocaleString('pt-PT')}`
-              : 'Ainda não publicado'}
-          </p>
-          {canEditLink ? (
-            <div className="flex flex-wrap items-end gap-2">
-              <label className="min-w-[12rem] flex-1 space-y-1 text-xs">
-                <span className="font-medium text-muted-foreground">Link público</span>
-                <div className="flex items-center gap-1">
-                  <span className="shrink-0 text-muted-foreground">teglion.com/</span>
-                  <Input
-                    className="h-9 font-mono text-sm"
-                    value={slugDraft}
-                    onChange={(e: FormChangeEvent) =>
-                      setSlugDraft(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))
-                    }
-                    placeholder="o-seu-escritorio"
-                    maxLength={60}
-                  />
-                </div>
-              </label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-9"
-                disabled={savingSlug || !slugDraft.trim() || slugDraft.trim() === firmSlug}
-                onClick={() => void onSaveSlug()}
-              >
-                {savingSlug ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-                Guardar link
-              </Button>
-              {firmSlug ? (
-                <a
-                  href={`/${encodeURIComponent(firmSlug)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-9 items-center gap-1 rounded-md border border-border/60 px-3 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  Abrir <ExternalLink className="h-3 w-3" />
-                </a>
-              ) : null}
-            </div>
-          ) : firmSlug ? (
-            <a
-              href={`/${encodeURIComponent(firmSlug)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-            >
-              teglion.com/{firmSlug} <ExternalLink className="h-3 w-3" />
-            </a>
-          ) : null}
-          {canEditLink ? (
-            <div className="flex flex-wrap items-end gap-2 pt-1">
-              <label className="min-w-[14rem] flex-1 space-y-1 text-xs">
-                <span className="font-medium text-muted-foreground">Nome na barra do topo</span>
-                <Input
-                  className="h-9 text-sm"
-                  value={publicDisplayName}
-                  onChange={(e: FormChangeEvent) => setPublicDisplayName(e.target.value)}
-                  placeholder={bundle.firm.name || 'Como aparece na barra'}
-                  maxLength={120}
-                />
-              </label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-9"
-                disabled={savingDisplayName}
-                onClick={() => void onSavePublicDisplayName()}
-              >
-                {savingDisplayName ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-                Guardar nome
-              </Button>
-            </div>
-          ) : null}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" size="sm" disabled={saving || publishing} onClick={() => void onSaveDraft()}>
-            {saving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
-            Guardar rascunho
-          </Button>
-          <Button type="button" variant="outline" size="sm" disabled={previewing || !firmSlug} onClick={() => void onPreview()}>
-            {previewing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Eye className="mr-1.5 h-3.5 w-3.5" />}
-            Pré-visualizar
-          </Button>
-          <Button type="button" variant="primary" size="sm" disabled={publishing} loading={publishing} onClick={() => setConfirmPublishOpen(true)}>
-            <Upload className="mr-1.5 h-3.5 w-3.5" /> Publicar
-          </Button>
-          {canEditLink ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="text-destructive hover:bg-destructive/10"
-              disabled={resetting}
-              onClick={() => setConfirmResetOpen(true)}
-            >
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              Apagar e recomeçar
-            </Button>
-          ) : null}
-        </div>
-        </div>
+      <section
+        className="rounded-xl border border-brand/25 bg-gradient-to-br from-brand/[0.07] via-card to-card p-4 shadow-sm"
+        aria-label="Pronto para publicar"
+      >
+        <PublicSitePublishReadinessChecklist
+          items={publishReadinessItems}
+          legalGaps={legalGaps}
+          onFocus={onPublishReadinessFocus}
+          onFocusLegal={focusLegalFields}
+        />
       </section>
+
+      <PublicSiteEditorFold
+        id="public-site-identity"
+        title="A · Link e publicar"
+        closedSummary={linkPublishClosedSummary}
+        hint="Endereço teglion.com/…, nome na barra do site e botões para guardar, pré-visualizar ou publicar."
+        open={linkPublishOpen}
+        onOpenChange={setLinkPublishOpen}
+        className="border-brand/15 bg-card/50"
+      >
+        <PublicSiteLinkPublishPanel
+          publishedAt={siteQuery.data?.publishedAt}
+          firmSlug={firmSlug}
+          slugDraft={slugDraft}
+          onSlugDraftChange={setSlugDraft}
+          savingSlug={savingSlug}
+          onSaveSlug={() => void onSaveSlug()}
+          canEditLink={canEditLink}
+          publicDisplayName={publicDisplayName}
+          onPublicDisplayNameChange={setPublicDisplayName}
+          savingDisplayName={savingDisplayName}
+          onSaveDisplayName={() => void onSavePublicDisplayName()}
+          firmNameFallback={bundle.firm.name || ''}
+          saving={saving}
+          previewing={previewing}
+          publishing={publishing}
+          resetting={resetting}
+          onSaveDraft={() => void onSaveDraft()}
+          onPreview={() => void onPreview()}
+          onOpenPublishConfirm={() => setConfirmPublishOpen(true)}
+          onOpenResetConfirm={() => setConfirmResetOpen(true)}
+        />
+      </PublicSiteEditorFold>
 
       <div className="cb-public-site-editor-grid">
         <div className="cb-public-site-editor-main order-1 min-w-0 space-y-4">
-          <div className="space-y-3 rounded-xl border border-border/50 bg-card p-4 lg:hidden">
-            <PublicSiteLogoCard
-              draft={draft}
-              firmLogoUrl={bundle.logoUrl ?? null}
-              readOnly={!canEditLink}
-              onDraftUpdate={setDraft}
-              onLogoSourceChange={(zone, source) => void patchThemeLogoSource(zone, source)}
-            />
-            <PageThemeColors draft={draft} onChange={setDraft} />
-          </div>
+          <section className="space-y-3 rounded-xl border border-border/50 bg-card p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              2 · Secções do site
+              B · Secções
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <Button type="button" variant="outline" size="sm" className="h-8" onClick={onAddSection}>
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
-                Adicionar secção
+                Mais uma lista de serviços (catálogo)
               </Button>
               <Button type="button" variant="ghost" size="sm" className="h-8 text-xs" onClick={collapseAllSections}>
                 Recolher todas
@@ -730,6 +729,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             }}
             onReorder={onReorderSections}
             onRemove={onRemoveSection}
+            visitorSummary={(section) => resolvePublicSiteSectionVisitorSummary(section, previewServices)}
             renderEditor={(section) => (
               <div className="space-y-3">
                 <PublicSiteSectionAlignField
@@ -751,6 +751,19 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                   officePhone={bundle.contact?.phone}
                   officeContact={bundle.contact}
                   socialWhatsapp={draft.socialLinks?.whatsapp}
+                  footerSection={draft.sections.find((s) => s.type === 'footer')}
+                  onFooterContactChange={(patch) => {
+                    const footer = draft.sections.find((s) => s.type === 'footer')
+                    if (footer?.type !== 'footer') return
+                    patchSectionContent(footer.key, { ...footer.content, ...patch })
+                  }}
+                  socialLinksSection={
+                    section.type === 'contact' ? (
+                      <ThemeEditor draft={draft} onChange={setDraft} embedded />
+                    ) : undefined
+                  }
+                  siteDraft={draft}
+                  onSiteDraftChange={setDraft}
                   bookingFilter={
                     section.type === 'services' ? true : section.type === 'bookingServices' ? false : undefined
                   }
@@ -780,148 +793,21 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               </div>
             )}
           />
-
-          <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            3 · Complementos
-          </p>
-          <div className="rounded-xl border border-border/50 p-4">
-            <Label className="text-sm font-semibold">Agendamento</Label>
-            <p className="mt-1 text-caption text-muted-foreground">
-              {booking
-                ? `${booking.weekdays.map((d) => WEEKDAY_LABELS[d]).join(', ')} · ${booking.dayStart}–${booking.dayEnd} · slots de ${booking.slotMinutes} min`
-                : 'A carregar…'}
-            </p>
-            <a href="/app/firm/agenda?panel=settings" className="mt-2 inline-block text-caption text-primary hover:underline">
-              Editar disponibilidade →
-            </a>
-          </div>
-
-          <ThemeEditor draft={draft} onChange={setDraft} />
-
-          <div className="rounded-xl border border-border/50 p-4">
-            <Label className="text-sm font-semibold">Preços na página pública</Label>
-            <label className="mt-3 flex items-start gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="mt-0.5 rounded border-border"
-                checked={draft.showPrices !== false}
-                onChange={(e) => setDraft({ ...draft, showPrices: e.target.checked })}
-              />
-              <span>
-                Mostrar preços dos serviços
-                <span className="mt-0.5 block text-caption text-muted-foreground">
-                  Quando desligado, os cartões e a página do serviço omitem o valor.
-                </span>
-              </span>
-            </label>
-          </div>
-
-          <div className="rounded-xl border border-border/50 p-4 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <Label className="text-sm font-semibold">Termos, privacidade e reclamações</Label>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() =>
-                  setDraft({
-                    ...draft,
-                    termsText: DEFAULT_TERMS_TEMPLATE,
-                    privacyText: DEFAULT_PRIVACY_TEMPLATE,
-                  })
-                }
-              >
-                Usar modelo padrão
-              </Button>
-            </div>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">Termos de Utilização</span>
-              <textarea
-                className="min-h-[100px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-                value={draft.termsText || ''}
-                onChange={(e: FormChangeEvent) => setDraft({ ...draft, termsText: e.target.value || null })}
-              />
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">Política de Privacidade</span>
-              <textarea
-                className="min-h-[100px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-                value={draft.privacyText || ''}
-                onChange={(e: FormChangeEvent) => setDraft({ ...draft, privacyText: e.target.value || null })}
-              />
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">Livro de Reclamações — link</span>
-              <Input
-                placeholder="https://www.livroreclamacoes.pt/Pedido/Iniciar"
-                value={draft.complaintsBookUrl || ''}
-                onChange={(e: FormChangeEvent) => setDraft({ ...draft, complaintsBookUrl: e.target.value || null })}
-              />
-              <button
-                type="button"
-                className="text-caption font-medium text-brand hover:underline"
-                onClick={() =>
-                  setDraft({
-                    ...draft,
-                    complaintsBookUrl: 'https://www.livroreclamacoes.pt/Pedido/Iniciar',
-                    complaintsBookLabel: draft.complaintsBookLabel || 'Livro de Reclamações',
-                  })
-                }
-              >
-                Usar modelo oficial (livroreclamacoes.pt)
-              </button>
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">Livro de Reclamações — texto do link</span>
-              <Input
-                placeholder="Livro de Reclamações"
-                value={draft.complaintsBookLabel || ''}
-                onChange={(e: FormChangeEvent) => setDraft({ ...draft, complaintsBookLabel: e.target.value || null })}
-              />
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">Elogios / avaliações — link</span>
-              <Input
-                placeholder="https://g.page/r/... (Google Reviews) ou outro URL"
-                value={draft.praiseUrl || ''}
-                onChange={(e: FormChangeEvent) => setDraft({ ...draft, praiseUrl: e.target.value || null })}
-              />
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">Elogios / avaliações — texto do link</span>
-              <Input
-                placeholder="Deixe a sua avaliação no Google"
-                value={draft.praiseLabel || ''}
-                onChange={(e: FormChangeEvent) => setDraft({ ...draft, praiseLabel: e.target.value || null })}
-              />
-            </label>
-          </div>
-
-          <div className="hidden space-y-3 rounded-xl border border-border/50 bg-muted/15 p-4 lg:block">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Visual rápido
-            </p>
-            <PublicSiteLogoCard
-              draft={draft}
-              firmLogoUrl={bundle.logoUrl ?? null}
-              readOnly={!canEditLink}
-              onDraftUpdate={setDraft}
-              onLogoSourceChange={(zone, source) => void patchThemeLogoSource(zone, source)}
-            />
-            <PageThemeColors draft={draft} onChange={setDraft} />
-          </div>
+          </section>
         </div>
 
         <aside className="cb-public-site-editor-aside order-2 min-w-0">
-          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 pb-2">
-            <div>
+          <div className="cb-public-site-editor-preview-panel">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">
+            <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Pré-visualização ao vivo
               </p>
-              <p className="text-[11px] text-muted-foreground">
-                Escolha telemóvel ou tablet para ver o menu hamburger. Desktop mostra a barra horizontal (ecrãs largos).
+              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                Simulação por <span className="font-medium text-foreground">largura real</span> do dispositivo — em telemóvel
+                e tablet vê o menu <span className="font-medium text-foreground">☰</span> como o visitante. Para testar
+                cliques e scroll completo, use{' '}
+                <span className="font-medium text-foreground">Abrir numa nova aba</span>.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
@@ -948,55 +834,130 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 variant="outline"
                 size="sm"
                 className="h-8 shrink-0"
-                onClick={() => setPreviewExpanded(true)}
+                disabled={previewing || !firmSlug}
+                onClick={() => void onPreview()}
               >
-                <Maximize2 className="mr-1.5 h-3.5 w-3.5" />
-                Expandir
+                {previewing ? (
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                )}
+                Abrir numa nova aba
               </Button>
             </div>
           </div>
           <div
             key={`preview-bg-${draft.theme.backgroundColor || 'default'}-${draft.theme.surfaceColor || 'surface'}-${previewDevice}`}
-            className="cb-public-site-editor-preview-scroll rounded-xl border border-border/50 shadow-sm"
-            style={previewSurfaceStyle}
+            className="cb-public-site-editor-preview-scroll cb-public-site-editor-preview-scroll--device rounded-lg border border-border/50 shadow-sm"
           >
-            <PublicSiteEditorPreviewFrame canvasWidthPx={publicSiteEditorPreviewCanvasPx(previewDevice)}>
-              {previewPanel}
-            </PublicSiteEditorPreviewFrame>
+            <PublicSiteEditorDeviceChrome device={previewDevice} screenStyle={previewSurfaceStyle}>
+              <PublicSiteEditorPreviewFrame
+                canvasWidthPx={publicSiteEditorPreviewCanvasPx(previewDevice)}
+                inDeviceChrome
+              >
+                {previewPanel}
+              </PublicSiteEditorPreviewFrame>
+            </PublicSiteEditorDeviceChrome>
+          </div>
           </div>
         </aside>
       </div>
 
-      <Dialog open={previewExpanded} onOpenChange={setPreviewExpanded}>
-        <DialogContent className="flex h-[min(92dvh,900px)] max-w-5xl flex-col gap-0 p-0">
-          <DialogHeader className="shrink-0 border-b border-border/60 px-4 py-3 text-left">
-            <DialogTitle className="text-base">Pré-visualização — site público</DialogTitle>
-          </DialogHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain" style={previewSurfaceStyle}>
-            <PublicSiteEditorPreviewFrame expanded canvasWidthPx={publicSiteEditorPreviewCanvasPx(previewDevice)}>
-              {previewPanel}
-            </PublicSiteEditorPreviewFrame>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <PublicSiteEditorFold
+        id="public-site-extras"
+        title="C · Marca e extras"
+        closedSummary="Preços, logótipos, cores da página e SEO"
+        hint="Preços/agenda, logótipos, cores e SEO — sem contactos nem legal (isso fica nas secções)."
+        open={extrasOpen}
+        onOpenChange={setExtrasOpen}
+        className="bg-muted/15"
+      >
+        <PublicSiteExtrasPanel
+          firmSlug={firmSlug ?? ''}
+          previewFirmName={previewFirmName}
+          draft={draft}
+          onDraftChange={setDraft}
+          booking={booking}
+          weekdayLabels={WEEKDAY_LABELS}
+          logoSection={
+            <PublicSiteLogoCard
+              embedded
+              draft={draft}
+              firmLogoUrl={bundle.logoUrl ?? null}
+              readOnly={!canEditLink}
+              onDraftUpdate={setDraft}
+              onLogoSourceChange={(zone, source) => void patchThemeLogoSource(zone, source)}
+            />
+          }
+          pageColorsSection={<PageThemeColors draft={draft} onChange={setDraft} embedded />}
+        />
+      </PublicSiteEditorFold>
 
-      <AlertDialog open={confirmPublishOpen} onOpenChange={setConfirmPublishOpen}>
-        <AlertDialogContent>
+      <AlertDialog
+        open={confirmPublishOpen}
+        onOpenChange={(open: boolean) => {
+          setConfirmPublishOpen(open)
+          if (!open) setLegalPublishAckChecked(false)
+        }}
+      >
+        <AlertDialogContent className="max-w-lg">
           <AlertDialogHeader>
             <AlertDialogTitle>Publicar página pública?</AlertDialogTitle>
-            <AlertDialogDescription>
-              A partir de agora, teglion.com/{firmSlug} passa a mostrar esta versão a qualquer visitante.
-              Confirme só depois de ter guardado o que quer publicar (o botão Publicar também guarda o rascunho
-              actual automaticamente). Ao partilhar o link no WhatsApp, a miniatura usa a imagem do destaque ou o
-              logótipo do site público — não a imagem comercial do Teglion.
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <p>
+                  A partir de agora, teglion.com/{firmSlug} passa a mostrar esta versão a qualquer visitante. O botão
+                  Publicar também guarda o rascunho actual automaticamente.
+                </p>
+                {legalGaps.length > 0 ? (
+                  <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2.5 text-amber-950 dark:text-amber-100">
+                    <p className="font-medium text-foreground">Documentos legais por completar</p>
+                    <ul className="mt-2 list-inside list-disc space-y-1 text-[13px]">
+                      {legalGaps.map((g) => (
+                        <li key={g.id}>{g.label}</li>
+                      ))}
+                    </ul>
+                    <p className="mt-2 text-[12px] leading-relaxed">
+                      Pode publicar na mesma, mas deve assumir a responsabilidade legal do escritório. A{' '}
+                      <span className="font-medium">Teglion</span> (produto da{' '}
+                      <span className="font-medium">AfDigital — Soluções Tecnológicas</span>) não presta aconselhamento
+                      jurídico nem responde pela ausência de Livro de Reclamações, Termos ou Política de Privacidade
+                      adequados.
+                    </p>
+                    <label className="mt-3 flex cursor-pointer items-start gap-2 text-[12px] leading-snug">
+                      <input
+                        type="checkbox"
+                        className="mt-0.5 rounded border-border"
+                        checked={legalPublishAckChecked}
+                        onChange={(e) => setLegalPublishAckChecked(e.target.checked)}
+                      />
+                      <span>
+                        Declaro, em nome do escritório, que assumo a responsabilidade pelo conteúdo legal desta página
+                        pública e autorizo a publicação mesmo com os itens acima por completar. Registo esta aceitação
+                        nos logs do Teglion.
+                      </span>
+                    </label>
+                  </div>
+                ) : (
+                  <p className="text-[12px]">
+                    Livro de Reclamações e políticas do escritório estão indicados no rascunho. Ao partilhar o link, a
+                    miniatura usa o destaque ou o logótipo do site — não a imagem comercial do Teglion.
+                  </p>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={publishing}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction disabled={publishing} onClick={() => void onPublish()}>
-              {publishing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+            <Button
+              type="button"
+              variant="primary"
+              disabled={publishing || (legalGaps.length > 0 && !legalPublishAckChecked)}
+              loading={publishing}
+              onClick={() => void onPublish()}
+            >
               Publicar
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -1045,6 +1006,11 @@ function SectionEditorSwitch({
   publicDisplayName,
   socialWhatsapp,
   bookingFilter,
+  footerSection,
+  onFooterContactChange,
+  socialLinksSection,
+  siteDraft,
+  onSiteDraftChange,
 }: {
   section: PublicSiteSection
   onChange: (content: PublicSiteSection['content']) => void
@@ -1063,6 +1029,15 @@ function SectionEditorSwitch({
   socialWhatsapp?: string | null
   /** true = só com agendamento; false = só sem agendamento */
   bookingFilter?: boolean
+  footerSection?: PublicSiteSection
+  onFooterContactChange?: (patch: {
+    email?: string | null
+    phone?: string | null
+    address?: string | null
+  }) => void
+  socialLinksSection?: ReactNode
+  siteDraft?: PublicSiteConfig
+  onSiteDraftChange?: (next: PublicSiteConfig) => void
 }) {
   switch (section.type) {
     case 'hero':
@@ -1193,6 +1168,18 @@ function SectionEditorSwitch({
           services={services}
           officePhone={officePhone}
           socialWhatsapp={socialWhatsapp}
+          officeContact={officeContact}
+          footerContact={
+            footerSection?.type === 'footer'
+              ? {
+                  email: footerSection.content.email,
+                  phone: footerSection.content.phone,
+                  address: footerSection.content.address,
+                }
+              : undefined
+          }
+          onFooterContactChange={onFooterContactChange}
+          socialLinksSection={socialLinksSection}
           sectionMedia={{
             content: section.content,
             onChange,
@@ -1224,13 +1211,16 @@ function SectionEditorSwitch({
       )
     case 'footer':
       return (
-        <ChromeSectionEditor
-          content={section.content}
-          onChange={onChange}
-          title="Rodapé"
-          showFooterContactFields
-          officeContact={officeContact}
-        />
+        <div className="space-y-4">
+          <ChromeSectionEditor content={section.content} onChange={onChange} title="Rodapé legal (visual)" />
+          {siteDraft && onSiteDraftChange ? (
+            <PublicSiteLegalFieldsEditor
+              id={publicSiteLegalFieldsDomId()}
+              draft={siteDraft}
+              onDraftChange={onSiteDraftChange}
+            />
+          ) : null}
+        </div>
       )
     default:
       return null
@@ -1265,9 +1255,11 @@ function whatsappDisplayNumber(url: string | null | undefined): string {
 function PageThemeColors({
   draft,
   onChange,
+  embedded = false,
 }: {
   draft: PublicSiteConfig
   onChange: (next: PublicSiteConfig) => void
+  embedded?: boolean
 }) {
   const theme = draft.theme
   const bg = theme.backgroundColor || ''
@@ -1291,14 +1283,8 @@ function PageThemeColors({
     }
   }
 
-  return (
-    <div className="rounded-xl border border-border/50 bg-card p-3">
-      <p className="text-xs font-semibold text-foreground">Fundo da página</p>
-      <p className="mt-0.5 text-[11px] text-muted-foreground">
-        Esta cor pinta a página inteira no preview. Se um bloco tiver cor própria, essa cor sobrepõe-se — ao
-        mudar aqui, limpamos os fundos dos blocos para a alteração se ver de imediato.
-      </p>
-      <div className="mt-2 grid gap-3 sm:grid-cols-2">
+  const grid = (
+      <div className={embedded ? 'grid gap-3 sm:grid-cols-2' : 'mt-2 grid gap-3 sm:grid-cols-2'}>
         <div className="space-y-1">
           <Label htmlFor="ps-page-bg" className="text-[11px]">
             Página
@@ -1352,23 +1338,50 @@ function PageThemeColors({
           </div>
         </div>
       </div>
+  )
+
+  const sectionHint = (
+    <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">
+      Mudar a cor da página limpa fundos dos blocos para o preview actualizar.
+    </p>
+  )
+
+  if (embedded) {
+    return (
+      <>
+        {grid}
+        {sectionHint}
+      </>
+    )
+  }
+
+  return (
+    <div className="rounded-xl border border-border/50 bg-card p-3">
+      <p className="text-xs font-semibold text-foreground">Fundo da página</p>
+      <p className="mt-0.5 text-[11px] text-muted-foreground">
+        Esta cor pinta a página inteira no preview. Se um bloco tiver cor própria, essa cor sobrepõe-se — ao mudar
+        aqui, limpamos os fundos dos blocos para a alteração se ver de imediato.
+      </p>
+      {grid}
     </div>
   )
 }
 
-function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (next: PublicSiteConfig) => void }) {
+function ThemeEditor({
+  draft,
+  onChange,
+  embedded = false,
+}: {
+  draft: PublicSiteConfig
+  onChange: (next: PublicSiteConfig) => void
+  embedded?: boolean
+}) {
   const setSocial = (key: keyof PublicSiteConfig['socialLinks'], value: string | null) => {
     onChange({ ...draft, socialLinks: { ...draft.socialLinks, [key]: value } })
   }
 
-  return (
-    <div className="space-y-4">
-      <div className="rounded-xl border border-border/50 p-4">
-        <Label className="text-sm font-semibold">Redes sociais</Label>
-        <p className="mt-1 text-caption text-muted-foreground">
-          O início do link já está preenchido — escreva só o seu nome de utilizador (ou o número no WhatsApp).
-        </p>
-        <div className="mt-4 space-y-4">
+  const fields = (
+        <div className={embedded ? 'space-y-4' : 'mt-4 space-y-4'}>
           <SocialHandleField
             label="Instagram"
             icon={Instagram}
@@ -1442,6 +1455,27 @@ function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (
             placeholder="www.meuescritorio.pt"
           />
         </div>
+  )
+
+  if (embedded) {
+    return (
+      <>
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          O início do link já está preenchido — escreva só o utilizador (ou o número no WhatsApp).
+        </p>
+        {fields}
+      </>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border/50 p-4">
+        <Label className="text-sm font-semibold">Redes sociais</Label>
+        <p className="mt-1 text-caption text-muted-foreground">
+          O início do link já está preenchido — escreva só o seu nome de utilizador (ou o número no WhatsApp).
+        </p>
+        {fields}
       </div>
     </div>
   )

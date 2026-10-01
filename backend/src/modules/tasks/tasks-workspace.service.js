@@ -6,6 +6,10 @@ const firmUsersRepository = require('../../db/supabase/repositories/firm-users.r
 const activityService = require('../../services/activity/activity.service');
 const clientTasksFirm = require('./client-tasks-firm.service');
 const { normalizeStatus } = require('./task.constants');
+const {
+  sanitizeFirmDisplayText,
+  sanitizeTaskForFirmDisplay,
+} = require('../../utils/demo-content-markers');
 
 /** Valida FKs opcionais da tarefa contra o tenant da sessão. */
 async function assertTaskForeignKeysInFirm(firmId, { assigneeId, obligationId, dependsOnTaskId }) {
@@ -134,15 +138,18 @@ async function listWorkspace(firmId, query) {
     items: items.map((t) => {
       const linkedIds = t.clientIds?.length ? t.clientIds : (t.clientId ? [t.clientId] : []);
       const clients = linkedIds.map((id) => ({ id, name: names.get(id) || null }));
-      return {
+      const mapped = {
         ...t,
         clientIds: linkedIds,
         clients,
         clientName: linkedIds.length
           ? clients.map((c) => c.name).filter(Boolean).join(', ') || null
           : 'Escritório',
-        obligationTitle: t.obligationId ? obligationTitles.get(t.obligationId) : null,
+        obligationTitle: t.obligationId
+          ? sanitizeFirmDisplayText(obligationTitles.get(t.obligationId))
+          : null,
       };
+      return sanitizeTaskForFirmDisplay(mapped);
     }),
     total: query.metric ? items.length : result.total,
     page: Math.floor(offset / limit) + 1,
@@ -202,7 +209,7 @@ async function getTaskDetail(firmId, taskId) {
       id: a.id,
       kind: 'activity',
       title: a.title,
-      description: a.description,
+      description: sanitizeFirmDisplayText(a.description),
       actorRole: a.actorRole,
       actorName: a.actorName,
       createdAt: a.createdAt,
@@ -211,7 +218,7 @@ async function getTaskDetail(firmId, taskId) {
       id: c.id,
       kind: 'comment',
       title: c.authorRole === 'CLIENT' ? 'Comentário do cliente' : 'Comentário do escritório',
-      description: c.body,
+      description: sanitizeFirmDisplayText(c.body),
       actorRole: c.authorRole,
       actorName: c.authorName,
       createdAt: c.createdAt,
@@ -219,19 +226,27 @@ async function getTaskDetail(firmId, taskId) {
   ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return {
-    task: {
+    task: sanitizeTaskForFirmDisplay({
       ...task,
       clientIds: linkedClientIds,
       clients: linkedClients,
       clientName: client?.displayName || client?.name,
       clientEmail: client?.email,
       clientTaxId: client?.tax_id,
-    },
-    comments,
+    }),
+    comments: comments.map((c) => ({
+      ...c,
+      body: sanitizeFirmDisplayText(c.body) ?? c.body,
+    })),
     timeline,
     documents,
     obligation: obligation
-      ? { id: obligation.id, title: obligation.title, period: obligation.period, status: obligation.status }
+      ? {
+          id: obligation.id,
+          title: sanitizeFirmDisplayText(obligation.title) ?? obligation.title,
+          period: obligation.period,
+          status: obligation.status,
+        }
       : null,
   };
 }

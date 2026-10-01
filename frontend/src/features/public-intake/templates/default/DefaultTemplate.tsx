@@ -4,6 +4,7 @@ import {
   findEnabledFooterContent,
   resolvePublicSiteContact,
 } from '@/features/public-intake/publicSiteContactResolve'
+import { PublicSitePreviewZone } from '@/features/firm/public-site/PublicSitePreviewZone'
 import { HeaderSection } from '@/features/public-intake/PublicSiteHeader'
 import {
   AboutSection,
@@ -24,6 +25,10 @@ type Props = {
   ctx: PublicSiteRenderContext
 }
 
+function isPreviewHighlight(ctx: PublicSiteRenderContext, sectionKey: string): boolean {
+  return Boolean(ctx.editorPreviewHighlightKeys?.includes(sectionKey))
+}
+
 /**
  * Único template hoje ("default") — a costura para múltiplos templates no
  * futuro é o `TEMPLATE_REGISTRY` (ver `templates/index.ts`), não isto: este
@@ -42,11 +47,13 @@ export function DefaultTemplate({ config, ctx }: Props) {
   const displayCtx: PublicSiteRenderContext = {
     ...ctx,
     contact: resolvePublicSiteContact(ctx.contact, footerContent),
+    termsText: ctx.termsText ?? config.termsText ?? null,
+    privacyText: ctx.privacyText ?? config.privacyText ?? null,
   }
 
   return (
     <div
-      className={`cb-public-site-container relative min-h-full w-full ${pageBg ? '' : 'bg-background'}`}
+      className={`cb-public-site-container relative w-full ${ctx.useEditorHeroFrame ? 'min-h-0' : 'min-h-full'} ${pageBg ? '' : 'bg-background'}`}
       style={pageBg ? { backgroundColor: pageBg } : undefined}
       data-public-page-bg={pageBg || undefined}
     >
@@ -59,95 +66,113 @@ export function DefaultTemplate({ config, ctx }: Props) {
         />
       ) : null}
       {sections.map((section) => {
+        const highlight = isPreviewHighlight(displayCtx, section.key)
         switch (section.type) {
           case 'header':
-            return <HeaderSection key={section.key} ctx={displayCtx} content={section.content} />
+            return (
+              <PublicSitePreviewZone key={section.key} sectionKey={section.key} zone="header" highlight={highlight}>
+                <HeaderSection ctx={displayCtx} content={section.content} />
+              </PublicSitePreviewZone>
+            )
           case 'hero':
             return (
-              <HeroSection
-                key={section.key}
-                content={section.content}
-                ctx={displayCtx}
-                socialLinks={config.socialLinks}
-                images={config.images}
-              />
+              <PublicSitePreviewZone key={section.key} sectionKey={section.key} zone="hero" highlight={highlight}>
+                <HeroSection
+                  content={section.content}
+                  ctx={displayCtx}
+                  socialLinks={config.socialLinks}
+                  images={config.images}
+                />
+              </PublicSitePreviewZone>
             )
           case 'about':
             return (
-              <AboutSection
-                key={section.key}
-                content={section.content}
-                images={config.images}
-                ctx={displayCtx}
-                socialLinks={config.socialLinks}
-                sectionKey={section.key}
-              />
+              <PublicSitePreviewZone key={section.key} sectionKey={section.key} zone="about" highlight={highlight}>
+                <AboutSection
+                  content={section.content}
+                  images={config.images}
+                  ctx={displayCtx}
+                  socialLinks={config.socialLinks}
+                  sectionKey={section.key}
+                />
+              </PublicSitePreviewZone>
             )
           case 'services':
           case 'bookingServices': {
             const hasCtas = (section.content.ctas?.length ?? 0) > 0
             if (showEmptyServices && !hasCtas) {
               if (section.key !== firstServiceKey) return null
-              return <EmptyPublicServicesSection key="public-services-empty" />
+              return (
+                <PublicSitePreviewZone
+                  key="public-services-empty"
+                  sectionKey={firstServiceKey || section.key}
+                  zone={section.type}
+                  highlight={isPreviewHighlight(displayCtx, firstServiceKey || section.key)}
+                >
+                  <EmptyPublicServicesSection />
+                </PublicSitePreviewZone>
+              )
             }
-            return section.type === 'services' ? (
-              <ServicesSection key={section.key} content={section.content} ctx={displayCtx} socialLinks={config.socialLinks} />
-            ) : (
-              <BookingServicesSection
+            return (
+              <PublicSitePreviewZone
                 key={section.key}
-                content={section.content}
-                ctx={displayCtx}
-                socialLinks={config.socialLinks}
-              />
+                sectionKey={section.key}
+                zone={section.type}
+                highlight={highlight}
+              >
+                {section.type === 'services' ? (
+                  <ServicesSection content={section.content} ctx={displayCtx} socialLinks={config.socialLinks} />
+                ) : (
+                  <BookingServicesSection
+                    content={section.content}
+                    ctx={displayCtx}
+                    socialLinks={config.socialLinks}
+                  />
+                )}
+              </PublicSitePreviewZone>
             )
           }
           case 'features':
             return (
-              <FeaturesSection
-                key={section.key}
-                content={section.content}
-                images={config.images}
-                sectionKey={section.key}
-              />
+              <PublicSitePreviewZone key={section.key} sectionKey={section.key} zone="features" highlight={highlight}>
+                <FeaturesSection content={section.content} images={config.images} sectionKey={section.key} />
+              </PublicSitePreviewZone>
             )
           case 'process':
             return (
-              <ProcessSection
-                key={section.key}
-                content={section.content}
-                images={config.images}
-                sectionKey={section.key}
-              />
+              <PublicSitePreviewZone key={section.key} sectionKey={section.key} zone="process" highlight={highlight}>
+                <ProcessSection content={section.content} images={config.images} sectionKey={section.key} />
+              </PublicSitePreviewZone>
             )
           case 'faq':
             return (
-              <FaqSection
-                key={section.key}
-                content={section.content}
-                images={config.images}
-                sectionKey={section.key}
-              />
+              <PublicSitePreviewZone key={section.key} sectionKey={section.key} zone="faq" highlight={highlight}>
+                <FaqSection content={section.content} images={config.images} sectionKey={section.key} />
+              </PublicSitePreviewZone>
             )
           case 'contact':
             return (
-              <ContactSection
-                key={section.key}
-                content={section.content}
-                ctx={displayCtx}
-                socialLinks={config.socialLinks}
-                images={config.images}
-                sectionKey={section.key}
-              />
+              <PublicSitePreviewZone key={section.key} sectionKey={section.key} zone="contact" highlight={highlight}>
+                <ContactSection
+                  content={section.content}
+                  ctx={displayCtx}
+                  socialLinks={config.socialLinks}
+                  images={config.images}
+                  sectionKey={section.key}
+                />
+              </PublicSitePreviewZone>
             )
           case 'footer':
             return (
-              <FooterSection
-                key={section.key}
-                ctx={displayCtx}
-                socialLinks={config.socialLinks}
-                content={section.content}
-                showContactDetails={!contactSectionEnabled}
-              />
+              <PublicSitePreviewZone key={section.key} sectionKey={section.key} zone="footer" highlight={highlight}>
+                <FooterSection
+                  ctx={displayCtx}
+                  socialLinks={config.socialLinks}
+                  content={section.content}
+                  showContactDetails={!contactSectionEnabled}
+                  showSocialIcons={!contactSectionEnabled}
+                />
+              </PublicSitePreviewZone>
             )
           default:
             return null

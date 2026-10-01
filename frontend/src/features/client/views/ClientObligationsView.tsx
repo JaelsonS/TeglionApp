@@ -10,6 +10,7 @@ import {
   getViewSessionId,
 } from '@/shared/components/contabil/DocumentPreviewModal'
 import { getClientHubCopy } from '@/features/client/clientHubI18n'
+import { displayObligationNotes } from '@/features/firm/obligations/obligationOperational'
 import {
   DEADLINE_BUCKET_LABEL,
   DEADLINE_BUCKET_ORDER,
@@ -397,11 +398,11 @@ export function ClientObligationsView({
                   </dl>
                 </section>
 
-                {selected.accountantNotes || selected.notes ? (
+                {displayObligationNotes(selected.accountantNotes, selected.notes) ? (
                   <section className="rounded-xl border border-border/60 bg-card p-4">
                     <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Observações do escritório</p>
                     <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-                      {selected.accountantNotes || selected.notes}
+                      {displayObligationNotes(selected.accountantNotes, selected.notes)}
                     </p>
                   </section>
                 ) : null}

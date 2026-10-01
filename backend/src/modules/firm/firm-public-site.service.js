@@ -460,8 +460,8 @@ function defaultSections() {
     { key: generateStableId('sec_'), type: 'header', enabled: true, order: 0, content: { title: '', backgroundColor: null, textColor: null } },
     { key: generateStableId('sec_'), type: 'hero', enabled: true, order: 1, content: { title: '', tagline: '', bio: '', imageIds: [], ctas: [] } },
     { key: generateStableId('sec_'), type: 'about', enabled: false, order: 2, content: { heading: '', body: '', imageIds: [] } },
-    { key: generateStableId('sec_'), type: 'services', enabled: true, order: 3, content: { heading: 'Consultorias com agendamento', mode: 'auto' } },
-    { key: generateStableId('sec_'), type: 'bookingServices', enabled: true, order: 4, content: { heading: 'Outros serviços', mode: 'auto' } },
+    { key: generateStableId('sec_'), type: 'services', enabled: true, order: 3, content: { heading: '', mode: 'auto' } },
+    { key: generateStableId('sec_'), type: 'bookingServices', enabled: true, order: 4, content: { heading: '', mode: 'auto' } },
     { key: generateStableId('sec_'), type: 'features', enabled: false, order: 5, content: { items: [] } },
     { key: generateStableId('sec_'), type: 'process', enabled: false, order: 6, content: { steps: [] } },
     { key: generateStableId('sec_'), type: 'faq', enabled: true, order: 7, content: { items: [] } },
@@ -469,6 +469,18 @@ function defaultSections() {
     { key: generateStableId('sec_'), type: 'footer', enabled: true, order: 9, content: { backgroundColor: null, textColor: null } },
   ];
 }
+
+const {
+  DEFAULT_COMPLAINTS_BOOK_URL,
+  DEFAULT_COMPLAINTS_BOOK_LABEL,
+  DEFAULT_TERMS_TEMPLATE,
+  DEFAULT_PRIVACY_TEMPLATE,
+} = require('./public-site-legal-templates');
+const {
+  evaluatePublicSiteLegalGaps,
+  parseLegalPublishAcknowledgement,
+} = require('./public-site-legal-compliance');
+const activityService = require('../../services/activity/activity.service');
 
 function defaultSiteConfig() {
   return {
@@ -491,10 +503,10 @@ function defaultSiteConfig() {
     socialLinks: normalizeSocialLinks(null),
     sections: defaultSections(),
     showPrices: true,
-    termsText: null,
-    privacyText: null,
-    complaintsBookUrl: null,
-    complaintsBookLabel: null,
+    termsText: DEFAULT_TERMS_TEMPLATE,
+    privacyText: DEFAULT_PRIVACY_TEMPLATE,
+    complaintsBookUrl: DEFAULT_COMPLAINTS_BOOK_URL,
+    complaintsBookLabel: DEFAULT_COMPLAINTS_BOOK_LABEL,
     praiseUrl: null,
     praiseLabel: null,
     praiseContact: null,
@@ -884,8 +896,39 @@ async function saveDraft(firmId, actorUserId, rawConfig) {
   };
 }
 
-async function publishSite(firmId, actorUserId) {
+async function publishSite(firmId, actorUserId, { actor, legalPublishAcknowledgement, ipAddress } = {}) {
   await assertOwner(firmId, actorUserId, 'Apenas o dono do escritório pode publicar a página pública.');
+  const before = await firmPublicSitesRepository.findByFirmId(firmId);
+  if (!before?.draft) throw new AppError('Guarde um rascunho antes de publicar.', 400);
+
+  const legalGaps = evaluatePublicSiteLegalGaps(before.draft);
+  const ack = legalPublishAcknowledgement;
+  if (legalGaps.length > 0) {
+    if (!ack?.accepted) {
+      throw new AppError(
+        'Confirme a responsabilidade legal do escritório antes de publicar sem Livro de Reclamações ou políticas revistas.',
+        400,
+        { code: 'LEGAL_ACK_REQUIRED', missingItems: legalGaps },
+      );
+    }
+    const ackSet = new Set(ack.missingItems || []);
+    const gapSet = new Set(legalGaps);
+    for (const id of legalGaps) {
+      if (!ackSet.has(id)) {
+        throw new AppError('Confirmação legal incompleta. Tente publicar novamente.', 400, {
+          code: 'LEGAL_ACK_MISMATCH',
+        });
+      }
+    }
+    for (const id of ackSet) {
+      if (!gapSet.has(id)) {
+        throw new AppError('Confirmação legal desactualizada. Tente publicar novamente.', 400, {
+          code: 'LEGAL_ACK_MISMATCH',
+        });
+      }
+    }
+  }
+
   const updated = await firmPublicSitesRepository.publish(firmId, actorUserId);
   if (!updated) throw new AppError('Guarde um rascunho antes de publicar.', 400);
 
@@ -901,6 +944,29 @@ async function publishSite(firmId, actorUserId) {
       primaryColor: theme.primaryColor ?? null,
       secondaryColor: theme.secondaryColor ?? null,
       textColor: theme.textColor ?? null,
+    });
+  }
+
+  if (legalGaps.length > 0 && ack?.accepted) {
+    void activityService.recordActivity({
+      firmId,
+      clientId: null,
+      actorRole: actor?.role || 'FIRM',
+      actorId: actorUserId,
+      actorName: actor?.fullName || actor?.name || 'Escritório',
+      eventType: 'PUBLIC_SITE_PUBLISH_LEGAL_ACK',
+      entityType: 'FIRM_PUBLIC_SITE',
+      entityId: firmId,
+      title: 'Publicação com aviso legal aceite',
+      description:
+        'O responsável do escritório aceitou publicar sem completar todos os documentos legais recomendados e assumiu a responsabilidade pelo conteúdo legal da página.',
+      metadata: {
+        missingItems: legalGaps,
+        ipAddress: ipAddress || null,
+        productDisclaimer:
+          'A Teglion é um produto da AfDigital — Soluções Tecnológicas; não presta aconselhamento jurídico nem responde por omissões legais do escritório.',
+      },
+      ipAddress: ipAddress || null,
     });
   }
 

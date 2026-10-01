@@ -92,7 +92,10 @@ export function FirmServiceRequestsPage() {
             ) : null}
           </div>
         }
-        bodyClassName="flex min-h-0 flex-1 flex-col overflow-hidden"
+        bodyClassName={cn(
+          'flex min-h-0 flex-1 flex-col',
+          activeTab === 'catalog' ? 'overflow-y-auto overscroll-y-contain' : 'overflow-hidden',
+        )}
       >
         <div className="shrink-0 border-b border-border/60 px-4 sm:px-5">
           <nav className="cb-tasks-tabs -mb-px overflow-x-auto" aria-label="Secções de serviços">
@@ -119,10 +122,9 @@ export function FirmServiceRequestsPage() {
         </div>
 
         {activeTab === 'catalog' ? (
-          <div className="shrink-0 border-b border-border/40 bg-muted/15 px-3 py-3 sm:px-4">
-            <p className="mb-2 text-caption text-muted-foreground">
-              Activo = disponível no escritório · Publicado = visível na página pública · Pedidos do site =
-              Solicitações
+          <div className="shrink-0 border-b border-border/40 bg-gradient-to-b from-muted/20 to-transparent px-3 py-3 sm:px-4">
+            <p className="mb-2.5 text-caption leading-relaxed text-muted-foreground">
+              Activo = no escritório · Publicado = na página pública · Pedidos do site = tab Solicitações
             </p>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" data-testid="services-hub-kpis">
               {[
@@ -131,9 +133,12 @@ export function FirmServiceRequestsPage() {
                 { label: 'Só internos', value: String(stats.internal) },
                 { label: 'Por ver', value: String(unseenInquiries) },
               ].map((kpi) => (
-                <div key={kpi.label} className="rounded-lg border border-border/60 bg-card px-3 py-2">
-                  <p className="text-caption font-medium text-muted-foreground">{kpi.label}</p>
-                  <p className="text-lg font-semibold tabular-nums text-foreground">{kpi.value}</p>
+                <div
+                  key={kpi.label}
+                  className="rounded-xl border border-border/50 bg-card px-3 py-2.5 shadow-sm"
+                >
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{kpi.label}</p>
+                  <p className="mt-0.5 text-xl font-semibold tabular-nums text-foreground">{kpi.value}</p>
                 </div>
               ))}
             </div>
@@ -153,7 +158,12 @@ export function FirmServiceRequestsPage() {
           </div>
         ) : null}
 
-        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 sm:p-4">
+        <div
+          className={cn(
+            'flex flex-col gap-3 p-3 pb-8 sm:p-4 sm:pb-10',
+            activeTab !== 'catalog' && 'min-h-0 flex-1 overflow-y-auto',
+          )}
+        >
           {activeTab === 'catalog' ? (
             <ServicesCatalogWorkspace
               services={allServices}
