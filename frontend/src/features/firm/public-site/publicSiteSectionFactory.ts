@@ -19,9 +19,9 @@ export function emptySectionContent(type: PublicSiteSectionType): PublicSiteSect
     case 'about':
       return { heading: '', body: '', imageIds: [], ctas: [] }
     case 'services':
-      return { heading: 'Consultorias com agendamento', mode: 'auto', ctas: [] }
+      return { heading: '', mode: 'auto', ctas: [] }
     case 'bookingServices':
-      return { heading: 'Outros serviços', mode: 'auto', ctas: [] }
+      return { heading: '', mode: 'auto', ctas: [] }
     case 'features':
       return { items: [] }
     case 'process':
