@@ -63,7 +63,7 @@ type MfaNavState = {
 export function FirmMfaChallengePage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
   const toast = useApiToast()
   const { setSession } = useAuth()
 
@@ -86,7 +86,17 @@ export function FirmMfaChallengePage() {
       if (navState.mfaChallengeToken) {
         setMfaChallengeToken(navState.mfaChallengeToken, navState.mfaExpiresAt ?? null)
       }
-      const token = String(navState.mfaChallengeToken || getMfaChallengeToken() || '').trim()
+      const ssoChallenge =
+        params.get('sso') === '1' ? String(params.get('challenge') || '').trim() : ''
+      if (ssoChallenge) {
+        setMfaChallengeToken(ssoChallenge, null)
+        const next = new URLSearchParams(params)
+        next.delete('challenge')
+        setParams(next, { replace: true })
+      }
+      const token = String(
+        navState.mfaChallengeToken || ssoChallenge || getMfaChallengeToken() || '',
+      ).trim()
       if (!token) {
         setFieldError(MFA_SESSION_LOST)
         return
@@ -142,8 +152,8 @@ export function FirmMfaChallengePage() {
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- boot on mount / reason / login state
-  }, [reason, location.state])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- boot on mount / reason / SSO query / login state
+  }, [reason, location.state, params])
 
   async function onVerifyChallenge(e: FormEvent) {
     e.preventDefault()
