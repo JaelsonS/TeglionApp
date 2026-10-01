@@ -38,6 +38,7 @@ export function DefaultTemplate({ config, ctx }: Props) {
   const pageBgRaw = String(config.theme?.backgroundColor || '').trim()
   const pageBg = /^#[0-9a-f]{6}$/i.test(pageBgRaw) ? pageBgRaw : null
   const footerContent = findEnabledFooterContent(config)
+  const contactSectionEnabled = sections.some((s) => s.type === 'contact')
   const displayCtx: PublicSiteRenderContext = {
     ...ctx,
     contact: resolvePublicSiteContact(ctx.contact, footerContent),
@@ -140,7 +141,13 @@ export function DefaultTemplate({ config, ctx }: Props) {
             )
           case 'footer':
             return (
-              <FooterSection key={section.key} ctx={displayCtx} socialLinks={config.socialLinks} content={section.content} />
+              <FooterSection
+                key={section.key}
+                ctx={displayCtx}
+                socialLinks={config.socialLinks}
+                content={section.content}
+                showContactDetails={!contactSectionEnabled}
+              />
             )
           default:
             return null

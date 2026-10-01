@@ -151,9 +151,11 @@ export type PublicSiteServicesContent = {
   ctas?: PublicSiteCta[]
   backgroundColor?: string | null
   headingColor?: string | null
-  /** Título do bloco de cartões em destaque (ex.: «Destaques»). */
+  /** Título do bloco de cartões em destaque — só aparece na página se preenchido. */
   featuredHeading?: string | null
-  /** Slugs de ofertas principais — cartões grandes com opções visíveis (máx. 6). */
+  /** Título acima da grelha de serviços (quando há cartões em destaque) — opcional. */
+  catalogHeading?: string | null
+  /** Slugs de ofertas principais — cartões grandes com opções visíveis (máx. 12). */
   featuredServiceSlugs?: string[] | null
 } & PublicSiteSectionMediaFields
 

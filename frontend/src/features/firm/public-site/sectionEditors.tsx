@@ -972,8 +972,9 @@ export function ChromeSectionEditor({
           <div>
             <Label className="text-sm font-semibold">Contactos no rodapé</Label>
             <p className="mt-1 text-[11px] text-muted-foreground">
-              Estes contactos aparecem no rodapé e na secção Contactos (um único conjunto). Campo em branco →
-              herda Definições → Escritório. Não altera os dados do Escritório.
+              Usados na secção Contactos e, se essa secção estiver desactivada, também no rodapé. Com Contactos activa,
+              o rodapé deixa de repetir email/telefone/morada (só redes e links legais). Campo em branco → herda
+              Definições → Escritório.
             </p>
           </div>
           <div className="space-y-2">
@@ -1566,7 +1567,6 @@ function ReorderButtons({
 export function ServicesHeadingEditor({
   content,
   onChange,
-  placeholder,
   services,
   officePhone,
   socialWhatsapp,
@@ -1574,7 +1574,6 @@ export function ServicesHeadingEditor({
 }: {
   content: PublicSiteServicesContent
   onChange: (next: PublicSiteServicesContent) => void
-  placeholder: string
   services: PublicFirmServiceSummary[]
   officePhone?: string | null
   socialWhatsapp?: string | null
@@ -1642,39 +1641,43 @@ export function ServicesHeadingEditor({
           onChange={(v) => onChange({ ...content, headingColor: v })}
         />
       </div>
-      <div className="space-y-2">
-        <Label>Título da secção</Label>
+      <div className="space-y-2 rounded-lg border border-border/40 p-3">
+        <Label className="text-sm font-semibold">1 · Título no topo da secção</Label>
         <Input
           value={content.heading}
           onChange={(e: FormChangeEvent) => onChange({ ...content, heading: e.target.value })}
-          placeholder={placeholder}
+          placeholder="Opcional — ex.: Consultorias, Outros serviços"
           maxLength={160}
         />
-        <p className="text-caption text-muted-foreground">
-          Os serviços aparecem automaticamente a partir do catálogo em Serviços — active «Aparece na página pública» em
-          cada um.
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          Texto pequeno em maiúsculas acima dos serviços.{' '}
+          <span className="font-medium">Só aparece na página se escrever aqui.</span> Os serviços vêm do catálogo
+          (Serviços → marque «Aparece na página pública»).
         </p>
       </div>
 
       <div className="space-y-3 rounded-lg border border-brand/25 bg-brand/[0.03] p-3">
         <div>
-          <Label className="text-sm font-semibold">Destaques (cartões grandes)</Label>
+          <Label className="text-sm font-semibold">2 · Cartões em destaque (opcional)</Label>
           <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-            Escolha até 12 ofertas para aparecerem em cartões no topo da secção — com as modalidades listadas por baixo.
-            Ideal para substituir o menu «Áreas» confuso; pode desactivar «Áreas» na barra do topo.
+            Marque até 12 ofertas para cartões grandes com modalidades. Se não marcar nenhuma, só vê a lista/grelha de
+            serviços.
           </p>
         </div>
         <div className="space-y-1">
           <Label htmlFor="featured-heading" className="text-caption text-muted-foreground">
-            Título do bloco
+            Título acima dos cartões
           </Label>
           <Input
             id="featured-heading"
             value={content.featuredHeading || ''}
             onChange={(e: FormChangeEvent) => onChange({ ...content, featuredHeading: e.target.value })}
-            placeholder="Destaques"
+            placeholder="Opcional — ex.: Destaques, Ofertas principais"
             maxLength={80}
           />
+          <p className="text-[11px] text-muted-foreground">
+            Só aparece se preencher <span className="font-medium">e</span> tiver cartões seleccionados abaixo.
+          </p>
         </div>
         {catalogQuery.isLoading ? null : sectionServices.length === 0 ? null : (
           <ul className="space-y-1.5">
@@ -1718,6 +1721,24 @@ export function ServicesHeadingEditor({
             })}
           </ul>
         )}
+        {(content.featuredServiceSlugs?.length ?? 0) > 0 ? (
+          <div className="space-y-1 border-t border-border/30 pt-3">
+            <Label htmlFor="catalog-heading" className="text-caption text-muted-foreground">
+              3 · Título acima da restante lista de serviços
+            </Label>
+            <Input
+              id="catalog-heading"
+              value={content.catalogHeading || ''}
+              onChange={(e: FormChangeEvent) => onChange({ ...content, catalogHeading: e.target.value })}
+              placeholder="Opcional — ex.: Catálogo completo, Todas as ofertas"
+              maxLength={80}
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Só faz sentido quando há cartões em destaque: separa os cartões da grelha com o resto dos serviços. Em
+              branco = sem este subtítulo na página.
+            </p>
+          </div>
+        ) : null}
       </div>
 
       <div className="space-y-2 rounded-lg border border-border/40 p-3">
@@ -2021,7 +2042,8 @@ export function ContactEditor({
         Mostrar morada
       </label>
       <p className="text-caption text-muted-foreground">
-        Os valores vêm do rodapé (secção Rodapé) ou, se vazios, de Definições → Escritório.
+        Email, telefone e morada vêm do Rodapé (ou Definições → Escritório se vazios). Com esta secção activa, o rodapé
+        não repete estes dados — só redes sociais e links legais.
       </p>
       <SectionCtasEditor
         ctas={content.ctas || []}
