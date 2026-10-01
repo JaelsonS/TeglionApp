@@ -854,6 +854,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
           weekdayLabels={WEEKDAY_LABELS}
           logoSection={
             <PublicSiteLogoCard
+              embedded
               draft={draft}
               firmLogoUrl={bundle.logoUrl ?? null}
               readOnly={!canEditLink}
