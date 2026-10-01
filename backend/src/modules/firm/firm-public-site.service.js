@@ -271,7 +271,7 @@ function normalizeSectionContent(type, raw) {
           featuredHeading: content.featuredHeading ? String(content.featuredHeading).trim().slice(0, 80) : '',
           featuredServiceSlugs: Array.isArray(content.featuredServiceSlugs)
             ? content.featuredServiceSlugs
-                .slice(0, 6)
+                .slice(0, 12)
                 .map((slug) => String(slug || '').trim())
                 .filter(Boolean)
             : [],
@@ -877,7 +877,10 @@ async function saveDraft(firmId, actorUserId, rawConfig) {
   const services = await accountingServicesRepository.listByFirm(firmId);
   const config = sanitizeSiteCtasForFirm(normalized, services);
   const updated = await firmPublicSitesRepository.upsertDraft(firmId, config, actorUserId);
-  return { draft: updated.draft, draftUpdatedAt: updated.draftUpdatedAt };
+  return {
+    draft: await resolveConfigImages(updated.draft),
+    draftUpdatedAt: updated.draftUpdatedAt,
+  };
 }
 
 async function publishSite(firmId, actorUserId) {
@@ -900,7 +903,10 @@ async function publishSite(firmId, actorUserId) {
     });
   }
 
-  return { published: updated.published, publishedAt: updated.publishedAt };
+  return {
+    published: updated.published ? await resolveConfigImages(updated.published) : null,
+    publishedAt: updated.publishedAt,
+  };
 }
 
 async function regeneratePreviewToken(firmId, actorUserId) {

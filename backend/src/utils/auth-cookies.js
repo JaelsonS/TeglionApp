@@ -8,9 +8,16 @@ function resolveRequestHost(req) {
   return raw.split(':')[0].toLowerCase();
 }
 
+function isStagingAuthHost(host) {
+  const h = String(host || '').toLowerCase();
+  return h === 'staging.teglion.com' || h === 'www.staging.teglion.com';
+}
+
 function shouldApplyCookieDomain(req) {
   if (!env.COOKIE_DOMAIN) return false;
   const host = resolveRequestHost(req);
+  // Cookies host-only em staging — evita colisão de JWT MFA/sessão com produção (.teglion.com).
+  if (isStagingAuthHost(host)) return false;
   const baseDomain = env.COOKIE_DOMAIN.replace(/^\./, '').toLowerCase();
   return host === baseDomain || host.endsWith(`.${baseDomain}`);
 }

@@ -30,6 +30,12 @@ export function redirectFirmMfaGateIfNeeded(
   const reason = res.status === 'MFA_ENROLLMENT_REQUIRED' ? 'enroll' : 'challenge'
   const params = new URLSearchParams({ reason })
   if (options?.fromRegistration) params.set('flow', 'register')
-  navigate(`/auth/firm/mfa?${params.toString()}`, { replace: true })
+  navigate(`/auth/firm/mfa?${params.toString()}`, {
+    replace: true,
+    state: {
+      mfaChallengeToken: res.mfa?.challengeToken ?? null,
+      mfaExpiresAt: res.mfa?.expiresAt ?? null,
+    },
+  })
   return true
 }

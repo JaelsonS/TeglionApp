@@ -1660,7 +1660,7 @@ export function ServicesHeadingEditor({
         <div>
           <Label className="text-sm font-semibold">Destaques (cartões grandes)</Label>
           <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-            Escolha até 6 ofertas para aparecerem em cartões no topo da secção — com as modalidades listadas por baixo.
+            Escolha até 12 ofertas para aparecerem em cartões no topo da secção — com as modalidades listadas por baixo.
             Ideal para substituir o menu «Áreas» confuso; pode desactivar «Áreas» na barra do topo.
           </p>
         </div>
@@ -1683,7 +1683,7 @@ export function ServicesHeadingEditor({
               if (!slug) return null
               const featured = content.featuredServiceSlugs || []
               const checked = featured.includes(slug)
-              const atMax = featured.length >= 6 && !checked
+              const atMax = featured.length >= 12 && !checked
               return (
                 <li key={svc.id}>
                   <label
