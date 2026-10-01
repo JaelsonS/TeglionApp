@@ -1285,8 +1285,8 @@ function PageThemeColors({
   )
 
   const sectionHint = (
-    <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
-      Ao mudar a cor da página, fundos próprios dos blocos são limpos para o preview reflectir de imediato.
+    <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">
+      Mudar a cor da página limpa fundos dos blocos para o preview actualizar.
     </p>
   )
 

@@ -24,6 +24,7 @@ function SectionCard({
   description,
   children,
   className,
+  compactHeader,
 }: {
   id?: string
   icon: typeof Palette
@@ -31,13 +32,15 @@ function SectionCard({
   description?: string
   children: ReactNode
   className?: string
+  /** Menos margem quando o conteúdo é curto (ex.: cores ao lado do SEO). */
+  compactHeader?: boolean
 }) {
   return (
     <section
       id={id}
       className={`rounded-xl border border-border/50 bg-card/90 p-4 shadow-sm ${className ?? ''}`}
     >
-      <div className="mb-3 flex items-start gap-2.5">
+      <div className={`flex items-start gap-2.5 ${compactHeader ? 'mb-2' : 'mb-3'}`}>
         <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
           <Icon className="h-4 w-4" aria-hidden />
         </span>
@@ -82,17 +85,18 @@ export function PublicSiteExtrasPanel({
   return (
     <div className="space-y-4">
       <p className="text-sm leading-relaxed text-muted-foreground">
-        Marca visual, cores da página, <span className="font-medium text-foreground">Google</span>, horários de
-        marcação e textos legais — tudo o que envolve a identidade do site além das secções de conteúdo.
+        Marca, <span className="font-medium text-foreground">Google</span>, redes sociais, marcação/preços e textos
+        legais — identidade do site além das secções de conteúdo.
       </p>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid items-start gap-4 xl:grid-cols-2">
         <div className="xl:col-span-2">{logoSection}</div>
 
         <SectionCard
           icon={Palette}
           title="Cores de fundo"
-          description="Página inteira e cartões — reflectem-se na pré-visualização à direita."
+          description="Página e cartões — reflectem-se na pré-visualização."
+          compactHeader
         >
           {pageColorsSection}
         </SectionCard>
@@ -100,7 +104,7 @@ export function PublicSiteExtrasPanel({
         <SectionCard
           icon={Search}
           title="SEO (Google e partilhas)"
-          description={`Como aparece ao pesquisar ou partilhar teglion.com/${firmSlug || '…'}. Se vazio, usamos o nome do escritório e o destaque.`}
+          description={`teglion.com/${firmSlug || '…'} · se vazio, usamos o nome do escritório e o destaque.`}
         >
           <div className="space-y-3">
             <label className="block space-y-1.5">
@@ -139,47 +143,53 @@ export function PublicSiteExtrasPanel({
         </SectionCard>
 
         <SectionCard
-          icon={Calendar}
-          title="Agendamento online"
-          description="Horários usados nos serviços com marcação na página pública."
-        >
-          <p className="text-sm text-foreground">
-            {booking
-              ? `${booking.weekdays.map((d) => weekdayLabels[d]).join(', ')} · ${booking.dayStart}–${booking.dayEnd} · slots de ${booking.slotMinutes} min`
-              : 'A carregar disponibilidade…'}
-          </p>
-          <a
-            href="/app/firm/agenda?panel=settings"
-            className="mt-3 inline-flex text-xs font-medium text-brand hover:underline"
-          >
-            Editar disponibilidade na agenda →
-          </a>
-        </SectionCard>
-
-        <SectionCard
           icon={Share2}
           title="Redes sociais e links extra"
-          description="Instagram, WhatsApp, etc. — aparecem no rodapé e secções que activar."
+          description="Instagram, WhatsApp, etc. — rodapé e secções que activar."
           className="xl:col-span-2"
         >
           {themeEditorSection}
         </SectionCard>
 
-        <SectionCard icon={Tag} title="Preços na página pública" className="xl:col-span-2">
-          <label className="flex items-start gap-3 text-sm">
-            <input
-              type="checkbox"
-              className="mt-1 rounded border-border"
-              checked={draft.showPrices !== false}
-              onChange={(e) => onDraftChange({ ...draft, showPrices: e.target.checked })}
-            />
-            <span>
-              <span className="font-medium text-foreground">Mostrar preços dos serviços</span>
-              <span className="mt-1 block text-[11px] text-muted-foreground">
-                Desligado = cartões e páginas de serviço sem valor visível (marcação continua disponível).
+        <SectionCard
+          icon={Tag}
+          title="Preços e agendamento na página"
+          description="Valores visíveis nos serviços e horários usados na marcação online."
+          className="xl:col-span-2"
+        >
+          <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+            <label className="flex items-start gap-3 text-sm">
+              <input
+                type="checkbox"
+                className="mt-1 rounded border-border"
+                checked={draft.showPrices !== false}
+                onChange={(e) => onDraftChange({ ...draft, showPrices: e.target.checked })}
+              />
+              <span>
+                <span className="font-medium text-foreground">Mostrar preços dos serviços</span>
+                <span className="mt-1 block text-[11px] text-muted-foreground">
+                  Desligado = cartões e páginas de serviço sem valor (marcação mantém-se).
+                </span>
               </span>
-            </span>
-          </label>
+            </label>
+            <div className="rounded-lg border border-border/40 bg-muted/20 px-3 py-2.5">
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                <Calendar className="h-3.5 w-3.5 text-brand" aria-hidden />
+                Disponibilidade na agenda
+              </p>
+              <p className="mt-1.5 text-sm text-foreground">
+                {booking
+                  ? `${booking.weekdays.map((d) => weekdayLabels[d]).join(', ')} · ${booking.dayStart}–${booking.dayEnd} · slots de ${booking.slotMinutes} min`
+                  : 'A carregar…'}
+              </p>
+              <a
+                href="/app/firm/agenda?panel=settings"
+                className="mt-2 inline-flex text-xs font-medium text-brand hover:underline"
+              >
+                Editar na agenda →
+              </a>
+            </div>
+          </div>
         </SectionCard>
 
         <SectionCard
