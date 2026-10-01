@@ -51,7 +51,7 @@ export function DefaultTemplate({ config, ctx }: Props) {
 
   return (
     <div
-      className={`cb-public-site-container relative min-h-full w-full ${pageBg ? '' : 'bg-background'}`}
+      className={`cb-public-site-container relative w-full ${ctx.useEditorHeroFrame ? 'min-h-0' : 'min-h-full'} ${pageBg ? '' : 'bg-background'}`}
       style={pageBg ? { backgroundColor: pageBg } : undefined}
       data-public-page-bg={pageBg || undefined}
     >

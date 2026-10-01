@@ -140,7 +140,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const [savingSlug, setSavingSlug] = useState(false)
   const [publicDisplayName, setPublicDisplayName] = useState(bundle.publicProfile.displayName ?? '')
   const [savingDisplayName, setSavingDisplayName] = useState(false)
-  /** Por secção (key). Ausente = aberto por defeito em header/hero. */
+  /** Por secção (key). Ausente = fechado — a contabilista abre só o que está a editar. */
   const [sectionOpenState, setSectionOpenState] = useState<Record<string, boolean>>({})
   const [previewExpanded, setPreviewExpanded] = useState(false)
   const [previewDevice, setPreviewDevice] = useState<PublicSiteEditorPreviewDevice>('tablet')
@@ -149,7 +149,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     if (Object.prototype.hasOwnProperty.call(sectionOpenState, section.key)) {
       return sectionOpenState[section.key]
     }
-    return section.type === 'hero'
+    return false
   }
 
   const collapseAllSections = () => {
@@ -160,9 +160,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
 
   const toggleSectionOpen = (section: PublicSiteSection) => {
     setSectionOpenState((prev) => {
-      const currently = Object.prototype.hasOwnProperty.call(prev, section.key)
-        ? prev[section.key]
-        : section.type === 'hero'
+      const currently = Object.prototype.hasOwnProperty.call(prev, section.key) ? prev[section.key] : false
       return { ...prev, [section.key]: !currently }
     })
   }
