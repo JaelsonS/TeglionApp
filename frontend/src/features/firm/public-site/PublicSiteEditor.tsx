@@ -822,10 +822,12 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
           <div
             key={`preview-bg-${draft.theme.backgroundColor || 'default'}-${draft.theme.surfaceColor || 'surface'}-${previewDevice}`}
             className="cb-public-site-editor-preview-scroll cb-public-site-editor-preview-scroll--device rounded-lg border border-border/50 shadow-sm"
-            style={previewSurfaceStyle}
           >
-            <PublicSiteEditorDeviceChrome device={previewDevice}>
-              <PublicSiteEditorPreviewFrame canvasWidthPx={publicSiteEditorPreviewCanvasPx(previewDevice)}>
+            <PublicSiteEditorDeviceChrome device={previewDevice} screenStyle={previewSurfaceStyle}>
+              <PublicSiteEditorPreviewFrame
+                canvasWidthPx={publicSiteEditorPreviewCanvasPx(previewDevice)}
+                inDeviceChrome
+              >
                 {previewPanel}
               </PublicSiteEditorPreviewFrame>
             </PublicSiteEditorDeviceChrome>
