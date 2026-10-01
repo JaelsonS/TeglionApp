@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type CSSProperties } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
+  ExternalLink,
   Facebook,
   Globe,
   Instagram,
   Linkedin,
   Loader2,
-  Maximize2,
   MessageCircle,
   Plus,
   Trash2,
@@ -25,12 +25,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/components/ui/alert-dialog'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/components/ui/dialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
@@ -44,10 +38,6 @@ import type { FirmBookingSettings } from '@/shared/types/contabil'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { resolveFirmBrandingCssVars } from '@/shared/utils/firmBranding'
 import { DefaultTemplate } from '@/features/public-intake/templates/default/DefaultTemplate'
-import {
-  DEFAULT_PRIVACY_TEMPLATE,
-  DEFAULT_TERMS_TEMPLATE,
-} from '@/features/firm/public-site/publicSiteLegalTemplates'
 import {
   AboutEditor,
   ChromeSectionEditor,
@@ -89,14 +79,9 @@ import { resolvePublicSiteSectionVisitorSummary } from './publicSiteSectionVisit
 import { usePublicSiteEditorPreviewAssist } from './usePublicSiteEditorPreviewAssist'
 import { PublicSiteEditorFold } from './PublicSiteEditorFold'
 import { PublicSiteLinkPublishPanel } from './PublicSiteLinkPublishPanel'
-import {
-  DEFAULT_COMPLAINTS_BOOK_LABEL,
-  DEFAULT_COMPLAINTS_BOOK_URL,
-} from './publicSiteLegalDefaults'
-import {
-  evaluatePublicSiteLegalGaps,
-  publicSiteLegalFieldsDomId,
-} from './publicSiteLegalCompliance'
+import { PublicSiteEditorDeviceChrome } from './PublicSiteEditorDeviceChrome'
+import { PublicSiteExtrasPanel } from './PublicSiteExtrasPanel'
+import { evaluatePublicSiteLegalGaps, publicSiteLegalFieldsDomId } from './publicSiteLegalCompliance'
 
 const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
   header: 'Barra do topo',
@@ -148,7 +133,6 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const [savingDisplayName, setSavingDisplayName] = useState(false)
   /** Por secção (key). Ausente = fechado — a contabilista abre só o que está a editar. */
   const [sectionOpenState, setSectionOpenState] = useState<Record<string, boolean>>({})
-  const [previewExpanded, setPreviewExpanded] = useState(false)
   const [previewDevice, setPreviewDevice] = useState<PublicSiteEditorPreviewDevice>('tablet')
   const [linkPublishOpen, setLinkPublishOpen] = useState(false)
   const [extrasOpen, setExtrasOpen] = useState(false)
@@ -792,13 +776,11 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Pré-visualização ao vivo
               </p>
-              <p className="text-[11px] text-muted-foreground">
-                Role <span className="font-medium text-foreground">só dentro deste painel</span> para ver o site inteiro.
-                Logótipos e cores ficam em{' '}
-                <a href="#public-site-extras" className="font-medium text-brand hover:underline">
-                  C · Marca e extras
-                </a>
-                .
+              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                Simulação por <span className="font-medium text-foreground">largura real</span> do dispositivo — em telemóvel
+                e tablet vê o menu <span className="font-medium text-foreground">☰</span> como o visitante. Para testar
+                cliques e scroll completo, use{' '}
+                <span className="font-medium text-foreground">Abrir numa nova aba</span>.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
@@ -825,21 +807,28 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 variant="outline"
                 size="sm"
                 className="h-8 shrink-0"
-                onClick={() => setPreviewExpanded(true)}
+                disabled={previewing || !firmSlug}
+                onClick={() => void onPreview()}
               >
-                <Maximize2 className="mr-1.5 h-3.5 w-3.5" />
-                Expandir
+                {previewing ? (
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
+                )}
+                Abrir numa nova aba
               </Button>
             </div>
           </div>
           <div
             key={`preview-bg-${draft.theme.backgroundColor || 'default'}-${draft.theme.surfaceColor || 'surface'}-${previewDevice}`}
-            className="cb-public-site-editor-preview-scroll rounded-lg border border-border/50 shadow-sm"
+            className="cb-public-site-editor-preview-scroll cb-public-site-editor-preview-scroll--device rounded-lg border border-border/50 shadow-sm"
             style={previewSurfaceStyle}
           >
-            <PublicSiteEditorPreviewFrame canvasWidthPx={publicSiteEditorPreviewCanvasPx(previewDevice)}>
-              {previewPanel}
-            </PublicSiteEditorPreviewFrame>
+            <PublicSiteEditorDeviceChrome device={previewDevice}>
+              <PublicSiteEditorPreviewFrame canvasWidthPx={publicSiteEditorPreviewCanvasPx(previewDevice)}>
+                {previewPanel}
+              </PublicSiteEditorPreviewFrame>
+            </PublicSiteEditorDeviceChrome>
           </div>
           </div>
         </aside>
@@ -854,7 +843,14 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
         onOpenChange={setExtrasOpen}
         className="bg-muted/15"
       >
-          <div className="space-y-3">
+        <PublicSiteExtrasPanel
+          firmSlug={firmSlug ?? ''}
+          previewFirmName={previewFirmName}
+          draft={draft}
+          onDraftChange={setDraft}
+          booking={booking}
+          weekdayLabels={WEEKDAY_LABELS}
+          logoSection={
             <PublicSiteLogoCard
               draft={draft}
               firmLogoUrl={bundle.logoUrl ?? null}
@@ -862,199 +858,11 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               onDraftUpdate={setDraft}
               onLogoSourceChange={(zone, source) => void patchThemeLogoSource(zone, source)}
             />
-            <PageThemeColors draft={draft} onChange={setDraft} />
-          </div>
-          <div className="rounded-xl border border-border/50 bg-card p-4 space-y-3">
-            <div>
-              <Label className="text-sm font-semibold">SEO (Google e partilhas)</Label>
-              <p className="mt-1 text-caption text-muted-foreground">
-                Título e descrição quando alguém pesquisa ou partilha teglion.com/{firmSlug || '…'} — opcional; se vazio,
-                usamos o nome do escritório e o destaque.
-              </p>
-            </div>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">Título (meta title)</span>
-              <Input
-                placeholder={previewFirmName.slice(0, 70)}
-                maxLength={70}
-                value={draft.seo?.title || ''}
-                onChange={(e: FormChangeEvent) =>
-                  setDraft({
-                    ...draft,
-                    seo: { ...draft.seo, title: e.target.value.trim() || null },
-                  })
-                }
-              />
-              <span className="text-caption text-muted-foreground">Até 70 caracteres.</span>
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">Descrição (meta description)</span>
-              <textarea
-                className="min-h-[72px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-                placeholder="Breve resumo do escritório para resultados de pesquisa."
-                maxLength={200}
-                value={draft.seo?.description || ''}
-                onChange={(e: FormChangeEvent) =>
-                  setDraft({
-                    ...draft,
-                    seo: { ...draft.seo, description: e.target.value.trim() || null },
-                  })
-                }
-              />
-              <span className="text-caption text-muted-foreground">Até 200 caracteres.</span>
-            </label>
-          </div>
-
-          <div className="rounded-xl border border-border/50 bg-card p-4">
-            <Label className="text-sm font-semibold">Agendamento</Label>
-            <p className="mt-1 text-caption text-muted-foreground">
-              {booking
-                ? `${booking.weekdays.map((d) => WEEKDAY_LABELS[d]).join(', ')} · ${booking.dayStart}–${booking.dayEnd} · slots de ${booking.slotMinutes} min`
-                : 'A carregar…'}
-            </p>
-            <a href="/app/firm/agenda?panel=settings" className="mt-2 inline-block text-caption text-primary hover:underline">
-              Editar disponibilidade →
-            </a>
-          </div>
-
-          <ThemeEditor draft={draft} onChange={setDraft} />
-
-          <div className="rounded-xl border border-border/50 p-4">
-            <Label className="text-sm font-semibold">Preços na página pública</Label>
-            <label className="mt-3 flex items-start gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="mt-0.5 rounded border-border"
-                checked={draft.showPrices !== false}
-                onChange={(e) => setDraft({ ...draft, showPrices: e.target.checked })}
-              />
-              <span>
-                Mostrar preços dos serviços
-                <span className="mt-0.5 block text-caption text-muted-foreground">
-                  Quando desligado, os cartões e a página do serviço omitem o valor.
-                </span>
-              </span>
-            </label>
-          </div>
-
-          <div id={publicSiteLegalFieldsDomId()} className="rounded-xl border border-border/50 p-4 space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <Label className="text-sm font-semibold">Termos, privacidade e reclamações</Label>
-            </div>
-            <p className="text-[11px] leading-relaxed text-muted-foreground">
-              Obrigatório por lei em Portugal: link do <span className="font-medium text-foreground">Livro de Reclamações</span>{' '}
-              e textos legais do <span className="font-medium text-foreground">escritório</span>. Use os modelos como ponto de
-              partida e adapte-os. A Teglion (produto da AfDigital) não presta aconselhamento jurídico.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() =>
-                  setDraft({
-                    ...draft,
-                    complaintsBookUrl: draft.complaintsBookUrl || DEFAULT_COMPLAINTS_BOOK_URL,
-                    complaintsBookLabel: draft.complaintsBookLabel || DEFAULT_COMPLAINTS_BOOK_LABEL,
-                    termsText: draft.termsText || DEFAULT_TERMS_TEMPLATE,
-                    privacyText: draft.privacyText || DEFAULT_PRIVACY_TEMPLATE,
-                  })
-                }
-              >
-                Preencher sugestões legais
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="text-xs"
-                onClick={() =>
-                  setDraft({
-                    ...draft,
-                    termsText: DEFAULT_TERMS_TEMPLATE,
-                    privacyText: DEFAULT_PRIVACY_TEMPLATE,
-                  })
-                }
-              >
-                Só modelos de termos e privacidade
-              </Button>
-            </div>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">Termos de Utilização</span>
-              <textarea
-                className="min-h-[100px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-                value={draft.termsText || ''}
-                onChange={(e: FormChangeEvent) => setDraft({ ...draft, termsText: e.target.value || null })}
-              />
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">Política de Privacidade</span>
-              <textarea
-                className="min-h-[100px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-                value={draft.privacyText || ''}
-                onChange={(e: FormChangeEvent) => setDraft({ ...draft, privacyText: e.target.value || null })}
-              />
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">Livro de Reclamações — link</span>
-              <Input
-                placeholder={DEFAULT_COMPLAINTS_BOOK_URL}
-                value={draft.complaintsBookUrl || ''}
-                onChange={(e: FormChangeEvent) => setDraft({ ...draft, complaintsBookUrl: e.target.value || null })}
-              />
-              <button
-                type="button"
-                className="text-caption font-medium text-brand hover:underline"
-                onClick={() =>
-                  setDraft({
-                    ...draft,
-                    complaintsBookUrl: DEFAULT_COMPLAINTS_BOOK_URL,
-                    complaintsBookLabel: draft.complaintsBookLabel || DEFAULT_COMPLAINTS_BOOK_LABEL,
-                  })
-                }
-              >
-                Usar link oficial (livroreclamacoes.pt)
-              </button>
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">Livro de Reclamações — texto do link</span>
-              <Input
-                placeholder="Livro de Reclamações"
-                value={draft.complaintsBookLabel || ''}
-                onChange={(e: FormChangeEvent) => setDraft({ ...draft, complaintsBookLabel: e.target.value || null })}
-              />
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">Elogios / avaliações — link</span>
-              <Input
-                placeholder="https://g.page/r/... (Google Reviews) ou outro URL"
-                value={draft.praiseUrl || ''}
-                onChange={(e: FormChangeEvent) => setDraft({ ...draft, praiseUrl: e.target.value || null })}
-              />
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span className="font-medium">Elogios / avaliações — texto do link</span>
-              <Input
-                placeholder="Deixe a sua avaliação no Google"
-                value={draft.praiseLabel || ''}
-                onChange={(e: FormChangeEvent) => setDraft({ ...draft, praiseLabel: e.target.value || null })}
-              />
-            </label>
-          </div>
+          }
+          pageColorsSection={<PageThemeColors draft={draft} onChange={setDraft} embedded />}
+          themeEditorSection={<ThemeEditor draft={draft} onChange={setDraft} embedded />}
+        />
       </PublicSiteEditorFold>
-
-      <Dialog open={previewExpanded} onOpenChange={setPreviewExpanded}>
-        <DialogContent className="flex h-[min(92dvh,900px)] max-w-5xl flex-col gap-0 p-0">
-          <DialogHeader className="shrink-0 border-b border-border/60 px-4 py-3 text-left">
-            <DialogTitle className="text-base">Pré-visualização — site público</DialogTitle>
-          </DialogHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain" style={previewSurfaceStyle}>
-            <PublicSiteEditorPreviewFrame expanded canvasWidthPx={publicSiteEditorPreviewCanvasPx(previewDevice)}>
-              {previewPanel}
-            </PublicSiteEditorPreviewFrame>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <AlertDialog
         open={confirmPublishOpen}
@@ -1389,9 +1197,11 @@ function whatsappDisplayNumber(url: string | null | undefined): string {
 function PageThemeColors({
   draft,
   onChange,
+  embedded = false,
 }: {
   draft: PublicSiteConfig
   onChange: (next: PublicSiteConfig) => void
+  embedded?: boolean
 }) {
   const theme = draft.theme
   const bg = theme.backgroundColor || ''
@@ -1415,14 +1225,8 @@ function PageThemeColors({
     }
   }
 
-  return (
-    <div className="rounded-xl border border-border/50 bg-card p-3">
-      <p className="text-xs font-semibold text-foreground">Fundo da página</p>
-      <p className="mt-0.5 text-[11px] text-muted-foreground">
-        Esta cor pinta a página inteira no preview. Se um bloco tiver cor própria, essa cor sobrepõe-se — ao
-        mudar aqui, limpamos os fundos dos blocos para a alteração se ver de imediato.
-      </p>
-      <div className="mt-2 grid gap-3 sm:grid-cols-2">
+  const grid = (
+      <div className={embedded ? 'grid gap-3 sm:grid-cols-2' : 'mt-2 grid gap-3 sm:grid-cols-2'}>
         <div className="space-y-1">
           <Label htmlFor="ps-page-bg" className="text-[11px]">
             Página
@@ -1476,23 +1280,50 @@ function PageThemeColors({
           </div>
         </div>
       </div>
+  )
+
+  const sectionHint = (
+    <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+      Ao mudar a cor da página, fundos próprios dos blocos são limpos para o preview reflectir de imediato.
+    </p>
+  )
+
+  if (embedded) {
+    return (
+      <>
+        {grid}
+        {sectionHint}
+      </>
+    )
+  }
+
+  return (
+    <div className="rounded-xl border border-border/50 bg-card p-3">
+      <p className="text-xs font-semibold text-foreground">Fundo da página</p>
+      <p className="mt-0.5 text-[11px] text-muted-foreground">
+        Esta cor pinta a página inteira no preview. Se um bloco tiver cor própria, essa cor sobrepõe-se — ao mudar
+        aqui, limpamos os fundos dos blocos para a alteração se ver de imediato.
+      </p>
+      {grid}
     </div>
   )
 }
 
-function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (next: PublicSiteConfig) => void }) {
+function ThemeEditor({
+  draft,
+  onChange,
+  embedded = false,
+}: {
+  draft: PublicSiteConfig
+  onChange: (next: PublicSiteConfig) => void
+  embedded?: boolean
+}) {
   const setSocial = (key: keyof PublicSiteConfig['socialLinks'], value: string | null) => {
     onChange({ ...draft, socialLinks: { ...draft.socialLinks, [key]: value } })
   }
 
-  return (
-    <div className="space-y-4">
-      <div className="rounded-xl border border-border/50 p-4">
-        <Label className="text-sm font-semibold">Redes sociais</Label>
-        <p className="mt-1 text-caption text-muted-foreground">
-          O início do link já está preenchido — escreva só o seu nome de utilizador (ou o número no WhatsApp).
-        </p>
-        <div className="mt-4 space-y-4">
+  const fields = (
+        <div className={embedded ? 'space-y-4' : 'mt-4 space-y-4'}>
           <SocialHandleField
             label="Instagram"
             icon={Instagram}
@@ -1566,6 +1397,27 @@ function ThemeEditor({ draft, onChange }: { draft: PublicSiteConfig; onChange: (
             placeholder="www.meuescritorio.pt"
           />
         </div>
+  )
+
+  if (embedded) {
+    return (
+      <>
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          O início do link já está preenchido — escreva só o utilizador (ou o número no WhatsApp).
+        </p>
+        {fields}
+      </>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border/50 p-4">
+        <Label className="text-sm font-semibold">Redes sociais</Label>
+        <p className="mt-1 text-caption text-muted-foreground">
+          O início do link já está preenchido — escreva só o seu nome de utilizador (ou o número no WhatsApp).
+        </p>
+        {fields}
       </div>
     </div>
   )

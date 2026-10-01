@@ -3490,6 +3490,162 @@
     }
   }
 
+  /* Barra do site público — breakpoints pela largura do contentor (preview mobile/tablet) */
+  .cb-public-site-container .ps-header-inner {
+    max-width: 42rem;
+  }
+
+  .cb-public-site-container .ps-header-nav-desktop {
+    display: none;
+  }
+
+  .cb-public-site-container .ps-header-nav-mobile-btn {
+    display: inline-flex;
+  }
+
+  @container pubsite (min-width: 64rem) {
+    .cb-public-site-container .ps-header-inner {
+      max-width: 56rem;
+    }
+
+    .cb-public-site-container .ps-header-nav-desktop {
+      display: flex;
+    }
+
+    .cb-public-site-container .ps-header-nav-mobile-btn {
+      display: none;
+    }
+  }
+
+  /* Simuladores telemóvel / tablet / desktop no editor */
+  .cb-public-site-editor-preview-scroll--device {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem 0.35rem 1rem;
+    background: color-mix(in oklab, var(--muted) 40%, transparent);
+  }
+
+  .cb-public-site-device {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .cb-public-site-device-screen {
+    overflow: hidden;
+    background: var(--background);
+  }
+
+  .cb-public-site-device--mobile {
+    width: min(100%, 17.5rem);
+    padding: 0.45rem;
+    border-radius: 2.25rem;
+    border: 0.55rem solid #1c1c1e;
+    background: linear-gradient(145deg, #3a3a3c, #1c1c1e);
+    box-shadow:
+      0 12px 40px rgb(15 23 42 / 0.18),
+      inset 0 0 0 1px rgb(255 255 255 / 0.08);
+  }
+
+  .cb-public-site-device-mobile-notch {
+    position: absolute;
+    top: 0.55rem;
+    left: 50%;
+    z-index: 2;
+    height: 1.1rem;
+    width: 5.5rem;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: #0a0a0a;
+  }
+
+  .cb-public-site-device-mobile-home {
+    margin: 0.35rem auto 0.15rem;
+    height: 0.25rem;
+    width: 4rem;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.35);
+  }
+
+  .cb-public-site-device--mobile .cb-public-site-device-screen {
+    border-radius: 1.65rem;
+    min-height: 22rem;
+  }
+
+  .cb-public-site-device--tablet {
+    width: min(100%, 26rem);
+    padding: 0.65rem;
+    border-radius: 1.35rem;
+    border: 0.5rem solid #2c2c2e;
+    background: linear-gradient(160deg, #48484a, #2c2c2e);
+    box-shadow: 0 14px 44px rgb(15 23 42 / 0.16);
+  }
+
+  .cb-public-site-device-tablet-cam {
+    position: absolute;
+    top: 0.85rem;
+    left: 50%;
+    z-index: 2;
+    height: 0.45rem;
+    width: 0.45rem;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: #111;
+    box-shadow: 0 0 0 2px rgb(255 255 255 / 0.12);
+  }
+
+  .cb-public-site-device--tablet .cb-public-site-device-screen {
+    border-radius: 0.85rem;
+    min-height: 24rem;
+  }
+
+  .cb-public-site-device--desktop {
+    max-width: 100%;
+    border-radius: 0.65rem 0.65rem 0 0;
+    border: 1px solid color-mix(in oklab, var(--border) 70%, transparent);
+    background: color-mix(in oklab, var(--card) 95%, var(--muted));
+    box-shadow: 0 16px 48px rgb(15 23 42 / 0.12);
+  }
+
+  .cb-public-site-device-desktop-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+    padding: 0.45rem 0.65rem;
+    background: color-mix(in oklab, var(--muted) 35%, var(--card));
+  }
+
+  .cb-public-site-device-dot {
+    height: 0.55rem;
+    width: 0.55rem;
+    border-radius: 999px;
+  }
+
+  .cb-public-site-device-desktop-url {
+    margin-left: 0.35rem;
+    flex: 1;
+    border-radius: 0.35rem;
+    border: 1px solid color-mix(in oklab, var(--border) 55%, transparent);
+    background: var(--background);
+    padding: 0.2rem 0.5rem;
+    text-align: center;
+    font-size: 10px;
+    color: var(--muted-foreground);
+  }
+
+  .cb-public-site-device-screen--desktop {
+    min-height: 20rem;
+  }
+
+  .cb-public-site-device-desktop-stand {
+    margin: 0 auto;
+    height: 0.65rem;
+    width: 38%;
+    border-radius: 0 0 0.35rem 0.35rem;
+    background: color-mix(in oklab, var(--muted-foreground) 25%, transparent);
+  }
+
   .cb-settings-public-bar-preview {
     @apply mt-3 overflow-hidden rounded-lg border border-border/50 bg-background shadow-sm;
   }
