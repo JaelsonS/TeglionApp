@@ -83,13 +83,21 @@ import {
   removePublicSiteSection,
 } from './publicSiteSectionFactory'
 import { applyPageBackgroundColor, parsePublicSiteHex } from './publicSitePageBackground'
+import { PublicSitePublishReadinessChecklist } from './PublicSitePublishReadinessChecklist'
+import {
+  evaluatePublicSitePublishReadiness,
+  publicSiteSectionCardDomId,
+  type PublicSitePublishReadinessItem,
+} from './publicSitePublishReadiness'
+import { resolvePublicSiteSectionVisitorSummary } from './publicSiteSectionVisitorSummary'
+import { usePublicSiteEditorPreviewAssist } from './usePublicSiteEditorPreviewAssist'
 
 const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
   header: 'Barra do topo',
   hero: 'Destaque principal',
   about: 'Sobre o escritório',
-  services: 'Consultorias com agendamento',
-  bookingServices: 'Outros serviços',
+  services: 'Serviços com marcação online',
+  bookingServices: 'Serviços por formulário (sem horário)',
   features: 'Diferenciais',
   process: 'Como funciona',
   faq: 'Perguntas frequentes',
@@ -101,10 +109,8 @@ const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
   header: 'Alinhamento da marca, cores · menu hamburger em telemóvel/tablet',
   hero: 'Alinhamento, imagem de fundo, texto e botões',
   about: 'Alinhamento, texto, foto e botões',
-  services:
-    'Título opcional · cartões em destaque · subtítulo da grelha · ordem do catálogo (consultorias com agendamento)',
-  bookingServices:
-    'Título opcional · cartões em destaque · subtítulo da grelha · ordem do catálogo (serviços sob pedido)',
+  services: 'Título opcional · destaques · grelha · ordem (marcação online)',
+  bookingServices: 'Título opcional · destaques · grelha · ordem (formulário, sem horário)',
   features: 'Alinhamento e pontos fortes',
   process: 'Alinhamento e passos',
   faq: 'Alinhamento e perguntas',
@@ -522,29 +528,67 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     publicDisplayName.trim() || bundle.publicProfile.displayName?.trim() || bundle.firm.name
   const sortedSections = reindexPublicSiteSectionsOrder(draft.sections)
 
-  const previewPanel = (
-    <DefaultTemplate
-      config={draft}
-      ctx={{
-        firmSlug,
-        firmName: previewFirmName,
-        logoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
-        headerLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
-        heroLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'hero', bundle.logoUrl),
-        services: previewServices,
-        contact: bundle.contact,
-        showPrices: draft.showPrices !== false,
-        complaintsBookUrl: draft.complaintsBookUrl,
-        complaintsBookLabel: draft.complaintsBookLabel,
-        praiseUrl: draft.praiseUrl,
-        praiseLabel: draft.praiseLabel,
-        praiseContact: draft.praiseContact,
-        openInternalLinksInNewTab: true,
-        showTeglionCredit: true,
-        useEditorHeroFrame: true,
-      }}
-    />
-  )
+  const editorPreviewHighlightKeys = sortedSections.filter(isSectionEditorOpen).map((s) => s.key)
+
+  const publishReadinessItems = evaluatePublicSitePublishReadiness({
+    firmSlug,
+    config: draft,
+    services: previewServices,
+    firmContact: {
+      email: bundle.contact?.email ?? null,
+      phone: bundle.contact?.phone ?? null,
+      address: bundle.contact?.address ?? null,
+    },
+  })
+
+  const onPublishReadinessFocus = (item: PublicSitePublishReadinessItem) => {
+    if (item.focus.kind === 'identity') {
+      document.getElementById('public-site-identity')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      return
+    }
+    if (item.focus.kind === 'servicesCatalog') {
+      window.location.assign('/app/firm/services')
+      return
+    }
+    const key = item.focus.sectionKey
+    setSectionOpenState((prev) => ({ ...prev, [key]: true }))
+    requestAnimationFrame(() => {
+      document.getElementById(publicSiteSectionCardDomId(key))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }
+
+  const previewRenderCtx = {
+    firmSlug,
+    firmName: previewFirmName,
+    logoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
+    headerLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
+    heroLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'hero', bundle.logoUrl),
+    services: previewServices,
+    contact: bundle.contact,
+    showPrices: draft.showPrices !== false,
+    complaintsBookUrl: draft.complaintsBookUrl,
+    complaintsBookLabel: draft.complaintsBookLabel,
+    praiseUrl: draft.praiseUrl,
+    praiseLabel: draft.praiseLabel,
+    praiseContact: draft.praiseContact,
+    openInternalLinksInNewTab: true,
+    showTeglionCredit: true,
+    useEditorHeroFrame: true,
+    editorPreviewHighlightKeys,
+  }
+
+  const previewPanel = <DefaultTemplate config={draft} ctx={previewRenderCtx} />
+
+  const openSectionFromPreview = (sectionKey: string) => {
+    setSectionOpenState((prev) => ({ ...prev, [sectionKey]: true }))
+  }
+
+  usePublicSiteEditorPreviewAssist({
+    enabled: true,
+    sections: sortedSections,
+    labels: SECTION_LABELS,
+    onOpenSection: openSectionFromPreview,
+  })
 
   const previewSurfaceStyle = {
     ...resolveFirmBrandingCssVars({
@@ -563,8 +607,8 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   return (
     <div className="cb-public-site-editor-root space-y-6">
       {/* Passo 1 — Identidade + publicar */}
-      <section className="space-y-3 rounded-xl border border-border/50 bg-muted/20 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">1 · Identidade</p>
+      <section id="public-site-identity" className="space-y-3 rounded-xl border border-border/50 bg-muted/20 p-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">A · Link e publicar</p>
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1 space-y-2">
           <p className="text-sm font-medium">
@@ -674,28 +718,20 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
           ) : null}
         </div>
         </div>
+        <PublicSitePublishReadinessChecklist items={publishReadinessItems} onFocus={onPublishReadinessFocus} />
       </section>
 
       <div className="cb-public-site-editor-grid">
         <div className="cb-public-site-editor-main order-1 min-w-0 space-y-4">
-          <div className="space-y-3 rounded-xl border border-border/50 bg-card p-4 lg:hidden">
-            <PublicSiteLogoCard
-              draft={draft}
-              firmLogoUrl={bundle.logoUrl ?? null}
-              readOnly={!canEditLink}
-              onDraftUpdate={setDraft}
-              onLogoSourceChange={(zone, source) => void patchThemeLogoSource(zone, source)}
-            />
-            <PageThemeColors draft={draft} onChange={setDraft} />
-          </div>
+          <section className="space-y-3 rounded-xl border border-border/50 bg-card p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              2 · Secções do site
+              B · Secções
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <Button type="button" variant="outline" size="sm" className="h-8" onClick={onAddSection}>
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
-                Adicionar secção
+                Mais uma lista de serviços (catálogo)
               </Button>
               <Button type="button" variant="ghost" size="sm" className="h-8 text-xs" onClick={collapseAllSections}>
                 Recolher todas
@@ -730,6 +766,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             }}
             onReorder={onReorderSections}
             onRemove={onRemoveSection}
+            visitorSummary={(section) => resolvePublicSiteSectionVisitorSummary(section, previewServices)}
             renderEditor={(section) => (
               <div className="space-y-3">
                 <PublicSiteSectionAlignField
@@ -780,11 +817,64 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               </div>
             )}
           />
+          </section>
 
-          <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            3 · Complementos
+          <section className="space-y-4 rounded-xl border border-border/50 bg-muted/15 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            C · Marca e extras
           </p>
-          <div className="rounded-xl border border-border/50 p-4">
+          <div className="space-y-3 lg:hidden">
+            <PublicSiteLogoCard
+              draft={draft}
+              firmLogoUrl={bundle.logoUrl ?? null}
+              readOnly={!canEditLink}
+              onDraftUpdate={setDraft}
+              onLogoSourceChange={(zone, source) => void patchThemeLogoSource(zone, source)}
+            />
+            <PageThemeColors draft={draft} onChange={setDraft} />
+          </div>
+          <div className="rounded-xl border border-border/50 bg-card p-4 space-y-3">
+            <div>
+              <Label className="text-sm font-semibold">SEO (Google e partilhas)</Label>
+              <p className="mt-1 text-caption text-muted-foreground">
+                Título e descrição quando alguém pesquisa ou partilha teglion.com/{firmSlug || '…'} — opcional; se vazio,
+                usamos o nome do escritório e o destaque.
+              </p>
+            </div>
+            <label className="block space-y-1 text-sm">
+              <span className="font-medium">Título (meta title)</span>
+              <Input
+                placeholder={previewFirmName.slice(0, 70)}
+                maxLength={70}
+                value={draft.seo?.title || ''}
+                onChange={(e: FormChangeEvent) =>
+                  setDraft({
+                    ...draft,
+                    seo: { ...draft.seo, title: e.target.value.trim() || null },
+                  })
+                }
+              />
+              <span className="text-caption text-muted-foreground">Até 70 caracteres.</span>
+            </label>
+            <label className="block space-y-1 text-sm">
+              <span className="font-medium">Descrição (meta description)</span>
+              <textarea
+                className="min-h-[72px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                placeholder="Breve resumo do escritório para resultados de pesquisa."
+                maxLength={200}
+                value={draft.seo?.description || ''}
+                onChange={(e: FormChangeEvent) =>
+                  setDraft({
+                    ...draft,
+                    seo: { ...draft.seo, description: e.target.value.trim() || null },
+                  })
+                }
+              />
+              <span className="text-caption text-muted-foreground">Até 200 caracteres.</span>
+            </label>
+          </div>
+
+          <div className="rounded-xl border border-border/50 bg-card p-4">
             <Label className="text-sm font-semibold">Agendamento</Label>
             <p className="mt-1 text-caption text-muted-foreground">
               {booking
@@ -898,10 +988,13 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               />
             </label>
           </div>
+          </section>
+        </div>
 
-          <div className="hidden space-y-3 rounded-xl border border-border/50 bg-muted/15 p-4 lg:block">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Visual rápido
+        <aside className="cb-public-site-editor-aside order-2 min-w-0">
+          <div className="mb-3 hidden space-y-3 rounded-xl border border-border/50 bg-card p-3 lg:block">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Logótipos (só site público)
             </p>
             <PublicSiteLogoCard
               draft={draft}
@@ -912,9 +1005,6 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             />
             <PageThemeColors draft={draft} onChange={setDraft} />
           </div>
-        </div>
-
-        <aside className="cb-public-site-editor-aside order-2 min-w-0">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 pb-2">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">

@@ -92,6 +92,8 @@ export type PublicSiteRenderContext = {
   showTeglionCredit?: boolean
   /** Preview lateral do editor: hero com a mesma altura do painel «Enquadrar (arrastar)». */
   useEditorHeroFrame?: boolean
+  /** Secções abertas no editor — realça zonas na pré-visualização (só editor). */
+  editorPreviewHighlightKeys?: string[]
 }
 
 function formatPrice(cents: number) {

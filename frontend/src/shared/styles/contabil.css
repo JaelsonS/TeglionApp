@@ -3395,6 +3395,20 @@
     will-change: transform;
   }
 
+  .cb-public-site-editor-preview-canvas .cb-public-site-preview-zone-highlight {
+    outline: 2px solid hsl(var(--brand, var(--primary)));
+    outline-offset: -2px;
+  }
+
+  .cb-public-site-editor-preview-canvas [data-section-key] {
+    cursor: pointer;
+  }
+
+  .cb-public-site-editor-preview-canvas [data-section-key]:hover {
+    outline: 1px dashed hsl(var(--brand, var(--primary)) / 0.55);
+    outline-offset: -1px;
+  }
+
   /* Página pública — grelha editor + preview; scroll natural da página (evita cortar conteúdo) */
   @media (min-width: 1280px) {
     .cb-settings-hub-main--public-site {

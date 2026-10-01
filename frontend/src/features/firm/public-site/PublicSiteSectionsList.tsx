@@ -25,6 +25,7 @@ import {
   isRemovablePublicSiteSection,
   resolvePublicSiteSectionLabel,
 } from './publicSiteSectionFactory'
+import { publicSiteSectionCardDomId } from './publicSitePublishReadiness'
 
 type Props = {
   sections: PublicSiteSection[]
@@ -36,6 +37,7 @@ type Props = {
   onReorder: (activeKey: string, overKey: string) => void
   onRemove?: (key: string) => void
   renderEditor: (section: PublicSiteSection) => ReactNode
+  visitorSummary?: (section: PublicSiteSection) => string | null
 }
 
 function SortableSectionCard({
@@ -48,12 +50,14 @@ function SortableSectionCard({
   onToggleOpen,
   onToggleEnabled,
   onRemove,
+  visitorLine,
   children,
 }: {
   section: PublicSiteSection
   index: number
   label: string
   hint: string
+  visitorLine: string | null
   open: boolean
   removable: boolean
   onToggleOpen: () => void
@@ -72,6 +76,7 @@ function SortableSectionCard({
 
   return (
     <div
+      id={publicSiteSectionCardDomId(section.key)}
       ref={setNodeRef}
       style={style}
       className={cn(
@@ -106,6 +111,9 @@ function SortableSectionCard({
                 {index + 1}. {label}
               </p>
               <p className="text-[11px] text-muted-foreground">{hint}</p>
+              {!open && visitorLine ? (
+                <p className="mt-1 text-[11px] leading-snug text-muted-foreground/95">{visitorLine}</p>
+              ) : null}
             </div>
             {removable && onRemove ? (
               <Button
@@ -158,6 +166,7 @@ export function PublicSiteSectionsList({
   onReorder,
   onRemove,
   renderEditor,
+  visitorSummary,
 }: Props) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -186,6 +195,7 @@ export function PublicSiteSectionsList({
                 index={index}
                 label={label}
                 hint={hint}
+                visitorLine={visitorSummary?.(section) ?? null}
                 open={isOpen(section)}
                 removable={isRemovablePublicSiteSection(section)}
                 onToggleOpen={() => onToggleOpen(section)}
