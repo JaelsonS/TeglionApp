@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type CSSProperties } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
-  ExternalLink,
-  Eye,
   Facebook,
   Globe,
   Instagram,
@@ -11,9 +9,7 @@ import {
   Maximize2,
   MessageCircle,
   Plus,
-  Save,
   Trash2,
-  Upload,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
@@ -92,6 +88,7 @@ import {
 import { resolvePublicSiteSectionVisitorSummary } from './publicSiteSectionVisitorSummary'
 import { usePublicSiteEditorPreviewAssist } from './usePublicSiteEditorPreviewAssist'
 import { PublicSiteEditorFold } from './PublicSiteEditorFold'
+import { PublicSiteLinkPublishPanel } from './PublicSiteLinkPublishPanel'
 import {
   DEFAULT_COMPLAINTS_BOOK_LABEL,
   DEFAULT_COMPLAINTS_BOOK_URL,
@@ -660,119 +657,33 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
         id="public-site-identity"
         title="A · Link e publicar"
         closedSummary={linkPublishClosedSummary}
-        hint="Link, nome na barra, guardar rascunho, pré-visualizar e publicar."
+        hint="Endereço teglion.com/…, nome na barra do site e botões para guardar, pré-visualizar ou publicar."
         open={linkPublishOpen}
         onOpenChange={setLinkPublishOpen}
+        className="border-brand/15 bg-card/50"
       >
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1 space-y-2">
-          <p className="text-sm font-medium">
-            {siteQuery.data?.publishedAt
-              ? `Publicado pela última vez em ${new Date(siteQuery.data.publishedAt).toLocaleString('pt-PT')}`
-              : 'Ainda não publicado'}
-          </p>
-          {canEditLink ? (
-            <div className="flex flex-wrap items-end gap-2">
-              <label className="min-w-[12rem] flex-1 space-y-1 text-xs">
-                <span className="font-medium text-muted-foreground">Link público</span>
-                <div className="flex items-center gap-1">
-                  <span className="shrink-0 text-muted-foreground">teglion.com/</span>
-                  <Input
-                    className="h-9 font-mono text-sm"
-                    value={slugDraft}
-                    onChange={(e: FormChangeEvent) =>
-                      setSlugDraft(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))
-                    }
-                    placeholder="o-seu-escritorio"
-                    maxLength={60}
-                  />
-                </div>
-              </label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-9"
-                disabled={savingSlug || !slugDraft.trim() || slugDraft.trim() === firmSlug}
-                onClick={() => void onSaveSlug()}
-              >
-                {savingSlug ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-                Guardar link
-              </Button>
-              {firmSlug ? (
-                <a
-                  href={`/${encodeURIComponent(firmSlug)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-9 items-center gap-1 rounded-md border border-border/60 px-3 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  Abrir <ExternalLink className="h-3 w-3" />
-                </a>
-              ) : null}
-            </div>
-          ) : firmSlug ? (
-            <a
-              href={`/${encodeURIComponent(firmSlug)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-            >
-              teglion.com/{firmSlug} <ExternalLink className="h-3 w-3" />
-            </a>
-          ) : null}
-          {canEditLink ? (
-            <div className="flex flex-wrap items-end gap-2 pt-1">
-              <label className="min-w-[14rem] flex-1 space-y-1 text-xs">
-                <span className="font-medium text-muted-foreground">Nome na barra do topo</span>
-                <Input
-                  className="h-9 text-sm"
-                  value={publicDisplayName}
-                  onChange={(e: FormChangeEvent) => setPublicDisplayName(e.target.value)}
-                  placeholder={bundle.firm.name || 'Como aparece na barra'}
-                  maxLength={120}
-                />
-              </label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-9"
-                disabled={savingDisplayName}
-                onClick={() => void onSavePublicDisplayName()}
-              >
-                {savingDisplayName ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-                Guardar nome
-              </Button>
-            </div>
-          ) : null}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" size="sm" disabled={saving || publishing} onClick={() => void onSaveDraft()}>
-            {saving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
-            Guardar rascunho
-          </Button>
-          <Button type="button" variant="outline" size="sm" disabled={previewing || !firmSlug} onClick={() => void onPreview()}>
-            {previewing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Eye className="mr-1.5 h-3.5 w-3.5" />}
-            Pré-visualizar
-          </Button>
-          <Button type="button" variant="primary" size="sm" disabled={publishing} loading={publishing} onClick={() => setConfirmPublishOpen(true)}>
-            <Upload className="mr-1.5 h-3.5 w-3.5" /> Publicar
-          </Button>
-          {canEditLink ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="text-destructive hover:bg-destructive/10"
-              disabled={resetting}
-              onClick={() => setConfirmResetOpen(true)}
-            >
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              Apagar e recomeçar
-            </Button>
-          ) : null}
-        </div>
-        </div>
+        <PublicSiteLinkPublishPanel
+          publishedAt={siteQuery.data?.publishedAt}
+          firmSlug={firmSlug}
+          slugDraft={slugDraft}
+          onSlugDraftChange={setSlugDraft}
+          savingSlug={savingSlug}
+          onSaveSlug={() => void onSaveSlug()}
+          canEditLink={canEditLink}
+          publicDisplayName={publicDisplayName}
+          onPublicDisplayNameChange={setPublicDisplayName}
+          savingDisplayName={savingDisplayName}
+          onSaveDisplayName={() => void onSavePublicDisplayName()}
+          firmNameFallback={bundle.firm.name || ''}
+          saving={saving}
+          previewing={previewing}
+          publishing={publishing}
+          resetting={resetting}
+          onSaveDraft={() => void onSaveDraft()}
+          onPreview={() => void onPreview()}
+          onOpenPublishConfirm={() => setConfirmPublishOpen(true)}
+          onOpenResetConfirm={() => setConfirmResetOpen(true)}
+        />
       </PublicSiteEditorFold>
 
       <div className="cb-public-site-editor-grid">
