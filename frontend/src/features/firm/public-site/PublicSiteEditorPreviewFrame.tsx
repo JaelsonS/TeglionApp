@@ -51,9 +51,8 @@ export function PublicSiteEditorPreviewFrame({
       if (w <= 0) return
       const nextScale = Math.min(1, w / canvasWidthPx)
       setScale(nextScale)
-      // getBoundingClientRect reflecte o scale — evita min-h-full inflar offsetHeight no editor.
-      const visualHeight = canvas.getBoundingClientRect().height
-      setScaledHeight(Math.max(200, Math.ceil(visualHeight > 0 ? visualHeight : canvas.offsetHeight * nextScale)))
+      const contentHeight = canvas.offsetHeight
+      setScaledHeight(Math.max(240, Math.ceil(contentHeight * nextScale)))
     }
 
     const roHost = new ResizeObserver(sync)

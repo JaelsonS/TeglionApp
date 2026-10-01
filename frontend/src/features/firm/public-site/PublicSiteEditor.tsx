@@ -818,12 +818,76 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             )}
           />
           </section>
+        </div>
 
-          <section className="space-y-4 rounded-xl border border-border/50 bg-muted/15 p-4">
+        <aside className="cb-public-site-editor-aside order-2 min-w-0">
+          <div className="cb-public-site-editor-preview-panel">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Pré-visualização ao vivo
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Role <span className="font-medium text-foreground">só dentro deste painel</span> para ver o site inteiro.
+                Logótipos e cores ficam em{' '}
+                <a href="#public-site-extras" className="font-medium text-brand hover:underline">
+                  C · Marca e extras
+                </a>
+                .
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {(
+                [
+                  ['mobile', 'Telemóvel'],
+                  ['tablet', 'Tablet'],
+                  ['desktop', 'Desktop'],
+                ] as const
+              ).map(([id, label]) => (
+                <Button
+                  key={id}
+                  type="button"
+                  variant={previewDevice === id ? 'default' : 'outline'}
+                  size="sm"
+                  className="h-8 px-2.5 text-xs"
+                  onClick={() => setPreviewDevice(id)}
+                >
+                  {label}
+                </Button>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 shrink-0"
+                onClick={() => setPreviewExpanded(true)}
+              >
+                <Maximize2 className="mr-1.5 h-3.5 w-3.5" />
+                Expandir
+              </Button>
+            </div>
+          </div>
+          <div
+            key={`preview-bg-${draft.theme.backgroundColor || 'default'}-${draft.theme.surfaceColor || 'surface'}-${previewDevice}`}
+            className="cb-public-site-editor-preview-scroll rounded-lg border border-border/50 shadow-sm"
+            style={previewSurfaceStyle}
+          >
+            <PublicSiteEditorPreviewFrame canvasWidthPx={publicSiteEditorPreviewCanvasPx(previewDevice)}>
+              {previewPanel}
+            </PublicSiteEditorPreviewFrame>
+          </div>
+          </div>
+        </aside>
+      </div>
+
+      <section
+        id="public-site-extras"
+        className="space-y-4 rounded-xl border border-border/50 bg-muted/15 p-4"
+      >
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             C · Marca e extras
           </p>
-          <div className="space-y-3 lg:hidden">
+          <div className="space-y-3">
             <PublicSiteLogoCard
               draft={draft}
               firmLogoUrl={bundle.logoUrl ?? null}
@@ -988,74 +1052,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               />
             </label>
           </div>
-          </section>
-        </div>
-
-        <aside className="cb-public-site-editor-aside order-2 min-w-0">
-          <div className="mb-3 hidden space-y-3 rounded-xl border border-border/50 bg-card p-3 lg:block">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Logótipos (só site público)
-            </p>
-            <PublicSiteLogoCard
-              draft={draft}
-              firmLogoUrl={bundle.logoUrl ?? null}
-              readOnly={!canEditLink}
-              onDraftUpdate={setDraft}
-              onLogoSourceChange={(zone, source) => void patchThemeLogoSource(zone, source)}
-            />
-            <PageThemeColors draft={draft} onChange={setDraft} />
-          </div>
-          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 pb-2">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Pré-visualização ao vivo
-              </p>
-              <p className="text-[11px] text-muted-foreground">
-                Escolha telemóvel ou tablet para ver o menu hamburger. Desktop mostra a barra horizontal (ecrãs largos).
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {(
-                [
-                  ['mobile', 'Telemóvel'],
-                  ['tablet', 'Tablet'],
-                  ['desktop', 'Desktop'],
-                ] as const
-              ).map(([id, label]) => (
-                <Button
-                  key={id}
-                  type="button"
-                  variant={previewDevice === id ? 'default' : 'outline'}
-                  size="sm"
-                  className="h-8 px-2.5 text-xs"
-                  onClick={() => setPreviewDevice(id)}
-                >
-                  {label}
-                </Button>
-              ))}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-8 shrink-0"
-                onClick={() => setPreviewExpanded(true)}
-              >
-                <Maximize2 className="mr-1.5 h-3.5 w-3.5" />
-                Expandir
-              </Button>
-            </div>
-          </div>
-          <div
-            key={`preview-bg-${draft.theme.backgroundColor || 'default'}-${draft.theme.surfaceColor || 'surface'}-${previewDevice}`}
-            className="cb-public-site-editor-preview-scroll rounded-xl border border-border/50 shadow-sm"
-            style={previewSurfaceStyle}
-          >
-            <PublicSiteEditorPreviewFrame canvasWidthPx={publicSiteEditorPreviewCanvasPx(previewDevice)}>
-              {previewPanel}
-            </PublicSiteEditorPreviewFrame>
-          </div>
-        </aside>
-      </div>
+      </section>
 
       <Dialog open={previewExpanded} onOpenChange={setPreviewExpanded}>
         <DialogContent className="flex h-[min(92dvh,900px)] max-w-5xl flex-col gap-0 p-0">
