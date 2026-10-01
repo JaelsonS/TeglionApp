@@ -17,6 +17,7 @@ import { AuthAgencyIdentity } from '@/shared/components/auth/AuthAgencyIdentity'
 import { contabilPt as t } from '@/shared/i18n/contabilPt'
 import { authFirmRegisterUrl, authProfileChoiceUrl } from '@/shared/constants/authPaths'
 import { useAuth } from '@/shared/hooks/useAuth'
+import { clearMfaChallengeToken } from '@/shared/security/mfaChallengeStore'
 import { useApiToast } from '@/shared/hooks/useApiToast'
 import { getGoogleAuthStartUrl, prefetchAuthCsrf } from '@/infrastructure/api'
 import { ServerWakingBanner } from '@/shared/components/feedback/ServerWakingUp'
@@ -70,6 +71,7 @@ export function FirmLoginPage() {
   const canSubmit = form.formState.isValid && !isSubmitting && turnstileOk
 
   useEffect(() => {
+    clearMfaChallengeToken()
     void warmupAuthLoginPage()
   }, [])
 
@@ -101,11 +103,23 @@ export function FirmLoginPage() {
         )
         const res = await loginFirm(payload)
         if (res.status === 'MFA_CHALLENGE_REQUIRED') {
-          navigate('/auth/firm/mfa?reason=challenge', { replace: true })
+          navigate('/auth/firm/mfa?reason=challenge', {
+            replace: true,
+            state: {
+              mfaChallengeToken: res.mfa?.challengeToken ?? null,
+              mfaExpiresAt: res.mfa?.expiresAt ?? null,
+            },
+          })
           return
         }
         if (res.status === 'MFA_ENROLLMENT_REQUIRED') {
-          navigate('/auth/firm/mfa?reason=enroll', { replace: true })
+          navigate('/auth/firm/mfa?reason=enroll', {
+            replace: true,
+            state: {
+              mfaChallengeToken: res.mfa?.challengeToken ?? null,
+              mfaExpiresAt: res.mfa?.expiresAt ?? null,
+            },
+          })
           return
         }
         if (res.firmAccess?.hasAccess === false && res.firmAccess.reason === 'TRIAL_EXPIRED') {
