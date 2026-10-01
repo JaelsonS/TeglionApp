@@ -89,6 +89,7 @@ import { PublicSiteEditorFold } from './PublicSiteEditorFold'
 import { PublicSiteLinkPublishPanel } from './PublicSiteLinkPublishPanel'
 import { PublicSiteEditorDeviceChrome } from './PublicSiteEditorDeviceChrome'
 import { PublicSiteExtrasPanel } from './PublicSiteExtrasPanel'
+import { PublicSiteLegalFieldsEditor } from './PublicSiteLegalFieldsEditor'
 import { evaluatePublicSiteLegalGaps, publicSiteLegalFieldsDomId } from './publicSiteLegalCompliance'
 
 const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
@@ -114,7 +115,7 @@ const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
   process: 'Alinhamento e passos',
   faq: 'Alinhamento e perguntas',
   contact: 'Email, telefone, morada, redes sociais e botões de acção',
-  footer: 'Aparência do rodapé — textos legais configuram-se no bloco C',
+  footer: 'Cores, alinhamento e links legais (termos, privacidade, livro de reclamações)',
 }
 
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -540,11 +541,16 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const legalGaps = useMemo(() => (draft ? evaluatePublicSiteLegalGaps(draft) : []), [draft])
 
   const focusLegalFields = useCallback(() => {
-    setExtrasOpen(true)
+    const footer = draft?.sections.find((s) => s.type === 'footer')
+    if (!footer) return
+    setSectionOpenState((prev) => ({ ...prev, [footer.key]: true }))
     requestAnimationFrame(() => {
-      document.getElementById(publicSiteLegalFieldsDomId())?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      document.getElementById(publicSiteSectionCardDomId(footer.key))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      window.setTimeout(() => {
+        document.getElementById(publicSiteLegalFieldsDomId())?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }, 280)
     })
-  }, [])
+  }, [draft?.sections])
 
   if (siteQuery.isLoading || !draft) {
     return (
@@ -756,6 +762,8 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                       <ThemeEditor draft={draft} onChange={setDraft} embedded />
                     ) : undefined
                   }
+                  siteDraft={draft}
+                  onSiteDraftChange={setDraft}
                   bookingFilter={
                     section.type === 'services' ? true : section.type === 'bookingServices' ? false : undefined
                   }
@@ -858,8 +866,8 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
       <PublicSiteEditorFold
         id="public-site-extras"
         title="C · Marca e extras"
-        closedSummary="Logótipos, cores, SEO, agendamento, termos e preços na página"
-        hint="Logótipos, cores da página, SEO, horários, termos legais e opções de preços."
+        closedSummary="Preços, logótipos, cores da página e SEO"
+        hint="Preços/agenda, logótipos, cores e SEO — sem contactos nem legal (isso fica nas secções)."
         open={extrasOpen}
         onOpenChange={setExtrasOpen}
         className="bg-muted/15"
@@ -1001,6 +1009,8 @@ function SectionEditorSwitch({
   footerSection,
   onFooterContactChange,
   socialLinksSection,
+  siteDraft,
+  onSiteDraftChange,
 }: {
   section: PublicSiteSection
   onChange: (content: PublicSiteSection['content']) => void
@@ -1026,6 +1036,8 @@ function SectionEditorSwitch({
     address?: string | null
   }) => void
   socialLinksSection?: ReactNode
+  siteDraft?: PublicSiteConfig
+  onSiteDraftChange?: (next: PublicSiteConfig) => void
 }) {
   switch (section.type) {
     case 'hero':
@@ -1199,12 +1211,16 @@ function SectionEditorSwitch({
       )
     case 'footer':
       return (
-        <ChromeSectionEditor
-          content={section.content}
-          onChange={onChange}
-          title="Rodapé legal (visual)"
-          showFooterContactFields
-        />
+        <div className="space-y-4">
+          <ChromeSectionEditor content={section.content} onChange={onChange} title="Rodapé legal (visual)" />
+          {siteDraft && onSiteDraftChange ? (
+            <PublicSiteLegalFieldsEditor
+              id={publicSiteLegalFieldsDomId()}
+              draft={siteDraft}
+              onDraftChange={onSiteDraftChange}
+            />
+          ) : null}
+        </div>
       )
     default:
       return null

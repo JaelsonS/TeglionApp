@@ -289,7 +289,7 @@ export const SETTINGS_INTENTS = [
       {
         id: 'footer',
         name: 'Rodapé legal (visual)',
-        meaning: 'Aparência do rodapé no site; termos e livro de reclamações no bloco C.',
+        meaning: 'Cores do rodapé, termos, privacidade, livro de reclamações e elogios.',
       },
     ],
   }),

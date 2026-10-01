@@ -901,7 +901,6 @@ export function ChromeSectionEditor({
   showNavControls = false,
   showLogoControl = false,
   services = [],
-  showFooterContactFields = false,
   officeContact,
 }: {
   content: PublicSiteChromeContent
@@ -917,8 +916,6 @@ export function ChromeSectionEditor({
   /** Cabeçalho: mostrar ou ocultar logótipo na barra. */
   showLogoControl?: boolean
   services?: PublicFirmServiceSummary[]
-  /** Rodapé: contactos próprios (independentes do Escritório). */
-  showFooterContactFields?: boolean
   officeContact?: { email?: string | null; phone?: string | null; address?: string | null }
 }) {
   const navOn = content.showNav !== false
@@ -966,16 +963,6 @@ export function ChromeSectionEditor({
           services={services}
           onChange={onChange}
         />
-      ) : null}
-      {showFooterContactFields ? (
-        <div className="rounded-lg border border-border/40 bg-muted/15 p-3 text-[11px] leading-relaxed text-muted-foreground">
-          <p className="font-semibold text-foreground">Rodapé = links legais</p>
-          <p className="mt-1.5">
-            Termos, Privacidade, Livro de Reclamações e elogios configuram-se em{' '}
-            <span className="font-medium text-foreground">C · Marca e extras</span>. Email, telefone, morada e redes
-            sociais ficam na secção <span className="font-medium text-foreground">Contactos e redes</span>.
-          </p>
-        </div>
       ) : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <InlineColorField
