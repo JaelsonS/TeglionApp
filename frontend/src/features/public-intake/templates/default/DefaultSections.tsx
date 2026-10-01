@@ -1,16 +1,6 @@
 import type React from 'react'
 import { Link } from 'react-router-dom'
-import {
-  CalendarClock,
-  Facebook,
-  Globe,
-  Instagram,
-  Linkedin,
-  Mail,
-  MapPin,
-  MessageCircle,
-  Phone,
-} from 'lucide-react'
+import { CalendarClock, Mail, MapPin, Phone } from 'lucide-react'
 
 import type {
   PublicSiteAboutContent,
@@ -28,6 +18,7 @@ import type {
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
 import { clusterPublicServices, uniquePublicServiceGroups } from '@/features/public-intake/clusterPublicServices'
 import { PublicSiteLegalFooterLinks } from '@/features/public-intake/PublicSiteLegalFooterLinks'
+import { PublicSiteSocialIconRow } from '@/features/public-intake/PublicSiteSocialIconRow'
 import { PublicSiteHeroSurface } from '@/features/public-intake/PublicSiteHeroSurface'
 import {
   contentAlignBlockClass,
@@ -796,7 +787,14 @@ export function ContactSection({
       : null,
   ].filter((r): r is NonNullable<typeof r> => Boolean(r))
   const hasCtas = (content.ctas?.length ?? 0) > 0
-  if (rows.length === 0 && !hasCtas) return null
+  const hasSocial = Boolean(
+    socialLinks.instagram ||
+      socialLinks.facebook ||
+      socialLinks.linkedin ||
+      socialLinks.whatsapp ||
+      socialLinks.website,
+  )
+  if (rows.length === 0 && !hasCtas && !hasSocial) return null
   const text = hexStyle(content.textColor)
   const align = resolveSectionContentAlign(content)
   const rowClass = `flex items-center gap-1.5 ${contentAlignFlexClass(align)}`
@@ -805,6 +803,11 @@ export function ContactSection({
       className={`space-y-2 text-sm ${contentAlignBlockClass(align)} ${text ? '' : 'text-muted-foreground'}`}
       style={text ? { color: text } : undefined}
     >
+        <PublicSiteSocialIconRow
+          socialLinks={socialLinks}
+          className={`pb-1 ${contentAlignFlexClass(align)}`}
+          style={text ? { color: text } : undefined}
+        />
         {rows.map(({ key, icon: Icon, label, href }) =>
           href ? (
             <a
@@ -852,20 +855,16 @@ export function FooterSection({
   socialLinks,
   content,
   showContactDetails = true,
+  showSocialIcons = false,
 }: {
   ctx: PublicSiteRenderContext
   socialLinks: PublicSiteSocialLinks
   content?: PublicSiteChromeContent
   /** Ocultar email/telefone/morada quando a secção Contactos já os mostra. */
   showContactDetails?: boolean
+  /** Redes no rodapé só se a secção Contactos estiver desactivada. */
+  showSocialIcons?: boolean
 }) {
-  const entries = [
-    { key: 'instagram', href: socialLinks.instagram, label: 'Instagram', Icon: Instagram },
-    { key: 'facebook', href: socialLinks.facebook, label: 'Facebook', Icon: Facebook },
-    { key: 'linkedin', href: socialLinks.linkedin, label: 'LinkedIn', Icon: Linkedin },
-    { key: 'whatsapp', href: socialLinks.whatsapp, label: 'WhatsApp', Icon: MessageCircle },
-    { key: 'website', href: socialLinks.website, label: 'Site', Icon: Globe },
-  ].filter((s): s is typeof s & { href: string } => Boolean(s.href))
   const bg = hexStyle(content?.backgroundColor)
   const text = hexStyle(content?.textColor)
   const align = resolveSectionContentAlign(content)
@@ -896,23 +895,14 @@ export function FooterSection({
       className={bg ? 'border-t border-black/5' : 'border-t border-border/40 bg-transparent'}
       style={bg ? { backgroundColor: bg } : undefined}
     >
-      {entries.length > 0 ? (
+      {showSocialIcons ? (
         <div
-          className={`mx-auto flex max-w-2xl flex-wrap items-center gap-3 px-4 py-8 lg:max-w-4xl ${contentAlignFlexClass(align)}`}
+          className={`mx-auto flex max-w-2xl flex-wrap px-4 pb-4 pt-6 lg:max-w-4xl ${contentAlignFlexClass(align)}`}
         >
-          {entries.map(({ key, href, label, Icon }) => (
-            <a
-              key={key}
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={label}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/50 transition hover:opacity-80"
-              style={text ? { color: text, borderColor: text } : undefined}
-            >
-              <Icon className="h-4 w-4" />
-            </a>
-          ))}
+          <PublicSiteSocialIconRow
+            socialLinks={socialLinks}
+            style={text ? { color: text, borderColor: text } : undefined}
+          />
         </div>
       ) : (
         <div className="pt-6" />

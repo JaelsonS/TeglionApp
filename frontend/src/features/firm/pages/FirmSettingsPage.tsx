@@ -159,6 +159,23 @@ export function FirmSettingsPage() {
               className={cn('cb-settings-side-nav', settingsNavCollapsed && 'cb-settings-side-nav--collapsed')}
               aria-label="Secções de configuração"
             >
+              <button
+                type="button"
+                className="cb-settings-side-nav-collapse hidden lg:order-first lg:mb-2 lg:flex"
+                aria-expanded={!settingsNavCollapsed}
+                aria-label={settingsNavCollapsed ? 'Expandir menu de definições' : 'Minimizar menu de definições'}
+                title={settingsNavCollapsed ? 'Expandir menu' : 'Minimizar menu'}
+                onClick={() => setSettingsNavCollapsed((v) => !v)}
+              >
+                {settingsNavCollapsed ? (
+                  <PanelLeftOpen className="h-4 w-4" aria-hidden />
+                ) : (
+                  <PanelLeftClose className="h-4 w-4" aria-hidden />
+                )}
+                {!settingsNavCollapsed ? (
+                  <span className="text-xs font-medium">Minimizar menu</span>
+                ) : null}
+              </button>
               {visibleTabs.map((item) => {
                 const Icon = item.icon
                 const active = item.id === activeTab
@@ -190,23 +207,6 @@ export function FirmSettingsPage() {
                   </button>
                 )
               })}
-              <button
-                type="button"
-                className="cb-settings-side-nav-collapse hidden lg:flex"
-                aria-expanded={!settingsNavCollapsed}
-                aria-label={settingsNavCollapsed ? 'Expandir menu de definições' : 'Minimizar menu de definições'}
-                title={settingsNavCollapsed ? 'Expandir menu' : 'Minimizar menu'}
-                onClick={() => setSettingsNavCollapsed((v) => !v)}
-              >
-                {settingsNavCollapsed ? (
-                  <PanelLeftOpen className="h-4 w-4" aria-hidden />
-                ) : (
-                  <PanelLeftClose className="h-4 w-4" aria-hidden />
-                )}
-                {!settingsNavCollapsed ? (
-                  <span className="text-xs font-medium">Minimizar menu</span>
-                ) : null}
-              </button>
             </nav>
 
             <div

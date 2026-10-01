@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent } from 'react'
+import { useRef, useState, type ChangeEvent, type ReactNode } from 'react'
 import { ChevronDown, ChevronUp, ImageIcon, Loader2, Plus, Trash2, X } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -968,49 +968,13 @@ export function ChromeSectionEditor({
         />
       ) : null}
       {showFooterContactFields ? (
-        <div className="space-y-3 rounded-lg border border-border/40 p-3">
-          <div>
-            <Label className="text-sm font-semibold">Contactos no rodapé</Label>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Usados na secção Contactos e, se essa secção estiver desactivada, também no rodapé. Com Contactos activa,
-              o rodapé deixa de repetir email/telefone/morada (só redes e links legais). Campo em branco → herda
-              Definições → Escritório.
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="footer-email">Email</Label>
-            <Input
-              id="footer-email"
-              type="email"
-              value={content.email || ''}
-              onChange={(e: FormChangeEvent) => onChange({ ...content, email: e.target.value || null })}
-              placeholder={officeContact?.email || 'Ex.: contacto@empresa.pt'}
-              maxLength={200}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="footer-phone">Telefone</Label>
-            <Input
-              id="footer-phone"
-              value={content.phone || ''}
-              onChange={(e: FormChangeEvent) => onChange({ ...content, phone: e.target.value || null })}
-              placeholder={officeContact?.phone || 'Ex.: +351 …'}
-              maxLength={40}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="footer-address">Endereço</Label>
-            <Input
-              id="footer-address"
-              value={content.address || ''}
-              onChange={(e: FormChangeEvent) => onChange({ ...content, address: e.target.value || null })}
-              placeholder={officeContact?.address || 'Ex.: Rua …, Coimbra'}
-              maxLength={300}
-            />
-            <p className="text-[11px] text-muted-foreground">
-              Na página pública o endereço fica clicável e abre o Google Maps.
-            </p>
-          </div>
+        <div className="rounded-lg border border-border/40 bg-muted/15 p-3 text-[11px] leading-relaxed text-muted-foreground">
+          <p className="font-semibold text-foreground">Rodapé = links legais</p>
+          <p className="mt-1.5">
+            Termos, Privacidade, Livro de Reclamações e elogios configuram-se em{' '}
+            <span className="font-medium text-foreground">C · Marca e extras</span>. Email, telefone, morada e redes
+            sociais ficam na secção <span className="font-medium text-foreground">Contactos</span>.
+          </p>
         </div>
       ) : null}
       <div className="grid gap-3 sm:grid-cols-2">
@@ -1986,6 +1950,65 @@ export function FaqEditor({
   )
 }
 
+export function PublicSiteContactDetailsFields({
+  email,
+  phone,
+  address,
+  officeContact,
+  onChange,
+  idPrefix = 'contact',
+}: {
+  email: string | null | undefined
+  phone: string | null | undefined
+  address: string | null | undefined
+  officeContact?: { email?: string | null; phone?: string | null; address?: string | null }
+  onChange: (patch: { email?: string | null; phone?: string | null; address?: string | null }) => void
+  idPrefix?: string
+}) {
+  return (
+    <div className="space-y-3 rounded-lg border border-border/40 p-3">
+      <div>
+        <Label className="text-sm font-semibold">Email, telefone e morada</Label>
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Aparecem nesta secção Contactos. Campo em branco → usa Definições → Escritório.
+        </p>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-email`}>Email</Label>
+        <Input
+          id={`${idPrefix}-email`}
+          type="email"
+          value={email || ''}
+          onChange={(e: FormChangeEvent) => onChange({ email: e.target.value || null })}
+          placeholder={officeContact?.email || 'Ex.: contacto@empresa.pt'}
+          maxLength={200}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-phone`}>Telefone</Label>
+        <Input
+          id={`${idPrefix}-phone`}
+          value={phone || ''}
+          onChange={(e: FormChangeEvent) => onChange({ phone: e.target.value || null })}
+          placeholder={officeContact?.phone || 'Ex.: +351 …'}
+          maxLength={40}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-address`}>Morada</Label>
+        <Input
+          id={`${idPrefix}-address`}
+          value={address || ''}
+          onChange={(e: FormChangeEvent) => onChange({ address: e.target.value || null })}
+          placeholder={officeContact?.address || 'Ex.: Rua …, Coimbra'}
+          maxLength={300}
+        />
+        <p className="text-[11px] text-muted-foreground">Na página pública abre o Google Maps ao clicar.</p>
+      </div>
+    </div>
+  )
+}
+
 export function ContactEditor({
   content,
   onChange,
@@ -1993,6 +2016,10 @@ export function ContactEditor({
   officePhone,
   socialWhatsapp,
   sectionMedia,
+  footerContact,
+  onFooterContactChange,
+  officeContact,
+  socialLinksSection,
 }: {
   content: PublicSiteContactContent
   onChange: (next: PublicSiteContactContent) => void
@@ -2000,9 +2027,31 @@ export function ContactEditor({
   officePhone?: string | null
   socialWhatsapp?: string | null
   sectionMedia?: SectionMediaEditorProps<PublicSiteContactContent>
+  footerContact?: { email?: string | null; phone?: string | null; address?: string | null }
+  onFooterContactChange?: (patch: { email?: string | null; phone?: string | null; address?: string | null }) => void
+  officeContact?: { email?: string | null; phone?: string | null; address?: string | null }
+  socialLinksSection?: ReactNode
 }) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {onFooterContactChange ? (
+        <PublicSiteContactDetailsFields
+          email={footerContact?.email}
+          phone={footerContact?.phone}
+          address={footerContact?.address}
+          officeContact={officeContact}
+          onChange={onFooterContactChange}
+        />
+      ) : null}
+      {socialLinksSection ? (
+        <div className="space-y-2 rounded-lg border border-border/40 p-3">
+          <Label className="text-sm font-semibold">Redes sociais e site</Label>
+          <p className="text-[11px] text-muted-foreground">
+            Ícones na secção Contactos (não no rodapé legal).
+          </p>
+          {socialLinksSection}
+        </div>
+      ) : null}
       {sectionMedia ? <SectionMediaEditor {...sectionMedia} contentLabel="Imagem (opcional)" /> : null}
       <div className="grid gap-3 sm:grid-cols-2">
         <InlineColorField
@@ -2042,8 +2091,7 @@ export function ContactEditor({
         Mostrar morada
       </label>
       <p className="text-caption text-muted-foreground">
-        Email, telefone e morada vêm do Rodapé (ou Definições → Escritório se vazios). Com esta secção activa, o rodapé
-        não repete estes dados — só redes sociais e links legais.
+        Active o que quer mostrar. O rodapé do site fica só com políticas legais (bloco C).
       </p>
       <SectionCtasEditor
         ctas={content.ctas || []}
