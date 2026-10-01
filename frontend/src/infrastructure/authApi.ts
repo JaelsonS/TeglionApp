@@ -129,8 +129,14 @@ export const authApi = {
       )
       .then((r) => r.data),
 
-  mfaEnrollConfirm: (payload: { code: string; challengeToken?: string }) =>
-    api.post('/auth/mfa/enroll/confirm', payload).then((r) => r.data),
+  mfaEnrollConfirm: (payload: { code: string; challengeToken?: string }) => {
+    const challengeToken = payload.challengeToken?.trim()
+    return api
+      .post('/auth/mfa/enroll/confirm', payload, {
+        headers: challengeToken ? { 'x-mfa-challenge': challengeToken } : undefined,
+      })
+      .then((r) => r.data)
+  },
 
   mfaStatus: () => api.get('/auth/mfa/status').then((r) => r.data),
 

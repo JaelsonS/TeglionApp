@@ -1,5 +1,5 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
 import { isAxiosError } from 'axios'
 
@@ -55,8 +55,14 @@ function mfaUserFacingError(err: unknown): string {
   return raw
 }
 
+type MfaNavState = {
+  mfaChallengeToken?: string | null
+  mfaExpiresAt?: string | null
+}
+
 export function FirmMfaChallengePage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [params] = useSearchParams()
   const toast = useApiToast()
   const { setSession } = useAuth()
@@ -76,9 +82,18 @@ export function FirmMfaChallengePage() {
   useEffect(() => {
     let cancelled = false
     async function boot() {
+      const navState = (location.state || {}) as MfaNavState
+      if (navState.mfaChallengeToken) {
+        setMfaChallengeToken(navState.mfaChallengeToken, navState.mfaExpiresAt ?? null)
+      }
+      const token = String(navState.mfaChallengeToken || getMfaChallengeToken() || '').trim()
+      if (!token) {
+        setFieldError(MFA_SESSION_LOST)
+        return
+      }
       try {
         await prefetchAuthCsrf()
-        const status = await authApi.mfaChallengeStatus(getMfaChallengeToken() || undefined)
+        const status = await authApi.mfaChallengeStatus(token)
         if (cancelled) return
         if (status?.mfa?.challengeToken) {
           setMfaChallengeToken(status.mfa.challengeToken, status.mfa.expiresAt ?? status.expiresAt ?? null)
@@ -93,6 +108,19 @@ export function FirmMfaChallengePage() {
           setStep('challenge')
         }
       } catch (err) {
+        const code = isAxiosError(err)
+          ? String((err.response?.data as { code?: string })?.code || '').toUpperCase()
+          : ''
+        if (
+          code === 'MFA_CHALLENGE_MISSING' ||
+          code === 'MFA_CHALLENGE_INVALID' ||
+          code === 'MFA_CHALLENGE_ALREADY_USED' ||
+          code === 'UNAUTHORIZED'
+        ) {
+          clearMfaChallengeToken()
+          setFieldError(MFA_SESSION_LOST)
+          return
+        }
         if (!getMfaChallengeToken() && reason === 'challenge') {
           setFieldError(MFA_SESSION_LOST)
         }
@@ -114,8 +142,8 @@ export function FirmMfaChallengePage() {
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- boot once on mount / reason
-  }, [reason])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- boot on mount / reason / login state
+  }, [reason, location.state])
 
   async function onVerifyChallenge(e: FormEvent) {
     e.preventDefault()
