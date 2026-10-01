@@ -19,6 +19,7 @@ const firmPublicSiteService = require('../firm/firm-public-site.service');
 const accountingServicesService = require('../firm/accounting-services.service');
 const entitlements = require('../entitlements/entitlements.service');
 const { interpolateServiceTemplate } = require('../../utils/service-text-template');
+const { stripDemoContentMarkers } = require('../../utils/demo-content-markers');
 const { env } = require('../../config/env');
 
 /** Resolve Firm + Service publicado pelo par (firmSlug, serviceSlug) — nunca aceita ids crus. */
@@ -51,7 +52,7 @@ async function mapPublicServiceSummary(s, groupNameById, { options = [] } = {}) 
   return {
     slug: enriched.slug,
     name: interpolateServiceTemplate(enriched.name),
-    description: interpolateServiceTemplate(enriched.description) || null,
+    description: stripDemoContentMarkers(interpolateServiceTemplate(enriched.description)) || null,
     durationMinutes: enriched.durationMinutes,
     priceCents: enriched.priceCents,
     priceTaxMode: enriched.priceTaxMode || null,
@@ -436,7 +437,7 @@ async function getPublicService(req, res, next) {
       showFirmLogo,
       showTeglionCredit,
       serviceName: interpolateServiceTemplate(service.name),
-      description: interpolateServiceTemplate(service.description) || null,
+      description: stripDemoContentMarkers(interpolateServiceTemplate(service.description)) || null,
       imageUrl: (await accountingServicesService.resolveServiceImageUrl(service.imageStorageKey || service.imageUrl)) || null,
       imageOriginalUrl: (await accountingServicesService.resolveServiceImageUrl(service.imageOriginalUrl)) || null,
       imageFocusX: service.imageFocusX,

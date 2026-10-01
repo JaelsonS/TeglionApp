@@ -269,6 +269,7 @@ function normalizeSectionContent(type, raw) {
           backgroundColor: normalizeOptionalHex(content.backgroundColor),
           headingColor: normalizeOptionalHex(content.headingColor),
           featuredHeading: content.featuredHeading ? String(content.featuredHeading).trim().slice(0, 80) : '',
+          catalogHeading: content.catalogHeading ? String(content.catalogHeading).trim().slice(0, 80) : '',
           featuredServiceSlugs: Array.isArray(content.featuredServiceSlugs)
             ? content.featuredServiceSlugs
                 .slice(0, 12)

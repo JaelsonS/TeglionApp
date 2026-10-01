@@ -1,5 +1,9 @@
 import type { PublicSiteConfig } from '@/shared/types/firmPublicSite'
 import { TeglionPublicCredit } from '@/features/public-intake/TeglionPublicCredit'
+import {
+  findEnabledFooterContent,
+  resolvePublicSiteContact,
+} from '@/features/public-intake/publicSiteContactResolve'
 import { HeaderSection } from '@/features/public-intake/PublicSiteHeader'
 import {
   AboutSection,
@@ -33,6 +37,12 @@ export function DefaultTemplate({ config, ctx }: Props) {
   const firstServiceKey = sections.find((s) => s.type === 'services' || s.type === 'bookingServices')?.key
   const pageBgRaw = String(config.theme?.backgroundColor || '').trim()
   const pageBg = /^#[0-9a-f]{6}$/i.test(pageBgRaw) ? pageBgRaw : null
+  const footerContent = findEnabledFooterContent(config)
+  const contactSectionEnabled = sections.some((s) => s.type === 'contact')
+  const displayCtx: PublicSiteRenderContext = {
+    ...ctx,
+    contact: resolvePublicSiteContact(ctx.contact, footerContent),
+  }
 
   return (
     <div
@@ -51,13 +61,13 @@ export function DefaultTemplate({ config, ctx }: Props) {
       {sections.map((section) => {
         switch (section.type) {
           case 'header':
-            return <HeaderSection key={section.key} ctx={ctx} content={section.content} />
+            return <HeaderSection key={section.key} ctx={displayCtx} content={section.content} />
           case 'hero':
             return (
               <HeroSection
                 key={section.key}
                 content={section.content}
-                ctx={ctx}
+                ctx={displayCtx}
                 socialLinks={config.socialLinks}
                 images={config.images}
               />
@@ -68,7 +78,7 @@ export function DefaultTemplate({ config, ctx }: Props) {
                 key={section.key}
                 content={section.content}
                 images={config.images}
-                ctx={ctx}
+                ctx={displayCtx}
                 socialLinks={config.socialLinks}
                 sectionKey={section.key}
               />
@@ -81,12 +91,12 @@ export function DefaultTemplate({ config, ctx }: Props) {
               return <EmptyPublicServicesSection key="public-services-empty" />
             }
             return section.type === 'services' ? (
-              <ServicesSection key={section.key} content={section.content} ctx={ctx} socialLinks={config.socialLinks} />
+              <ServicesSection key={section.key} content={section.content} ctx={displayCtx} socialLinks={config.socialLinks} />
             ) : (
               <BookingServicesSection
                 key={section.key}
                 content={section.content}
-                ctx={ctx}
+                ctx={displayCtx}
                 socialLinks={config.socialLinks}
               />
             )
@@ -123,7 +133,7 @@ export function DefaultTemplate({ config, ctx }: Props) {
               <ContactSection
                 key={section.key}
                 content={section.content}
-                ctx={ctx}
+                ctx={displayCtx}
                 socialLinks={config.socialLinks}
                 images={config.images}
                 sectionKey={section.key}
@@ -131,7 +141,13 @@ export function DefaultTemplate({ config, ctx }: Props) {
             )
           case 'footer':
             return (
-              <FooterSection key={section.key} ctx={ctx} socialLinks={config.socialLinks} content={section.content} />
+              <FooterSection
+                key={section.key}
+                ctx={displayCtx}
+                socialLinks={config.socialLinks}
+                content={section.content}
+                showContactDetails={!contactSectionEnabled}
+              />
             )
           default:
             return null

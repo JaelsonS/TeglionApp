@@ -101,13 +101,15 @@ const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
   header: 'Alinhamento da marca, cores · menu hamburger em telemóvel/tablet',
   hero: 'Alinhamento, imagem de fundo, texto e botões',
   about: 'Alinhamento, texto, foto e botões',
-  services: 'Alinhamento, título, catálogo e botões',
-  bookingServices: 'Alinhamento, título, catálogo e botões',
+  services:
+    'Título opcional · cartões em destaque · subtítulo da grelha · ordem do catálogo (consultorias com agendamento)',
+  bookingServices:
+    'Título opcional · cartões em destaque · subtítulo da grelha · ordem do catálogo (serviços sob pedido)',
   features: 'Alinhamento e pontos fortes',
   process: 'Alinhamento e passos',
   faq: 'Alinhamento e perguntas',
   contact: 'Alinhamento, contactos e botões',
-  footer: 'Alinhamento, cores e contactos do rodapé',
+  footer: 'Redes sociais, contactos (se Contactos off), cores e alinhamento',
 }
 
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -1109,7 +1111,6 @@ function SectionEditorSwitch({
         <ServicesHeadingEditor
           content={section.content}
           onChange={onChange}
-          placeholder="Consultorias com agendamento"
           services={services}
           officePhone={officePhone}
           socialWhatsapp={socialWhatsapp}
@@ -1121,7 +1122,6 @@ function SectionEditorSwitch({
         <ServicesHeadingEditor
           content={section.content}
           onChange={onChange}
-          placeholder="Outros serviços"
           services={services}
           officePhone={officePhone}
           socialWhatsapp={socialWhatsapp}

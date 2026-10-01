@@ -392,10 +392,11 @@ async function refreshPublicSite(firmId, ownerId, logoKey, heroPath, instPath, f
         enabled: true,
         order: 4,
         content: {
-          heading: 'Todas as ofertas',
+          heading: '',
           mode: 'auto',
           backgroundColor: SURFACE,
-          featuredHeading: 'Destaques',
+          featuredHeading: '',
+          catalogHeading: '',
           featuredServiceSlugs: HUBS.slice(0, 3).map((h) => h.slug),
         },
       },

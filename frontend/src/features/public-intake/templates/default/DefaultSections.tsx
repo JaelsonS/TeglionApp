@@ -462,16 +462,18 @@ export function ServicesSection({
   return (
     <section id="servicos" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
       <div className={`mx-auto flex max-w-2xl flex-col space-y-3 lg:max-w-4xl ${contentAlignBlockClass(align)}`}>
-        <h2
-          className={
-            headingColor
-              ? 'text-sm font-semibold uppercase tracking-wide'
-              : 'text-sm font-semibold uppercase tracking-wide text-[hsl(var(--brand-text,var(--muted-foreground)))]'
-          }
-          style={headingColor ? { color: headingColor } : undefined}
-        >
-          {content.heading || 'Serviços com marcação'}
-        </h2>
+        {String(content.heading || '').trim() ? (
+          <h2
+            className={
+              headingColor
+                ? 'text-sm font-semibold uppercase tracking-wide'
+                : 'text-sm font-semibold uppercase tracking-wide text-[hsl(var(--brand-text,var(--muted-foreground)))]'
+            }
+            style={headingColor ? { color: headingColor } : undefined}
+          >
+            {String(content.heading).trim()}
+          </h2>
+        ) : null}
         <PublicSiteFeaturedServices
           heading={content.featuredHeading}
           slugs={content.featuredServiceSlugs}
@@ -480,9 +482,9 @@ export function ServicesSection({
           showPrices={ctx.showPrices !== false}
           openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
         />
-        {(content.featuredServiceSlugs?.length ?? 0) > 0 ? (
+        {(content.featuredServiceSlugs?.length ?? 0) > 0 && String(content.catalogHeading || '').trim() ? (
           <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-[hsl(var(--brand-text,var(--muted-foreground)))]">
-            Catálogo completo
+            {String(content.catalogHeading).trim()}
           </p>
         ) : null}
         <ClusteredServiceGroups
@@ -522,16 +524,18 @@ export function BookingServicesSection({
   return (
     <section id="outros-servicos" className="px-4 py-6" style={bg ? { backgroundColor: bg } : undefined}>
       <div className={`mx-auto flex max-w-2xl flex-col space-y-3 lg:max-w-4xl ${contentAlignBlockClass(align)}`}>
-        <h2
-          className={
-            headingColor
-              ? 'text-sm font-semibold uppercase tracking-wide'
-              : 'text-sm font-semibold uppercase tracking-wide text-[hsl(var(--brand-text,var(--muted-foreground)))]'
-          }
-          style={headingColor ? { color: headingColor } : undefined}
-        >
-          {content.heading || 'Serviços sob pedido'}
-        </h2>
+        {String(content.heading || '').trim() ? (
+          <h2
+            className={
+              headingColor
+                ? 'text-sm font-semibold uppercase tracking-wide'
+                : 'text-sm font-semibold uppercase tracking-wide text-[hsl(var(--brand-text,var(--muted-foreground)))]'
+            }
+            style={headingColor ? { color: headingColor } : undefined}
+          >
+            {String(content.heading).trim()}
+          </h2>
+        ) : null}
         <PublicSiteFeaturedServices
           heading={content.featuredHeading}
           slugs={content.featuredServiceSlugs}
@@ -540,9 +544,9 @@ export function BookingServicesSection({
           showPrices={ctx.showPrices !== false}
           openInNewTab={Boolean(ctx.openInternalLinksInNewTab)}
         />
-        {(content.featuredServiceSlugs?.length ?? 0) > 0 ? (
+        {(content.featuredServiceSlugs?.length ?? 0) > 0 && String(content.catalogHeading || '').trim() ? (
           <p className="mb-4 text-sm font-semibold uppercase tracking-wide text-[hsl(var(--brand-text,var(--muted-foreground)))]">
-            Catálogo de serviços
+            {String(content.catalogHeading).trim()}
           </p>
         ) : null}
         <ClusteredServiceGroups
@@ -842,10 +846,13 @@ export function FooterSection({
   ctx,
   socialLinks,
   content,
+  showContactDetails = true,
 }: {
   ctx: PublicSiteRenderContext
   socialLinks: PublicSiteSocialLinks
   content?: PublicSiteChromeContent
+  /** Ocultar email/telefone/morada quando a secção Contactos já os mostra. */
+  showContactDetails?: boolean
 }) {
   const entries = [
     { key: 'instagram', href: socialLinks.instagram, label: 'Instagram', Icon: Instagram },
@@ -859,9 +866,7 @@ export function FooterSection({
   const align = resolveSectionContentAlign(content)
   const rowJustify = contentAlignFlexClass(align)
 
-  const footerEmail = (content?.email || '').trim() || ctx.contact.email
-  const footerPhone = (content?.phone || '').trim() || ctx.contact.phone
-  const footerAddress = (content?.address || '').trim() || ctx.contact.address
+  const { email: footerEmail, phone: footerPhone, address: footerAddress } = ctx.contact
   const mapsHref = footerAddress ? buildGoogleMapsUrl({ address: footerAddress }) : null
 
   const contactRows = [
@@ -911,7 +916,7 @@ export function FooterSection({
         className={`mx-auto flex max-w-2xl flex-col gap-2 px-4 pb-6 text-xs lg:max-w-4xl ${contentAlignBlockClass(align)}`}
         style={text ? { color: text } : undefined}
       >
-        {contactRows.length > 0 ? (
+        {showContactDetails && contactRows.length > 0 ? (
           <div className={`mb-2 space-y-1.5 ${text ? '' : 'text-muted-foreground'}`}>
             {contactRows.map(({ key, icon: Icon, label, href }) =>
               href ? (

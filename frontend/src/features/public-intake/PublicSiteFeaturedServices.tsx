@@ -124,13 +124,15 @@ export function PublicSiteFeaturedServices({
     .filter((s): s is PublicFirmServiceSummary => Boolean(s))
   if (list.length === 0) return null
 
-  const title = String(heading || '').trim() || 'Destaques'
+  const title = String(heading || '').trim()
 
   return (
     <div className="mb-10" data-testid="public-site-featured-services">
-      <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[hsl(var(--brand-text,var(--muted-foreground)))]">
-        {title}
-      </h3>
+      {title ? (
+        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[hsl(var(--brand-text,var(--muted-foreground)))]">
+          {title}
+        </h3>
+      ) : null}
       <div
         className={`ps-featured-grid grid gap-5 ${
           list.length >= 3 ? 'ps-featured-grid--triple' : 'ps-featured-grid--pair'
