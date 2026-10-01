@@ -17,12 +17,40 @@ type Options = {
 const PREVIEW_ROOT_SELECTOR = '.cb-public-site-editor-preview-canvas'
 const MAYA_AVATAR_SRC = '/maya/maya-avatar-sm.png'
 
+/** Espera antes de mostrar ao entrar numa zona (evita flicker). */
+const SHOW_DELAY_MS = 320
+/** Esconde sozinho se o rato não interagir com o tooltip. */
+const AUTO_HIDE_MS = 5200
+/** Ao sair da zona, tempo para chegar ao tooltip antes de fechar. */
+const LEAVE_GRACE_MS = 280
+
 function escapeHtml(text: string) {
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
+}
+
+function positionTooltip(tip: HTMLDivElement, zoneEl: HTMLElement) {
+  const rect = zoneEl.getBoundingClientRect()
+  const margin = 8
+  const tipRect = tip.getBoundingClientRect()
+  const pad = 12
+
+  let top = rect.top - tipRect.height - margin
+  if (top < pad) {
+    top = rect.bottom + margin
+  }
+  if (top + tipRect.height > window.innerHeight - pad) {
+    top = Math.max(pad, window.innerHeight - pad - tipRect.height)
+  }
+
+  let left = rect.left + rect.width / 2 - tipRect.width / 2
+  left = Math.max(pad, Math.min(left, window.innerWidth - pad - tipRect.width))
+
+  tip.style.left = `${left}px`
+  tip.style.top = `${top}px`
 }
 
 export function usePublicSiteEditorPreviewAssist({
@@ -37,20 +65,73 @@ export function usePublicSiteEditorPreviewAssist({
     let tooltip: HTMLDivElement | null = null
     let activeKey: string | null = null
     let activeIntentId: string | null = null
+    let activeZoneEl: HTMLElement | null = null
+    let showTimer: ReturnType<typeof setTimeout> | null = null
+    let autoHideTimer: ReturnType<typeof setTimeout> | null = null
+    let leaveTimer: ReturnType<typeof setTimeout> | null = null
+    let tooltipHovered = false
+    let pendingZoneEl: HTMLElement | null = null
+    let pendingKey: string | null = null
+
+    const clearTimers = () => {
+      if (showTimer) clearTimeout(showTimer)
+      if (autoHideTimer) clearTimeout(autoHideTimer)
+      if (leaveTimer) clearTimeout(leaveTimer)
+      showTimer = null
+      autoHideTimer = null
+      leaveTimer = null
+    }
 
     const ensureTooltip = () => {
       if (tooltip) return tooltip
       tooltip = document.createElement('div')
       tooltip.className =
-        'cb-public-site-preview-assist-tooltip fixed z-[200] hidden max-w-[17rem] rounded-lg border border-brand/25 bg-popover px-2.5 py-2 text-[11px] text-popover-foreground shadow-lg'
+        'cb-public-site-preview-assist-tooltip pointer-events-none fixed z-[200] max-w-[13.5rem] rounded-md border border-brand/20 bg-popover/95 px-2 py-1.5 text-[11px] text-popover-foreground shadow-md backdrop-blur-sm opacity-0 transition-opacity duration-200 ease-out'
+      tooltip.setAttribute('role', 'tooltip')
       document.body.appendChild(tooltip)
+
+      tooltip.addEventListener('pointerenter', () => {
+        tooltipHovered = true
+        if (leaveTimer) {
+          clearTimeout(leaveTimer)
+          leaveTimer = null
+        }
+        scheduleAutoHide()
+      })
+      tooltip.addEventListener('pointerleave', () => {
+        tooltipHovered = false
+        scheduleAutoHide()
+      })
+
       return tooltip
     }
 
+    const setTooltipVisible = (visible: boolean) => {
+      if (!tooltip) return
+      if (visible) {
+        tooltip.classList.remove('opacity-0', 'pointer-events-none')
+        tooltip.classList.add('opacity-100', 'pointer-events-auto')
+      } else {
+        tooltip.classList.add('opacity-0', 'pointer-events-none')
+        tooltip.classList.remove('opacity-100', 'pointer-events-auto')
+      }
+    }
+
     const hideTooltip = () => {
+      clearTimers()
       activeKey = null
       activeIntentId = null
-      if (tooltip) tooltip.classList.add('hidden')
+      activeZoneEl = null
+      pendingKey = null
+      pendingZoneEl = null
+      setTooltipVisible(false)
+    }
+
+    const scheduleAutoHide = () => {
+      if (autoHideTimer) clearTimeout(autoHideTimer)
+      autoHideTimer = setTimeout(() => {
+        if (!tooltipHovered) hideTooltip()
+      }, AUTO_HIDE_MS)
     }
 
     const labelForKey = (key: string) => {
@@ -70,15 +151,85 @@ export function usePublicSiteEditorPreviewAssist({
       hideTooltip()
     }
 
+    const renderTooltipContent = (key: string, zoneEl: HTMLElement) => {
+      const guide = resolvePublicSiteEditorGuide(zoneEl.getAttribute('data-public-zone'))
+      activeIntentId = guide.intentId
+      const tip = ensureTooltip()
+      const sectionLabel = escapeHtml(labelForKey(key))
+      const mayaTip = escapeHtml(guide.mayaTip)
+      tip.innerHTML = `
+        <div class="flex items-start gap-1.5">
+          <img src="${MAYA_AVATAR_SRC}" alt="" class="mt-0.5 h-5 w-5 shrink-0 rounded-full object-cover ring-1 ring-brand/15" width="20" height="20" />
+          <div class="min-w-0 flex-1">
+            <p class="truncate font-semibold leading-tight text-foreground">${sectionLabel}</p>
+            <p class="mt-0.5 line-clamp-2 leading-snug text-muted-foreground">${mayaTip}</p>
+            <button type="button" class="cb-public-site-preview-maya-open mt-1 text-[10px] font-medium text-brand underline-offset-2 hover:underline">
+              Tirar dúvidas com a Maya
+            </button>
+          </div>
+        </div>`
+      tip.querySelector('.cb-public-site-preview-maya-open')?.addEventListener('click', onMayaClick, { once: true })
+      setTooltipVisible(false)
+      requestAnimationFrame(() => {
+        if (activeZoneEl === zoneEl) {
+          positionTooltip(tip, zoneEl)
+          setTooltipVisible(true)
+          scheduleAutoHide()
+        }
+      })
+    }
+
+    const showForZone = (key: string, zoneEl: HTMLElement) => {
+      if (key === activeKey && activeZoneEl === zoneEl) {
+        scheduleAutoHide()
+        return
+      }
+      activeKey = key
+      activeZoneEl = zoneEl
+      renderTooltipContent(key, zoneEl)
+    }
+
+    const queueShow = (key: string, zoneEl: HTMLElement) => {
+      if (pendingKey === key && pendingZoneEl === zoneEl && showTimer) return
+      if (showTimer) clearTimeout(showTimer)
+      pendingKey = key
+      pendingZoneEl = zoneEl
+      showTimer = setTimeout(() => {
+        showTimer = null
+        if (pendingKey === key && pendingZoneEl === zoneEl) {
+          showForZone(key, zoneEl)
+        }
+      }, SHOW_DELAY_MS)
+    }
+
     const onPointerMove = (event: PointerEvent) => {
       const root = (event.target as Element | null)?.closest(PREVIEW_ROOT_SELECTOR)
       if (!root) {
-        hideTooltip()
+        if (!tooltipHovered) {
+          if (showTimer) clearTimeout(showTimer)
+          showTimer = null
+          pendingKey = null
+          pendingZoneEl = null
+          if (leaveTimer) clearTimeout(leaveTimer)
+          leaveTimer = setTimeout(() => {
+            if (!tooltipHovered) hideTooltip()
+          }, LEAVE_GRACE_MS)
+        }
         return
       }
+      if (leaveTimer) {
+        clearTimeout(leaveTimer)
+        leaveTimer = null
+      }
+
       const zoneEl = (event.target as Element | null)?.closest('[data-section-key]') as HTMLElement | null
       if (!zoneEl) {
-        hideTooltip()
+        if (!tooltipHovered && activeKey) {
+          if (leaveTimer) clearTimeout(leaveTimer)
+          leaveTimer = setTimeout(() => {
+            if (!tooltipHovered) hideTooltip()
+          }, LEAVE_GRACE_MS)
+        }
         return
       }
       const key = zoneEl.getAttribute('data-section-key')
@@ -86,33 +237,7 @@ export function usePublicSiteEditorPreviewAssist({
         hideTooltip()
         return
       }
-      if (key !== activeKey) {
-        activeKey = key
-        const guide = resolvePublicSiteEditorGuide(zoneEl.getAttribute('data-public-zone'))
-        activeIntentId = guide.intentId
-        const tip = ensureTooltip()
-        const sectionLabel = escapeHtml(labelForKey(key))
-        const mayaTip = escapeHtml(guide.mayaTip)
-        tip.innerHTML = `
-        <div class="flex items-start gap-2">
-          <img src="${MAYA_AVATAR_SRC}" alt="" class="mt-0.5 h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-brand/20" width="28" height="28" />
-          <div class="min-w-0 flex-1">
-            <p class="text-[10px] font-bold uppercase tracking-wide text-brand">Maya</p>
-            <p class="mt-0.5 font-semibold leading-snug text-foreground">${sectionLabel}</p>
-            <p class="mt-1 leading-snug text-muted-foreground">${mayaTip}</p>
-            <p class="mt-1 text-[10px] text-muted-foreground">Clique na zona para editar.</p>
-            <button type="button" class="cb-public-site-preview-maya-open mt-2 flex w-full items-center justify-center gap-1.5 rounded-md bg-brand px-2 py-1.5 text-[10px] font-semibold text-primary-foreground hover:bg-brand/90">
-              Tirar dúvidas com a Maya
-            </button>
-          </div>
-        </div>`
-        tip.querySelector('.cb-public-site-preview-maya-open')?.addEventListener('click', onMayaClick, { once: true })
-      }
-      if (tooltip) {
-        tooltip.classList.remove('hidden')
-        tooltip.style.left = `${Math.min(event.clientX + 12, window.innerWidth - 280)}px`
-        tooltip.style.top = `${Math.min(event.clientY + 12, window.innerHeight - 160)}px`
-      }
+      queueShow(key, zoneEl)
     }
 
     const onClick = (event: MouseEvent) => {
@@ -135,6 +260,7 @@ export function usePublicSiteEditorPreviewAssist({
     document.addEventListener('click', onClick, true)
 
     return () => {
+      clearTimers()
       document.removeEventListener('pointermove', onPointerMove)
       document.removeEventListener('click', onClick, true)
       tooltip?.remove()

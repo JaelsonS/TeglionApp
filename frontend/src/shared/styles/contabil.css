@@ -3534,15 +3534,18 @@
     align-items: center;
     padding: 0.75rem 0.35rem 1rem;
     background: color-mix(in oklab, var(--muted) 40%, transparent);
-    /* Evita que o canvas escalado (altura lógica grande) aumente o scroll da página Definições */
-    overflow: hidden;
     max-height: min(72dvh, 40rem);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   @media (min-width: 1280px) {
     .cb-public-site-editor-preview-scroll.cb-public-site-editor-preview-scroll--device {
       max-height: min(62dvh, 720px);
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
   }
 
@@ -3650,9 +3653,18 @@
 
   .cb-public-site-device--tablet .cb-public-site-device-screen {
     border-radius: 0.85rem;
-    min-height: 0;
-    max-height: min(28rem, calc(100dvh - 14rem));
+    /* Altura fixa do ecrã — scroll interno; moldura cabe no painel (sem cortar o bezel) */
+    height: min(24rem, calc(min(72dvh, 40rem) - 5.75rem));
+    max-height: min(24rem, calc(min(72dvh, 40rem) - 5.75rem));
+    min-height: 11rem;
     padding-top: 0.55rem;
+  }
+
+  @media (min-width: 1280px) {
+    .cb-public-site-device--tablet .cb-public-site-device-screen {
+      height: min(26rem, calc(min(62dvh, 720px) - 5.75rem));
+      max-height: min(26rem, calc(min(62dvh, 720px) - 5.75rem));
+    }
   }
 
   .cb-public-site-device--desktop {
