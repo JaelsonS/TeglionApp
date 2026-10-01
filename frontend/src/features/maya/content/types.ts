@@ -1,6 +1,9 @@
 /**
  * Maya — modelo de conteúdo estático (sem LLM, sem dados de negócio).
  * Página → resumo → opções → explicação → campos/acções → próximo passo.
+ *
+ * Tom de voz: frases curtas, imperativo amigável («Abra…», «Guarde…»), sem jargão de IA.
+ * Cada intent: resposta em 2–4 frases + passos numerados; deepLink/ctaLabel para ir ao ecrã.
  */
 
 export type MayaFieldHelp = {

@@ -19,10 +19,10 @@ const MAYA_AVATAR_SRC = '/maya/maya-avatar-sm.png'
 
 /** Espera antes de mostrar ao entrar numa zona (evita flicker). */
 const SHOW_DELAY_MS = 320
-/** Esconde sozinho se o rato não interagir com o tooltip. */
-const AUTO_HIDE_MS = 5200
+/** Só após sair da zona e do tooltip — tempo até fechar. */
+const HIDE_AFTER_LEAVE_MS = 900
 /** Ao sair da zona, tempo para chegar ao tooltip antes de fechar. */
-const LEAVE_GRACE_MS = 280
+const LEAVE_GRACE_MS = 450
 
 function escapeHtml(text: string) {
   return text
@@ -70,6 +70,7 @@ export function usePublicSiteEditorPreviewAssist({
     let autoHideTimer: ReturnType<typeof setTimeout> | null = null
     let leaveTimer: ReturnType<typeof setTimeout> | null = null
     let tooltipHovered = false
+    let zoneHovered = false
     let pendingZoneEl: HTMLElement | null = null
     let pendingKey: string | null = null
 
@@ -96,11 +97,11 @@ export function usePublicSiteEditorPreviewAssist({
           clearTimeout(leaveTimer)
           leaveTimer = null
         }
-        scheduleAutoHide()
+        clearHideAfterLeave()
       })
       tooltip.addEventListener('pointerleave', () => {
         tooltipHovered = false
-        scheduleAutoHide()
+        scheduleHideAfterLeave()
       })
 
       return tooltip
@@ -127,11 +128,17 @@ export function usePublicSiteEditorPreviewAssist({
       setTooltipVisible(false)
     }
 
-    const scheduleAutoHide = () => {
+    const scheduleHideAfterLeave = () => {
       if (autoHideTimer) clearTimeout(autoHideTimer)
+      if (zoneHovered || tooltipHovered) return
       autoHideTimer = setTimeout(() => {
-        if (!tooltipHovered) hideTooltip()
-      }, AUTO_HIDE_MS)
+        if (!zoneHovered && !tooltipHovered) hideTooltip()
+      }, HIDE_AFTER_LEAVE_MS)
+    }
+
+    const clearHideAfterLeave = () => {
+      if (autoHideTimer) clearTimeout(autoHideTimer)
+      autoHideTimer = null
     }
 
     const labelForKey = (key: string) => {
@@ -174,14 +181,14 @@ export function usePublicSiteEditorPreviewAssist({
         if (activeZoneEl === zoneEl) {
           positionTooltip(tip, zoneEl)
           setTooltipVisible(true)
-          scheduleAutoHide()
+          clearHideAfterLeave()
         }
       })
     }
 
     const showForZone = (key: string, zoneEl: HTMLElement) => {
       if (key === activeKey && activeZoneEl === zoneEl) {
-        scheduleAutoHide()
+        clearHideAfterLeave()
         return
       }
       activeKey = key
@@ -224,18 +231,26 @@ export function usePublicSiteEditorPreviewAssist({
 
       const zoneEl = (event.target as Element | null)?.closest('[data-section-key]') as HTMLElement | null
       if (!zoneEl) {
+        zoneHovered = false
         if (!tooltipHovered && activeKey) {
           if (leaveTimer) clearTimeout(leaveTimer)
           leaveTimer = setTimeout(() => {
-            if (!tooltipHovered) hideTooltip()
+            if (!tooltipHovered && !zoneHovered) scheduleHideAfterLeave()
           }, LEAVE_GRACE_MS)
         }
         return
       }
       const key = zoneEl.getAttribute('data-section-key')
       if (!key) {
+        zoneHovered = false
         hideTooltip()
         return
+      }
+      zoneHovered = true
+      clearHideAfterLeave()
+      if (leaveTimer) {
+        clearTimeout(leaveTimer)
+        leaveTimer = null
       }
       queueShow(key, zoneEl)
     }

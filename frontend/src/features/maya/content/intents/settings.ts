@@ -6,7 +6,7 @@ export const SETTINGS_INTENTS = [
     title: 'O que configuro em Definições?',
     shortDescription: 'hub de Definições',
     answer:
-      'Em Definições o menu lateral abre cada secção: Identidade (logótipo), Página pública (o site), Escritório (nome e contactos), Pagamentos (Stripe dos seus clientes — só o responsável liga), O seu perfil, Equipa, Etiquetas, Notificações, Ajuda, Sobre o Teglion e Encerrar conta (só quem pode encerrar). A secção que desbloqueia captação é Página pública.',
+      'Definições é o centro de configuração: identidade, site público, dados do escritório, equipa, pagamentos (só o responsável) e o seu perfil. Para captar clientes na internet, o passo decisivo é Página pública — publique o site e ligue serviços do catálogo.',
     steps: [
       'Identidade — logótipo',
       'Página pública — conteúdo e publicar',
@@ -148,7 +148,7 @@ export const SETTINGS_INTENTS = [
     title: 'Como configurar a página pública?',
     shortDescription: 'página pública do escritório',
     answer:
-      'A página pública é o site do escritório em teglion.com/o-seu-slug — independente do portal. Em Definições → Página pública: 1 · Identidade (slug, nome na barra) → à direita «Logótipos (só site público)» (barra e destaque, cada um: Definições / só esta página / sem logótipo) → lista de secções (barra, destaque, sobre, serviços, FAQ, contactos…) → 3 · Complementos (tema, legais) → Guardar rascunho → pré-visualização → Publicar. Guardar não torna o site visível. Serviços vêm do Catálogo ou IRS publicados.',
+      'A página pública é o site do escritório (teglion.com/o-seu-slug). À esquerda edita secções; à direita vê telemóvel/tablet. Bloco A: link e nome. Bloco B: secções (destaque, serviços, contactos…). Bloco C: cores e SEO. Guardar rascunho não publica — use Publicar quando estiver pronto. Os serviços listados vêm do Catálogo ou IRS já marcados para o site.',
     steps: [
       'Abrir Definições → Página pública',
       'Definir link (slug) e nome na barra',
@@ -158,7 +158,7 @@ export const SETTINGS_INTENTS = [
     ],
     deepLink: '/app/firm/settings?tab=pagina-publica',
     relatedIntents: ['public-page-logos', 'public-page-media', 'public-page-sections', 'public-page-publish', 'service', 'booking'],
-    followUpPrompt: 'Quer ajuda com logótipos, imagens nas secções ou publicar?',
+    followUpPrompt: 'Toque num tema abaixo ou abra a página pública.',
     nextSteps: [
       { label: 'Logótipos barra vs destaque', intentId: 'public-page-logos' },
       { label: 'Fotos e posição', intentId: 'public-page-media' },
