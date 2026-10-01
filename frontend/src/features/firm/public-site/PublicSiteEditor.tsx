@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ChangeEvent, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type CSSProperties } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   ExternalLink,
@@ -92,6 +92,14 @@ import {
 import { resolvePublicSiteSectionVisitorSummary } from './publicSiteSectionVisitorSummary'
 import { usePublicSiteEditorPreviewAssist } from './usePublicSiteEditorPreviewAssist'
 import { PublicSiteEditorFold } from './PublicSiteEditorFold'
+import {
+  DEFAULT_COMPLAINTS_BOOK_LABEL,
+  DEFAULT_COMPLAINTS_BOOK_URL,
+} from './publicSiteLegalDefaults'
+import {
+  evaluatePublicSiteLegalGaps,
+  publicSiteLegalFieldsDomId,
+} from './publicSiteLegalCompliance'
 
 const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
   header: 'Barra do topo',
@@ -147,6 +155,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const [previewDevice, setPreviewDevice] = useState<PublicSiteEditorPreviewDevice>('tablet')
   const [linkPublishOpen, setLinkPublishOpen] = useState(false)
   const [extrasOpen, setExtrasOpen] = useState(false)
+  const [legalPublishAckChecked, setLegalPublishAckChecked] = useState(false)
 
   const isSectionEditorOpen = (section: PublicSiteSection) => {
     if (Object.prototype.hasOwnProperty.call(sectionOpenState, section.key)) {
@@ -425,9 +434,20 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
         await firmPublicSiteApi.saveDraft(normalized)
         setDraft(normalized)
       }
-      await firmPublicSiteApi.publish()
+      const legalGapsNow = draft ? evaluatePublicSiteLegalGaps(draft) : []
+      await firmPublicSiteApi.publish(
+        legalGapsNow.length > 0
+          ? {
+              legalPublishAcknowledgement: {
+                accepted: true,
+                missingItems: legalGapsNow.map((g) => g.id),
+              },
+            }
+          : undefined,
+      )
       toast.success('Página pública publicada.')
       setConfirmPublishOpen(false)
+      setLegalPublishAckChecked(false)
       void siteQuery.refetch()
     } catch (err) {
       toast.error('Não foi possível publicar', { description: getErrorMessage(err) })
@@ -528,6 +548,15 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     toast.success('Secção removida')
   }
 
+  const legalGaps = useMemo(() => (draft ? evaluatePublicSiteLegalGaps(draft) : []), [draft])
+
+  const focusLegalFields = useCallback(() => {
+    setExtrasOpen(true)
+    requestAnimationFrame(() => {
+      document.getElementById(publicSiteLegalFieldsDomId())?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [])
+
   if (siteQuery.isLoading || !draft) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -619,7 +648,12 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
         className="rounded-xl border border-brand/25 bg-gradient-to-br from-brand/[0.07] via-card to-card p-4 shadow-sm"
         aria-label="Pronto para publicar"
       >
-        <PublicSitePublishReadinessChecklist items={publishReadinessItems} onFocus={onPublishReadinessFocus} />
+        <PublicSitePublishReadinessChecklist
+          items={publishReadinessItems}
+          legalGaps={legalGaps}
+          onFocus={onPublishReadinessFocus}
+          onFocusLegal={focusLegalFields}
+        />
       </section>
 
       <PublicSiteEditorFold
@@ -992,10 +1026,15 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             </label>
           </div>
 
-          <div className="rounded-xl border border-border/50 p-4 space-y-4">
+          <div id={publicSiteLegalFieldsDomId()} className="rounded-xl border border-border/50 p-4 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <Label className="text-sm font-semibold">Termos, privacidade e reclamações</Label>
             </div>
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              Obrigatório por lei em Portugal: link do <span className="font-medium text-foreground">Livro de Reclamações</span>{' '}
+              e textos legais do <span className="font-medium text-foreground">escritório</span>. Use os modelos como ponto de
+              partida e adapte-os. A Teglion (produto da AfDigital) não presta aconselhamento jurídico.
+            </p>
             <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
@@ -1004,12 +1043,29 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 onClick={() =>
                   setDraft({
                     ...draft,
+                    complaintsBookUrl: draft.complaintsBookUrl || DEFAULT_COMPLAINTS_BOOK_URL,
+                    complaintsBookLabel: draft.complaintsBookLabel || DEFAULT_COMPLAINTS_BOOK_LABEL,
+                    termsText: draft.termsText || DEFAULT_TERMS_TEMPLATE,
+                    privacyText: draft.privacyText || DEFAULT_PRIVACY_TEMPLATE,
+                  })
+                }
+              >
+                Preencher sugestões legais
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="text-xs"
+                onClick={() =>
+                  setDraft({
+                    ...draft,
                     termsText: DEFAULT_TERMS_TEMPLATE,
                     privacyText: DEFAULT_PRIVACY_TEMPLATE,
                   })
                 }
               >
-                Usar modelo padrão
+                Só modelos de termos e privacidade
               </Button>
             </div>
             <label className="block space-y-1 text-sm">
@@ -1031,7 +1087,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             <label className="block space-y-1 text-sm">
               <span className="font-medium">Livro de Reclamações — link</span>
               <Input
-                placeholder="https://www.livroreclamacoes.pt/Pedido/Iniciar"
+                placeholder={DEFAULT_COMPLAINTS_BOOK_URL}
                 value={draft.complaintsBookUrl || ''}
                 onChange={(e: FormChangeEvent) => setDraft({ ...draft, complaintsBookUrl: e.target.value || null })}
               />
@@ -1041,12 +1097,12 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 onClick={() =>
                   setDraft({
                     ...draft,
-                    complaintsBookUrl: 'https://www.livroreclamacoes.pt/Pedido/Iniciar',
-                    complaintsBookLabel: draft.complaintsBookLabel || 'Livro de Reclamações',
+                    complaintsBookUrl: DEFAULT_COMPLAINTS_BOOK_URL,
+                    complaintsBookLabel: draft.complaintsBookLabel || DEFAULT_COMPLAINTS_BOOK_LABEL,
                   })
                 }
               >
-                Usar modelo oficial (livroreclamacoes.pt)
+                Usar link oficial (livroreclamacoes.pt)
               </button>
             </label>
             <label className="block space-y-1 text-sm">
@@ -1089,23 +1145,71 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={confirmPublishOpen} onOpenChange={setConfirmPublishOpen}>
-        <AlertDialogContent>
+      <AlertDialog
+        open={confirmPublishOpen}
+        onOpenChange={(open: boolean) => {
+          setConfirmPublishOpen(open)
+          if (!open) setLegalPublishAckChecked(false)
+        }}
+      >
+        <AlertDialogContent className="max-w-lg">
           <AlertDialogHeader>
             <AlertDialogTitle>Publicar página pública?</AlertDialogTitle>
-            <AlertDialogDescription>
-              A partir de agora, teglion.com/{firmSlug} passa a mostrar esta versão a qualquer visitante.
-              Confirme só depois de ter guardado o que quer publicar (o botão Publicar também guarda o rascunho
-              actual automaticamente). Ao partilhar o link no WhatsApp, a miniatura usa a imagem do destaque ou o
-              logótipo do site público — não a imagem comercial do Teglion.
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <p>
+                  A partir de agora, teglion.com/{firmSlug} passa a mostrar esta versão a qualquer visitante. O botão
+                  Publicar também guarda o rascunho actual automaticamente.
+                </p>
+                {legalGaps.length > 0 ? (
+                  <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2.5 text-amber-950 dark:text-amber-100">
+                    <p className="font-medium text-foreground">Documentos legais por completar</p>
+                    <ul className="mt-2 list-inside list-disc space-y-1 text-[13px]">
+                      {legalGaps.map((g) => (
+                        <li key={g.id}>{g.label}</li>
+                      ))}
+                    </ul>
+                    <p className="mt-2 text-[12px] leading-relaxed">
+                      Pode publicar na mesma, mas deve assumir a responsabilidade legal do escritório. A{' '}
+                      <span className="font-medium">Teglion</span> (produto da{' '}
+                      <span className="font-medium">AfDigital — Soluções Tecnológicas</span>) não presta aconselhamento
+                      jurídico nem responde pela ausência de Livro de Reclamações, Termos ou Política de Privacidade
+                      adequados.
+                    </p>
+                    <label className="mt-3 flex cursor-pointer items-start gap-2 text-[12px] leading-snug">
+                      <input
+                        type="checkbox"
+                        className="mt-0.5 rounded border-border"
+                        checked={legalPublishAckChecked}
+                        onChange={(e) => setLegalPublishAckChecked(e.target.checked)}
+                      />
+                      <span>
+                        Declaro, em nome do escritório, que assumo a responsabilidade pelo conteúdo legal desta página
+                        pública e autorizo a publicação mesmo com os itens acima por completar. Registo esta aceitação
+                        nos logs do Teglion.
+                      </span>
+                    </label>
+                  </div>
+                ) : (
+                  <p className="text-[12px]">
+                    Livro de Reclamações e políticas do escritório estão indicados no rascunho. Ao partilhar o link, a
+                    miniatura usa o destaque ou o logótipo do site — não a imagem comercial do Teglion.
+                  </p>
+                )}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={publishing}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction disabled={publishing} onClick={() => void onPublish()}>
-              {publishing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+            <Button
+              type="button"
+              variant="primary"
+              disabled={publishing || (legalGaps.length > 0 && !legalPublishAckChecked)}
+              loading={publishing}
+              onClick={() => void onPublish()}
+            >
               Publicar
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
