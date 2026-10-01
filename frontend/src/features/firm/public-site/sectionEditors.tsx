@@ -1937,6 +1937,40 @@ export function FaqEditor({
   )
 }
 
+function PublicSiteContactFieldRow({
+  id,
+  label,
+  showChecked,
+  onShowChange,
+  showToggleLabel,
+  children,
+}: {
+  id: string
+  label: string
+  showChecked?: boolean
+  onShowChange?: (show: boolean) => void
+  showToggleLabel: string
+  children: ReactNode
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <Label htmlFor={id}>{label}</Label>
+        {onShowChange ? (
+          <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+            <Checkbox
+              checked={showChecked === true}
+              onCheckedChange={(v: boolean | 'indeterminate') => onShowChange(v === true)}
+            />
+            {showToggleLabel}
+          </label>
+        ) : null}
+      </div>
+      {children}
+    </div>
+  )
+}
+
 export function PublicSiteContactDetailsFields({
   email,
   phone,
@@ -1944,6 +1978,8 @@ export function PublicSiteContactDetailsFields({
   officeContact,
   onChange,
   idPrefix = 'contact',
+  visibility,
+  onVisibilityChange,
 }: {
   email: string | null | undefined
   phone: string | null | undefined
@@ -1951,17 +1987,27 @@ export function PublicSiteContactDetailsFields({
   officeContact?: { email?: string | null; phone?: string | null; address?: string | null }
   onChange: (patch: { email?: string | null; phone?: string | null; address?: string | null }) => void
   idPrefix?: string
+  visibility?: { showEmail: boolean; showPhone: boolean; showAddress: boolean }
+  onVisibilityChange?: (patch: Partial<{ showEmail: boolean; showPhone: boolean; showAddress: boolean }>) => void
 }) {
   return (
     <div className="space-y-3 rounded-lg border border-border/40 p-3">
       <div>
         <Label className="text-sm font-semibold">Email, telefone e morada</Label>
         <p className="mt-1 text-[11px] text-muted-foreground">
-          Aparecem na secção Contactos e redes. Campo em branco → usa Definições → Escritório.
+          Aparecem na secção Contactos e redes. Campo em branco → usa Definições → Escritório. Desactive «Mostrar» para
+          ocultar na página (o rodapé legal mantém só políticas e links institucionais).
         </p>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor={`${idPrefix}-email`}>Email</Label>
+      <PublicSiteContactFieldRow
+        id={`${idPrefix}-email`}
+        label="Email"
+        showChecked={visibility?.showEmail}
+        onShowChange={
+          onVisibilityChange ? (show) => onVisibilityChange({ showEmail: show }) : undefined
+        }
+        showToggleLabel="Mostrar e-mail"
+      >
         <Input
           id={`${idPrefix}-email`}
           type="email"
@@ -1970,9 +2016,16 @@ export function PublicSiteContactDetailsFields({
           placeholder={officeContact?.email || 'Ex.: contacto@empresa.pt'}
           maxLength={200}
         />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor={`${idPrefix}-phone`}>Telefone</Label>
+      </PublicSiteContactFieldRow>
+      <PublicSiteContactFieldRow
+        id={`${idPrefix}-phone`}
+        label="Telefone"
+        showChecked={visibility?.showPhone}
+        onShowChange={
+          onVisibilityChange ? (show) => onVisibilityChange({ showPhone: show }) : undefined
+        }
+        showToggleLabel="Mostrar telefone"
+      >
         <Input
           id={`${idPrefix}-phone`}
           value={phone || ''}
@@ -1980,9 +2033,16 @@ export function PublicSiteContactDetailsFields({
           placeholder={officeContact?.phone || 'Ex.: +351 …'}
           maxLength={40}
         />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor={`${idPrefix}-address`}>Morada</Label>
+      </PublicSiteContactFieldRow>
+      <PublicSiteContactFieldRow
+        id={`${idPrefix}-address`}
+        label="Morada"
+        showChecked={visibility?.showAddress}
+        onShowChange={
+          onVisibilityChange ? (show) => onVisibilityChange({ showAddress: show }) : undefined
+        }
+        showToggleLabel="Mostrar morada"
+      >
         <Input
           id={`${idPrefix}-address`}
           value={address || ''}
@@ -1991,7 +2051,7 @@ export function PublicSiteContactDetailsFields({
           maxLength={300}
         />
         <p className="text-[11px] text-muted-foreground">Na página pública abre o Google Maps ao clicar.</p>
-      </div>
+      </PublicSiteContactFieldRow>
     </div>
   )
 }
@@ -2028,6 +2088,12 @@ export function ContactEditor({
           address={footerContact?.address}
           officeContact={officeContact}
           onChange={onFooterContactChange}
+          visibility={{
+            showEmail: content.showEmail,
+            showPhone: content.showPhone,
+            showAddress: content.showAddress,
+          }}
+          onVisibilityChange={(patch) => onChange({ ...content, ...patch })}
         />
       ) : null}
       {socialLinksSection ? (
@@ -2056,30 +2122,6 @@ export function ContactEditor({
           onChange={(v) => onChange({ ...content, textColor: v })}
         />
       </div>
-      <label className="flex items-center gap-2 text-sm">
-        <Checkbox
-          checked={content.showEmail}
-          onCheckedChange={(v: boolean | 'indeterminate') => onChange({ ...content, showEmail: v === true })}
-        />{' '}
-        Mostrar e-mail
-      </label>
-      <label className="flex items-center gap-2 text-sm">
-        <Checkbox
-          checked={content.showPhone}
-          onCheckedChange={(v: boolean | 'indeterminate') => onChange({ ...content, showPhone: v === true })}
-        />{' '}
-        Mostrar telefone
-      </label>
-      <label className="flex items-center gap-2 text-sm">
-        <Checkbox
-          checked={content.showAddress}
-          onCheckedChange={(v: boolean | 'indeterminate') => onChange({ ...content, showAddress: v === true })}
-        />{' '}
-        Mostrar morada
-      </label>
-      <p className="text-caption text-muted-foreground">
-        Active o que quer mostrar. O rodapé do site fica só com políticas legais (bloco C).
-      </p>
       <SectionCtasEditor
         ctas={content.ctas || []}
         services={services}

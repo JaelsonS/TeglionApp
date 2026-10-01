@@ -2929,6 +2929,20 @@
     @apply flex min-h-0 flex-1 flex-col bg-card;
   }
 
+  @media (min-width: 1280px) {
+    .cb-services-catalog-grid {
+      min-height: min(32rem, calc(100dvh - 15.5rem));
+    }
+
+    .cb-services-catalog-list {
+      max-height: none;
+    }
+  }
+
+  .cb-tasks-cal-cell--week {
+    vertical-align: top;
+  }
+
   .cb-services-page-hd {
     @apply shrink-0 border-b border-border/60;
   }
@@ -3389,6 +3403,7 @@
   .cb-public-site-editor-preview-frame {
     position: relative;
     width: 100%;
+    isolation: isolate;
   }
 
   .cb-public-site-editor-preview-canvas {
@@ -3419,7 +3434,7 @@
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(18rem, min(44vw, 28rem));
       gap: 1.25rem;
-      align-items: stretch;
+      align-items: start;
     }
 
     .cb-public-site-editor-main {
@@ -3489,10 +3504,6 @@
       overscroll-behavior: contain;
     }
 
-    .cb-public-site-editor-preview-scroll.cb-public-site-editor-preview-scroll--device {
-      max-height: none;
-      overflow: visible;
-    }
   }
 
   /* Barra do site público — breakpoints pela largura do contentor (preview mobile/tablet) */
@@ -3529,14 +3540,15 @@
     align-items: center;
     padding: 0.75rem 0.35rem 1rem;
     background: color-mix(in oklab, var(--muted) 40%, transparent);
-    overflow: visible;
-    max-height: none;
+    /* Evita que o canvas escalado (altura lógica grande) aumente o scroll da página Definições */
+    overflow: hidden;
+    max-height: min(72dvh, 40rem);
   }
 
   @media (min-width: 1280px) {
     .cb-public-site-editor-preview-scroll.cb-public-site-editor-preview-scroll--device {
-      max-height: none;
-      overflow: visible;
+      max-height: min(62dvh, 720px);
+      overflow: hidden;
     }
   }
 

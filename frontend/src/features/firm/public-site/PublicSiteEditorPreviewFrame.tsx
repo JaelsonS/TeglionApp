@@ -93,6 +93,9 @@ export function PublicSiteEditorPreviewFrame({
         ref={canvasRef}
         className="cb-public-site-editor-preview-canvas cb-public-site-container origin-top-left pb-0"
         style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
           width: canvasWidthPx,
           transform: `scale(${scale})`,
         }}
