@@ -127,11 +127,11 @@ export function evaluatePublicSitePublishReadiness(input: {
     },
     {
       id: 'contact',
-      label: 'Contactos visíveis',
+      label: 'Contactos e redes visíveis',
       ok: contactOk,
       detail: contactOk
-        ? 'Contactos na secção Contactos ou no Rodapé (com dados do Escritório).'
-        : 'Active Contactos ou Rodapé e mostre email, telefone ou morada.',
+        ? 'Contactos na secção Contactos e redes ou no rodapé (se essa secção estiver off).'
+        : 'Active Contactos e redes ou mostre email, telefone ou morada no rodapé.',
       focus: contactKey ? { kind: 'section', sectionKey: contactKey } : { kind: 'identity' },
     },
   ]

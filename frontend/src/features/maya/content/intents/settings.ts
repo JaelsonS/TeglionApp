@@ -283,13 +283,13 @@ export const SETTINGS_INTENTS = [
       },
       {
         id: 'contact',
-        name: 'Contactos',
-        meaning: 'E-mail, telefone e morada (dados de Escritório); bloco Imagens opcional.',
+        name: 'Contactos e redes',
+        meaning: 'E-mail, telefone, morada e redes sociais; botões opcionais; imagem opcional.',
       },
       {
         id: 'footer',
-        name: 'Rodapé',
-        meaning: 'Cores e fecho da página, com temas/legais à parte.',
+        name: 'Rodapé legal (visual)',
+        meaning: 'Aparência do rodapé no site; termos e livro de reclamações no bloco C.',
       },
     ],
   }),

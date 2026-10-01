@@ -973,7 +973,7 @@ export function ChromeSectionEditor({
           <p className="mt-1.5">
             Termos, Privacidade, Livro de Reclamações e elogios configuram-se em{' '}
             <span className="font-medium text-foreground">C · Marca e extras</span>. Email, telefone, morada e redes
-            sociais ficam na secção <span className="font-medium text-foreground">Contactos</span>.
+            sociais ficam na secção <span className="font-medium text-foreground">Contactos e redes</span>.
           </p>
         </div>
       ) : null}
@@ -1970,7 +1970,7 @@ export function PublicSiteContactDetailsFields({
       <div>
         <Label className="text-sm font-semibold">Email, telefone e morada</Label>
         <p className="mt-1 text-[11px] text-muted-foreground">
-          Aparecem nesta secção Contactos. Campo em branco → usa Definições → Escritório.
+          Aparecem na secção Contactos e redes. Campo em branco → usa Definições → Escritório.
         </p>
       </div>
       <div className="space-y-2">
@@ -2047,7 +2047,7 @@ export function ContactEditor({
         <div className="space-y-2 rounded-lg border border-border/40 p-3">
           <Label className="text-sm font-semibold">Redes sociais e site</Label>
           <p className="text-[11px] text-muted-foreground">
-            Ícones na secção Contactos (não no rodapé legal).
+            Ícones na secção Contactos e redes (não no rodapé legal).
           </p>
           {socialLinksSection}
         </div>

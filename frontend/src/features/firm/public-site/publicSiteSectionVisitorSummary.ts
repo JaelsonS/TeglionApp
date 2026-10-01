@@ -41,9 +41,9 @@ export function resolvePublicSiteSectionVisitorSummary(
     case 'faq':
       return 'O visitante vê: perguntas frequentes (se adicionar).'
     case 'contact':
-      return 'O visitante vê: email, telefone e morada (conforme opções activas).'
+      return 'O visitante vê: contactos, ícones de redes sociais e botões (conforme opções activas).'
     case 'footer':
-      return 'O visitante vê: rodapé com redes, contactos (se Contactos off) e links legais.'
+      return 'O visitante vê: rodapé com links legais (termos, privacidade, livro de reclamações).'
     default:
       return null
   }
