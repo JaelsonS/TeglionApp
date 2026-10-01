@@ -2929,14 +2929,8 @@
     @apply flex min-h-0 flex-1 flex-col bg-card;
   }
 
-  @media (min-width: 1280px) {
-    .cb-services-catalog-grid {
-      min-height: min(32rem, calc(100dvh - 15.5rem));
-    }
-
-    .cb-services-catalog-list {
-      max-height: none;
-    }
+  .cb-services-catalog-list {
+    @apply min-w-0;
   }
 
   .cb-tasks-cal-cell--week {
