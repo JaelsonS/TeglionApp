@@ -92,7 +92,10 @@ export function FirmServiceRequestsPage() {
             ) : null}
           </div>
         }
-        bodyClassName="flex min-h-0 flex-1 flex-col overflow-hidden"
+        bodyClassName={cn(
+          'flex min-h-0 flex-1 flex-col',
+          activeTab === 'catalog' ? 'overflow-y-auto overscroll-y-contain' : 'overflow-hidden',
+        )}
       >
         <div className="shrink-0 border-b border-border/60 px-4 sm:px-5">
           <nav className="cb-tasks-tabs -mb-px overflow-x-auto" aria-label="Secções de serviços">
@@ -157,8 +160,8 @@ export function FirmServiceRequestsPage() {
 
         <div
           className={cn(
-            'flex min-h-0 flex-1 flex-col gap-3 p-3 sm:p-4',
-            activeTab === 'catalog' ? 'overflow-hidden' : 'overflow-y-auto',
+            'flex flex-col gap-3 p-3 pb-8 sm:p-4 sm:pb-10',
+            activeTab !== 'catalog' && 'min-h-0 flex-1 overflow-y-auto',
           )}
         >
           {activeTab === 'catalog' ? (

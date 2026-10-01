@@ -468,13 +468,13 @@ export function ServicesCatalogWorkspace({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
+    <div className="flex flex-col gap-4">
       {description ? (
-        <p className="shrink-0 text-sm text-muted-foreground">{description}</p>
+        <p className="text-sm text-muted-foreground">{description}</p>
       ) : null}
 
-      <div className="cb-services-catalog-grid grid min-h-0 flex-1 gap-3 lg:grid-cols-2">
-        <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm">
+      <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+        <section className="flex flex-col rounded-xl border border-border/60 bg-card shadow-sm">
           <div className="shrink-0 space-y-2.5 border-b border-border/50 bg-gradient-to-r from-brand/[0.05] via-card to-card px-4 py-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-sm font-semibold">{title}</h3>
@@ -524,7 +524,7 @@ export function ServicesCatalogWorkspace({
             ) : null}
           </div>
 
-          <div className="cb-services-catalog-list min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+          <div className="cb-services-catalog-list">
             {isLoading ? (
               <div className="flex h-40 items-center justify-center">
                 <Loader2 className="h-5 w-5 animate-spin text-brand" />
@@ -558,7 +558,7 @@ export function ServicesCatalogWorkspace({
                   items={firmServices.map((s) => s.id)}
                   strategy={verticalListSortingStrategy}
                 >
-                  <ul>
+                  <ul className="pb-2">
                     {firmServices.map((s, index) => {
                       const parent = parentByChildId.get(s.id) ?? null
                       const childIds = optionIdsOf(s)
@@ -591,7 +591,7 @@ export function ServicesCatalogWorkspace({
           </div>
         </section>
 
-        <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm">
+        <section className="flex flex-col rounded-xl border border-border/60 bg-card shadow-sm lg:sticky lg:top-0 lg:max-h-[calc(100dvh-11rem)] lg:self-start">
           <div className="shrink-0 space-y-2.5 border-b border-border/50 bg-gradient-to-r from-sky-500/[0.06] via-card to-card px-4 py-3">
             <div>
               <h3 className="text-sm font-semibold">Modelos Teglion</h3>
@@ -609,7 +609,7 @@ export function ServicesCatalogWorkspace({
               />
             </div>
           </div>
-          <div className="cb-services-catalog-list min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+          <div className="cb-services-catalog-list min-h-0 overflow-y-auto overscroll-y-contain lg:max-h-[calc(100dvh-16rem)]">
             {catalogQuery.isLoading ? (
               <div className="flex h-40 items-center justify-center">
                 <Loader2 className="h-5 w-5 animate-spin text-brand" />
