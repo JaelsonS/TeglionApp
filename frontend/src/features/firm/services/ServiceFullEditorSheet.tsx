@@ -11,6 +11,7 @@ import {
   ImageIcon,
   Info,
   Loader2,
+  Pencil,
   Plus,
   Save,
   Trash2,
@@ -523,9 +524,14 @@ export function ServiceFullEditorSheet({
     setImageFocusX(draftPosition.focusX)
     setImageFocusY(draftPosition.focusY)
     setImageZoom(draftPosition.zoom)
+    if (!imageOriginalUrl && imageStorageKey) {
+      setImageOriginalUrl(imageStorageKey)
+    }
     setImageDirty(true)
     setRepositioning(false)
   }
+
+  const canEditImageFraming = Boolean(imageUrl)
 
   const cancelReposition = () => {
     setRepositioning(false)
@@ -874,33 +880,34 @@ export function ServiceFullEditorSheet({
                         />
                       )}
                       {!repositioning ? (
-                        <div className="absolute right-2 top-2 flex gap-1.5">
-                          {imageOriginalUrl ? (
+                        <div className="absolute right-2 top-2 flex flex-wrap justify-end gap-1.5">
+                          {canEditImageFraming ? (
                             <button
                               type="button"
-                              className="rounded-full bg-card/90 px-3 py-1 text-xs font-medium shadow-sm"
+                              className="inline-flex items-center gap-1.5 rounded-full border border-brand/30 bg-card/95 px-3 py-1 text-xs font-semibold text-brand shadow-sm hover:bg-card"
                               onClick={beginReposition}
                             >
-                              Reposicionar
+                              <Pencil className="h-3.5 w-3.5" aria-hidden />
+                              Editar imagem
                             </button>
                           ) : null}
                           <button
                             type="button"
-                            className="rounded-full bg-card/90 px-3 py-1 text-xs font-medium shadow-sm"
+                            className="rounded-full bg-card/90 px-3 py-1 text-xs font-medium text-destructive shadow-sm hover:bg-destructive/10"
                             onClick={removeBanner}
                           >
-                            Remover imagem
+                            Remover
                           </button>
                         </div>
                       ) : null}
-                      {!imageOriginalUrl && !repositioning ? (
+                      {!imageOriginalUrl && !repositioning && canEditImageFraming ? (
                         <p className="absolute inset-x-0 bottom-0 bg-card/90 px-3 py-1.5 text-caption text-muted-foreground">
-                          Imagem antiga (recorte fixo) — envie uma nova para poder reposicionar.
+                          Pode enquadrar na mesma; para máxima qualidade ao reabrir, envie de novo a imagem original.
                         </p>
                       ) : null}
                       {repositioning ? (
                         <p className="absolute inset-x-0 bottom-0 bg-card/90 px-3 py-1.5 text-caption text-muted-foreground">
-                          Arraste a imagem para escolher o que fica visível.
+                          Arraste na imagem para reposicionar · scroll ou slider para zoom · a original não é cortada.
                         </p>
                       ) : null}
                     </div>
@@ -909,13 +916,14 @@ export function ServiceFullEditorSheet({
                         <ImagePositionZoomSlider
                           zoom={draftPosition.zoom}
                           onChange={(zoom) => setDraftPosition((prev) => ({ ...prev, zoom }))}
+                          label="Zoom (ou scroll na imagem)"
                         />
                         <div className="flex flex-wrap justify-end gap-2">
                           <Button type="button" variant="outline" size="sm" onClick={cancelReposition}>
                             Cancelar
                           </Button>
                           <Button type="button" size="sm" onClick={confirmReposition}>
-                            Concluir enquadramento
+                            Aplicar enquadramento
                           </Button>
                         </div>
                       </div>
