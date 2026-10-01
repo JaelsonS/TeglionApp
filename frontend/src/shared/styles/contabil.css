@@ -3447,6 +3447,7 @@
       align-self: start;
       height: auto;
       max-height: calc(100dvh - 5.75rem);
+      overflow: hidden;
     }
 
     .cb-public-site-editor-preview-panel {
@@ -3456,6 +3457,7 @@
       min-height: 0;
       height: auto;
       max-height: calc(100dvh - 6.25rem);
+      overflow: hidden;
       gap: 0.5rem;
       border-radius: 0.75rem;
       border: 1px solid color-mix(in oklab, var(--border) 55%, transparent);
@@ -3485,10 +3487,12 @@
       position: static;
       height: auto;
       max-height: none;
+      overflow: hidden;
     }
 
     .cb-public-site-editor-preview-panel {
       padding: 0.5rem;
+      overflow: hidden;
     }
 
     .cb-public-site-editor-preview-scroll {
@@ -3555,11 +3559,19 @@
   }
 
   .cb-public-site-device-screen {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: hidden;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     background: var(--background);
+  }
+
+  .cb-public-site-device-screen .cb-public-site-editor-preview-frame--in-device {
+    flex: 1 1 auto;
+    min-height: 0;
   }
 
   .cb-public-site-device--mobile {
