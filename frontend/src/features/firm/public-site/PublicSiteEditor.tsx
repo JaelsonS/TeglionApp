@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent, type CSSProperties } from 'react'
+import { useCallback, useEffect, useState, type ChangeEvent, type CSSProperties } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   ExternalLink,
@@ -190,6 +190,19 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const bookingQuery = useQuery({
     queryKey: ['booking-settings-summary'],
     queryFn: () => contabilConsultationsApi.getBookingSettings() as Promise<{ booking: FirmBookingSettings }>,
+  })
+
+  const previewAssistSections = draft ? reindexPublicSiteSectionsOrder(draft.sections) : []
+
+  const openSectionFromPreview = useCallback((sectionKey: string) => {
+    setSectionOpenState((prev) => ({ ...prev, [sectionKey]: true }))
+  }, [])
+
+  usePublicSiteEditorPreviewAssist({
+    enabled: Boolean(draft && !siteQuery.isLoading),
+    sections: previewAssistSections,
+    labels: SECTION_LABELS,
+    onOpenSection: openSectionFromPreview,
   })
 
   useEffect(() => {
@@ -578,17 +591,6 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   }
 
   const previewPanel = <DefaultTemplate config={draft} ctx={previewRenderCtx} />
-
-  const openSectionFromPreview = (sectionKey: string) => {
-    setSectionOpenState((prev) => ({ ...prev, [sectionKey]: true }))
-  }
-
-  usePublicSiteEditorPreviewAssist({
-    enabled: true,
-    sections: sortedSections,
-    labels: SECTION_LABELS,
-    onOpenSection: openSectionFromPreview,
-  })
 
   const previewSurfaceStyle = {
     ...resolveFirmBrandingCssVars({
