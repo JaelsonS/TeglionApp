@@ -27,6 +27,7 @@ import type {
 } from '@/shared/types/firmPublicSite'
 import type { PublicFirmServiceSummary } from '@/infrastructure/api/contabil/public'
 import { clusterPublicServices, uniquePublicServiceGroups } from '@/features/public-intake/clusterPublicServices'
+import { PublicSiteLegalFooterLinks } from '@/features/public-intake/PublicSiteLegalFooterLinks'
 import { PublicSiteHeroSurface } from '@/features/public-intake/PublicSiteHeroSurface'
 import {
   contentAlignBlockClass,
@@ -82,6 +83,8 @@ export type PublicSiteRenderContext = {
   praiseLabel?: string | null
   /** @deprecated */
   praiseContact?: string | null
+  termsText?: string | null
+  privacyText?: string | null
   /**
    * No editor do escritório: links internos (serviços/CTAs) abrem em nova aba
    * para não navegar fora de `/app/firm` e “perder” a sessão da app.
@@ -943,6 +946,11 @@ export function FooterSection({
             )}
           </div>
         ) : null}
+        <PublicSiteLegalFooterLinks
+          termsText={ctx.termsText}
+          privacyText={ctx.privacyText}
+          textColor={text}
+        />
         {ctx.complaintsBookUrl ? (
           <a
             href={ctx.complaintsBookUrl}
