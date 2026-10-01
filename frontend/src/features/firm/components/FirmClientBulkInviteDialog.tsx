@@ -226,8 +226,7 @@ export function FirmClientBulkInviteDialog({
                 ) : (
                   '.'
                 )}{' '}
-                O texto abaixo é o modelo do Teglion — pode editar se quiser; o e-mail é formatado automaticamente
-                (sem código HTML).
+                O texto abaixo é o modelo do Teglion — pode editar se quiser; o e-mail é formatado automaticamente.
               </DialogDescription>
             </DialogHeader>
 
