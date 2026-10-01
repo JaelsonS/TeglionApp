@@ -11,16 +11,7 @@ export type PublicSiteEditorPreviewDevice = 'mobile' | 'tablet' | 'desktop'
 
 function measurePreviewContentHeight(canvas: HTMLDivElement): number {
   const root = canvas.firstElementChild as HTMLElement | null
-  let height = Math.max(canvas.scrollHeight, canvas.offsetHeight)
-  if (root) {
-    height = Math.max(height, root.scrollHeight, root.offsetHeight)
-    root.querySelectorAll('[data-section-key]').forEach((node) => {
-      if (node instanceof HTMLElement) {
-        height = Math.max(height, node.offsetTop + node.offsetHeight)
-      }
-    })
-  }
-  return Math.max(120, height)
+  return Math.max(120, root?.scrollHeight ?? 0, canvas.scrollHeight)
 }
 
 export function publicSiteEditorPreviewCanvasPx(device: PublicSiteEditorPreviewDevice): number {
@@ -80,10 +71,6 @@ export function PublicSiteEditorPreviewFrame({
     const roRoot = root instanceof HTMLElement ? new ResizeObserver(sync) : null
     if (root instanceof HTMLElement) roRoot?.observe(root)
 
-    const moRoot = root instanceof HTMLElement ? root : null
-    const mo = inDeviceChrome && moRoot ? new MutationObserver(() => sync()) : null
-    if (mo && moRoot) mo.observe(moRoot, { childList: true, subtree: true, attributes: true })
-
     const onImageLoad = (ev: Event) => {
       if (ev.target instanceof HTMLImageElement && canvas.contains(ev.target)) sync()
     }
@@ -98,7 +85,6 @@ export function PublicSiteEditorPreviewFrame({
       roHost.disconnect()
       roCanvas.disconnect()
       roRoot?.disconnect()
-      mo?.disconnect()
       canvas.removeEventListener('load', onImageLoad, true)
       window.clearTimeout(t1)
       window.clearTimeout(t2)
@@ -108,6 +94,39 @@ export function PublicSiteEditorPreviewFrame({
 
   if (expanded) {
     return <div className={cn('cb-public-site-container w-full min-w-0', className)}>{children}</div>
+  }
+
+  if (inDeviceChrome) {
+    return (
+      <div
+        ref={hostRef}
+        className={cn(
+          'cb-public-site-editor-preview-frame cb-public-site-editor-preview-frame--in-device',
+          'relative h-full min-h-0 w-full overflow-x-hidden overflow-y-auto',
+          className,
+        )}
+      >
+        <div
+          className="relative w-full"
+          style={{ height: scaledHeight, minHeight: 120 }}
+          aria-hidden={false}
+        >
+          <div
+            ref={canvasRef}
+            className="cb-public-site-editor-preview-canvas cb-public-site-container origin-top-left pb-0"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: canvasWidthPx,
+              transform: `scale(${scale})`,
+            }}
+          >
+            {children}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
