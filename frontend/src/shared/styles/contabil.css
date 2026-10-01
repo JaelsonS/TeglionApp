@@ -3588,6 +3588,8 @@
     border-radius: 1.65rem;
     min-height: 0;
     max-height: min(26rem, calc(100dvh - 15rem));
+    /* Evita o notch sobrepor o header do site no preview */
+    padding-top: 1.45rem;
   }
 
   .cb-public-site-device--tablet {
@@ -3616,6 +3618,7 @@
     border-radius: 0.85rem;
     min-height: 0;
     max-height: min(28rem, calc(100dvh - 14rem));
+    padding-top: 0.55rem;
   }
 
   .cb-public-site-device--desktop {

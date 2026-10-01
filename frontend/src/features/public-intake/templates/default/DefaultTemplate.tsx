@@ -47,6 +47,8 @@ export function DefaultTemplate({ config, ctx }: Props) {
   const displayCtx: PublicSiteRenderContext = {
     ...ctx,
     contact: resolvePublicSiteContact(ctx.contact, footerContent),
+    termsText: ctx.termsText ?? config.termsText ?? null,
+    privacyText: ctx.privacyText ?? config.privacyText ?? null,
   }
 
   return (
