@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 
 import { openMaya } from '@/features/maya/openMaya'
+import { setMayaFabVisible } from '@/features/maya/mayaFabPreference'
 import type { PublicSiteSection } from '@/shared/types/firmPublicSite'
 import { resolvePublicSiteEditorGuide } from './publicSiteEditorGuide'
 import { publicSiteSectionCardDomId } from './publicSitePublishReadiness'
@@ -14,6 +15,15 @@ type Options = {
 }
 
 const PREVIEW_ROOT_SELECTOR = '.cb-public-site-editor-preview-canvas'
+const MAYA_AVATAR_SRC = '/maya/maya-avatar-sm.png'
+
+function escapeHtml(text: string) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
 
 export function usePublicSiteEditorPreviewAssist({
   enabled,
@@ -26,18 +36,20 @@ export function usePublicSiteEditorPreviewAssist({
 
     let tooltip: HTMLDivElement | null = null
     let activeKey: string | null = null
+    let activeIntentId: string | null = null
 
     const ensureTooltip = () => {
       if (tooltip) return tooltip
       tooltip = document.createElement('div')
       tooltip.className =
-        'cb-public-site-preview-assist-tooltip fixed z-[200] hidden max-w-[15rem] rounded-md border border-border/60 bg-popover px-2 py-1.5 text-[11px] text-popover-foreground shadow-md'
+        'cb-public-site-preview-assist-tooltip fixed z-[200] hidden max-w-[17rem] rounded-lg border border-brand/25 bg-popover px-2.5 py-2 text-[11px] text-popover-foreground shadow-lg'
       document.body.appendChild(tooltip)
       return tooltip
     }
 
     const hideTooltip = () => {
       activeKey = null
+      activeIntentId = null
       if (tooltip) tooltip.classList.add('hidden')
     }
 
@@ -46,6 +58,16 @@ export function usePublicSiteEditorPreviewAssist({
       const section = sections[index]
       if (!section) return 'Secção'
       return resolvePublicSiteSectionLabel(section, labels, Math.max(0, index))
+    }
+
+    const onMayaClick = (ev: Event) => {
+      ev.preventDefault()
+      ev.stopPropagation()
+      if (activeIntentId) {
+        setMayaFabVisible(true)
+        openMaya(activeIntentId)
+      }
+      hideTooltip()
     }
 
     const onPointerMove = (event: PointerEvent) => {
@@ -60,37 +82,45 @@ export function usePublicSiteEditorPreviewAssist({
         return
       }
       const key = zoneEl.getAttribute('data-section-key')
-      if (!key || key === activeKey) {
-        if (key && tooltip) {
-          tooltip.style.left = `${event.clientX + 12}px`
-          tooltip.style.top = `${event.clientY + 12}px`
-        }
+      if (!key) {
+        hideTooltip()
         return
       }
-      activeKey = key
-      const guide = resolvePublicSiteEditorGuide(zoneEl.getAttribute('data-public-zone'))
-      const tip = ensureTooltip()
-      tip.innerHTML = `
-        <span class="font-semibold">${labelForKey(key)}</span>
-        <span class="mt-0.5 block text-muted-foreground">Clicar para editar</span>
-        <button type="button" class="cb-public-site-preview-maya-help mt-1.5 block w-full rounded border border-border/60 bg-muted/40 px-2 py-1 text-left text-[10px] font-medium hover:bg-muted">
-          Quer ajuda com ${guide.topicLabel}?
-        </button>`
-      tip.classList.remove('hidden')
-      const helpBtn = tip.querySelector('.cb-public-site-preview-maya-help')
-      helpBtn?.addEventListener('click', (ev) => {
-        ev.preventDefault()
-        ev.stopPropagation()
-        openMaya(guide.intentId)
-      })
-      tip.style.left = `${event.clientX + 12}px`
-      tip.style.top = `${event.clientY + 12}px`
+      if (key !== activeKey) {
+        activeKey = key
+        const guide = resolvePublicSiteEditorGuide(zoneEl.getAttribute('data-public-zone'))
+        activeIntentId = guide.intentId
+        const tip = ensureTooltip()
+        const sectionLabel = escapeHtml(labelForKey(key))
+        const mayaTip = escapeHtml(guide.mayaTip)
+        tip.innerHTML = `
+        <div class="flex items-start gap-2">
+          <img src="${MAYA_AVATAR_SRC}" alt="" class="mt-0.5 h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-brand/20" width="28" height="28" />
+          <div class="min-w-0 flex-1">
+            <p class="text-[10px] font-bold uppercase tracking-wide text-brand">Maya</p>
+            <p class="mt-0.5 font-semibold leading-snug text-foreground">${sectionLabel}</p>
+            <p class="mt-1 leading-snug text-muted-foreground">${mayaTip}</p>
+            <p class="mt-1 text-[10px] text-muted-foreground">Clique na zona para editar.</p>
+            <button type="button" class="cb-public-site-preview-maya-open mt-2 flex w-full items-center justify-center gap-1.5 rounded-md bg-brand px-2 py-1.5 text-[10px] font-semibold text-primary-foreground hover:bg-brand/90">
+              Tirar dúvidas com a Maya
+            </button>
+          </div>
+        </div>`
+        tip.querySelector('.cb-public-site-preview-maya-open')?.addEventListener('click', onMayaClick, { once: true })
+      }
+      if (tooltip) {
+        tooltip.classList.remove('hidden')
+        tooltip.style.left = `${Math.min(event.clientX + 12, window.innerWidth - 280)}px`
+        tooltip.style.top = `${Math.min(event.clientY + 12, window.innerHeight - 160)}px`
+      }
     }
 
     const onClick = (event: MouseEvent) => {
-      const root = (event.target as Element | null)?.closest(PREVIEW_ROOT_SELECTOR)
+      const target = event.target as Element | null
+      if (target?.closest('.cb-public-site-preview-maya-open')) return
+      const root = target?.closest(PREVIEW_ROOT_SELECTOR)
       if (!root) return
-      const zone = (event.target as Element | null)?.closest('[data-section-key]') as HTMLElement | null
+      const zone = target?.closest('[data-section-key]') as HTMLElement | null
       if (!zone) return
       const key = zone.getAttribute('data-section-key')
       if (!key) return
