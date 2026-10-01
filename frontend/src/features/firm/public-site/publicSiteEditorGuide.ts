@@ -15,8 +15,8 @@ const BY_ZONE: Record<string, PublicSiteEditorGuideEntry> = {
   features: { topicLabel: 'diferenciais', intentId: 'public-page-sections' },
   process: { topicLabel: 'como funciona', intentId: 'public-page-sections' },
   faq: { topicLabel: 'perguntas frequentes', intentId: 'public-page-sections' },
-  contact: { topicLabel: 'contactos', intentId: 'public-page-sections' },
-  footer: { topicLabel: 'o rodapé e contactos', intentId: 'public-page-sections' },
+  contact: { topicLabel: 'contactos e redes', intentId: 'public-page-sections' },
+  footer: { topicLabel: 'o rodapé legal', intentId: 'public-page-sections' },
 }
 
 export function resolvePublicSiteEditorGuide(zone: string | null | undefined): PublicSiteEditorGuideEntry {

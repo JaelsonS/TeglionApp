@@ -100,8 +100,8 @@ const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
   features: 'Diferenciais',
   process: 'Como funciona',
   faq: 'Perguntas frequentes',
-  contact: 'Contactos',
-  footer: 'Rodapé',
+  contact: 'Contactos e redes',
+  footer: 'Rodapé legal (visual)',
 }
 
 const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
@@ -113,8 +113,8 @@ const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
   features: 'Alinhamento e pontos fortes',
   process: 'Alinhamento e passos',
   faq: 'Alinhamento e perguntas',
-  contact: 'Email, telefone, morada, redes sociais e botões',
-  footer: 'Cores e alinhamento — links legais no bloco C',
+  contact: 'Email, telefone, morada, redes sociais e botões de acção',
+  footer: 'Aparência do rodapé — textos legais configuram-se no bloco C',
 }
 
 const WEEKDAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -1202,7 +1202,7 @@ function SectionEditorSwitch({
         <ChromeSectionEditor
           content={section.content}
           onChange={onChange}
-          title="Rodapé"
+          title="Rodapé legal (visual)"
           showFooterContactFields
         />
       )

@@ -103,7 +103,7 @@ export function PublicSiteExtrasPanel({
       <p className="text-sm leading-relaxed text-muted-foreground">
         Ordem sugerida: <span className="font-medium text-foreground">preços e marcação</span>, identidade/SEO, e por
         fim o <span className="font-medium text-foreground">rodapé legal</span>. Contactos e redes → secção{' '}
-        <span className="font-medium text-foreground">Contactos</span> na lista de secções.
+        <span className="font-medium text-foreground">Contactos e redes</span> na lista de secções.
       </p>
 
       <div className="flex flex-col gap-4">

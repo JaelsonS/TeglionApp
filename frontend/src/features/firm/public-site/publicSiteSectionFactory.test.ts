@@ -18,8 +18,8 @@ const LABELS = {
   features: 'Diferenciais',
   process: 'Como funciona',
   faq: 'Perguntas frequentes',
-  contact: 'Contactos',
-  footer: 'Rodapé',
+  contact: 'Contactos e redes',
+  footer: 'Rodapé legal (visual)',
 } as Record<PublicSiteSection['type'], string>
 
 describe('publicSiteSectionFactory', () => {
