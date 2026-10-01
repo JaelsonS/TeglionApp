@@ -137,7 +137,15 @@ async function googleCallback(req, res) {
         }
         const reason =
           loginResult.status === 'MFA_ENROLLMENT_REQUIRED' ? 'enroll' : 'challenge';
-        return res.redirect(`${env.FRONTEND_URL}/auth/firm/mfa?reason=${reason}&sso=1`);
+        // Staging OAuth callback no Render: cookie MFA httpOnly não chega ao SPA em staging.teglion.com.
+        // Token curto (JWT ~5 min) na query — mesmo padrão que registo Google `?pending=`.
+        const mfaDest = new URL(`${env.FRONTEND_URL}/auth/firm/mfa`);
+        mfaDest.searchParams.set('reason', reason);
+        mfaDest.searchParams.set('sso', '1');
+        if (loginResult.mfa?.challengeToken) {
+          mfaDest.searchParams.set('challenge', loginResult.mfa.challengeToken);
+        }
+        return res.redirect(mfaDest.toString());
       }
       setRefreshTokenCookie(res, loginResult.tokens.refreshToken, { req });
       setAccessTokenCookie(res, loginResult.tokens.accessToken, { req });
