@@ -9,6 +9,20 @@ export const PUBLIC_SITE_EDITOR_PREVIEW_TABLET_PX = 834
 
 export type PublicSiteEditorPreviewDevice = 'mobile' | 'tablet' | 'desktop'
 
+function measurePreviewContentHeight(canvas: HTMLDivElement): number {
+  const root = canvas.firstElementChild as HTMLElement | null
+  let height = Math.max(canvas.scrollHeight, canvas.offsetHeight)
+  if (root) {
+    height = Math.max(height, root.scrollHeight, root.offsetHeight)
+    root.querySelectorAll('[data-section-key]').forEach((node) => {
+      if (node instanceof HTMLElement) {
+        height = Math.max(height, node.offsetTop + node.offsetHeight)
+      }
+    })
+  }
+  return Math.max(120, height)
+}
+
 export function publicSiteEditorPreviewCanvasPx(device: PublicSiteEditorPreviewDevice): number {
   switch (device) {
     case 'mobile':
@@ -54,28 +68,41 @@ export function PublicSiteEditorPreviewFrame({
       if (w <= 0) return
       const nextScale = Math.min(1, w / canvasWidthPx)
       setScale(nextScale)
-      const root = canvas.firstElementChild as HTMLElement | null
-      const contentHeight = Math.max(
-        canvas.scrollHeight,
-        root?.scrollHeight ?? 0,
-        canvas.offsetHeight,
-      )
-      setScaledHeight(Math.max(120, Math.ceil(contentHeight * nextScale)))
+      const contentHeight = measurePreviewContentHeight(canvas)
+      setScaledHeight(Math.ceil(contentHeight * nextScale))
     }
 
     const roHost = new ResizeObserver(sync)
     const roCanvas = new ResizeObserver(sync)
     roHost.observe(host)
     roCanvas.observe(canvas)
+    const root = canvas.firstElementChild
+    const roRoot = root instanceof HTMLElement ? new ResizeObserver(sync) : null
+    if (root instanceof HTMLElement) roRoot?.observe(root)
+
+    const moRoot = root instanceof HTMLElement ? root : null
+    const mo = inDeviceChrome && moRoot ? new MutationObserver(() => sync()) : null
+    if (mo && moRoot) mo.observe(moRoot, { childList: true, subtree: true, attributes: true })
+
+    const onImageLoad = (ev: Event) => {
+      if (ev.target instanceof HTMLImageElement && canvas.contains(ev.target)) sync()
+    }
+    canvas.addEventListener('load', onImageLoad, true)
+
     sync()
     const t1 = window.setTimeout(sync, 120)
     const t2 = window.setTimeout(sync, 480)
+    const t3 = window.setTimeout(sync, 1200)
 
     return () => {
       roHost.disconnect()
       roCanvas.disconnect()
+      roRoot?.disconnect()
+      mo?.disconnect()
+      canvas.removeEventListener('load', onImageLoad, true)
       window.clearTimeout(t1)
       window.clearTimeout(t2)
+      window.clearTimeout(t3)
     }
   }, [expanded, children, canvasWidthPx, inDeviceChrome])
 
