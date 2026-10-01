@@ -2159,39 +2159,48 @@ export function PublicSiteLogoCard({
   readOnly = false,
   onDraftUpdate,
   onLogoSourceChange,
+  embedded = false,
 }: {
   draft: PublicSiteConfig
   firmLogoUrl: string | null
   readOnly?: boolean
   onDraftUpdate: (next: PublicSiteConfig) => void
   onLogoSourceChange: (zone: 'header' | 'hero', source: PublicSiteLogoSource) => void
+  /** Dentro do cartão «Identidade visual» — sem borda/título duplicados. */
+  embedded?: boolean
 }) {
+  const grid = (
+    <div className={`grid gap-3 ${embedded ? 'sm:grid-cols-2' : 'mt-2 grid gap-2 sm:grid-cols-2'}`}>
+      <ZoneLogoEditor
+        zone="header"
+        title="Barra do topo"
+        draft={draft}
+        firmLogoUrl={firmLogoUrl}
+        readOnly={readOnly}
+        onDraftUpdate={onDraftUpdate}
+        onLogoSourceChange={onLogoSourceChange}
+      />
+      <ZoneLogoEditor
+        zone="hero"
+        title="Destaque principal"
+        draft={draft}
+        firmLogoUrl={firmLogoUrl}
+        readOnly={readOnly}
+        onDraftUpdate={onDraftUpdate}
+        onLogoSourceChange={onLogoSourceChange}
+      />
+    </div>
+  )
+
+  if (embedded) return grid
+
   return (
     <div className="rounded-xl border border-border/50 bg-card p-3">
       <p className="text-xs font-semibold text-foreground">Logótipos (só site público)</p>
       <p className="mt-0.5 text-[11px] text-muted-foreground">
         Independentes de Definições → Logótipo (portal). Pode ser diferente na barra e no destaque, ou sem imagem.
       </p>
-      <div className="mt-2 grid gap-2 sm:grid-cols-2">
-        <ZoneLogoEditor
-          zone="header"
-          title="Barra do topo"
-          draft={draft}
-          firmLogoUrl={firmLogoUrl}
-          readOnly={readOnly}
-          onDraftUpdate={onDraftUpdate}
-          onLogoSourceChange={onLogoSourceChange}
-        />
-        <ZoneLogoEditor
-          zone="hero"
-          title="Destaque principal"
-          draft={draft}
-          firmLogoUrl={firmLogoUrl}
-          readOnly={readOnly}
-          onDraftUpdate={onDraftUpdate}
-          onLogoSourceChange={onLogoSourceChange}
-        />
-      </div>
+      {grid}
     </div>
   )
 }

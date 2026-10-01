@@ -1,10 +1,9 @@
 import type { ReactNode } from 'react'
-import { Calendar, Palette, Scale, Search, Share2, Tag } from 'lucide-react'
+import { Calendar, Palette, Scale, Share2, Tag } from 'lucide-react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
-import { Label } from '@/shared/components/ui/label'
 import type { PublicSiteConfig } from '@/shared/types/firmPublicSite'
 import type { FirmBookingSettings } from '@/shared/types/contabil'
 import {
@@ -24,7 +23,6 @@ function SectionCard({
   description,
   children,
   className,
-  compactHeader,
 }: {
   id?: string
   icon: typeof Palette
@@ -32,15 +30,13 @@ function SectionCard({
   description?: string
   children: ReactNode
   className?: string
-  /** Menos margem quando o conteúdo é curto (ex.: cores ao lado do SEO). */
-  compactHeader?: boolean
 }) {
   return (
     <section
       id={id}
       className={`rounded-xl border border-border/50 bg-card/90 p-4 shadow-sm ${className ?? ''}`}
     >
-      <div className={`flex items-start gap-2.5 ${compactHeader ? 'mb-2' : 'mb-3'}`}>
+      <div className="mb-3 flex items-start gap-2.5">
         <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
           <Icon className="h-4 w-4" aria-hidden />
         </span>
@@ -53,6 +49,28 @@ function SectionCard({
       </div>
       {children}
     </section>
+  )
+}
+
+function IdentitySubsection({
+  title,
+  hint,
+  children,
+  first,
+}: {
+  title: string
+  hint?: string
+  children: ReactNode
+  first?: boolean
+}) {
+  return (
+    <div className={first ? 'space-y-2' : 'space-y-2 border-t border-border/40 pt-4'}>
+      <div>
+        <p className="text-xs font-semibold text-foreground">{title}</p>
+        {hint ? <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{hint}</p> : null}
+      </div>
+      {children}
+    </div>
   )
 }
 
@@ -85,68 +103,76 @@ export function PublicSiteExtrasPanel({
   return (
     <div className="space-y-4">
       <p className="text-sm leading-relaxed text-muted-foreground">
-        Marca, <span className="font-medium text-foreground">Google</span>, redes sociais, marcação/preços e textos
-        legais — identidade do site além das secções de conteúdo.
+        Configure de cima para baixo: <span className="font-medium text-foreground">marca e Google</span>, redes
+        sociais, preços/marcação e textos legais. A pré-visualização à direita actualiza em tempo real.
       </p>
 
-      <div className="grid items-start gap-4 xl:grid-cols-2">
-        <div className="xl:col-span-2">{logoSection}</div>
-
+      <div className="flex flex-col gap-4">
         <SectionCard
           icon={Palette}
-          title="Cores de fundo"
-          description="Página e cartões — reflectem-se na pré-visualização."
-          compactHeader
+          title="Identidade visual e SEO"
+          description="Logótipos do site público, cores de fundo e como aparece no Google e ao partilhar o link."
         >
-          {pageColorsSection}
-        </SectionCard>
+          <IdentitySubsection
+            first
+            title="Logótipos (só site público)"
+            hint="Independentes de Definições → Logótipo (portal). Barra do topo e destaque principal — podem ser iguais ou diferentes."
+          >
+            {logoSection}
+          </IdentitySubsection>
 
-        <SectionCard
-          icon={Search}
-          title="SEO (Google e partilhas)"
-          description={`teglion.com/${firmSlug || '…'} · se vazio, usamos o nome do escritório e o destaque.`}
-        >
-          <div className="space-y-3">
-            <label className="block space-y-1.5">
-              <span className="text-xs font-medium text-foreground">Título (meta title)</span>
-              <Input
-                className="h-10"
-                placeholder={previewFirmName.slice(0, 70)}
-                maxLength={70}
-                value={seoTitle}
-                onChange={(e: FormChangeEvent) =>
-                  onDraftChange({
-                    ...draft,
-                    seo: { ...draft.seo, title: e.target.value.trim() || null },
-                  })
-                }
-              />
-              <span className="text-[10px] text-muted-foreground">{seoTitle.length}/70 caracteres</span>
-            </label>
-            <label className="block space-y-1.5">
-              <span className="text-xs font-medium text-foreground">Descrição (meta description)</span>
-              <textarea
-                className="min-h-[88px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-                placeholder="Breve resumo do escritório para resultados de pesquisa."
-                maxLength={200}
-                value={seoDesc}
-                onChange={(e: FormChangeEvent) =>
-                  onDraftChange({
-                    ...draft,
-                    seo: { ...draft.seo, description: e.target.value.trim() || null },
-                  })
-                }
-              />
-              <span className="text-[10px] text-muted-foreground">{seoDesc.length}/200 caracteres</span>
-            </label>
-          </div>
+          <IdentitySubsection
+            title="Cores de fundo"
+            hint="Página inteira e cartões — reflectem-se na pré-visualização."
+          >
+            {pageColorsSection}
+          </IdentitySubsection>
+
+          <IdentitySubsection
+            title="SEO (Google e partilhas)"
+            hint={`teglion.com/${firmSlug || '…'} · se vazio, usamos o nome do escritório e o destaque.`}
+          >
+            <div className="space-y-3">
+              <label className="block space-y-1.5">
+                <span className="text-xs font-medium text-foreground">Título (meta title)</span>
+                <Input
+                  className="h-10"
+                  placeholder={previewFirmName.slice(0, 70)}
+                  maxLength={70}
+                  value={seoTitle}
+                  onChange={(e: FormChangeEvent) =>
+                    onDraftChange({
+                      ...draft,
+                      seo: { ...draft.seo, title: e.target.value.trim() || null },
+                    })
+                  }
+                />
+                <span className="text-[10px] text-muted-foreground">{seoTitle.length}/70 caracteres</span>
+              </label>
+              <label className="block space-y-1.5">
+                <span className="text-xs font-medium text-foreground">Descrição (meta description)</span>
+                <textarea
+                  className="min-h-[88px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                  placeholder="Breve resumo do escritório para resultados de pesquisa."
+                  maxLength={200}
+                  value={seoDesc}
+                  onChange={(e: FormChangeEvent) =>
+                    onDraftChange({
+                      ...draft,
+                      seo: { ...draft.seo, description: e.target.value.trim() || null },
+                    })
+                  }
+                />
+                <span className="text-[10px] text-muted-foreground">{seoDesc.length}/200 caracteres</span>
+              </label>
+            </div>
+          </IdentitySubsection>
         </SectionCard>
 
         <SectionCard
           icon={Share2}
           title="Redes sociais e links extra"
           description="Instagram, WhatsApp, etc. — rodapé e secções que activar."
-          className="xl:col-span-2"
         >
           {themeEditorSection}
         </SectionCard>
@@ -155,7 +181,6 @@ export function PublicSiteExtrasPanel({
           icon={Tag}
           title="Preços e agendamento na página"
           description="Valores visíveis nos serviços e horários usados na marcação online."
-          className="xl:col-span-2"
         >
           <div className="grid gap-4 md:grid-cols-2 md:gap-6">
             <label className="flex items-start gap-3 text-sm">
@@ -197,7 +222,6 @@ export function PublicSiteExtrasPanel({
           icon={Scale}
           title="Termos, privacidade e reclamações"
           description="Responsabilidade legal do escritório. A Teglion (AfDigital) não presta aconselhamento jurídico."
-          className="xl:col-span-2"
         >
           <div className="flex flex-wrap gap-2">
             <Button
