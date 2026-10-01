@@ -73,10 +73,6 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
   pageRef.current = page
   const pageId = page?.id ?? null
   const prevPageIdRef = useRef<string | null>(null)
-  const hideFabOnPublicSiteEditor =
-    !isLandingSurface &&
-    location.pathname.startsWith('/app/firm/settings') &&
-    new URLSearchParams(location.search).get('tab') === 'pagina-publica'
 
   const firstName = String(user?.fullName || '')
     .trim()
@@ -242,7 +238,7 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
 
   return (
     <>
-      {fabVisible && !hideFabOnPublicSiteEditor ? (
+      {fabVisible ? (
         <div className={cn(fabPosition, 'group', className)} data-testid="maya-fab">
           <button
             type="button"
@@ -286,7 +282,7 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
             <X className="h-3 w-3" aria-hidden />
           </button>
         </div>
-      ) : !hideFabOnPublicSiteEditor ? (
+      ) : (
         <button
           type="button"
           className={cn(
@@ -311,7 +307,7 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
             className="h-4 w-4 rounded-full object-cover opacity-90"
           />
         </button>
-      ) : null}
+      )}
 
       <Dialog
         open={open}
