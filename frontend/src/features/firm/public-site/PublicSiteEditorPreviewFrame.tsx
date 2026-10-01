@@ -75,11 +75,11 @@ export function PublicSiteEditorPreviewFrame({
     <div
       ref={hostRef}
       className={cn('cb-public-site-editor-preview-frame w-full overflow-hidden', className)}
-      style={{ height: scaledHeight }}
+      style={{ height: scaledHeight, minHeight: 0 }}
     >
       <div
         ref={canvasRef}
-        className="cb-public-site-editor-preview-canvas cb-public-site-container origin-top-left"
+        className="cb-public-site-editor-preview-canvas cb-public-site-container origin-top-left pb-0"
         style={{
           width: canvasWidthPx,
           transform: `scale(${scale})`,
