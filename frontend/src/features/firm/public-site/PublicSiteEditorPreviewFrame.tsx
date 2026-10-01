@@ -27,6 +27,8 @@ type Props = {
   className?: string
   /** Largura simulada (menu hamburger aparece abaixo de lg ≈ 1024px). */
   canvasWidthPx?: number
+  /** Dentro da moldura telemóvel/tablet/desktop — altura medida com scrollHeight. */
+  inDeviceChrome?: boolean
 }
 
 export function PublicSiteEditorPreviewFrame({
@@ -34,6 +36,7 @@ export function PublicSiteEditorPreviewFrame({
   expanded = false,
   className,
   canvasWidthPx = PUBLIC_SITE_EDITOR_PREVIEW_TABLET_PX,
+  inDeviceChrome = false,
 }: Props) {
   const hostRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
@@ -51,8 +54,13 @@ export function PublicSiteEditorPreviewFrame({
       if (w <= 0) return
       const nextScale = Math.min(1, w / canvasWidthPx)
       setScale(nextScale)
-      const contentHeight = canvas.offsetHeight
-      setScaledHeight(Math.max(240, Math.ceil(contentHeight * nextScale)))
+      const root = canvas.firstElementChild as HTMLElement | null
+      const contentHeight = Math.max(
+        canvas.scrollHeight,
+        root?.scrollHeight ?? 0,
+        canvas.offsetHeight,
+      )
+      setScaledHeight(Math.max(120, Math.ceil(contentHeight * nextScale)))
     }
 
     const roHost = new ResizeObserver(sync)
@@ -60,12 +68,16 @@ export function PublicSiteEditorPreviewFrame({
     roHost.observe(host)
     roCanvas.observe(canvas)
     sync()
+    const t1 = window.setTimeout(sync, 120)
+    const t2 = window.setTimeout(sync, 480)
 
     return () => {
       roHost.disconnect()
       roCanvas.disconnect()
+      window.clearTimeout(t1)
+      window.clearTimeout(t2)
     }
-  }, [expanded, children, canvasWidthPx])
+  }, [expanded, children, canvasWidthPx, inDeviceChrome])
 
   if (expanded) {
     return <div className={cn('cb-public-site-container w-full min-w-0', className)}>{children}</div>
