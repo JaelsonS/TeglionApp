@@ -145,7 +145,12 @@ export function HeroSection({
   socialLinks: PublicSiteSocialLinks
   images: PublicSiteConfig['images']
 }) {
-  const heroPhotoUrl = resolveFirstImageUrl(content.imageIds, images)
+  const heroPhotoUrl =
+    resolveFirstImageUrl(content.imageIds, images) ||
+    resolvePublicSiteImageUrl(
+      'backgroundImageId' in content ? content.backgroundImageId : null,
+      images,
+    )
   const bg = hexStyle(content.backgroundColor)
   const titleColor = hexStyle(content.titleColor)
   const taglineColor = hexStyle(content.taglineColor)

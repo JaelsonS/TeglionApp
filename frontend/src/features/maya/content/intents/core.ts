@@ -6,7 +6,7 @@ export const CORE_INTENTS = [
     title: 'O que é o Teglion?',
     shortDescription: 'visão geral do escritório',
     answer:
-      'O Teglion é o sistema do seu escritório de contabilidade: carteira de clientes, documentos, prazos, agenda, página pública, serviços e pedidos. Não substitui o software de contabilidade clássico — organiza a relação com o cliente e a captação de trabalho. Eu sou a Maya: explico cada ecrã com base no que realmente existe nesta página.',
+      'O Teglion reúne clientes, documentos, prazos, agenda, página pública e pedidos de serviço num só sítio. Não substitui o software de contabilidade — ajuda-o a trabalhar com o cliente e a captar trabalho online. Eu guio-o ecrã a ecrã, com atalhos para abrir a página certa.',
     steps: [
       'Abra o Painel — o cartão «Próximo passo» diz por onde começar',
       'Em Definições → Identidade, logótipo do portal; em Página pública, configure o site e publique',
@@ -16,7 +16,7 @@ export const CORE_INTENTS = [
     ],
     deepLink: '/app/firm/dashboard',
     relatedIntents: ['public-page', 'service', 'clients', 'human-support'],
-    followUpPrompt: 'Quer que eu explique o primeiro passo com mais detalhe?',
+    followUpPrompt: 'Por onde quer começar?',
     nextSteps: [
       { label: 'Configurar página pública', intentId: 'public-page' },
       { label: 'Criar um serviço', intentId: 'service' },

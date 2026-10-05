@@ -17,6 +17,11 @@ const {
   normalizeBySectionImages,
 } = require('./public-site-section-media');
 const { normalizeHttpsUrlOrNull, coerceExternalHttpsUrlOrNull } = require('../../utils/safe-url');
+const {
+  mergeRawConfigImages,
+  reconcilePublicSiteImages,
+  repairHeroImageReferences,
+} = require('./public-site-image-reconcile');
 
 const SECTION_TYPES = new Set([
   'header', 'hero', 'about', 'services', 'bookingServices', 'features', 'process', 'faq', 'contact', 'footer',
@@ -886,9 +891,12 @@ function filterPublicCtas(sections, publicSlugs) {
 
 async function saveDraft(firmId, actorUserId, rawConfig) {
   await assertOwner(firmId, actorUserId, 'Apenas o dono do escritório pode editar a página pública.');
-  const normalized = normalizeSiteConfig(rawConfig);
+  const before = await firmPublicSitesRepository.findByFirmId(firmId);
+  const premerged = mergeRawConfigImages(rawConfig, before?.draft);
+  const normalized = normalizeSiteConfig(premerged);
+  const reconciled = reconcilePublicSiteImages(normalized, before?.draft);
   const services = await accountingServicesRepository.listByFirm(firmId);
-  const config = sanitizeSiteCtasForFirm(normalized, services);
+  const config = sanitizeSiteCtasForFirm(reconciled, services);
   const updated = await firmPublicSitesRepository.upsertDraft(firmId, config, actorUserId);
   return {
     draft: await resolveConfigImages(updated.draft),
@@ -1053,4 +1061,6 @@ module.exports = {
   resolvePublicShareMeta,
   sanitizeSiteCtasForFirm,
   filterPublicCtas,
+  repairHeroImageReferences,
+  reconcilePublicSiteImages,
 };

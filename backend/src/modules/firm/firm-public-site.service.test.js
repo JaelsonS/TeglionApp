@@ -491,7 +491,9 @@ test('saveDraft: rejeita quem não é FIRM_OWNER', async () => {
 test('saveDraft: normaliza o config e grava via repository', async () => {
   resetMocks();
   mock.method(firmUsersRepository, 'findFirmUserById', async () => OWNER);
+  mock.method(firmPublicSitesRepository, 'findByFirmId', async () => null);
   mock.method(accountingServicesRepository, 'listByFirm', async () => []);
+  mock.method(contabilStorage, 'createSignedDownloadUrl', async (path) => `https://signed/${path}`);
   let savedConfig = null;
   mock.method(firmPublicSitesRepository, 'upsertDraft', async (firmId, config) => {
     savedConfig = config;
@@ -509,9 +511,11 @@ test('saveDraft: normaliza o config e grava via repository', async () => {
 test('saveDraft: descarta CTA de serviço de outro tenant antes de gravar', async () => {
   resetMocks();
   mock.method(firmUsersRepository, 'findFirmUserById', async () => OWNER);
+  mock.method(firmPublicSitesRepository, 'findByFirmId', async () => null);
   mock.method(accountingServicesRepository, 'listByFirm', async () => [
     { id: 'svc-own', slug: 'irs-2026' },
   ]);
+  mock.method(contabilStorage, 'createSignedDownloadUrl', async (path) => `https://signed/${path}`);
   let savedConfig = null;
   mock.method(firmPublicSitesRepository, 'upsertDraft', async (_firmId, config) => {
     savedConfig = config;
@@ -915,4 +919,51 @@ test('resolvePublicShareMeta: imageUrl estável no domínio público (WhatsApp)'
     meta.imageUrl,
     'https://staging.teglion.com/api/public/firms/escritorio-x/share-og-image',
   );
+});
+
+const {
+  reconcilePublicSiteImages,
+  repairHeroImageReferences,
+} = require('./public-site-image-reconcile');
+
+test('reconcilePublicSiteImages: mantém imagem referenciada no hero quando o pool excede o limite', () => {
+  const referenced = {
+    id: 'img_new',
+    storageKey: 'firm/x/public-site/hero/new.jpg',
+    alt: '',
+  };
+  const older = Array.from({ length: 10 }, (_, i) => ({
+    id: `img_old_${i}`,
+    storageKey: `firm/x/public-site/hero/old-${i}.jpg`,
+    alt: '',
+  }));
+  const fullPool = [...older, referenced];
+  const incoming = firmPublicSiteService.normalizeSiteConfig({
+    sections: [{ type: 'hero', content: { tagline: 'Olá', imageIds: ['img_new'] } }],
+    images: { hero: fullPool, institutional: [], bySection: {} },
+  });
+  assert.ok(
+    !incoming.images.hero.some((img) => img.id === 'img_new'),
+    'normalização trunca a 11.ª imagem — cenário real do bug',
+  );
+  const reconciled = reconcilePublicSiteImages(incoming, { images: { hero: fullPool, institutional: [], bySection: {} } });
+  const heroPoolIds = reconciled.images.hero.map((img) => img.id);
+  assert.ok(heroPoolIds.includes('img_new'), 'imagem referenciada deve permanecer no pool');
+  assert.equal(reconciled.sections.find((s) => s.type === 'hero').content.imageIds[0], 'img_new');
+});
+
+test('repairHeroImageReferences: imageIds órfão usa a última imagem do pool hero', () => {
+  const config = {
+    sections: [{ type: 'hero', content: { tagline: 'Olá', imageIds: ['img_missing'] } }],
+    images: {
+      hero: [
+        { id: 'img_a', storageKey: 'a.jpg', alt: '' },
+        { id: 'img_b', storageKey: 'b.jpg', alt: '' },
+      ],
+      institutional: [],
+      bySection: {},
+    },
+  };
+  const repaired = repairHeroImageReferences(config);
+  assert.equal(repaired.sections[0].content.imageIds[0], 'img_b');
 });

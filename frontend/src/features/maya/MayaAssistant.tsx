@@ -1,5 +1,5 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
-import { ArrowLeft, ExternalLink, X } from 'lucide-react'
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { ArrowLeft, ChevronRight, ExternalLink, X } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Button } from '@/shared/components/ui/button'
@@ -67,6 +67,7 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
   const [stack, setStack] = useState<MayaView[]>([])
   const [fabVisible, setFabVisible] = useState(true)
   const pageRef = useRef<MayaPageGuide | null>(null)
+  const bodyScrollRef = useRef<HTMLDivElement>(null)
   const isLandingSurface = surface === 'landing'
 
   const page = resolveMayaPage(location.pathname, new URLSearchParams(location.search))
@@ -132,6 +133,13 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
     }
     prevPageIdRef.current = pageId
   }, [open, pageId])
+
+  useLayoutEffect(() => {
+    if (!open) return
+    const el = bodyScrollRef.current
+    if (!el) return
+    el.scrollTop = 0
+  }, [open, stack])
 
   if (!isLandingSurface && !user) return null
 
@@ -360,7 +368,10 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
             </div>
           </div>
 
-          <div className="max-h-[min(58dvh,480px)] space-y-4 overflow-y-auto overscroll-y-contain px-5 py-4">
+          <div
+            ref={bodyScrollRef}
+            className="max-h-[min(58dvh,480px)] space-y-4 overflow-y-auto overscroll-y-contain px-5 py-4"
+          >
             {view.kind === 'home' ? (
               <MayaHome
                 firstName={firstName}
@@ -409,12 +420,36 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
             ) : null}
 
             {view.kind === 'problem' && activeIntent && activeProblem ? (
-              <MayaProblemView problem={activeProblem} />
+              <MayaProblemView problem={activeProblem} onBack={goBack} />
             ) : null}
           </div>
         </DialogContent>
       </Dialog>
     </>
+  )
+}
+
+function MayaTopicRow({ intent, onSelect }: { intent: MayaIntent; onSelect: () => void }) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        'flex w-full items-center gap-2 rounded-xl border border-border/60 bg-card px-3 py-2.5 text-left',
+        'transition hover:border-brand/30 hover:bg-brand/5',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+      )}
+      onClick={onSelect}
+    >
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium leading-snug text-foreground">{intent.title}</span>
+        {intent.shortDescription ? (
+          <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
+            {intent.shortDescription}
+          </span>
+        ) : null}
+      </span>
+      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+    </button>
   )
 }
 
@@ -492,9 +527,6 @@ function MayaHome({
             {page ? (
               <>
                 <p className="mt-2">{page.summary}</p>
-                <p className="mt-2 text-muted-foreground">
-                  Para quem: {page.audience}. Objectivo: {page.goal}
-                </p>
                 {page.firstTimeHint ? (
                   <p className="mt-2 text-muted-foreground">{page.firstTimeHint}</p>
                 ) : null}
@@ -504,25 +536,37 @@ function MayaHome({
               </>
             ) : (
               <p className="mt-2 text-muted-foreground">
-                Escolha uma área abaixo — ou use «Maya» no topo da página para ajuda deste ecrã.
+                Escolha um tema abaixo — explico passo a passo e abro a página certa quando quiser.
               </p>
             )}
             <p className="mt-2 text-caption text-muted-foreground">
-              Não tenho acesso aos seus documentos nem aos dados privados do escritório.
+              Guia do produto — não vejo documentos, mensagens nem dados dos clientes.
             </p>
           </>
         )}
       </MayaBubble>
 
-      <div className="mt-4">
-        <p className="mb-2 text-sm font-medium text-foreground">O que quer aprender?</p>
-        <div className="flex flex-wrap gap-2">
+      <div className="mt-4 space-y-2">
+        <p className="text-sm font-medium text-foreground">Temas desta página</p>
+        <div className="space-y-2">
           {intents.map((intent) => (
-            <Chip key={intent.id} onClick={() => onOpenIntent(intent.id)}>
-              {intent.title}
-            </Chip>
+            <MayaTopicRow key={intent.id} intent={intent} onSelect={() => onOpenIntent(intent.id)} />
           ))}
-          <Chip onClick={onOpenCatalog}>{catalogLabel}</Chip>
+          <button
+            type="button"
+            className={cn(
+              'flex w-full items-center gap-2 rounded-xl border border-dashed border-border/70 bg-muted/20 px-3 py-2.5 text-left',
+              'transition hover:border-brand/30 hover:bg-brand/5',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40',
+            )}
+            onClick={onOpenCatalog}
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-medium text-foreground">{catalogLabel}</span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">Mapa completo do Teglion</span>
+            </span>
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+          </button>
         </div>
       </div>
     </div>
@@ -551,11 +595,9 @@ function MayaCatalog({
               : 'Estas são as áreas principais do escritório no Teglion. Escolha uma para eu explicar.'}
         </p>
       </MayaBubble>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 space-y-2">
         {intents.map((intent) => (
-          <Chip key={intent.id} onClick={() => onOpenIntent(intent.id)}>
-            {intent.title}
-          </Chip>
+          <MayaTopicRow key={intent.id} intent={intent} onSelect={() => onOpenIntent(intent.id)} />
         ))}
       </div>
     </div>
@@ -754,13 +796,17 @@ function MayaFieldView({
   )
 }
 
-function MayaProblemView({ problem }: { problem: MayaProblem }) {
+function MayaProblemView({ problem, onBack }: { problem: MayaProblem; onBack: () => void }) {
   return (
-    <div data-testid="maya-problem">
+    <div className="space-y-4" data-testid="maya-problem">
       <MayaBubble>
         <p className="font-medium">{problem.title}</p>
         <p className="mt-2">{problem.answer}</p>
       </MayaBubble>
+      <Button type="button" variant="outline" fullWidth onClick={onBack}>
+        <ArrowLeft className="h-4 w-4" />
+        Voltar
+      </Button>
     </div>
   )
 }
