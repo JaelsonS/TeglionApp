@@ -271,7 +271,9 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                 ...prev.images,
                 bySection: { ...bySection, [section.key]: [...(bySection[section.key] || []), image] },
               }
-            : { ...prev.images, [slot]: [...prev.images[slot], image] }
+            : slot === 'hero'
+              ? { ...prev.images, hero: [image] }
+              : { ...prev.images, [slot]: [...prev.images[slot], image] }
         const sections = prev.sections.map((s) => {
           if (s.key !== section.key) return s
           if (role === 'background' && 'backgroundImageId' in s.content) {
