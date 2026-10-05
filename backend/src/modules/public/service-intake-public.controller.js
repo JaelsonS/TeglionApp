@@ -184,9 +184,13 @@ async function getPublicFirmSite(req, res, next) {
     const site = await firmPublicSiteService.getSite(firm.id);
     const previewToken = req.query.preview ? String(req.query.preview).trim() : null;
     const previewValid = firmPublicSiteService.isPreviewTokenValid(site, previewToken);
-    const config = previewValid
+    let config = previewValid
       ? site.draft
       : site.published || firmPublicSiteService.buildConfigFromLegacySettings(firm);
+
+    config = firmPublicSiteService.repairHeroImageReferences(
+      JSON.parse(JSON.stringify(config)),
+    );
 
     const items = await listPublicCatalogServices(firm.id);
 
