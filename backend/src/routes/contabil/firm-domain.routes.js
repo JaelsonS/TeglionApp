@@ -305,6 +305,11 @@ router.post(
   requireFirmOwner,
   mayaSetupController.apply,
 );
+router.post(
+  '/maya-setup/demo-seed',
+  requireFirmOwner,
+  mayaSetupController.seedDemoPublicSite,
+);
 
 router.patch(
   '/firm/profile',

@@ -7,6 +7,10 @@ export type PublicSiteEditorGuideEntry = {
 }
 
 const BY_ZONE: Record<string, PublicSiteEditorGuideEntry> = {
+  'link-publish': {
+    intentId: 'public-page',
+    mayaTip: 'Defina o link teglion.com/…, guarde o rascunho e publique quando estiver pronto — o visitante só vê a versão publicada.',
+  },
   header: {
     intentId: 'public-page-logos',
     mayaTip: 'Aqui define a barra do topo e os logótipos — é o que o visitante vê primeiro.',

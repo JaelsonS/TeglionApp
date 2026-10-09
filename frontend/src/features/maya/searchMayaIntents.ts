@@ -35,12 +35,21 @@ function scoreIntent(intent: MayaIntent, tokens: string[]): number {
 }
 
 /** Pesquisa local nos guias estáticos (sem OpenAI). */
-export function searchMayaIntents(query: string, limit = 3): MayaIntent[] {
+export function searchMayaIntents(
+  query: string,
+  limit = 3,
+  options?: { preferIntentId?: string },
+): MayaIntent[] {
   const tokens = tokenize(query.trim())
   if (!tokens.length) return []
+  const prefer = options?.preferIntentId
   return [...MAYA_INTENTS]
     .filter((i) => i.surface !== 'client' && i.surface !== 'landing')
-    .map((intent) => ({ intent, score: scoreIntent(intent, tokens) }))
+    .map((intent) => {
+      let score = scoreIntent(intent, tokens)
+      if (prefer && intent.id === prefer) score += 2
+      return { intent, score }
+    })
     .filter((row) => row.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)

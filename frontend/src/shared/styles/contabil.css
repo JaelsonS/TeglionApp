@@ -3424,6 +3424,16 @@
       overflow: visible;
     }
 
+    .cb-public-site-editor-coach-grid {
+      display: grid;
+      grid-template-columns: minmax(15rem, 17.5rem) minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .cb-public-site-editor-root--simple .cb-public-site-editor-preview-scroll {
+      max-height: min(50dvh, 600px);
+    }
+
     .cb-public-site-editor-grid {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(18rem, min(44vw, 28rem));

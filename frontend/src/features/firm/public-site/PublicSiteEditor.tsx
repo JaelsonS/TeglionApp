@@ -90,6 +90,15 @@ import { PublicSiteLinkPublishPanel } from './PublicSiteLinkPublishPanel'
 import { PublicSiteEditorDeviceChrome } from './PublicSiteEditorDeviceChrome'
 import { MayaPublicSiteSetupRail } from '@/features/firm/public-site/MayaPublicSiteSetupRail'
 import { MayaPublicSiteInlineSetup } from '@/features/firm/public-site/MayaPublicSiteInlineSetup'
+import { MayaPublicSiteCopilotChat } from '@/features/firm/public-site/MayaPublicSiteCopilotChat'
+import {
+  PublicSiteEditorModeBar,
+  type PublicSiteEditorUIMode,
+} from '@/features/firm/public-site/PublicSiteEditorModeBar'
+import { PublicSitePublishProgressBanner } from '@/features/firm/public-site/PublicSitePublishProgressBanner'
+import { PublicSiteCoachStrip } from '@/features/firm/public-site/PublicSiteCoachStrip'
+import { MayaPublicSiteDemoSeedPanel } from '@/features/firm/public-site/MayaPublicSiteDemoSeedPanel'
+import { mayaSetupApi } from '@/infrastructure/api/contabil/mayaSetup'
 import { MAYA_SETUP_APPLIED_EVENT } from '@/features/firm/activation/openActivationAssistant'
 import { PublicSiteExtrasPanel } from './PublicSiteExtrasPanel'
 import { PublicSiteLegalFieldsEditor } from './PublicSiteLegalFieldsEditor'
@@ -129,11 +138,15 @@ type Props = {
   onFirmUpdated?: () => void
 }
 
+const UI_MODE_STORAGE_KEY = 'teglion.public-site-editor-ui-mode'
+
 type PublicSiteEditorProps = Props & {
+  /** @deprecated use coachMode — mantido para estúdio IA completo em modo avançado */
   mayaSetupMode?: boolean
+  coachMode?: boolean
 }
 
-export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode }: PublicSiteEditorProps) {
+export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode, coachMode }: PublicSiteEditorProps) {
   const firmSlug = bundle.firm.slug || ''
   const canEditLink = Boolean(bundle.capabilities?.canCloseAccount) // owner-only (same as close account)
   const [draft, setDraft] = useState<PublicSiteConfig | null>(null)
@@ -158,6 +171,25 @@ export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode }: Publi
   const handleMayaLivePreviewDraft = useCallback((next: PublicSiteConfig | null) => {
     setMayaLivePreviewDraft(next)
   }, [])
+
+  const [uiMode, setUiMode] = useState<PublicSiteEditorUIMode>(() => {
+    if (typeof window === 'undefined') return 'simple'
+    const stored = window.sessionStorage.getItem(UI_MODE_STORAGE_KEY)
+    return stored === 'advanced' ? 'advanced' : 'simple'
+  })
+  const handleUiModeChange = useCallback((mode: PublicSiteEditorUIMode) => {
+    setUiMode(mode)
+    if (typeof window !== 'undefined') window.sessionStorage.setItem(UI_MODE_STORAGE_KEY, mode)
+  }, [])
+
+  const capabilitiesQuery = useQuery({
+    queryKey: ['maya-setup-capabilities'],
+    queryFn: () => mayaSetupApi.getCapabilities().then((r) => r.capabilities),
+    staleTime: 60_000,
+  })
+
+  const simpleMode = uiMode === 'simple'
+  const showLegacyStudio = !simpleMode && (mayaSetupMode || coachMode)
 
   const isSectionEditorOpen = (section: PublicSiteSection) => {
     if (Object.prototype.hasOwnProperty.call(sectionOpenState, section.key)) {
@@ -689,39 +721,25 @@ export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode }: Publi
     document.getElementById('public-site-live-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  return (
-    <div className="cb-public-site-editor-root space-y-6">
-      {mayaSetupMode ? <MayaPublicSiteSetupRail onScrollToPreview={scrollToPreview} /> : null}
-      {mayaSetupMode ? (
-        <MayaPublicSiteInlineSetup
-          bundle={bundle}
-          baseDraft={draft}
-          onLivePreviewDraft={handleMayaLivePreviewDraft}
-          onMediaUploaded={() => void siteQuery.refetch()}
-          onOpenSectionByType={openSectionByType}
-          onPreviewNewTab={onPreview}
-          previewingNewTab={previewing}
-          onSaveLiveDraft={saveDraftConfig}
-        />
-      ) : null}
-      {mayaLivePreviewDraft ? (
-        <p className="rounded-md border border-brand/20 bg-brand/[0.05] px-3 py-2 text-caption text-muted-foreground">
-          Preview a mostrar alterações do questionário Maya — ainda não guardadas. Use «Aplicar rascunho» ou «Guardar
-          rascunho» para persistir.
-        </p>
-      ) : null}
-      <section
-        className="rounded-xl border border-brand/25 bg-gradient-to-br from-brand/[0.07] via-card to-card p-4 shadow-sm"
-        aria-label="Pronto para publicar"
-      >
-        <PublicSitePublishReadinessChecklist
-          items={publishReadinessItems}
-          legalGaps={legalGaps}
-          onFocus={onPublishReadinessFocus}
-          onFocusLegal={focusLegalFields}
-        />
-      </section>
+  const scrollToCoachChat = () => {
+    document.getElementById('maya-coach-chat')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
+  const openCoachSection = sortedSections.find((s) => isSectionEditorOpen(s))
+  const coachZone: string | null = simpleMode
+    ? linkPublishOpen
+      ? 'link-publish'
+      : openCoachSection
+        ? `section-${openCoachSection.type}`
+        : null
+    : null
+
+  const countryCode: 'PT' | 'BR' = 'PT'
+  const demoOfficeEnabled = capabilitiesQuery.data?.demoOffice === true
+  const aiAdviseEnabled = capabilitiesQuery.data?.aiSetup === true
+
+  const editorBody = (
+    <>
       <PublicSiteEditorFold
         id="public-site-identity"
         title="A · Link e publicar"
@@ -731,6 +749,9 @@ export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode }: Publi
         onOpenChange={setLinkPublishOpen}
         className="border-brand/15 bg-card/50"
       >
+        {simpleMode && linkPublishOpen ? (
+          <PublicSiteCoachStrip zone="link-publish" className="mb-3" onAskInChat={scrollToCoachChat} />
+        ) : null}
         <PublicSiteLinkPublishPanel
           publishedAt={siteQuery.data?.publishedAt}
           firmSlug={firmSlug}
@@ -779,13 +800,15 @@ export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode }: Publi
               </button>
             </div>
           </div>
-          <p className="text-[11px] leading-relaxed text-muted-foreground">
-            Abra <span className="font-medium text-foreground">só a secção</span> que está a editar (ex.: Destaque
-            principal). Em cada secção, o bloco{' '}
-            <span className="font-medium text-foreground">Alinhamento do conteúdo</span> (esquerda / centro / direita)
-            fica no topo. Arraste à esquerda para reordenar. A pré-visualização à direita simula telemóvel/tablet — aí vê
-            o menu hamburger.
-          </p>
+          {!simpleMode ? (
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              Abra <span className="font-medium text-foreground">só a secção</span> que está a editar (ex.: Destaque
+              principal). Em cada secção, o bloco{' '}
+              <span className="font-medium text-foreground">Alinhamento do conteúdo</span> (esquerda / centro / direita)
+              fica no topo. Arraste à esquerda para reordenar. A pré-visualização à direita simula telemóvel/tablet — aí
+              vê o menu hamburger.
+            </p>
+          ) : null}
           <PublicSiteSectionsList
             sections={sortedSections}
             labels={SECTION_LABELS}
@@ -803,6 +826,12 @@ export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode }: Publi
             visitorSummary={(section) => resolvePublicSiteSectionVisitorSummary(section, previewServices)}
             renderEditor={(section) => (
               <div className="space-y-3">
+                {simpleMode && isSectionEditorOpen(section) ? (
+                  <PublicSiteCoachStrip
+                    zone={`section-${section.type}`}
+                    onAskInChat={scrollToCoachChat}
+                  />
+                ) : null}
                 <PublicSiteSectionAlignField
                   content={section.content}
                   variant={
@@ -963,6 +992,80 @@ export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode }: Publi
           pageColorsSection={<PageThemeColors draft={draft} onChange={setDraft} embedded />}
         />
       </PublicSiteEditorFold>
+    </>
+  )
+
+  return (
+    <div
+      className={
+        simpleMode
+          ? 'cb-public-site-editor-root cb-public-site-editor-root--simple space-y-6'
+          : 'cb-public-site-editor-root space-y-6'
+      }
+    >
+      <PublicSiteEditorModeBar mode={uiMode} onModeChange={handleUiModeChange} />
+
+      {simpleMode ? (
+        <PublicSitePublishProgressBanner items={publishReadinessItems} onFocus={onPublishReadinessFocus} />
+      ) : null}
+
+      {simpleMode ? (
+        <MayaPublicSiteDemoSeedPanel
+          demoOfficeEnabled={demoOfficeEnabled}
+          firmSlug={firmSlug}
+          onAfterSeed={() => void siteQuery.refetch()}
+          onScrollToPreview={scrollToPreview}
+        />
+      ) : null}
+
+      {showLegacyStudio ? <MayaPublicSiteSetupRail onScrollToPreview={scrollToPreview} /> : null}
+      {showLegacyStudio ? (
+        <MayaPublicSiteInlineSetup
+          bundle={bundle}
+          baseDraft={draft}
+          onLivePreviewDraft={handleMayaLivePreviewDraft}
+          onMediaUploaded={() => void siteQuery.refetch()}
+          onOpenSectionByType={openSectionByType}
+          onPreviewNewTab={onPreview}
+          previewingNewTab={previewing}
+          onSaveLiveDraft={saveDraftConfig}
+        />
+      ) : null}
+
+      {!simpleMode && mayaLivePreviewDraft ? (
+        <p className="rounded-md border border-brand/20 bg-brand/[0.05] px-3 py-2 text-caption text-muted-foreground">
+          Preview a mostrar alterações do questionário Maya — ainda não guardadas. Use «Aplicar rascunho» ou «Guardar
+          rascunho» para persistir.
+        </p>
+      ) : null}
+
+      {!simpleMode ? (
+        <section
+          className="rounded-xl border border-brand/25 bg-gradient-to-br from-brand/[0.07] via-card to-card p-4 shadow-sm"
+          aria-label="Pronto para publicar"
+        >
+          <PublicSitePublishReadinessChecklist
+            items={publishReadinessItems}
+            legalGaps={legalGaps}
+            onFocus={onPublishReadinessFocus}
+            onFocusLegal={focusLegalFields}
+          />
+        </section>
+      ) : null}
+
+      <div className={simpleMode ? 'cb-public-site-editor-coach-grid gap-4' : undefined}>
+        {simpleMode ? (
+          <div id="maya-coach-chat" className="min-w-0 xl:sticky xl:top-[5.25rem] xl:self-start">
+            <MayaPublicSiteCopilotChat
+              setupStep="public-site-coach"
+              countryCode={countryCode}
+              aiAdviseEnabled={aiAdviseEnabled}
+              coachZone={coachZone}
+            />
+          </div>
+        ) : null}
+        <div className="min-w-0 space-y-6">{editorBody}</div>
+      </div>
 
       <AlertDialog
         open={confirmPublishOpen}

@@ -15,7 +15,8 @@ const openaiClient = require('./openai.client');
 const { ensureProposalFromContext } = require('./proposal-enrich');
 const { parseMediaAssets, mergeMediaAssetsIntoDraft } = require('./media-assets');
 const { mergeFirmContactIntoDraft, sanitizeContactForAiContext } = require('./firm-contact-patch');
-const { seedDemoClients } = require('./demo-office.service');
+const { seedDemoClients, assertDemoOfficeAllowed } = require('./demo-office.service');
+const { buildDemoProposal, parseDemoMediaAssetsFromEnv } = require('./demo-public-site.service');
 const { getMayaSetupCapabilities } = require('./capabilities');
 const { parseCustomServices } = require('./custom-services');
 
@@ -465,6 +466,68 @@ async function applyProposal({ firmId, actorUserId, sessionId, req, proposalOver
   };
 }
 
+async function seedDemoPublicSite({ firmId, actorUserId, req, includeDemoClients = false }) {
+  await assertOwnerActor(firmId, actorUserId);
+  assertDemoOfficeAllowed(firmId);
+
+  const firm = await firmsRepository.findFirmById(firmId);
+  if (!firm) throw new AppError('Escritório não encontrado', 404);
+  const countryCode = firm.countryCode || 'PT';
+  const firmName = String(firm.name || 'O seu escritório').trim();
+  const proposal = buildDemoProposal({
+    firmName,
+    countryCode,
+    cityRegion: '',
+  });
+  const parsed = parseProposalV1(proposal, { countryCode });
+
+  const siteRow = await firmPublicSitesRepository.findByFirmId(firmId);
+  const parsedMedia = parseDemoMediaAssetsFromEnv();
+  let mergedDraft = mergePublicSitePatch(siteRow?.draft, parsed.publicSitePatch || {});
+  mergedDraft = mergeMediaAssetsIntoDraft(mergedDraft, parsedMedia);
+  mergedDraft = mergeFirmContactIntoDraft(mergedDraft, firm);
+  const draftResult = await firmPublicSiteService.saveDraft(firmId, actorUserId, mergedDraft);
+
+  const prepareForPublicPage = parsedMedia?.prepareServicesForPublicPage === true;
+  const servicesResult = await applyServicesFromProposal(firmId, parsed.services, {
+    prepareForPublicPage,
+    serviceImages: {},
+  });
+  const irsResult = await applyIrsFromProposal(firmId, parsed.irs, countryCode);
+  const bookingResult = await applyBookingFromProposal(firmId, parsed.booking);
+
+  let demoClientsCreated = 0;
+  if (includeDemoClients === true) {
+    const demo = await seedDemoClients({ firmId, actorUserId, countryCode });
+    demoClientsCreated = demo.createdCount;
+  }
+
+  const applySummary = {
+    draftUpdated: true,
+    demoSeed: true,
+    servicesCreated: servicesResult.created.length,
+    servicesSkippedExisting: servicesResult.skipped,
+    servicesListedPublic: servicesResult.published?.length || 0,
+    irsActivated: irsResult.activated.length,
+    bookingUpdated: Boolean(bookingResult),
+    demoClientsCreated,
+    demoAssetsConfigured: Boolean(parsedMedia),
+  };
+
+  await securityAudit.recordSecurityEvent({
+    firmId,
+    actorRole: 'FIRM_OWNER',
+    actorId: actorUserId,
+    action: 'maya.setup.demo_seed',
+    entityType: 'FIRM',
+    entityId: firmId,
+    metadata: applySummary,
+    req,
+  });
+
+  return { draft: draftResult.draft, applySummary };
+}
+
 async function getCapabilities({ firmId }) {
   return getMayaSetupCapabilities(firmId);
 }
@@ -499,6 +562,7 @@ module.exports = {
   getSession,
   generateProposal,
   applyProposal,
+  seedDemoPublicSite,
   adviseSetupQuestion,
   getCapabilities,
   normalizeAnswers,

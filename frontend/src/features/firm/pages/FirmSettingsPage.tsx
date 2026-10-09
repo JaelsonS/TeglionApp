@@ -75,10 +75,26 @@ export function FirmSettingsPage() {
     [canCloseAccount],
   )
 
-  const mayaSetupMode = searchParams.get('mayaSetup') === '1'
+  const coachMode = searchParams.get('coach') === '1'
+  const legacyMayaSetup = searchParams.get('mayaSetup') === '1'
 
   useEffect(() => {
-    if (mayaSetupMode && searchParams.get('tab') !== 'pagina-publica') {
+    if (legacyMayaSetup) {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev)
+          next.delete('mayaSetup')
+          next.set('tab', 'pagina-publica')
+          next.set('coach', '1')
+          return next
+        },
+        { replace: true },
+      )
+    }
+  }, [legacyMayaSetup, setSearchParams])
+
+  useEffect(() => {
+    if (coachMode && searchParams.get('tab') !== 'pagina-publica') {
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev)
@@ -88,7 +104,9 @@ export function FirmSettingsPage() {
         { replace: true },
       )
     }
-  }, [mayaSetupMode, searchParams, setSearchParams])
+  }, [coachMode, searchParams, setSearchParams])
+
+  const mayaSetupMode = legacyMayaSetup
 
   const activeTab: TabId = useMemo(() => {
     const fromQuery = searchParams.get('tab')
@@ -275,7 +293,12 @@ export function FirmSettingsPage() {
               ) : null}
 
               {activeTab === 'pagina-publica' ? (
-                <PublicSiteEditor bundle={bundle} onFirmUpdated={onUpdated} mayaSetupMode={mayaSetupMode} />
+                <PublicSiteEditor
+                  bundle={bundle}
+                  onFirmUpdated={onUpdated}
+                  mayaSetupMode={mayaSetupMode}
+                  coachMode={coachMode}
+                />
               ) : null}
 
               {activeTab === 'escritorio' ? (

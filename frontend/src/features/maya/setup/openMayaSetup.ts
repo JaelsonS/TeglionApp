@@ -1,6 +1,6 @@
 export const MAYA_SETUP_OPEN_EVENT = 'teglion:maya-setup-open'
 
-const PUBLIC_SITE_MAYA_PATH = '/app/firm/settings?tab=pagina-publica&mayaSetup=1'
+const PUBLIC_SITE_MAYA_PATH = '/app/firm/settings?tab=pagina-publica&coach=1'
 
 /** Abre o editor da página pública com painel Maya (preview ao vivo). */
 export function openMayaSetupInPublicSiteEditor() {
