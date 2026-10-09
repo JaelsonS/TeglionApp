@@ -17,6 +17,7 @@ const { parseMediaAssets, mergeMediaAssetsIntoDraft } = require('./media-assets'
 const { mergeFirmContactIntoDraft, sanitizeContactForAiContext } = require('./firm-contact-patch');
 const { seedDemoClients } = require('./demo-office.service');
 const { getMayaSetupCapabilities } = require('./capabilities');
+const { parseCustomServices } = require('./custom-services');
 
 const ALLOWED_TONES = new Set(['formal', 'friendly']);
 const ALLOWED_COUNTRIES = new Set(['PT', 'BR']);
@@ -86,6 +87,12 @@ function normalizeAnswers(raw, firmCountry) {
     input.scheduleHint && typeof input.scheduleHint === 'object' ? input.scheduleHint : null;
   const ownerBrief = String(input.ownerBrief || '').trim().slice(0, 600);
   const mediaAssets = parseMediaAssets(input.mediaAssets);
+  const customServices = parseCustomServices(input.customServices);
+  if (!catalogKeys.length && !customServices.length) {
+    throw new AppError('Seleccione serviços do catálogo ou adicione pelo menos um serviço personalizado.', 400, {
+      code: 'MAYA_SERVICES_REQUIRED',
+    });
+  }
 
   return {
     consentOpenAi: true,
@@ -99,6 +106,7 @@ function normalizeAnswers(raw, firmCountry) {
     scheduleHint,
     ...(ownerBrief ? { ownerBrief } : {}),
     ...(mediaAssets ? { mediaAssets } : {}),
+    ...(customServices.length ? { customServices } : {}),
   };
 }
 
@@ -289,6 +297,49 @@ async function applyServicesFromProposal(firmId, services, { prepareForPublicPag
   return { created, skipped, published };
 }
 
+async function applyCustomServicesFromAnswers(
+  firmId,
+  customServices,
+  { prepareForPublicPage = false, serviceImages = {} } = {},
+) {
+  const created = [];
+  for (let i = 0; i < (customServices || []).length; i++) {
+    const spec = customServices[i];
+    const slugBase = String(spec.name || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60);
+    const slug = slugBase || `servico-${Date.now()}`;
+    const listPublic = prepareForPublicPage === true;
+    const imageStorageKey = serviceImages[`custom:${i}`] || null;
+    const { item } = await accountingServicesService.create({
+      firmId,
+      payload: {
+        name: spec.name,
+        description: spec.description,
+        durationMinutes: spec.durationMinutes,
+        priceCents: spec.priceCents,
+        isActive: true,
+        isPubliclyListed: listPublic,
+        slug: listPublic ? slug : null,
+        requiresBooking: true,
+        intakeForm: {
+          version: 1,
+          questions: [
+            { id: 'msg', type: 'text', label: 'Mensagem ou contexto do pedido', required: true },
+          ],
+        },
+        ...(imageStorageKey ? { imageStorageKey } : {}),
+      },
+    });
+    created.push(item);
+  }
+  return created;
+}
+
 async function applyIrsFromProposal(firmId, irs, countryCode) {
   if (String(countryCode).toUpperCase() !== 'PT' || !irs?.activateCampaign) {
     return { activated: [] };
@@ -357,6 +408,10 @@ async function applyProposal({ firmId, actorUserId, sessionId, req }) {
     prepareForPublicPage,
     serviceImages,
   });
+  const customCreated = await applyCustomServicesFromAnswers(firmId, session.answers?.customServices, {
+    prepareForPublicPage,
+    serviceImages,
+  });
   const irsResult = await applyIrsFromProposal(firmId, proposal.irs, countryCode);
   const bookingResult = await applyBookingFromProposal(firmId, proposal.booking);
 
@@ -368,7 +423,8 @@ async function applyProposal({ firmId, actorUserId, sessionId, req }) {
 
   const applySummary = {
     draftUpdated: true,
-    servicesCreated: servicesResult.created.length,
+    servicesCreated: servicesResult.created.length + customCreated.length,
+    customServicesCreated: customCreated.length,
     servicesSkippedExisting: servicesResult.skipped,
     servicesListedPublic: servicesResult.published?.length || 0,
     logoUploadedInWizard: Boolean(parsedMedia?.logoUploaded),

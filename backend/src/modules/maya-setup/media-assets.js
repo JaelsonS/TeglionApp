@@ -31,13 +31,16 @@ function parseServiceImageStorageKey(raw) {
   return null;
 }
 
+const CUSTOM_SERVICE_KEY_RE = /^custom:[0-9]+$/;
+
 function parseServiceImages(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
   const out = {};
-  for (const [catalogKey, val] of Object.entries(raw)) {
-    if (!CATALOG_KEY_SET.has(catalogKey)) continue;
+  for (const [serviceKey, val] of Object.entries(raw)) {
+    const allowed = CATALOG_KEY_SET.has(serviceKey) || CUSTOM_SERVICE_KEY_RE.test(String(serviceKey));
+    if (!allowed) continue;
     const storageKey = parseServiceImageStorageKey(val);
-    if (storageKey) out[catalogKey] = storageKey;
+    if (storageKey) out[serviceKey] = storageKey;
     if (Object.keys(out).length >= 12) break;
   }
   return out;

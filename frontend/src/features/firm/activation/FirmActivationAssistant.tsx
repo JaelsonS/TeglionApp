@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { CheckCircle2, Circle, Compass, Loader2, Sparkles } from 'lucide-react'
 
 import { AskMayaButton } from '@/features/maya'
 import { openClientsCsvImport } from '@/features/firm/clients/openClientsCsvImport'
-import { openMayaSetupWizard } from '@/features/maya/setup/openMayaSetup'
+import { openMayaSetupInPublicSiteEditor, openMayaSetupWizard } from '@/features/maya/setup/openMayaSetup'
 import {
   ACTIVATION_ASSISTANT_OPEN_EVENT,
   MAYA_SETUP_APPLIED_EVENT,
@@ -52,6 +52,7 @@ function isFirmOwner(user: AuthUser | null | undefined) {
 }
 
 export function FirmActivationAssistant() {
+  const navigate = useNavigate()
   const auth = useAuthOptional()
   const user = auth?.user ?? null
   const firmSlugKey = user?.tenant?.slug ?? ''
@@ -117,7 +118,17 @@ export function FirmActivationAssistant() {
 
   function openSetupAndKeepAssistant() {
     setOpen(false)
-    openMayaSetupWizard()
+    openMayaSetupInPublicSiteEditor()
+  }
+
+  function goToPhase() {
+    if (!phase || phase.id === 'complete') return
+    setOpen(false)
+    if (phase.id === 'mayaSetup') {
+      openMayaSetupInPublicSiteEditor()
+      return
+    }
+    navigate(phase.to)
   }
 
   if (!user || !phase || !progress || !activationSignals) return null
@@ -195,10 +206,8 @@ export function FirmActivationAssistant() {
                   Fechar
                 </Button>
               ) : (
-                <Button type="button" variant="primary" size="sm" asChild>
-                  <Link to={phase.to} onClick={() => setOpen(false)}>
-                    {phase.ctaLabel}
-                  </Link>
+                <Button type="button" variant="primary" size="sm" onClick={goToPhase}>
+                  {phase.ctaLabel}
                 </Button>
               )}
               {phase.mayaIntentId ? <AskMayaButton intentId={phase.mayaIntentId} /> : null}

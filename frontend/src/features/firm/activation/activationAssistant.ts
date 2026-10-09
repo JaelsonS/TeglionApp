@@ -58,7 +58,7 @@ const PHASE_COPY: Record<Exclude<ActivationPhaseId, 'complete'>, Omit<Activation
       'Revise o rascunho (ou o conteúdo que escreveu), confirme o slug e publique. Só então o link fica visível para potenciais clientes.',
     validationHint: 'Página com estado «publicada» em Definições → Página pública.',
     ctaLabel: 'Rever e publicar',
-    to: '/app/firm/settings?tab=pagina-publica',
+    to: '/app/firm/settings?tab=pagina-publica&mayaSetup=1',
     mayaIntentId: 'public-page',
     manualChecklist: [
       'Revise textos e contactos — a IA pode errar detalhes.',

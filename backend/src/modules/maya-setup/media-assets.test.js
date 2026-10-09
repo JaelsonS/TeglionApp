@@ -6,6 +6,15 @@ test('parseMediaAssets: rejeita ids inválidos', () => {
   assert.equal(parseMediaAssets({ heroImage: { id: 'x', storageKey: 'ok/path.png' } }), null);
 });
 
+test('parseMediaAssets: aceita imagens de serviços personalizados custom:0', () => {
+  const key = 'firm/acme/services/images/svc.png';
+  const parsed = parseMediaAssets({
+    serviceImages: { 'custom:0': { storageKey: key } },
+  });
+  assert.ok(parsed);
+  assert.equal(parsed.serviceImages['custom:0'], key);
+});
+
 test('mergeMediaAssetsIntoDraft: liga hero imageIds', () => {
   const draft = {
     images: { hero: [], institutional: [], bySection: {} },

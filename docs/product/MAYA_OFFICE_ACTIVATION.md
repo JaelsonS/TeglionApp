@@ -17,7 +17,9 @@ Permitir que escritórios (incl. os 5 pilotos) configurem **rápido e com segura
 ## Fases entregues
 
 - **A–D** — Setup IA, Painel (próximo passo + checklist), Maya contextual.
-- **Assistente de activação** — Perfil → Setup → publicar página → serviços públicos → primeiro cliente.
+- **Co-pilot página pública** — questionário **inline** em Definições → Página pública (`mayaSetup=1`); preview ao vivo enquanto responde (antes do apply); passo marca/legal/redes/cores; enquadrar hero/sobre nas secções; pré-visualização em **nova aba** (`?preview=token`); imagens em serviços personalizados (`custom:0`, …).
+- **Serviços personalizados** — até 6 no questionário (além do catálogo PT/BR); criados no apply com intake mínimo.
+- **Assistente de activação** — Perfil → Setup → publicar página → serviços públicos → primeiro cliente (CTA navega com `navigate`, não link dentro do modal).
 - **B** — Imagens: logo, hero, sobre, por serviço (upload MIME validado no backend).
 - **C** — Contactos do rodapé a partir de `firm.settings.contact` no apply (não enviados à OpenAI).
 - **D** — Preview rico (secções + cores) no wizard.
