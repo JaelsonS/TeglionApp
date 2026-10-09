@@ -294,6 +294,13 @@ router.post(
   mayaSetupController.generate,
 );
 router.post(
+  '/maya-setup/advise',
+  requireFirmOwner,
+  mayaSetupGenerateLimiter,
+  [body('question').isString().trim().isLength({ min: 2, max: 500 })],
+  mayaSetupController.advise,
+);
+router.post(
   '/maya-setup/sessions/:id/apply',
   requireFirmOwner,
   mayaSetupController.apply,

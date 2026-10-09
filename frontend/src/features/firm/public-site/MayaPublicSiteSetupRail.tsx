@@ -36,12 +36,14 @@ export function MayaPublicSiteSetupRail({ onScrollToPreview }: Props) {
         <div className="min-w-0 max-w-2xl">
           <p className="flex items-center gap-2 text-caption font-semibold uppercase tracking-wide text-brand">
             <Sparkles className="h-4 w-4" aria-hidden />
-            Modo configuração rápida
+            Estúdio da página pública
           </p>
           <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-            O questionário Maya está <strong className="font-medium text-foreground">nesta página</strong> (abaixo).
-            O preview à direita actualiza enquanto preenche. Enquadre imagens nas secções; teste responsividade ou abra
-            numa nova aba antes de publicar.
+            Três passos: <strong className="font-medium text-foreground">contar</strong> (questionário) →{' '}
+            <strong className="font-medium text-foreground">rever</strong> (preview + edição) →{' '}
+            <strong className="font-medium text-foreground">publicar</strong>. À esquerda pode{' '}
+            <strong className="font-medium text-foreground">perguntar à Maya</strong> — guia incluído; respostas IA
+            curtas se o escritório tiver add-on.
           </p>
         </div>
         <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={dismiss} aria-label="Fechar painel">
@@ -50,11 +52,11 @@ export function MayaPublicSiteSetupRail({ onScrollToPreview }: Props) {
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         <Button type="button" size="sm" variant="primary" onClick={focusQuestionnaire}>
-          Ir ao questionário
+          Ir ao passo a passo
         </Button>
         {onScrollToPreview ? (
           <Button type="button" size="sm" variant="outline" onClick={onScrollToPreview}>
-            Ir ao preview
+            Ver preview
           </Button>
         ) : null}
       </div>

@@ -11,6 +11,14 @@ const SECTION_TYPES = new Set([
   'header', 'hero', 'about', 'services', 'bookingServices', 'features', 'process', 'faq', 'contact', 'footer',
 ]);
 const HEX_RE = /^#[0-9a-f]{6}$/i;
+
+function normalizeHexColor(value) {
+  if (value == null) return null;
+  const s = String(value).trim();
+  if (HEX_RE.test(s)) return s.toLowerCase();
+  if (/^[0-9a-f]{6}$/i.test(s)) return `#${s.toLowerCase()}`;
+  return null;
+}
 const TIME_RE = /^\d{1,2}:\d{2}$/;
 const TZ_SET = new Set(BOOKING_TIMEZONES);
 
@@ -65,10 +73,8 @@ function parsePublicSitePatch(raw) {
       'mutedTextColor',
     ]) {
       if (raw.theme[key] == null) continue;
-      const c = String(raw.theme[key]).trim();
-      if (!HEX_RE.test(c)) {
-        throw new AppError(`Cor inválida em theme.${key}`, 502, { code: 'MAYA_PROPOSAL_INVALID' });
-      }
+      const c = normalizeHexColor(raw.theme[key]);
+      if (!c) continue;
       theme[key] = c;
     }
     if (Object.keys(theme).length) out.theme = theme;
@@ -189,6 +195,61 @@ function parseBooking(raw, countryCode) {
 }
 
 /** JSON Schema (subset) para structured outputs OpenAI. */
+/**
+ * OpenAI devolve JSON variável — alinhar ao questionário antes de enrich/parse estrito.
+ */
+function coerceOpenAiProposal(raw, { countryCode = 'PT', answers = {} } = {}) {
+  const base = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+  const cc = String(countryCode || 'PT').toUpperCase();
+  const selectedKeys = Array.isArray(answers.serviceCatalogKeys)
+    ? answers.serviceCatalogKeys.filter((k) => CATALOG_KEY_SET.has(String(k)))
+    : [];
+
+  let publicSitePatch =
+    base.publicSitePatch && typeof base.publicSitePatch === 'object' && !Array.isArray(base.publicSitePatch)
+      ? { ...base.publicSitePatch }
+      : {};
+  if (publicSitePatch.theme && typeof publicSitePatch.theme === 'object') {
+    const theme = { ...publicSitePatch.theme };
+    for (const key of Object.keys(theme)) {
+      const norm = normalizeHexColor(theme[key]);
+      if (norm) theme[key] = norm;
+      else delete theme[key];
+    }
+    publicSitePatch.theme = theme;
+  }
+
+  let services = [];
+  if (selectedKeys.length) {
+    services = (Array.isArray(base.services) ? base.services : [])
+      .map((item) => {
+        const catalogKey = trimStr(item?.catalogKey || item?.templateKey, 80);
+        if (!catalogKey || !CATALOG_KEY_SET.has(catalogKey)) return null;
+        if (cc === 'BR' && (catalogKey === 'irs-modelo-3' || catalogKey.startsWith(IRS_CATALOG_PREFIX))) return null;
+        if (!selectedKeys.includes(catalogKey)) return null;
+        return {
+          catalogKey,
+          name: item?.name,
+          slug: item?.slug,
+          publicGroup: item?.publicGroup,
+          description: item?.description,
+        };
+      })
+      .filter(Boolean);
+    if (!services.length) {
+      services = selectedKeys.map((catalogKey) => ({ catalogKey }));
+    }
+  }
+
+  return {
+    publicSitePatch,
+    services,
+    irs: base.irs && typeof base.irs === 'object' ? base.irs : { activateCampaign: false, templateIds: [] },
+    booking: base.booking && typeof base.booking === 'object' ? base.booking : null,
+    rationale: base.rationale,
+  };
+}
+
 function openAiJsonSchema() {
   return {
     type: 'object',
@@ -206,6 +267,8 @@ function openAiJsonSchema() {
 
 module.exports = {
   parseProposalV1,
+  coerceOpenAiProposal,
+  normalizeHexColor,
   openAiJsonSchema,
   CATALOG_KEY_SET,
 };

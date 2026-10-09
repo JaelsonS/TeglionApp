@@ -10,8 +10,9 @@ Permitir que escritórios (incl. os 5 pilotos) configurem **rápido e com segura
 
 | Camada | Custo IA | Função |
 |--------|----------|--------|
-| **Maya guia** | Incluída | Intents estáticos, «O que fazer aqui», Assistente de activação (regras) |
-| **Configuração rápida (Setup)** | Add-on `ai` ou piloto | Questionário + OpenAI → proposta validada → apply em rascunho |
+| **Maya guia** | Incluída | Intents estáticos, FAB, chat no estúdio (pesquisa local) |
+| **Estúdio página pública** | Setup: 1×/sessão; chat: respostas curtas | Ver `docs/product/MAYA_PUBLIC_SITE_STUDIO.md` |
+| **Assistente de activação** | Incluída | Mapa do escritório (perfil → página → clientes) |
 | **Import CSV clientes** | Não | Fluxo existente `ClientsSpreadsheetDialog` |
 
 ## Fases entregues

@@ -1,10 +1,9 @@
-import { ArrowRight, Copy, ExternalLink, Link2, Sparkles } from 'lucide-react'
+import { ArrowRight, Copy, ExternalLink, Link2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { AskMayaButton } from '@/features/maya'
 import { OpenActivationAssistantButton } from '@/features/firm/activation/FirmActivationAssistant'
-import { openMayaSetupWizard } from '@/features/maya/setup/openMayaSetup'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import type { FirmNextAction } from '@/features/firm/onboarding/firmProgress'
@@ -34,15 +33,7 @@ export function FirmNextStepCard({ action, loading, isOwner }: FirmNextStepCardP
           </Link>
         </Button>
         {action.mayaIntentId ? <AskMayaButton intentId={action.mayaIntentId} /> : null}
-        {isOwner && action.mayaSetupOffer ? (
-          <>
-            <OpenActivationAssistantButton />
-            <Button type="button" variant="secondary" size="sm" onClick={() => openMayaSetupWizard()}>
-              <Sparkles className="h-4 w-4" />
-              Maya configura por mim
-            </Button>
-          </>
-        ) : null}
+        {isOwner && action.mayaSetupOffer ? <OpenActivationAssistantButton /> : null}
       </CardContent>
     </Card>
   )

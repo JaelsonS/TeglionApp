@@ -445,6 +445,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     firstTimeHint:
       'Configure logótipos à direita se quiser site sem logo do portal; preencha o destaque; guarde → pré-visualize → publique.',
     topicIds: [
+      'maya-setup',
       'public-page',
       'public-page-featured',
       'public-page-logos',
@@ -453,6 +454,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
       'public-page-publish',
       'service',
       'booking',
+      'activation-assistant',
     ],
     primaryIntentId: 'public-page',
   },

@@ -165,8 +165,67 @@ async function generateMayaSetupProposal(context) {
   });
 }
 
+async function answerSetupQuestion({ question, context }) {
+  const q = String(question || '').trim().slice(0, 500);
+  if (!q) {
+    throw new AppError('Escreva uma pergunta.', 400, { code: 'MAYA_ADVISE_EMPTY' });
+  }
+  if (isMockMode() || !getApiKey()) {
+    if (!isMockMode() && !getApiKey()) {
+      throw new AppError('OpenAI não configurado neste ambiente.', 503, { code: 'OPENAI_NOT_CONFIGURED' });
+    }
+    return {
+      answer:
+        'Modo demonstração: use o preview à direita e edite secções abaixo. Para textos completos, use «Gerar proposta com IA» no passo de imagens (consome crédito de setup).',
+      requestId: 'mock-advise',
+    };
+  }
+
+  const model = String(process.env.MAYA_SETUP_OPENAI_MODEL || DEFAULT_MODEL).trim();
+  const system = [
+    'É a Maya no Teglion (contabilidade PT/BR). Responda em PT-PT, 2–5 frases curtas.',
+    'Só ajuda a configurar a página pública, serviços, imagens, legal e publicação no produto.',
+    'Nunca aconselhamento fiscal vinculativo. Não peça nem invente NIF, nomes de clientes ou documentos.',
+    'Se não souber, diga para usar o preview, as secções do editor ou o suporte humano.',
+  ].join(' ');
+
+  const user = JSON.stringify({
+    question: q,
+    setupStep: context?.setupStep || null,
+    countryCode: context?.countryCode || 'PT',
+    firmName: context?.firmName || null,
+  });
+
+  const res = await axios.post(
+    'https://api.openai.com/v1/chat/completions',
+    {
+      model,
+      temperature: 0.3,
+      max_tokens: 320,
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: user },
+      ],
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${getApiKey()}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: 30_000,
+    },
+  );
+  const requestId = res.headers['x-request-id'] || res.data?.id || null;
+  const content = res.data?.choices?.[0]?.message?.content?.trim();
+  if (!content) {
+    throw new AppError('Resposta vazia.', 502, { code: 'OPENAI_EMPTY' });
+  }
+  return { answer: content.slice(0, 1200), requestId };
+}
+
 module.exports = {
   generateMayaSetupProposal,
+  answerSetupQuestion,
   buildMockProposal,
   isMockMode,
 };
