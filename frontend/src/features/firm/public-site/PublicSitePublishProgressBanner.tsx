@@ -1,14 +1,24 @@
 import type { PublicSitePublishReadinessItem } from '@/features/firm/public-site/publicSitePublishReadiness'
+import { openMayaForPublicSiteCoach } from '@/features/firm/public-site/publicSiteCoachContext'
+import { MayaAvatar } from '@/features/maya/MayaAvatar'
 import { cn } from '@/shared/lib/utils'
 
 type Props = {
   items: PublicSitePublishReadinessItem[]
   onFocus: (item: PublicSitePublishReadinessItem) => void
+  mayaTip?: string
+  mayaIntentId?: string
   className?: string
 }
 
 /** Modo simples — um banner em vez da checklist completa. */
-export function PublicSitePublishProgressBanner({ items, onFocus, className }: Props) {
+export function PublicSitePublishProgressBanner({
+  items,
+  onFocus,
+  mayaTip,
+  mayaIntentId = 'public-page',
+  className,
+}: Props) {
   const done = items.filter((i) => i.ok).length
   const total = items.length
   const next = items.find((i) => !i.ok)
@@ -51,6 +61,19 @@ export function PublicSitePublishProgressBanner({ items, onFocus, className }: P
           Requisitos base cumpridos — confirme textos legais antes de publicar.
         </p>
       )}
+      {mayaTip ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/40 pt-3">
+          <MayaAvatar size="xs" ring={false} />
+          <p className="min-w-0 flex-1 text-[11px] leading-snug text-muted-foreground">{mayaTip}</p>
+          <button
+            type="button"
+            className="text-[11px] font-medium text-brand underline-offset-2 hover:underline"
+            onClick={() => openMayaForPublicSiteCoach(mayaIntentId)}
+          >
+            Abrir Maya
+          </button>
+        </div>
+      ) : null}
     </section>
   )
 }

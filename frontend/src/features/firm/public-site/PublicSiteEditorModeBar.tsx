@@ -39,8 +39,8 @@ export function PublicSiteEditorModeBar({ mode, onModeChange, className }: Props
       </div>
       <p className="text-[11px] text-muted-foreground">
         {mode === 'simple'
-          ? 'Maya guia passo a passo — menos painéis de uma vez.'
-          : 'Editor completo — checklist, extras e todos os controlos.'}
+          ? 'Passos essenciais, exemplo AfDigital e Maya no canto.'
+          : 'Checklist, legal, extras e secções — sem questionário neste ecrã.'}
       </p>
     </div>
   )
