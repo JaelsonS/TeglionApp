@@ -23,6 +23,7 @@ import {
 import { resolveMayaPage } from '@/features/maya/content/resolvePage'
 import type { MayaFieldHelp, MayaIntent, MayaPageGuide, MayaProblem } from '@/features/maya/content/types'
 import { MAYA_OPEN_EVENT, type MayaOpenDetail } from '@/features/maya/openMaya'
+import { openMayaSetupWizard } from '@/features/maya/setup/openMayaSetup'
 import {
   isMayaFabVisible,
   MAYA_FAB_CHANGED_EVENT,
@@ -660,7 +661,21 @@ function MayaIntentView({
         </div>
       </div>
 
-      {intent.deepLink ? (
+      {intent.id === 'maya-setup' && responsible ? (
+        <Button
+          type="button"
+          variant="primary"
+          fullWidth
+          onClick={() => {
+            openMayaSetupWizard()
+            onHome()
+          }}
+        >
+          {intent.ctaLabel || 'Configuração rápida'}
+        </Button>
+      ) : null}
+
+      {intent.deepLink && intent.id !== 'maya-setup' ? (
         <Button type="button" variant="primary" fullWidth onClick={() => onGoToLink(intent.deepLink)}>
           <ExternalLink className="h-4 w-4" />
           {intent.ctaLabel || `Ir para ${intent.shortDescription}`}
