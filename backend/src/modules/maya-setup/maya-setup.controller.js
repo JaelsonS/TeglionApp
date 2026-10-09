@@ -62,6 +62,7 @@ exports.apply = async (req, res, next) => {
       actorUserId: req.user.id,
       sessionId: req.params.id,
       req,
+      proposalOverride: req.body?.proposal,
     });
     return res.json(result);
   } catch (err) {

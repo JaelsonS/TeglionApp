@@ -80,9 +80,9 @@ export const mayaSetupApi = {
   generate: (id: string) =>
     api.post(`/contabil/maya-setup/sessions/${id}/generate`).then((r) => r.data as { session: MayaSetupSession }),
 
-  apply: (id: string) =>
+  apply: (id: string, proposal?: MayaSetupProposalV1) =>
     api
-      .post(`/contabil/maya-setup/sessions/${id}/apply`)
+      .post(`/contabil/maya-setup/sessions/${id}/apply`, proposal ? { proposal } : undefined)
       .then(
         (r) =>
           r.data as {

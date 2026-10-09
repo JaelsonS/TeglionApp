@@ -10,7 +10,7 @@ const accountingServicesService = require('../firm/accounting-services.service')
 const bookingService = require('../booking/booking.service');
 const securityAudit = require('../../services/audit/security-audit.service');
 const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-catalog');
-const { parseProposalV1, CATALOG_KEY_SET } = require('./proposal.schema');
+const { parseProposalV1, coerceOpenAiProposal, CATALOG_KEY_SET } = require('./proposal.schema');
 const openaiClient = require('./openai.client');
 const { ensureProposalFromContext } = require('./proposal-enrich');
 const { parseMediaAssets, mergeMediaAssetsIntoDraft } = require('./media-assets');
@@ -193,8 +193,8 @@ async function generateProposal({ firmId, actorUserId, sessionId, req }) {
   };
 
   const { proposal: rawProposal, requestId } = await openaiClient.generateMayaSetupProposal(context);
-  let proposal = parseProposalV1(rawProposal, { countryCode });
-  proposal = ensureProposalFromContext(proposal, context);
+  const coerced = coerceOpenAiProposal(rawProposal, { countryCode, answers });
+  let proposal = ensureProposalFromContext(coerced, context);
   proposal = parseProposalV1(proposal, { countryCode });
 
   const updated = await mayaSetupSessionsRepository.updateSession(sessionId, firmId, {
@@ -374,7 +374,7 @@ async function applyBookingFromProposal(firmId, booking) {
   });
 }
 
-async function applyProposal({ firmId, actorUserId, sessionId, req }) {
+async function applyProposal({ firmId, actorUserId, sessionId, req, proposalOverride }) {
   await assertOwnerActor(firmId, actorUserId);
   await assertMayaSetupEntitlement(firmId);
 
@@ -387,13 +387,18 @@ async function applyProposal({ firmId, actorUserId, sessionId, req }) {
       applySummary: session.proposal?.applySummary || null,
     };
   }
-  if (!session.proposal) {
+  if (!session.proposal && !proposalOverride) {
     throw new AppError('Gere uma proposta antes de aplicar.', 400, { code: 'MAYA_SETUP_NO_PROPOSAL' });
   }
 
   const firm = await firmsRepository.findFirmById(firmId);
   const countryCode = session.answers?.countryCode || firm.countryCode || 'PT';
-  const proposal = parseProposalV1(session.proposal, { countryCode });
+  let proposalSource = session.proposal;
+  if (proposalOverride && typeof proposalOverride === 'object') {
+    proposalSource = parseProposalV1(proposalOverride, { countryCode });
+    await mayaSetupSessionsRepository.updateSession(sessionId, firmId, { proposal: proposalSource });
+  }
+  const proposal = parseProposalV1(proposalSource, { countryCode });
 
   const siteRow = await firmPublicSitesRepository.findByFirmId(firmId);
   const parsedMedia = parseMediaAssets(session.answers?.mediaAssets);

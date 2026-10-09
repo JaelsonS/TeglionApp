@@ -19,6 +19,7 @@ import {
   MAYA_SETUP_APPLIED_EVENT,
 } from '@/features/firm/activation/openActivationAssistant'
 import { markMayaSetupAppliedForActivation } from '@/features/firm/activation/activationAssistantPrefs'
+import { getErrorMessage } from '@/shared/utils/errors'
 import {
   MAYA_SETUP_SERVICE_OPTIONS_BR,
   MAYA_SETUP_SERVICE_OPTIONS_PT,
@@ -32,11 +33,8 @@ import {
 } from '@/features/maya/setup/MayaSetupMediaStep'
 import { MayaSetupBrandLegalStep } from '@/features/maya/setup/MayaSetupBrandLegalStep'
 import { buildMayaLivePreviewDraft } from '@/features/maya/setup/mayaSetupLocalPatch'
-import { formatBookingPreview, formatPublicSitePreview } from '@/features/maya/setup/mayaSetupPreview'
-import {
-  listProposalSectionPreviews,
-  proposalThemeSwatch,
-} from '@/features/maya/setup/mayaSetupPreviewVisual'
+import { MayaSetupProposalReviewEditor } from '@/features/maya/setup/MayaSetupProposalReviewEditor'
+import type { MayaSetupProposalV1 } from '@/infrastructure/api/contabil/mayaSetup'
 import { useAuthOptional } from '@/shared/hooks/useAuth'
 import type { AuthUser } from '@/shared/types/auth'
 
@@ -104,6 +102,7 @@ export function MayaPublicSiteInlineSetup({
   const [media, setMedia] = useState<MayaSetupMediaState>(DEFAULT_MEDIA)
   const [overlayDraft, setOverlayDraft] = useState<PublicSiteConfig>(() => structuredClone(baseDraft))
   const [previewTab, setPreviewTab] = useState<'site' | 'services' | 'irs' | 'booking'>('site')
+  const [editedProposal, setEditedProposal] = useState<MayaSetupProposalV1 | null>(null)
 
   useEffect(() => {
     setOverlayDraft(structuredClone(baseDraft))
@@ -151,10 +150,10 @@ export function MayaPublicSiteInlineSetup({
       firmName,
       answers,
       media,
-      proposal: session?.proposal ?? null,
+      proposal: (step === 'preview' ? editedProposal : null) ?? session?.proposal ?? null,
       overlayDraft: step === 'brand' || step === 'media' || step === 'loading' || step === 'preview' ? overlayDraft : null,
     })
-  }, [expanded, step, baseDraft, firmName, answers, media, session?.proposal, overlayDraft])
+  }, [expanded, step, baseDraft, firmName, answers, media, session?.proposal, editedProposal, overlayDraft])
 
   useEffect(() => {
     onLivePreviewDraft(liveDraft)
@@ -247,10 +246,10 @@ export function MayaPublicSiteInlineSetup({
       setStep('loading')
       const { session: generated } = await mayaSetupApi.generate(created.id)
       setSession(generated)
+      setEditedProposal(generated.proposal ? structuredClone(generated.proposal) : null)
       setStep('preview')
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Não foi possível gerar a proposta.'
-      toast.error(msg)
+      toast.error(getErrorMessage(e) || 'Não foi possível gerar a proposta.')
       setStep('media')
     } finally {
       setBusy(false)
@@ -276,11 +275,11 @@ export function MayaPublicSiteInlineSetup({
           media,
         }),
         media,
-        proposal: session.proposal ?? null,
+        proposal: editedProposal ?? session.proposal ?? null,
         overlayDraft,
       })
       await onSaveLiveDraft(snapshot)
-      const result = await mayaSetupApi.apply(session.id)
+      const result = await mayaSetupApi.apply(session.id, editedProposal ?? session.proposal ?? undefined)
       await onSaveLiveDraft(snapshot)
       setSession(result.session)
       setStep('done')
@@ -296,11 +295,7 @@ export function MayaPublicSiteInlineSetup({
     }
   }
 
-  const proposal = session?.proposal
-  const sitePreview = proposal ? formatPublicSitePreview(proposal) : null
-  const bookingLines = proposal ? formatBookingPreview(proposal) : []
-  const sectionPreviews = proposal ? listProposalSectionPreviews(proposal) : []
-  const themeSwatch = proposal ? proposalThemeSwatch(proposal) : null
+  const reviewProposal = editedProposal ?? session?.proposal ?? null
 
   if (!owner) return null
 
@@ -454,15 +449,13 @@ export function MayaPublicSiteInlineSetup({
             </div>
           ) : null}
 
-          {step === 'preview' && proposal ? (
-            <ProposalReview
-              proposal={proposal}
+          {step === 'preview' && reviewProposal ? (
+            <MayaSetupProposalReviewEditor
+              proposal={reviewProposal}
+              onChange={setEditedProposal}
               previewTab={previewTab}
               setPreviewTab={setPreviewTab}
-              sitePreview={sitePreview}
-              sectionPreviews={sectionPreviews}
-              themeSwatch={themeSwatch ?? undefined}
-              bookingLines={bookingLines}
+              countryCode={countryCode}
               busy={busy}
               onBack={() => setStep('media')}
               onApply={() => void applyDraft()}
@@ -597,79 +590,6 @@ function CustomServicesBlock({
           Adicionar serviço personalizado
         </Button>
       ) : null}
-    </div>
-  )
-}
-
-function ProposalReview({
-  proposal,
-  previewTab,
-  setPreviewTab,
-  sitePreview,
-  sectionPreviews,
-  themeSwatch,
-  bookingLines,
-  busy,
-  onBack,
-  onApply,
-}: {
-  proposal: NonNullable<MayaSetupSession['proposal']>
-  previewTab: 'site' | 'services' | 'irs' | 'booking'
-  setPreviewTab: (t: 'site' | 'services' | 'irs' | 'booking') => void
-  sitePreview: ReturnType<typeof formatPublicSitePreview> | null
-  sectionPreviews: ReturnType<typeof listProposalSectionPreviews>
-  themeSwatch?: ReturnType<typeof proposalThemeSwatch>
-  bookingLines: string[]
-  busy: boolean
-  onBack: () => void
-  onApply: () => void
-}) {
-  return (
-    <div className="space-y-3">
-      <p className="text-sm text-muted-foreground">
-        Revise o resumo — o preview à direita já reflecte a proposta. «Aplicar» grava serviços e rascunho no servidor.
-      </p>
-      <div className="flex flex-wrap gap-1">
-        {(
-          [
-            ['site', 'Página'],
-            ['services', 'Serviços'],
-            ['irs', 'IRS'],
-            ['booking', 'Horários'],
-          ] as const
-        ).map(([id, label]) => (
-          <Button key={id} size="sm" variant={previewTab === id ? 'default' : 'outline'} onClick={() => setPreviewTab(id)}>
-            {label}
-          </Button>
-        ))}
-      </div>
-      <div className="rounded-lg border bg-muted/20 p-3 text-sm">
-        {previewTab === 'site' && sitePreview && !sitePreview.empty ? (
-          <p className="text-muted-foreground">{sitePreview.heroTitle || sitePreview.seoTitle}</p>
-        ) : null}
-        {previewTab === 'services' ? (
-          <ul className="list-disc pl-5">
-            {proposal.services.map((s) => (
-              <li key={s.catalogKey}>{s.name || s.catalogKey}</li>
-            ))}
-          </ul>
-        ) : null}
-        {previewTab === 'booking' ? (
-          <ul>
-            {bookingLines.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onBack}>
-          Ajustar
-        </Button>
-        <Button onClick={onApply} disabled={busy}>
-          Aplicar rascunho
-        </Button>
-      </div>
     </div>
   )
 }
