@@ -78,11 +78,8 @@ export function MayaSetupWizard() {
   const [countryCode, setCountryCode] = useState<'PT' | 'BR'>('PT')
   const [tone, setTone] = useState<'formal' | 'friendly'>('friendly')
   const [specialties, setSpecialties] = useState<string[]>([])
-  const [serviceKeys, setServiceKeys] = useState<string[]>([
-    'consultoria-individual',
-    'simulacao-irs',
-    'abertura-atividade',
-  ])
+  const [serviceKeys, setServiceKeys] = useState<string[]>([])
+  const [customServices, setCustomServices] = useState<Array<{ name: string; description: string }>>([])
   const [irsCampaign, setIrsCampaign] = useState(true)
   const [cityRegion, setCityRegion] = useState('')
   const [ownerBrief, setOwnerBrief] = useState('')
@@ -96,8 +93,16 @@ export function MayaSetupWizard() {
         toast.error('Só o responsável do escritório pode usar a configuração rápida.')
         return
       }
+      const inlineOnPublicSite =
+        typeof window !== 'undefined' &&
+        window.location.pathname.includes('/app/firm/settings') &&
+        window.location.search.includes('tab=pagina-publica') &&
+        window.location.search.includes('mayaSetup=1')
+      if (inlineOnPublicSite) return
       setStep('consent')
       setSession(null)
+      setServiceKeys([])
+      setCustomServices([])
       setMedia(DEFAULT_MEDIA)
       setOpen(true)
       void mayaSetupApi.getCapabilities().then((r) => setCapabilities(r.capabilities)).catch(() => setCapabilities(null))
@@ -119,6 +124,18 @@ export function MayaSetupWizard() {
       irsCampaign: countryCode === 'PT' ? irsCampaign : false,
       cityRegion: cityRegion.trim() || undefined,
       ownerBrief: ownerBrief.trim().slice(0, OWNER_BRIEF_MAX) || undefined,
+      ...(customServices.filter((s) => s.name.trim()).length
+        ? {
+            customServices: customServices
+              .filter((s) => s.name.trim())
+              .map((s) => ({
+                name: s.name.trim(),
+                description: s.description.trim() || undefined,
+                durationMinutes: 60,
+                priceCents: 0,
+              })),
+          }
+        : {}),
       scheduleHint: { weekdays: [1, 2, 3, 4, 5], dayStart: '09:00', dayEnd: '18:00' },
       ...(media.logoUploaded ||
       media.heroImage ||
@@ -348,11 +365,54 @@ export function MayaSetupWizard() {
                 Incluir campanha IRS Modelo 3 (recolha — não cálculo AT)
               </label>
             ) : null}
+            <div className="grid gap-2 rounded-lg border border-dashed p-3">
+              <Label>Serviços personalizados (opcional)</Label>
+              <p className="text-caption text-muted-foreground">
+                Além do catálogo — nome à medida do escritório (preço e formulário pode afinar depois em Serviços).
+              </p>
+              {customServices.map((row, idx) => (
+                <div key={idx} className="flex flex-col gap-1 sm:flex-row">
+                  <input
+                    className="h-9 flex-1 rounded-md border border-input px-2 text-sm"
+                    placeholder="Nome do serviço"
+                    value={row.name}
+                    onChange={(e) =>
+                      setCustomServices((prev) =>
+                        prev.map((r, i) => (i === idx ? { ...r, name: e.target.value } : r)),
+                      )
+                    }
+                  />
+                  <input
+                    className="h-9 flex-1 rounded-md border border-input px-2 text-sm"
+                    placeholder="Descrição curta (opcional)"
+                    value={row.description}
+                    onChange={(e) =>
+                      setCustomServices((prev) =>
+                        prev.map((r, i) => (i === idx ? { ...r, description: e.target.value } : r)),
+                      )
+                    }
+                  />
+                </div>
+              ))}
+              {customServices.length < 4 ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setCustomServices((prev) => [...prev, { name: '', description: '' }])}
+                >
+                  Adicionar serviço personalizado
+                </Button>
+              ) : null}
+            </div>
             <div className="flex flex-wrap justify-end gap-2">
               <Button variant="outline" onClick={() => setStep('consent')}>
                 Voltar
               </Button>
-              <Button onClick={() => setStep('media')} disabled={serviceKeys.length < 1}>
+              <Button
+                onClick={() => setStep('media')}
+                disabled={serviceKeys.length < 1 && !customServices.some((s) => s.name.trim())}
+              >
                 Continuar — imagens
               </Button>
             </div>
@@ -367,8 +427,9 @@ export function MayaSetupWizard() {
             countryCode={countryCode}
             demoOfficeAllowed={Boolean(capabilities?.demoOffice)}
             onBack={() => setStep('questions')}
+            customServices={customServices.filter((s) => s.name.trim())}
             onGenerate={() => void startSession()}
-            generateDisabled={serviceKeys.length < 1}
+            generateDisabled={serviceKeys.length < 1 && !customServices.some((s) => s.name.trim())}
             generating={busy}
           />
         ) : null}

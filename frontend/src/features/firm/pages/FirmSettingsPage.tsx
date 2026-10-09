@@ -75,6 +75,21 @@ export function FirmSettingsPage() {
     [canCloseAccount],
   )
 
+  const mayaSetupMode = searchParams.get('mayaSetup') === '1'
+
+  useEffect(() => {
+    if (mayaSetupMode && searchParams.get('tab') !== 'pagina-publica') {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev)
+          next.set('tab', 'pagina-publica')
+          return next
+        },
+        { replace: true },
+      )
+    }
+  }, [mayaSetupMode, searchParams, setSearchParams])
+
   const activeTab: TabId = useMemo(() => {
     const fromQuery = searchParams.get('tab')
     if (isTabId(fromQuery) && visibleTabs.some((tab) => tab.id === fromQuery)) {
@@ -260,7 +275,7 @@ export function FirmSettingsPage() {
               ) : null}
 
               {activeTab === 'pagina-publica' ? (
-                <PublicSiteEditor bundle={bundle} onFirmUpdated={onUpdated} />
+                <PublicSiteEditor bundle={bundle} onFirmUpdated={onUpdated} mayaSetupMode={mayaSetupMode} />
               ) : null}
 
               {activeTab === 'escritorio' ? (

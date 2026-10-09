@@ -16,6 +16,12 @@ export type MayaSetupAnswers = {
     dayStart?: string
     dayEnd?: string
   }
+  customServices?: Array<{
+    name: string
+    description?: string
+    durationMinutes?: number
+    priceCents?: number
+  }>
   mediaAssets?: {
     logoUploaded?: boolean
     heroImage?: { id: string; storageKey: string; alt?: string }

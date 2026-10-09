@@ -88,6 +88,9 @@ import { usePublicSiteEditorPreviewAssist } from './usePublicSiteEditorPreviewAs
 import { PublicSiteEditorFold } from './PublicSiteEditorFold'
 import { PublicSiteLinkPublishPanel } from './PublicSiteLinkPublishPanel'
 import { PublicSiteEditorDeviceChrome } from './PublicSiteEditorDeviceChrome'
+import { MayaPublicSiteSetupRail } from '@/features/firm/public-site/MayaPublicSiteSetupRail'
+import { MayaPublicSiteInlineSetup } from '@/features/firm/public-site/MayaPublicSiteInlineSetup'
+import { MAYA_SETUP_APPLIED_EVENT } from '@/features/firm/activation/openActivationAssistant'
 import { PublicSiteExtrasPanel } from './PublicSiteExtrasPanel'
 import { PublicSiteLegalFieldsEditor } from './PublicSiteLegalFieldsEditor'
 import { evaluatePublicSiteLegalGaps, publicSiteLegalFieldsDomId } from './publicSiteLegalCompliance'
@@ -126,7 +129,11 @@ type Props = {
   onFirmUpdated?: () => void
 }
 
-export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
+type PublicSiteEditorProps = Props & {
+  mayaSetupMode?: boolean
+}
+
+export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode }: PublicSiteEditorProps) {
   const firmSlug = bundle.firm.slug || ''
   const canEditLink = Boolean(bundle.capabilities?.canCloseAccount) // owner-only (same as close account)
   const [draft, setDraft] = useState<PublicSiteConfig | null>(null)
@@ -146,6 +153,11 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const [linkPublishOpen, setLinkPublishOpen] = useState(false)
   const [extrasOpen, setExtrasOpen] = useState(false)
   const [legalPublishAckChecked, setLegalPublishAckChecked] = useState(false)
+  /** Preview ao vivo durante configuração rápida (não persistido até guardar/aplicar). */
+  const [mayaLivePreviewDraft, setMayaLivePreviewDraft] = useState<PublicSiteConfig | null>(null)
+  const handleMayaLivePreviewDraft = useCallback((next: PublicSiteConfig | null) => {
+    setMayaLivePreviewDraft(next)
+  }, [])
 
   const isSectionEditorOpen = (section: PublicSiteSection) => {
     if (Object.prototype.hasOwnProperty.call(sectionOpenState, section.key)) {
@@ -204,6 +216,21 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     labels: SECTION_LABELS,
     onOpenSection: openSectionFromPreview,
   })
+
+  useEffect(() => {
+    function onMayaApplied() {
+      void siteQuery.refetch().then((r) => {
+        if (r.data?.draft) {
+          setDraft({
+            ...r.data.draft,
+            sections: reindexPublicSiteSectionsOrder(r.data.draft.sections || []),
+          })
+        }
+      })
+    }
+    window.addEventListener(MAYA_SETUP_APPLIED_EVENT, onMayaApplied)
+    return () => window.removeEventListener(MAYA_SETUP_APPLIED_EVENT, onMayaApplied)
+  }, [siteQuery])
 
   useEffect(() => {
     if (siteQuery.data && !draft) {
@@ -401,13 +428,19 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     }
   }
 
+  const saveDraftConfig = async (config: PublicSiteConfig) => {
+    const normalized = withReindexedSections(config)
+    const result = await firmPublicSiteApi.saveDraft(normalized)
+    setDraft(withReindexedSections(result.draft))
+    setMayaLivePreviewDraft(null)
+  }
+
   const onPreview = async () => {
     setPreviewing(true)
     try {
-      if (draft) {
-        const normalized = withReindexedSections(draft)
-        await firmPublicSiteApi.saveDraft(normalized)
-        setDraft(normalized)
+      const toSave = mayaLivePreviewDraft ?? draft
+      if (toSave) {
+        await saveDraftConfig(toSave)
       }
       const { previewToken } = await firmPublicSiteApi.regeneratePreviewToken()
       window.open(`/${encodeURIComponent(firmSlug)}?preview=${encodeURIComponent(previewToken)}`, '_blank', 'noopener,noreferrer')
@@ -542,6 +575,18 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
 
   const legalGaps = useMemo(() => (draft ? evaluatePublicSiteLegalGaps(draft) : []), [draft])
 
+  const openSectionByType = useCallback(
+    (type: PublicSiteSection['type']) => {
+      const section = draft?.sections.find((s) => s.type === type)
+      if (!section) return
+      setSectionOpenState((prev) => ({ ...prev, [section.key]: true }))
+      requestAnimationFrame(() => {
+        document.getElementById(publicSiteSectionCardDomId(section.key))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+    },
+    [draft?.sections],
+  )
+
   const focusLegalFields = useCallback(() => {
     const footer = draft?.sections.find((s) => s.type === 'footer')
     if (!footer) return
@@ -567,6 +612,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const previewFirmName =
     publicDisplayName.trim() || bundle.publicProfile.displayName?.trim() || bundle.firm.name
   const sortedSections = reindexPublicSiteSectionsOrder(draft.sections)
+  const previewConfig = mayaLivePreviewDraft ?? draft
 
   const editorPreviewHighlightKeys = sortedSections.filter(isSectionEditorOpen).map((s) => s.key)
 
@@ -601,36 +647,36 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const previewRenderCtx = {
     firmSlug,
     firmName: previewFirmName,
-    logoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
-    headerLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
-    heroLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'hero', bundle.logoUrl),
+    logoUrl: resolvePublicSitePreviewZoneLogoUrl(previewConfig, 'header', bundle.logoUrl),
+    headerLogoUrl: resolvePublicSitePreviewZoneLogoUrl(previewConfig, 'header', bundle.logoUrl),
+    heroLogoUrl: resolvePublicSitePreviewZoneLogoUrl(previewConfig, 'hero', bundle.logoUrl),
     services: previewServices,
     contact: bundle.contact,
-    showPrices: draft.showPrices !== false,
-    complaintsBookUrl: draft.complaintsBookUrl,
-    complaintsBookLabel: draft.complaintsBookLabel,
-    praiseUrl: draft.praiseUrl,
-    praiseLabel: draft.praiseLabel,
-    praiseContact: draft.praiseContact,
+    showPrices: previewConfig.showPrices !== false,
+    complaintsBookUrl: previewConfig.complaintsBookUrl,
+    complaintsBookLabel: previewConfig.complaintsBookLabel,
+    praiseUrl: previewConfig.praiseUrl,
+    praiseLabel: previewConfig.praiseLabel,
+    praiseContact: previewConfig.praiseContact,
     openInternalLinksInNewTab: true,
     showTeglionCredit: false,
     useEditorHeroFrame: true,
     editorPreviewHighlightKeys,
   }
 
-  const previewPanel = <DefaultTemplate config={draft} ctx={previewRenderCtx} />
+  const previewPanel = <DefaultTemplate config={previewConfig} ctx={previewRenderCtx} />
 
   const previewSurfaceStyle = {
     ...resolveFirmBrandingCssVars({
-      primaryColor: draft.theme.primaryColor,
-      secondaryColor: draft.theme.secondaryColor,
-      textColor: draft.theme.textColor,
-      backgroundColor: draft.theme.backgroundColor,
-      surfaceColor: draft.theme.surfaceColor,
-      mutedTextColor: draft.theme.mutedTextColor,
+      primaryColor: previewConfig.theme.primaryColor,
+      secondaryColor: previewConfig.theme.secondaryColor,
+      textColor: previewConfig.theme.textColor,
+      backgroundColor: previewConfig.theme.backgroundColor,
+      surfaceColor: previewConfig.theme.surfaceColor,
+      mutedTextColor: previewConfig.theme.mutedTextColor,
     }),
-    ...(parsePublicSiteHex(draft.theme.backgroundColor)
-      ? { backgroundColor: parsePublicSiteHex(draft.theme.backgroundColor)! }
+    ...(parsePublicSiteHex(previewConfig.theme.backgroundColor)
+      ? { backgroundColor: parsePublicSiteHex(previewConfig.theme.backgroundColor)! }
       : { backgroundColor: 'hsl(var(--background))' }),
   } as CSSProperties
 
@@ -639,8 +685,31 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     siteQuery.data?.publishedAt ? 'Publicado' : 'Rascunho',
   ].join(' · ')
 
+  const scrollToPreview = () => {
+    document.getElementById('public-site-live-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <div className="cb-public-site-editor-root space-y-6">
+      {mayaSetupMode ? <MayaPublicSiteSetupRail onScrollToPreview={scrollToPreview} /> : null}
+      {mayaSetupMode ? (
+        <MayaPublicSiteInlineSetup
+          bundle={bundle}
+          baseDraft={draft}
+          onLivePreviewDraft={handleMayaLivePreviewDraft}
+          onMediaUploaded={() => void siteQuery.refetch()}
+          onOpenSectionByType={openSectionByType}
+          onPreviewNewTab={onPreview}
+          previewingNewTab={previewing}
+          onSaveLiveDraft={saveDraftConfig}
+        />
+      ) : null}
+      {mayaLivePreviewDraft ? (
+        <p className="rounded-md border border-brand/20 bg-brand/[0.05] px-3 py-2 text-caption text-muted-foreground">
+          Preview a mostrar alterações do questionário Maya — ainda não guardadas. Use «Aplicar rascunho» ou «Guardar
+          rascunho» para persistir.
+        </p>
+      ) : null}
       <section
         className="rounded-xl border border-brand/25 bg-gradient-to-br from-brand/[0.07] via-card to-card p-4 shadow-sm"
         aria-label="Pronto para publicar"
@@ -799,7 +868,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
         </div>
 
         <aside className="cb-public-site-editor-aside order-2 min-w-0">
-          <div className="cb-public-site-editor-preview-panel">
+          <div id="public-site-live-preview" className="cb-public-site-editor-preview-panel">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
