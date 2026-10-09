@@ -73,6 +73,8 @@ function buildSystemPrompt(countryCode) {
     'Nunca dê aconselhamento fiscal vinculativo. Textos genéricos, tom profissional.',
     'Não invente NIF, moradas completas, storageKey de imagens, URLs externas nem IDs de serviços existentes.',
     'Output: JSON único conforme schema MayaSetupProposalV1.',
+    'OBRIGATÓRIO: publicSitePatch com seo (title, description), theme (primaryColor hex) e sections (hero + about ou faq) com textos em PT-PT ou PT-BR conforme país.',
+    'Respeite ownerBrief do questionário ao redigir hero/about (sem copiar dados pessoais de terceiros).',
     'Serviços: só catalogKey válidos do catálogo nacional; publish implícito false (não inclua isPubliclyListed).',
     irsRule,
     'booking: timezone Europe/Lisbon (PT) ou UTC (BR); defaultSchedule dias 1-5 (seg-sex).',

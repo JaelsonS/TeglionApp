@@ -9,6 +9,8 @@ export type MayaSetupAnswers = {
   serviceCatalogKeys: string[]
   irsCampaign?: boolean
   cityRegion?: string
+  /** Texto livre do dono (sem PII de clientes) — orienta copy da página. */
+  ownerBrief?: string
   scheduleHint?: {
     weekdays?: number[]
     dayStart?: string
