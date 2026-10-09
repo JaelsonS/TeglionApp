@@ -13,6 +13,10 @@ const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-
 const { parseProposalV1, CATALOG_KEY_SET } = require('./proposal.schema');
 const openaiClient = require('./openai.client');
 const { ensureProposalFromContext } = require('./proposal-enrich');
+const { parseMediaAssets, mergeMediaAssetsIntoDraft } = require('./media-assets');
+const { mergeFirmContactIntoDraft, sanitizeContactForAiContext } = require('./firm-contact-patch');
+const { seedDemoClients } = require('./demo-office.service');
+const { getMayaSetupCapabilities } = require('./capabilities');
 
 const ALLOWED_TONES = new Set(['formal', 'friendly']);
 const ALLOWED_COUNTRIES = new Set(['PT', 'BR']);
@@ -81,6 +85,7 @@ function normalizeAnswers(raw, firmCountry) {
   const scheduleHint =
     input.scheduleHint && typeof input.scheduleHint === 'object' ? input.scheduleHint : null;
   const ownerBrief = String(input.ownerBrief || '').trim().slice(0, 600);
+  const mediaAssets = parseMediaAssets(input.mediaAssets);
 
   return {
     consentOpenAi: true,
@@ -93,6 +98,7 @@ function normalizeAnswers(raw, firmCountry) {
     cityRegion,
     scheduleHint,
     ...(ownerBrief ? { ownerBrief } : {}),
+    ...(mediaAssets ? { mediaAssets } : {}),
   };
 }
 
@@ -175,6 +181,7 @@ async function generateProposal({ firmId, actorUserId, sessionId, req }) {
     irsCampaign: answers.irsCampaign,
     answers,
     allowedCatalogKeys: [...CATALOG_KEY_SET],
+    firmContact: sanitizeContactForAiContext(firm),
   };
 
   const { proposal: rawProposal, requestId } = await openaiClient.generateMayaSetupProposal(context);
@@ -240,10 +247,11 @@ function catalogEntry(catalogKey) {
   return CONSULTING_SERVICES_CATALOG.find((e) => e.catalogKey === catalogKey);
 }
 
-async function applyServicesFromProposal(firmId, services) {
+async function applyServicesFromProposal(firmId, services, { prepareForPublicPage = false, serviceImages = {} } = {}) {
   const existingKeys = await accountingServicesRepository.listCatalogKeys(firmId);
   const created = [];
   const skipped = [];
+  const published = [];
 
   for (const spec of services || []) {
     const key = spec.catalogKey;
@@ -253,6 +261,9 @@ async function applyServicesFromProposal(firmId, services) {
     }
     const entry = catalogEntry(key);
     if (!entry) continue;
+    const slug = spec.slug || key;
+    const listPublic = prepareForPublicPage === true;
+    const imageStorageKey = serviceImages[key] || null;
     const { item } = await accountingServicesService.create({
       firmId,
       payload: {
@@ -262,18 +273,20 @@ async function applyServicesFromProposal(firmId, services) {
         durationMinutes: entry.durationMinutes,
         priceCents: entry.priceCents,
         isActive: true,
-        isPubliclyListed: false,
-        slug: spec.slug || null,
+        isPubliclyListed: listPublic,
+        slug: listPublic ? slug : spec.slug || null,
         publicGroup: spec.publicGroup || entry.category || null,
         requiresBooking: entry.requiresBooking === true,
         documentRequirements: entry.documentRequirements,
         intakeForm: entry.intakeForm,
+        ...(imageStorageKey ? { imageStorageKey } : {}),
       },
     });
     existingKeys.add(key);
     created.push(item);
+    if (listPublic && item.isPubliclyListed) published.push(key);
   }
-  return { created, skipped };
+  return { created, skipped, published };
 }
 
 async function applyIrsFromProposal(firmId, irs, countryCode) {
@@ -332,19 +345,36 @@ async function applyProposal({ firmId, actorUserId, sessionId, req }) {
   const proposal = parseProposalV1(session.proposal, { countryCode });
 
   const siteRow = await firmPublicSitesRepository.findByFirmId(firmId);
-  const mergedDraft = mergePublicSitePatch(siteRow?.draft, proposal.publicSitePatch || {});
+  const parsedMedia = parseMediaAssets(session.answers?.mediaAssets);
+  let mergedDraft = mergePublicSitePatch(siteRow?.draft, proposal.publicSitePatch || {});
+  mergedDraft = mergeMediaAssetsIntoDraft(mergedDraft, parsedMedia);
+  mergedDraft = mergeFirmContactIntoDraft(mergedDraft, firm);
   const draftResult = await firmPublicSiteService.saveDraft(firmId, actorUserId, mergedDraft);
 
-  const servicesResult = await applyServicesFromProposal(firmId, proposal.services);
+  const prepareForPublicPage = parsedMedia?.prepareServicesForPublicPage === true;
+  const serviceImages = parsedMedia?.serviceImages || {};
+  const servicesResult = await applyServicesFromProposal(firmId, proposal.services, {
+    prepareForPublicPage,
+    serviceImages,
+  });
   const irsResult = await applyIrsFromProposal(firmId, proposal.irs, countryCode);
   const bookingResult = await applyBookingFromProposal(firmId, proposal.booking);
+
+  let demoClientsCreated = 0;
+  if (parsedMedia?.includeDemoClients) {
+    const demo = await seedDemoClients({ firmId, actorUserId, countryCode });
+    demoClientsCreated = demo.createdCount;
+  }
 
   const applySummary = {
     draftUpdated: true,
     servicesCreated: servicesResult.created.length,
     servicesSkippedExisting: servicesResult.skipped,
+    servicesListedPublic: servicesResult.published?.length || 0,
+    logoUploadedInWizard: Boolean(parsedMedia?.logoUploaded),
     irsActivated: irsResult.activated.length,
     bookingUpdated: Boolean(bookingResult),
+    demoClientsCreated,
   };
 
   const proposalWithSummary = { ...proposal, applySummary };
@@ -374,11 +404,16 @@ async function applyProposal({ firmId, actorUserId, sessionId, req }) {
   };
 }
 
+async function getCapabilities({ firmId }) {
+  return getMayaSetupCapabilities(firmId);
+}
+
 module.exports = {
   createSession,
   getSession,
   generateProposal,
   applyProposal,
+  getCapabilities,
   normalizeAnswers,
   mergePublicSitePatch,
   assertOwnerActor,

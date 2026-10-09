@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Progress } from '@/shared/design-system'
 import type { FirmProgressResult } from '@/features/firm/onboarding/firmProgress'
 import { listPendingActivationSteps } from '@/features/firm/onboarding/firmProgress'
+import { OpenActivationAssistantButton } from '@/features/firm/activation/FirmActivationAssistant'
 import { openMayaSetupWizard } from '@/features/maya/setup/openMayaSetup'
 
 type FirmActivationChecklistProps = {
@@ -71,10 +72,13 @@ export function FirmActivationChecklist({ progress, loading, isOwner }: FirmActi
           </p>
         )}
         {isOwner && !compact ? (
-          <Button type="button" size="sm" variant="secondary" className="w-full sm:w-auto" onClick={() => openMayaSetupWizard()}>
-            <Sparkles className="h-4 w-4" />
-            Maya configura por mim (rascunho)
-          </Button>
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <OpenActivationAssistantButton className="w-full sm:w-auto" />
+            <Button type="button" size="sm" variant="secondary" className="w-full sm:w-auto" onClick={() => openMayaSetupWizard()}>
+              <Sparkles className="h-4 w-4" />
+              Maya configura por mim (rascunho)
+            </Button>
+          </div>
         ) : null}
       </CardContent>
     </Card>

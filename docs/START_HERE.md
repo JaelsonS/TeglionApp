@@ -16,6 +16,7 @@ O Teglion é um SaaS **multi-tenant** para **escritórios de contabilidade** em 
 | Como corre (stack, deploy)? | [`architecture/ARCHITECTURE.md`](./architecture/ARCHITECTURE.md) + [`infrastructure/DEPLOYMENT.md`](./infrastructure/DEPLOYMENT.md) |
 | Segurança e isolamento entre escritórios? | [`security/SECURITY.md`](./security/SECURITY.md) + [`security/TENANT_ISOLATION.md`](./security/TENANT_ISOLATION.md) |
 | Como testar? | [`testing/TESTING.md`](./testing/TESTING.md) |
+| Maya — activação do escritório (A–G)? | [`product/MAYA_OFFICE_ACTIVATION.md`](./product/MAYA_OFFICE_ACTIVATION.md) + [`security/MAYA_SETUP_AI.md`](./security/MAYA_SETUP_AI.md) |
 | Passado / auditorias antigas? | [`historico/README.md`](./historico/README.md) — **não** usar como estado actual |
 
 Política de manutenção: [`governance/DOCUMENTATION_POLICY.md`](./governance/DOCUMENTATION_POLICY.md).

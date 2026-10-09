@@ -23,6 +23,7 @@ import {
 import { resolveMayaPage } from '@/features/maya/content/resolvePage'
 import type { MayaFieldHelp, MayaIntent, MayaPageGuide, MayaProblem } from '@/features/maya/content/types'
 import { MAYA_OPEN_EVENT, type MayaOpenDetail } from '@/features/maya/openMaya'
+import { openActivationAssistant } from '@/features/firm/activation/openActivationAssistant'
 import { openMayaSetupWizard } from '@/features/maya/setup/openMayaSetup'
 import {
   isMayaFabVisible,
@@ -701,7 +702,21 @@ function MayaIntentView({
         </Button>
       ) : null}
 
-      {intent.deepLink && intent.id !== 'maya-setup' ? (
+      {intent.id === 'activation-assistant' && responsible ? (
+        <Button
+          type="button"
+          variant="primary"
+          fullWidth
+          onClick={() => {
+            openActivationAssistant()
+            onHome()
+          }}
+        >
+          {intent.ctaLabel || 'Assistente de activação'}
+        </Button>
+      ) : null}
+
+      {intent.deepLink && intent.id !== 'maya-setup' && intent.id !== 'activation-assistant' ? (
         <Button type="button" variant="primary" fullWidth onClick={() => onGoToLink(intent.deepLink)}>
           <ExternalLink className="h-4 w-4" />
           {intent.ctaLabel || `Ir para ${intent.shortDescription}`}
