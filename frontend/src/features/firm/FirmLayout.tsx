@@ -9,6 +9,7 @@ import { FIRM_SHELL_CHROME_CLASSES } from '@/features/firm/firmShellChrome'
 import { FirmTrialReminderBanner } from '@/features/firm/billing/FirmTrialReminderBanner'
 import { FirmShellFooter } from '@/features/firm/support/FirmShellFooter'
 import { MayaAssistant } from '@/features/maya'
+import { FirmActivationAssistant } from '@/features/firm/activation/FirmActivationAssistant'
 import { MayaSetupWizard } from '@/features/maya/setup/MayaSetupWizard'
 import { PageRouteFallback } from '@/shared/components/layout/PageRouteFallback'
 import { LiveEventsProvider } from '@/shared/providers/LiveEventsProvider'
@@ -72,6 +73,7 @@ export function FirmLayout() {
       </div>
       <MayaAssistant />
       <MayaSetupWizard />
+      <FirmActivationAssistant />
     </LiveEventsProvider>
   )
 }

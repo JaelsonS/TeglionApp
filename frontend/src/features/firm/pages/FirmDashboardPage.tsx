@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   AlertCircle,
   AlertTriangle,
@@ -37,6 +37,9 @@ import {
 } from '@/features/firm/dashboard/firmDashboardUtils'
 import { AgencyPromoCard } from '@/shared/components/agency/AgencyPromoCard'
 import { AskMayaButton } from '@/features/maya'
+import { openActivationAssistant } from '@/features/firm/activation/openActivationAssistant'
+import { ClientsSpreadsheetDialog } from '@/features/firm/clients/ClientsSpreadsheetDialog'
+import { CLIENTS_CSV_IMPORT_OPEN_EVENT } from '@/features/firm/clients/openClientsCsvImport'
 import { Button } from '@/shared/components/ui/button'
 import { EmptyState, PageHeader, SkeletonCard } from '@/shared/design-system'
 import { useFirmDashboard } from '@/shared/hooks/queries/useFirmDashboard'
@@ -57,7 +60,16 @@ const QUICK_LINKS = [
 
 export function FirmDashboardPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { user } = useAuth()
+
+  useEffect(() => {
+    if (searchParams.get('activation') !== '1') return
+    openActivationAssistant()
+    const next = new URLSearchParams(searchParams)
+    next.delete('activation')
+    setSearchParams(next, { replace: true })
+  }, [searchParams, setSearchParams])
   const dashboardQuery = useFirmDashboard(true)
   const { progress, loading: progressLoading } = useFirmProgress(true)
   const data = dashboardQuery.data ?? null
@@ -66,6 +78,15 @@ export function FirmDashboardPage() {
   const messagesUnread = useFirmMessagesUnread()
   const [scope, setScope] = useState<PeriodScope>('all')
   const [notifying, setNotifying] = useState(false)
+  const [csvImportOpen, setCsvImportOpen] = useState(false)
+
+  useEffect(() => {
+    function onCsv() {
+      setCsvImportOpen(true)
+    }
+    window.addEventListener(CLIENTS_CSV_IMPORT_OPEN_EVENT, onCsv)
+    return () => window.removeEventListener(CLIENTS_CSV_IMPORT_OPEN_EVENT, onCsv)
+  }, [])
 
   const firstName = String(user?.fullName || '')
     .trim()
@@ -518,6 +539,15 @@ export function FirmDashboardPage() {
           </>
         ) : null}
       </div>
+      {isFirmOwner ? (
+        <ClientsSpreadsheetDialog
+          open={csvImportOpen}
+          onOpenChange={setCsvImportOpen}
+          onImported={() => {
+            void dashboardQuery.refetch()
+          }}
+        />
+      ) : null}
     </FirmScrollPage>
   )
 }

@@ -22,13 +22,38 @@ import {
 } from '@/infrastructure/api/contabil/mayaSetup'
 import { MAYA_SETUP_OPEN_EVENT } from '@/features/maya/setup/openMayaSetup'
 import {
+  ACTIVATION_ASSISTANT_OPEN_EVENT,
+  MAYA_SETUP_APPLIED_EVENT,
+} from '@/features/firm/activation/openActivationAssistant'
+import { markMayaSetupAppliedForActivation } from '@/features/firm/activation/activationAssistantPrefs'
+import {
   MAYA_SETUP_SERVICE_OPTIONS_BR,
   MAYA_SETUP_SERVICE_OPTIONS_PT,
   MAYA_SETUP_SPECIALTIES,
 } from '@/features/maya/setup/mayaSetupCatalog'
+import { MayaSetupConsentIntro } from '@/features/maya/setup/mayaSetupConsentCopy'
 import { formatBookingPreview, formatPublicSitePreview } from '@/features/maya/setup/mayaSetupPreview'
+import {
+  listProposalSectionPreviews,
+  proposalThemeSwatch,
+} from '@/features/maya/setup/mayaSetupPreviewVisual'
+import type { MayaSetupCapabilities } from '@/infrastructure/api/contabil/mayaSetup'
 
-type Step = 'consent' | 'questions' | 'loading' | 'preview' | 'done'
+import {
+  MayaSetupMediaStep,
+  type MayaSetupMediaState,
+} from '@/features/maya/setup/MayaSetupMediaStep'
+
+type Step = 'consent' | 'media' | 'questions' | 'loading' | 'preview' | 'done'
+
+const DEFAULT_MEDIA: MayaSetupMediaState = {
+  logoUploaded: false,
+  heroImage: null,
+  aboutImage: null,
+  prepareServicesForPublicPage: false,
+  includeDemoClients: false,
+  serviceImages: {},
+}
 
 function isFirmOwner(user: AuthUser | null | undefined) {
   if (!user) return false
@@ -37,7 +62,6 @@ function isFirmOwner(user: AuthUser | null | undefined) {
   return user.permissions?.includes('firm:owner') ?? false
 }
 
-const PRIVACY_LINK = 'LEGAL_DECISION_REQUIRED'
 const OWNER_BRIEF_MAX = 600
 
 export function MayaSetupWizard() {
@@ -63,6 +87,8 @@ export function MayaSetupWizard() {
   const [cityRegion, setCityRegion] = useState('')
   const [ownerBrief, setOwnerBrief] = useState('')
   const [previewTab, setPreviewTab] = useState<'site' | 'services' | 'irs' | 'booking'>('site')
+  const [media, setMedia] = useState<MayaSetupMediaState>(DEFAULT_MEDIA)
+  const [capabilities, setCapabilities] = useState<MayaSetupCapabilities | null>(null)
 
   useEffect(() => {
     function onOpen() {
@@ -72,7 +98,9 @@ export function MayaSetupWizard() {
       }
       setStep('consent')
       setSession(null)
+      setMedia(DEFAULT_MEDIA)
       setOpen(true)
+      void mayaSetupApi.getCapabilities().then((r) => setCapabilities(r.capabilities)).catch(() => setCapabilities(null))
     }
     window.addEventListener(MAYA_SETUP_OPEN_EVENT, onOpen)
     return () => window.removeEventListener(MAYA_SETUP_OPEN_EVENT, onOpen)
@@ -92,6 +120,29 @@ export function MayaSetupWizard() {
       cityRegion: cityRegion.trim() || undefined,
       ownerBrief: ownerBrief.trim().slice(0, OWNER_BRIEF_MAX) || undefined,
       scheduleHint: { weekdays: [1, 2, 3, 4, 5], dayStart: '09:00', dayEnd: '18:00' },
+      ...(media.logoUploaded ||
+      media.heroImage ||
+      media.aboutImage ||
+      media.prepareServicesForPublicPage ||
+      media.includeDemoClients ||
+      Object.keys(media.serviceImages).length
+        ? {
+            mediaAssets: {
+              ...(media.logoUploaded ? { logoUploaded: true } : {}),
+              ...(media.heroImage ? { heroImage: media.heroImage } : {}),
+              ...(media.aboutImage ? { aboutImage: media.aboutImage } : {}),
+              ...(media.prepareServicesForPublicPage ? { prepareServicesForPublicPage: true } : {}),
+              ...(media.includeDemoClients ? { includeDemoClients: true } : {}),
+              ...(Object.keys(media.serviceImages).length
+                ? {
+                    serviceImages: Object.fromEntries(
+                      Object.entries(media.serviceImages).map(([k, storageKey]) => [k, { storageKey }]),
+                    ),
+                  }
+                : {}),
+            },
+          }
+        : {}),
     }
   }
 
@@ -124,6 +175,9 @@ export function MayaSetupWizard() {
       const result = await mayaSetupApi.apply(session.id)
       setSession(result.session)
       setStep('done')
+      const slug = user?.tenant?.slug
+      if (slug) markMayaSetupAppliedForActivation(slug)
+      window.dispatchEvent(new CustomEvent(MAYA_SETUP_APPLIED_EVENT))
       toast.success('Rascunho aplicado — revise e publique manualmente quando estiver pronto.')
     } catch {
       toast.error('Não foi possível aplicar o rascunho.')
@@ -135,6 +189,8 @@ export function MayaSetupWizard() {
   const proposal = session?.proposal
   const sitePreview = proposal ? formatPublicSitePreview(proposal) : null
   const bookingLines = proposal ? formatBookingPreview(proposal) : []
+  const sectionPreviews = proposal ? listProposalSectionPreviews(proposal) : []
+  const themeSwatch = proposal ? proposalThemeSwatch(proposal) : null
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -152,24 +208,22 @@ export function MayaSetupWizard() {
 
         {step === 'consent' ? (
           <div className="space-y-4">
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              Em poucos minutos pode ter textos genéricos, serviços do catálogo e horários sugeridos — sempre em
-              rascunho, para rever antes de publicar. O questionário (incluindo texto livre opcional) é processado
-              pela <strong>OpenAI</strong> como subcontratante. Política: {PRIVACY_LINK}.
-            </p>
+            <MayaSetupConsentIntro />
             <label className="flex items-start gap-2 text-sm">
               <Checkbox
                 checked={consent}
                 onCheckedChange={(v: boolean | 'indeterminate') => setConsent(v === true)}
               />
-              <span>Autorizo o processamento destes dados para gerar a proposta de configuração.</span>
+              <span>
+                Autorizo o envio destas respostas para gerar a proposta de configuração, nos termos indicados acima.
+              </span>
             </label>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setOpen(false)}>
                 Cancelar
               </Button>
               <Button onClick={() => setStep('questions')} disabled={!consent}>
-                Começar questionário
+                Continuar
               </Button>
             </div>
           </div>
@@ -298,12 +352,25 @@ export function MayaSetupWizard() {
               <Button variant="outline" onClick={() => setStep('consent')}>
                 Voltar
               </Button>
-              <Button onClick={() => void startSession()} disabled={busy || serviceKeys.length < 1}>
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                Gerar proposta
+              <Button onClick={() => setStep('media')} disabled={serviceKeys.length < 1}>
+                Continuar — imagens
               </Button>
             </div>
           </div>
+        ) : null}
+
+        {step === 'media' ? (
+          <MayaSetupMediaStep
+            value={media}
+            onChange={setMedia}
+            serviceCatalogKeys={serviceKeys}
+            countryCode={countryCode}
+            demoOfficeAllowed={Boolean(capabilities?.demoOffice)}
+            onBack={() => setStep('questions')}
+            onGenerate={() => void startSession()}
+            generateDisabled={serviceKeys.length < 1}
+            generating={busy}
+          />
         ) : null}
 
         {step === 'loading' ? (
@@ -349,6 +416,35 @@ export function MayaSetupWizard() {
                     partir do questionário. Ajuste o texto livre e regenere, ou edite depois em Definições.
                   </p>
                 ) : (
+                  <>
+                    {themeSwatch ? (
+                      <div className="mb-3 flex items-center gap-2">
+                        <span className="text-caption text-muted-foreground">Cores sugeridas</span>
+                        <span
+                          className="h-6 w-6 rounded border border-border"
+                          style={{ backgroundColor: themeSwatch.primary }}
+                          title="Primária"
+                        />
+                        <span
+                          className="h-6 w-6 rounded border border-border"
+                          style={{ backgroundColor: themeSwatch.secondary }}
+                          title="Secundária"
+                        />
+                      </div>
+                    ) : null}
+                    {sectionPreviews.length > 0 ? (
+                      <ul className="mb-3 space-y-1 border-b border-border/50 pb-3">
+                        {sectionPreviews.map((sec) => (
+                          <li key={`${sec.type}-${sec.title}`} className="text-caption">
+                            <span className="font-medium text-foreground">{sec.type}</span>
+                            {sec.title ? ` — ${sec.title}` : ''}
+                            {sec.snippet ? (
+                              <span className="block text-muted-foreground">{sec.snippet}</span>
+                            ) : null}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
                   <dl className="space-y-2">
                     {sitePreview.seoTitle ? (
                       <div>
@@ -379,6 +475,7 @@ export function MayaSetupWizard() {
                       </div>
                     ) : null}
                   </dl>
+                  </>
                 )
               ) : null}
               {previewTab === 'services' ? (
@@ -444,8 +541,14 @@ export function MayaSetupWizard() {
                 <Link to="/app/firm/agenda?panel=settings">Agenda</Link>
               </Button>
             </div>
-            <Button className="w-full" onClick={() => setOpen(false)}>
-              Fechar
+            <Button
+              className="w-full"
+              onClick={() => {
+                setOpen(false)
+                window.dispatchEvent(new CustomEvent(ACTIVATION_ASSISTANT_OPEN_EVENT))
+              }}
+            >
+              Continuar activação
             </Button>
           </div>
         ) : null}

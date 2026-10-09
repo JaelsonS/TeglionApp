@@ -19,6 +19,7 @@ import { authApi } from '@/infrastructure/api'
 import { cn } from '@/shared/lib/utils'
 import type { FirmProgressStepId } from './firmProgress'
 import { useFirmProgress } from './useFirmProgress'
+import { OpenActivationAssistantButton } from '@/features/firm/activation/FirmActivationAssistant'
 import { openMayaSetupWizard } from '@/features/maya/setup/openMayaSetup'
 
 const STEP_ICONS: Record<FirmProgressStepId, typeof Settings> = {
@@ -105,7 +106,8 @@ export function FirmOnboardingWizard({ className }: FirmOnboardingWizardProps) {
           ) : null}
         </div>
         <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-          <Button type="button" size="sm" variant="secondary" className="mt-1 sm:mt-0" onClick={() => openMayaSetupWizard()}>
+          <OpenActivationAssistantButton variant="primary" className="mt-1 sm:mt-0" />
+          <Button type="button" size="sm" variant="secondary" onClick={() => openMayaSetupWizard()}>
             <Sparkles className="h-4 w-4" />
             Maya configura por mim
           </Button>

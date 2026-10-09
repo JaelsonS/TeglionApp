@@ -271,6 +271,7 @@ router.delete(
   firmPublicSiteController.removePublicLogo,
 );
 
+router.get('/maya-setup/capabilities', requireFirmOwner, mayaSetupController.capabilities);
 router.post(
   '/maya-setup/sessions',
   requireFirmOwner,

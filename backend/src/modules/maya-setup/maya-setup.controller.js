@@ -44,6 +44,16 @@ exports.generate = async (req, res, next) => {
   }
 };
 
+exports.capabilities = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const capabilities = await mayaSetupService.getCapabilities({ firmId });
+    return res.json({ capabilities });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.apply = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);

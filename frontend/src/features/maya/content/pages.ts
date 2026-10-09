@@ -16,7 +16,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     goal: 'Saber por onde começar o dia e o que precisa de atenção.',
     firstTimeHint:
       'Responsável do escritório: use «Configuração rápida» para rascunho de página, serviços e agenda. Depois siga «Próximo passo» no Painel para publicar.',
-    topicIds: ['maya-setup', 'tour', 'public-page', 'service', 'clients', 'dashboard-kpis'],
+    topicIds: ['activation-assistant', 'maya-setup', 'tour', 'public-page', 'service', 'clients', 'dashboard-kpis'],
     primaryIntentId: 'tour',
   },
   {
@@ -773,6 +773,7 @@ export const MAYA_LANDING_CATALOG_INTENT_IDS = [
 
 /** Intents de «outras áreas» — módulos, não campos. */
 export const MAYA_CATALOG_INTENT_IDS = [
+  'activation-assistant',
   'maya-setup',
   'tour',
   'clients',

@@ -16,6 +16,14 @@ export type MayaSetupAnswers = {
     dayStart?: string
     dayEnd?: string
   }
+  mediaAssets?: {
+    logoUploaded?: boolean
+    heroImage?: { id: string; storageKey: string; alt?: string }
+    aboutImage?: { id: string; storageKey: string; alt?: string }
+    prepareServicesForPublicPage?: boolean
+    includeDemoClients?: boolean
+    serviceImages?: Record<string, { storageKey: string } | string>
+  }
 }
 
 export type MayaSetupProposalV1 = {
@@ -44,7 +52,19 @@ export type MayaSetupSession = {
   updatedAt: string
 }
 
+export type MayaSetupCapabilities = {
+  aiSetup: boolean
+  mayaGuideIncluded: boolean
+  mayaGenerativeRequiresEntitlement: boolean
+  demoOffice: boolean
+  supportedCountries: Array<'PT' | 'BR'>
+  phases: Record<string, boolean>
+}
+
 export const mayaSetupApi = {
+  getCapabilities: () =>
+    api.get('/contabil/maya-setup/capabilities').then((r) => r.data as { capabilities: MayaSetupCapabilities }),
+
   createSession: (answers: MayaSetupAnswers) =>
     api.post('/contabil/maya-setup/sessions', { answers }).then((r) => r.data as { session: MayaSetupSession }),
 

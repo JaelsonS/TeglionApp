@@ -6,7 +6,7 @@ export const MAYA_SETUP_INTENTS = [
     title: 'Configuração rápida',
     shortDescription: 'Maya Setup — rascunho com IA',
     answer:
-      'Se é o responsável do escritório, posso ajudá-lo a preparar um rascunho da página pública, serviços do catálogo e horários de agenda a partir de um questionário curto. A proposta é gerada com apoio de IA (OpenAI); revê tudo antes de aplicar. Nada é publicado automaticamente — e isto não substitui aconselhamento fiscal.',
+      'Se é o responsável do escritório, posso ajudá-lo a preparar um rascunho da página pública, serviços do catálogo e horários de agenda a partir de um questionário curto. A proposta é gerada com apoio de inteligência artificial; revê tudo antes de aplicar. Nada é publicado automaticamente — e isto não substitui aconselhamento fiscal.',
     steps: [
       'Abra «Configuração rápida» e aceite o consentimento',
       'Responda ao questionário (país, serviços, tom, região)',

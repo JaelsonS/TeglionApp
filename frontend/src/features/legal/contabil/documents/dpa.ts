@@ -90,6 +90,7 @@ export const dpaDocument: LegalDocument = {
         'Sentry — monitorização de erros (sem conteúdo de documentos).',
         'Google — apenas se o Escritório ligar Calendar ou Drive na conta.',
         'Prestador de SMS, se activado pelo Escritório.',
+        'Subcontratante de inteligência artificial generativa — apenas na funcionalidade opcional «Configuração rápida» do escritório, após consentimento explícito do responsável; sem dados de clientes finais no questionário.',
       ],
     },
     {

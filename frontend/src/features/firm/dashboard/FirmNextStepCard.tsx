@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { AskMayaButton } from '@/features/maya'
+import { OpenActivationAssistantButton } from '@/features/firm/activation/FirmActivationAssistant'
 import { openMayaSetupWizard } from '@/features/maya/setup/openMayaSetup'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
@@ -34,10 +35,13 @@ export function FirmNextStepCard({ action, loading, isOwner }: FirmNextStepCardP
         </Button>
         {action.mayaIntentId ? <AskMayaButton intentId={action.mayaIntentId} /> : null}
         {isOwner && action.mayaSetupOffer ? (
-          <Button type="button" variant="secondary" size="sm" onClick={() => openMayaSetupWizard()}>
-            <Sparkles className="h-4 w-4" />
-            Maya configura por mim
-          </Button>
+          <>
+            <OpenActivationAssistantButton />
+            <Button type="button" variant="secondary" size="sm" onClick={() => openMayaSetupWizard()}>
+              <Sparkles className="h-4 w-4" />
+              Maya configura por mim
+            </Button>
+          </>
         ) : null}
       </CardContent>
     </Card>
