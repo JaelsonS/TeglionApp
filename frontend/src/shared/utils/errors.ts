@@ -218,6 +218,21 @@ export function getErrorMessage(err: unknown): string {
       })
     }
 
+    if (status === 502 || status === 503) {
+      if (code === 'OPENAI_NOT_CONFIGURED') {
+        return 'A geração por IA não está activa neste ambiente. Contacte o suporte Teglion ou use o editor manual.'
+      }
+      if (code === 'OPENAI_ERROR' || code === 'OPENAI_EMPTY' || code === 'OPENAI_PARSE') {
+        return data?.message && !isGenericMessage(data.message)
+          ? String(data.message)
+          : 'A Maya não conseguiu gerar a proposta agora. Tente novamente dentro de alguns minutos.'
+      }
+      if (code === 'MAYA_PROPOSAL_INVALID') {
+        return 'A resposta da IA não passou na validação. Ajuste o questionário e tente gerar outra vez.'
+      }
+      if (data?.message && !isGenericMessage(data.message)) return String(data.message)
+    }
+
     // Falha de rede/backend
     if (
       err.code === 'ECONNABORTED' ||

@@ -28,6 +28,8 @@ export type FirmNextAction = {
   ctaLabel: string
   to: string
   mayaIntentId?: string
+  /** Dono pode abrir Maya Setup (configuração rápida com IA) a partir deste passo. */
+  mayaSetupOffer?: boolean
 }
 
 export type FirmProgressInput = {
@@ -49,6 +51,9 @@ export type FirmProgressResult = {
   totalRequired: number
   progressPct: number
   canStartOperating: boolean
+  /** Passos essenciais de activação (exclui opcionais). */
+  activationRequiredDone: number
+  activationRequiredTotal: number
   nextAction: FirmNextAction | null
   publicUrl: string | null
 }
@@ -133,9 +138,16 @@ export function computeFirmProgress(input: FirmProgressInput): FirmProgressResul
     totalRequired,
     progressPct,
     canStartOperating,
+    activationRequiredDone: doneRequired,
+    activationRequiredTotal: totalRequired,
     nextAction,
     publicUrl: buildPublicUrl(input.firmSlug),
   }
+}
+
+/** Passos essenciais ainda por concluir (para checklist do Painel). */
+export function listPendingActivationSteps(steps: FirmProgressStep[]): FirmProgressStep[] {
+  return steps.filter((s) => !s.optional && !s.done)
 }
 
 function resolveNextAction(
@@ -150,6 +162,7 @@ function resolveNextAction(
       ctaLabel: 'Abrir definições',
       to: '/app/firm/settings',
       mayaIntentId: 'tour',
+      mayaSetupOffer: true,
     }
   }
 
@@ -158,10 +171,11 @@ function resolveNextAction(
       id: 'public-page',
       title: 'Publique a página do escritório',
       description:
-        'É aqui que potenciais clientes conhecem os seus serviços e entram em contacto. Configure o conteúdo e publique o link.',
+        'É aqui que potenciais clientes conhecem os seus serviços e entram em contacto. Configure o conteúdo e publique o link — ou deixe a Maya preparar um rascunho.',
       ctaLabel: 'Configurar página',
       to: '/app/firm/settings?tab=pagina-publica',
       mayaIntentId: 'public-page',
+      mayaSetupOffer: true,
     }
   }
 
@@ -174,6 +188,7 @@ function resolveNextAction(
       ctaLabel: 'Adicionar serviço',
       to: '/app/firm/services',
       mayaIntentId: 'service',
+      mayaSetupOffer: true,
     }
   }
 
@@ -217,6 +232,7 @@ function resolveNextAction(
       ctaLabel: 'Abrir agenda',
       to: '/app/firm/agenda?panel=settings',
       mayaIntentId: 'booking',
+      mayaSetupOffer: true,
     }
   }
 

@@ -75,6 +75,23 @@ export function FirmSettingsPage() {
     [canCloseAccount],
   )
 
+  const legacyPublicSiteDeepLink =
+    searchParams.get('coach') === '1' || searchParams.get('mayaSetup') === '1'
+
+  useEffect(() => {
+    if (!legacyPublicSiteDeepLink) return
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('mayaSetup')
+        next.delete('coach')
+        next.set('tab', 'pagina-publica')
+        return next
+      },
+      { replace: true },
+    )
+  }, [legacyPublicSiteDeepLink, setSearchParams])
+
   const activeTab: TabId = useMemo(() => {
     const fromQuery = searchParams.get('tab')
     if (isTabId(fromQuery) && visibleTabs.some((tab) => tab.id === fromQuery)) {

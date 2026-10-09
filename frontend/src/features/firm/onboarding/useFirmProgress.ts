@@ -30,9 +30,16 @@ function hasConfiguredBooking(bookingPayload: unknown): boolean {
 /**
  * Sinais reais do escritório → progresso / próximo passo (onboarding + Dashboard).
  */
+export type FirmProgressSignals = {
+  hasAnyService: boolean
+  serviceCount: number
+  publicServiceCount: number
+}
+
 export function useFirmProgress(enabled = true): {
   loading: boolean
   progress: FirmProgressResult | null
+  signals: FirmProgressSignals | null
   refresh: () => void
 } {
   const { user } = useAuth()
@@ -82,6 +89,17 @@ export function useFirmProgress(enabled = true): {
     siteQuery.isLoading ||
     servicesQuery.isLoading ||
     bookingQuery.isLoading
+
+  const signals = useMemo((): FirmProgressSignals | null => {
+    if (!user) return null
+    const services = extractServices(servicesQuery.data)
+    const publicServiceCount = services.filter((s) => s.isPubliclyListed && s.isActive !== false).length
+    return {
+      hasAnyService: services.length > 0,
+      serviceCount: services.length,
+      publicServiceCount,
+    }
+  }, [user, servicesQuery.data])
 
   const progress = useMemo(() => {
     if (!user) return null
@@ -133,6 +151,7 @@ export function useFirmProgress(enabled = true): {
   return {
     loading,
     progress,
+    signals,
     refresh: () => {
       void dashboard.refetch()
       void firmQuery.refetch()

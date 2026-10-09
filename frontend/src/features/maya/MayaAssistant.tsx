@@ -1,4 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, ChevronRight, ExternalLink, X } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -23,11 +24,19 @@ import {
 import { resolveMayaPage } from '@/features/maya/content/resolvePage'
 import type { MayaFieldHelp, MayaIntent, MayaPageGuide, MayaProblem } from '@/features/maya/content/types'
 import { MAYA_OPEN_EVENT, type MayaOpenDetail } from '@/features/maya/openMaya'
+import { openActivationAssistant } from '@/features/firm/activation/openActivationAssistant'
+import { openMayaSetupWizard } from '@/features/maya/setup/openMayaSetup'
 import {
   isMayaFabVisible,
   MAYA_FAB_CHANGED_EVENT,
   setMayaFabVisible,
 } from '@/features/maya/mayaFabPreference'
+import {
+  MAYA_PUBLIC_SITE_COACH_EVENT,
+  type PublicSiteCoachSnapshot,
+} from '@/features/firm/public-site/publicSiteCoachContext'
+import { MayaPublicSiteCopilotChat } from '@/features/firm/public-site/MayaPublicSiteCopilotChat'
+import { mayaSetupApi } from '@/infrastructure/api/contabil/mayaSetup'
 
 type MayaAssistantProps = {
   className?: string
@@ -66,6 +75,7 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
   const [open, setOpen] = useState(false)
   const [stack, setStack] = useState<MayaView[]>([])
   const [fabVisible, setFabVisible] = useState(true)
+  const [publicSiteCoach, setPublicSiteCoach] = useState<PublicSiteCoachSnapshot | null>(null)
   const pageRef = useRef<MayaPageGuide | null>(null)
   const bodyScrollRef = useRef<HTMLDivElement>(null)
   const isLandingSurface = surface === 'landing'
@@ -95,6 +105,24 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
     view.kind === 'problem' && activeIntent
       ? activeIntent.commonProblems?.find((problem) => problem.id === view.problemId) ?? null
       : null
+
+  const isPublicSiteEditorPage = page?.id === 'settings-public'
+
+  const capabilitiesQuery = useQuery({
+    queryKey: ['maya-setup-capabilities'],
+    queryFn: () => mayaSetupApi.getCapabilities().then((r) => r.capabilities),
+    enabled: isPublicSiteEditorPage && Boolean(user),
+    staleTime: 60_000,
+  })
+
+  useEffect(() => {
+    function onCoach(ev: Event) {
+      const detail = (ev as CustomEvent<PublicSiteCoachSnapshot>).detail
+      if (detail?.tip) setPublicSiteCoach(detail)
+    }
+    window.addEventListener(MAYA_PUBLIC_SITE_COACH_EVENT, onCoach as EventListener)
+    return () => window.removeEventListener(MAYA_PUBLIC_SITE_COACH_EVENT, onCoach as EventListener)
+  }, [])
 
   useEffect(() => {
     setFabVisible(isMayaFabVisible())
@@ -226,7 +254,9 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
       : isClientSurface
         ? ['portal-home', 'portal-maya', 'portal-firm-contact']
         : ['tour', 'human-support'])
-  const homeIntents = topicIds.map((id) => getMayaIntent(id)).filter((intent): intent is MayaIntent => Boolean(intent))
+  const homeIntentsRaw = topicIds.map((id) => getMayaIntent(id)).filter((intent): intent is MayaIntent => Boolean(intent))
+  const homeIntents =
+    !isLandingSurface && !isClientSurface ? homeIntentsRaw.slice(0, 4) : homeIntentsRaw
   const catalogIntents = (
     isLandingSurface
       ? MAYA_LANDING_CATALOG_INTENT_IDS
@@ -248,6 +278,22 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
     <>
       {fabVisible ? (
         <div className={cn(fabPosition, 'group', className)} data-testid="maya-fab">
+          {isPublicSiteEditorPage ? (
+            <div
+              className={cn(
+                'pointer-events-none absolute bottom-full right-0 z-50 mb-2 hidden w-[min(16rem,70vw)]',
+                'rounded-lg border border-brand/20 bg-card px-3 py-2 text-left shadow-md',
+                'group-hover:block group-focus-within:block',
+              )}
+              role="tooltip"
+            >
+              <p className="text-[11px] font-medium text-foreground">Maya — página pública</p>
+              <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">
+                {publicSiteCoach?.tip ||
+                  'Passe o rato e clique — explico o passo actual e respondo dúvidas.'}
+              </p>
+            </div>
+          ) : null}
           <button
             type="button"
             className={cn(
@@ -382,11 +428,17 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
                     ? 'Mais sobre o Teglion'
                     : isClientSurface
                       ? 'Mais ajuda neste portal'
-                      : 'Outras áreas do Teglion'
+                      : 'Mais temas (mapa completo)'
                 }
                 isLandingSurface={isLandingSurface}
+                isFirmSurface={!isLandingSurface && !isClientSurface}
+                responsible={responsible}
                 onOpenIntent={(id) => openIntent(id, false)}
                 onOpenCatalog={() => setStack([{ kind: 'catalog' }])}
+                onQuickSetup={() => {
+                  openMayaSetupWizard()
+                  setOpen(false)
+                }}
               />
             ) : null}
 
@@ -421,6 +473,20 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
 
             {view.kind === 'problem' && activeIntent && activeProblem ? (
               <MayaProblemView problem={activeProblem} onBack={goBack} />
+            ) : null}
+
+            {isPublicSiteEditorPage && responsible ? (
+              <div className="border-t border-border/40 pt-3">
+                <p className="mb-2 text-[11px] font-medium text-muted-foreground">
+                  Dúvida rápida sobre esta página?
+                </p>
+                <MayaPublicSiteCopilotChat
+                  embedded
+                  setupStep="public-site-coach"
+                  countryCode="PT"
+                  aiAdviseEnabled={capabilitiesQuery.data?.aiSetup === true}
+                />
+              </div>
             ) : null}
           </div>
         </DialogContent>
@@ -480,16 +546,22 @@ function MayaHome({
   intents,
   catalogLabel,
   isLandingSurface,
+  isFirmSurface,
+  responsible,
   onOpenIntent,
   onOpenCatalog,
+  onQuickSetup,
 }: {
   firstName: string
   page: MayaPageGuide | null
   intents: MayaIntent[]
   catalogLabel: string
   isLandingSurface?: boolean
+  isFirmSurface?: boolean
+  responsible?: boolean
   onOpenIntent: (id: string) => void
   onOpenCatalog: () => void
+  onQuickSetup?: () => void
 }) {
   return (
     <div data-testid="maya-home">
@@ -536,7 +608,9 @@ function MayaHome({
               </>
             ) : (
               <p className="mt-2 text-muted-foreground">
-                Escolha um tema abaixo — explico passo a passo e abro a página certa quando quiser.
+                {isFirmSurface
+                  ? 'Comece pelo que importa neste ecrã — ou use a configuração rápida se for o responsável do escritório.'
+                  : 'Escolha um tema abaixo — explico passo a passo e abro a página certa quando quiser.'}
               </p>
             )}
             <p className="mt-2 text-caption text-muted-foreground">
@@ -546,8 +620,16 @@ function MayaHome({
         )}
       </MayaBubble>
 
+      {isFirmSurface && responsible && onQuickSetup ? (
+        <Button type="button" variant="primary" fullWidth className="mt-4" onClick={onQuickSetup}>
+          Configuração rápida (rascunho com IA)
+        </Button>
+      ) : null}
+
       <div className="mt-4 space-y-2">
-        <p className="text-sm font-medium text-foreground">Temas desta página</p>
+        <p className="text-sm font-medium text-foreground">
+          {isFirmSurface ? 'O que fazer aqui' : 'Temas desta página'}
+        </p>
         <div className="space-y-2">
           {intents.map((intent) => (
             <MayaTopicRow key={intent.id} intent={intent} onSelect={() => onOpenIntent(intent.id)} />
@@ -563,7 +645,9 @@ function MayaHome({
           >
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium text-foreground">{catalogLabel}</span>
-              <span className="mt-0.5 block text-xs text-muted-foreground">Mapa completo do Teglion</span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                {isFirmSurface ? 'Lista longa — use só se não encontrou acima' : 'Mapa completo do Teglion'}
+              </span>
             </span>
             <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
           </button>
@@ -660,7 +744,35 @@ function MayaIntentView({
         </div>
       </div>
 
-      {intent.deepLink ? (
+      {intent.id === 'maya-setup' && responsible ? (
+        <Button
+          type="button"
+          variant="primary"
+          fullWidth
+          onClick={() => {
+            openMayaSetupWizard()
+            onHome()
+          }}
+        >
+          {intent.ctaLabel || 'Configuração rápida'}
+        </Button>
+      ) : null}
+
+      {intent.id === 'activation-assistant' && responsible ? (
+        <Button
+          type="button"
+          variant="primary"
+          fullWidth
+          onClick={() => {
+            openActivationAssistant()
+            onHome()
+          }}
+        >
+          {intent.ctaLabel || 'Assistente de activação'}
+        </Button>
+      ) : null}
+
+      {intent.deepLink && intent.id !== 'maya-setup' && intent.id !== 'activation-assistant' ? (
         <Button type="button" variant="primary" fullWidth onClick={() => onGoToLink(intent.deepLink)}>
           <ExternalLink className="h-4 w-4" />
           {intent.ctaLabel || `Ir para ${intent.shortDescription}`}

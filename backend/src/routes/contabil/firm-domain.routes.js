@@ -34,6 +34,8 @@ const googleCalendarController = require('../../modules/integrations/google-cale
 const googleDriveController = require('../../modules/integrations/google-drive/google-drive.controller');
 const caeHistoryController = require('../../modules/firm/cae-history.controller');
 const caeCatalogController = require('../../modules/firm/cae-catalog.controller');
+const mayaSetupController = require('../../modules/maya-setup/maya-setup.controller');
+const { mayaSetupGenerateLimiter } = require('../../modules/maya-setup/maya-setup.rate-limit');
 
 const router = express.Router();
 
@@ -268,6 +270,47 @@ router.delete(
   requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
   firmPublicSiteController.removePublicLogo,
 );
+
+router.get('/maya-setup/capabilities', requireFirmOwner, mayaSetupController.capabilities);
+router.post(
+  '/maya-setup/sessions',
+  requireFirmOwner,
+  [
+    body('answers.consentOpenAi').equals(true),
+    body('answers.countryCode').optional().isIn(['PT', 'BR']),
+    body('answers.tone').optional().isIn(['formal', 'friendly']),
+  ],
+  mayaSetupController.createSession,
+);
+router.get(
+  '/maya-setup/sessions/:id',
+  requireFirmOwner,
+  mayaSetupController.getSession,
+);
+router.post(
+  '/maya-setup/sessions/:id/generate',
+  requireFirmOwner,
+  mayaSetupGenerateLimiter,
+  mayaSetupController.generate,
+);
+router.post(
+  '/maya-setup/advise',
+  requireFirmOwner,
+  mayaSetupGenerateLimiter,
+  [body('question').isString().trim().isLength({ min: 2, max: 500 })],
+  mayaSetupController.advise,
+);
+router.post(
+  '/maya-setup/sessions/:id/apply',
+  requireFirmOwner,
+  mayaSetupController.apply,
+);
+router.post(
+  '/maya-setup/demo-seed',
+  requireFirmOwner,
+  mayaSetupController.seedDemoPublicSite,
+);
+
 router.patch(
   '/firm/profile',
   requirePermission(PERMISSIONS.FIRM_READ),

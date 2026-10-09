@@ -88,6 +88,8 @@ export type PublicSiteRenderContext = {
   useEditorHeroFrame?: boolean
   /** Secções abertas no editor — realça zonas na pré-visualização (só editor). */
   editorPreviewHighlightKeys?: string[]
+  /** Preview do editor: rodapé do site mais baixo (evita sensação de «footer duplo»). */
+  editorPreviewCompactFooter?: boolean
 }
 
 function formatPrice(cents: number) {
@@ -875,6 +877,7 @@ export function FooterSection({
   const align = resolveSectionContentAlign(content)
   const rowJustify = contentAlignFlexClass(align)
 
+  const compactFooter = ctx.editorPreviewCompactFooter === true
   const { email: footerEmail, phone: footerPhone, address: footerAddress } = ctx.contact
   const mapsHref = footerAddress ? buildGoogleMapsUrl({ address: footerAddress }) : null
 
@@ -909,11 +912,13 @@ export function FooterSection({
             style={text ? { color: text, borderColor: text } : undefined}
           />
         </div>
-      ) : (
+      ) : compactFooter ? null : (
         <div className="pt-6" />
       )}
       <div
-        className={`mx-auto flex max-w-2xl flex-col gap-2 px-4 pb-6 text-xs lg:max-w-4xl ${contentAlignBlockClass(align)}`}
+        className={`mx-auto flex max-w-2xl flex-col gap-2 px-4 lg:max-w-4xl ${contentAlignBlockClass(align)} ${
+          compactFooter ? 'pb-2 pt-2 text-[10px] leading-snug' : 'pb-6 text-xs'
+        }`}
         style={text ? { color: text } : undefined}
       >
         {showContactDetails && contactRows.length > 0 ? (

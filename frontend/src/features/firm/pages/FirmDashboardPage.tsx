@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   AlertCircle,
   AlertTriangle,
@@ -19,6 +19,7 @@ import { toast } from 'sonner'
 import { useFirmMessagesUnread } from '@/features/firm/FirmSidebar'
 import { FirmOnboardingWizard } from '@/features/firm/onboarding/FirmOnboardingWizard'
 import { useFirmProgress } from '@/features/firm/onboarding/useFirmProgress'
+import { FirmActivationChecklist } from '@/features/firm/dashboard/FirmActivationChecklist'
 import { FirmNextStepCard, FirmPublicUrlCard } from '@/features/firm/dashboard/FirmNextStepCard'
 import {
   DashKpi,
@@ -36,6 +37,9 @@ import {
 } from '@/features/firm/dashboard/firmDashboardUtils'
 import { AgencyPromoCard } from '@/shared/components/agency/AgencyPromoCard'
 import { AskMayaButton } from '@/features/maya'
+import { openActivationAssistant } from '@/features/firm/activation/openActivationAssistant'
+import { ClientsSpreadsheetDialog } from '@/features/firm/clients/ClientsSpreadsheetDialog'
+import { CLIENTS_CSV_IMPORT_OPEN_EVENT } from '@/features/firm/clients/openClientsCsvImport'
 import { Button } from '@/shared/components/ui/button'
 import { EmptyState, PageHeader, SkeletonCard } from '@/shared/design-system'
 import { useFirmDashboard } from '@/shared/hooks/queries/useFirmDashboard'
@@ -56,7 +60,16 @@ const QUICK_LINKS = [
 
 export function FirmDashboardPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { user } = useAuth()
+
+  useEffect(() => {
+    if (searchParams.get('activation') !== '1') return
+    openActivationAssistant()
+    const next = new URLSearchParams(searchParams)
+    next.delete('activation')
+    setSearchParams(next, { replace: true })
+  }, [searchParams, setSearchParams])
   const dashboardQuery = useFirmDashboard(true)
   const { progress, loading: progressLoading } = useFirmProgress(true)
   const data = dashboardQuery.data ?? null
@@ -65,11 +78,25 @@ export function FirmDashboardPage() {
   const messagesUnread = useFirmMessagesUnread()
   const [scope, setScope] = useState<PeriodScope>('all')
   const [notifying, setNotifying] = useState(false)
+  const [csvImportOpen, setCsvImportOpen] = useState(false)
+
+  useEffect(() => {
+    function onCsv() {
+      setCsvImportOpen(true)
+    }
+    window.addEventListener(CLIENTS_CSV_IMPORT_OPEN_EVENT, onCsv)
+    return () => window.removeEventListener(CLIENTS_CSV_IMPORT_OPEN_EVENT, onCsv)
+  }, [])
 
   const firstName = String(user?.fullName || '')
     .trim()
     .split(/\s+/)[0]
   const greeting = firstName ? `Olá, ${firstName}` : 'Painel do escritório'
+  const isFirmOwner =
+    user?.role === 'FIRM_OWNER' ||
+    user?.role === 'PLATFORM_OWNER' ||
+    user?.firmRole === 'FIRM_OWNER' ||
+    user?.permissions?.includes('firm:owner')
 
   const atRisk = (data?.portfolioHealth?.critical ?? 0) + (data?.portfolioHealth?.attention ?? 0)
   const portfolioTotal =
@@ -221,8 +248,18 @@ export function FirmDashboardPage() {
 
         {progress?.nextAction ? (
           <div className="mb-4 grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-            <FirmNextStepCard action={progress.nextAction} loading={progressLoading} />
+            <FirmNextStepCard
+              action={progress.nextAction}
+              loading={progressLoading}
+              isOwner={isFirmOwner}
+            />
             <FirmPublicUrlCard publicUrl={progress.publicUrl} published={publicPublished} />
+          </div>
+        ) : null}
+
+        {isFirmOwner && progress ? (
+          <div className="mb-4">
+            <FirmActivationChecklist progress={progress} loading={progressLoading} isOwner={isFirmOwner} />
           </div>
         ) : null}
 
@@ -502,6 +539,15 @@ export function FirmDashboardPage() {
           </>
         ) : null}
       </div>
+      {isFirmOwner ? (
+        <ClientsSpreadsheetDialog
+          open={csvImportOpen}
+          onOpenChange={setCsvImportOpen}
+          onImported={() => {
+            void dashboardQuery.refetch()
+          }}
+        />
+      ) : null}
     </FirmScrollPage>
   )
 }

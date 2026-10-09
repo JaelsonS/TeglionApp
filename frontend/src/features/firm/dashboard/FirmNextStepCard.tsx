@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import { AskMayaButton } from '@/features/maya'
+import { OpenActivationAssistantButton } from '@/features/firm/activation/FirmActivationAssistant'
 import { Button } from '@/shared/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import type { FirmNextAction } from '@/features/firm/onboarding/firmProgress'
@@ -10,9 +11,10 @@ import type { FirmNextAction } from '@/features/firm/onboarding/firmProgress'
 type FirmNextStepCardProps = {
   action: FirmNextAction
   loading?: boolean
+  isOwner?: boolean
 }
 
-export function FirmNextStepCard({ action, loading }: FirmNextStepCardProps) {
+export function FirmNextStepCard({ action, loading, isOwner }: FirmNextStepCardProps) {
   return (
     <Card
       className="border-brand/25 shadow-[var(--cb-shadow-card)]"
@@ -31,6 +33,7 @@ export function FirmNextStepCard({ action, loading }: FirmNextStepCardProps) {
           </Link>
         </Button>
         {action.mayaIntentId ? <AskMayaButton intentId={action.mayaIntentId} /> : null}
+        {isOwner && action.mayaSetupOffer ? <OpenActivationAssistantButton /> : null}
       </CardContent>
     </Card>
   )

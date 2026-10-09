@@ -88,6 +88,18 @@ import { usePublicSiteEditorPreviewAssist } from './usePublicSiteEditorPreviewAs
 import { PublicSiteEditorFold } from './PublicSiteEditorFold'
 import { PublicSiteLinkPublishPanel } from './PublicSiteLinkPublishPanel'
 import { PublicSiteEditorDeviceChrome } from './PublicSiteEditorDeviceChrome'
+import { PublicSiteAdvancedModeIntro } from '@/features/firm/public-site/PublicSiteAdvancedModeIntro'
+import { broadcastPublicSiteCoach } from '@/features/firm/public-site/publicSiteCoachContext'
+import { resolvePublicSiteEditorGuide } from '@/features/firm/public-site/publicSiteEditorGuide'
+import {
+  PublicSiteEditorModeBar,
+  type PublicSiteEditorUIMode,
+} from '@/features/firm/public-site/PublicSiteEditorModeBar'
+import { PublicSitePublishProgressBanner } from '@/features/firm/public-site/PublicSitePublishProgressBanner'
+import { PublicSiteCoachStrip } from '@/features/firm/public-site/PublicSiteCoachStrip'
+import { MayaPublicSiteDemoSeedPanel } from '@/features/firm/public-site/MayaPublicSiteDemoSeedPanel'
+import { mayaSetupApi } from '@/infrastructure/api/contabil/mayaSetup'
+import { MAYA_SETUP_APPLIED_EVENT } from '@/features/firm/activation/openActivationAssistant'
 import { PublicSiteExtrasPanel } from './PublicSiteExtrasPanel'
 import { PublicSiteLegalFieldsEditor } from './PublicSiteLegalFieldsEditor'
 import { evaluatePublicSiteLegalGaps, publicSiteLegalFieldsDomId } from './publicSiteLegalCompliance'
@@ -126,6 +138,8 @@ type Props = {
   onFirmUpdated?: () => void
 }
 
+const UI_MODE_STORAGE_KEY = 'teglion.public-site-editor-ui-mode'
+
 export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const firmSlug = bundle.firm.slug || ''
   const canEditLink = Boolean(bundle.capabilities?.canCloseAccount) // owner-only (same as close account)
@@ -146,6 +160,23 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const [linkPublishOpen, setLinkPublishOpen] = useState(false)
   const [extrasOpen, setExtrasOpen] = useState(false)
   const [legalPublishAckChecked, setLegalPublishAckChecked] = useState(false)
+  const [uiMode, setUiMode] = useState<PublicSiteEditorUIMode>(() => {
+    if (typeof window === 'undefined') return 'simple'
+    const stored = window.sessionStorage.getItem(UI_MODE_STORAGE_KEY)
+    return stored === 'advanced' ? 'advanced' : 'simple'
+  })
+  const handleUiModeChange = useCallback((mode: PublicSiteEditorUIMode) => {
+    setUiMode(mode)
+    if (typeof window !== 'undefined') window.sessionStorage.setItem(UI_MODE_STORAGE_KEY, mode)
+  }, [])
+
+  const capabilitiesQuery = useQuery({
+    queryKey: ['maya-setup-capabilities'],
+    queryFn: () => mayaSetupApi.getCapabilities().then((r) => r.capabilities),
+    staleTime: 60_000,
+  })
+
+  const simpleMode = uiMode === 'simple'
 
   const isSectionEditorOpen = (section: PublicSiteSection) => {
     if (Object.prototype.hasOwnProperty.call(sectionOpenState, section.key)) {
@@ -204,6 +235,21 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     labels: SECTION_LABELS,
     onOpenSection: openSectionFromPreview,
   })
+
+  useEffect(() => {
+    function onMayaApplied() {
+      void siteQuery.refetch().then((r) => {
+        if (r.data?.draft) {
+          setDraft({
+            ...r.data.draft,
+            sections: reindexPublicSiteSectionsOrder(r.data.draft.sections || []),
+          })
+        }
+      })
+    }
+    window.addEventListener(MAYA_SETUP_APPLIED_EVENT, onMayaApplied)
+    return () => window.removeEventListener(MAYA_SETUP_APPLIED_EVENT, onMayaApplied)
+  }, [siteQuery])
 
   useEffect(() => {
     if (siteQuery.data && !draft) {
@@ -406,8 +452,8 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     try {
       if (draft) {
         const normalized = withReindexedSections(draft)
-        await firmPublicSiteApi.saveDraft(normalized)
-        setDraft(normalized)
+        const result = await firmPublicSiteApi.saveDraft(normalized)
+        setDraft(withReindexedSections(result.draft))
       }
       const { previewToken } = await firmPublicSiteApi.regeneratePreviewToken()
       window.open(`/${encodeURIComponent(firmSlug)}?preview=${encodeURIComponent(previewToken)}`, '_blank', 'noopener,noreferrer')
@@ -567,6 +613,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const previewFirmName =
     publicDisplayName.trim() || bundle.publicProfile.displayName?.trim() || bundle.firm.name
   const sortedSections = reindexPublicSiteSectionsOrder(draft.sections)
+  const previewConfig = draft
 
   const editorPreviewHighlightKeys = sortedSections.filter(isSectionEditorOpen).map((s) => s.key)
 
@@ -601,36 +648,37 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const previewRenderCtx = {
     firmSlug,
     firmName: previewFirmName,
-    logoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
-    headerLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'header', bundle.logoUrl),
-    heroLogoUrl: resolvePublicSitePreviewZoneLogoUrl(draft, 'hero', bundle.logoUrl),
+    logoUrl: resolvePublicSitePreviewZoneLogoUrl(previewConfig, 'header', bundle.logoUrl),
+    headerLogoUrl: resolvePublicSitePreviewZoneLogoUrl(previewConfig, 'header', bundle.logoUrl),
+    heroLogoUrl: resolvePublicSitePreviewZoneLogoUrl(previewConfig, 'hero', bundle.logoUrl),
     services: previewServices,
     contact: bundle.contact,
-    showPrices: draft.showPrices !== false,
-    complaintsBookUrl: draft.complaintsBookUrl,
-    complaintsBookLabel: draft.complaintsBookLabel,
-    praiseUrl: draft.praiseUrl,
-    praiseLabel: draft.praiseLabel,
-    praiseContact: draft.praiseContact,
+    showPrices: previewConfig.showPrices !== false,
+    complaintsBookUrl: previewConfig.complaintsBookUrl,
+    complaintsBookLabel: previewConfig.complaintsBookLabel,
+    praiseUrl: previewConfig.praiseUrl,
+    praiseLabel: previewConfig.praiseLabel,
+    praiseContact: previewConfig.praiseContact,
     openInternalLinksInNewTab: true,
     showTeglionCredit: false,
     useEditorHeroFrame: true,
+    editorPreviewCompactFooter: simpleMode,
     editorPreviewHighlightKeys,
   }
 
-  const previewPanel = <DefaultTemplate config={draft} ctx={previewRenderCtx} />
+  const previewPanel = <DefaultTemplate config={previewConfig} ctx={previewRenderCtx} />
 
   const previewSurfaceStyle = {
     ...resolveFirmBrandingCssVars({
-      primaryColor: draft.theme.primaryColor,
-      secondaryColor: draft.theme.secondaryColor,
-      textColor: draft.theme.textColor,
-      backgroundColor: draft.theme.backgroundColor,
-      surfaceColor: draft.theme.surfaceColor,
-      mutedTextColor: draft.theme.mutedTextColor,
+      primaryColor: previewConfig.theme.primaryColor,
+      secondaryColor: previewConfig.theme.secondaryColor,
+      textColor: previewConfig.theme.textColor,
+      backgroundColor: previewConfig.theme.backgroundColor,
+      surfaceColor: previewConfig.theme.surfaceColor,
+      mutedTextColor: previewConfig.theme.mutedTextColor,
     }),
-    ...(parsePublicSiteHex(draft.theme.backgroundColor)
-      ? { backgroundColor: parsePublicSiteHex(draft.theme.backgroundColor)! }
+    ...(parsePublicSiteHex(previewConfig.theme.backgroundColor)
+      ? { backgroundColor: parsePublicSiteHex(previewConfig.theme.backgroundColor)! }
       : { backgroundColor: 'hsl(var(--background))' }),
   } as CSSProperties
 
@@ -639,20 +687,33 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     siteQuery.data?.publishedAt ? 'Publicado' : 'Rascunho',
   ].join(' · ')
 
-  return (
-    <div className="cb-public-site-editor-root space-y-6">
-      <section
-        className="rounded-xl border border-brand/25 bg-gradient-to-br from-brand/[0.07] via-card to-card p-4 shadow-sm"
-        aria-label="Pronto para publicar"
-      >
-        <PublicSitePublishReadinessChecklist
-          items={publishReadinessItems}
-          legalGaps={legalGaps}
-          onFocus={onPublishReadinessFocus}
-          onFocusLegal={focusLegalFields}
-        />
-      </section>
+  const scrollToPreview = () => {
+    document.getElementById('public-site-live-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
+  const openCoachSection = sortedSections.find((s) => isSectionEditorOpen(s))
+  const coachZone: string | null = simpleMode
+    ? linkPublishOpen
+      ? 'link-publish'
+      : openCoachSection
+        ? `section-${openCoachSection.type}`
+        : null
+    : null
+
+  const demoOfficeEnabled = capabilitiesQuery.data?.demoOffice === true
+
+  const coachGuide = resolvePublicSiteEditorGuide(
+    coachZone?.replace(/^section-/, '') || (coachZone === 'link-publish' ? 'link-publish' : ''),
+  )
+  const coachBarTip =
+    coachZone === 'link-publish'
+      ? 'Defina o link, guarde o rascunho e publique quando estiver pronto — posso guiá-lo no painel da Maya.'
+      : coachZone
+        ? coachGuide.mayaTip
+        : 'Abra uma secção (A ou B) ou passe o rato sobre a Maya no canto — explico o passo actual.'
+
+  const editorBody = (
+    <>
       <PublicSiteEditorFold
         id="public-site-identity"
         title="A · Link e publicar"
@@ -662,6 +723,9 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
         onOpenChange={setLinkPublishOpen}
         className="border-brand/15 bg-card/50"
       >
+        {simpleMode && linkPublishOpen ? (
+          <PublicSiteCoachStrip zone="link-publish" className="mb-3" />
+        ) : null}
         <PublicSiteLinkPublishPanel
           publishedAt={siteQuery.data?.publishedAt}
           firmSlug={firmSlug}
@@ -710,13 +774,15 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               </button>
             </div>
           </div>
-          <p className="text-[11px] leading-relaxed text-muted-foreground">
-            Abra <span className="font-medium text-foreground">só a secção</span> que está a editar (ex.: Destaque
-            principal). Em cada secção, o bloco{' '}
-            <span className="font-medium text-foreground">Alinhamento do conteúdo</span> (esquerda / centro / direita)
-            fica no topo. Arraste à esquerda para reordenar. A pré-visualização à direita simula telemóvel/tablet — aí vê
-            o menu hamburger.
-          </p>
+          {!simpleMode ? (
+            <p className="text-[11px] leading-relaxed text-muted-foreground">
+              Abra <span className="font-medium text-foreground">só a secção</span> que está a editar (ex.: Destaque
+              principal). Em cada secção, o bloco{' '}
+              <span className="font-medium text-foreground">Alinhamento do conteúdo</span> (esquerda / centro / direita)
+              fica no topo. Arraste à esquerda para reordenar. A pré-visualização à direita simula telemóvel/tablet — aí
+              vê o menu hamburger.
+            </p>
+          ) : null}
           <PublicSiteSectionsList
             sections={sortedSections}
             labels={SECTION_LABELS}
@@ -734,6 +800,9 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             visitorSummary={(section) => resolvePublicSiteSectionVisitorSummary(section, previewServices)}
             renderEditor={(section) => (
               <div className="space-y-3">
+                {simpleMode && isSectionEditorOpen(section) ? (
+                  <PublicSiteCoachStrip zone={`section-${section.type}`} />
+                ) : null}
                 <PublicSiteSectionAlignField
                   content={section.content}
                   variant={
@@ -799,7 +868,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
         </div>
 
         <aside className="cb-public-site-editor-aside order-2 min-w-0">
-          <div className="cb-public-site-editor-preview-panel">
+          <div id="public-site-live-preview" className="cb-public-site-editor-preview-panel">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -894,6 +963,63 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
           pageColorsSection={<PageThemeColors draft={draft} onChange={setDraft} embedded />}
         />
       </PublicSiteEditorFold>
+    </>
+  )
+
+  return (
+    <div
+      className={
+        simpleMode
+          ? 'cb-public-site-editor-root cb-public-site-editor-root--simple space-y-6'
+          : 'cb-public-site-editor-root space-y-6'
+      }
+    >
+      <PublicSiteEditorModeBar mode={uiMode} onModeChange={handleUiModeChange} />
+
+      {simpleMode ? (
+        <>
+          <PublicSiteCoachBroadcast
+            coachZone={coachZone}
+            intentId={coachGuide.intentId}
+            tip={coachBarTip}
+          />
+          <PublicSitePublishProgressBanner
+            items={publishReadinessItems}
+            onFocus={onPublishReadinessFocus}
+            mayaTip={coachBarTip}
+            mayaIntentId={coachGuide.intentId}
+          />
+        </>
+      ) : null}
+
+      {simpleMode ? (
+        <MayaPublicSiteDemoSeedPanel
+          demoOfficeEnabled={demoOfficeEnabled}
+          firmSlug={firmSlug}
+          onAfterSeed={() => void siteQuery.refetch()}
+          onScrollToPreview={scrollToPreview}
+        />
+      ) : null}
+
+      {!simpleMode ? (
+        <PublicSiteAdvancedModeIntro demoOfficeEnabled={demoOfficeEnabled} />
+      ) : null}
+
+      {!simpleMode ? (
+        <section
+          className="rounded-xl border border-brand/25 bg-gradient-to-br from-brand/[0.07] via-card to-card p-4 shadow-sm"
+          aria-label="Pronto para publicar"
+        >
+          <PublicSitePublishReadinessChecklist
+            items={publishReadinessItems}
+            legalGaps={legalGaps}
+            onFocus={onPublishReadinessFocus}
+            onFocusLegal={focusLegalFields}
+          />
+        </section>
+      ) : null}
+
+      <div className="min-w-0 space-y-6">{editorBody}</div>
 
       <AlertDialog
         open={confirmPublishOpen}
@@ -989,6 +1115,21 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
       </AlertDialog>
     </div>
   )
+}
+
+function PublicSiteCoachBroadcast({
+  coachZone,
+  intentId,
+  tip,
+}: {
+  coachZone: string | null
+  intentId: string
+  tip: string
+}) {
+  useEffect(() => {
+    broadcastPublicSiteCoach({ coachZone, intentId, tip })
+  }, [coachZone, intentId, tip])
+  return null
 }
 
 function SectionEditorSwitch({

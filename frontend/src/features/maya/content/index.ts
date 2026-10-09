@@ -7,11 +7,17 @@ import { LANDING_INTENTS } from '@/features/maya/content/intents/landing'
 import { OPS_INTENTS } from '@/features/maya/content/intents/operations'
 import { SERVICE_INTENTS } from '@/features/maya/content/intents/services'
 import { SETTINGS_INTENTS } from '@/features/maya/content/intents/settings'
+import { ACTIVATION_ASSISTANT_INTENTS } from '@/features/maya/content/intents/activationAssistant'
+import { MAYA_AI_ADDON_INTENTS } from '@/features/maya/content/intents/mayaAiAddon'
+import { MAYA_SETUP_INTENTS } from '@/features/maya/content/intents/mayaSetup'
 import { PORTAL_CLIENT_INTENTS } from '@/features/maya/content/intents/portalClient'
 import type { MayaIntent } from '@/features/maya/content/types'
 
 export const MAYA_INTENTS: MayaIntent[] = [
   ...CORE_INTENTS,
+  ...MAYA_SETUP_INTENTS,
+  ...ACTIVATION_ASSISTANT_INTENTS,
+  ...MAYA_AI_ADDON_INTENTS,
   ...IRS_INTENTS,
   ...SERVICE_INTENTS,
   ...CLIENT_INTENTS,
