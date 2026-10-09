@@ -19,6 +19,7 @@ import { toast } from 'sonner'
 import { useFirmMessagesUnread } from '@/features/firm/FirmSidebar'
 import { FirmOnboardingWizard } from '@/features/firm/onboarding/FirmOnboardingWizard'
 import { useFirmProgress } from '@/features/firm/onboarding/useFirmProgress'
+import { FirmActivationChecklist } from '@/features/firm/dashboard/FirmActivationChecklist'
 import { FirmNextStepCard, FirmPublicUrlCard } from '@/features/firm/dashboard/FirmNextStepCard'
 import {
   DashKpi,
@@ -70,6 +71,11 @@ export function FirmDashboardPage() {
     .trim()
     .split(/\s+/)[0]
   const greeting = firstName ? `Olá, ${firstName}` : 'Painel do escritório'
+  const isFirmOwner =
+    user?.role === 'FIRM_OWNER' ||
+    user?.role === 'PLATFORM_OWNER' ||
+    user?.firmRole === 'FIRM_OWNER' ||
+    user?.permissions?.includes('firm:owner')
 
   const atRisk = (data?.portfolioHealth?.critical ?? 0) + (data?.portfolioHealth?.attention ?? 0)
   const portfolioTotal =
@@ -221,8 +227,18 @@ export function FirmDashboardPage() {
 
         {progress?.nextAction ? (
           <div className="mb-4 grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-            <FirmNextStepCard action={progress.nextAction} loading={progressLoading} />
+            <FirmNextStepCard
+              action={progress.nextAction}
+              loading={progressLoading}
+              isOwner={isFirmOwner}
+            />
             <FirmPublicUrlCard publicUrl={progress.publicUrl} published={publicPublished} />
+          </div>
+        ) : null}
+
+        {isFirmOwner && progress ? (
+          <div className="mb-4">
+            <FirmActivationChecklist progress={progress} loading={progressLoading} isOwner={isFirmOwner} />
           </div>
         ) : null}
 
