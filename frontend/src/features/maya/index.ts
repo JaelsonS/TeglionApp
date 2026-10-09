@@ -1,4 +1,5 @@
 export { MayaAssistant } from './MayaAssistant'
+export { MayaAvatar, MAYA_AVATAR_SM, MAYA_AVATAR_MD } from './MayaAvatar'
 export { AskMayaButton } from './AskMayaButton'
 export {
   MAYA_INTENTS,

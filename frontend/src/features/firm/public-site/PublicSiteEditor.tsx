@@ -90,7 +90,9 @@ import { PublicSiteLinkPublishPanel } from './PublicSiteLinkPublishPanel'
 import { PublicSiteEditorDeviceChrome } from './PublicSiteEditorDeviceChrome'
 import { MayaPublicSiteSetupRail } from '@/features/firm/public-site/MayaPublicSiteSetupRail'
 import { MayaPublicSiteInlineSetup } from '@/features/firm/public-site/MayaPublicSiteInlineSetup'
-import { MayaPublicSiteCopilotChat } from '@/features/firm/public-site/MayaPublicSiteCopilotChat'
+import { PublicSiteMayaCoachBar } from '@/features/firm/public-site/PublicSiteMayaCoachBar'
+import { broadcastPublicSiteCoach } from '@/features/firm/public-site/publicSiteCoachContext'
+import { resolvePublicSiteEditorGuide } from '@/features/firm/public-site/publicSiteEditorGuide'
 import {
   PublicSiteEditorModeBar,
   type PublicSiteEditorUIMode,
@@ -693,6 +695,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode, coachMo
     openInternalLinksInNewTab: true,
     showTeglionCredit: false,
     useEditorHeroFrame: true,
+    editorPreviewCompactFooter: simpleMode,
     editorPreviewHighlightKeys,
   }
 
@@ -721,10 +724,6 @@ export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode, coachMo
     document.getElementById('public-site-live-preview')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
-  const scrollToCoachChat = () => {
-    document.getElementById('maya-coach-chat')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
   const openCoachSection = sortedSections.find((s) => isSectionEditorOpen(s))
   const coachZone: string | null = simpleMode
     ? linkPublishOpen
@@ -734,9 +733,17 @@ export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode, coachMo
         : null
     : null
 
-  const countryCode: 'PT' | 'BR' = 'PT'
   const demoOfficeEnabled = capabilitiesQuery.data?.demoOffice === true
-  const aiAdviseEnabled = capabilitiesQuery.data?.aiSetup === true
+
+  const coachGuide = resolvePublicSiteEditorGuide(
+    coachZone?.replace(/^section-/, '') || (coachZone === 'link-publish' ? 'link-publish' : ''),
+  )
+  const coachBarTip =
+    coachZone === 'link-publish'
+      ? 'Defina o link, guarde o rascunho e publique quando estiver pronto — posso guiá-lo no painel da Maya.'
+      : coachZone
+        ? coachGuide.mayaTip
+        : 'Abra uma secção (A ou B) ou passe o rato sobre a Maya no canto — explico o passo actual.'
 
   const editorBody = (
     <>
@@ -750,7 +757,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode, coachMo
         className="border-brand/15 bg-card/50"
       >
         {simpleMode && linkPublishOpen ? (
-          <PublicSiteCoachStrip zone="link-publish" className="mb-3" onAskInChat={scrollToCoachChat} />
+          <PublicSiteCoachStrip zone="link-publish" className="mb-3" />
         ) : null}
         <PublicSiteLinkPublishPanel
           publishedAt={siteQuery.data?.publishedAt}
@@ -827,10 +834,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode, coachMo
             renderEditor={(section) => (
               <div className="space-y-3">
                 {simpleMode && isSectionEditorOpen(section) ? (
-                  <PublicSiteCoachStrip
-                    zone={`section-${section.type}`}
-                    onAskInChat={scrollToCoachChat}
-                  />
+                  <PublicSiteCoachStrip zone={`section-${section.type}`} />
                 ) : null}
                 <PublicSiteSectionAlignField
                   content={section.content}
@@ -1010,6 +1014,17 @@ export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode, coachMo
       ) : null}
 
       {simpleMode ? (
+        <>
+          <PublicSiteCoachBroadcast
+            coachZone={coachZone}
+            intentId={coachGuide.intentId}
+            tip={coachBarTip}
+          />
+          <PublicSiteMayaCoachBar tip={coachBarTip} intentId={coachGuide.intentId} />
+        </>
+      ) : null}
+
+      {simpleMode ? (
         <MayaPublicSiteDemoSeedPanel
           demoOfficeEnabled={demoOfficeEnabled}
           firmSlug={firmSlug}
@@ -1053,19 +1068,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode, coachMo
         </section>
       ) : null}
 
-      <div className={simpleMode ? 'cb-public-site-editor-coach-grid gap-4' : undefined}>
-        {simpleMode ? (
-          <div id="maya-coach-chat" className="min-w-0 xl:sticky xl:top-[5.25rem] xl:self-start">
-            <MayaPublicSiteCopilotChat
-              setupStep="public-site-coach"
-              countryCode={countryCode}
-              aiAdviseEnabled={aiAdviseEnabled}
-              coachZone={coachZone}
-            />
-          </div>
-        ) : null}
-        <div className="min-w-0 space-y-6">{editorBody}</div>
-      </div>
+      <div className="min-w-0 space-y-6">{editorBody}</div>
 
       <AlertDialog
         open={confirmPublishOpen}
@@ -1161,6 +1164,21 @@ export function PublicSiteEditor({ bundle, onFirmUpdated, mayaSetupMode, coachMo
       </AlertDialog>
     </div>
   )
+}
+
+function PublicSiteCoachBroadcast({
+  coachZone,
+  intentId,
+  tip,
+}: {
+  coachZone: string | null
+  intentId: string
+  tip: string
+}) {
+  useEffect(() => {
+    broadcastPublicSiteCoach({ coachZone, intentId, tip })
+  }, [coachZone, intentId, tip])
+  return null
 }
 
 function SectionEditorSwitch({

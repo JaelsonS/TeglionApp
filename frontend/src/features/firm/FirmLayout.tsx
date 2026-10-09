@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 
 import { FirmMobileNavBar } from '@/features/firm/FirmMobileNavBar'
 import { FirmSidebar } from '@/features/firm/FirmSidebar'
@@ -22,6 +22,11 @@ import { LiveEventsProvider } from '@/shared/providers/LiveEventsProvider'
  * Um único Outlet — evita dual DOM mobile/desktop.
  */
 export function FirmLayout() {
+  const location = useLocation()
+  const isPublicSiteSettings =
+    location.pathname.startsWith('/app/firm/settings') &&
+    new URLSearchParams(location.search).get('tab') === 'pagina-publica'
+
   return (
     <LiveEventsProvider scope="firm">
       <div data-testid="firm-shell" className="staff-app-shell cb-firm-shell">
@@ -61,9 +66,11 @@ export function FirmLayout() {
             </div>
           </main>
 
-          <div className="shrink-0 border-t border-border bg-card">
-            <FirmShellFooter />
-          </div>
+          {isPublicSiteSettings ? null : (
+            <div className="shrink-0 border-t border-border bg-card">
+              <FirmShellFooter />
+            </div>
+          )}
 
           <div className={FIRM_SHELL_CHROME_CLASSES.mobileNavHost} data-testid="firm-mobile-nav-host">
             <FirmMobileNavBar />

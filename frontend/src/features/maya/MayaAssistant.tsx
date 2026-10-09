@@ -1,4 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, ChevronRight, ExternalLink, X } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -30,6 +31,12 @@ import {
   MAYA_FAB_CHANGED_EVENT,
   setMayaFabVisible,
 } from '@/features/maya/mayaFabPreference'
+import {
+  MAYA_PUBLIC_SITE_COACH_EVENT,
+  type PublicSiteCoachSnapshot,
+} from '@/features/firm/public-site/publicSiteCoachContext'
+import { MayaPublicSiteCopilotChat } from '@/features/firm/public-site/MayaPublicSiteCopilotChat'
+import { mayaSetupApi } from '@/infrastructure/api/contabil/mayaSetup'
 
 type MayaAssistantProps = {
   className?: string
@@ -68,6 +75,7 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
   const [open, setOpen] = useState(false)
   const [stack, setStack] = useState<MayaView[]>([])
   const [fabVisible, setFabVisible] = useState(true)
+  const [publicSiteCoach, setPublicSiteCoach] = useState<PublicSiteCoachSnapshot | null>(null)
   const pageRef = useRef<MayaPageGuide | null>(null)
   const bodyScrollRef = useRef<HTMLDivElement>(null)
   const isLandingSurface = surface === 'landing'
@@ -97,6 +105,24 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
     view.kind === 'problem' && activeIntent
       ? activeIntent.commonProblems?.find((problem) => problem.id === view.problemId) ?? null
       : null
+
+  const isPublicSiteEditorPage = page?.id === 'settings-public'
+
+  const capabilitiesQuery = useQuery({
+    queryKey: ['maya-setup-capabilities'],
+    queryFn: () => mayaSetupApi.getCapabilities().then((r) => r.capabilities),
+    enabled: isPublicSiteEditorPage && Boolean(user),
+    staleTime: 60_000,
+  })
+
+  useEffect(() => {
+    function onCoach(ev: Event) {
+      const detail = (ev as CustomEvent<PublicSiteCoachSnapshot>).detail
+      if (detail?.tip) setPublicSiteCoach(detail)
+    }
+    window.addEventListener(MAYA_PUBLIC_SITE_COACH_EVENT, onCoach as EventListener)
+    return () => window.removeEventListener(MAYA_PUBLIC_SITE_COACH_EVENT, onCoach as EventListener)
+  }, [])
 
   useEffect(() => {
     setFabVisible(isMayaFabVisible())
@@ -252,6 +278,22 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
     <>
       {fabVisible ? (
         <div className={cn(fabPosition, 'group', className)} data-testid="maya-fab">
+          {isPublicSiteEditorPage ? (
+            <div
+              className={cn(
+                'pointer-events-none absolute bottom-full right-0 z-50 mb-2 hidden w-[min(16rem,70vw)]',
+                'rounded-lg border border-brand/20 bg-card px-3 py-2 text-left shadow-md',
+                'group-hover:block group-focus-within:block',
+              )}
+              role="tooltip"
+            >
+              <p className="text-[11px] font-medium text-foreground">Maya — página pública</p>
+              <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">
+                {publicSiteCoach?.tip ||
+                  'Passe o rato e clique — explico o passo actual e respondo dúvidas.'}
+              </p>
+            </div>
+          ) : null}
           <button
             type="button"
             className={cn(
@@ -431,6 +473,20 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
 
             {view.kind === 'problem' && activeIntent && activeProblem ? (
               <MayaProblemView problem={activeProblem} onBack={goBack} />
+            ) : null}
+
+            {isPublicSiteEditorPage && responsible ? (
+              <div className="border-t border-border/40 pt-3">
+                <p className="mb-2 text-[11px] font-medium text-muted-foreground">
+                  Dúvida rápida sobre esta página?
+                </p>
+                <MayaPublicSiteCopilotChat
+                  embedded
+                  setupStep="public-site-coach"
+                  countryCode="PT"
+                  aiAdviseEnabled={capabilitiesQuery.data?.aiSetup === true}
+                />
+              </div>
             ) : null}
           </div>
         </DialogContent>

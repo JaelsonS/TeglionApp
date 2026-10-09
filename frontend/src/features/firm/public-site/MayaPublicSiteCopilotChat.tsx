@@ -1,11 +1,13 @@
 import { useMemo, useRef, useState } from 'react'
-import { Loader2, MessageCircle, Send } from 'lucide-react'
+import { Loader2, Send } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { mayaSetupApi } from '@/infrastructure/api/contabil/mayaSetup'
 import { searchMayaIntents } from '@/features/maya/searchMayaIntents'
 import { resolvePublicSiteEditorGuide } from '@/features/firm/public-site/publicSiteEditorGuide'
 import { openMaya } from '@/features/maya/openMaya'
+import { MayaAvatar } from '@/features/maya/MayaAvatar'
+import { usePublicSiteCoachSnapshot } from '@/features/firm/public-site/publicSiteCoachContext'
 import { Button } from '@/shared/components/ui/button'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
@@ -30,9 +32,19 @@ type Props = {
   aiAdviseEnabled: boolean
   /** Zona focada no editor (ex.: link-publish, section-hero). */
   coachZone?: string | null
+  /** Dentro do diálogo da Maya — sem moldura lateral. */
+  embedded?: boolean
 }
 
-export function MayaPublicSiteCopilotChat({ setupStep, countryCode, aiAdviseEnabled, coachZone }: Props) {
+export function MayaPublicSiteCopilotChat({
+  setupStep,
+  countryCode,
+  aiAdviseEnabled,
+  coachZone: coachZoneProp,
+  embedded = false,
+}: Props) {
+  const coachSnap = usePublicSiteCoachSnapshot()
+  const coachZone = coachZoneProp ?? coachSnap?.coachZone ?? null
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -110,16 +122,24 @@ export function MayaPublicSiteCopilotChat({ setupStep, countryCode, aiAdviseEnab
     ? resolvePublicSiteEditorGuide(coachZone.replace(/^section-/, ''))
     : null
 
+  const Root = embedded ? 'div' : 'aside'
+
   return (
-    <aside
-      className="flex max-h-[min(520px,70vh)] flex-col rounded-xl border border-border/60 bg-card shadow-sm"
+    <Root
+      className={cn(
+        'flex flex-col',
+        embedded
+          ? 'max-h-[min(240px,38dvh)] rounded-lg border border-border/50 bg-muted/20'
+          : 'max-h-[min(520px,70vh)] rounded-xl border border-border/60 bg-card shadow-sm',
+      )}
       data-testid="maya-public-site-copilot-chat"
       aria-label="Conversa com a Maya"
       data-coach-zone={coachZone || undefined}
     >
+      {!embedded ? (
       <div className="border-b border-border/50 px-3 py-2">
         <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <MessageCircle className="h-4 w-4 text-brand" aria-hidden />
+          <MayaAvatar size="xs" ring={false} />
           Pergunte à Maya
         </p>
         <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{hint}</p>
@@ -129,16 +149,21 @@ export function MayaPublicSiteCopilotChat({ setupStep, countryCode, aiAdviseEnab
           </p>
         ) : null}
       </div>
+      ) : null}
 
       <div ref={listRef} className="flex-1 space-y-2 overflow-y-auto px-3 py-2">
         {messages.map((m) => (
           <div
             key={m.id}
             className={cn(
-              'rounded-lg px-2.5 py-2 text-[13px] leading-relaxed',
+              'rounded-lg px-2.5 py-2 leading-relaxed',
+              embedded ? 'text-[12px]' : 'text-[13px]',
               m.role === 'user' ? 'ml-6 bg-brand/10 text-foreground' : 'mr-4 bg-muted/40 text-foreground',
             )}
           >
+            {m.role === 'maya' && !embedded ? (
+              <MayaAvatar size="xs" ring={false} className="mb-1 inline-block align-middle mr-1.5" />
+            ) : null}
             <p className="whitespace-pre-wrap">{m.text}</p>
             {m.intentId ? (
               <Button
@@ -194,6 +219,6 @@ export function MayaPublicSiteCopilotChat({ setupStep, countryCode, aiAdviseEnab
           </Button>
         </form>
       </div>
-    </aside>
+    </Root>
   )
 }
