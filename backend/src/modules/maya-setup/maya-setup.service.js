@@ -12,6 +12,7 @@ const securityAudit = require('../../services/audit/security-audit.service');
 const { CONSULTING_SERVICES_CATALOG } = require('../../data/consulting-services-catalog');
 const { parseProposalV1, CATALOG_KEY_SET } = require('./proposal.schema');
 const openaiClient = require('./openai.client');
+const { ensureProposalFromContext } = require('./proposal-enrich');
 
 const ALLOWED_TONES = new Set(['formal', 'friendly']);
 const ALLOWED_COUNTRIES = new Set(['PT', 'BR']);
@@ -79,6 +80,7 @@ function normalizeAnswers(raw, firmCountry) {
   const cityRegion = String(input.cityRegion || '').trim().slice(0, 120);
   const scheduleHint =
     input.scheduleHint && typeof input.scheduleHint === 'object' ? input.scheduleHint : null;
+  const ownerBrief = String(input.ownerBrief || '').trim().slice(0, 600);
 
   return {
     consentOpenAi: true,
@@ -90,6 +92,7 @@ function normalizeAnswers(raw, firmCountry) {
     irsCampaign,
     cityRegion,
     scheduleHint,
+    ...(ownerBrief ? { ownerBrief } : {}),
   };
 }
 
@@ -175,7 +178,9 @@ async function generateProposal({ firmId, actorUserId, sessionId, req }) {
   };
 
   const { proposal: rawProposal, requestId } = await openaiClient.generateMayaSetupProposal(context);
-  const proposal = parseProposalV1(rawProposal, { countryCode });
+  let proposal = parseProposalV1(rawProposal, { countryCode });
+  proposal = ensureProposalFromContext(proposal, context);
+  proposal = parseProposalV1(proposal, { countryCode });
 
   const updated = await mayaSetupSessionsRepository.updateSession(sessionId, firmId, {
     proposal,

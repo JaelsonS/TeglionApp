@@ -26,6 +26,7 @@ import {
   MAYA_SETUP_SERVICE_OPTIONS_PT,
   MAYA_SETUP_SPECIALTIES,
 } from '@/features/maya/setup/mayaSetupCatalog'
+import { formatBookingPreview, formatPublicSitePreview } from '@/features/maya/setup/mayaSetupPreview'
 
 type Step = 'consent' | 'questions' | 'loading' | 'preview' | 'done'
 
@@ -37,6 +38,7 @@ function isFirmOwner(user: AuthUser | null | undefined) {
 }
 
 const PRIVACY_LINK = 'LEGAL_DECISION_REQUIRED'
+const OWNER_BRIEF_MAX = 600
 
 export function MayaSetupWizard() {
   const auth = useAuthOptional()
@@ -59,6 +61,7 @@ export function MayaSetupWizard() {
   ])
   const [irsCampaign, setIrsCampaign] = useState(true)
   const [cityRegion, setCityRegion] = useState('')
+  const [ownerBrief, setOwnerBrief] = useState('')
   const [previewTab, setPreviewTab] = useState<'site' | 'services' | 'irs' | 'booking'>('site')
 
   useEffect(() => {
@@ -87,6 +90,7 @@ export function MayaSetupWizard() {
       serviceCatalogKeys: serviceKeys,
       irsCampaign: countryCode === 'PT' ? irsCampaign : false,
       cityRegion: cityRegion.trim() || undefined,
+      ownerBrief: ownerBrief.trim().slice(0, OWNER_BRIEF_MAX) || undefined,
       scheduleHint: { weekdays: [1, 2, 3, 4, 5], dayStart: '09:00', dayEnd: '18:00' },
     }
   }
@@ -129,27 +133,29 @@ export function MayaSetupWizard() {
   }
 
   const proposal = session?.proposal
+  const sitePreview = proposal ? formatPublicSitePreview(proposal) : null
+  const bookingLines = proposal ? formatBookingPreview(proposal) : []
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg" data-testid="maya-setup-wizard">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl" data-testid="maya-setup-wizard">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-brand" aria-hidden />
-            Configuração rápida Maya
+            Configuração rápida
           </DialogTitle>
           <DialogDescription>
-            Questionário curto + proposta em rascunho. Não é aconselhamento fiscal; o Teglion não calcula impostos
+            A Maya prepara um rascunho da página, serviços e agenda. Não substitui aconselhamento fiscal nem cálculo
             AT.
           </DialogDescription>
         </DialogHeader>
 
         {step === 'consent' ? (
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              A Maya pode preparar textos genéricos para a página pública, serviços do catálogo e horários de
-              agenda. Os dados do questionário são processados pela{' '}
-              <strong>OpenAI</strong> como subcontratante — ver política: {PRIVACY_LINK}.
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Em poucos minutos pode ter textos genéricos, serviços do catálogo e horários sugeridos — sempre em
+              rascunho, para rever antes de publicar. O questionário (incluindo texto livre opcional) é processado
+              pela <strong>OpenAI</strong> como subcontratante. Política: {PRIVACY_LINK}.
             </p>
             <label className="flex items-start gap-2 text-sm">
               <Checkbox
@@ -163,7 +169,7 @@ export function MayaSetupWizard() {
                 Cancelar
               </Button>
               <Button onClick={() => setStep('questions')} disabled={!consent}>
-                Continuar
+                Começar questionário
               </Button>
             </div>
           </div>
@@ -171,6 +177,20 @@ export function MayaSetupWizard() {
 
         {step === 'questions' ? (
           <div className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="maya-brief">Conte-nos em suas palavras (opcional)</Label>
+              <textarea
+                id="maya-brief"
+                className="min-h-[88px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm leading-relaxed"
+                value={ownerBrief}
+                maxLength={OWNER_BRIEF_MAX}
+                onChange={(e) => setOwnerBrief(e.target.value)}
+                placeholder="Ex.: Queremos ser vistos como escritório moderno para autónomos em Coimbra; destacar IRS e e-Fatura; tom acolhedor."
+              />
+              <p className="text-caption text-muted-foreground">
+                {ownerBrief.length}/{OWNER_BRIEF_MAX} — não inclua NIFs, nomes de clientes nem documentos.
+              </p>
+            </div>
             <div className="grid gap-2">
               <Label>País do escritório</Label>
               <div className="flex gap-2">
@@ -215,13 +235,13 @@ export function MayaSetupWizard() {
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="maya-city">Cidade ou região (para copy)</Label>
+              <Label htmlFor="maya-city">Cidade ou região</Label>
               <input
                 id="maya-city"
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
                 value={cityRegion}
                 onChange={(e) => setCityRegion(e.target.value)}
-                placeholder="Ex.: Porto, Grande Lisboa"
+                placeholder="Ex.: Coimbra, Grande Lisboa"
               />
             </div>
             <div className="grid gap-2">
@@ -246,7 +266,7 @@ export function MayaSetupWizard() {
               </div>
             </div>
             <div className="grid gap-2">
-              <Label>Serviços desejados</Label>
+              <Label>Serviços a activar no escritório</Label>
               <div className="max-h-40 space-y-2 overflow-y-auto rounded-md border p-2">
                 {serviceOptions.map((opt) => (
                   <label key={opt.catalogKey} className="flex items-center gap-2 text-sm">
@@ -280,7 +300,7 @@ export function MayaSetupWizard() {
               </Button>
               <Button onClick={() => void startSession()} disabled={busy || serviceKeys.length < 1}>
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                A Maya prepara…
+                Gerar proposta
               </Button>
             </div>
           </div>
@@ -290,18 +310,21 @@ export function MayaSetupWizard() {
           <div className="flex flex-col items-center gap-3 py-8 text-center">
             <Loader2 className="h-8 w-8 animate-spin text-brand" />
             <p className="text-sm text-muted-foreground">A Maya está a preparar a proposta…</p>
+            <p className="text-caption text-muted-foreground">Isto pode demorar até um minuto.</p>
           </div>
         ) : null}
 
         {step === 'preview' && proposal ? (
           <div className="space-y-4">
             {proposal.rationale ? (
-              <p className="rounded-md bg-muted/40 p-3 text-sm text-muted-foreground">{proposal.rationale}</p>
+              <p className="rounded-md border border-brand/15 bg-brand/[0.04] p-3 text-sm leading-relaxed text-foreground">
+                {proposal.rationale}
+              </p>
             ) : null}
             <div className="flex flex-wrap gap-1">
               {(
                 [
-                  ['site', 'Página'],
+                  ['site', 'Página pública'],
                   ['services', 'Serviços'],
                   ['irs', 'IRS'],
                   ['booking', 'Horários'],
@@ -318,41 +341,82 @@ export function MayaSetupWizard() {
                 </Button>
               ))}
             </div>
-            <div className="text-sm">
-              {previewTab === 'site' ? (
-                <pre className="max-h-48 overflow-auto rounded-md bg-muted/30 p-2 text-xs">
-                  {JSON.stringify(proposal.publicSitePatch, null, 2)}
-                </pre>
+            <div className="rounded-lg border border-border/70 bg-muted/20 p-3 text-sm leading-relaxed">
+              {previewTab === 'site' && sitePreview ? (
+                sitePreview.empty ? (
+                  <p className="text-muted-foreground">
+                    A proposta não trouxe textos de página — ao aplicar, o sistema tentará preencher um mínimo a
+                    partir do questionário. Ajuste o texto livre e regenere, ou edite depois em Definições.
+                  </p>
+                ) : (
+                  <dl className="space-y-2">
+                    {sitePreview.seoTitle ? (
+                      <div>
+                        <dt className="text-caption font-medium text-muted-foreground">Título (SEO)</dt>
+                        <dd>{sitePreview.seoTitle}</dd>
+                      </div>
+                    ) : null}
+                    {sitePreview.seoDescription ? (
+                      <div>
+                        <dt className="text-caption font-medium text-muted-foreground">Descrição</dt>
+                        <dd>{sitePreview.seoDescription}</dd>
+                      </div>
+                    ) : null}
+                    {sitePreview.heroTitle ? (
+                      <div>
+                        <dt className="text-caption font-medium text-muted-foreground">Destaque</dt>
+                        <dd className="font-medium">{sitePreview.heroTitle}</dd>
+                        {sitePreview.heroTagline ? <dd className="text-muted-foreground">{sitePreview.heroTagline}</dd> : null}
+                        {sitePreview.heroBio ? <dd className="mt-1">{sitePreview.heroBio}</dd> : null}
+                      </div>
+                    ) : null}
+                    {sitePreview.aboutBody ? (
+                      <div>
+                        <dt className="text-caption font-medium text-muted-foreground">
+                          {sitePreview.aboutHeading || 'Sobre'}
+                        </dt>
+                        <dd className="whitespace-pre-wrap">{sitePreview.aboutBody}</dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                )
               ) : null}
               {previewTab === 'services' ? (
-                <ul className="list-disc pl-5">
+                <ul className="list-disc space-y-1 pl-5">
                   {proposal.services.map((s) => (
-                    <li key={s.catalogKey}>{s.name || s.catalogKey}</li>
+                    <li key={s.catalogKey}>
+                      <span className="font-medium">{s.name || s.catalogKey}</span>
+                      <span className="text-muted-foreground"> — rascunho, não publicado</span>
+                    </li>
                   ))}
                 </ul>
               ) : null}
               {previewTab === 'irs' ? (
                 proposal.irs.activateCampaign ? (
-                  <p>Activar templates: {proposal.irs.templateIds.join(', ') || '—'}</p>
+                  <p>
+                    Campanha IRS: activar{' '}
+                    <strong>{proposal.irs.templateIds.join(', ') || 'modelo Modelo 3'}</strong> (revise em IRS antes
+                    de publicar).
+                  </p>
                 ) : (
                   <p className="text-muted-foreground">Sem campanha IRS nesta proposta.</p>
                 )
               ) : null}
               {previewTab === 'booking' ? (
-                <>
-                  <p>Fuso: {proposal.booking.timezone}</p>
-                  <pre className="mt-2 max-h-40 overflow-auto rounded-md bg-muted/30 p-2 text-xs">
-                    {JSON.stringify(proposal.booking.defaultSchedule, null, 2)}
-                  </pre>
-                </>
+                <ul className="space-y-1">
+                  {bookingLines.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
               ) : null}
             </div>
             <p className="text-caption text-muted-foreground">
-              Nada será publicado automaticamente. Depois de aplicar, publique a página e os serviços manualmente.
+              Nada é publicado automaticamente. Depois de aplicar, publique a página e os serviços quando estiver
+              satisfeito.
             </p>
             <div className="flex flex-wrap justify-end gap-2">
               <Button variant="outline" onClick={() => setStep('questions')}>
-                Ajustar respostas
+                Ajustar e gerar de novo
               </Button>
               <Button onClick={() => void applyDraft()} disabled={busy}>
                 Aplicar rascunho
@@ -363,17 +427,17 @@ export function MayaSetupWizard() {
 
         {step === 'done' ? (
           <div className="space-y-4">
-            <p className="text-sm text-success font-medium">Rascunho aplicado com sucesso.</p>
+            <p className="text-sm font-medium text-success">Rascunho aplicado. Falta publicar o que quiser tornar público.</p>
             <div className="flex flex-col gap-2">
               <Button asChild variant="secondary">
-                <Link to="/app/firm/settings?tab=pagina-publica">Definições → Página pública</Link>
+                <Link to="/app/firm/settings?tab=pagina-publica">Rever página pública</Link>
               </Button>
               <Button asChild variant="outline">
-                <Link to="/app/firm/services">Serviços</Link>
+                <Link to="/app/firm/services">Rever serviços</Link>
               </Button>
               {countryCode === 'PT' ? (
                 <Button asChild variant="outline">
-                  <Link to="/app/firm/irs">IRS</Link>
+                  <Link to="/app/firm/irs">Área IRS</Link>
                 </Button>
               ) : null}
               <Button asChild variant="outline">

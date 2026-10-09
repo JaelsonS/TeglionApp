@@ -4,7 +4,7 @@ Produto **Teglion** (AfDigital — Soluções Tecnológicas). Fluxo opcional **C
 
 ## O que é enviado à OpenAI
 
-- Respostas do questionário (país, especialidades, tom, serviços desejados, campanha IRS sim/não, horário típico, cidade/região para copy).
+- Respostas do questionário (país, especialidades, tom, serviços desejados, campanha IRS sim/não, horário típico, cidade/região, **texto livre opcional `ownerBrief`** — sem PII de clientes).
 - Metadados mínimos do escritório: **nome**, **slug**, **código de país**.
 - Lista de `catalogKey` permitidos (catálogo nacional de serviços).
 
