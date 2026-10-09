@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Loader2, Sparkles } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import { MayaAvatar } from '@/features/maya/MayaAvatar'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
@@ -56,7 +57,7 @@ export function MayaPublicSiteDemoSeedPanel({
       data-testid="maya-demo-seed-panel"
     >
       <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <Sparkles className="h-4 w-4 text-brand" aria-hidden />
+        <MayaAvatar size="sm" />
         Ver exemplo completo (AfDigital)
       </p>
       <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">

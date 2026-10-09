@@ -1,5 +1,5 @@
-import { SafeImage } from '@/shared/components/ui/SafeImage'
 import { Button } from '@/shared/components/ui/button'
+import { MayaAvatar } from '@/features/maya/MayaAvatar'
 import { openMaya } from '@/features/maya/openMaya'
 import { setMayaFabVisible } from '@/features/maya/mayaFabPreference'
 import { cn } from '@/shared/lib/utils'
@@ -30,14 +30,7 @@ export function AskMayaButton({ intentId, className, revealFab = true }: AskMaya
         openMaya(intentId)
       }}
     >
-      <span className="text-sm font-bold leading-none text-brand" aria-hidden>
-        ?
-      </span>
-      <SafeImage
-        src="/maya/maya-avatar-sm.png"
-        alt=""
-        className="h-4 w-4 rounded-full object-cover"
-      />
+      <MayaAvatar size="xs" ring={false} />
       <span>Maya</span>
     </Button>
   )
