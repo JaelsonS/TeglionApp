@@ -54,6 +54,22 @@ exports.capabilities = async (req, res, next) => {
   }
 };
 
+exports.advise = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const result = await mayaSetupService.adviseSetupQuestion({
+      firmId,
+      actorUserId: req.user.id,
+      question: req.body?.question,
+      context: req.body?.context,
+      req,
+    });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.apply = async (req, res, next) => {
   try {
     const firmId = requireUserFirmId(req);

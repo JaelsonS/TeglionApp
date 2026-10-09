@@ -35,6 +35,8 @@ import { MayaSetupBrandLegalStep } from '@/features/maya/setup/MayaSetupBrandLeg
 import { buildMayaLivePreviewDraft } from '@/features/maya/setup/mayaSetupLocalPatch'
 import { MayaSetupProposalReviewEditor } from '@/features/maya/setup/MayaSetupProposalReviewEditor'
 import type { MayaSetupProposalV1 } from '@/infrastructure/api/contabil/mayaSetup'
+import { MayaPublicSiteCopilotChat } from '@/features/firm/public-site/MayaPublicSiteCopilotChat'
+import { MayaPublicSiteStudioStepper } from '@/features/firm/public-site/MayaPublicSiteStudioStepper'
 import { useAuthOptional } from '@/shared/hooks/useAuth'
 import type { AuthUser } from '@/shared/types/auth'
 
@@ -312,9 +314,8 @@ export function MayaPublicSiteInlineSetup({
             Configuração rápida (Maya)
           </p>
           <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Questionário aqui — preview ao vivo à direita. Uma geração IA por sessão; edite secções, enquadre imagens e
-            use telemóvel/tablet/desktop ou{' '}
-            <span className="font-medium text-foreground">nova aba</span> antes de publicar.
+            Passo a passo abaixo · preview ao vivo à direita · perguntas à Maya à esquerda. Gerar textos com IA consome
+            crédito de setup (1× por sessão); o chat de dúvidas usa respostas curtas ou guias gratuitos.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -334,8 +335,18 @@ export function MayaPublicSiteInlineSetup({
         </div>
       </div>
 
+      <div className="mt-3">
+        <MayaPublicSiteStudioStepper currentStep={step} />
+      </div>
+
       {expanded ? (
-        <div className="mt-4 space-y-4 border-t border-border/50 pt-4">
+        <div className="mt-4 grid gap-4 border-t border-border/50 pt-4 lg:grid-cols-[minmax(260px,300px)_1fr]">
+          <MayaPublicSiteCopilotChat
+            setupStep={step}
+            countryCode={countryCode}
+            aiAdviseEnabled={Boolean(capabilities?.aiSetup)}
+          />
+          <div className="min-w-0 space-y-4">
           {step === 'consent' ? (
             <div className="space-y-4">
               <MayaSetupConsentIntro />
@@ -464,7 +475,9 @@ export function MayaPublicSiteInlineSetup({
 
           {step === 'done' ? (
             <div className="space-y-3">
-              <p className="text-sm font-medium text-success">Rascunho aplicado. Revise secções ou publique quando quiser.</p>
+              <p className="text-sm font-medium text-success">
+                Rascunho aplicado. Use «A · Link e publicar» abaixo ou o checklist para publicar quando quiser.
+              </p>
               <Button
                 type="button"
                 onClick={() => window.dispatchEvent(new CustomEvent(ACTIVATION_ASSISTANT_OPEN_EVENT))}
@@ -473,6 +486,7 @@ export function MayaPublicSiteInlineSetup({
               </Button>
             </div>
           ) : null}
+          </div>
         </div>
       ) : null}
     </section>

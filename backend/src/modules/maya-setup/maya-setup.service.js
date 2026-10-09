@@ -469,11 +469,37 @@ async function getCapabilities({ firmId }) {
   return getMayaSetupCapabilities(firmId);
 }
 
+async function adviseSetupQuestion({ firmId, actorUserId, question, context, req }) {
+  await assertOwnerActor(firmId, actorUserId);
+  await assertMayaSetupEntitlement(firmId);
+  const firm = await firmsRepository.findFirmById(firmId);
+  const { answer, requestId } = await openaiClient.answerSetupQuestion({
+    question,
+    context: {
+      setupStep: context?.setupStep,
+      countryCode: context?.countryCode || firm?.countryCode || 'PT',
+      firmName: firm?.name,
+    },
+  });
+  await securityAudit.recordSecurityEvent({
+    firmId,
+    actorRole: 'FIRM_OWNER',
+    actorId: actorUserId,
+    action: 'maya.setup.advise',
+    entityType: 'FIRM',
+    entityId: firmId,
+    metadata: { openAiRequestId: requestId, setupStep: context?.setupStep || null },
+    req,
+  });
+  return { answer };
+}
+
 module.exports = {
   createSession,
   getSession,
   generateProposal,
   applyProposal,
+  adviseSetupQuestion,
   getCapabilities,
   normalizeAnswers,
   mergePublicSitePatch,
