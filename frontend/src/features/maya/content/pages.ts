@@ -16,7 +16,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     goal: 'Saber por onde começar o dia e o que precisa de atenção.',
     firstTimeHint:
       'Se acabou de chegar, siga o cartão «Próximo passo» — logótipo do portal (Identidade), página pública publicada e primeiro serviço no catálogo.',
-    topicIds: ['tour', 'public-page', 'service', 'clients', 'dashboard-kpis'],
+    topicIds: ['maya-setup', 'tour', 'public-page', 'service', 'clients', 'dashboard-kpis'],
     primaryIntentId: 'tour',
   },
   {
@@ -773,6 +773,7 @@ export const MAYA_LANDING_CATALOG_INTENT_IDS = [
 
 /** Intents de «outras áreas» — módulos, não campos. */
 export const MAYA_CATALOG_INTENT_IDS = [
+  'maya-setup',
   'tour',
   'clients',
   'documents',
