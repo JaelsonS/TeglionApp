@@ -58,6 +58,13 @@ Produto **Teglion** (AfDigital — Soluções Tecnológicas). Fluxo opcional **C
 - `MAYA_DEMO_OFFICE_FIRM_IDS` ou fallback `MAYA_SETUP_FREE_FIRM_IDS`
 - Em `NODE_ENV=production`, desactivado salvo `TEGLION_ALLOW_DEMO_OFFICE_IN_PROD=1` (não recomendado).
 
+## Seed «Exemplo AfDigital» (Coach, sem OpenAI)
+
+- `POST /contabil/maya-setup/demo-seed` — owner-only, mesmas regras que modo demonstração (G).
+- Preenche rascunho da página pública + serviços listados + agenda; **não** publica.
+- Imagens opcionais via `MAYA_DEMO_ASSETS_*_STORAGE_KEY` e `MAYA_DEMO_ASSETS_*_ID` (ver `.env.example`).
+- Auditar: `maya.setup.demo_seed`.
+
 ## Smoke manual (staging)
 
 1. Login **FIRM_OWNER**.

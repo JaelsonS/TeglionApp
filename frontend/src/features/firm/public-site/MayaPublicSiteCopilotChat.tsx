@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 
 import { mayaSetupApi } from '@/infrastructure/api/contabil/mayaSetup'
 import { searchMayaIntents } from '@/features/maya/searchMayaIntents'
+import { resolvePublicSiteEditorGuide } from '@/features/firm/public-site/publicSiteEditorGuide'
 import { openMaya } from '@/features/maya/openMaya'
 import { Button } from '@/shared/components/ui/button'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -27,9 +28,11 @@ type Props = {
   setupStep: string
   countryCode: 'PT' | 'BR'
   aiAdviseEnabled: boolean
+  /** Zona focada no editor (ex.: link-publish, section-hero). */
+  coachZone?: string | null
 }
 
-export function MayaPublicSiteCopilotChat({ setupStep, countryCode, aiAdviseEnabled }: Props) {
+export function MayaPublicSiteCopilotChat({ setupStep, countryCode, aiAdviseEnabled, coachZone }: Props) {
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -51,7 +54,11 @@ export function MayaPublicSiteCopilotChat({ setupStep, countryCode, aiAdviseEnab
     setMessages((prev) => [...prev, userMsg])
     setBusy(true)
     try {
-      const matches = searchMayaIntents(question, 2)
+      const effectiveStep = coachZone || setupStep
+      const preferIntentId = coachZone
+        ? resolvePublicSiteEditorGuide(coachZone.replace(/^section-/, '')).intentId
+        : undefined
+      const matches = searchMayaIntents(question, 2, preferIntentId ? { preferIntentId } : undefined)
       if (matches.length) {
         const top = matches[0]
         const extra = matches[1] ? `\n\nTambém relevante: «${matches[1].title}».` : ''
@@ -66,7 +73,7 @@ export function MayaPublicSiteCopilotChat({ setupStep, countryCode, aiAdviseEnab
         ])
       } else if (canAskAi) {
         const { answer } = await mayaSetupApi.advise(question, {
-          setupStep,
+          setupStep: effectiveStep,
           countryCode,
         })
         setMessages((prev) => [...prev, { id: `m-${Date.now()}-ai`, role: 'maya', text: answer }])
@@ -99,11 +106,16 @@ export function MayaPublicSiteCopilotChat({ setupStep, countryCode, aiAdviseEnab
     [canAskAi],
   )
 
+  const zoneGuide = coachZone
+    ? resolvePublicSiteEditorGuide(coachZone.replace(/^section-/, ''))
+    : null
+
   return (
     <aside
       className="flex max-h-[min(520px,70vh)] flex-col rounded-xl border border-border/60 bg-card shadow-sm"
       data-testid="maya-public-site-copilot-chat"
       aria-label="Conversa com a Maya"
+      data-coach-zone={coachZone || undefined}
     >
       <div className="border-b border-border/50 px-3 py-2">
         <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
@@ -111,6 +123,11 @@ export function MayaPublicSiteCopilotChat({ setupStep, countryCode, aiAdviseEnab
           Pergunte à Maya
         </p>
         <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{hint}</p>
+        {zoneGuide ? (
+          <p className="mt-1.5 rounded-md bg-muted/40 px-2 py-1.5 text-[11px] leading-relaxed text-muted-foreground">
+            <span className="font-medium text-foreground">Agora:</span> {zoneGuide.mayaTip}
+          </p>
+        ) : null}
       </div>
 
       <div ref={listRef} className="flex-1 space-y-2 overflow-y-auto px-3 py-2">

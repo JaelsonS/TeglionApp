@@ -96,4 +96,14 @@ export const mayaSetupApi = {
             idempotent?: boolean
           },
       ),
+
+  /** Rascunho de demonstração AfDigital — sem OpenAI; não publica. */
+  seedDemoPublicSite: (body?: { includeDemoClients?: boolean }) =>
+    api.post('/contabil/maya-setup/demo-seed', body ?? {}).then(
+      (r) =>
+        r.data as {
+          draft: unknown
+          applySummary?: Record<string, unknown>
+        },
+    ),
 }

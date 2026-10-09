@@ -85,3 +85,18 @@ exports.apply = async (req, res, next) => {
     return next(err);
   }
 };
+
+exports.seedDemoPublicSite = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const result = await mayaSetupService.seedDemoPublicSite({
+      firmId,
+      actorUserId: req.user.id,
+      req,
+      includeDemoClients: req.body?.includeDemoClients === true,
+    });
+    return res.json(result);
+  } catch (err) {
+    return next(err);
+  }
+};

@@ -16,6 +16,7 @@ export function MayaPublicSiteSetupRail({ onScrollToPreview }: Props) {
       (prev) => {
         const next = new URLSearchParams(prev)
         next.delete('mayaSetup')
+        next.delete('coach')
         return next
       },
       { replace: true },
