@@ -227,7 +227,9 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
       : isClientSurface
         ? ['portal-home', 'portal-maya', 'portal-firm-contact']
         : ['tour', 'human-support'])
-  const homeIntents = topicIds.map((id) => getMayaIntent(id)).filter((intent): intent is MayaIntent => Boolean(intent))
+  const homeIntentsRaw = topicIds.map((id) => getMayaIntent(id)).filter((intent): intent is MayaIntent => Boolean(intent))
+  const homeIntents =
+    !isLandingSurface && !isClientSurface ? homeIntentsRaw.slice(0, 4) : homeIntentsRaw
   const catalogIntents = (
     isLandingSurface
       ? MAYA_LANDING_CATALOG_INTENT_IDS
@@ -383,11 +385,17 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
                     ? 'Mais sobre o Teglion'
                     : isClientSurface
                       ? 'Mais ajuda neste portal'
-                      : 'Outras áreas do Teglion'
+                      : 'Mais temas (mapa completo)'
                 }
                 isLandingSurface={isLandingSurface}
+                isFirmSurface={!isLandingSurface && !isClientSurface}
+                responsible={responsible}
                 onOpenIntent={(id) => openIntent(id, false)}
                 onOpenCatalog={() => setStack([{ kind: 'catalog' }])}
+                onQuickSetup={() => {
+                  openMayaSetupWizard()
+                  setOpen(false)
+                }}
               />
             ) : null}
 
@@ -481,16 +489,22 @@ function MayaHome({
   intents,
   catalogLabel,
   isLandingSurface,
+  isFirmSurface,
+  responsible,
   onOpenIntent,
   onOpenCatalog,
+  onQuickSetup,
 }: {
   firstName: string
   page: MayaPageGuide | null
   intents: MayaIntent[]
   catalogLabel: string
   isLandingSurface?: boolean
+  isFirmSurface?: boolean
+  responsible?: boolean
   onOpenIntent: (id: string) => void
   onOpenCatalog: () => void
+  onQuickSetup?: () => void
 }) {
   return (
     <div data-testid="maya-home">
@@ -537,7 +551,9 @@ function MayaHome({
               </>
             ) : (
               <p className="mt-2 text-muted-foreground">
-                Escolha um tema abaixo — explico passo a passo e abro a página certa quando quiser.
+                {isFirmSurface
+                  ? 'Comece pelo que importa neste ecrã — ou use a configuração rápida se for o responsável do escritório.'
+                  : 'Escolha um tema abaixo — explico passo a passo e abro a página certa quando quiser.'}
               </p>
             )}
             <p className="mt-2 text-caption text-muted-foreground">
@@ -547,8 +563,16 @@ function MayaHome({
         )}
       </MayaBubble>
 
+      {isFirmSurface && responsible && onQuickSetup ? (
+        <Button type="button" variant="primary" fullWidth className="mt-4" onClick={onQuickSetup}>
+          Configuração rápida (rascunho com IA)
+        </Button>
+      ) : null}
+
       <div className="mt-4 space-y-2">
-        <p className="text-sm font-medium text-foreground">Temas desta página</p>
+        <p className="text-sm font-medium text-foreground">
+          {isFirmSurface ? 'O que fazer aqui' : 'Temas desta página'}
+        </p>
         <div className="space-y-2">
           {intents.map((intent) => (
             <MayaTopicRow key={intent.id} intent={intent} onSelect={() => onOpenIntent(intent.id)} />
@@ -564,7 +588,9 @@ function MayaHome({
           >
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium text-foreground">{catalogLabel}</span>
-              <span className="mt-0.5 block text-xs text-muted-foreground">Mapa completo do Teglion</span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                {isFirmSurface ? 'Lista longa — use só se não encontrou acima' : 'Mapa completo do Teglion'}
+              </span>
             </span>
             <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
           </button>

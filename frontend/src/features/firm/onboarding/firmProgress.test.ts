@@ -30,6 +30,7 @@ describe('computeFirmProgress', () => {
     })
     expect(r.steps.find((s) => s.id === 'publicPage')?.done).toBe(false)
     expect(r.nextAction?.id).toBe('public-page')
+    expect(r.nextAction?.mayaSetupOffer).toBe(true)
   })
 
   it('asks for first public service after page is published', () => {
