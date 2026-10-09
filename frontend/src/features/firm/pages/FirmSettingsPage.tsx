@@ -75,38 +75,22 @@ export function FirmSettingsPage() {
     [canCloseAccount],
   )
 
-  const coachMode = searchParams.get('coach') === '1'
-  const legacyMayaSetup = searchParams.get('mayaSetup') === '1'
+  const legacyPublicSiteDeepLink =
+    searchParams.get('coach') === '1' || searchParams.get('mayaSetup') === '1'
 
   useEffect(() => {
-    if (legacyMayaSetup) {
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev)
-          next.delete('mayaSetup')
-          next.set('tab', 'pagina-publica')
-          next.set('coach', '1')
-          return next
-        },
-        { replace: true },
-      )
-    }
-  }, [legacyMayaSetup, setSearchParams])
-
-  useEffect(() => {
-    if (coachMode && searchParams.get('tab') !== 'pagina-publica') {
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev)
-          next.set('tab', 'pagina-publica')
-          return next
-        },
-        { replace: true },
-      )
-    }
-  }, [coachMode, searchParams, setSearchParams])
-
-  const mayaSetupMode = legacyMayaSetup
+    if (!legacyPublicSiteDeepLink) return
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('mayaSetup')
+        next.delete('coach')
+        next.set('tab', 'pagina-publica')
+        return next
+      },
+      { replace: true },
+    )
+  }, [legacyPublicSiteDeepLink, setSearchParams])
 
   const activeTab: TabId = useMemo(() => {
     const fromQuery = searchParams.get('tab')
@@ -293,12 +277,7 @@ export function FirmSettingsPage() {
               ) : null}
 
               {activeTab === 'pagina-publica' ? (
-                <PublicSiteEditor
-                  bundle={bundle}
-                  onFirmUpdated={onUpdated}
-                  mayaSetupMode={mayaSetupMode}
-                  coachMode={coachMode}
-                />
+                <PublicSiteEditor bundle={bundle} onFirmUpdated={onUpdated} />
               ) : null}
 
               {activeTab === 'escritorio' ? (

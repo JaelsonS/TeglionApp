@@ -16,8 +16,8 @@ Produto **Teglion** (AfDigital). Auditoria e estado da **fase 1** (Coach Mode).
 
 | Entrega | Comportamento |
 |---------|----------------|
-| **Modo Simples / Avançado** | Simples por defeito (`sessionStorage`); Avançado = editor anterior (checklist completa, extras, estúdio IA se `coach=1`) |
-| **Coluna Maya Coach** | Chat único (`MayaPublicSiteCopilotChat`) + faixa por zona A/B |
+| **Modo Simples / Avançado** | Simples = progresso + demo + faixas A/B + Maya FAB; Avançado = checklist + secções **sem questionário inline** |
+| **Maya** | FAB (hover + diálogo); perguntas rápidas no modal da Maya; IA completa = `MayaSetupWizard` (modal global) |
 | **Progresso compacto** | Banner «N de M passos» em Simples; checklist grande só em Avançado |
 | **Exemplo AfDigital** | `POST /contabil/maya-setup/demo-seed` — rascunho rico, serviços públicos, agenda; **não publica** |
 | **Redirect** | `mayaSetup=1` → `tab=pagina-publica&coach=1` |
@@ -26,11 +26,11 @@ Produto **Teglion** (AfDigital). Auditoria e estado da **fase 1** (Coach Mode).
 ### Oculto em modo Simples
 
 - `MayaPublicSiteSetupRail`
-- `MayaPublicSiteInlineSetup` (questionário completo)
+- Questionário inline (`MayaPublicSiteInlineSetup` — **retirado** do ecrã; só modal)
 - `PublicSitePublishReadinessChecklist` (substituído pelo banner)
 - Banner «preview questionário não guardado»
 - Parágrafo longo introdutório em B · Secções
-- Estúdio IA completo (Avançado + `coach=1` mantém legado)
+- Estúdio IA inline e rail
 
 ### Visível em modo Simples
 
