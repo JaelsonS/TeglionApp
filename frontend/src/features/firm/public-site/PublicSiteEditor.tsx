@@ -123,8 +123,8 @@ const SECTION_HINTS: Record<PublicSiteSection['type'], string> = {
   header: 'Alinhamento da marca, cores · menu hamburger em telemóvel/tablet',
   hero: 'Alinhamento, imagem de fundo, texto e botões',
   about: 'Alinhamento, texto, foto e botões',
-  services: 'Título opcional · destaques · grelha · ordem (marcação online)',
-  bookingServices: 'Título opcional · destaques · grelha · ordem (formulário, sem horário)',
+  services: 'Título opcional · destaques · imagens · grelha · ordem (marcação online)',
+  bookingServices: 'Título opcional · destaques · imagens · grelha · ordem (formulário, sem horário)',
   features: 'Alinhamento e pontos fortes',
   process: 'Alinhamento e passos',
   faq: 'Alinhamento e perguntas',
@@ -846,6 +846,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                   }
                   siteDraft={draft}
                   onSiteDraftChange={setDraft}
+                  firmSlug={firmSlug}
                   bookingFilter={
                     section.type === 'services' ? true : section.type === 'bookingServices' ? false : undefined
                   }
@@ -1165,6 +1166,7 @@ function SectionEditorSwitch({
   socialLinksSection,
   siteDraft,
   onSiteDraftChange,
+  firmSlug,
 }: {
   section: PublicSiteSection
   onChange: (content: PublicSiteSection['content']) => void
@@ -1192,6 +1194,7 @@ function SectionEditorSwitch({
   socialLinksSection?: ReactNode
   siteDraft?: PublicSiteConfig
   onSiteDraftChange?: (next: PublicSiteConfig) => void
+  firmSlug?: string
 }) {
   switch (section.type) {
     case 'hero':
@@ -1246,6 +1249,7 @@ function SectionEditorSwitch({
           officePhone={officePhone}
           socialWhatsapp={socialWhatsapp}
           bookingFilter={bookingFilter ?? true}
+          firmSlug={firmSlug}
         />
       )
     case 'bookingServices':
@@ -1257,6 +1261,7 @@ function SectionEditorSwitch({
           officePhone={officePhone}
           socialWhatsapp={socialWhatsapp}
           bookingFilter={bookingFilter ?? false}
+          firmSlug={firmSlug}
         />
       )
     case 'features':
