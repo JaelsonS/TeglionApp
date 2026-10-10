@@ -7,6 +7,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   ExternalLink,
@@ -76,7 +77,7 @@ import {
   addCustomCatalogSection,
   removePublicSiteSection,
 } from './publicSiteSectionFactory'
-import { applyPageBackgroundColor, parsePublicSiteHex } from './publicSitePageBackground'
+import { parsePublicSiteHex } from './publicSitePageBackground'
 import { PublicSitePublishReadinessChecklist } from './PublicSitePublishReadinessChecklist'
 import {
   evaluatePublicSitePublishReadiness,
@@ -101,6 +102,7 @@ import { MayaPublicSiteDemoSeedPanel } from '@/features/firm/public-site/MayaPub
 import { mayaSetupApi } from '@/infrastructure/api/contabil/mayaSetup'
 import { MAYA_SETUP_APPLIED_EVENT } from '@/features/firm/activation/openActivationAssistant'
 import { PublicSiteExtrasPanel } from './PublicSiteExtrasPanel'
+import { PublicSiteBrandColorsPanel } from './PublicSiteBrandColorsPanel'
 import { PublicSiteLegalFieldsEditor } from './PublicSiteLegalFieldsEditor'
 import { evaluatePublicSiteLegalGaps, publicSiteLegalFieldsDomId } from './publicSiteLegalCompliance'
 
@@ -141,6 +143,7 @@ type Props = {
 const UI_MODE_STORAGE_KEY = 'teglion.public-site-editor-ui-mode'
 
 export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
+  const [searchParams] = useSearchParams()
   const firmSlug = bundle.firm.slug || ''
   const canEditLink = Boolean(bundle.capabilities?.canCloseAccount) // owner-only (same as close account)
   const [draft, setDraft] = useState<PublicSiteConfig | null>(null)
@@ -158,7 +161,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
   const [sectionOpenState, setSectionOpenState] = useState<Record<string, boolean>>({})
   const [previewDevice, setPreviewDevice] = useState<PublicSiteEditorPreviewDevice>('tablet')
   const [linkPublishOpen, setLinkPublishOpen] = useState(false)
-  const [extrasOpen, setExtrasOpen] = useState(false)
+  const [extrasOpen, setExtrasOpen] = useState(() => searchParams.get('focus') === 'brand')
   const [legalPublishAckChecked, setLegalPublishAckChecked] = useState(false)
   const [uiMode, setUiMode] = useState<PublicSiteEditorUIMode>(() => {
     if (typeof window === 'undefined') return 'simple'
@@ -169,6 +172,14 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     setUiMode(mode)
     if (typeof window !== 'undefined') window.sessionStorage.setItem(UI_MODE_STORAGE_KEY, mode)
   }, [])
+
+  useEffect(() => {
+    if (searchParams.get('focus') !== 'brand') return
+    setExtrasOpen(true)
+    requestAnimationFrame(() => {
+      document.getElementById('public-site-extras')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [searchParams])
 
   const capabilitiesQuery = useQuery({
     queryKey: ['maya-setup-capabilities'],
@@ -918,7 +929,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
             </div>
           </div>
           <div
-            key={`preview-bg-${draft.theme.backgroundColor || 'default'}-${draft.theme.surfaceColor || 'surface'}-${previewDevice}`}
+            key={`preview-bg-${draft.theme.backgroundColor || 'default'}-${draft.theme.surfaceColor || 'surface'}-${draft.theme.primaryColor || 'accent'}-${previewDevice}`}
             className="cb-public-site-editor-preview-scroll cb-public-site-editor-preview-scroll--device rounded-lg border border-border/50 shadow-sm"
           >
             <PublicSiteEditorDeviceChrome device={previewDevice} screenStyle={previewSurfaceStyle}>
@@ -937,8 +948,8 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
       <PublicSiteEditorFold
         id="public-site-extras"
         title="C · Marca e extras"
-        closedSummary="Preços, logótipos, cores da página e SEO"
-        hint="Preços/agenda, logótipos, cores e SEO — sem contactos nem legal (isso fica nas secções)."
+        closedSummary="Cor de destaque, textos do destaque, fundos, logótipos e SEO"
+        hint="Comece pelas cores de destaque (tira o verde dos textos) — depois logótipos e SEO."
         open={extrasOpen}
         onOpenChange={setExtrasOpen}
         className="bg-muted/15"
@@ -960,7 +971,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
               onLogoSourceChange={(zone, source) => void patchThemeLogoSource(zone, source)}
             />
           }
-          pageColorsSection={<PageThemeColors draft={draft} onChange={setDraft} embedded />}
+          pageColorsSection={<PublicSiteBrandColorsPanel draft={draft} onChange={setDraft} variant="full" />}
         />
       </PublicSiteEditorFold>
     </>
@@ -1196,6 +1207,8 @@ function SectionEditorSwitch({
           officePhone={officePhone}
           socialWhatsapp={socialWhatsapp}
           publicDisplayName={publicDisplayName}
+          siteDraft={siteDraft}
+          onSiteDraftChange={onSiteDraftChange}
         />
       )
     case 'about':
@@ -1393,121 +1406,6 @@ function whatsappDisplayNumber(url: string | null | undefined): string {
   const fromWa = raw.match(/wa\.me\/(\d+)/i)
   if (fromWa) return fromWa[1]
   return raw.replace(/\D/g, '')
-}
-
-function PageThemeColors({
-  draft,
-  onChange,
-  embedded = false,
-}: {
-  draft: PublicSiteConfig
-  onChange: (next: PublicSiteConfig) => void
-  embedded?: boolean
-}) {
-  const theme = draft.theme
-  const bg = theme.backgroundColor || ''
-  const surface = theme.surfaceColor || ''
-  const bgInvalid = bg.trim() !== '' && !isValidHex(bg)
-  const surfaceInvalid = surface.trim() !== '' && !isValidHex(surface)
-
-  const setPageBackground = (value: string | null) => {
-    const prev = parsePublicSiteHex(draft.theme.backgroundColor)
-    const nextParsed = parsePublicSiteHex(value)
-    const hadSectionBgs = draft.sections.some((s) => {
-      const c = s.content as { backgroundColor?: string | null }
-      return Boolean(c?.backgroundColor)
-    })
-    const next = applyPageBackgroundColor(draft, value)
-    onChange(next)
-    if (hadSectionBgs && nextParsed && nextParsed !== prev) {
-      toast.message('Fundos das secções limpos', {
-        description: 'Assim a cor da página aparece no preview. Pode voltar a colorir cada bloco nas secções.',
-      })
-    }
-  }
-
-  const grid = (
-      <div className={embedded ? 'grid gap-3 sm:grid-cols-2' : 'mt-2 grid gap-3 sm:grid-cols-2'}>
-        <div className="space-y-1">
-          <Label htmlFor="ps-page-bg" className="text-[11px]">
-            Página
-          </Label>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              aria-label="Fundo da página"
-              value={isValidHex(bg) ? bg : '#faf9f7'}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setPageBackground(e.target.value)}
-              className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
-            />
-            <Input
-              id="ps-page-bg"
-              value={bg}
-              onChange={(e: FormChangeEvent) => setPageBackground(e.target.value.trim() || null)}
-              placeholder="#faf9f7"
-              className={bgInvalid ? 'h-9 border-destructive' : 'h-9'}
-            />
-          </div>
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="ps-surface" className="text-[11px]">
-            Cartões
-          </Label>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              aria-label="Fundo dos cartões"
-              value={isValidHex(surface) ? surface : '#ffffff'}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                onChange({
-                  ...draft,
-                  theme: { ...draft.theme, surfaceColor: parsePublicSiteHex(e.target.value) },
-                })
-              }
-              className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border/60 bg-transparent p-0.5"
-            />
-            <Input
-              id="ps-surface"
-              value={surface}
-              onChange={(e: FormChangeEvent) =>
-                onChange({
-                  ...draft,
-                  theme: { ...draft.theme, surfaceColor: parsePublicSiteHex(e.target.value) },
-                })
-              }
-              placeholder="#ffffff"
-              className={surfaceInvalid ? 'h-9 border-destructive' : 'h-9'}
-            />
-          </div>
-        </div>
-      </div>
-  )
-
-  const sectionHint = (
-    <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">
-      Mudar a cor da página limpa fundos dos blocos para o preview actualizar.
-    </p>
-  )
-
-  if (embedded) {
-    return (
-      <>
-        {grid}
-        {sectionHint}
-      </>
-    )
-  }
-
-  return (
-    <div className="rounded-xl border border-border/50 bg-card p-3">
-      <p className="text-xs font-semibold text-foreground">Fundo da página</p>
-      <p className="mt-0.5 text-[11px] text-muted-foreground">
-        Esta cor pinta a página inteira no preview. Se um bloco tiver cor própria, essa cor sobrepõe-se — ao mudar
-        aqui, limpamos os fundos dos blocos para a alteração se ver de imediato.
-      </p>
-      {grid}
-    </div>
-  )
 }
 
 function ThemeEditor({

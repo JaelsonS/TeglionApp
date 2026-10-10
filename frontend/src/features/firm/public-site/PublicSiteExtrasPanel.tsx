@@ -145,8 +145,8 @@ export function PublicSiteExtrasPanel({
           </IdentitySubsection>
 
           <IdentitySubsection
-            title="Cores de fundo"
-            hint="Página inteira e cartões — reflectem-se na pré-visualização."
+            title="Cores do site (destaque e fundos)"
+            hint="Cor de destaque (botões e acentos), textos do destaque principal e fundos — use isto para tirar verde ou cores antigas."
           >
             {pageColorsSection}
           </IdentitySubsection>
