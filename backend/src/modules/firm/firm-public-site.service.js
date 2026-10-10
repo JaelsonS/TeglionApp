@@ -1056,6 +1056,43 @@ async function resetPublicSite(firmId, actorUserId) {
   };
 }
 
+const accountingServicesService = require('./accounting-services.service');
+
+/**
+ * Upload / patch de serviços do catálogo a partir do editor da página pública —
+ * mesmas imagens que Serviços, permissão FIRM_SETTINGS_MANAGE (dono), sem exigir
+ * FIRM_ACCOUNTING_SERVICES_MANAGE (perfis customizados só com «página pública»).
+ */
+async function uploadCatalogServiceImage(firmId, actorUserId, file) {
+  await assertOwner(
+    firmId,
+    actorUserId,
+    'Apenas o dono do escritório pode alterar imagens de serviços na página pública.',
+  );
+  return accountingServicesService.uploadServiceImage({ firmId, file });
+}
+
+async function patchCatalogServiceFromPublicEditor(firmId, actorUserId, serviceId, payload) {
+  await assertOwner(
+    firmId,
+    actorUserId,
+    'Apenas o dono do escritório pode alterar serviços a partir da página pública.',
+  );
+  const patch = {};
+  if (payload && typeof payload === 'object') {
+    if (payload.imageStorageKey !== undefined) patch.imageStorageKey = payload.imageStorageKey;
+    if (payload.imageOriginalUrl !== undefined) patch.imageOriginalUrl = payload.imageOriginalUrl;
+    if (payload.imageFocusX !== undefined) patch.imageFocusX = payload.imageFocusX;
+    if (payload.imageFocusY !== undefined) patch.imageFocusY = payload.imageFocusY;
+    if (payload.imageZoom !== undefined) patch.imageZoom = payload.imageZoom;
+    if (payload.sortOrder !== undefined) patch.sortOrder = payload.sortOrder;
+  }
+  if (Object.keys(patch).length === 0) {
+    throw new AppError('Nada para actualizar.', 400);
+  }
+  return accountingServicesService.update({ firmId, id: serviceId, payload: patch });
+}
+
 module.exports = {
   getSite,
   saveDraft,
@@ -1065,6 +1102,8 @@ module.exports = {
   uploadPublicLogo,
   removePublicLogo,
   resetPublicSite,
+  uploadCatalogServiceImage,
+  patchCatalogServiceFromPublicEditor,
   normalizeSiteConfig,
   defaultSiteConfig,
   buildConfigFromLegacySettings,

@@ -56,6 +56,29 @@ export const firmPublicSiteApi = {
       .then((r) => r.data as { draft: PublicSiteConfig; draftUpdatedAt: string; zone: PublicSiteLogoZone })
   },
 
+  uploadCatalogServiceImage: (file: File) => {
+    const form = new FormData()
+    form.append('image', file)
+    return api
+      .post('/contabil/firm/public-site/catalog-service-image', form)
+      .then((r) => r.data as { storageKey: string; previewUrl: string })
+  },
+
+  patchCatalogService: (
+    serviceId: string,
+    payload: {
+      imageStorageKey?: string | null
+      imageOriginalUrl?: string | null
+      imageFocusX?: number | null
+      imageFocusY?: number | null
+      imageZoom?: number | null
+      sortOrder?: number
+    },
+  ) =>
+    api
+      .patch(`/contabil/firm/public-site/catalog-services/${encodeURIComponent(serviceId)}`, payload)
+      .then((r) => r.data as { item: unknown }),
+
   reset: () =>
     api.post('/contabil/firm/public-site/reset').then(
       (r) =>

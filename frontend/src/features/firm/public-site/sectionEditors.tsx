@@ -74,7 +74,7 @@ import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 import type { AccountingService } from '@/shared/types/contabil'
 import { moveItemInArray } from './publicSiteSectionFactory'
-import { ServiceCatalogImageField } from '@/features/firm/services/ServiceCatalogImageField'
+import { PublicSiteServiceImagesDialog } from './PublicSiteServiceImagesDialog'
 
 const HEX_RE = /^#[0-9a-f]{6}$/i
 
@@ -1580,8 +1580,8 @@ export function ServicesHeadingEditor({
       const orderA = a.sortOrder ?? from * 10
       const orderB = b.sortOrder ?? to * 10
       await Promise.all([
-        contabilAccountingServicesApi.patch(a.id, { sortOrder: orderB }),
-        contabilAccountingServicesApi.patch(b.id, { sortOrder: orderA }),
+        firmPublicSiteApi.patchCatalogService(a.id, { sortOrder: orderB }),
+        firmPublicSiteApi.patchCatalogService(b.id, { sortOrder: orderA }),
       ])
       await queryClient.invalidateQueries({ queryKey: ['contabil-accounting-services'] })
       await queryClient.invalidateQueries({ queryKey: ['public-firm-services-preview'] })
@@ -1593,8 +1593,22 @@ export function ServicesHeadingEditor({
     }
   }
 
+  const sectionHint =
+    bookingFilter === true
+      ? 'com marcação online'
+      : bookingFilter === false
+        ? 'por formulário (sem horário)'
+        : undefined
+
   return (
     <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-brand/30 bg-brand/[0.04] px-3 py-2.5">
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          <span className="font-medium text-foreground">Cartões e fotos:</span> escolha destaques abaixo; imagens abrem
+          num painel dedicado (mesmo ficheiro que em Serviços).
+        </p>
+        <PublicSiteServiceImagesDialog firmSlug={firmSlug} bookingFilter={bookingFilter} sectionHint={sectionHint} />
+      </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <InlineColorField
           id="services-bg"
@@ -1711,11 +1725,7 @@ export function ServicesHeadingEditor({
       </div>
 
       <div className="space-y-2 rounded-lg border border-border/40 p-3">
-        <Label className="text-sm font-semibold">Ordem e imagens no catálogo</Label>
-        <p className="text-[11px] leading-relaxed text-muted-foreground">
-          A imagem de cada serviço é a mesma do menu <span className="font-medium">Serviços</span> — altere aqui e
-          reflecte-se nos cartões desta secção e na página pública do serviço (não precisa sair do editor).
-        </p>
+        <Label className="text-sm font-semibold">Ordem no catálogo</Label>
         {catalogQuery.isLoading ? (
           <p className="text-caption text-muted-foreground">A carregar catálogo…</p>
         ) : sectionServices.length === 0 ? (
@@ -1725,30 +1735,27 @@ export function ServicesHeadingEditor({
             . Active «Aparece na página pública» em Serviços.
           </p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-1.5">
             {sectionServices.map((svc, index) => (
               <li
                 key={svc.id}
-                className="flex flex-col gap-2 rounded-md border border-border/40 bg-muted/10 px-2 py-2 sm:flex-row sm:items-start sm:justify-between"
+                className="flex items-center gap-2 rounded-md border border-border/40 bg-muted/10 px-2 py-1.5"
               >
-                <div className="flex min-w-0 flex-1 items-center gap-2">
-                  <ReorderButtons
-                    index={index}
-                    total={sectionServices.length}
-                    onMove={(from, to) => {
-                      if (!reordering) void reorderServices(from, to)
-                    }}
-                    label={svc.name}
-                  />
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{svc.name}</span>
-                </div>
-                <ServiceCatalogImageField service={svc} firmSlug={firmSlug} layout="inline" />
+                <ReorderButtons
+                  index={index}
+                  total={sectionServices.length}
+                  onMove={(from, to) => {
+                    if (!reordering) void reorderServices(from, to)
+                  }}
+                  label={svc.name}
+                />
+                <span className="min-w-0 flex-1 truncate text-sm text-foreground">{svc.name}</span>
               </li>
             ))}
           </ul>
         )}
         <p className="text-[11px] text-muted-foreground">
-          A ordem fica guardada no catálogo. As imagens guardam-se de imediato (sem «Guardar rascunho» da página).
+          A ordem guarda-se de imediato. Use «Imagens dos cartões» acima para fotos.
         </p>
       </div>
 

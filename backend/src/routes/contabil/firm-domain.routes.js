@@ -270,6 +270,19 @@ router.delete(
   requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
   firmPublicSiteController.removePublicLogo,
 );
+router.post(
+  '/firm/public-site/catalog-service-image',
+  requireFirmOwner,
+  requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
+  uploadAvatarSingle('image'),
+  firmPublicSiteController.uploadCatalogServiceImage,
+);
+router.patch(
+  '/firm/public-site/catalog-services/:serviceId',
+  requireFirmOwner,
+  requirePermission(PERMISSIONS.FIRM_SETTINGS_MANAGE),
+  firmPublicSiteController.patchCatalogService,
+);
 
 router.get('/maya-setup/capabilities', requireFirmOwner, mayaSetupController.capabilities);
 router.post(

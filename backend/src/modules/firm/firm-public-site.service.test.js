@@ -985,3 +985,21 @@ test('repairHeroImageReferences: imageIds órfão usa a última imagem do pool h
   const repaired = repairHeroImageReferences(config);
   assert.equal(repaired.sections[0].content.imageIds[0], 'img_b');
 });
+
+test('patchCatalogServiceFromPublicEditor: só campos de imagem e ordem', async () => {
+  resetMocks();
+  mock.method(firmUsersRepository, 'findFirmUserById', async () => OWNER);
+  const accountingServicesService = require('./accounting-services.service');
+  mock.method(accountingServicesService, 'update', async ({ payload }) => {
+    assert.equal(payload.imageStorageKey, 'firm/firm-1/services/x.jpg');
+    assert.equal(payload.sortOrder, 20);
+    return { item: { id: 'svc-1' } };
+  });
+
+  const result = await firmPublicSiteService.patchCatalogServiceFromPublicEditor('firm-1', 'user-1', 'svc-1', {
+    imageStorageKey: 'firm/firm-1/services/x.jpg',
+    sortOrder: 20,
+    name: 'Hack',
+  });
+  assert.equal(result.item.id, 'svc-1');
+});
