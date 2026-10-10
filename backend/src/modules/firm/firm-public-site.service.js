@@ -225,14 +225,29 @@ function normalizeHeroImageZoom(value) {
   return Math.min(3, Math.max(1, Math.round(n * 100) / 100));
 }
 
+/** Preserva quebras de linha (Enter no editor); limita linhas e comprimento total. */
+function normalizeMultilineText(value, maxLen, { maxLines = 6 } = {}) {
+  if (value == null || value === '') return '';
+  const normalized = String(value)
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .trim();
+  if (!normalized) return '';
+  const lines = normalized
+    .split('\n')
+    .slice(0, maxLines)
+    .map((line) => line.trimEnd());
+  return lines.join('\n').slice(0, maxLen);
+}
+
 function normalizeSectionContent(type, raw) {
   const content = raw && typeof raw === 'object' ? raw : {};
   switch (type) {
     case 'hero':
       return withSectionMedia(
         {
-          title: content.title ? String(content.title).trim().slice(0, 120) : '',
-          tagline: content.tagline ? String(content.tagline).trim().slice(0, 160) : '',
+          title: normalizeMultilineText(content.title, 120, { maxLines: 5 }),
+          tagline: normalizeMultilineText(content.tagline, 160, { maxLines: 3 }),
           bio: content.bio ? String(content.bio).trim().slice(0, 2000) : '',
           imageIds: Array.isArray(content.imageIds) ? content.imageIds.slice(0, 5).map((id) => String(id).slice(0, 80)) : [],
           ctas: normalizeCtas(content.ctas),
@@ -360,7 +375,7 @@ function normalizeSectionContent(type, raw) {
     case 'header': {
       const navLinks = normalizeNavLinks(content);
       return {
-        title: content.title ? String(content.title).trim().slice(0, 120) : '',
+        title: normalizeMultilineText(content.title, 120, { maxLines: 4 }),
         backgroundColor: normalizeOptionalHex(content.backgroundColor),
         textColor: normalizeOptionalHex(content.textColor),
         showNav: content.showNav !== false,
