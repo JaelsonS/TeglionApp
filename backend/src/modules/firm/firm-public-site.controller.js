@@ -96,3 +96,31 @@ exports.resetSite = async (req, res, next) => {
     return next(err);
   }
 };
+
+exports.uploadCatalogServiceImage = async (req, res, next) => {
+  try {
+    const firmId = String(req.user.firmId);
+    if (!req.file) throw new AppError('Selecione uma imagem (JPG, PNG ou WebP).', 400);
+    const data = await firmPublicSiteService.uploadCatalogServiceImage(firmId, String(req.user.id), req.file);
+    return res.status(201).json(data);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.patchCatalogService = async (req, res, next) => {
+  try {
+    const firmId = String(req.user.firmId);
+    const serviceId = String(req.params.serviceId || '').trim();
+    if (!serviceId) throw new AppError('Serviço inválido.', 400);
+    const data = await firmPublicSiteService.patchCatalogServiceFromPublicEditor(
+      firmId,
+      String(req.user.id),
+      serviceId,
+      req.body,
+    );
+    return res.status(200).json(data);
+  } catch (err) {
+    return next(err);
+  }
+};

@@ -1,4 +1,5 @@
 import { cn } from '@/shared/lib/utils'
+import { PublicSiteEditorGuideDialog } from './PublicSiteEditorGuideDialog'
 
 export type PublicSiteEditorUIMode = 'simple' | 'advanced'
 
@@ -37,11 +38,14 @@ export function PublicSiteEditorModeBar({ mode, onModeChange, className }: Props
           </button>
         ))}
       </div>
-      <p className="text-[11px] text-muted-foreground">
-        {mode === 'simple'
-          ? 'Passos essenciais, exemplo AfDigital e Maya no canto.'
-          : 'Checklist, legal, extras e secções — sem questionário neste ecrã.'}
-      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <PublicSiteEditorGuideDialog />
+        <p className="text-[11px] text-muted-foreground">
+          {mode === 'simple'
+            ? 'A → link · B → secções · C → cores e SEO'
+            : 'Checklist, legal, extras (C) e secções (B).'}
+        </p>
+      </div>
     </div>
   )
 }
