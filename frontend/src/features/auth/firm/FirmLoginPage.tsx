@@ -19,7 +19,7 @@ import { authFirmRegisterUrl, authProfileChoiceUrl } from '@/shared/constants/au
 import { useAuth } from '@/shared/hooks/useAuth'
 import { clearMfaChallengeToken } from '@/shared/security/mfaChallengeStore'
 import { useApiToast } from '@/shared/hooks/useApiToast'
-import { getGoogleAuthStartUrl, prefetchAuthCsrf } from '@/infrastructure/api'
+import { clearClientCsrfCache, getGoogleAuthStartUrl, prefetchAuthCsrf } from '@/infrastructure/api'
 import { ServerWakingBanner } from '@/shared/components/feedback/ServerWakingUp'
 import { isNoResponseError } from '@/shared/utils/requestTimeout'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -103,6 +103,7 @@ export function FirmLoginPage() {
         )
         const res = await loginFirm(payload)
         if (res.status === 'MFA_CHALLENGE_REQUIRED') {
+          clearClientCsrfCache()
           navigate('/auth/firm/mfa?reason=challenge', {
             replace: true,
             state: {
@@ -113,6 +114,7 @@ export function FirmLoginPage() {
           return
         }
         if (res.status === 'MFA_ENROLLMENT_REQUIRED') {
+          clearClientCsrfCache()
           navigate('/auth/firm/mfa?reason=enroll', {
             replace: true,
             state: {
