@@ -9,6 +9,7 @@ const { logger } = require('../utils/logger');
 
 const CSRF_COOKIE_NAME = 'csrfToken';
 const CSRF_HEADER_NAME = 'X-CSRF-Token';
+const { MFA_CHALLENGE_COOKIE } = require('../utils/auth-cookies');
 
 function isLocalDevOrigin(origin) {
   if (!env.isDevelopment) return false;
@@ -121,6 +122,32 @@ function matchPublicCredentialedAuthPath(pathOnly) {
   );
 }
 
+/** MFA pós-login: o JWT de desafio (cookie/header/corpo) substitui o par CSRF quando prod/staging partilham cookies. */
+function matchMfaChallengeAuthPath(pathOnly) {
+  return /^\/api\/auth\/mfa\/(challenge\/verify|enroll\/begin|enroll\/confirm)$/.test(pathOnly);
+}
+
+function readMfaChallengeTokenFromRequest(req) {
+  const fromBody = req.body?.challengeToken;
+  const fromHeader = req.headers['x-mfa-challenge'];
+  const fromCookie = req.cookies?.[MFA_CHALLENGE_COOKIE];
+  return String(fromBody || fromHeader || fromCookie || '').trim() || null;
+}
+
+function trustedMfaChallengeCanSkipCsrf(req) {
+  const pathOnly = pathWithoutQuery(req);
+  if (!matchMfaChallengeAuthPath(pathOnly)) return false;
+  const method = String(req.method || '').toUpperCase();
+  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) return false;
+  if (!looksLikeBrowserSpaAjax(req)) return false;
+  const origin = resolveOrigin(req);
+  if (!origin) return false;
+  if (env.isDevelopment && isLocalDevOrigin(origin)) return true;
+  if (!isAllowedConfiguredOrigin(origin)) return false;
+  const challenge = readMfaChallengeTokenFromRequest(req);
+  return Boolean(challenge && challenge.length >= 24);
+}
+
 function trustedSpaCanSkipCsrfCookieHeaderPair(req) {
   const pathOnly = pathWithoutQuery(req);
   if (!matchPublicCredentialedAuthPath(pathOnly)) return false;
@@ -203,6 +230,10 @@ const csrfProtection = (req, res, next) => {
   }
 
   if (env.ALLOW_BEARER_AUTH && hasAuthorizationHeader(req)) {
+    return next();
+  }
+
+  if (trustedMfaChallengeCanSkipCsrf(req)) {
     return next();
   }
 

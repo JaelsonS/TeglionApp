@@ -17,7 +17,7 @@ import {
   getMfaChallengeToken,
   setMfaChallengeToken,
 } from '@/shared/security/mfaChallengeStore'
-import { prefetchAuthCsrf } from '@/infrastructure/api'
+import { clearClientCsrfCache, prefetchAuthCsrf } from '@/infrastructure/api'
 
 type Step = 'challenge' | 'enroll-qr' | 'enroll-confirm' | 'recovery'
 
@@ -102,6 +102,7 @@ export function FirmMfaChallengePage() {
         return
       }
       try {
+        clearClientCsrfCache()
         await prefetchAuthCsrf()
         const status = await authApi.mfaChallengeStatus(token)
         if (cancelled) return

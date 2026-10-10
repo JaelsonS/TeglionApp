@@ -48,7 +48,13 @@ function trustDocumentCsrfCookie(api: AxiosInstance): boolean {
   return true
 }
 
-export async function ensureCsrfToken(refreshApi: AxiosInstance): Promise<string | null> {
+export async function ensureCsrfToken(
+  refreshApi: AxiosInstance,
+  options?: { force?: boolean },
+): Promise<string | null> {
+  if (options?.force) {
+    clearClientCsrfCache()
+  }
   const trustCookie = trustDocumentCsrfCookie(refreshApi)
   const existing = trustCookie ? readCookie(CSRF_COOKIE_NAME) || csrfTokenMemory : csrfTokenMemory
   if (existing) return existing

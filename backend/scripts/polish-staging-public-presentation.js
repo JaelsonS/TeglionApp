@@ -40,6 +40,12 @@ const accountingServiceOptionsRepository = require('../src/db/supabase/repositor
 const firmPublicSitesRepository = require('../src/db/supabase/repositories/firm-public-sites.repository');
 const contabilStorage = require('../src/services/storage/contabil-storage.service');
 const { normalizeSiteConfig } = require('../src/modules/firm/firm-public-site.service');
+const {
+  DEFAULT_COMPLAINTS_BOOK_URL,
+  DEFAULT_COMPLAINTS_BOOK_LABEL,
+  DEFAULT_TERMS_TEMPLATE,
+  DEFAULT_PRIVACY_TEMPLATE,
+} = require('../src/modules/firm/public-site-legal-templates');
 const BRANDING_DIR = path.join(REPO_ROOT, 'frontend/public/branding');
 
 const SERVICE_GROUPS = [
@@ -281,6 +287,11 @@ async function buildHubCatalog(firmId, groupIds, heroImagePath) {
     await accountingServiceOptionsRepository.replaceForParent(firmId, parent.id, childIds);
     keepPublic.add(parent.id);
     for (const cid of childIds) {
+      const child = services.find((s) => s.id === cid);
+      if (!child?.slug) {
+        console.warn(`Filho ${cid} sem slug — mantém-se só na oferta, não no catálogo solto.`);
+        continue;
+      }
       keepPublic.add(cid);
       await accountingServicesRepository.updateRow(cid, firmId, {
         groupId,
@@ -299,13 +310,23 @@ async function buildHubCatalog(firmId, groupIds, heroImagePath) {
   console.log(`${keepPublic.size} serviços visíveis (ofertas + opções); ${HUBS.length} ofertas principais.`);
 }
 
-async function refreshPublicSite(firmId, ownerId, logoKey, heroPath, instPath, faqPath, consultoria, irs) {
+async function refreshPublicSite(
+  firmId,
+  ownerId,
+  logoKey,
+  heroPath,
+  instPath,
+  faqPath,
+  consultoria,
+  irs,
+  displayName = FIRM_NAME,
+) {
   const heroId = 'img_hero_main';
   const aboutId = 'img_about_main';
   const faqImgId = 'img_faq_main';
   const siteConfig = normalizeSiteConfig({
     seo: {
-      title: `${FIRM_NAME} — Contabilidade em ${CITY_LABEL.split(',')[0]}`,
+      title: `${displayName} — Contabilidade em ${CITY_LABEL.split(',')[0]}`,
       description: PUBLIC_TAGLINE,
     },
     theme: {
@@ -320,21 +341,31 @@ async function refreshPublicSite(firmId, ownerId, logoKey, heroPath, instPath, f
       heroLogoSource: 'firm',
     },
     images: {
-      hero: [{ id: heroId, storageKey: heroPath, alt: `${FIRM_NAME} — equipa` }],
-      institutional: [{ id: aboutId, storageKey: instPath, alt: `Escritório ${FIRM_NAME}` }],
+      hero: [{ id: heroId, storageKey: heroPath, alt: `${displayName} — equipa` }],
+      institutional: [{ id: aboutId, storageKey: instPath, alt: `Escritório ${displayName}` }],
       bySection: {
         faq: [{ id: faqImgId, storageKey: faqPath, alt: 'Esclarecimentos fiscais' }],
         contact: [{ id: aboutId, storageKey: instPath, alt: `Contacte ${FIRM_NAME}` }],
       },
     },
-    socialLinks: {},
+    socialLinks: {
+      instagram: 'teglion',
+      facebook: 'teglion',
+      linkedin: 'teglion',
+      whatsapp: '351912345678',
+      website: 'https://staging.teglion.com',
+    },
+    termsText: DEFAULT_TERMS_TEMPLATE,
+    privacyText: DEFAULT_PRIVACY_TEMPLATE,
+    complaintsBookUrl: DEFAULT_COMPLAINTS_BOOK_URL,
+    complaintsBookLabel: DEFAULT_COMPLAINTS_BOOK_LABEL,
     showPrices: true,
     sections: [
       {
         type: 'header',
         enabled: true,
         order: 0,
-        content: { title: FIRM_NAME, showNav: true },
+        content: { title: displayName, showNav: true },
       },
       {
         type: 'hero',
@@ -343,7 +374,7 @@ async function refreshPublicSite(firmId, ownerId, logoKey, heroPath, instPath, f
         content: {
           title: 'Soluções de contabilidade e fiscalidade que fazem a diferença.',
           tagline: 'A sua empresa em boas mãos',
-          bio: `${FIRM_NAME} acompanha particulares e empresas em IRS, IVA, salários e consultoria — com portal do cliente, documentos e prazos num só sítio.`,
+          bio: `${displayName} acompanha particulares e empresas em IRS, IVA, salários e consultoria — com portal do cliente, documentos e prazos num só sítio.`,
           imageIds: [heroId],
           imageFit: 'cover',
           imagePosition: 'center',
@@ -369,7 +400,7 @@ async function refreshPublicSite(firmId, ownerId, logoKey, heroPath, instPath, f
         order: 2,
         content: {
           heading: 'Escritório de confiança, operação digital',
-          body: `${FIRM_NAME} reúne experiência contabilística e ferramentas modernas: página pública com ofertas claras, portal do cliente, alertas, validade de certidões e agenda de consultorias. Em ${CITY_LABEL} — e online para toda a carteira.`,
+          body: `${displayName} reúne experiência contabilística e ferramentas modernas: página pública com ofertas claras, portal do cliente, alertas, validade de certidões e agenda de consultorias. Em ${CITY_LABEL} — e online para toda a carteira.`,
           imageIds: [aboutId],
           backgroundColor: '#FFFFFF',
           showImage: true,
@@ -520,7 +551,9 @@ async function main() {
 
   const owner = await resolveOwner();
   const firmId = owner.firm_id;
-  console.log(`Polish · firm ${firmId} · ${owner.email}`);
+  const firmRow = await firmsRepository.findFirmById(firmId);
+  const displayName = firmRow?.name || FIRM_NAME;
+  console.log(`Polish · firm ${firmId} · ${owner.email} · ${displayName}`);
 
   const officeFile = readPng('afdigital-office.png');
   const heroUpload = await contabilStorage.uploadPublicSiteImage({
@@ -557,7 +590,20 @@ async function main() {
     faqUpload.path,
     consultoria,
     irs,
+    displayName,
   );
+
+  await firmsRepository.updateFirmPublicProfile(firmId, {
+    tagline: PUBLIC_TAGLINE,
+    bio: `${displayName} — vitrine de demonstração Teglion (staging).`,
+    socialLinks: {
+      instagram: 'https://instagram.com/teglion',
+      facebook: 'https://facebook.com/teglion',
+      linkedin: 'https://linkedin.com/company/teglion',
+      whatsapp: 'https://wa.me/351912345678',
+      website: `https://staging.teglion.com/${firmRow?.slug || ''}`,
+    },
+  });
 
   const published = await firmsRepository.findFirmById(firmId);
   console.log('Apresentação actualizada.');
