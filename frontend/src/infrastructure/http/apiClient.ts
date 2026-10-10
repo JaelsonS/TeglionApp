@@ -208,7 +208,9 @@ api.interceptors.request.use(async (config) => {
   config.headers['X-User-Language'] = activeLocale
 
   if (['post', 'put', 'patch', 'delete'].includes(method)) {
-    const csrfToken = await ensureCsrfToken(refreshApi)
+    const url = String(config.url || '')
+    const forceCsrf = /\/auth\/mfa\//.test(url)
+    const csrfToken = await ensureCsrfToken(refreshApi, { force: forceCsrf })
     if (csrfToken) {
       config.headers[CSRF_HEADER_NAME] = csrfToken
     }
