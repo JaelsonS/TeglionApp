@@ -20,6 +20,7 @@ import { clusterPublicServices, uniquePublicServiceGroups } from '@/features/pub
 import { PublicSiteLegalFooterLinks } from '@/features/public-intake/PublicSiteLegalFooterLinks'
 import { PublicSiteSocialIconRow } from '@/features/public-intake/PublicSiteSocialIconRow'
 import { PublicSiteHeroSurface } from '@/features/public-intake/PublicSiteHeroSurface'
+import { PUBLIC_SITE_TITLE_WRAP_CLASS } from '@/features/public-intake/publicSiteTextWrap'
 import {
   contentAlignBlockClass,
   contentAlignFlexClass,
@@ -199,10 +200,10 @@ export function HeroSection({
         <p
           className={
             taglineColor
-              ? 'mb-3 text-[11px] font-semibold uppercase tracking-[0.14em]'
+              ? `mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] ${PUBLIC_SITE_TITLE_WRAP_CLASS}`
               : onPhoto
-                ? 'mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/90 drop-shadow'
-                : 'mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[hsl(var(--brand-text,var(--primary)))]'
+                ? `mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-white/90 drop-shadow ${PUBLIC_SITE_TITLE_WRAP_CLASS}`
+                : `mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[hsl(var(--brand-text,var(--primary)))] ${PUBLIC_SITE_TITLE_WRAP_CLASS}`
           }
           style={taglineColor ? { color: taglineColor } : undefined}
         >
@@ -213,8 +214,8 @@ export function HeroSection({
         <h1
           className={
             titleColor
-              ? 'text-balance text-3xl font-bold leading-tight sm:text-4xl'
-              : `${defaultTitleClass} text-balance text-3xl leading-tight sm:text-4xl`
+              ? `text-3xl font-bold leading-tight sm:text-4xl ${PUBLIC_SITE_TITLE_WRAP_CLASS}`
+              : `${defaultTitleClass} text-3xl leading-tight sm:text-4xl ${PUBLIC_SITE_TITLE_WRAP_CLASS}`
           }
           style={titleColor ? { color: titleColor } : undefined}
         >
@@ -273,8 +274,8 @@ export function AboutSection({
         <h2
           className={
             headingColor
-              ? 'text-lg font-semibold'
-              : 'text-lg font-semibold text-[hsl(var(--brand-text,var(--foreground)))]'
+              ? `text-lg font-semibold ${PUBLIC_SITE_TITLE_WRAP_CLASS}`
+              : `text-lg font-semibold text-[hsl(var(--brand-text,var(--foreground)))] ${PUBLIC_SITE_TITLE_WRAP_CLASS}`
           }
           style={headingColor ? { color: headingColor } : undefined}
         >

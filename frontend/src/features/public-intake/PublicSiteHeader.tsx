@@ -10,6 +10,7 @@ import {
   resolveSectionContentAlign,
 } from '@/features/public-intake/publicSiteContentAlign'
 import { defaultPublicSiteNavLinks } from '@/features/public-intake/publicSiteNavLinks'
+import { PUBLIC_SITE_INLINE_TITLE_WRAP_CLASS } from '@/features/public-intake/publicSiteTextWrap'
 import { uniquePublicServiceGroups } from '@/features/public-intake/clusterPublicServices'
 import type { PublicSiteRenderContext } from '@/features/public-intake/templates/default/DefaultSections'
 import { Button } from '@/shared/components/ui/button'
@@ -235,7 +236,11 @@ export function HeaderSection({
               <img src={headerLogo!} alt="" className="h-9 w-9 rounded-md object-contain" />
             </Link>
           ) : null}
-          <Link to={homeHref} className={`min-w-0 truncate ${labelClass}`} style={labelStyle}>
+          <Link
+            to={homeHref}
+            className={`${PUBLIC_SITE_INLINE_TITLE_WRAP_CLASS} ${labelClass}`}
+            style={labelStyle}
+          >
             {headerLabel}
           </Link>
         </div>
@@ -270,7 +275,9 @@ export function HeaderSection({
               </SheetTrigger>
               <SheetContent side="right" className="w-[min(100vw-2rem,20rem)]">
                 <SheetHeader>
-                  <SheetTitle className="text-left text-base">{headerLabel}</SheetTitle>
+                  <SheetTitle className={`text-left text-base ${PUBLIC_SITE_INLINE_TITLE_WRAP_CLASS}`}>
+                    {headerLabel}
+                  </SheetTitle>
                 </SheetHeader>
                 <nav className="mt-4 flex flex-col gap-1" aria-label="Navegação do site (mobile)">
                   {visibleLinks.map((link) => (
