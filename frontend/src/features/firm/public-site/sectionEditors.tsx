@@ -927,16 +927,17 @@ export function ChromeSectionEditor({
       {showTitleField ? (
         <div className="space-y-2">
           <Label htmlFor={`${title}-label`}>{titleFieldLabel}</Label>
-          <Input
+          <Textarea
             id={`${title}-label`}
             value={content.title || ''}
             onChange={(e: FormChangeEvent) => onChange({ ...content, title: e.target.value })}
             placeholder={titlePlaceholder || 'Deixe vazio para usar o nome público'}
             maxLength={120}
+            rows={2}
           />
           <p className="text-[11px] text-muted-foreground">
             {titleHint ||
-              'Opcional. Se vazio, a barra do topo usa o «Nome na barra do topo» definido acima.'}
+              'Opcional. Se vazio, a barra do topo usa o «Nome na barra do topo» definido acima. Enter para nova linha.'}
           </p>
         </div>
       ) : null}
@@ -1302,13 +1303,15 @@ export function HeroEditor({
             onChange={(v) => onChange({ ...content, taglineColor: v })}
           />
         </div>
-        <Input
+        <Textarea
           id="hero-tagline"
           value={content.tagline}
           onChange={(e: FormChangeEvent) => onChange({ ...content, tagline: e.target.value })}
           placeholder="Ex.: A sua empresa em boas mãos"
           maxLength={160}
+          rows={2}
         />
+        <p className="text-[11px] text-muted-foreground">Enter para nova linha (até 3 linhas no site).</p>
       </div>
 
       <div className="space-y-2 rounded-lg border border-brand/25 bg-brand/[0.03] p-3">
@@ -1323,13 +1326,17 @@ export function HeroEditor({
             onChange={(v) => onChange({ ...content, titleColor: v })}
           />
         </div>
-        <Input
+        <Textarea
           id="hero-title"
           value={content.title || ''}
           onChange={(e: FormChangeEvent) => onChange({ ...content, title: e.target.value })}
           placeholder="Ex.: Soluções de contabilidade e fiscalidade que fazem a diferença"
           maxLength={120}
+          rows={3}
         />
+        <p className="text-[11px] text-muted-foreground">
+          Enter para quebrar o título onde quiser (até 5 linhas). Shift+Enter também funciona.
+        </p>
       </div>
 
       <div className="space-y-2 rounded-lg border border-border/40 p-3">

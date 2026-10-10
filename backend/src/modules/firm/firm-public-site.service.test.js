@@ -242,6 +242,24 @@ test('normalizeSiteConfig: secção about guarda enquadramento fino de imagem de
   assert.equal(about.content.backgroundImageZoom, 2);
 });
 
+test('normalizeSiteConfig: hero.title preserva quebras de linha do editor', () => {
+  const config = firmPublicSiteService.normalizeSiteConfig({
+    sections: [
+      {
+        type: 'hero',
+        content: {
+          title: '  Linha um\nLinha dois  \n',
+          tagline: 'Frase\nSegunda',
+          bio: '',
+        },
+      },
+    ],
+  });
+  const hero = config.sections.find((s) => s.type === 'hero');
+  assert.equal(hero.content.title, 'Linha um\nLinha dois');
+  assert.equal(hero.content.tagline, 'Frase\nSegunda');
+});
+
 test('normalizeSiteConfig: header.title e hero.title são independentes e truncados', () => {
   const config = firmPublicSiteService.normalizeSiteConfig({
     sections: [
