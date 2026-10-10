@@ -10,7 +10,7 @@ import {
   type ImagePosition,
 } from '@/shared/components/media/ImagePositionEditor'
 import { UploadDropzone } from '@/shared/design-system/UploadDropzone'
-import { contabilAccountingServicesApi } from '@/infrastructure/api'
+import { firmPublicSiteApi } from '@/infrastructure/api/contabil/firmPublicSite'
 import type { AccountingService } from '@/shared/types/contabil'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
@@ -31,7 +31,15 @@ async function invalidateServiceCatalogQueries(queryClient: ReturnType<typeof us
   }
 }
 
-/** Imagem do catálogo (cartão + página do serviço) — grava directo na API de serviços. */
+function catalogImageErrorMessage(err: unknown): string {
+  const msg = getErrorMessage(err)
+  if (/403|negado|permissão|dono|responsável/i.test(msg)) {
+    return `${msg} — só o dono do escritório pode alterar imagens aqui (Definições → Página pública).`
+  }
+  return msg
+}
+
+/** Imagem do catálogo (cartão + página do serviço) — API da página pública (mesmo ficheiro que Serviços). */
 export function ServiceCatalogImageField({
   service,
   firmSlug,
@@ -55,8 +63,8 @@ export function ServiceCatalogImageField({
   const uploadFile = async (file: File) => {
     setUploading(true)
     try {
-      const res = await contabilAccountingServicesApi.uploadImage(file)
-      await contabilAccountingServicesApi.patch(service.id, {
+      const res = await firmPublicSiteApi.uploadCatalogServiceImage(file)
+      await firmPublicSiteApi.patchCatalogService(service.id, {
         imageStorageKey: res.storageKey,
         imageOriginalUrl: res.storageKey,
         imageFocusX: 50,
@@ -64,9 +72,9 @@ export function ServiceCatalogImageField({
         imageZoom: 1,
       })
       await invalidateServiceCatalogQueries(queryClient, firmSlug)
-      toast.success('Imagem guardada — actualize o preview se necessário')
+      toast.success('Imagem guardada — já visível no preview')
     } catch (err) {
-      toast.error('Não foi possível carregar a imagem', { description: getErrorMessage(err) })
+      toast.error('Não foi possível carregar a imagem', { description: catalogImageErrorMessage(err) })
     } finally {
       setUploading(false)
     }
@@ -75,7 +83,7 @@ export function ServiceCatalogImageField({
   const removeImage = async () => {
     setUploading(true)
     try {
-      await contabilAccountingServicesApi.patch(service.id, {
+      await firmPublicSiteApi.patchCatalogService(service.id, {
         imageStorageKey: null,
         imageOriginalUrl: null,
         imageFocusX: null,
@@ -86,7 +94,7 @@ export function ServiceCatalogImageField({
       setRepositioning(false)
       toast.success('Imagem removida')
     } catch (err) {
-      toast.error('Não foi possível remover', { description: getErrorMessage(err) })
+      toast.error('Não foi possível remover', { description: catalogImageErrorMessage(err) })
     } finally {
       setUploading(false)
     }
@@ -112,12 +120,12 @@ export function ServiceCatalogImageField({
       if (!service.imageOriginalUrl && service.imageStorageKey) {
         patch.imageOriginalUrl = service.imageStorageKey
       }
-      await contabilAccountingServicesApi.patch(service.id, patch)
+      await firmPublicSiteApi.patchCatalogService(service.id, patch)
       await invalidateServiceCatalogQueries(queryClient, firmSlug)
       setRepositioning(false)
       toast.success('Enquadramento guardado')
     } catch (err) {
-      toast.error('Não foi possível guardar o enquadramento', { description: getErrorMessage(err) })
+      toast.error('Não foi possível guardar o enquadramento', { description: catalogImageErrorMessage(err) })
     } finally {
       setSavingFrame(false)
     }
