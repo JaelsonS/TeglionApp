@@ -18,6 +18,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 
 import { FirmLogoSettingsCard } from '@/shared/components/contabil/FirmLogoSettingsCard'
+import { FirmBrandAccentSettingsCard } from '@/shared/components/contabil/FirmBrandAccentSettingsCard'
 import { FirmScrollPage } from '@/features/firm/FirmPageLayout'
 import { firmSettingsApi } from '@/infrastructure/api/contabil/firmSettings'
 import { FirmSettingsDangerZone } from '@/features/firm/settings/FirmSettingsDangerZone'
@@ -273,6 +274,11 @@ export function FirmSettingsPage() {
                     </div>
                   </div>
                   <FirmLogoSettingsCard readOnly={!canEditLogo} showContextPreview />
+                  <FirmBrandAccentSettingsCard
+                    bundle={bundle}
+                    readOnly={!canEditLogo}
+                    onUpdated={onUpdated}
+                  />
                 </section>
               ) : null}
 

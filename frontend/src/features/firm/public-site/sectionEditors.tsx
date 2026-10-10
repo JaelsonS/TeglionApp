@@ -19,6 +19,7 @@ import {
   sectionContentImagePosition,
 } from '@/features/public-intake/publicSiteSectionMedia'
 import { normalizeHeroBackgroundOverlay } from '@/features/public-intake/PublicSiteHeroSurface'
+import { PublicSiteBrandColorsPanel } from './PublicSiteBrandColorsPanel'
 import {
   heroContentAlignUiValue,
   patchHeroContentAlign,
@@ -1202,6 +1203,8 @@ export function HeroEditor({
   officePhone,
   publicDisplayName: _publicDisplayName,
   socialWhatsapp,
+  siteDraft,
+  onSiteDraftChange,
 }: {
   content: PublicSiteHeroContent
   onChange: (next: PublicSiteHeroContent) => void
@@ -1214,6 +1217,8 @@ export function HeroEditor({
   /** Nome do header — disponível para a Maya / callers; UI limpa sem parede de texto. */
   publicDisplayName?: string
   socialWhatsapp?: string | null
+  siteDraft?: PublicSiteConfig
+  onSiteDraftChange?: (next: PublicSiteConfig) => void
 }) {
   const imageFit = normalizeHeroImageFit(content.imageFit)
   const overlay = normalizeHeroBackgroundOverlay(content.backgroundOverlay)
@@ -1230,6 +1235,9 @@ export function HeroEditor({
 
   return (
     <div className="space-y-5">
+      {siteDraft && onSiteDraftChange ? (
+        <PublicSiteBrandColorsPanel draft={siteDraft} onChange={onSiteDraftChange} variant="heroQuick" />
+      ) : null}
       <div className="space-y-2 rounded-lg border border-brand/30 bg-brand/[0.04] p-3">
         <p className="text-sm font-semibold text-foreground">Imagem de fundo do destaque</p>
         <p className="text-[11px] leading-relaxed text-muted-foreground">
