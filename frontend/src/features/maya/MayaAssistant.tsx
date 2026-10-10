@@ -1,5 +1,4 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft, ChevronRight, ExternalLink, X } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -35,8 +34,7 @@ import {
   MAYA_PUBLIC_SITE_COACH_EVENT,
   type PublicSiteCoachSnapshot,
 } from '@/features/firm/public-site/publicSiteCoachContext'
-import { MayaPublicSiteCopilotChat } from '@/features/firm/public-site/MayaPublicSiteCopilotChat'
-import { mayaSetupApi } from '@/infrastructure/api/contabil/mayaSetup'
+import { MayaPublicSiteCopilotPanel } from '@/features/maya/MayaPublicSiteCopilotPanel'
 
 type MayaAssistantProps = {
   className?: string
@@ -107,13 +105,6 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
       : null
 
   const isPublicSiteEditorPage = page?.id === 'settings-public'
-
-  const capabilitiesQuery = useQuery({
-    queryKey: ['maya-setup-capabilities'],
-    queryFn: () => mayaSetupApi.getCapabilities().then((r) => r.capabilities),
-    enabled: isPublicSiteEditorPage && Boolean(user),
-    staleTime: 60_000,
-  })
 
   useEffect(() => {
     function onCoach(ev: Event) {
@@ -475,19 +466,7 @@ export function MayaAssistant({ className, surface = 'auto' }: MayaAssistantProp
               <MayaProblemView problem={activeProblem} onBack={goBack} />
             ) : null}
 
-            {isPublicSiteEditorPage && responsible ? (
-              <div className="border-t border-border/40 pt-3">
-                <p className="mb-2 text-[11px] font-medium text-muted-foreground">
-                  Dúvida rápida sobre esta página?
-                </p>
-                <MayaPublicSiteCopilotChat
-                  embedded
-                  setupStep="public-site-coach"
-                  countryCode="PT"
-                  aiAdviseEnabled={capabilitiesQuery.data?.aiSetup === true}
-                />
-              </div>
-            ) : null}
+            {isPublicSiteEditorPage && responsible ? <MayaPublicSiteCopilotPanel countryCode="PT" /> : null}
           </div>
         </DialogContent>
       </Dialog>
