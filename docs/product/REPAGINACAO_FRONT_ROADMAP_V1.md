@@ -167,7 +167,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 | **Dor** | Partilha shell com Tarefas; scroll aninhado; confusão conceptual com calendário fiscal |
 | **Alvo** | Página que diga “obrigações fiscais por cliente”; lanes claras; create/edit legíveis |
 | **Subfases** | **6.1** layout/filtros · **6.2** create/edit · **6.3** detalhe + deep-link `?ob=` |
-| **Estado** | ☐ |
+| **Estado** | ✅ 2026-10-25 |
 
 ### Fase 7 — Tarefas (6 vistas = 6 subfases)
 
@@ -180,7 +180,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 | **7.4** | `/tasks/manual` | Board/grid | Create/edit/delete intactos |
 | **7.5** | `/tasks/calendar` + `/tasks/clients` | Ops calendar + por cliente | Filtros + detalhe `?task=` |
 
-**Estado:** ☐☐☐☐☐☐
+**Estado:** ✅ 2026-10-25 (shell + copy por vista)
 
 ### Fase 8 — Agendamentos
 
@@ -190,7 +190,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 | **Já faz** | Calendário; create/edit/cancel; horários; Google sync; `?panel=settings` |
 | **Alvo** | Calendário operativo limpo; settings como painel claro; Google opcional e honesto |
 | **Subfases** | **8.1** calendário · **8.2** booking dialogs · **8.3** settings/Google |
-| **Estado** | ☐ |
+| **Estado** | ✅ 2026-10-25 |
 
 ### Fase 9 — Área IRS
 
@@ -200,7 +200,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 | **Já faz** | Catálogo modelos; activar; editor Modelo 3; stats; link solicitações |
 | **Alvo** | Separar mentalmente de “Serviços gerais”; fluxo activar → editar → publicar óbvio |
 | **Subfases** | **9.1** lista/catálogo · **9.2** editors · **9.3** ligações Serviços |
-| **Estado** | ☐ |
+| **Estado** | ✅ 2026-10-25 |
 
 ### Fase 10 — Serviços (3 tabs)
 
@@ -210,7 +210,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 | **10.2** | inquiries | `ServiceInquiriesWorkspace` | Leads públicos |
 | **10.3** | central | `ServicesWorkspace` | Pedidos in-app |
 
-**Estado:** ☐☐☐
+**Estado:** ✅ 2026-10-25 (tabs catálogo / solicitações / central)
 
 ### Fase 11 — Calendário fiscal
 
@@ -220,7 +220,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 | **Já faz** | Mês/ano; CRUD eventos; templates; criar obrigação a partir de evento |
 | **Alvo** | Distinção verbal clara vs Tarefas calendar vs Agenda; mobile usável |
 | **Subfases** | **11.1** vistas · **11.2** eventos · **11.3** → obrigação |
-| **Estado** | ☐ |
+| **Estado** | ✅ 2026-10-25 |
 
 ### Fase 12 — Calculadoras (hub + 6 ferramentas)
 
@@ -386,13 +386,13 @@ Este roadmap = **Wave páginas / produto**.
 | 2 | Clientes | ✅ |
 | 3 | Pagamentos | ✅ |
 | 4 | Imóveis e rendas | ✅ |
-| 5 | SAF-T | ☐ |
-| 6 | Obrigações | ☐ |
-| 7 | Tarefas | ☐ |
-| 8 | Agendamentos | ☐ |
-| 9 | Área IRS | ☐ |
-| 10 | Serviços | ☐ |
-| 11 | Calendário fiscal | ☐ |
+| 5 | SAF-T | ✅ |
+| 6 | Obrigações | ✅ |
+| 7 | Tarefas | ✅ |
+| 8 | Agendamentos | ✅ |
+| 9 | Área IRS | ✅ |
+| 10 | Serviços | ✅ |
+| 11 | Calendário fiscal | ✅ |
 | 12 | Calculadoras (0+6) | ☐ |
 | 13 | Documentos | ☐ |
 | 14 | Mensagens | ☐ |
@@ -402,4 +402,4 @@ Este roadmap = **Wave páginas / produto**.
 | 18 | Definições (12) | ☐ |
 | L | Landing | ☐ |
 
-**Última actualização:** 2026-10-25 — documento criado; execução ainda não iniciada.
+**Última actualização:** 2026-10-25 — Fases 1–11 concluídas (copy autoexplicativa + layout leve).

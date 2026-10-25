@@ -75,7 +75,8 @@ export function SaftWorkspace() {
   return (
     <FirmModuleShell
       title="SAF-T (consulta)"
-      subtitle="Importe um XML/ZIP e consulte cabeçalho e totais. Só leitura — sem envio à Autoridade Tributária."
+      subtitle="Importação e leitura interna do ficheiro — veja NIF, período e totais. O Teglion não emite SAF-T nem comunica à AT."
+      bodyClassName="min-h-0 flex-1 overflow-auto px-4 pb-6 sm:px-5"
       headerRight={
         <>
           <input
@@ -95,14 +96,14 @@ export function SaftWorkspace() {
           </Button>
         </>
       }
-      bodyClassName="overflow-auto px-4 pb-6 sm:px-5"
     >
-      <div className="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/70 px-4 py-3 text-sm text-amber-950">
-        <p className="font-medium">Só leitura · sem AT</p>
+      <div className="mb-4 shrink-0 rounded-xl border border-amber-200/80 bg-amber-50/70 px-4 py-3 text-sm text-amber-950">
+        <p className="font-medium">Só consulta e importação — não é emissão oficial</p>
         <p className="mt-1 text-amber-950/90">{disclaimer}</p>
         <p className="mt-2 text-xs text-amber-900/80">
-          O Teglion guarda o resumo (NIF, período, totais) e um hash do ficheiro — não arquiva o XML
-          completo nesta versão.
+          Fluxo: exporte o SAF-T PT no software certificado do cliente → carregue aqui → consulte totais.
+          O Teglion guarda o resumo (NIF, período, totais) e um hash — não arquiva o XML completo nesta
+          versão.
         </p>
       </div>
 

@@ -22,7 +22,7 @@ const TABS = [
     label: 'Catálogo',
     title: 'Serviços',
     subtitle:
-      'Apresente o que o gabinete oferece e permita que potenciais clientes façam pedidos pela página pública.',
+      'Catálogo de serviços gerais (exclui IRS — use Área IRS). Publicar aqui mostra na página pública; pedidos chegam em Solicitações.',
   },
   {
     id: 'inquiries',
@@ -124,7 +124,8 @@ export function FirmServiceRequestsPage() {
         {activeTab === 'catalog' ? (
           <div className="shrink-0 border-b border-border/40 bg-gradient-to-b from-muted/20 to-transparent px-3 py-3 sm:px-4">
             <p className="mb-2.5 text-caption leading-relaxed text-muted-foreground">
-              Activo = no gabinete · Publicado = na página pública · Pedidos do site = tab Solicitações
+              Activo = no gabinete · Publicado = na página pública · Pedidos do site = tab Solicitações · Campanha
+              IRS = menu Área IRS
             </p>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" data-testid="services-hub-kpis">
               {[

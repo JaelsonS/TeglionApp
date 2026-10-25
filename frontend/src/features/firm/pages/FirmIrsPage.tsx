@@ -149,7 +149,7 @@ export function FirmIrsPage() {
       <FirmModuleShell
         className="cb-firm-operational-panel min-h-0 flex-1 overflow-hidden"
         title="Campanha IRS"
-        subtitle="Divulgue o apoio à entrega do IRS e receba pedidos — o Teglion não calcula o imposto."
+        subtitle="Modelos e serviços IRS (Modelo 3, anexos…) — publicação e pedidos. O catálogo geral do gabinete fica em Serviços; aqui não calculamos imposto."
         headerRight={
           <div className="flex flex-wrap items-center gap-2">
             <AskMayaButton intentId="irs-campaign" />
@@ -197,7 +197,15 @@ export function FirmIrsPage() {
                 : 'Tem serviços IRS, mas ainda não estão publicados na página pública.'}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Fluxo: configurar serviço → publicar → ver página → receber pedidos em Solicitações.
+            Fluxo: configurar serviço IRS → publicar na página pública → receber pedidos em{' '}
+            <Link to="/app/firm/services?tab=inquiries" className="font-medium text-brand underline-offset-2 hover:underline">
+              Serviços · Solicitações
+            </Link>
+            . Serviços não-IRS (IVA, contabilidade…) gerem-se em{' '}
+            <Link to="/app/firm/services" className="font-medium text-brand underline-offset-2 hover:underline">
+              Serviços · Catálogo
+            </Link>
+            .
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {!campaignReady && nextUnpublished ? (

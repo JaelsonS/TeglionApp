@@ -230,7 +230,7 @@ export function FiscalCalendarWorkspace() {
                 </h1>
                 <p className="cb-operational-page-sub text-sm">
                   {calendar?.description ||
-                    'Prazos genéricos do gabinete (IVA, IES…). Distinto das Obrigações por cliente.'}
+                    'Prazos e eventos fiscais do gabinete (IVA, IES…). Distinto de Tarefas → Obrigações (por cliente), Tarefas → Calendário (ops) e Agendamentos (consultas).'}
                 </p>
               </div>
             </div>

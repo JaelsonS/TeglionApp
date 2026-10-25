@@ -6,12 +6,12 @@ import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { cn } from '@/shared/lib/utils'
 
 const SUBTITLES: Record<TasksOperationsTab, string> = {
-  overview: 'O que a equipa tem em mãos — prioridades e estado num só sítio.',
-  obligations: 'Obrigações por cliente (prazos AT). Distinto do calendário fiscal genérico do gabinete.',
-  month: 'Progresso do mês fiscal — quantos clientes já foram tratados em cada prazo.',
-  manual: 'Tarefas internas criadas pela equipa (não são obrigações fiscais).',
-  calendar: 'Vista mensal: obrigações e tarefas no mesmo calendário operacional.',
-  clients: 'Carga de trabalho agregada por empresa da carteira.',
+  overview: 'Prioridades da equipa — o que está em atraso, em curso e concluído num só sítio.',
+  obligations: 'Obrigações fiscais por cliente (IVA, SS…). Não confundir com Calendário fiscal.',
+  month: 'Progresso do mês fiscal na carteira — quantos clientes já cumpriram cada prazo.',
+  manual: 'Tarefas internas da equipa (follow-ups, revisões) — não substituem obrigações fiscais.',
+  calendar: 'Calendário operacional: obrigações e tarefas juntas. Distinto de Agendamentos (consultas).',
+  clients: 'Resumo de carga por empresa — quantas obrigações e tarefas abertas tem cada cliente.',
 }
 
 const TITLES: Record<TasksOperationsTab, string> = {
