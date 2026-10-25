@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import {
+  Building2,
   CalendarCheck,
   CalendarDays,
   ClipboardCheck,
@@ -64,6 +65,12 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         labelKey: 'contabil.firm.nav.payments',
         labelDefault: 'Pagamentos',
         icon: Wallet,
+      },
+      {
+        to: '/app/firm/rentals',
+        labelKey: 'contabil.firm.nav.rentals',
+        labelDefault: 'Imóveis e rendas',
+        icon: Building2,
       },
       {
         to: '/app/firm/tasks/obligations',
@@ -272,6 +279,12 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     labelKey: 'contabil.firm.nav.payments',
     labelDefault: 'Pagamentos',
     icon: Wallet,
+  },
+  {
+    to: '/app/firm/rentals',
+    labelKey: 'contabil.firm.nav.rentals',
+    labelDefault: 'Imóveis e rendas',
+    icon: Building2,
   },
   {
     to: '/app/firm/documents',

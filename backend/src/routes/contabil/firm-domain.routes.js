@@ -37,6 +37,7 @@ const caeCatalogController = require('../../modules/firm/cae-catalog.controller'
 const mayaSetupController = require('../../modules/maya-setup/maya-setup.controller');
 const { mayaSetupGenerateLimiter } = require('../../modules/maya-setup/maya-setup.rate-limit');
 const feeChargesController = require('../../modules/fee-charges/fee-charges.controller');
+const rentalsController = require('../../modules/rentals/rentals.controller');
 const fiscalCalculationsController = require('../../modules/fiscal-engine/fiscal-calculations.controller');
 
 const router = express.Router();
@@ -648,6 +649,19 @@ router.get('/fee-charges/meta', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAG
 router.get('/fee-charges/map', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.map);
 router.post('/fee-charges/generate', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.generate);
 router.patch('/fee-charges/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.patch);
+
+router.get('/rentals/meta', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.meta);
+router.get('/rentals/overview', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.overview);
+router.post('/rentals/properties', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.createProperty);
+router.patch('/rentals/properties/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.patchProperty);
+router.post(
+  '/rentals/properties/:propertyId/leases',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  rentalsController.createLease,
+);
+router.patch('/rentals/leases/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.patchLease);
+router.post('/rentals/receipts/generate', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.generateReceipts);
+router.patch('/rentals/receipts/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.patchReceipt);
 
 router.get(
   '/fiscal/vat/catalog',
