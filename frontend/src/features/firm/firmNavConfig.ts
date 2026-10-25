@@ -5,6 +5,7 @@ import {
   CalendarDays,
   ClipboardCheck,
   ClipboardList,
+  FileArchive,
   Inbox,
   Landmark,
   LayoutGrid,
@@ -71,6 +72,12 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         labelKey: 'contabil.firm.nav.rentals',
         labelDefault: 'Imóveis e rendas',
         icon: Building2,
+      },
+      {
+        to: '/app/firm/saft',
+        labelKey: 'contabil.firm.nav.saft',
+        labelDefault: 'SAF-T (leitura)',
+        icon: FileArchive,
       },
       {
         to: '/app/firm/tasks/obligations',
@@ -285,6 +292,12 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     labelKey: 'contabil.firm.nav.rentals',
     labelDefault: 'Imóveis e rendas',
     icon: Building2,
+  },
+  {
+    to: '/app/firm/saft',
+    labelKey: 'contabil.firm.nav.saft',
+    labelDefault: 'SAF-T (leitura)',
+    icon: FileArchive,
   },
   {
     to: '/app/firm/documents',

@@ -17,6 +17,7 @@ import { createContabilGoogleDriveApi } from '@/infrastructure/api/contabil/goog
 import { createContabilLeadsApi } from '@/infrastructure/api/contabil/leads'
 import { createContabilFeeChargesApi } from '@/infrastructure/api/contabil/feeCharges'
 import { createContabilRentalsApi } from '@/infrastructure/api/contabil/rentals'
+import { createContabilSaftApi } from '@/infrastructure/api/contabil/saft'
 import { createContabilFiscalVatApi } from '@/infrastructure/api/contabil/fiscalVat'
 import { createContabilFiscalIrsApi } from '@/infrastructure/api/contabil/fiscalIrs'
 import { createContabilFiscalSsApi } from '@/infrastructure/api/contabil/fiscalSs'
@@ -94,6 +95,7 @@ export const contabilGoogleDriveApi = createContabilGoogleDriveApi(api)
 export const contabilLeadsApi = createContabilLeadsApi(api)
 export const contabilFeeChargesApi = createContabilFeeChargesApi(api)
 export const contabilRentalsApi = createContabilRentalsApi(api)
+export const contabilSaftApi = createContabilSaftApi(api)
 export const contabilFiscalVatApi = createContabilFiscalVatApi(api)
 export const contabilFiscalIrsApi = createContabilFiscalIrsApi(api)
 export const contabilFiscalSsApi = createContabilFiscalSsApi(api)

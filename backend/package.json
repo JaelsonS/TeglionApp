@@ -11,7 +11,7 @@
     "build": "echo 'Build step complete - Node.js project'",
     "test": "NODE_ENV=test node --test 'src/**/*.test.js'",
     "test:unit": "node --test src/utils/file-magic-bytes.test.js",
-    "test:v10-ops-fiscal": "NODE_ENV=test node --test src/modules/fiscal-engine/*.test.js src/modules/obligations/obligation-month-matrix*.test.js src/modules/fee-charges/*.test.js src/modules/rentals/*.test.js",
+    "test:v10-ops-fiscal": "NODE_ENV=test node --test src/modules/fiscal-engine/*.test.js src/modules/obligations/obligation-month-matrix*.test.js src/modules/fee-charges/*.test.js src/modules/rentals/*.test.js src/modules/saft/*.test.js",
     "test:security-static": "node scripts/security-static-audit.js",
     "test:security": "npm run test:security-static && npm run test:tenant-isolation",
     "test:tenant-isolation": "node scripts/tenant-isolation-test.js",

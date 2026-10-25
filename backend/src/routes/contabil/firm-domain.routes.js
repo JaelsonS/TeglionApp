@@ -24,7 +24,7 @@ const documentRequestsController = require('../../modules/document-requests/docu
 const newsController = require('../../modules/news/news.controller');
 const broadcastsController = require('../../modules/broadcasts/broadcasts.controller');
 const trackingController = require('../../modules/tracking/tracking.controller');
-const { optionalSingle, uploadSingle, uploadAvatarSingle, uploadCsvSingle } = require('../../middlewares/upload.middleware');
+const { optionalSingle, uploadSingle, uploadAvatarSingle, uploadCsvSingle, uploadSaftSingle } = require('../../middlewares/upload.middleware');
 const automationController = require('../../modules/automations/automation.controller');
 const fiscalCalendarController = require('../../modules/fiscal/fiscal-calendar.controller');
 const fiscalCalendarNotesController = require('../../modules/fiscal/fiscal-calendar-notes.controller');
@@ -38,6 +38,7 @@ const mayaSetupController = require('../../modules/maya-setup/maya-setup.control
 const { mayaSetupGenerateLimiter } = require('../../modules/maya-setup/maya-setup.rate-limit');
 const feeChargesController = require('../../modules/fee-charges/fee-charges.controller');
 const rentalsController = require('../../modules/rentals/rentals.controller');
+const saftController = require('../../modules/saft/saft.controller');
 const fiscalCalculationsController = require('../../modules/fiscal-engine/fiscal-calculations.controller');
 
 const router = express.Router();
@@ -662,6 +663,17 @@ router.post(
 router.patch('/rentals/leases/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.patchLease);
 router.post('/rentals/receipts/generate', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.generateReceipts);
 router.patch('/rentals/receipts/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.patchReceipt);
+
+router.get('/saft/meta', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), saftController.meta);
+router.get('/saft/imports', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), saftController.list);
+router.get('/saft/imports/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), saftController.get);
+router.post(
+  '/saft/imports',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  uploadSaftSingle('file'),
+  saftController.importFile,
+);
+router.delete('/saft/imports/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), saftController.remove);
 
 router.get(
   '/fiscal/vat/catalog',
