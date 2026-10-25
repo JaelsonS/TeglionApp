@@ -7,7 +7,7 @@ import {
   FIRM_NAV_RAIL_MAIN,
   type FirmNavItemConfig,
 } from '@/features/firm/firmNavConfig'
-import { FirmRailIconLink } from '@/features/firm/FirmRailIconLink'
+import { FirmRailIconButton, FirmRailIconLink } from '@/features/firm/FirmRailIconLink'
 import { FirmSidebar } from '@/features/firm/FirmSidebar'
 import { resolveFirmNavBadge, useFirmNavBadgeCounts } from '@/features/firm/useFirmNavBadges'
 import { FirmSidebarHeader } from '@/shared/components/layout/FirmSidebarHeader'
@@ -82,18 +82,14 @@ export function FirmTabletRail() {
               testIdPrefix="firm-tablet-rail"
             />
           ))}
-          <button
-            type="button"
-            className="cb-firm-icon-nav cb-firm-icon-nav-inactive"
-            aria-label={menuLabel}
+          <FirmRailIconButton
+            label={menuLabel}
+            testId="firm-tablet-rail-menu"
             aria-expanded={drawerOpen}
-            aria-controls="firm-tablet-nav-drawer"
-            title={menuLabel}
-            data-testid="firm-tablet-rail-menu"
             onClick={() => setDrawerOpen(true)}
           >
             <Menu className="cb-firm-rail-icon" strokeWidth={1.75} aria-hidden />
-          </button>
+          </FirmRailIconButton>
         </div>
       </div>
 
