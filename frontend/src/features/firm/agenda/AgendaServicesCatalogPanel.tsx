@@ -35,10 +35,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/components/ui/alert-dialog'
+import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
-import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
-import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
 import { useAuth } from '@/shared/hooks/useAuth'
 import {
   Command,
@@ -1451,24 +1450,27 @@ export function AgendaServicesCatalogPanel({
       )}
     </ProfileSectionCard>
 
-    <Sheet open={Boolean(previewId)} onOpenChange={(open: boolean) => !open && setPreviewId(null)}>
-      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
-        <SheetHiddenTitle>Pré-visualização do formulário</SheetHiddenTitle>
+    <FirmWorkspaceFocusDialog
+      open={Boolean(previewId)}
+      onOpenChange={(open) => !open && setPreviewId(null)}
+      title="Pré-visualização do formulário"
+      description="Assim o cliente vê o pedido deste serviço — no centro do ecrã."
+      className="h-auto max-h-[min(92dvh,880px)] w-[min(96vw,640px)] max-w-[min(96vw,640px)]"
+    >
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
         {previewService ? <ServiceFormPreview {...previewDataFor(previewService)} /> : null}
-      </SheetContent>
-    </Sheet>
+      </div>
+    </FirmWorkspaceFocusDialog>
 
-    <Sheet open={createOpen} onOpenChange={setCreateOpen}>
-      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
-        <SheetHiddenTitle>Criar serviço</SheetHiddenTitle>
-        <div className="space-y-5 py-2">
-          <div>
-            <h2 className="text-lg font-bold">Criar serviço</h2>
-            <p className="cb-text-caption">
-              Nome, duração e preço iniciais — pode ajustar tudo depois, incluindo IRS, formulário e
-              agendamento, nas definições avançadas.
-            </p>
-          </div>
+    <FirmWorkspaceFocusDialog
+      open={createOpen}
+      onOpenChange={setCreateOpen}
+      title="Criar serviço"
+      description="Nome, duração e preço iniciais — pode ajustar tudo depois, incluindo IRS, formulário e agendamento, nas definições avançadas."
+      className="h-auto max-h-[min(92dvh,720px)] w-[min(96vw,560px)] max-w-[min(96vw,560px)]"
+    >
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+        <div className="space-y-5">
           <label className="block space-y-1">
             <span className="text-caption font-medium text-muted-foreground">Nome *</span>
             <Input
@@ -1512,8 +1514,8 @@ export function AgendaServicesCatalogPanel({
             </Button>
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </div>
+    </FirmWorkspaceFocusDialog>
 
     <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(open: boolean) => !open && setDeleteTarget(null)}>
       <AlertDialogContent>
