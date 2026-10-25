@@ -35,6 +35,7 @@ import { ClientsSpreadsheetDialog } from '@/features/firm/clients/ClientsSpreads
 import {
   CLIENTS_KPI_ICONS,
   type ClientsKpi,
+  type ClientsKpiId,
 } from '@/features/firm/clients/ClientsKpiStrip'
 import { ClientsWorkspaceShell } from '@/features/firm/clients/ClientsWorkspaceShell'
 import { CreateCompanyWizard } from '@/features/firm/components/CreateCompanyWizard'
@@ -68,6 +69,12 @@ const PAGE_SIZE = 12
 type TypeFilter = 'todos' | CompanyTypeLabel
 type RegimeFilter = 'todos' | string
 type EstadoFilter = 'ativos' | 'atencao' | 'inativos' | 'todos'
+type PortalFilter = 'todos' | 'sem_portal'
+
+function isWithoutPortal(client: Client) {
+  const portal = client.portalAccessStatus
+  return !portal || portal === 'NO_ACCESS' || portal === 'PENDING_INVITE'
+}
 
 function estadoPill(client: Client) {
   if (client.status && client.status !== 'ACTIVE') {
@@ -107,6 +114,7 @@ export function FirmClientsPage() {
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('todos')
   const [regimeFilter, setRegimeFilter] = useState<RegimeFilter>('todos')
   const [estadoFilter, setEstadoFilter] = useState<EstadoFilter>('ativos')
+  const [portalFilter, setPortalFilter] = useState<PortalFilter>('todos')
   const [tagFilter, setTagFilter] = useState('')
   const [view, setView] = useState<'list' | 'grid'>(() =>
     typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches ? 'grid' : 'list',
@@ -153,7 +161,7 @@ export function FirmClientsPage() {
 
   useEffect(() => {
     setPage(1)
-  }, [search, typeFilter, regimeFilter, estadoFilter, tagFilter])
+  }, [search, typeFilter, regimeFilter, estadoFilter, portalFilter, tagFilter])
 
   const tagsQuery = useQuery({
     queryKey: ['firm-inquiry-tags'],
@@ -192,7 +200,6 @@ export function FirmClientsPage() {
       const inactive = c.status && c.status !== 'ACTIVE'
       if (estadoFilter === 'ativos') {
         if (inactive) return false
-        if (c.operationalStatus === 'atencao' || c.operationalStatus === 'critico') return false
       } else if (estadoFilter === 'atencao') {
         if (inactive) return false
         if (c.operationalStatus !== 'atencao' && c.operationalStatus !== 'critico') return false
@@ -200,11 +207,13 @@ export function FirmClientsPage() {
         if (!inactive) return false
       }
 
+      if (portalFilter === 'sem_portal' && !isWithoutPortal(c)) return false
+
       if (tagFilter && !(c.tags || []).some((t) => t.id === tagFilter)) return false
 
       return true
     })
-  }, [items, search, typeFilter, regimeFilter, estadoFilter, tagFilter])
+  }, [items, search, typeFilter, regimeFilter, estadoFilter, portalFilter, tagFilter])
 
   const activeCount = useMemo(
     () => items.filter((c) => !c.status || c.status === 'ACTIVE').length,
@@ -219,8 +228,7 @@ export function FirmClientsPage() {
       if (!inactive && (c.operationalStatus === 'atencao' || c.operationalStatus === 'critico')) {
         attention += 1
       }
-      const portal = c.portalAccessStatus
-      if (!portal || portal === 'NO_ACCESS' || portal === 'PENDING_INVITE') noPortal += 1
+      if (isWithoutPortal(c)) noPortal += 1
     }
     return [
       {
@@ -253,6 +261,31 @@ export function FirmClientsPage() {
       },
     ]
   }, [items, activeCount, total])
+
+  const activeKpiId = useMemo((): ClientsKpiId | null => {
+    if (portalFilter === 'sem_portal') return 'portal'
+    if (estadoFilter === 'atencao' && portalFilter === 'todos') return 'attention'
+    if (estadoFilter === 'ativos' && portalFilter === 'todos') return 'active'
+    if (estadoFilter === 'todos' && portalFilter === 'todos') return 'total'
+    return null
+  }, [estadoFilter, portalFilter])
+
+  const applyKpiFilter = useCallback((id: ClientsKpiId) => {
+    if (id === 'active') {
+      setEstadoFilter('ativos')
+      setPortalFilter('todos')
+    } else if (id === 'attention') {
+      setEstadoFilter('atencao')
+      setPortalFilter('todos')
+    } else if (id === 'portal') {
+      setEstadoFilter('todos')
+      setPortalFilter('sem_portal')
+    } else {
+      setEstadoFilter('todos')
+      setPortalFilter('todos')
+    }
+    setPage(1)
+  }, [])
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
@@ -323,7 +356,12 @@ export function FirmClientsPage() {
   return (
     <FirmWorkspacePage className="cb-clients-page cb-clients-layout-page">
       <div className="cb-firm-operational-panel cb-clients-layout-panel flex w-full min-w-0 flex-col">
-        <ClientsWorkspaceShell headerRight={headerRight} kpis={kpis}>
+        <ClientsWorkspaceShell
+          headerRight={headerRight}
+          kpis={kpis}
+          activeKpiId={activeKpiId}
+          onKpiSelect={applyKpiFilter}
+        >
         <div className="cb-clients-toolbar">
           <div className="cb-clients-search">
             <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -372,6 +410,16 @@ export function FirmClientsPage() {
             <option value="atencao">Estado: Atenção</option>
             <option value="inativos">Estado: Inativos</option>
             <option value="todos">Estado: Todos</option>
+          </select>
+
+          <select
+            className="cb-clients-filter"
+            value={portalFilter}
+            onChange={(e) => setPortalFilter(e.target.value as PortalFilter)}
+            aria-label="Filtrar por acesso ao portal"
+          >
+            <option value="todos">Portal: Todos</option>
+            <option value="sem_portal">Portal: Sem acesso</option>
           </select>
 
           {firmTags.length > 0 ? (
