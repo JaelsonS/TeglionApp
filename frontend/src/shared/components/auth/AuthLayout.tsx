@@ -26,10 +26,10 @@ export function AuthLayout({
                         <div>
                             <BrandMark size="lg" variant="onDark" showName nameClassName="text-xl" />
                             <p className="mt-10 max-w-md font-sans text-4xl font-semibold leading-tight">
-                                Gestão clara para o escritório e o cliente.
+                                Teglion — o dia a dia do escritório, sem ruído.
                             </p>
                             <p className="mt-5 max-w-md text-base leading-relaxed text-primary-foreground/85">
-                                Clientes, documentos, prazos e mensagens num só fluxo — fácil de perceber desde o primeiro dia.
+                                Clientes, documentos, prazos e mensagens no mesmo fluxo — a equipa e o cliente sabem o que fazer a seguir.
                             </p>
                         </div>
 

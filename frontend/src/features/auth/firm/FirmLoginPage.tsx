@@ -171,19 +171,19 @@ export function FirmLoginPage() {
 
   return (
     <AuthLayout
-      title="Bem-vindo(a) ao Teglion"
-      subtitle="A plataforma moderna para escritórios de contabilidade."
+      title="Área do escritório"
+      subtitle="Login da equipa — clientes, documentos, prazos e mensagens num só sítio."
       leftPanelSlot={<OfficeScreensCarousel />}
     >
       <div className="mx-auto max-w-md">
         <AuthCard>
           <AuthHeader
-            title="Entrar no seu escritório"
-            subtitle="Use o e-mail e a palavra-passe do seu escritório para continuar."
+            title="Entrar no escritório"
+            subtitle="Use o e-mail profissional e a palavra-passe da conta do escritório."
           />
 
-          <div className="mt-6 rounded-2xl border border-[#0f2942]/10 bg-[#0f2942]/5 px-4 py-3 text-sm text-slate-700">
-            Entre com os dados do escritório para retomar o trabalho de onde parou.
+          <div className="mt-6 rounded-2xl border border-[#0B3A6E]/10 bg-[#0B3A6E]/5 px-4 py-3 text-sm text-slate-700">
+            Se é cliente final, volte atrás e escolha «Sou cliente de um escritório».
           </div>
 
           {serverWaking ? <ServerWakingBanner startedAt={serverWakingSince} className="mt-6" /> : null}
@@ -233,7 +233,7 @@ export function FirmLoginPage() {
             <button
               type="submit"
               disabled={!canSubmit}
-              className="h-12 w-full rounded-2xl bg-gradient-to-r from-[#0f2942] to-[#195285] text-white shadow-[0_14px_28px_rgba(15,41,66,0.28)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-12 w-full rounded-2xl bg-gradient-to-r from-[#0B3A6E] to-[#195285] text-white shadow-[0_14px_28px_rgba(11,58,110,0.28)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? 'A entrar…' : 'Entrar'}
             </button>

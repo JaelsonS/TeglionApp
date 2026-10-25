@@ -16,12 +16,12 @@ export function CaseStudiesPage() {
         <div className="landing-container">
           <FadeInView className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#C9932E]">Casos de sucesso</p>
-            <h1 className="mt-2 text-4xl font-semibold text-[#0F2942] sm:text-5xl">
-              As histórias vêm a seguir
+            <h1 className="mt-2 text-4xl font-semibold text-[#0B3A6E] sm:text-5xl">
+              Histórias reais, quando existirem
             </h1>
             <p className="mt-4 text-lg leading-relaxed text-[#4A5568]">
-              Ainda não temos casos públicos — e preferimos assim a inventar resultados. Quando um escritório
-              autorizar a partilhar a sua experiência no {BRAND.name}, a história aparece aqui, com contexto real.
+              Esta página só publica depoimentos autorizados — sem inventar resultados. Quando um escritório
+              partilhar a experiência no {BRAND.name}, a história aparece aqui com contexto real.
             </p>
             <p className="mt-4 text-[15px] leading-relaxed text-[#4A5568]">
               Se gere um escritório e quer experimentar cedo, o trial de 14 dias é o caminho mais simples. Se
@@ -39,7 +39,7 @@ export function CaseStudiesPage() {
               </a>
             </div>
             <p className="mt-8 text-sm text-[#4A5568]">
-              <Link to="/" className="hover:text-[#0F2942] hover:underline">
+              <Link to="/" className="hover:text-[#0B3A6E] hover:underline">
                 ← Voltar ao início
               </Link>
             </p>

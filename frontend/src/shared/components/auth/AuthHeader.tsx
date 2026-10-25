@@ -23,7 +23,7 @@ export function AuthHeader({
     return (
         <div className={cn(compact ? 'space-y-2' : 'space-y-4', className)}>
             {showBrand ? (
-                <div className="inline-flex items-center gap-3 rounded-3xl border border-[#0f2942]/10 bg-[#0f2942]/5 px-4 py-2">
+                <div className="inline-flex items-center gap-3 rounded-3xl border border-[#0B3A6E]/10 bg-[#0B3A6E]/5 px-4 py-2">
                     <BrandMark size="md" variant="onLight" showName />
                 </div>
             ) : null}

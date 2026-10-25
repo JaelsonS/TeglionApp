@@ -209,7 +209,7 @@ export function RecoverPasswordPage() {
             subtitle={isReset ? copy.subtitleReset : copy.subtitleRecover}
           />
 
-          <div className="mt-6 rounded-2xl border border-[#0f2942]/10 bg-[#0f2942]/5 px-4 py-3 text-sm text-slate-700">
+          <div className="mt-6 rounded-2xl border border-[#0B3A6E]/10 bg-[#0B3A6E]/5 px-4 py-3 text-sm text-slate-700">
             {copy.messages.ethics}
           </div>
 
