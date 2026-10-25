@@ -16,7 +16,7 @@ function formatEuroFromCents(cents: number) {
   return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format((cents || 0) / 100)
 }
 
-export function VatCalculatorWorkspace() {
+export function VatCalculatorWorkspace({ embedded = false }: { embedded?: boolean } = {}) {
   const qc = useQueryClient()
   const catalogQuery = useQuery({
     queryKey: ['fiscal-vat-catalog'],
@@ -79,9 +79,10 @@ export function VatCalculatorWorkspace() {
 
   return (
     <FirmModuleShell
+      embedded={embedded}
       title="Calculadora de IVA"
       subtitle="Simulação líquido ↔ total com taxas 23 %, 13 % e 6 %. Resultado guardável e versionado — não é declaração oficial."
-      bodyClassName="overflow-auto px-4 pb-6 sm:px-5"
+      bodyClassName={embedded ? 'overflow-visible' : 'overflow-auto px-4 pb-6 sm:px-5'}
     >
       <div className="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-sm text-amber-950">
         <p className="font-medium">Simulação de apoio</p>

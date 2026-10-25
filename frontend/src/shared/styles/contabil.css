@@ -403,7 +403,7 @@
   }
 
   .cb-firm-icon-nav-active {
-    @apply bg-brand/12 text-brand ring-1 ring-brand/25;
+    @apply bg-brand/[0.12] text-brand ring-1 ring-brand/25;
   }
 
   .cb-firm-icon-nav-active .cb-firm-rail-icon {
@@ -432,7 +432,15 @@
   }
 
   .cb-calc-hub {
-    @apply mx-auto w-full max-w-4xl space-y-5 pb-10;
+    @apply mx-auto w-full max-w-5xl space-y-6 pb-12;
+  }
+
+  .cb-calc-hub-banner {
+    @apply flex items-start gap-3 rounded-2xl border border-border/50 bg-gradient-to-br from-muted/40 via-card to-card px-4 py-3.5 text-sm leading-relaxed text-muted-foreground shadow-sm;
+  }
+
+  .cb-calc-hub-banner-icon {
+    @apply mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand;
   }
 
   .cb-calc-hub-disclaimer {
@@ -444,27 +452,58 @@
   }
 
   .cb-calc-hub-card {
-    @apply flex items-start gap-3 rounded-2xl border border-border/60 bg-card p-4 shadow-sm transition hover:border-brand/35 hover:bg-brand/[0.03];
+    @apply flex w-full items-start gap-3.5 rounded-2xl border border-border/55 bg-card p-4 text-left shadow-sm outline-none transition duration-200;
+    @apply hover:-translate-y-0.5 hover:border-brand/40 hover:bg-brand/[0.03] hover:shadow-md;
+    @apply focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:ring-offset-2;
+  }
+
+  .cb-calc-hub-card--active {
+    @apply border-brand/50 bg-brand/[0.05] shadow-md;
   }
 
   .cb-calc-hub-card-icon {
-    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand;
+    @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand transition duration-200;
+  }
+
+  .cb-calc-hub-card:hover .cb-calc-hub-card-icon,
+  .cb-calc-hub-card--active .cb-calc-hub-card-icon {
+    @apply bg-brand/15;
   }
 
   .cb-calc-hub-card-body {
     @apply min-w-0 flex-1;
   }
 
+  .cb-calc-hub-card-meta {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
   .cb-calc-hub-card-title {
-    @apply block text-sm font-semibold text-foreground;
+    @apply text-[0.95rem] font-semibold tracking-tight text-foreground;
+  }
+
+  .cb-calc-hub-card-badge {
+    @apply rounded-md bg-muted/80 px-1.5 py-0.5 text-[0.65rem] font-medium uppercase tracking-wide text-muted-foreground;
   }
 
   .cb-calc-hub-card-desc {
-    @apply mt-1 block text-sm leading-snug text-muted-foreground;
+    @apply mt-1.5 block text-sm leading-snug text-muted-foreground;
   }
 
   .cb-calc-hub-card-arrow {
-    @apply mt-1 text-muted-foreground;
+    @apply mt-1 text-muted-foreground/70 transition duration-200;
+  }
+
+  .cb-calc-hub-card:hover .cb-calc-hub-card-arrow {
+    @apply translate-x-0.5 text-brand;
+  }
+
+  .cb-calc-hub-footer {
+    @apply text-center text-xs text-muted-foreground/80;
+  }
+
+  .cb-calc-modal-body {
+    @apply min-h-0;
   }
 
   .cb-firm-shell .staff-app-content-wrap.cb-firm-content-wrap {
@@ -3252,12 +3291,9 @@
     @apply grid w-full min-w-0 gap-4 md:grid-cols-[minmax(14.5rem,17rem)_minmax(0,1fr)] md:items-start md:gap-5 lg:grid-cols-[minmax(16rem,18.5rem)_minmax(0,1fr)] lg:gap-6;
   }
 
-  .cb-firm-shell--sidebar-collapsed .cb-settings-hub {
-    @apply md:grid-cols-[minmax(15.5rem,19rem)_minmax(0,1fr)] md:gap-6;
-  }
-
-  .cb-settings-hub--nav-collapsed {
-    @apply lg:grid-cols-[3.25rem_minmax(0,1fr)];
+  /* Em Definições a sidebar principal fica expandida — menu interno sempre com nomes. */
+  .cb-firm-shell--settings .cb-firm-sidebar-collapse {
+    @apply hidden;
   }
 
   .cb-settings-side-nav-heading {
@@ -3300,36 +3336,16 @@
     @apply mt-1 text-sm leading-relaxed text-muted-foreground;
   }
 
-  .cb-settings-side-nav--collapsed {
-    @apply lg:items-center lg:px-1 lg:py-2;
-  }
-
-  .cb-settings-side-nav--collapsed .cb-settings-side-nav-item {
-    @apply lg:w-full lg:justify-center lg:px-1.5;
-  }
-
-  .cb-settings-side-nav--collapsed .cb-settings-side-nav-label,
-  .cb-settings-side-nav--collapsed .cb-settings-side-nav-badge {
-    @apply lg:hidden;
-  }
-
-  .cb-settings-side-nav--collapsed .cb-settings-side-nav-label-short {
-    @apply lg:hidden;
-  }
-
-  .cb-settings-side-nav--collapsed .cb-settings-side-nav-heading {
-    @apply lg:hidden;
-  }
-
-  .cb-settings-side-nav-collapse {
-    @apply mb-1 mt-0 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-border/40 bg-muted/30 px-2 py-2 text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground;
-  }
-
   .cb-settings-side-nav {
     @apply sticky top-16 z-10 -mx-1 flex max-w-[100vw] snap-x snap-mandatory gap-1 overflow-x-auto overscroll-x-contain rounded-2xl border border-border/50 bg-card p-2 shadow-sm sm:top-20 sm:mx-0 sm:gap-1 sm:p-2.5 md:max-w-none md:snap-none md:flex-col md:overflow-visible md:p-3;
     scrollbar-width: none;
     -ms-overflow-style: none;
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ícones do menu interno: compactos — o destaque é o nome + estado activo, não um bloco gigante. */
+  .cb-settings-side-nav-icon {
+    @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted/50 text-foreground/65 transition-colors sm:h-8 sm:w-8;
   }
 
   .cb-settings-side-nav::-webkit-scrollbar {
@@ -3363,10 +3379,6 @@
 
   .cb-settings-side-nav-item--danger.cb-settings-side-nav-item--active {
     @apply bg-destructive/10 text-destructive;
-  }
-
-  .cb-settings-side-nav-icon {
-    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted/55 text-foreground/70 transition-colors sm:h-9 sm:w-9 sm:rounded-xl;
   }
 
   .cb-settings-side-nav-label {

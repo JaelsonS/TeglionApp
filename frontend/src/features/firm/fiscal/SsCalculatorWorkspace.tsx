@@ -25,7 +25,7 @@ type Regime = {
   totalBps: number
 }
 
-export function SsCalculatorWorkspace() {
+export function SsCalculatorWorkspace({ embedded = false }: { embedded?: boolean } = {}) {
   const qc = useQueryClient()
   const catalogQuery = useQuery({
     queryKey: ['fiscal-ss-catalog'],
@@ -96,9 +96,10 @@ export function SsCalculatorWorkspace() {
 
   return (
     <FirmModuleShell
+      embedded={embedded}
       title="Calculadora de Segurança Social"
       subtitle="Contribuições TCO e TI com taxas 2026. Resultado guardável e versionado — não é declaração oficial."
-      bodyClassName="overflow-auto px-4 pb-6 sm:px-5"
+      bodyClassName={embedded ? 'overflow-visible' : 'overflow-auto px-4 pb-6 sm:px-5'}
     >
       <div className="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-sm text-amber-950">
         <p className="font-medium">Simulação de apoio</p>

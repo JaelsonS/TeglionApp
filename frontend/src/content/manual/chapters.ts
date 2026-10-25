@@ -157,7 +157,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
         type: 'callout',
         variant: 'info',
         title: 'Simulação ≠ declaração',
-        text: 'As calculadoras (IVA, IRS, SS, retenção, IMT, IRC) são simulações de apoio. Não substituem software certificado nem o envio oficial.',
+        text: 'Em Calculadoras encontra IVA, IRS, SS, retenção, IMT e IRC — simulações de apoio. Não substituem software certificado nem o envio oficial.',
       },
       { type: 'appLink', label: 'Calendário fiscal', href: '/app/firm/fiscal-calendar' },
       { type: 'appLink', label: 'Tarefas / obrigações', href: '/app/firm/tasks' },

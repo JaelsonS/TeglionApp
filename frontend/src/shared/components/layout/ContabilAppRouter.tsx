@@ -149,36 +149,6 @@ const FirmCalculatorsHubPage = lazy(() =>
     default: m.FirmCalculatorsHubPage,
   })),
 )
-const FirmVatCalculatorPage = lazy(() =>
-  import('@/features/firm/pages/FirmVatCalculatorPage').then((m) => ({
-    default: m.FirmVatCalculatorPage,
-  })),
-)
-const FirmIrsCalculatorPage = lazy(() =>
-  import('@/features/firm/pages/FirmIrsCalculatorPage').then((m) => ({
-    default: m.FirmIrsCalculatorPage,
-  })),
-)
-const FirmSsCalculatorPage = lazy(() =>
-  import('@/features/firm/pages/FirmSsCalculatorPage').then((m) => ({
-    default: m.FirmSsCalculatorPage,
-  })),
-)
-const FirmWithholdingCalculatorPage = lazy(() =>
-  import('@/features/firm/pages/FirmWithholdingCalculatorPage').then((m) => ({
-    default: m.FirmWithholdingCalculatorPage,
-  })),
-)
-const FirmImtCalculatorPage = lazy(() =>
-  import('@/features/firm/pages/FirmImtCalculatorPage').then((m) => ({
-    default: m.FirmImtCalculatorPage,
-  })),
-)
-const FirmIrcCalculatorPage = lazy(() =>
-  import('@/features/firm/pages/FirmIrcCalculatorPage').then((m) => ({
-    default: m.FirmIrcCalculatorPage,
-  })),
-)
 const FirmAlertsPage = lazy(() => import('@/features/firm/pages/FirmAlertsPage').then((m) => ({ default: m.FirmAlertsPage })))
 const FirmNewsPage = lazy(() => import('@/features/firm/pages/FirmNewsPage').then((m) => ({ default: m.FirmNewsPage })))
 const ClientDashboardPage = lazy(() =>
@@ -309,12 +279,15 @@ export function ContabilAppRouter() {
                 <Route path="rentals" element={<FirmRentalsPage />} />
                 <Route path="saft" element={<FirmSaftPage />} />
                 <Route path="calculators" element={<FirmCalculatorsHubPage />} />
-                <Route path="calculators/iva" element={<FirmVatCalculatorPage />} />
-                <Route path="calculators/irs" element={<FirmIrsCalculatorPage />} />
-                <Route path="calculators/ss" element={<FirmSsCalculatorPage />} />
-                <Route path="calculators/retencao" element={<FirmWithholdingCalculatorPage />} />
-                <Route path="calculators/imt" element={<FirmImtCalculatorPage />} />
-                <Route path="calculators/irc" element={<FirmIrcCalculatorPage />} />
+                <Route path="calculators/iva" element={<Navigate to="/app/firm/calculators?open=iva" replace />} />
+                <Route path="calculators/irs" element={<Navigate to="/app/firm/calculators?open=irs" replace />} />
+                <Route path="calculators/ss" element={<Navigate to="/app/firm/calculators?open=ss" replace />} />
+                <Route
+                  path="calculators/retencao"
+                  element={<Navigate to="/app/firm/calculators?open=retencao" replace />}
+                />
+                <Route path="calculators/imt" element={<Navigate to="/app/firm/calculators?open=imt" replace />} />
+                <Route path="calculators/irc" element={<Navigate to="/app/firm/calculators?open=irc" replace />} />
                 <Route path="documents" element={<FirmDocumentsLayout />}>
                   <Route index element={<Navigate to="requests" replace />} />
                   <Route path="requests" element={<FormalRequestsModule />} />

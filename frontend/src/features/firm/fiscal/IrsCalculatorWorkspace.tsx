@@ -21,7 +21,7 @@ function formatRateMilli(milli: number) {
   return `${pct.toLocaleString('pt-PT', { maximumFractionDigits: 3 })} %`
 }
 
-export function IrsCalculatorWorkspace() {
+export function IrsCalculatorWorkspace({ embedded = false }: { embedded?: boolean } = {}) {
   const qc = useQueryClient()
   const catalogQuery = useQuery({
     queryKey: ['fiscal-irs-catalog'],
@@ -77,9 +77,10 @@ export function IrsCalculatorWorkspace() {
 
   return (
     <FirmModuleShell
+      embedded={embedded}
       title="Calculadora de IRS"
       subtitle="Coleta estimada sobre rendimento coletável (escalões gerais, continente). Versionada — não é declaração oficial."
-      bodyClassName="overflow-auto px-4 pb-6 sm:px-5"
+      bodyClassName={embedded ? 'overflow-visible' : 'overflow-auto px-4 pb-6 sm:px-5'}
     >
       <div className="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-sm text-amber-950">
         <p className="font-medium">Simulação de apoio</p>
