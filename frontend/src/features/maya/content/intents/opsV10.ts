@@ -33,7 +33,7 @@ export const OPS_V10_INTENTS = [
     shortDescription: 'recibos internos',
     surface: 'firm',
     answer:
-      'Em Imóveis e rendas regista contratos e recibos INTERNOS para o escritório acompanhar. Não são recibos oficiais AT nem comunicação ao Portal das Finanças.',
+      'Em Imóveis e rendas regista contratos e recibos INTERNOS para o gabinete acompanhar. Não são recibos oficiais AT nem comunicação ao Portal das Finanças.',
     steps: [
       'Crie o imóvel associado ao cliente senhorio',
       'Adicione o contrato com o inquilino e a renda',

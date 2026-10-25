@@ -32,7 +32,7 @@ function buildDefaultPatchSections(input: {
   const copy = toneCopy(input.tone)
   const aboutBody =
     input.brief ||
-    `Escritório de contabilidade em ${input.region}, focado em acompanhamento próximo e processos digitais.`
+    `Gabinete de contabilidade em ${input.region}, focado em acompanhamento próximo e processos digitais.`
   const voiceCap = `${copy.voice.charAt(0).toUpperCase()}${copy.voice.slice(1)}`
   return [
     {
@@ -47,7 +47,7 @@ function buildDefaultPatchSections(input: {
     {
       type: 'about',
       enabled: true,
-      content: { heading: 'Sobre o escritório', body: aboutBody.slice(0, 4000) },
+      content: { heading: 'Sobre o gabinete', body: aboutBody.slice(0, 4000) },
     },
     {
       type: 'services',
@@ -72,8 +72,8 @@ function buildDefaultPatchSections(input: {
         heading: 'Como funciona',
         steps: [
           { title: 'Contacto', description: 'Escolha o serviço ou envie uma mensagem pela página.' },
-          { title: 'Recolha', description: 'Indique o essencial — o escritório pede documentos se necessário.' },
-          { title: 'Acompanhamento', description: `O escritório ${copy.voice} até concluir o pedido.` },
+          { title: 'Recolha', description: 'Indique o essencial — o gabinete pede documentos se necessário.' },
+          { title: 'Acompanhamento', description: `O gabinete ${copy.voice} até concluir o pedido.` },
         ],
       },
     },
@@ -84,15 +84,15 @@ function buildDefaultPatchSections(input: {
         items: [
           {
             question: 'Como marco uma consulta?',
-            answer: 'Use os serviços disponíveis na página ou os contactos indicados pelo escritório.',
+            answer: 'Use os serviços disponíveis na página ou os contactos indicados pelo gabinete.',
           },
           {
             question: 'Atendem empresas e particulares?',
-            answer: `Sim — o escritório acompanha ambos em ${input.region} e online.`,
+            answer: `Sim — o gabinete acompanha ambos em ${input.region} e online.`,
           },
           {
             question: 'Os valores incluem IVA?',
-            answer: 'Os preços indicados na página seguem a informação de cada serviço; confirme com o escritório.',
+            answer: 'Os preços indicados na página seguem a informação de cada serviço; confirme com o gabinete.',
           },
         ],
       },
@@ -102,7 +102,7 @@ function buildDefaultPatchSections(input: {
       enabled: true,
       content: {
         heading: 'Contacte-nos',
-        body: 'Peça informações ou marque uma consulta pela página ou pelos contactos do escritório.'.slice(0, 4000),
+        body: 'Peça informações ou marque uma consulta pela página ou pelos contactos do gabinete.'.slice(0, 4000),
       },
     },
   ]

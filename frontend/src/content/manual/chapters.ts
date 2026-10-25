@@ -12,21 +12,21 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     subtitle: 'Conta, MFA e o seu primeiro dia no Teglion',
     audience: 'firm',
     status: 'available',
-    seoDescription: 'Maya explica como criar a conta do escritório, activar MFA e começar no painel Teglion.',
+    seoDescription: 'Maya explica como criar a conta do gabinete, activar MFA e começar no painel Teglion.',
     blocks: [
       {
         type: 'maya',
-        text: 'Olá — sou a Maya. Este manual é a minha forma de acompanhar o escritório e quem ainda está a descobrir o Teglion. Vou falar-lhe como se estivéssemos lado a lado no ecrã.',
+        text: 'Olá — sou a Maya. Este manual é a minha forma de acompanhar o gabinete e quem ainda está a descobrir o Teglion. Vou falar-lhe como se estivéssemos lado a lado no ecrã.',
       },
       {
         type: 'p',
-        text: 'O Teglion é a plataforma de gestão para escritórios de contabilidade em Portugal: clientes, documentos, prazos, portal, página pública e operação do dia. Não substitui o software de contabilidade clássico — organiza a relação com o cliente e o trabalho da equipa.',
+        text: 'O Teglion é a plataforma de gestão para gabinetes de contabilidade em Portugal: clientes, documentos, prazos, portal, página pública e operação do dia. Não substitui o software de contabilidade clássico — organiza a relação com o cliente e o trabalho da equipa.',
       },
-      { type: 'h2', text: 'Criar a conta do escritório' },
+      { type: 'h2', text: 'Criar a conta do gabinete' },
       {
         type: 'ol',
         items: [
-          'Abra o registo do escritório e use o e-mail profissional.',
+          'Abra o registo do gabinete e use o e-mail profissional.',
           'Confirme o e-mail quando o pedido chegar.',
           'Active a autenticação em dois factores (MFA) — é obrigatório para proteger a carteira.',
           'Entre no Painel e siga a «Configuração rápida» se aparecer.',
@@ -40,12 +40,12 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
       },
       {
         type: 'appLink',
-        label: 'Criar conta do escritório (14 dias)',
+        label: 'Criar conta do gabinete (14 dias)',
         href: '/auth/firm/register',
       },
       {
         type: 'appLink',
-        label: 'Entrar no escritório',
+        label: 'Entrar no gabinete',
         href: '/auth/firm/login',
       },
     ],
@@ -54,7 +54,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     slug: 'planos-e-faturacao',
     number: 2,
     title: 'Planos e faturação (SaaS)',
-    subtitle: 'O plano do escritório vs. pagamentos dos clientes',
+    subtitle: 'O plano do gabinete vs. pagamentos dos clientes',
     audience: 'firm',
     status: 'available',
     seoDescription: 'Diferença entre o plano Teglion (SaaS) e Stripe Connect para cobrar clientes.',
@@ -66,9 +66,9 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
       {
         type: 'ul',
         items: [
-          'Plano Teglion (SaaS): o escritório paga à AfDigital pelo software.',
+          'Plano Teglion (SaaS): o gabinete paga à AfDigital pelo software.',
           'Avenças dos clientes: registo manual no mapa de Pagamentos — funciona sem Stripe.',
-          'Stripe Connect (opcional): cobranças online; o principal vai para a conta do escritório e o Teglion retém só a taxa de serviço.',
+          'Stripe Connect (opcional): cobranças online; o principal vai para a conta do gabinete e o Teglion retém só a taxa de serviço.',
         ],
       },
       {
@@ -88,11 +88,11 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     subtitle: 'Carteira, hub e importação CSV',
     audience: 'firm',
     status: 'available',
-    seoDescription: 'Como a Maya orienta a gestão de clientes no Teglion: hub, CSV e isolamento por escritório.',
+    seoDescription: 'Como a Maya orienta a gestão de clientes no Teglion: hub, CSV e isolamento por gabinete.',
     blocks: [
       {
         type: 'maya',
-        text: 'Cada escritório só vê os seus clientes. Eu nunca misturo dados entre firmas — o isolamento por escritório é uma regra de ouro do Teglion.',
+        text: 'Cada gabinete só vê os seus clientes. Eu nunca misturo dados entre firmas — o isolamento por gabinete é uma regra de ouro do Teglion.',
       },
       {
         type: 'p',
@@ -116,15 +116,15 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     subtitle: 'Pedidos, ficheiros e o portal do cliente',
     audience: 'both',
     status: 'available',
-    seoDescription: 'Fluxo de documentos no Teglion entre escritório e portal do cliente.',
+    seoDescription: 'Fluxo de documentos no Teglion entre gabinete e portal do cliente.',
     blocks: [
       {
         type: 'maya',
-        text: 'Documentos são o coração do escritório digital. Eu ajudo a pedir, receber e validar — sem viver de PDFs no WhatsApp.',
+        text: 'Documentos são o coração do gabinete digital. Eu ajudo a pedir, receber e validar — sem viver de PDFs no WhatsApp.',
       },
       {
         type: 'p',
-        text: 'Do lado do escritório: pedidos formais, ficheiros e histórico. Do lado do cliente: o portal mostra o que falta e permite enviar com sessão autenticada.',
+        text: 'Do lado do gabinete: pedidos formais, ficheiros e histórico. Do lado do cliente: o portal mostra o que falta e permite enviar com sessão autenticada.',
       },
       {
         type: 'callout',
@@ -132,7 +132,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
         title: 'Uploads seguros',
         text: 'Os ficheiros passam por validação de tipo e conteúdo. Não aceite atalhos de «envie-me por e-mail a senha do Portal das Finanças» — use o cofre e o portal.',
       },
-      { type: 'appLink', label: 'Documentos do escritório', href: '/app/firm/documents' },
+      { type: 'appLink', label: 'Documentos do gabinete', href: '/app/firm/documents' },
       { type: 'appLink', label: 'Portal do cliente', href: '/auth/client/login' },
     ],
   },
@@ -147,7 +147,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     blocks: [
       {
         type: 'maya',
-        text: 'Eu mostro prazos e progresso — mas não invento obrigações da AT. O calendário ajuda; a responsabilidade final continua a ser do escritório e das fontes oficiais.',
+        text: 'Eu mostro prazos e progresso — mas não invento obrigações da AT. O calendário ajuda; a responsabilidade final continua a ser do gabinete e das fontes oficiais.',
       },
       {
         type: 'p',
@@ -192,7 +192,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     slug: 'tarefas',
     number: 7,
     title: 'Tarefas',
-    subtitle: 'Gestor de operações do escritório',
+    subtitle: 'Gestor de operações do gabinete',
     audience: 'firm',
     status: 'available',
     seoDescription: 'Gestor de tarefas e operações no Teglion.',
@@ -261,7 +261,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     blocks: [
       {
         type: 'maya',
-        text: 'Há apoio a documentos e orçamentos no fluxo do escritório. Assinatura electrónica avançada como produto completo ainda não é a promessa desta versão.',
+        text: 'Há apoio a documentos e orçamentos no fluxo do gabinete. Assinatura electrónica avançada como produto completo ainda não é a promessa desta versão.',
       },
       {
         type: 'callout',
@@ -282,7 +282,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     blocks: [
       {
         type: 'maya',
-        text: 'O cofre existe para credenciais oficiais (AT, SS, etc.) com controlo do escritório. Trate-o como zona sensível.',
+        text: 'O cofre existe para credenciais oficiais (AT, SS, etc.) com controlo do gabinete. Trate-o como zona sensível.',
       },
       {
         type: 'callout',
@@ -324,7 +324,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
         type: 'ul',
         items: [
           'No site público ajudo quem ainda não é cliente a perceber o Teglion e a começar o trial.',
-          'No escritório explico módulos, MFA, portal e configuração.',
+          'No gabinete explico módulos, MFA, portal e configuração.',
           'No portal do cliente ajudo a encontrar documentos e pedidos.',
           'A Maya Setup (IA opcional) só gera rascunhos de página/serviços com consentimento — nunca inventa declarações fiscais.',
         ],
@@ -333,7 +333,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
         type: 'callout',
         variant: 'security',
         title: 'Privacidade',
-        text: 'A Maya de ajuda estática não lê a sua carteira de clientes. Se usar funções de IA de setup, o conteúdo segue as regras de consentimento e isolamento do escritório.',
+        text: 'A Maya de ajuda estática não lê a sua carteira de clientes. Se usar funções de IA de setup, o conteúdo segue as regras de consentimento e isolamento do gabinete.',
       },
       { type: 'appLink', label: 'Falar com suporte humano', href: '/suporte' },
     ],
@@ -364,7 +364,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     blocks: [
       {
         type: 'maya',
-        text: 'Há o responsável do escritório (FIRM_OWNER) e a equipa (FIRM_STAFF) com permissões. Não inventamos papéis que não existem.',
+        text: 'Há o responsável do gabinete (FIRM_OWNER) e a equipa (FIRM_STAFF) com permissões. Não inventamos papéis que não existem.',
       },
       {
         type: 'p',
@@ -397,7 +397,7 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     subtitle: 'Identidade, Google, Connect e página pública',
     audience: 'firm',
     status: 'available',
-    seoDescription: 'Definições do escritório no Teglion: identidade, Google e Connect.',
+    seoDescription: 'Definições do gabinete no Teglion: identidade, Google e Connect.',
     blocks: [
       {
         type: 'maya',
@@ -433,12 +433,12 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
       { type: 'h2', text: 'Os recibos de renda são oficiais AT?' },
       {
         type: 'p',
-        text: 'Não. Em Imóveis e rendas o registo é interno para o escritório acompanhar — sem comunicação à AT.',
+        text: 'Não. Em Imóveis e rendas o registo é interno para o gabinete acompanhar — sem comunicação à AT.',
       },
       { type: 'h2', text: 'O SAF-T é enviado à AT?' },
       {
         type: 'p',
-        text: 'Não. A leitura de SAF-T extrai totais e cabeçalho para o escritório. Sem envio automático.',
+        text: 'Não. A leitura de SAF-T extrai totais e cabeçalho para o gabinete. Sem envio automático.',
       },
       { type: 'h2', text: 'Como falo com uma pessoa?' },
       {

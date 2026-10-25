@@ -549,7 +549,7 @@ function MayaHome({
           <>
             <p>
               Olá{firstName ? `, ${firstName}` : ''}! Eu sou a Maya. O Teglion é a plataforma para
-              escritórios de contabilidade em Portugal — um produto da AfDigital — Soluções Tecnológicas.
+              gabinetes de contabilidade em Portugal — um produto da AfDigital — Soluções Tecnológicas.
             </p>
             <p className="mt-2">
               {page?.summary ||
@@ -588,7 +588,7 @@ function MayaHome({
             ) : (
               <p className="mt-2 text-muted-foreground">
                 {isFirmSurface
-                  ? 'Comece pelo que importa neste ecrã — ou use a configuração rápida se for o responsável do escritório.'
+                  ? 'Comece pelo que importa neste ecrã — ou use a configuração rápida se for o responsável do gabinete.'
                   : 'Escolha um tema abaixo — explico passo a passo e abro a página certa quando quiser.'}
               </p>
             )}
@@ -655,7 +655,7 @@ function MayaCatalog({
             ? 'Escolha o que quer saber sobre o Teglion. Se preferir uma pessoa, há WhatsApp no fim.'
             : isClientSurface
               ? 'Estas são as áreas principais deste portal. Escolha uma para eu explicar.'
-              : 'Estas são as áreas principais do escritório no Teglion. Escolha uma para eu explicar.'}
+              : 'Estas são as áreas principais do gabinete no Teglion. Escolha uma para eu explicar.'}
         </p>
       </MayaBubble>
       <div className="mt-4 space-y-2">
@@ -706,7 +706,7 @@ function MayaIntentView({
           {intent.ownerOnly && !responsible ? (
             <p className="mb-2 rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs text-amber-950">
               Pode ver esta área, mas ligar pagamentos ou encerrar a conta só está disponível para o
-              responsável do escritório. Não tente contornar essa permissão.
+              responsável do gabinete. Não tente contornar essa permissão.
             </p>
           ) : null}
           <p>{intent.answer}</p>

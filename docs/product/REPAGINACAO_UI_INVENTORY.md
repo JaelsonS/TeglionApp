@@ -20,21 +20,21 @@ Totais aproximados: **~55 destinos de produto** · **~90 path patterns** (incl. 
 
 | Path | Propósito |
 |------|-----------|
-| `/auth` | Escolha firm/cliente |
-| `/auth/firm/login`, `/mfa`, `/register`, `/register/google` | Auth escritório |
+| `/auth` | Escolha gabinete/cliente |
+| `/auth/firm/login`, `/mfa`, `/register`, `/register/google` | Auth gabinete |
 | `/auth/firm/convite/:token`, `/team-invite/:token`, `/confirm-email/:token` | Convites firm |
 | `/auth/client/login`, `/register`, `/convite/:token` | Auth cliente |
 | `/recover-password`, `/reset-password` | Recuperação |
 
-## C · App escritório `/app/firm/*`
+## C · App gabinete `/app/firm/*`
 
-Painel · Clientes · Hub cliente · Pagamentos · Imóveis/rendas · SAF-T · Calculadoras · Documentos (pedidos/ficheiros/histórico) · Tarefas (overview/obrigações/mês/manual/calendário/clientes) · Agenda · Calendário fiscal · Mensagens · Alertas · Notícias · IRS · Serviços · Plano · Definições · Ajuda · Sobre
+Painel · Clientes · Hub cliente · Pagamentos · Imóveis/rendas · SAF-T · Calculadoras · Documentos (pedidos/ficheiros/histórico) · Tarefas · Agenda · Calendário fiscal · Mensagens · Alertas · Notícias · IRS · Serviços · Plano · Definições · Ajuda · Sobre
 
 ## D · Portal cliente `/app/client/*`
 
 Dashboard · Pedidos · Serviços · Mais · Mensagens · Documentos · Arquivo · Agenda/obrigações · Updates · Conta · no-access
 
-## E · Público escritório
+## E · Público gabinete
 
 `/:firmSlug` · `/:firmSlug/servicos/:serviceSlug` · `/:firmSlug/booking/return` · `/pedidos/:token`
 
@@ -47,24 +47,15 @@ Dashboard · Pedidos · Serviços · Mais · Mensagens · Documentos · Arquivo 
 - Não remover rotas nem funcionalidades; redirects OK.
 - Não alterar contratos backend.
 - Uma pele visual (tokens + design-system) em todas as superfícies.
+- Vocabulário PT de mercado: **gabinete** (não imitar copy de concorrentes).
+- Shell responsivo: mobile &lt;768 · tablet 768–1279 · desktop ≥1280.
 
-## Progresso (branch `feature/fase-repaginacao-ui`)
+## Progresso — **COMPLETO**
 
 | Wave | Conteúdo | Estado |
 |------|----------|--------|
-| Base | DS tokens, menu firm, Painel Hoje, PagePurpose | feito |
-| 2 | Público, pricing, tarefas, portal (arquivo/updates/conta) | feito |
-| 3 | Auth, legal, suporte, casos — navy + propósito | feito |
-| 4 | Landing, blog, manual — navy único | feito |
-| 5 | Residual navy, hero Teglion, 404/no-access | feito |
-| 6 | Labels menu firm + chrome portal | feito |
-| 7 | Blog + Ajuda/Sobre + rail sync | feito |
-| 8 | Booking return + clareza pagamentos | feito |
-| 9 | Copy pt-PT residual + inventário | feito |
-| 10 | Atmosfera canvas firm + portal (sem cream) | feito |
-| 11 | Topbar + painéis clientes/docs + crumb labels | feito |
-| 12 | Hub cliente + calendário fiscal | feito |
-| 13 | Vocabulário PT «gabinete» + copy/SEO própria Teglion | feito |
-| 14 | «Gabinete» na app firm/client (UI) | feito |
-| **Estado geral** | **~90%** — falta QA responsivo real, Maya/manual residual, merge staging | **não 100%** |
-| Merge → staging | Só quando a repaginação estiver completa | pendente |
+| Base–14 | DS, shells, propósitos, landing/SEO própria, gabinete app | feito |
+| 15 | Smoke responsivo (tabs settings, clearance portal) | feito |
+| 16 | Maya + Manual residual «gabinete» | feito |
+| **Entrega** | Repaginação UI fechada na branch | **100%** |
+| Merge → staging | PR / merge geral | a seguir |

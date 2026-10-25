@@ -7,7 +7,7 @@ export const CLIENT_HUB_INTENTS = [
     title: 'O que é a ficha deste cliente?',
     shortDescription: 'ficha do cliente',
     answer:
-      'Esta é a ficha (hub) de um cliente da carteira do escritório — não é o portal onde o cliente entra. Tabs: Resumo, Perfil, Acessos, Actividade, Obrigações, Documentos, Tarefas e Comunicação. A tab Acessos guarda senhas de portais oficiais (AT, Segurança Social, ViaCTT, IAPMEI, Relatório Único), cifradas; ver uma senha pede a palavra-passe dos Acessos oficiais (única daquele campo). No topo: voltar à lista, etiquetas, convite ou gestão de acesso ao portal, atalho para Mensagens e Editar (abre o Perfil). Os números (obrigações pendentes, documentos por validar, tarefas abertas, mensagens não lidas) são só desta empresa — clique para abrir a tab correspondente. Não há tab de Solicitações nem de Notas: notas estão no Perfil; pedidos públicos estão em Serviços.',
+      'Esta é a ficha (hub) de um cliente da carteira do gabinete — não é o portal onde o cliente entra. Tabs: Resumo, Perfil, Acessos, Actividade, Obrigações, Documentos, Tarefas e Comunicação. A tab Acessos guarda senhas de portais oficiais (AT, Segurança Social, ViaCTT, IAPMEI, Relatório Único), cifradas; ver uma senha pede a palavra-passe dos Acessos oficiais (única daquele campo). No topo: voltar à lista, etiquetas, convite ou gestão de acesso ao portal, atalho para Mensagens e Editar (abre o Perfil). Os números (obrigações pendentes, documentos por validar, tarefas abertas, mensagens não lidas) são só desta empresa — clique para abrir a tab correspondente. Não há tab de Solicitações nem de Notas: notas estão no Perfil; pedidos públicos estão em Serviços.',
     steps: [
       'Comece pelo Resumo para o estado',
       'Clique nos números do topo (obrigações, documentos, tarefas, mensagens) para abrir a tab correspondente deste cliente',
@@ -153,7 +153,7 @@ export const CLIENT_HUB_INTENTS = [
     title: 'Como funcionam os serviços deste cliente?',
     shortDescription: 'serviços do cliente',
     answer:
-      'Não há tab Serviços na ficha. Os serviços associados estão no Perfil, em «Serviços contratados»: caixas dos serviços activos do catálogo. Marcar ou desmarcar guarda automaticamente. Isto é associação interna — não publica o serviço na página pública, não cria uma solicitação e não agenda. Os serviços criam-se, editam-se e publicam-se em Serviços. Se o catálogo estiver vazio, o Perfil diz que não há serviços configurados; crie-os em Serviços. Depois de associar, o escritório vê o que este cliente tem contratado; o cliente no portal não gere este bloco.',
+      'Não há tab Serviços na ficha. Os serviços associados estão no Perfil, em «Serviços contratados»: caixas dos serviços activos do catálogo. Marcar ou desmarcar guarda automaticamente. Isto é associação interna — não publica o serviço na página pública, não cria uma solicitação e não agenda. Os serviços criam-se, editam-se e publicam-se em Serviços. Se o catálogo estiver vazio, o Perfil diz que não há serviços configurados; crie-os em Serviços. Depois de associar, o gabinete vê o que este cliente tem contratado; o cliente no portal não gere este bloco.',
     steps: [
       'Abra a ficha → Perfil',
       'Desça até Serviços contratados',
@@ -174,11 +174,11 @@ export const CLIENT_HUB_INTENTS = [
     title: 'Onde vejo as solicitações deste cliente?',
     shortDescription: 'solicitações do cliente',
     answer:
-      'A ficha do cliente não tem tab Solicitações. Há dois sítios em Serviços. Solicitações: pedidos que chegam da página pública (pessoa ainda não era cliente da carteira, ou veio pelo formulário público — incluindo IRS publicado). Cada pedido tem estado próprio nessa lista; daí a equipa trata e, se fizer sentido, o cadastro na carteira. Central: pedidos de quem já usa a app como cliente. A resposta do cliente a um formulário público aparece em Solicitações, não na lista IRS e não nesta ficha. Documentos pedidos pelo escritório aparecem na tab Documentos / módulo Pedidos, não em Solicitações.',
+      'A ficha do cliente não tem tab Solicitações. Há dois sítios em Serviços. Solicitações: pedidos que chegam da página pública (pessoa ainda não era cliente da carteira, ou veio pelo formulário público — incluindo IRS publicado). Cada pedido tem estado próprio nessa lista; daí a equipa trata e, se fizer sentido, o cadastro na carteira. Central: pedidos de quem já usa a app como cliente. A resposta do cliente a um formulário público aparece em Solicitações, não na lista IRS e não nesta ficha. Documentos pedidos pelo gabinete aparecem na tab Documentos / módulo Pedidos, não em Solicitações.',
     steps: [
       'Pedidos do site: Serviços → Solicitações',
       'Pedidos de clientes da app: Serviços → Central',
-      'Documentos que o escritório pediu: ficha → Documentos ou Documentos → Pedidos',
+      'Documentos que o gabinete pediu: ficha → Documentos ou Documentos → Pedidos',
     ],
     deepLink: '/app/firm/services?tab=inquiries',
     relatedIntents: ['requests', 'requests-central', 'client-documents', 'irs-track', 'service'],
@@ -193,7 +193,7 @@ export const CLIENT_HUB_INTENTS = [
         id: 'where-is-response',
         title: 'Onde vejo a resposta do cliente?',
         answer:
-          'Formulário público (incluindo IRS): Serviços → Solicitações. Mensagem: ficha → Comunicação ou Mensagens. Ficheiro pedido pelo escritório: Documentos → Pedidos.',
+          'Formulário público (incluindo IRS): Serviços → Solicitações. Mensagem: ficha → Comunicação ou Mensagens. Ficheiro pedido pelo gabinete: Documentos → Pedidos.',
       },
     ],
   }),
@@ -202,7 +202,7 @@ export const CLIENT_HUB_INTENTS = [
     title: 'Para que servem as notas internas?',
     shortDescription: 'notas do cliente',
     answer:
-      'Não há tab Notas. As notas são o campo Observações no Perfil («Notas internas — só visível ao escritório»). Servem para a equipa: contexto, combinados, alertas internos. Cria e edita no Perfil; a gravação é automática. Não há botão de eliminar separado: apague o texto e deixe gravar. Não substituem Mensagens (conversa com o cliente) nem comunicados. O portal do cliente não mostra estas observações. Alterações de perfil podem aparecer no histórico de alterações do Perfil e na Actividade como eventos de perfil.',
+      'Não há tab Notas. As notas são o campo Observações no Perfil («Notas internas — só visível ao gabinete»). Servem para a equipa: contexto, combinados, alertas internos. Cria e edita no Perfil; a gravação é automática. Não há botão de eliminar separado: apague o texto e deixe gravar. Não substituem Mensagens (conversa com o cliente) nem comunicados. O portal do cliente não mostra estas observações. Alterações de perfil podem aparecer no histórico de alterações do Perfil e na Actividade como eventos de perfil.',
     steps: [
       'Abra Perfil',
       'Desça até Notas internas',
@@ -348,7 +348,7 @@ export const CLIENT_HUB_INTENTS = [
       {
         id: 'action-tags',
         name: 'Etiquetas',
-        meaning: 'Liga ou tira etiquetas do escritório neste cliente.',
+        meaning: 'Liga ou tira etiquetas do gabinete neste cliente.',
       },
       {
         id: 'action-hide',

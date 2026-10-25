@@ -90,7 +90,7 @@ export function MayaSetupWizard() {
   useEffect(() => {
     function onOpen() {
       if (!owner) {
-        toast.error('Só o responsável do escritório pode usar a configuração rápida.')
+        toast.error('Só o responsável do gabinete pode usar a configuração rápida.')
         return
       }
       const inlineOnPublicSite =
@@ -256,14 +256,14 @@ export function MayaSetupWizard() {
                 value={ownerBrief}
                 maxLength={OWNER_BRIEF_MAX}
                 onChange={(e) => setOwnerBrief(e.target.value)}
-                placeholder="Ex.: Queremos ser vistos como escritório moderno para autónomos em Coimbra; destacar IRS e e-Fatura; tom acolhedor."
+                placeholder="Ex.: Queremos ser vistos como gabinete moderno para autónomos em Coimbra; destacar IRS e e-Fatura; tom acolhedor."
               />
               <p className="text-caption text-muted-foreground">
                 {ownerBrief.length}/{OWNER_BRIEF_MAX} — não inclua NIFs, nomes de clientes nem documentos.
               </p>
             </div>
             <div className="grid gap-2">
-              <Label>País do escritório</Label>
+              <Label>País do gabinete</Label>
               <div className="flex gap-2">
                 {(['PT', 'BR'] as const).map((c) => (
                   <Button
@@ -337,7 +337,7 @@ export function MayaSetupWizard() {
               </div>
             </div>
             <div className="grid gap-2">
-              <Label>Serviços a activar no escritório</Label>
+              <Label>Serviços a activar no gabinete</Label>
               <div className="max-h-40 space-y-2 overflow-y-auto rounded-md border p-2">
                 {serviceOptions.map((opt) => (
                   <label key={opt.catalogKey} className="flex items-center gap-2 text-sm">
@@ -368,7 +368,7 @@ export function MayaSetupWizard() {
             <div className="grid gap-2 rounded-lg border border-dashed p-3">
               <Label>Serviços personalizados (opcional)</Label>
               <p className="text-caption text-muted-foreground">
-                Além do catálogo — nome à medida do escritório (preço e formulário pode afinar depois em Serviços).
+                Além do catálogo — nome à medida do gabinete (preço e formulário pode afinar depois em Serviços).
               </p>
               {customServices.map((row, idx) => (
                 <div key={idx} className="flex flex-col gap-1 sm:flex-row">

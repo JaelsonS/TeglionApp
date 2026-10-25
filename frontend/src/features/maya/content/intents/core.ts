@@ -4,7 +4,7 @@ export const CORE_INTENTS = [
   defineIntent({
     id: 'tour',
     title: 'O que é o Teglion?',
-    shortDescription: 'visão geral do escritório',
+    shortDescription: 'visão geral do gabinete',
     answer:
       'O Teglion reúne clientes, documentos, prazos, agenda, página pública e pedidos de serviço num só sítio. Não substitui o software de contabilidade — ajuda-o a trabalhar com o cliente e a captar trabalho online. Eu guio-o ecrã a ecrã, com atalhos para abrir a página certa.',
     steps: [

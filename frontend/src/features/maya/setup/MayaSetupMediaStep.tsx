@@ -220,7 +220,7 @@ export function MayaSetupMediaStep({
         <div className="space-y-2 rounded-lg border border-dashed border-border/60 p-3">
           <Label>Imagens nos serviços (opcional)</Label>
           <p className="text-caption text-muted-foreground">
-            Uma imagem por serviço seleccionado — aplicada ao criar o serviço no escritório.
+            Uma imagem por serviço seleccionado — aplicada ao criar o serviço no gabinete.
           </p>
           <ul className="space-y-2">
             {serviceCatalogKeys.map((key) => (

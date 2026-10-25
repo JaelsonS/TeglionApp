@@ -61,7 +61,7 @@ export function MayaSetupProposalReviewEditor({
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
         Edite aqui o que a IA sugeriu — o preview à direita actualiza na hora. «Aplicar rascunho» grava isto no
-        escritório (sem publicar).
+        gabinete (sem publicar).
       </p>
       <div className="flex flex-wrap gap-1">
         {(

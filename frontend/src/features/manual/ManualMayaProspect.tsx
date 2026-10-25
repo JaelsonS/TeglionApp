@@ -31,7 +31,7 @@ export function ManualMayaProspect() {
                 <Link to={authFirmRegisterUrl()}>Testar 14 dias</Link>
               </Button>
               <Button type="button" size="sm" variant="ghost" asChild>
-                <Link to="/auth/client/login">Sou cliente do escritório</Link>
+                <Link to="/auth/client/login">Sou cliente do gabinete</Link>
               </Button>
             </div>
           </div>

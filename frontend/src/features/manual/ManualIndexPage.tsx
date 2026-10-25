@@ -44,7 +44,7 @@ export function ManualIndexPage() {
             </div>
             <p className="mt-4 text-base leading-relaxed text-muted-foreground">
               Sou a Maya. Este manual é o guia oficial do Teglion — primeiros passos, dia a dia do
-              escritório e portal do cliente. Sem jargão inútil e sem promessas que o produto ainda
+              gabinete e portal do cliente. Sem jargão inútil e sem promessas que o produto ainda
               não cumpre.
             </p>
             <p className="mt-3">

@@ -3310,8 +3310,9 @@
   }
 
   .cb-settings-tabs {
-    @apply -mx-1 flex max-w-[100vw] flex-wrap gap-1.5 overflow-x-auto overscroll-x-contain px-1 pb-1 sm:mx-0 sm:overflow-visible sm:px-0;
+    @apply -mx-1 flex max-w-[100vw] flex-nowrap gap-1.5 overflow-x-auto overscroll-x-contain px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
 
   .cb-settings-tabs::-webkit-scrollbar {
@@ -4464,6 +4465,13 @@
     @apply min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
+  }
+
+  /* Mobile: conteúdo não fica por baixo da bottom nav (+ footer credit) */
+  @media (max-width: 767px) {
+    .pc-shell .pc-scroll {
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    }
   }
 
   .pc-content {
