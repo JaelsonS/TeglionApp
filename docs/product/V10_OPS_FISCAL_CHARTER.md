@@ -1,7 +1,7 @@
 # Teglion V10 — Carta da frente Ops + Fiscal
 
 **Branch exclusiva:** `feature/fase-v10-ops-fiscal` (base: `staging`)  
-**Actualizado:** 25/10/2026 (Onda 1 commitada; Onda 2 motor IVA em curso)  
+**Actualizado:** 25/10/2026 (Ondas 1–3 commitadas na branch; sem push)  
 **Estado:** implementação activa na branch `feature/fase-v10-ops-fiscal`
 
 Marca: **Teglion** (produto). Operador: **AfDigital — Soluções Tecnológicas**. Domínio: teglion.com.
@@ -95,8 +95,8 @@ Emissão oficial no Portal das Finanças, comunicação ATCUD/e-Fatura como soft
 |---|---|---|---|
 | **0** | Carta + branch | Este documento + branch isolada | — |
 | **1** | Avenças & mapa de pagamentos | **Commitada** (`feat(payments): avenças…`). Manual + Connect opcional | Clientes (+ Connect se quiser) |
-| **2** | Motor IVA (simulação) | **Em curso.** Cêntimos, regras `PT-IVA-2026.1`, persistência, UI `/calculators/iva` | Onda 1 |
-| **3** | Calendário × cliente | Vista “prazo AT + N/M tratados” como Konta, sobre obrigações reais | Onda 1–2 |
+| **2** | Motor IVA (simulação) | **Commitada** (`feat(fiscal): motor IVA…`). Cêntimos, `PT-IVA-2026.1`, UI `/calculators/iva` | Onda 1 |
+| **3** | Calendário × cliente | **Commitada.** Vista «Mês fiscal» N/M em `/app/firm/tasks/month` | Onda 1–2 |
 | **4** | Mais simuladores | IRS escalões, retenção, SS, rendas, IMT, IRC, TA — um a um com fonte | Contabilista revisor |
 | **5** | Imóveis / rendas (dados) | Contratos, inquilinos, recibos **internos**, sem comunicação AT | — |
 | **6** | SAF-T **leitura** | XML/ZIP → totais; sem envio AT | Isolamento + XSD |
@@ -214,7 +214,8 @@ Perfis Teglion a documentar: `FIRM_OWNER`, `FIRM_STAFF` (e permissões), cliente
 ## 10. Estado agora
 
 - Onda 1: commitada nesta branch (sem push).
-- Onda 2: motor IVA + UI + migration `20261025010000_fiscal_calculations.sql` no repo.
+- Onda 2: motor IVA + UI + migration `20261025010000_fiscal_calculations.sql` no repo (SQL já implantado pelo owner em ambiente de trabalho).
+- Onda 3: matriz mês fiscal (API + UI); **sem migration nova**.
 - Migrations **não** aplicadas a staging/prod sem autorização.
 - Push geral para staging: só no fim do pacote de ondas, por pedido explícito.
 
@@ -226,3 +227,12 @@ Perfis Teglion a documentar: `FIRM_OWNER`, `FIRM_STAFF` (e permissões), cliente
 - [x] UI simples com disclaimer
 - [x] Testes unitários
 - [ ] UAT staging após migrations
+
+### Critério Onda 3
+
+- [x] Agregação por tipo + data de vencimento → `tratados/total`
+- [x] `GET /api/contabil/obligations/month-matrix?yearMonth=AAAA-MM`
+- [x] Tab «Mês fiscal» no gestor de tarefas
+- [x] Marcar tratado a partir da lista expandida
+- [x] Disclaimer: não inventa prazos AT
+- [x] Testes unitários do agregador

@@ -7,6 +7,7 @@ import { cn } from '@/shared/lib/utils'
 const TABS: { id: TasksOperationsTab; label: string }[] = [
   { id: 'overview', label: 'Visão geral' },
   { id: 'obligations', label: 'Obrigações fiscais' },
+  { id: 'month', label: 'Mês fiscal' },
   { id: 'manual', label: 'Manuais' },
   { id: 'calendar', label: 'Calendário' },
   { id: 'clients', label: 'Por cliente' },

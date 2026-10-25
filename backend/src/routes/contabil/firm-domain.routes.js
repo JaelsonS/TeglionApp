@@ -384,6 +384,11 @@ router.get(
   navBadgesController.getNavBadges,
 );
 router.get('/obligations/operational-dashboard', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationTemplatesController.operationalDashboard);
+router.get(
+  '/obligations/month-matrix',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  obligationsController.monthMatrix,
+);
 router.get('/obligation-templates', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationTemplatesController.listTemplates);
 router.post('/obligation-templates', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationTemplatesController.createTemplate);
 router.post('/obligations/from-template', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationTemplatesController.createFromTemplate);

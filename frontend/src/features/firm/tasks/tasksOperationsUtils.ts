@@ -7,7 +7,13 @@ import {
   displayObligationTitle,
 } from '@/features/firm/obligations/obligationOperational'
 
-export type TasksOperationsTab = 'overview' | 'obligations' | 'manual' | 'calendar' | 'clients'
+export type TasksOperationsTab =
+  | 'overview'
+  | 'obligations'
+  | 'month'
+  | 'manual'
+  | 'calendar'
+  | 'clients'
 
 export type ObligationDisplayStatus = 'pending' | 'in_progress' | 'completed' | 'overdue'
 
