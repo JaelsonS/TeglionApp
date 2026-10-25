@@ -156,7 +156,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 | **Já faz** | Upload XML/ZIP; lista; KPIs; remover import; banner “não é AT” |
 | **Alvo** | Fluxo óbvio upload → ver totais → detalhe; banner impossível de ignorar; zero overclaim |
 | **Subfases** | **5.1** upload/lista · **5.2** detalhe · **5.3** copy legal/produto |
-| **Estado** | ☐ |
+| **Estado** | ✅ 2026-10-25 |
 
 ### Fase 6 — Obrigações por cliente
 
@@ -385,7 +385,7 @@ Este roadmap = **Wave páginas / produto**.
 | 1 | Painel | ✅ |
 | 2 | Clientes | ✅ |
 | 3 | Pagamentos | ✅ |
-| 4 | Imóveis e rendas | ☐ |
+| 4 | Imóveis e rendas | ✅ |
 | 5 | SAF-T | ☐ |
 | 6 | Obrigações | ☐ |
 | 7 | Tarefas | ☐ |

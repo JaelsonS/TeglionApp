@@ -2264,6 +2264,10 @@
     @apply min-w-[240px] max-w-[280px] w-[260px];
   }
 
+  .cb-rentals-body {
+    @apply flex min-h-0 flex-1 flex-col overflow-hidden;
+  }
+
   /* Agenda consultorias (IMG-17) */
   .cb-agenda-layout-page,
   .cb-agenda-layout-page .cb-firm-operational-panel {
