@@ -24,14 +24,26 @@ function runCommand(command: string) {
  */
 export function RichTextEditor({ value, onChange, className, placeholder, readOnly }: Props) {
   const ref = useRef<HTMLDivElement>(null)
-  const lastEmitted = useRef(value)
+  /**
+   * Último HTML que este editor emitiu via onChange. Começa a `null` (e não a
+   * `value`) de propósito: se começasse igual a `value`, um editor montado já
+   * com texto (ex.: descrição de um serviço existente, com a secção aberta)
+   * nunca escrevia esse texto no contentEditable — ficava visualmente vazio e,
+   * ao primeiro blur, emitia "" e apagava a descrição guardada (regressão
+   * reportada: «a descrição desaparece depois de sair e voltar a entrar»).
+   */
+  const lastEmitted = useRef<string | null>(null)
 
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    if (value !== lastEmitted.current && el.innerHTML !== value) {
-      el.innerHTML = sanitizeServiceHtml(value || '')
+    // Eco do nosso próprio onChange — não reescrever o DOM (preserva o cursor).
+    if (lastEmitted.current !== null && value === lastEmitted.current) return
+    const next = sanitizeServiceHtml(value || '')
+    if (el.innerHTML !== next) {
+      el.innerHTML = next
     }
+    lastEmitted.current = value
   }, [value])
 
   function emit() {

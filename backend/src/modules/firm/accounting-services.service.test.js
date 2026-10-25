@@ -1037,3 +1037,146 @@ test('create: imageOriginalUrl passa pela mesma sanitização que imageUrl', asy
   });
   assert.equal(savedOriginal, 'https://cdn.teglion.com/original.png');
 });
+
+// ---------------------------------------------------------------------------
+// Regressão: persistência da descrição do serviço (defeito reportado por piloto:
+// «edito a descrição, parece guardar, saio e volto e desapareceu»). A causa raiz
+// estava no frontend (RichTextEditor montado com valor ficava vazio e emitia ""
+// no blur), mas fixamos aqui o contrato do backend para que uma regressão em
+// qualquer camada seja apanhada: description enviada → persistida tal e qual
+// (trim), description omitida → não tocada, e nunca cross-tenant.
+// ---------------------------------------------------------------------------
+
+function existingServiceRow(overrides = {}) {
+  return {
+    id: 'service-1',
+    firmId: 'firm-a',
+    name: 'IRS 2026',
+    description: '<p>Descrição antiga</p>',
+    slug: 'irs-2026',
+    requiresBooking: false,
+    priceCents: 5000,
+    paymentRequired: false,
+    isPubliclyListed: true,
+    intakeForm: null,
+    ...overrides,
+  };
+}
+
+test('update: description enviada é persistida tal e qual (HTML permitido, sem alterar outros campos)', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async (id, firmId) => {
+    assert.equal(id, 'service-1');
+    assert.equal(firmId, 'firm-a');
+    return existingServiceRow();
+  });
+  let updateArgs = null;
+  mock.method(accountingServicesRepository, 'updateRow', async (id, firmId, patch) => {
+    updateArgs = { id, firmId, patch };
+    return existingServiceRow({ description: patch.description });
+  });
+
+  const html = '<p>Declaração de <strong>IRS</strong> para independentes.</p>';
+  const { item } = await accountingServicesService.update({
+    firmId: 'firm-a',
+    id: 'service-1',
+    payload: { description: html },
+  });
+
+  assert.equal(updateArgs.id, 'service-1');
+  assert.equal(updateArgs.firmId, 'firm-a');
+  assert.deepEqual(Object.keys(updateArgs.patch), ['description'], 'PATCH parcial: só description muda');
+  assert.equal(updateArgs.patch.description, html);
+  assert.equal(item.description, html, 'resposta devolve o valor persistido (fonte: repositório), não o payload');
+});
+
+test('update: payload sem description não toca na descrição existente', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => existingServiceRow());
+  let patchArg = null;
+  mock.method(accountingServicesRepository, 'updateRow', async (_id, _firmId, patch) => {
+    patchArg = patch;
+    return existingServiceRow({ name: patch.name });
+  });
+
+  await accountingServicesService.update({
+    firmId: 'firm-a',
+    id: 'service-1',
+    payload: { name: 'IRS 2027' },
+  });
+
+  assert.equal(Object.prototype.hasOwnProperty.call(patchArg, 'description'), false);
+});
+
+test('update: description null limpa explicitamente (decisão do utilizador, não omissão)', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => existingServiceRow());
+  let patchArg = null;
+  mock.method(accountingServicesRepository, 'updateRow', async (_id, _firmId, patch) => {
+    patchArg = patch;
+    return existingServiceRow({ description: null });
+  });
+
+  await accountingServicesService.update({ firmId: 'firm-a', id: 'service-1', payload: { description: null } });
+  assert.equal(Object.prototype.hasOwnProperty.call(patchArg, 'description'), true);
+  assert.equal(patchArg.description, null);
+});
+
+test('update: Firm B não altera serviço da Firm A mesmo conhecendo o id (404, sem escrita)', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async (id, firmId) => {
+    // O repositório filtra por (id, firm_id): para a firm errada não há linha.
+    return firmId === 'firm-a' && id === 'service-1' ? existingServiceRow() : null;
+  });
+  const updateRow = mock.method(accountingServicesRepository, 'updateRow', async () => {
+    throw new Error('updateRow não devia ser chamado');
+  });
+
+  await assert.rejects(
+    accountingServicesService.update({
+      firmId: 'firm-b',
+      id: 'service-1',
+      payload: { description: '<p>tentativa de outra firm</p>' },
+    }),
+    (err) => {
+      assert.equal(err.statusCode, 404);
+      return true;
+    },
+  );
+  assert.equal(updateRow.mock.callCount(), 0);
+});
+
+test('remove/duplicate: Firm B não apaga nem duplica serviço da Firm A (404, sem escrita)', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async (_id, firmId) =>
+    firmId === 'firm-a' ? existingServiceRow() : null,
+  );
+  const deleteRow = mock.method(accountingServicesRepository, 'deleteRow', async () => {});
+  const createRow = mock.method(accountingServicesRepository, 'createRow', async () => ({ id: 'x' }));
+
+  await assert.rejects(accountingServicesService.remove({ firmId: 'firm-b', id: 'service-1' }), (err) => {
+    assert.equal(err.statusCode, 404);
+    return true;
+  });
+  await assert.rejects(accountingServicesService.duplicate({ firmId: 'firm-b', id: 'service-1' }), (err) => {
+    assert.equal(err.statusCode, 404);
+    return true;
+  });
+  assert.equal(deleteRow.mock.callCount(), 0);
+  assert.equal(createRow.mock.callCount(), 0);
+});
+
+test('update: erro do repositório propaga (a UI não pode mostrar sucesso sem confirmação real)', async () => {
+  resetMocks();
+  mock.method(accountingServicesRepository, 'findByIdForFirm', async () => existingServiceRow());
+  mock.method(accountingServicesRepository, 'updateRow', async () => {
+    const err = new Error('connection reset');
+    err.code = 'ECONNRESET';
+    throw err;
+  });
+
+  await assert.rejects(
+    accountingServicesService.update({ firmId: 'firm-a', id: 'service-1', payload: { description: '<p>x</p>' } }),
+    /connection reset/,
+  );
+});
