@@ -173,10 +173,8 @@ export function FirmSettingsPage() {
           <div className="cb-settings-hub">
             <nav ref={navRef} className="cb-settings-side-nav" aria-label="Secções de configuração">
               <div className="cb-settings-side-nav-heading">
-                <p className="cb-settings-side-nav-heading-title">Definições do escritório</p>
-                <p className="cb-settings-side-nav-heading-sub">
-                  Nomes visíveis — clique na secção que quer editar.
-                </p>
+                <p className="cb-settings-side-nav-heading-title">Secções</p>
+                <p className="cb-settings-side-nav-heading-sub">Clique no nome para abrir.</p>
               </div>
               {visibleTabs.map((item) => {
                 const Icon = item.icon
