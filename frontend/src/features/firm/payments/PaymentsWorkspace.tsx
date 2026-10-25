@@ -34,9 +34,9 @@ import {
 } from '@/features/firm/payments/paymentsFormat'
 import { ChargeEditDialog } from '@/features/firm/payments/ChargeEditDialog'
 import {
-  ClientPaymentsSheet,
+  ClientPaymentsDialog,
   type PaymentsMapRow,
-} from '@/features/firm/payments/ClientPaymentsSheet'
+} from '@/features/firm/payments/ClientPaymentsDialog'
 
 const MAP_KEY = ['fee-charges-map'] as const
 
@@ -504,7 +504,7 @@ export function PaymentsWorkspace() {
         </p>
       </div>
 
-      <ClientPaymentsSheet
+      <ClientPaymentsDialog
         open={Boolean(sheetRow)}
         onOpenChange={(o) => {
           if (!o) setSheetRow(null)

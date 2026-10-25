@@ -5,12 +5,12 @@ import { toast } from 'sonner'
 
 import { Button } from '@/shared/components/ui/button'
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/shared/components/ui/sheet'
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog'
 import { EuroInput } from '@/shared/design-system'
 import { contabilFeeChargesApi } from '@/infrastructure/api'
 import type { ClientBilling, FeeCharge } from '@/infrastructure/api/contabil/feeCharges'
@@ -47,7 +47,8 @@ type Props = {
   onBillingSaved: () => void
 }
 
-export function ClientPaymentsSheet({
+/** Card centrado (padrão Tarefas / Convites) — sem painel lateral. */
+export function ClientPaymentsDialog({
   open,
   onOpenChange,
   row,
@@ -92,16 +93,16 @@ export function ClientPaymentsSheet({
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 overflow-y-auto sm:max-w-md">
-        <SheetHeader className="shrink-0 border-b border-border/60 pb-4 text-left">
-          <SheetTitle className="pr-8">{row?.displayName || 'Cliente'}</SheetTitle>
-          <SheetDescription>
-            {row?.taxId ? `NIF ${row.taxId}` : 'Sem NIF'} · Avenças {year} — edita aqui, sem sair do
-            mapa.
-          </SheetDescription>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[90vh] max-w-lg flex-col gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-xl">
+        <DialogHeader className="shrink-0 space-y-2 border-b border-border/60 px-5 py-4 text-left">
+          <DialogTitle className="pr-8">{row?.displayName || 'Cliente'}</DialogTitle>
+          <DialogDescription>
+            {row?.taxId ? `NIF ${row.taxId}` : 'Sem NIF'} · Avenças {year} — edita no mapa, sem sair
+            da página.
+          </DialogDescription>
           {row ? (
-            <div className="mt-3 flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 pt-1">
               <span className={cn(rowHealthTone(health))}>{rowHealthLabel(health)}</span>
               {overdueCount > 0 ? (
                 <span className="text-xs font-medium text-rose-700">
@@ -110,11 +111,11 @@ export function ClientPaymentsSheet({
               ) : null}
             </div>
           ) : null}
-        </SheetHeader>
+        </DialogHeader>
 
         {row ? (
-          <div className="flex flex-1 flex-col gap-5 py-4">
-            <section className="space-y-3 rounded-xl border border-border/70 bg-card p-4">
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">
+            <section className="space-y-3 rounded-xl border border-border/70 bg-muted/20 p-4">
               <div className="flex items-start gap-3">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
                   <Wallet className="h-4 w-4" aria-hidden />
@@ -127,25 +128,27 @@ export function ClientPaymentsSheet({
                 </div>
               </div>
 
-              <label className="block space-y-1.5 text-sm">
-                <span className="font-medium">Valor mensal</span>
-                <EuroInput value={euros} onChange={setEuros} />
-              </label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block space-y-1.5 text-sm">
+                  <span className="font-medium">Valor mensal</span>
+                  <EuroInput value={euros} onChange={setEuros} />
+                </label>
 
-              <label className="block space-y-1.5 text-sm">
-                <span className="font-medium">Dia de vencimento</span>
-                <select
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  value={dueDay}
-                  onChange={(e) => setDueDay(Number(e.target.value))}
-                >
-                  {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
-                    <option key={d} value={d}>
-                      Dia {d}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <label className="block space-y-1.5 text-sm">
+                  <span className="font-medium">Dia de vencimento</span>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    value={dueDay}
+                    onChange={(e) => setDueDay(Number(e.target.value))}
+                  >
+                    {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
+                      <option key={d} value={d}>
+                        Dia {d}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
 
               <label className="flex items-center gap-2 text-sm">
                 <input
@@ -157,7 +160,7 @@ export function ClientPaymentsSheet({
                 <span>Avença activa (entra no gerar)</span>
               </label>
 
-              <Button type="button" className="w-full" onClick={() => void saveBilling()} disabled={saving}>
+              <Button type="button" onClick={() => void saveBilling()} disabled={saving}>
                 {saving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />A guardar…
@@ -169,11 +172,13 @@ export function ClientPaymentsSheet({
             </section>
 
             <section className="space-y-3">
-              <h3 className="text-sm font-semibold">Meses {year}</h3>
-              <p className="text-xs text-muted-foreground">
-                Clique num mês para editar estado, valor e método — fica nesta página.
-              </p>
-              <ul className="grid grid-cols-3 gap-2">
+              <div>
+                <h3 className="text-sm font-semibold">Meses {year}</h3>
+                <p className="text-xs text-muted-foreground">
+                  Clique num mês para editar estado, valor e método.
+                </p>
+              </div>
+              <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {monthKeys.map((ym, i) => {
                   const cell = row.months[ym]
                   const busy = creatingYearMonth === ym
@@ -224,18 +229,18 @@ export function ClientPaymentsSheet({
               </ul>
             </section>
 
-            <p className="text-xs text-muted-foreground">
-              Ficha completa do cliente:{' '}
+            <p className="pb-1 text-xs text-muted-foreground">
+              Ficha completa:{' '}
               <Link
                 to={`/app/firm/clients/${row.clientId}?section=billing`}
                 className="font-medium text-brand underline-offset-2 hover:underline"
               >
-                abrir hub · Faturação
+                hub · Faturação
               </Link>
             </p>
           </div>
         ) : null}
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   )
 }
