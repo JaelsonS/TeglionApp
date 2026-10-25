@@ -1,19 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
-import { FileText, Search } from 'lucide-react'
+import { CheckCircle2, FileText, Search, ShieldAlert, ShieldX } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { DocumentsKpiStrip } from '@/features/firm/documents-hub/DocumentsKpiStrip'
 import { DocumentPreviewPanel } from '@/features/firm/documents/DocumentPreviewPanel'
 import { useDocumentsHub } from '@/features/firm/documents/useDocumentsHub'
 import type { FirmDocumentRow } from '@/features/firm/documents/documentTypes'
 import {
   displayClientName,
   displayDocumentName,
-  formatFileSize,
   mimeIcon,
   validationLabel,
 } from '@/features/firm/documents/documentDisplay'
-import { formatDateTime } from '@/shared/utils/date'
 import { cn } from '@/shared/lib/utils'
 import { Input } from '@/shared/components/ui/input'
 import { Button } from '@/shared/components/ui/button'
@@ -57,15 +56,40 @@ export function DocumentsFilesWorkspace() {
     [hub.items, hub.selectedId, hub.detail?.document],
   )
 
+  const kpis = useMemo(() => {
+    const pending = hub.items.filter((d) => d.validationStatus === 'PENDING').length
+    const approved = hub.items.filter((d) => d.validationStatus === 'APPROVED').length
+    const rejected = hub.items.filter((d) => d.validationStatus === 'REJECTED').length
+    return [
+      { id: 'pending', value: pending, label: 'por validar', tone: 'amber' as const, icon: ShieldAlert },
+      { id: 'ok', value: approved, label: 'aprovados', tone: 'emerald' as const, icon: CheckCircle2 },
+      { id: 'rej', value: rejected, label: 'rejeitados', tone: 'rose' as const, icon: ShieldX },
+    ]
+  }, [hub.items])
+
+  // Auto-seleccionar primeiro ficheiro no desktop quando nada está seleccionado.
+  useEffect(() => {
+    if (hub.loading) return
+    if (hub.selectedId) return
+    if (hub.items.length === 0) return
+    if (previewAsSheet) return
+    hub.selectDocument(hub.items[0]._id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hub.loading, hub.selectedId, hub.items, previewAsSheet])
+
   return (
     <div className="cb-docs-workspace">
+      <DocumentsKpiStrip items={kpis} />
+      <p className="cb-docs-section-lead">
+        <span className="cb-docs-section-lead-title">Validar e organizar ficheiros</span>
+        Pré-visualize, aprove ou rejeite o que os clientes enviaram. Filtre por cliente, período e estado.
+      </p>
+
       <div className="cb-docs-toolbar">
         <select
           className="cb-docs-filter"
           value={hub.filters.clientId || ''}
-          onChange={(e) =>
-            hub.updateParams({ clientId: e.target.value || null })
-          }
+          onChange={(e) => hub.updateParams({ clientId: e.target.value || null })}
           aria-label="Filtrar cliente"
         >
           <option value="">Cliente: Todos</option>
@@ -108,65 +132,52 @@ export function DocumentsFilesWorkspace() {
             className="cb-docs-search-input"
           />
         </div>
+        <Button type="button" size="sm" variant="primary" className="h-9 shrink-0 rounded-lg" asChild>
+          <Link to="/app/firm/documents/requests?compose=1">Pedir documentos</Link>
+        </Button>
       </div>
 
       <div
         className={cn(
-          'cb-docs-split',
+          'cb-docs-split cb-docs-files-split',
           hasDesktopPreview && 'cb-docs-split-selected',
           hasDesktopPreview && previewFocus && 'cb-docs-split-focus',
         )}
       >
-        <div className="cb-docs-table-wrap">
-          <table className="cb-docs-table cb-table-mobile-cards">
-            <thead>
-              <tr>
-                <th>Nome ficheiro</th>
-                <th>Cliente</th>
-                <th>Tipo</th>
-                <th>Tamanho</th>
-                <th>Data</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {hub.loading ? (
-                <tr>
-                  <td colSpan={6} className="cb-docs-empty">
-                    A carregar…
-                  </td>
-                </tr>
-              ) : hub.items.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-0">
-                    <EmptyState
-                      className="m-4 border-0 bg-transparent"
-                      icon={FileText}
-                      title="Ainda sem ficheiros nesta vista"
-                      description="Documentos enviados pelos clientes ou pedidos formais aparecem aqui para consulta e validação."
-                      action={
-                        <Button type="button" size="sm" variant="outline" asChild>
-                          <Link to="/app/firm/documents/requests">Pedir documentos</Link>
-                        </Button>
-                      }
-                    />
-                  </td>
-                </tr>
-              ) : (
-                hub.items.map((doc) => (
-                  <FileRow
-                    key={doc._id}
-                    doc={doc}
-                    selected={hub.selectedId === doc._id}
-                    onSelect={() => {
-                      setPreviewFocus(true)
-                      hub.selectDocument(doc._id)
-                    }}
-                  />
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="cb-docs-table-wrap cb-docs-files-list">
+          {hub.loading ? (
+            <div className="space-y-2 p-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-16 animate-pulse rounded-xl bg-muted/30" />
+              ))}
+            </div>
+          ) : hub.items.length === 0 ? (
+            <EmptyState
+              className="m-4 border-0 bg-transparent"
+              icon={FileText}
+              title="Ainda sem ficheiros nesta vista"
+              description="Documentos enviados pelos clientes ou pedidos formais aparecem aqui para consulta e validação."
+              action={
+                <Button type="button" size="sm" variant="outline" asChild>
+                  <Link to="/app/firm/documents/requests">Pedir documentos</Link>
+                </Button>
+              }
+            />
+          ) : (
+            <ul className="cb-docs-file-cards">
+              {hub.items.map((doc) => (
+                <FileCard
+                  key={doc._id}
+                  doc={doc}
+                  selected={hub.selectedId === doc._id}
+                  onSelect={() => {
+                    setPreviewFocus(true)
+                    hub.selectDocument(doc._id)
+                  }}
+                />
+              ))}
+            </ul>
+          )}
           {hub.hasMore ? (
             <div className="border-t border-border/60 p-2 text-center">
               <button
@@ -239,7 +250,7 @@ export function DocumentsFilesWorkspace() {
   )
 }
 
-function FileRow({
+function FileCard({
   doc,
   selected,
   onSelect,
@@ -250,41 +261,32 @@ function FileRow({
 }) {
   const Icon = mimeIcon(doc.mimeType, displayDocumentName(doc))
   const name = displayDocumentName(doc)
-  const typeLabel = doc.obligationTitle || doc.documentType || 'Ficheiro'
+  const period = doc.period || doc.obligationPeriod || null
 
   return (
-    <tr
-      className={cn('cb-docs-row', selected && 'cb-docs-row-selected')}
-      onClick={() => {
-        if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
-        onSelect()
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
+    <li>
+      <button
+        type="button"
+        className={cn('cb-docs-file-card', selected && 'cb-docs-file-card-selected')}
+        onClick={() => {
+          if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
           onSelect()
-        }
-      }}
-    >
-      <td data-label="Nome ficheiro">
-        <span className="cb-docs-file-cell">
-          <span className="cb-docs-file-icon">
-            <Icon className="h-4 w-4" />
-          </span>
-          <span className="truncate font-medium">{name}</span>
+        }}
+      >
+        <span className="cb-docs-file-card-icon">
+          <Icon className="h-5 w-5" />
         </span>
-      </td>
-      <td className="truncate text-muted-foreground" data-label="Cliente">{displayClientName(doc)}</td>
-      <td className="truncate text-muted-foreground" data-label="Tipo">{typeLabel}</td>
-      <td className="tabular-nums text-muted-foreground" data-label="Tamanho">{formatFileSize(doc.sizeBytes)}</td>
-      <td className="tabular-nums text-muted-foreground whitespace-nowrap" data-label="Data">
-        {doc.createdAt ? formatDateTime(doc.createdAt) : '—'}
-      </td>
-      <td data-label="Estado">
+        <span className="cb-docs-file-card-body">
+          <span className="cb-docs-file-card-name">{name}</span>
+          <span className="cb-docs-file-card-sub">
+            {displayClientName(doc)}
+            {period ? ` · ${period}` : ''}
+          </span>
+        </span>
         <span className={cn('cb-docs-pill', statusPillClass(doc.validationStatus))}>
           {validationLabel(doc.validationStatus)}
         </span>
-      </td>
-    </tr>
+      </button>
+    </li>
   )
 }

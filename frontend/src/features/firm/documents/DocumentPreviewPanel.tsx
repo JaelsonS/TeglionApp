@@ -238,12 +238,35 @@ export function DocumentPreviewPanel({
 
   const actionButtons = (
     <>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="h-9 rounded-lg"
+        onClick={() => void handleDownload()}
+      >
+        <Download className="mr-1.5 h-4 w-4" />
+        Descarregar
+      </Button>
+      {!readOnly ? (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-9 rounded-lg"
+          disabled={actionLoading}
+          onClick={() => void handleResend()}
+        >
+          <RotateCcw className="mr-1.5 h-4 w-4" />
+          Solicitar reenvio
+        </Button>
+      ) : null}
       {!readOnly && doc.validationStatus === 'PENDING' ? (
         <>
           <Button
             type="button"
             size="sm"
-            className="rounded-full"
+            className="h-9 rounded-lg border-transparent bg-emerald-600 text-white hover:bg-emerald-700"
             disabled={actionLoading}
             onClick={() => void handleValidate('APPROVED')}
           >
@@ -254,7 +277,7 @@ export function DocumentPreviewPanel({
             type="button"
             size="sm"
             variant="outline"
-            className="rounded-full"
+            className="h-9 rounded-lg border-red-300 text-red-700 hover:bg-red-50"
             disabled={actionLoading}
             onClick={() => void handleValidate('REJECTED')}
           >
@@ -263,22 +286,29 @@ export function DocumentPreviewPanel({
           </Button>
         </>
       ) : null}
-      <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={() => void handleDownload()}>
-        <Download className="mr-1.5 h-4 w-4" />
-        Descarregar
-      </Button>
-      {!readOnly ? (
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          className="rounded-full"
-          disabled={actionLoading}
-          onClick={() => void handleResend()}
-        >
-          <RotateCcw className="mr-1.5 h-4 w-4" />
-          Solicitar reenvio
-        </Button>
+      {!readOnly && doc.validationStatus === 'APPROVED' ? (
+        <>
+          <Button
+            type="button"
+            size="sm"
+            className="h-9 rounded-lg border-transparent bg-emerald-600 text-white hover:bg-emerald-700"
+            disabled
+          >
+            <Check className="mr-1.5 h-4 w-4" />
+            Aprovado
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-9 rounded-lg border-red-300 text-red-700 hover:bg-red-50"
+            disabled={actionLoading}
+            onClick={() => void handleValidate('REJECTED')}
+          >
+            <X className="mr-1.5 h-4 w-4" />
+            Rejeitar
+          </Button>
+        </>
       ) : null}
     </>
   )
