@@ -340,37 +340,44 @@ export function DocumentPreviewPanel({
             </Button>
           ) : null}
         </div>
-        <div className="hidden flex-wrap gap-2 xl:flex">{actionButtons}</div>
+        <div className="flex flex-wrap gap-2">{actionButtons}</div>
       </header>
 
       <div
         className={cn(
           'grid',
-          expanded ? 'xl:grid-cols-[minmax(0,1fr)_280px]' : 'xl:grid-cols-[minmax(0,1fr)_260px]',
+          expanded ? 'xl:grid-cols-[minmax(0,1fr)_280px]' : 'sm:grid-cols-[minmax(0,1fr)_260px]',
         )}
       >
-        <div className="flex flex-col border-b border-border/60 xl:border-b-0 xl:border-r">
+        <div className="flex flex-col border-b border-border/60 sm:border-b-0 sm:border-r">
           <div
             className={cn(
-              'relative bg-muted/30',
-              expanded ? 'min-h-[min(52vh,520px)] xl:min-h-[min(60vh,640px)]' : 'min-h-[240px] xl:min-h-[320px]',
+              'relative bg-muted/20',
+              previewUrl || previewLoading
+                ? expanded
+                  ? 'min-h-[min(40vh,420px)]'
+                  : 'min-h-[min(32vh,280px)]'
+                : 'min-h-0',
             )}
           >
             {previewLoading ? (
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="flex min-h-[180px] items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : previewUrl && kind === 'image' ? (
-              <img src={previewUrl} alt={displayDocumentName(doc)} className="h-full w-full object-contain" />
+              <img src={previewUrl} alt={displayDocumentName(doc)} className="max-h-[420px] w-full object-contain" />
             ) : previewUrl ? (
-              <iframe title={displayDocumentName(doc)} src={previewUrl} className="h-full min-h-[280px] w-full" />
+              <iframe title={displayDocumentName(doc)} src={previewUrl} className="h-[min(40vh,420px)] w-full" />
             ) : (
-              <div className="flex min-h-[240px] items-center justify-center text-sm text-muted-foreground">
-                Pré-visualização indisponível para este tipo de ficheiro.
+              <div className="cb-docs-preview-unavailable">
+                <FileStack className="h-5 w-5 opacity-40" aria-hidden />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Pré-visualização indisponível</p>
+                  <p className="text-xs text-muted-foreground">Descarregue o ficheiro para o abrir no dispositivo.</p>
+                </div>
               </div>
             )}
           </div>
-          <div className="flex flex-wrap gap-2 border-t border-border/60 p-3 xl:hidden">{actionButtons}</div>
         </div>
 
         <aside className="flex flex-col">

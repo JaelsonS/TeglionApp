@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
-import { CheckCircle2, FileText, Search, ShieldAlert, ShieldX } from 'lucide-react'
+import { CheckCircle2, ChevronRight, FileText, Search, ShieldAlert, ShieldX } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { DocumentsKpiStrip } from '@/features/firm/documents-hub/DocumentsKpiStrip'
@@ -10,6 +10,7 @@ import type { FirmDocumentRow } from '@/features/firm/documents/documentTypes'
 import {
   displayClientName,
   displayDocumentName,
+  formatFileSize,
   mimeIcon,
   validationLabel,
 } from '@/features/firm/documents/documentDisplay'
@@ -18,6 +19,7 @@ import { Input } from '@/shared/components/ui/input'
 import { Button } from '@/shared/components/ui/button'
 import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { EmptyState } from '@/shared/design-system'
+import { formatDateTime } from '@/shared/utils/date'
 
 function statusPillClass(status?: string | null) {
   if (status === 'APPROVED') return 'cb-docs-pill-approved'
@@ -26,29 +28,9 @@ function statusPillClass(status?: string | null) {
   return 'cb-docs-pill-muted'
 }
 
-/** Preview fixo só em ≥1280px; abaixo disso usa o diálogo centrado. */
-function useDocsPreviewSheet() {
-  const query = '(max-width: 1279px)'
-  const [useSheet, setUseSheet] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia(query).matches,
-  )
-
-  useEffect(() => {
-    const mq = window.matchMedia(query)
-    const onChange = () => setUseSheet(mq.matches)
-    onChange()
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
-
-  return useSheet
-}
-
 export function DocumentsFilesWorkspace() {
   const hub = useDocumentsHub()
-  const previewAsSheet = useDocsPreviewSheet()
-  const sheetOpen = Boolean(hub.selectedId) && previewAsSheet
-  const hasDesktopPreview = Boolean(hub.selectedId) && !previewAsSheet
+  const dialogOpen = Boolean(hub.selectedId)
 
   const selectedDoc = useMemo(
     () => hub.items.find((d) => d._id === hub.selectedId) || hub.detail?.document || null,
@@ -66,22 +48,13 @@ export function DocumentsFilesWorkspace() {
     ]
   }, [hub.items])
 
-  // Auto-seleccionar primeiro ficheiro no desktop quando nada está seleccionado.
-  useEffect(() => {
-    if (hub.loading) return
-    if (hub.selectedId) return
-    if (hub.items.length === 0) return
-    if (previewAsSheet) return
-    hub.selectDocument(hub.items[0]._id)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hub.loading, hub.selectedId, hub.items, previewAsSheet])
-
   return (
     <div className="cb-docs-workspace">
       <DocumentsKpiStrip items={kpis} />
       <p className="cb-docs-section-lead">
         <span className="cb-docs-section-lead-title">Validar e organizar ficheiros</span>
-        Pré-visualize, aprove ou rejeite o que os clientes enviaram. Filtre por cliente, período e estado.
+        Clique num ficheiro para abrir o cartão completo no centro — pré-visualizar, validar, validade e
+        histórico.
       </p>
 
       <div className="cb-docs-toolbar">
@@ -136,94 +109,70 @@ export function DocumentsFilesWorkspace() {
         </Button>
       </div>
 
-      <div
-        className={cn(
-          'cb-docs-split cb-docs-files-split',
-          hasDesktopPreview && 'cb-docs-split-selected',
-        )}
-      >
-        <div className="cb-docs-table-wrap cb-docs-files-list">
-          {hub.loading ? (
-            <div className="space-y-2 p-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-16 animate-pulse rounded-xl bg-muted/30" />
-              ))}
-            </div>
-          ) : hub.items.length === 0 ? (
-            <EmptyState
-              className="m-4 border-0 bg-transparent"
-              icon={FileText}
-              title="Ainda sem ficheiros nesta vista"
-              description="Documentos enviados pelos clientes ou pedidos formais aparecem aqui para consulta e validação."
-              action={
-                <Button type="button" size="sm" variant="outline" asChild>
-                  <Link to="/app/firm/documents/requests">Pedir documentos</Link>
-                </Button>
-              }
-            />
-          ) : (
-            <ul className="cb-docs-file-cards">
-              {hub.items.map((doc) => (
-                <FileCard
-                  key={doc._id}
-                  doc={doc}
-                  selected={hub.selectedId === doc._id}
-                  onSelect={() => hub.selectDocument(doc._id)}
-                />
-              ))}
-            </ul>
-          )}
-          {hub.hasMore ? (
-            <div className="border-t border-border/60 p-2 text-center">
-              <button
-                type="button"
-                className="text-xs font-medium text-brand hover:underline"
-                onClick={() => void hub.loadMore()}
-                disabled={hub.loadingMore}
-              >
-                {hub.loadingMore ? 'A carregar…' : 'Carregar mais'}
-              </button>
-            </div>
-          ) : null}
-        </div>
-
-        <aside
-          className="cb-docs-preview hidden xl:flex"
-          role={hasDesktopPreview ? 'region' : undefined}
-          aria-label={hasDesktopPreview ? 'Pré-visualização do documento' : undefined}
-        >
-          <DocumentPreviewPanel
-            doc={selectedDoc}
-            detail={hub.detail}
-            detailLoading={hub.detailLoading}
-            getPreviewUrl={hub.getPreviewUrl}
-            onRefresh={hub.refresh}
-            onClose={() => hub.selectDocument(null)}
-            layout={hasDesktopPreview ? 'expanded' : 'default'}
+      <div className="cb-docs-files-panel">
+        {hub.loading ? (
+          <div className="space-y-2 p-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-14 animate-pulse rounded-xl bg-muted/30" />
+            ))}
+          </div>
+        ) : hub.items.length === 0 ? (
+          <EmptyState
+            className="m-4 border-0 bg-transparent"
+            icon={FileText}
+            title="Ainda sem ficheiros nesta vista"
+            description="Documentos enviados pelos clientes ou pedidos formais aparecem aqui para consulta e validação."
+            action={
+              <Button type="button" size="sm" variant="outline" asChild>
+                <Link to="/app/firm/documents/requests">Pedir documentos</Link>
+              </Button>
+            }
           />
-        </aside>
+        ) : (
+          <ul className="cb-docs-file-cards cb-docs-file-cards--full">
+            {hub.items.map((doc) => (
+              <FileCard
+                key={doc._id}
+                doc={doc}
+                selected={hub.selectedId === doc._id}
+                onSelect={() => hub.selectDocument(doc._id)}
+              />
+            ))}
+          </ul>
+        )}
+        {hub.hasMore ? (
+          <div className="border-t border-border/60 p-2 text-center">
+            <button
+              type="button"
+              className="text-xs font-medium text-brand hover:underline"
+              onClick={() => void hub.loadMore()}
+              disabled={hub.loadingMore}
+            >
+              {hub.loadingMore ? 'A carregar…' : 'Carregar mais'}
+            </button>
+          </div>
+        ) : null}
       </div>
 
-      {previewAsSheet ? (
-        <FirmWorkspaceFocusDialog
-          open={sheetOpen}
-          onOpenChange={(open) => !open && hub.selectDocument(null)}
-          title={selectedDoc ? displayDocumentName(selectedDoc) : 'Pré-visualização do documento'}
-          description="Documento no centro do ecrã — valide, descarregue ou feche sem perder a lista."
-          className="w-[min(96vw,760px)] max-w-[min(96vw,760px)]"
-        >
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <DocumentPreviewPanel
-              doc={selectedDoc}
-              detail={hub.detail}
-              detailLoading={hub.detailLoading}
-              getPreviewUrl={hub.getPreviewUrl}
-              onRefresh={hub.refresh}
-              onClose={() => hub.selectDocument(null)}
-            />
-          </div>
-        </FirmWorkspaceFocusDialog>
-      ) : null}
+      <FirmWorkspaceFocusDialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          if (!open) hub.selectDocument(null)
+        }}
+        title={selectedDoc ? displayDocumentName(selectedDoc) : 'Documento'}
+        description="Valide, descarregue, registe validade ou envie mensagem — sem sair da lista."
+        className="w-[min(96vw,920px)] max-w-[min(96vw,920px)]"
+      >
+        <DocumentPreviewPanel
+          doc={selectedDoc}
+          detail={hub.detail}
+          detailLoading={hub.detailLoading}
+          getPreviewUrl={hub.getPreviewUrl}
+          onRefresh={hub.refresh}
+          onClose={() => hub.selectDocument(null)}
+          layout="default"
+        />
+      </FirmWorkspaceFocusDialog>
     </div>
   )
 }
@@ -245,7 +194,7 @@ function FileCard({
     <li>
       <button
         type="button"
-        className={cn('cb-docs-file-card', selected && 'cb-docs-file-card-selected')}
+        className={cn('cb-docs-file-card cb-docs-file-card--row', selected && 'cb-docs-file-card-selected')}
         onClick={() => {
           if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
           onSelect()
@@ -259,11 +208,14 @@ function FileCard({
           <span className="cb-docs-file-card-sub">
             {displayClientName(doc)}
             {period ? ` · ${period}` : ''}
+            {doc.sizeBytes != null ? ` · ${formatFileSize(doc.sizeBytes)}` : ''}
+            {doc.createdAt ? ` · ${formatDateTime(doc.createdAt)}` : ''}
           </span>
         </span>
         <span className={cn('cb-docs-pill', statusPillClass(doc.validationStatus))}>
           {validationLabel(doc.validationStatus)}
         </span>
+        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/50" aria-hidden />
       </button>
     </li>
   )

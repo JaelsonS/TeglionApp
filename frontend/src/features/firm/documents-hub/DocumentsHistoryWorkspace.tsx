@@ -5,7 +5,14 @@ import { toast } from 'sonner'
 
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { DocumentsKpiStrip } from '@/features/firm/documents-hub/DocumentsKpiStrip'
+import { DocumentPreviewPanel } from '@/features/firm/documents/DocumentPreviewPanel'
 import { useDocumentsHub } from '@/features/firm/documents/useDocumentsHub'
+import {
+  displayDocumentName,
+  mimeIcon,
+  validationLabel,
+} from '@/features/firm/documents/documentDisplay'
+import type { FirmDocumentRow } from '@/features/firm/documents/documentTypes'
 import {
   buildDocumentsHistoryRows,
   exportHistoryCsv,
@@ -13,6 +20,7 @@ import {
   historyStatusPill,
   type DocumentsHistoryRow,
 } from '@/features/firm/documents-hub/documentsHistoryUtils'
+import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { Input } from '@/shared/components/ui/input'
@@ -41,6 +49,7 @@ export function DocumentsHistoryWorkspace() {
   const [deleting, setDeleting] = useState(false)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(10)
+  const [openRow, setOpenRow] = useState<DocumentsHistoryRow | null>(null)
 
   const sourceItems = useMemo(() => {
     let list = hub.items
@@ -142,12 +151,34 @@ export function DocumentsHistoryWorkspace() {
   const rangeStart = filteredRows.length === 0 ? 0 : (safePage - 1) * pageSize + 1
   const rangeEnd = Math.min(safePage * pageSize, filteredRows.length)
 
+  const openRowDocs = useMemo(() => {
+    if (!openRow) return [] as FirmDocumentRow[]
+    const byId = new Map(hub.items.map((d) => [d._id, d]))
+    return openRow.documentIds.map((id) => byId.get(id)).filter(Boolean) as FirmDocumentRow[]
+  }, [openRow, hub.items])
+
+  const focusDoc = useMemo(
+    () => openRowDocs.find((d) => d._id === hub.selectedId) || openRowDocs[0] || hub.detail?.document || null,
+    [openRowDocs, hub.selectedId, hub.detail?.document],
+  )
+
+  const openHistoryRow = (row: DocumentsHistoryRow) => {
+    setOpenRow(row)
+    const firstId = row.documentIds[0] || null
+    hub.selectDocument(firstId)
+  }
+
+  const closeHistoryRow = () => {
+    setOpenRow(null)
+    hub.selectDocument(null)
+  }
+
   return (
     <div className="cb-docs-workspace">
       <DocumentsKpiStrip items={kpis} />
       <p className="cb-docs-section-lead">
         <span className="cb-docs-section-lead-title">Histórico com exportação</span>
-        Auditoria das submissões: o que foi enviado, por quem e com que resultado.
+        Clique numa linha para abrir todos os ficheiros dessa submissão no centro do ecrã.
       </p>
 
       <div className="cb-docs-toolbar">
@@ -267,6 +298,7 @@ export function DocumentsHistoryWorkspace() {
                   row={r}
                   selected={selectedIds.has(r.id)}
                   onToggle={() => toggleRow(r.id)}
+                  onOpen={() => openHistoryRow(r)}
                 />
               ))
             )}
@@ -331,6 +363,52 @@ export function DocumentsHistoryWorkspace() {
         variant="destructive"
         onConfirm={handleDelete}
       />
+
+      <FirmWorkspaceFocusDialog
+        open={Boolean(openRow)}
+        onOpenChange={(open) => {
+          if (!open) closeHistoryRow()
+        }}
+        title={openRow ? `${openRow.typeLabel} · ${openRow.clientName}` : 'Histórico da submissão'}
+        description={
+          openRow
+            ? `${openRow.period} · ${openRow.docCount} ficheiro${openRow.docCount === 1 ? '' : 's'} · ${historyStatusLabel(openRow.status)}`
+            : undefined
+        }
+        className="w-[min(96vw,920px)] max-w-[min(96vw,920px)]"
+      >
+        {openRowDocs.length > 1 ? (
+          <div className="cb-docs-history-doc-switcher">
+            {openRowDocs.map((doc) => {
+              const Icon = mimeIcon(doc.mimeType, displayDocumentName(doc))
+              const active = focusDoc?._id === doc._id
+              return (
+                <button
+                  key={doc._id}
+                  type="button"
+                  className={cn('cb-docs-history-doc-chip', active && 'cb-docs-history-doc-chip-active')}
+                  onClick={() => hub.selectDocument(doc._id)}
+                >
+                  <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  <span className="truncate">{displayDocumentName(doc)}</span>
+                  <span className="shrink-0 text-caption text-muted-foreground">
+                    {validationLabel(doc.validationStatus)}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        ) : null}
+        <DocumentPreviewPanel
+          doc={focusDoc}
+          detail={hub.detail}
+          detailLoading={hub.detailLoading}
+          getPreviewUrl={hub.getPreviewUrl}
+          onRefresh={hub.refresh}
+          onClose={closeHistoryRow}
+          layout="default"
+        />
+      </FirmWorkspaceFocusDialog>
     </div>
   )
 }
@@ -339,13 +417,27 @@ function HistoryRow({
   row,
   selected,
   onToggle,
+  onOpen,
 }: {
   row: DocumentsHistoryRow
   selected: boolean
   onToggle: () => void
+  onOpen: () => void
 }) {
   return (
-    <tr className={cn('cb-docs-row', selected && 'cb-docs-row-selected')}>
+    <tr
+      className={cn('cb-docs-row cb-docs-row-clickable', selected && 'cb-docs-row-selected')}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onOpen()
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label={`Abrir histórico de ${row.clientName}`}
+    >
       <td className="cb-table-mobile-actions" onClick={(e) => e.stopPropagation()}>
         <Checkbox checked={selected} onCheckedChange={onToggle} aria-label={`Seleccionar ${row.clientName}`} />
       </td>
