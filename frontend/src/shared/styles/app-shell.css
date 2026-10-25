@@ -174,15 +174,13 @@
 
   /*
    * Desktop workspace: content-wrap sem scroll (colunas internas), EXCEPTO módulos
-   * de scroll de página — Documentos (.cb-docs-layout-page) e Clientes
-   * (.cb-clients-layout-page). Sem esta exclusão a grelha/lista de Clientes
-   * ficava cortada com overflow:hidden no wrap.
+   * de scroll de página — Documentos, Clientes, Pagamentos.
    */
   @media (min-width: 1280px) {
     .cb-firm-shell
       .cb-firm-content-wrap:has(.cb-firm-workspace-page):not(:has(.cb-docs-layout-page)):not(
         :has(.cb-clients-layout-page)
-      ) {
+      ):not(:has(.cb-payments-layout-page)) {
       overflow: hidden;
       padding-bottom: 0.75rem;
     }
@@ -190,7 +188,7 @@
     .cb-firm-shell
       .cb-firm-content-wrap:has(.cb-firm-workspace-page):not(:has(.cb-docs-layout-page)):not(
         :has(.cb-clients-layout-page)
-      )
+      ):not(:has(.cb-payments-layout-page))
       > .cb-firm-workspace-page {
       flex: 1 1 0%;
       min-height: 0;
@@ -198,7 +196,9 @@
     }
 
     .cb-firm-shell
-      .cb-firm-workspace-page:not(.cb-docs-layout-page):not(.cb-clients-layout-page)
+      .cb-firm-workspace-page:not(.cb-docs-layout-page):not(.cb-clients-layout-page):not(
+        .cb-payments-layout-page
+      )
       > .cb-firm-operational-panel {
       flex: 1 1 0%;
       min-height: 0;
@@ -208,7 +208,8 @@
     }
 
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-docs-layout-page),
-    .cb-firm-shell .cb-firm-content-wrap:has(.cb-clients-layout-page) {
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-clients-layout-page),
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-payments-layout-page) {
       overflow-x: hidden;
       overflow-y: auto;
       overscroll-behavior-y: contain;
@@ -217,7 +218,8 @@
     }
 
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-docs-layout-page) > .cb-docs-layout-page,
-    .cb-firm-shell .cb-firm-content-wrap:has(.cb-clients-layout-page) > .cb-clients-layout-page {
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-clients-layout-page) > .cb-clients-layout-page,
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-payments-layout-page) > .cb-payments-layout-page {
       flex: none;
       height: auto;
       min-height: 0;
