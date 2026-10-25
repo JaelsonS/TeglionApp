@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, Wallet } from 'lucide-react'
+import { Loader2, Plus, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/shared/components/ui/button'
@@ -42,6 +42,8 @@ type Props = {
   year: number
   monthKeys: string[]
   onEditCharge: (charge: FeeCharge, clientName: string) => void
+  onCreateMonth?: (yearMonth: string) => void
+  creatingYearMonth?: string | null
   onBillingSaved: () => void
 }
 
@@ -52,6 +54,8 @@ export function ClientPaymentsSheet({
   year,
   monthKeys,
   onEditCharge,
+  onCreateMonth,
+  creatingYearMonth,
   onBillingSaved,
 }: Props) {
   const [euros, setEuros] = useState(0)
@@ -172,6 +176,7 @@ export function ClientPaymentsSheet({
               <ul className="grid grid-cols-3 gap-2">
                 {monthKeys.map((ym, i) => {
                   const cell = row.months[ym]
+                  const busy = creatingYearMonth === ym
                   return (
                     <li key={ym}>
                       {cell ? (
@@ -194,12 +199,24 @@ export function ClientPaymentsSheet({
                           </span>
                         </button>
                       ) : (
-                        <div className="flex w-full flex-col items-center gap-0.5 rounded-lg border border-dashed border-border/70 bg-muted/20 px-2 py-2.5 text-center text-muted-foreground">
+                        <button
+                          type="button"
+                          className="flex w-full flex-col items-center gap-0.5 rounded-lg border border-dashed border-brand/40 bg-brand/5 px-2 py-2.5 text-center text-brand transition hover:bg-brand/10"
+                          disabled={busy || !onCreateMonth}
+                          onClick={() => onCreateMonth?.(ym)}
+                        >
                           <span className="text-[10px] font-semibold uppercase tracking-wide">
                             {MONTH_SHORT[i]}
                           </span>
-                          <span className="text-xs">—</span>
-                        </div>
+                          {busy ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                          ) : (
+                            <>
+                              <Plus className="h-3.5 w-3.5" aria-hidden />
+                              <span className="text-[10px] font-medium">Criar</span>
+                            </>
+                          )}
+                        </button>
                       )}
                     </li>
                   )

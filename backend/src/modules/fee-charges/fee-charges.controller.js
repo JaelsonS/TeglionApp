@@ -55,6 +55,39 @@ exports.generate = async (req, res, next) => {
   }
 };
 
+exports.create = async (req, res, next) => {
+  try {
+    const body = req.body || {};
+    const result = await feeChargesService.createCharge({
+      firmId: String(req.user.firmId),
+      clientId: String(body.clientId || ''),
+      yearMonth: body.yearMonth || body.period,
+      amountCents: body.amountCents,
+      status: body.status,
+      dueDate: body.dueDate,
+      actorId: req.user.id,
+    });
+    return res.status(result.created ? 201 : 200).json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.bootstrap = async (req, res, next) => {
+  try {
+    const body = req.body || {};
+    const result = await feeChargesService.bootstrapOperationalYear({
+      firmId: String(req.user.firmId),
+      year: Number(body.year || new Date().getFullYear()),
+      defaultAmountCents: body.defaultAmountCents ?? 15000,
+      actorId: req.user.id,
+    });
+    return res.status(201).json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.patch = async (req, res, next) => {
   try {
     const result = await feeChargesService.patchCharge({

@@ -3028,6 +3028,23 @@
     @apply bg-slate-200 text-slate-700;
   }
 
+  .cb-payments-empty-banner {
+    @apply mx-4 mb-1 mt-3 flex flex-col gap-3 rounded-xl border border-amber-300/80 bg-amber-50 px-4 py-3 sm:mx-5 sm:flex-row sm:items-center;
+  }
+
+  .cb-payments-client-actions {
+    @apply mt-0.5 flex w-full flex-wrap items-center gap-2;
+  }
+
+  .cb-payments-client-open {
+    @apply text-[10px] font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-pay-cell--add {
+    @apply border-dashed border-brand/45 bg-brand/5 text-brand hover:bg-brand/10;
+  }
+
+
   .cb-rentals-body {
     @apply flex min-h-0 flex-1 flex-col overflow-hidden;
   }
