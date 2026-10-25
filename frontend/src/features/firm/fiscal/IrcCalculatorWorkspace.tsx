@@ -18,7 +18,7 @@ function formatEuroFromCents(cents: number) {
 
 type Regime = { code: string; label: string }
 
-export function IrcCalculatorWorkspace() {
+export function IrcCalculatorWorkspace({ embedded = false }: { embedded?: boolean } = {}) {
   const qc = useQueryClient()
   const catalogQuery = useQuery({
     queryKey: ['fiscal-irc-catalog'],
@@ -84,9 +84,10 @@ export function IrcCalculatorWorkspace() {
 
   return (
     <FirmModuleShell
+      embedded={embedded}
       title="Calculadora de IRC"
       subtitle="Taxa geral / PME / Interior 2026, com derrama estadual e municipal opcional. Não é Modelo 22."
-      bodyClassName="overflow-auto px-4 pb-6 sm:px-5"
+      bodyClassName={embedded ? 'overflow-visible' : 'overflow-auto px-4 pb-6 sm:px-5'}
     >
       <div className="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-sm text-amber-950">
         <p className="font-medium">Simulação de apoio</p>

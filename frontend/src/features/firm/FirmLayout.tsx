@@ -33,21 +33,24 @@ export function FirmLayout() {
     new URLSearchParams(location.search).get('tab') === 'pagina-publica'
   const isSettingsRoute = location.pathname.startsWith('/app/firm/settings')
 
-  // Em Definições o menu secundário precisa de espaço e nomes — evita dois rails de ícones.
+  // Em Definições: sidebar principal sempre expandida (nomes) + menu interno com labels.
+  // Só o menu grande do escritório pode colapsar — e nunca dentro de Definições.
   useEffect(() => {
     if (isSettingsRoute && collapsed) {
       setCollapsed(false)
     }
   }, [isSettingsRoute, collapsed, setCollapsed])
 
+  const desktopCollapsed = collapsed && !isSettingsRoute
+
   return (
     <LiveEventsProvider scope="firm">
       <div
         data-testid="firm-shell"
-        data-sidebar-collapsed={collapsed ? '1' : '0'}
+        data-sidebar-collapsed={desktopCollapsed ? '1' : '0'}
         className={cn(
           'staff-app-shell cb-firm-shell',
-          collapsed && 'cb-firm-shell--sidebar-collapsed',
+          desktopCollapsed && 'cb-firm-shell--sidebar-collapsed',
           isSettingsRoute && 'cb-firm-shell--settings',
         )}
       >
@@ -64,15 +67,18 @@ export function FirmLayout() {
         <aside
           className={cn(
             FIRM_SHELL_CHROME_CLASSES.desktopSidebarAside,
-            collapsed && 'cb-firm-sidebar-aside--collapsed',
+            desktopCollapsed && 'cb-firm-sidebar-aside--collapsed',
           )}
           aria-label="Navegação do escritório"
           data-testid="firm-desktop-sidebar-aside"
         >
-          {collapsed ? (
+          {desktopCollapsed ? (
             <FirmDesktopCollapsedRail onExpand={() => setCollapsed(false)} />
           ) : (
-            <FirmSidebar variant="desktop" onCollapse={() => setCollapsed(true)} />
+            <FirmSidebar
+              variant="desktop"
+              onCollapse={isSettingsRoute ? undefined : () => setCollapsed(true)}
+            />
           )}
         </aside>
 
