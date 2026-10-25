@@ -725,6 +725,21 @@ router.post(
   fiscalCalculationsController.createImt,
 );
 router.get(
+  '/fiscal/irc/catalog',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.ircCatalog,
+);
+router.post(
+  '/fiscal/irc/simulate',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.ircSimulate,
+);
+router.post(
+  '/fiscal/irc/calculations',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.createIrc,
+);
+router.get(
   '/fiscal/calculations',
   requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
   fiscalCalculationsController.list,

@@ -144,6 +144,12 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         labelDefault: 'Calculadora IMT',
         icon: Calculator,
       },
+      {
+        to: '/app/firm/calculators/irc',
+        labelKey: 'contabil.firm.nav.ircCalculator',
+        labelDefault: 'Calculadora IRC',
+        icon: Calculator,
+      },
     ],
   },
   {
@@ -331,6 +337,12 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     to: '/app/firm/calculators/imt',
     labelKey: 'contabil.firm.nav.imtCalculator',
     labelDefault: 'Calculadora IMT',
+    icon: Calculator,
+  },
+  {
+    to: '/app/firm/calculators/irc',
+    labelKey: 'contabil.firm.nav.ircCalculator',
+    labelDefault: 'Calculadora IRC',
     icon: Calculator,
   },
   {

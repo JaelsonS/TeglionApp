@@ -13,17 +13,20 @@ const { simulateIrsBrackets } = require('./irs-engine');
 const { simulateSs } = require('./ss-engine');
 const { simulateWithholding } = require('./withholding-engine');
 const { simulateImt } = require('./imt-engine');
+const { simulateIrc } = require('./irc-engine');
 const {
   runSimulate,
   runIrsSimulate,
   runSsSimulate,
   runWithholdingSimulate,
   runImtSimulate,
+  runIrcSimulate,
   createVatSimulation,
   createIrsSimulation,
   createSsSimulation,
   createWithholdingSimulation,
   createImtSimulation,
+  createIrcSimulation,
   getCalculation,
   listCalculations,
 } = require('./fiscal-calculations.service');
@@ -72,6 +75,19 @@ describe('V10 fiscal — invariantes monetários', () => {
     }
     assert.ok(simulateImt({ flatRateCode: 'rustic', taxableValueCents: 50_000 }).result.imtCents >= 0);
   });
+
+  it('IRC: total = irc + estadual + municipal', () => {
+    const s = simulateIrc({
+      regimeCode: 'sme',
+      taxableCents: 8_000_000,
+      includeStateSurcharge: false,
+      municipalDerramaBps: 100,
+    });
+    assert.equal(
+      s.result.ircCents + s.result.stateSurchargeCents + s.result.municipalSurchargeCents,
+      s.result.totalCents,
+    );
+  });
 });
 
 describe('V10 fiscal — rejeição de input', () => {
@@ -81,11 +97,13 @@ describe('V10 fiscal — rejeição de input', () => {
     assert.throws(() => runSsSimulate({ regimeCode: 'tco_lucrativo', baseCents: -1 }));
     assert.throws(() => runWithholdingSimulate({ tableCode: 'I', remunerationCents: -5 }));
     assert.throws(() => runImtSimulate({ tableCode: 'I', taxableValueCents: -1 }));
+    assert.throws(() => runIrcSimulate({ regimeCode: 'general', taxableCents: -1 }));
     assert.throws(() => simulateVat({ amountCents: 100, rateCode: 'normal', ruleVersion: 'FAKE' }));
     assert.throws(() => simulateIrsBrackets({ taxableIncomeCents: 100, ruleVersion: 'FAKE' }));
     assert.throws(() => simulateSs({ regimeCode: 'nope', baseCents: 100 }));
     assert.throws(() => simulateWithholding({ tableCode: 'Z', remunerationCents: 100 }));
     assert.throws(() => simulateImt({ tableCode: 'Z', taxableValueCents: 100 }));
+    assert.throws(() => simulateIrc({ regimeCode: 'nope', taxableCents: 100 }));
   });
 
   it('IVA rejeita rateCode desconhecido', () => {
@@ -100,12 +118,14 @@ describe('V10 fiscal — disclaimers e calcType estáveis', () => {
     const ss = simulateSs({ regimeCode: 'ti_geral', baseCents: 100_000 });
     const wh = simulateWithholding({ tableCode: 'III', remunerationCents: 200_000, dependents: 1 });
     const imt = simulateImt({ tableCode: 'I', taxableValueCents: 20_000_000 });
+    const irc = simulateIrc({ regimeCode: 'general', taxableCents: 10_000_000 });
     assert.equal(vat.calcType, 'vat_net_gross');
     assert.equal(irs.calcType, 'irs_brackets');
     assert.equal(ss.calcType, 'ss_contributions');
     assert.equal(wh.calcType, 'irs_withholding');
     assert.equal(imt.calcType, 'imt');
-    for (const s of [vat, irs, ss, wh, imt]) {
+    assert.equal(irc.calcType, 'irc');
+    for (const s of [vat, irs, ss, wh, imt, irc]) {
       assert.ok(String(s.disclaimer).length > 40);
       assert.ok(s.ruleVersion);
       assert.ok(s.source?.label);
@@ -126,7 +146,7 @@ describe('V10 fiscal — isolamento tenant no serviço', () => {
     );
   }
 
-  it('create* exige cliente do mesmo firm (VAT/IRS/SS/WH/IMT)', async () => {
+  it('create* exige cliente do mesmo firm (VAT/IRS/SS/WH/IMT/IRC)', async () => {
     await assertClientIsolation(createVatSimulation, {
       direction: 'net_to_gross',
       amountCents: 1000,
@@ -145,6 +165,10 @@ describe('V10 fiscal — isolamento tenant no serviço', () => {
     await assertClientIsolation(createImtSimulation, {
       tableCode: 'I',
       taxableValueCents: 20_000_000,
+    });
+    await assertClientIsolation(createIrcSimulation, {
+      regimeCode: 'general',
+      taxableCents: 10_000_000,
     });
   });
 
@@ -203,10 +227,20 @@ describe('V10 fiscal — isolamento tenant no serviço', () => {
         firmId: 'firm-evil',
       },
     });
-    assert.equal(seen.length, 5);
+    await createIrcSimulation({
+      firmId: 'firm-secure',
+      actorId: 'u1',
+      body: {
+        regimeCode: 'sme',
+        taxableCents: 8_000_000,
+        clientId: 'c1',
+        firmId: 'firm-evil',
+      },
+    });
+    assert.equal(seen.length, 6);
     assert.deepEqual(
       seen.map((s) => s.calcType),
-      ['vat_net_gross', 'irs_brackets', 'ss_contributions', 'irs_withholding', 'imt'],
+      ['vat_net_gross', 'irs_brackets', 'ss_contributions', 'irs_withholding', 'imt', 'irc'],
     );
   });
 

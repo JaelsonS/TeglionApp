@@ -28,6 +28,12 @@ describe('irs-math / escalões PT-IRS-2026.1', () => {
     assert.equal(s.solidarityCents, 50_000);
   });
 
+  it('solidariedade: 300 000 € → 2,5 % × 170k + 5 % × 50k', () => {
+    // 170000*0.025 + 50000*0.05 = 4250 + 2500 = 6750
+    const s = solidarityFromBands(30_000_000, pack.solidarity);
+    assert.equal(s.solidarityCents, 675_000);
+  });
+
   it('simulateIrsBrackets conjunta duplica coleta unitária', () => {
     const single = simulateIrsBrackets({
       taxableIncomeCents: 1_000_000,

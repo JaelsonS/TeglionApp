@@ -97,7 +97,7 @@ Emissão oficial no Portal das Finanças, comunicação ATCUD/e-Fatura como soft
 | **1** | Avenças & mapa de pagamentos | **Commitada** (`feat(payments): avenças…`). Manual + Connect opcional | Clientes (+ Connect se quiser) |
 | **2** | Motor IVA (simulação) | **Commitada** (`feat(fiscal): motor IVA…`). Cêntimos, `PT-IVA-2026.1`, UI `/calculators/iva` | Onda 1 |
 | **3** | Calendário × cliente | **Commitada.** Vista «Mês fiscal» N/M em `/app/firm/tasks/month` | Onda 1–2 |
-| **4** | Mais simuladores | **Parcial.** IVA + IRS + SS + retenção + IMT; próximos: IRC/rendas | Contabilista revisor |
+| **4** | Mais simuladores | **Parcial.** IVA→IRC feitos; próximo: rendas / TA | Contabilista revisor |
 | **5** | Imóveis / rendas (dados) | Contratos, inquilinos, recibos **internos**, sem comunicação AT | — |
 | **6** | SAF-T **leitura** | XML/ZIP → totais; sem envio AT | Isolamento + XSD |
 | **7** | Manual do utilizador Teglion | `/manual` (público) + link na app; capítulos + capturas reais | Ondas 1–3 estáveis |
@@ -216,7 +216,7 @@ Perfis Teglion a documentar: `FIRM_OWNER`, `FIRM_STAFF` (e permissões), cliente
 - Onda 1: commitada nesta branch (sem push).
 - Onda 2: motor IVA + UI + migration `20261025010000_fiscal_calculations.sql` no repo (SQL já implantado pelo owner em ambiente de trabalho).
 - Onda 3: matriz mês fiscal (API + UI); **sem migration nova**.
-- Onda 4 (parcial): IRS + SS + retenção + IMT; `20261025050000_fiscal_calculations_imt.sql` a aplicar com OK.
+- Onda 4 (parcial): IRS + SS + retenção + IMT + IRC; `20261025060000_fiscal_calculations_irc.sql` a aplicar com OK.
 - Migrations **não** aplicadas a staging/prod sem autorização.
 - Push geral para staging: só no fim do pacote de ondas, por pedido explícito.
 
@@ -246,8 +246,9 @@ Perfis Teglion a documentar: `FIRM_OWNER`, `FIRM_STAFF` (e permissões), cliente
 - [x] Motor SS TCO/TI `PT-SS-2026.1` + UI `/calculators/ss`
 - [x] Retenção Despacho 233-A/2026 tabelas I–III + UI `/calculators/retencao`
 - [x] IMT Ofício 40129/2026 tabelas I–III + rústico/outros + UI `/calculators/imt`
+- [x] IRC 19 % / PME / Interior + derramas + UI `/calculators/irc`
 - [x] Testes unitários + auditoria segurança (`v10-fiscal-security.audit.test.js`)
-- [ ] IRC / rendas / pensões / deficiência
+- [ ] Rendas / TA / pensões / deficiência
 - [ ] Validação contabilista + UAT staging
 
 ### Gate obrigatório antes de PR → staging
@@ -256,7 +257,7 @@ Perfis Teglion a documentar: `FIRM_OWNER`, `FIRM_STAFF` (e permissões), cliente
 2. `cd backend && npm test` (suite completa verde)
 3. `npm run test:security-static` (sem regressões de isolamento/rotas)
 4. Migrations V10 aplicadas **só** no projecto STAGING (nunca prod sem OK):  
-   `20261025000000` … `20261025050000`
+   `20261025000000` … `20261025060000`
 5. UAT manual: avenças, IVA, IRS, SS, retenção, mês fiscal N/M
 6. Push/PR **só** com autorização explícita do owner
 7. Sem force-push / sem `--no-verify`

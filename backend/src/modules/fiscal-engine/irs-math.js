@@ -85,8 +85,10 @@ function solidarityFromBands(taxableCents, bands) {
   const parts = [];
 
   for (const band of bands) {
-    const cap = band.upToCents == null ? Infinity : band.upToCents;
-    const slice = Math.min(remaining, Math.max(0, (cap === Infinity ? remaining : cap) - prevCap));
+    const openEnded = band.upToCents == null;
+    const slice = openEnded
+      ? remaining
+      : Math.min(remaining, Math.max(0, band.upToCents - prevCap));
     if (slice <= 0) break;
     const tax = applyRateCents(slice, band.rateMilli);
     if (band.rateMilli > 0 && tax > 0) {
@@ -100,7 +102,7 @@ function solidarityFromBands(taxableCents, bands) {
     }
     total += tax;
     remaining -= slice;
-    prevCap = cap === Infinity ? prevCap + slice : cap;
+    prevCap = openEnded ? prevCap + slice : band.upToCents;
     if (remaining <= 0) break;
   }
 
