@@ -1924,17 +1924,30 @@
     @apply rounded-lg border border-border/70 bg-card p-3 transition-shadow hover:border-brand/20 hover:shadow-sm;
   }
 
-  /* Tarefas — workspace (IMG-12…16) */
+  /* Tarefas — workspace (padrão Documentos: shell + KPI + lead) */
   .cb-tasks-page {
     @apply flex min-h-0 w-full min-w-0 flex-1 flex-col;
+  }
+
+  .cb-tasks-layout-page,
+  .cb-tasks-layout-page .cb-firm-operational-panel {
+    @apply min-h-0 flex-1;
+  }
+
+  .cb-tasks-layout-panel {
+    @apply min-h-0;
   }
 
   .cb-tasks-panel {
     @apply flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/70 bg-card;
   }
 
+  .cb-tasks-panel-v2 {
+    @apply border-0 bg-transparent shadow-none;
+  }
+
   .cb-tasks-panel-hd {
-    @apply shrink-0 border-b border-border/60 px-4 py-3.5;
+    @apply shrink-0 border-b border-border/60 px-4 pb-0 pt-1 sm:px-5;
   }
 
   .cb-tasks-title {
@@ -1946,11 +1959,11 @@
   }
 
   .cb-tasks-tabs {
-    @apply mt-3 flex flex-wrap gap-0 border-b border-border/60 -mb-px;
+    @apply mt-1 flex flex-wrap gap-0 border-b border-border/60 -mb-px;
   }
 
   .cb-tasks-tab {
-    @apply relative px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground;
+    @apply relative px-3 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground;
   }
 
   .cb-tasks-tab-active {
@@ -1963,11 +1976,30 @@
   }
 
   .cb-tasks-body {
-    @apply flex min-h-0 flex-1 flex-col overflow-y-auto;
+    @apply flex min-h-0 flex-1 flex-col;
+  }
+
+  .cb-tasks-section-lead {
+    @apply shrink-0 px-4 pb-2 pt-3 text-sm leading-snug text-muted-foreground sm:px-5;
+  }
+
+  .cb-tasks-section-lead-title {
+    @apply mb-0.5 block text-xs font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-tasks-section-host--flow {
+    @apply flex w-full min-w-0 flex-col px-3 pb-4 sm:px-4;
+    flex: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .cb-tasks-section-host--fill {
+    @apply flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 pb-3 sm:px-4;
   }
 
   .cb-tasks-kpi-row {
-    @apply grid grid-cols-2 gap-2.5 border-b border-border/60 bg-muted/10 p-3 sm:grid-cols-4;
+    @apply grid shrink-0 grid-cols-2 gap-2 px-4 py-3 sm:grid-cols-4 sm:px-5;
   }
 
   .cb-tasks-kpi {

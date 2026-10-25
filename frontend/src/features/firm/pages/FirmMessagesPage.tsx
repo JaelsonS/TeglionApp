@@ -34,10 +34,15 @@ export function FirmMessagesPage() {
 
   const kpis = useMemo(() => {
     const unread = threads.reduce((acc, t) => acc + (t.unreadCount ?? (t.unread ? 1 : 0)), 0)
-    const knownIds = new Set<string>([
-      ...threads.map((t) => t.clientId),
-      ...clients.map((c) => c._id),
-    ])
+    /** Mesmos IDs que a lista «Fixados» (ThreadOption.id = client._id | thread.clientId). */
+    const knownIds = new Set<string>()
+    for (const t of threads) {
+      if (t.clientId) knownIds.add(t.clientId)
+    }
+    for (const c of clients) {
+      if (c._id) knownIds.add(c._id)
+      if (c.id) knownIds.add(c.id)
+    }
     const pinned = pinnedIds.filter((id) => knownIds.has(id)).length
     return [
       {
@@ -62,7 +67,7 @@ export function FirmMessagesPage() {
         icon: MessageSquare,
       },
     ] as const
-  }, [threads, pinnedIds])
+  }, [threads, clients, pinnedIds])
 
   return (
     <FirmWorkspacePage className="cb-chat-page cb-chat-layout-page xl:min-h-0 xl:flex-1">
