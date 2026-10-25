@@ -311,7 +311,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 | **18.12** | `encerrar` | Encerrar conta |
 
 **Notas:** página pública é “produto dentro de settings” — tratar 18.2 com o mesmo rigor de uma fase inteira.  
-**Estado:** ☐ × 12
+**Estado:** ✅ × 12
 
 ---
 
@@ -399,7 +399,7 @@ Este roadmap = **Wave páginas / produto**.
 | 15 | Alertas | ✅ |
 | 16 | Notícias | ✅ |
 | 17 | Plano | ✅ |
-| 18 | Definições (12) | ☐ |
+| 18 | Definições (12) | ✅ |
 | L | Landing | ☐ |
 
 **Última actualização:** 2026-10-25 — Fases 1–11 concluídas (copy autoexplicativa + layout leve).
