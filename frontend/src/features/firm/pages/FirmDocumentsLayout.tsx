@@ -5,8 +5,8 @@ import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
 
 export function FirmDocumentsLayout() {
   return (
-    <FirmWorkspacePage className="cb-docs-layout-page min-h-0 flex-1">
-      <div className="cb-firm-operational-panel cb-docs-layout-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+    <FirmWorkspacePage className="cb-docs-layout-page">
+      <div className="cb-firm-operational-panel cb-docs-layout-panel">
         <DocumentsHubShell>
           <Outlet />
         </DocumentsHubShell>

@@ -2,7 +2,10 @@ import type { ReactNode } from 'react'
 
 import { cn } from '@/shared/lib/utils'
 
-/** Páginas split (documentos, tarefas, obrigações, alertas, mensagens) — altura fixa; scroll só nas colunas. */
+/**
+ * Páginas de workspace (tarefas, obrigações, alertas, mensagens).
+ * Documentos usa `cb-docs-layout-page` → scroll único no content-wrap.
+ */
 export function FirmWorkspacePage({
   children,
   className,
