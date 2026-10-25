@@ -38,7 +38,7 @@ export function BrandMark({
         variant === 'onDark'
           ? 'bg-white/10 text-[#C9932E] ring-1 ring-white/20'
           : 'text-[#C9932E]',
-        variant === 'onLight' && 'bg-[#0F2942]',
+        variant === 'onLight' && 'bg-[#0B3A6E]',
         className,
       )}
       aria-hidden={!showName}
@@ -51,7 +51,7 @@ export function BrandMark({
     <span
       className={cn(
         'font-semibold tracking-tight',
-        variant === 'onDark' ? 'text-white' : 'text-[#0F2942]',
+        variant === 'onDark' ? 'text-white' : 'text-[#0B3A6E]',
         nameClassName,
       )}
     >

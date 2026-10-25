@@ -32,7 +32,7 @@ export function LandingPain() {
           {CARDS.map((c) => (
             <FadeInStaggerItem key={c.pain}>
               <article className="landing-card h-full p-6">
-                <p className="text-base font-semibold text-[#0F2942]">{c.pain}</p>
+                <p className="text-base font-semibold text-[#0B3A6E]">{c.pain}</p>
                 <p className="mt-3 text-[15px] leading-relaxed text-[#4A5568]">{c.relief}</p>
               </article>
             </FadeInStaggerItem>

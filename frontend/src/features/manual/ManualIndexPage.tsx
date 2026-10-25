@@ -43,9 +43,9 @@ export function ManualIndexPage() {
               </div>
             </div>
             <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-              Sou a Maya. Aqui explico o Teglion como se estivéssemos no mesmo ecrã — para quem ainda
-              está a descobrir o produto e para quem já trabalha no escritório ou no portal do
-              cliente. Sem jargão inútil. Sem promessas que o produto ainda não cumpre.
+              Sou a Maya. Este manual é o guia oficial do Teglion — primeiros passos, dia a dia do
+              escritório e portal do cliente. Sem jargão inútil e sem promessas que o produto ainda
+              não cumpre.
             </p>
             <p className="mt-3">
               <Link to="/" className="text-sm font-medium text-brand hover:underline">
@@ -64,14 +64,14 @@ export function ManualIndexPage() {
             <li key={ch.slug}>
               <Link
                 to={`/manual/${ch.slug}`}
-                className="flex items-start gap-3 rounded-2xl border border-[#0F2942]/10 bg-white/80 px-4 py-3.5 transition hover:border-brand/40 hover:bg-white"
+                className="flex items-start gap-3 rounded-2xl border border-[#0B3A6E]/10 bg-white/80 px-4 py-3.5 transition hover:border-brand/40 hover:bg-white"
               >
-                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0F2942]/5 text-xs font-semibold tabular-nums text-[#0F2942]">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#0B3A6E]/5 text-xs font-semibold tabular-nums text-[#0B3A6E]">
                   {String(ch.number).padStart(2, '0')}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold text-[#0F2942]">{ch.title}</span>
+                    <span className="font-semibold text-[#0B3A6E]">{ch.title}</span>
                     <span
                       className={cn(
                         'rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide',

@@ -79,10 +79,10 @@ export function LandingFeatures() {
             return (
               <FadeInStaggerItem key={item.title}>
                 <article className="landing-card flex h-full flex-col p-5 sm:p-6">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0F2942]/5 text-[#0F2942]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B3A6E]/5 text-[#0B3A6E]">
                     <Icon className="h-5 w-5" aria-hidden />
                   </div>
-                  <h3 className="mt-4 text-base font-semibold text-[#0F2942]">{item.title}</h3>
+                  <h3 className="mt-4 text-base font-semibold text-[#0B3A6E]">{item.title}</h3>
                   <p className="mt-2 text-[14px] leading-relaxed text-[#4A5568] sm:text-[15px]">{item.text}</p>
                 </article>
               </FadeInStaggerItem>
@@ -91,14 +91,14 @@ export function LandingFeatures() {
         </FadeInStagger>
 
         <FadeInView delay={0.05} className="mt-8">
-          <div className="flex flex-col gap-3 rounded-[14px] border border-dashed border-[#0F2942]/20 bg-[#FAFAF7] px-5 py-5 sm:flex-row sm:items-center sm:gap-5 sm:px-6">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#C9932E]/15 text-[#0F2942]">
+          <div className="flex flex-col gap-3 rounded-[14px] border border-dashed border-[#0B3A6E]/20 bg-[#FAFAF7] px-5 py-5 sm:flex-row sm:items-center sm:gap-5 sm:px-6">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#C9932E]/15 text-[#0B3A6E]">
               <Sparkles className="h-5 w-5" aria-hidden />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-base font-semibold text-[#0F2942]">IA no contexto do escritório</h3>
-                <span className="rounded-md bg-[#0F2942]/8 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#0F2942]">
+                <h3 className="text-base font-semibold text-[#0B3A6E]">IA no contexto do escritório</h3>
+                <span className="rounded-md bg-[#0B3A6E]/8 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#0B3A6E]">
                   Em breve
                 </span>
               </div>

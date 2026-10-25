@@ -13,7 +13,7 @@ const FAQ: { q: string; a: ReactNode }[] = [
     a: (
       <>
         O Teglion é uma plataforma de gestão para escritórios de contabilidade, desenvolvida e operada
-        pela <AgencyNameLink className="text-[#0F2942]" />. Teglion é o nome do produto — não uma
+        pela <AgencyNameLink className="text-[#0B3A6E]" />. Teglion é o nome do produto — não uma
         empresa independente. Cada escritório continua responsável pelos dados e pela utilização que
         faz do serviço; o detalhe está nos Termos e na Política de Privacidade.
       </>
@@ -64,14 +64,14 @@ const FAQ: { q: string; a: ReactNode }[] = [
 function FaqItem({ q, a }: { q: string; a: ReactNode }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="border-b border-[#0F2942]/10">
+    <div className="border-b border-[#0B3A6E]/10">
       <button
         type="button"
         className="flex w-full items-center justify-between gap-4 py-4 text-left"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >
-        <span className="font-semibold text-[#0F2942]">{q}</span>
+        <span className="font-semibold text-[#0B3A6E]">{q}</span>
         <ChevronDown className={cn('h-5 w-5 shrink-0 text-[#4A5568] transition', open && 'rotate-180')} />
       </button>
       <AnimatePresence initial={false}>

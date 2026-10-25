@@ -62,7 +62,7 @@ export function ServerWakingScreen({ startedAt }: { startedAt?: number }) {
         {BRAND.initials}
       </span>
 
-      <div className="mt-6 flex items-center gap-2 text-[#0F2942]">
+      <div className="mt-6 flex items-center gap-2 text-[#0B3A6E]">
         <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
         <p className="text-lg font-semibold">A iniciar o servidor…</p>
       </div>
@@ -72,7 +72,7 @@ export function ServerWakingScreen({ startedAt }: { startedAt?: number }) {
         até {EXPECTED_MAX_SECONDS} segundos.
       </p>
 
-      <div className="mt-6 w-56 overflow-hidden rounded-full bg-[#0F2942]/10">
+      <div className="mt-6 w-56 overflow-hidden rounded-full bg-[#0B3A6E]/10">
         <div
           className="h-1.5 rounded-full transition-all duration-1000"
           style={{ width: `${progress}%`, backgroundColor: BRAND.colors.gold }}

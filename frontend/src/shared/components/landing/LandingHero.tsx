@@ -20,9 +20,9 @@ export function LandingHero() {
         <div className="grid items-center gap-8 sm:gap-12 lg:grid-cols-2 lg:gap-16">
           <FadeInView>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#C9932E]">
-              <AgencyProductLine linkClassName="text-[#C9932E] hover:text-[#0F2942] normal-case tracking-normal" />
+              <AgencyProductLine linkClassName="text-[#C9932E] hover:text-[#0B3A6E] normal-case tracking-normal" />
             </p>
-            <h1 className="mt-3 max-w-xl text-[1.85rem] font-semibold leading-[1.12] text-[#0F2942] sm:text-[2.35rem] md:text-5xl lg:text-[3.25rem]">
+            <h1 className="mt-3 max-w-xl text-[1.85rem] font-semibold leading-[1.12] text-[#0B3A6E] sm:text-[2.35rem] md:text-5xl lg:text-[3.25rem]">
               Um sistema. Zero saltos entre WhatsApp, email e links.
             </h1>
             <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-[#4A5568] sm:mt-5 sm:text-[17px]">
@@ -36,7 +36,7 @@ export function LandingHero() {
               <button
                 type="button"
                 onClick={scrollToFeatures}
-                className="py-2 text-center text-sm font-medium text-[#0F2942]/75 underline-offset-4 hover:text-[#0F2942] hover:underline sm:text-left"
+                className="py-2 text-center text-sm font-medium text-[#0B3A6E]/75 underline-offset-4 hover:text-[#0B3A6E] hover:underline sm:text-left"
               >
                 Ver o que inclui
               </button>
@@ -61,7 +61,7 @@ export function LandingHero() {
                 src={LANDING_SCREENS.dashboard}
                 alt="Painel do escritório no Teglion"
                 priority
-                className="shadow-[0_20px_50px_rgba(15,41,66,0.12)]"
+                className="shadow-[0_20px_50px_rgba(11,58,110,0.12)]"
               />
             </div>
           </motion.div>

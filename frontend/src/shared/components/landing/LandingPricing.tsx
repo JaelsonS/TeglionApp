@@ -57,7 +57,7 @@ function buildPlans({
       period: '/ mês',
       note: (
         <>
-          Cobrado <strong className="text-[#0F2942]">{yearlyTotalLabel} / ano</strong> · por escritório
+          Cobrado <strong className="text-[#0B3A6E]">{yearlyTotalLabel} / ano</strong> · por escritório
         </>
       ),
       features: [
@@ -97,24 +97,24 @@ export function LandingPricing() {
                 className={cn(
                   'landing-card relative flex h-full flex-col p-5 sm:p-6',
                   plan.featured &&
-                    'ring-2 ring-[#0F2942]/20 bg-gradient-to-b from-white to-[#E3F0FF]/40 md:col-span-1 lg:scale-[1.02]',
+                    'ring-2 ring-[#0B3A6E]/20 bg-gradient-to-b from-white to-[#E3F0FF]/40 md:col-span-1 lg:scale-[1.02]',
                 )}
               >
                 {plan.featured ? (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[#0F2942] px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white sm:-top-3">
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[#0B3A6E] px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white sm:-top-3">
                     Melhor valor
                   </span>
                 ) : null}
                 <p
                   className={cn(
                     'text-sm font-medium',
-                    plan.featured ? 'text-[#0F2942]' : 'text-[#4A5568]',
+                    plan.featured ? 'text-[#0B3A6E]' : 'text-[#4A5568]',
                   )}
                 >
                   {plan.name}
                 </p>
                 <p className="mt-2 flex flex-wrap items-baseline gap-x-1.5">
-                  <span className="text-3xl font-semibold tracking-tight text-[#0F2942] sm:text-4xl">
+                  <span className="text-3xl font-semibold tracking-tight text-[#0B3A6E] sm:text-4xl">
                     {plan.price}
                   </span>
                   <span className="text-base font-medium text-[#4A5568] sm:text-lg">{plan.period}</span>
@@ -133,7 +133,7 @@ export function LandingPricing() {
                   className={cn(
                     'landing-btn-primary mt-6 w-full text-center',
                     !plan.primary &&
-                      '!bg-white !text-[#0F2942] ring-1 ring-[#0F2942]/20 hover:!bg-[#F7FAFC]',
+                      '!bg-white !text-[#0B3A6E] ring-1 ring-[#0B3A6E]/20 hover:!bg-[#F7FAFC]',
                   )}
                 >
                   {plan.cta}

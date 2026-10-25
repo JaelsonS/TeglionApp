@@ -48,8 +48,8 @@ export function PricingPage() {
 
       <section className="landing-section pt-0">
         <div className="landing-container">
-          <div className="mx-auto max-w-2xl rounded-2xl border border-[#0F2942]/10 bg-white p-6 sm:p-8">
-            <h2 className="text-xl font-semibold text-[#0F2942]">O que está incluído</h2>
+          <div className="mx-auto max-w-2xl rounded-2xl border border-[#0B3A6E]/10 bg-white p-6 sm:p-8">
+            <h2 className="text-xl font-semibold text-[#0B3A6E]">O que está incluído</h2>
             <ul className="mt-4 grid gap-2 sm:grid-cols-2">
               {INCLUDED.map((item) => (
                 <li key={item} className="flex items-start gap-2 text-sm text-[#4A5568]">
@@ -62,7 +62,7 @@ export function PricingPage() {
             </ul>
             <p className="mt-6 text-sm text-[#4A5568]">
               Dúvidas sobre faturação?{' '}
-              <a href={`mailto:${BRAND.emails.hello}`} className="font-medium text-[#0F2942] hover:underline">
+              <a href={`mailto:${BRAND.emails.hello}`} className="font-medium text-[#0B3A6E] hover:underline">
                 Escreve-nos
               </a>
               .
@@ -74,7 +74,7 @@ export function PricingPage() {
         </div>
       </section>
 
-      <LandingSocialProof className="landing-section border-t border-[#0F2942]/10 bg-[#FAFAF7]" />
+      <LandingSocialProof className="landing-section border-t border-[#0B3A6E]/10 bg-[#FAFAF7]" />
 
       <LandingFaq />
     </LandingMarketingShell>

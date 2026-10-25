@@ -33,7 +33,7 @@ export function LandingBenefits() {
           {ITEMS.map((item) => (
             <FadeInStaggerItem key={item.title}>
               <article className="landing-card h-full p-6 text-left">
-                <h3 className="text-lg font-semibold text-[#0F2942]">{item.title}</h3>
+                <h3 className="text-lg font-semibold text-[#0B3A6E]">{item.title}</h3>
                 <p className="mt-2 text-[15px] leading-relaxed text-[#4A5568]">{item.text}</p>
               </article>
             </FadeInStaggerItem>

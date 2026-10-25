@@ -33,8 +33,8 @@ export function LandingHowItWorks() {
           {STEPS.map((s) => (
             <FadeInStaggerItem key={s.n}>
               <div>
-                <span className="text-4xl font-bold text-[#0F2942]/15">{s.n}</span>
-                <h3 className="mt-2 text-lg font-semibold text-[#0F2942]">{s.title}</h3>
+                <span className="text-4xl font-bold text-[#0B3A6E]/15">{s.n}</span>
+                <h3 className="mt-2 text-lg font-semibold text-[#0B3A6E]">{s.title}</h3>
                 <p className="mt-2 text-[15px] text-[#4A5568]">{s.body}</p>
               </div>
             </FadeInStaggerItem>

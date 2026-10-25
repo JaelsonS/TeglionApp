@@ -54,9 +54,9 @@ export function LandingSocialProof({ className, showStats = true }: LandingSocia
             {TRUST_STATS.map((stat) => (
               <div
                 key={stat.title}
-                className="rounded-xl border border-[#0F2942]/10 bg-[#FAFAF7] px-5 py-5 text-left"
+                className="rounded-xl border border-[#0B3A6E]/10 bg-[#FAFAF7] px-5 py-5 text-left"
               >
-                <p className="text-sm font-semibold text-[#0F2942]">{stat.title}</p>
+                <p className="text-sm font-semibold text-[#0B3A6E]">{stat.title}</p>
                 <p className="mt-2 text-[13px] leading-relaxed text-[#4A5568]">{stat.text}</p>
               </div>
             ))}
@@ -67,7 +67,7 @@ export function LandingSocialProof({ className, showStats = true }: LandingSocia
           <p className="text-xs font-semibold uppercase tracking-wide text-[#C9932E]">
             Feito para escritórios de contabilidade
           </p>
-          <h2 className="mt-2 text-3xl font-semibold text-[#0F2942] sm:text-4xl">
+          <h2 className="mt-2 text-3xl font-semibold text-[#0B3A6E] sm:text-4xl">
             Menos caos. Mais fechos a tempo.
           </h2>
           <p className="mt-4 text-[17px] leading-relaxed text-[#4A5568]">
@@ -82,10 +82,10 @@ export function LandingSocialProof({ className, showStats = true }: LandingSocia
             return (
               <FadeInStaggerItem key={item.title}>
                 <article className="landing-card flex h-full flex-col p-6">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0F2942]/5 text-[#0F2942]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B3A6E]/5 text-[#0B3A6E]">
                     <Icon className="h-5 w-5" aria-hidden />
                   </div>
-                  <h3 className="mt-4 text-lg font-semibold text-[#0F2942]">{item.title}</h3>
+                  <h3 className="mt-4 text-lg font-semibold text-[#0B3A6E]">{item.title}</h3>
                   <p className="mt-2 flex-1 text-[15px] leading-relaxed text-[#4A5568]">{item.text}</p>
                 </article>
               </FadeInStaggerItem>

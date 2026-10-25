@@ -29,7 +29,7 @@ export function LandingSolution() {
 
         <div className="mt-14 grid gap-10 lg:grid-cols-2 lg:gap-12">
           <FadeInView>
-            <h3 className="text-xl font-semibold text-[#0F2942]">Para o escritório</h3>
+            <h3 className="text-xl font-semibold text-[#0B3A6E]">Para o escritório</h3>
             <ul className="mt-4 space-y-2.5">
               {FIRM_BULLETS.map((b) => (
                 <li key={b} className="flex gap-2 text-[15px] text-[#4A5568]">
@@ -44,12 +44,12 @@ export function LandingSolution() {
           </FadeInView>
 
           <FadeInView delay={0.08}>
-            <h3 className="text-xl font-semibold text-[#0F2942]">Para o cliente</h3>
+            <h3 className="text-xl font-semibold text-[#0B3A6E]">Para o cliente</h3>
             <ul className="mt-4 space-y-2.5">
               {CLIENT_BULLETS.map((b) => (
                 <li key={b} className="flex gap-2 text-[15px] text-[#4A5568]">
                   <span
-                    className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#E3F0FF] ring-1 ring-[#0F2942]/20"
+                    className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#E3F0FF] ring-1 ring-[#0B3A6E]/20"
                     aria-hidden
                   />
                   {b}

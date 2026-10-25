@@ -11,7 +11,7 @@ export function AuthBootstrapFallback() {
     >
       <div className="flex flex-col items-center gap-4 text-center">
         <div
-          className="h-9 w-9 animate-spin rounded-full border-2 border-[#0f2942]/20 border-t-[#0f2942]"
+          className="h-9 w-9 animate-spin rounded-full border-2 border-[#0B3A6E]/20 border-t-[#0B3A6E]"
           aria-hidden
         />
         <div>
