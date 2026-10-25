@@ -124,7 +124,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 | **Dor** | Barra de filtros pesada; hub com muitas tabs e painéis aninhados |
 | **Alvo** | Lista legível + hub com propósito por secção; formulários de perfil completos e editáveis (API já patch) |
 | **Subfases** | **2.1** lista · **2.2** criar/CSV/convites · **2.3a–2.3i** cada secção do hub |
-| **Estado** | ☐ |
+| **Estado** | ✅ 2026-10-25 |
 
 ### Fase 3 — Pagamentos (carteira)
 
@@ -135,7 +135,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 | **Dor** | Duplo scroll; coluna Cliente `max-w-[200px]` truncada; CSS layout em falta |
 | **Alvo** | Chrome fixo + grelha `flex-1 min-h-0`; coluna cliente 240–280px + tooltip; copy “carteira ≠ Stripe ≠ Plano” |
 | **Subfases** | **3.1** layout/scroll · **3.2** dialogs/gerar · **3.3** copy/disambiguação |
-| **Estado** | ☐ |
+| **Estado** | ✅ 2026-10-25 |
 
 ### Fase 4 — Imóveis e rendas
 
@@ -383,7 +383,7 @@ Este roadmap = **Wave páginas / produto**.
 | Fase | Nome | Estado |
 |------|------|--------|
 | 1 | Painel | ✅ |
-| 2 | Clientes | ☐ |
+| 2 | Clientes | ✅ |
 | 3 | Pagamentos | ☐ |
 | 4 | Imóveis e rendas | ☐ |
 | 5 | SAF-T | ☐ |

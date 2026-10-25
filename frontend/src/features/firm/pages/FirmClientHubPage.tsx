@@ -112,6 +112,8 @@ export function FirmClientHubPage() {
     { id: 'profile' as const, label: 'Perfil', icon: Building2 },
   ]
 
+  const activeSectionMeta = CLIENT_HUB_SECTIONS.find((s) => s.id === section)
+
   return (
     <FirmScrollPage className="cb-client-hub-page">
       {isFetching && !isLoading ? (
@@ -137,6 +139,11 @@ export function FirmClientHubPage() {
             className="inline-flex w-max min-w-full flex-nowrap border-0 bg-transparent p-0 shadow-none"
           />
         </div>
+        {activeSectionMeta ? (
+          <p className="cb-client-hub-section-purpose px-4 pb-3" data-testid="client-hub-section-purpose">
+            {activeSectionMeta.purpose}
+          </p>
+        ) : null}
       </div>
 
       <div className="cb-client-hub-body min-w-0 w-full max-w-full pt-4">

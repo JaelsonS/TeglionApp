@@ -1439,9 +1439,17 @@
     @apply px-3.5 py-6 text-center cb-text-caption;
   }
 
-  /* Empresas — lista tabela (IMG-05) */
+  /* Empresas — lista tabela (Fase 2) */
   .cb-clients-page {
     @apply w-full min-w-0 space-y-0;
+  }
+
+  .cb-clients-toolbar-hint {
+    @apply px-0 pb-2 text-pretty text-xs leading-relaxed text-muted-foreground sm:px-0;
+  }
+
+  .cb-client-hub-section-purpose {
+    @apply border-t border-border/50 pt-2 text-pretty text-xs leading-relaxed text-muted-foreground;
   }
 
   .cb-clients-panel {
