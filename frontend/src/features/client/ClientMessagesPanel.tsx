@@ -153,8 +153,8 @@ export function ClientMessagesPanel({ t }: { t: Copy }) {
           ) : messages.length === 0 ? (
             <EmptyState
               icon={MessageSquare}
-              title="Inicia conversa com o teu contabilista"
-              description="Perguntas rápidas, esclarecimentos ou envio de contexto — tudo num só sítio."
+              title="Comece a conversa com o escritório"
+              description="Perguntas rápidas, esclarecimentos ou contexto — tudo fica registado aqui."
             />
           ) : (
             <ul className="space-y-4">

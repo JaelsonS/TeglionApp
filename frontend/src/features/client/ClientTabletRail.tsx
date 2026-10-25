@@ -60,7 +60,7 @@ export function ClientTabletRail({ badges }: { badges: ClientNavBadges }) {
           <FirmSidebarHeader
             name={firm?.name}
             logoUrl={firmLogoUrl}
-            subtitle="Portal cliente"
+            subtitle="Portal do cliente"
             fallbackName="Portal"
             size="sm"
           />

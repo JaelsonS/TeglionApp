@@ -220,7 +220,7 @@ export function FirmMfaChallengePage() {
           : 'Use uma aplicação de autenticação compatível para configurar o Teglion.'
 
   return (
-    <AuthLayout title="Autenticação de dois factores" subtitle="Teglion">
+    <AuthLayout title="Autenticação de dois factores" subtitle="Protege o acesso ao escritório no Teglion.">
       <AuthCard>
         <AuthHeader title={headerTitle} subtitle={headerSubtitle} showBrand compact />
 

@@ -162,7 +162,7 @@ export function ResetPasswordPage() {
       )
 
       setStep({ type: 'success' })
-      toast.success(t('resetPassword.successRedirect3s', { defaultValue: 'Senha redefinida com sucesso! Você será redirecionado em 3 segundos.' }))
+      toast.success(t('resetPassword.successRedirect3s', { defaultValue: 'Palavra-passe redefinida. Vai ser redireccionado para o login em 3 segundos.' }))
 
       // Redirecionar após 3 segundos
       setTimeout(() => {
@@ -239,16 +239,16 @@ export function ResetPasswordPage() {
           <CardContent className="space-y-4">
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-sm text-red-700">
-                {t('resetPassword.linkExpiresHint', { defaultValue: 'O link de redefinição de senha expira após 15 minutos por segurança.' })}
+                {t('resetPassword.linkExpiresHint', { defaultValue: 'O link de redefinição de palavra-passe expira após 15 minutos por segurança.' })}
               </p>
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm text-slate-600 text-center">{t('resetPassword.whatYouCanDo', { defaultValue: 'O que você pode fazer:' })}</p>
+              <p className="text-sm text-slate-600 text-center">{t('resetPassword.whatYouCanDo', { defaultValue: 'O que pode fazer:' })}</p>
               <ol className="text-sm text-slate-600 space-y-2 list-decimal list-inside">
-                <li>{t('resetPassword.requestNewLink', { defaultValue: 'Solicite um novo link de redefinição' })}</li>
-                <li>{t('resetPassword.checkSpam', { defaultValue: 'Verifique sua caixa de spam' })}</li>
-                <li>{t('resetPassword.contactSupport', { defaultValue: 'Entre em contato com o suporte' })}</li>
+                <li>{t('resetPassword.requestNewLink', { defaultValue: 'Pedir um novo link de redefinição' })}</li>
+                <li>{t('resetPassword.checkSpam', { defaultValue: 'Verificar a caixa de spam' })}</li>
+                <li>{t('resetPassword.contactSupport', { defaultValue: 'Contactar o suporte Teglion' })}</li>
               </ol>
             </div>
           </CardContent>
@@ -284,14 +284,14 @@ export function ResetPasswordPage() {
                 <CheckCircle className="w-6 h-6 text-green-600" />
               </div>
             </div>
-            <CardTitle className="text-green-600">{t('resetPassword.passwordResetSuccessTitle', { defaultValue: 'Senha redefinida com sucesso!' })}</CardTitle>
-            <CardDescription>{t('resetPassword.redirectingToLoginSoon', { defaultValue: 'Você será redirecionado para o login em alguns segundos.' })}</CardDescription>
+            <CardTitle className="text-green-600">{t('resetPassword.passwordResetSuccessTitle', { defaultValue: 'Palavra-passe redefinida' })}</CardTitle>
+            <CardDescription>{t('resetPassword.redirectingToLoginSoon', { defaultValue: 'Vai ser redireccionado para o login em alguns segundos.' })}</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <p className="text-sm text-green-700">
-                {t('resetPassword.canLoginNow', { defaultValue: 'Você pode agora fazer login com sua nova senha.' })}
+                {t('resetPassword.canLoginNow', { defaultValue: 'Já pode entrar com a nova palavra-passe.' })}
               </p>
             </div>
 
@@ -359,9 +359,9 @@ export function ResetPasswordPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4 py-8">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-2">
-          <CardTitle className="text-2xl">{t('resetPassword.title', { defaultValue: 'Redefinir senha' })}</CardTitle>
+          <CardTitle className="text-2xl">{t('resetPassword.title', { defaultValue: 'Redefinir palavra-passe' })}</CardTitle>
           <CardDescription>
-            {t('resetPassword.subtitle', { defaultValue: 'Digite sua nova senha para reativar sua conta' })}
+            {t('resetPassword.subtitle', { defaultValue: 'Defina a nova palavra-passe para voltar a aceder à conta.' })}
           </CardDescription>
         </CardHeader>
 
@@ -370,13 +370,13 @@ export function ResetPasswordPage() {
             {/* Campo: Nova Senha */}
             <div className="space-y-2">
               <Label htmlFor="newPassword" className="font-medium">
-                {t('resetPassword.newPasswordLabel', { defaultValue: 'Nova senha' })}
+                {t('resetPassword.newPasswordLabel', { defaultValue: 'Nova palavra-passe' })}
               </Label>
 
               <div className="relative">
                 <PasswordInput
                   id="newPassword"
-                  placeholder={t('resetPassword.newPasswordPlaceholder', { defaultValue: 'Digite sua nova senha' })}
+                  placeholder={t('resetPassword.newPasswordPlaceholder', { defaultValue: 'Escreva a nova palavra-passe' })}
                   {...register('newPassword')}
                   className={errors.newPassword ? 'border-red-500 focus-visible:ring-red-500' : ''}
                   autoComplete="new-password"
@@ -405,13 +405,13 @@ export function ResetPasswordPage() {
             {/* Campo: Confirmar Senha */}
             <div className="space-y-2">
               <Label htmlFor="confirmPassword" className="font-medium">
-                {t('resetPassword.confirmPasswordLabel', { defaultValue: 'Confirmar senha' })}
+                {t('resetPassword.confirmPasswordLabel', { defaultValue: 'Confirmar palavra-passe' })}
               </Label>
 
               <div className="relative">
                 <PasswordInput
                   id="confirmPassword"
-                  placeholder={t('resetPassword.confirmPasswordPlaceholder', { defaultValue: 'Confirme sua nova senha' })}
+                  placeholder={t('resetPassword.confirmPasswordPlaceholder', { defaultValue: 'Repita a nova palavra-passe' })}
                   {...register('confirmPassword')}
                   className={errors.confirmPassword ? 'border-red-500 focus-visible:ring-red-500' : ''}
                   autoComplete="new-password"

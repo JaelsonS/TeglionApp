@@ -58,5 +58,7 @@ Dashboard · Pedidos · Serviços · Mais · Mensagens · Documentos · Arquivo 
 | 4 | Landing, blog, manual — navy único | feito |
 | 5 | Residual navy, hero Teglion, 404/no-access | feito |
 | 6 | Labels menu firm + chrome portal | feito |
-| 7 | Blog + Ajuda/Sobre + rail sync | em curso |
+| 7 | Blog + Ajuda/Sobre + rail sync | feito |
+| 8 | Booking return + clareza pagamentos | feito |
+| 9 | Copy pt-PT residual + inventário | feito |
 | Merge → staging | Só quando a repaginação estiver completa | pendente |
