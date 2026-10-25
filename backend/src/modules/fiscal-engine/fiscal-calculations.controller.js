@@ -78,6 +78,32 @@ exports.createSs = async (req, res, next) => {
   }
 };
 
+exports.withholdingCatalog = async (_req, res) => {
+  return res.json(fiscalCalculationsService.getWithholdingCatalog());
+};
+
+exports.withholdingSimulate = async (req, res, next) => {
+  try {
+    const simulation = fiscalCalculationsService.runWithholdingSimulate(req.body || {});
+    return res.json({ simulation });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.createWithholding = async (req, res, next) => {
+  try {
+    const result = await fiscalCalculationsService.createWithholdingSimulation({
+      firmId: String(req.user.firmId),
+      actorId: req.user.id,
+      body: req.body || {},
+    });
+    return res.status(201).json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.list = async (req, res, next) => {
   try {
     const result = await fiscalCalculationsService.listCalculations({

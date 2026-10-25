@@ -19,6 +19,7 @@ import { createContabilFeeChargesApi } from '@/infrastructure/api/contabil/feeCh
 import { createContabilFiscalVatApi } from '@/infrastructure/api/contabil/fiscalVat'
 import { createContabilFiscalIrsApi } from '@/infrastructure/api/contabil/fiscalIrs'
 import { createContabilFiscalSsApi } from '@/infrastructure/api/contabil/fiscalSs'
+import { createContabilFiscalWithholdingApi } from '@/infrastructure/api/contabil/fiscalWithholding'
 import { createContabilMessagesApi } from '@/infrastructure/api/contabil/messages'
 import { createContabilNewsApi } from '@/infrastructure/api/contabil/news'
 import { createContabilNavBadgesApi } from '@/infrastructure/api/contabil/navBadges'
@@ -92,6 +93,7 @@ export const contabilFeeChargesApi = createContabilFeeChargesApi(api)
 export const contabilFiscalVatApi = createContabilFiscalVatApi(api)
 export const contabilFiscalIrsApi = createContabilFiscalIrsApi(api)
 export const contabilFiscalSsApi = createContabilFiscalSsApi(api)
+export const contabilFiscalWithholdingApi = createContabilFiscalWithholdingApi(api)
 export const clientPortalContabilApi = createClientPortalContabilApi(api)
 
 export type { BillingStatus, ConnectStatus }

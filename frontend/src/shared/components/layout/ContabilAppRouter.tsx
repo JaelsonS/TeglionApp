@@ -147,6 +147,11 @@ const FirmSsCalculatorPage = lazy(() =>
     default: m.FirmSsCalculatorPage,
   })),
 )
+const FirmWithholdingCalculatorPage = lazy(() =>
+  import('@/features/firm/pages/FirmWithholdingCalculatorPage').then((m) => ({
+    default: m.FirmWithholdingCalculatorPage,
+  })),
+)
 const FirmAlertsPage = lazy(() => import('@/features/firm/pages/FirmAlertsPage').then((m) => ({ default: m.FirmAlertsPage })))
 const FirmNewsPage = lazy(() => import('@/features/firm/pages/FirmNewsPage').then((m) => ({ default: m.FirmNewsPage })))
 const ClientDashboardPage = lazy(() =>
@@ -274,6 +279,7 @@ export function ContabilAppRouter() {
                 <Route path="calculators/iva" element={<FirmVatCalculatorPage />} />
                 <Route path="calculators/irs" element={<FirmIrsCalculatorPage />} />
                 <Route path="calculators/ss" element={<FirmSsCalculatorPage />} />
+                <Route path="calculators/retencao" element={<FirmWithholdingCalculatorPage />} />
                 <Route path="documents" element={<FirmDocumentsLayout />}>
                   <Route index element={<Navigate to="requests" replace />} />
                   <Route path="requests" element={<FormalRequestsModule />} />

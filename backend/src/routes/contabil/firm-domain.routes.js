@@ -695,6 +695,21 @@ router.post(
   fiscalCalculationsController.createSs,
 );
 router.get(
+  '/fiscal/withholding/catalog',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.withholdingCatalog,
+);
+router.post(
+  '/fiscal/withholding/simulate',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.withholdingSimulate,
+);
+router.post(
+  '/fiscal/withholding/calculations',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.createWithholding,
+);
+router.get(
   '/fiscal/calculations',
   requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
   fiscalCalculationsController.list,

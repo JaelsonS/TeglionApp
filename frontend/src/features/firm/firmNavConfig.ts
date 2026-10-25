@@ -132,6 +132,12 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         labelDefault: 'Calculadora SS',
         icon: Calculator,
       },
+      {
+        to: '/app/firm/calculators/retencao',
+        labelKey: 'contabil.firm.nav.withholdingCalculator',
+        labelDefault: 'Retenção IRS',
+        icon: Calculator,
+      },
     ],
   },
   {
@@ -307,6 +313,12 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     to: '/app/firm/calculators/ss',
     labelKey: 'contabil.firm.nav.ssCalculator',
     labelDefault: 'Calculadora SS',
+    icon: Calculator,
+  },
+  {
+    to: '/app/firm/calculators/retencao',
+    labelKey: 'contabil.firm.nav.withholdingCalculator',
+    labelDefault: 'Retenção IRS',
     icon: Calculator,
   },
   {

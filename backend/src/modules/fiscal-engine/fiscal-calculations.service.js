@@ -16,6 +16,11 @@ const {
   simulateSs,
   DEFAULT_VERSION: SS_DEFAULT_VERSION,
 } = require('./ss-engine');
+const {
+  listRulePacks: listWhRulePacks,
+  simulateWithholding,
+  DEFAULT_VERSION: WH_DEFAULT_VERSION,
+} = require('./withholding-engine');
 
 function toAppError(err) {
   if (err?.code === 'INVALID_AMOUNT' || err?.code === 'INVALID_RATE') {
@@ -54,6 +59,15 @@ function getSsCatalog() {
   };
 }
 
+function getWithholdingCatalog() {
+  return {
+    defaultVersion: WH_DEFAULT_VERSION,
+    packs: listWhRulePacks(),
+    disclaimer:
+      'Simulações de retenção na fonte (continente, tabelas I–III). Não substituem recibo de vencimento oficial nem o Portal das Finanças.',
+  };
+}
+
 function runSimulate(body) {
   try {
     return simulateVat({
@@ -87,6 +101,19 @@ function runSsSimulate(body) {
       baseCents: body.baseCents,
       servicesCents: body.servicesCents,
       ruleVersion: body.ruleVersion || SS_DEFAULT_VERSION,
+    });
+  } catch (err) {
+    throw toAppError(err);
+  }
+}
+
+function runWithholdingSimulate(body) {
+  try {
+    return simulateWithholding({
+      tableCode: body.tableCode,
+      remunerationCents: body.remunerationCents,
+      dependents: body.dependents,
+      ruleVersion: body.ruleVersion || WH_DEFAULT_VERSION,
     });
   } catch (err) {
     throw toAppError(err);
@@ -152,6 +179,17 @@ async function createSsSimulation({ firmId, actorId, body }) {
   });
 }
 
+async function createWithholdingSimulation({ firmId, actorId, body }) {
+  const simulation = runWithholdingSimulate(body);
+  return persistSimulation({
+    firmId,
+    actorId,
+    body,
+    simulation,
+    metaExtra: { table: simulation.table },
+  });
+}
+
 async function listCalculations({ firmId, limit, calcType }) {
   const items = await fiscalCalculationsRepository.listForFirm(firmId, { limit, calcType });
   return { items };
@@ -167,12 +205,15 @@ module.exports = {
   getVatCatalog,
   getIrsCatalog,
   getSsCatalog,
+  getWithholdingCatalog,
   runSimulate,
   runIrsSimulate,
   runSsSimulate,
+  runWithholdingSimulate,
   createVatSimulation,
   createIrsSimulation,
   createSsSimulation,
+  createWithholdingSimulation,
   listCalculations,
   getCalculation,
 };
