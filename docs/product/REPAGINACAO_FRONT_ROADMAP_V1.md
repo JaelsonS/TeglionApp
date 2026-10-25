@@ -325,7 +325,7 @@ Não está no menu firm, mas **vende o sistema**. Fazer em paralelo depois da Fa
 | **Problema** | Omite módulos reais (carteira, imóveis, SAF-T, agenda, calendário fiscal, calculadoras); screenshots desalinhados; confunde Stripe/carteira e três “calendários” |
 | **Alvo** | Secção “O que o Teglion já inclui” alinhada a `FIRM_NAV_GROUPS`; carrossel com aspect fixo; captions honestas; FAQ sem overclaim AT |
 | **Subfases** | **L.1** estrutura/hero · **L.2** grelha de módulos reais · **L.3** carrossel/screenshots · **L.4** pricing/FAQ/CTA |
-| **Estado** | ☐ |
+| **Estado** | ✅ |
 
 ---
 
@@ -400,6 +400,6 @@ Este roadmap = **Wave páginas / produto**.
 | 16 | Notícias | ✅ |
 | 17 | Plano | ✅ |
 | 18 | Definições (12) | ✅ |
-| L | Landing | ☐ |
+| L | Landing | ✅ |
 
-**Última actualização:** 2026-10-25 — Fases 1–11 concluídas (copy autoexplicativa + layout leve).
+**Última actualização:** 2026-10-25 — Fases 13–18 e L concluídas (copy autoexplicativa + landing alinhada ao menu firm).

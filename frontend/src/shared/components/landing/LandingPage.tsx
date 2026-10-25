@@ -11,6 +11,7 @@ import { LandingHowItWorks } from '@/shared/components/landing/LandingHowItWorks
 import { LandingPain } from '@/shared/components/landing/LandingPain'
 import { LandingPricing } from '@/shared/components/landing/LandingPricing'
 import { LandingProductCarousel } from '@/shared/components/landing/LandingProductCarousel'
+import { LandingProductModules } from '@/shared/components/landing/LandingProductModules'
 import { LandingPublicOffer } from '@/shared/components/landing/LandingPublicOffer'
 import { LandingSolution } from '@/shared/components/landing/LandingSolution'
 import { LandingTrust } from '@/shared/components/landing/LandingTrust'
@@ -35,6 +36,7 @@ export function LandingPage() {
         <LandingPain />
         <LandingSolution />
         <LandingFeatures />
+        <LandingProductModules />
         <LandingPublicOffer />
         <LandingProductCarousel />
         <LandingHowItWorks />

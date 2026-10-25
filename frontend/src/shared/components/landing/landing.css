@@ -103,6 +103,20 @@
   min-width: 0;
 }
 
+.landing-screenshot-frame {
+  aspect-ratio: 16 / 10;
+  width: 100%;
+  overflow: hidden;
+}
+
+.landing-screenshot-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .landing-card:hover {
     transform: translateY(-2px);
