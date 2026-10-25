@@ -9,7 +9,7 @@ export const LANDING_INTENTS = [
     shortDescription: 'a plataforma',
     surface: 'landing',
     answer:
-      'O Teglion é a plataforma de gestão para gabinetes de contabilidade em Portugal: portal do cliente, página pública, serviços, prazos, documentos, mensagens e captação de pedidos. Não substitui o software de contabilidade clássico — organiza a relação com o cliente e o trabalho do dia. É um produto da AfDigital — Soluções Tecnológicas, e evoluímos o sistema todos os dias com o que os escritórios realmente usam.',
+      'O Teglion é a plataforma de gestão para gabinetes de contabilidade em Portugal: portal do cliente, página pública, serviços, prazos, documentos, mensagens e captação de pedidos. Não substitui o software de contabilidade clássico — organiza a relação com o cliente e o trabalho do dia. É um produto da AfDigital — Soluções Tecnológicas, e evoluímos o sistema todos os dias com o que os gabinetes realmente usam.',
     steps: [
       'Veja o que o gabinete ganha: um sítio só para clientes, serviços e prazos',
       'A página pública capta pedidos sem WhatsApp perdido',
@@ -34,7 +34,7 @@ export const LANDING_INTENTS = [
       },
       {
         id: 'para-quem',
-        title: 'É para o meu escritório?',
+        title: 'É para o meu gabinete?',
         answer:
           'Sim, se trabalha com clientes em Portugal e quer um portal, uma página pública e um sítio único para pedidos e prazos — em vez de e-mail e WhatsApp espalhados.',
       },

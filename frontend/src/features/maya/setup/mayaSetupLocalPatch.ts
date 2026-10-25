@@ -124,7 +124,7 @@ export function buildLocalPatchFromAnswers(
       ? `Áreas: ${answers.specialties.slice(0, 5).join(', ')}.`
       : ''
   const serviceKeys = Array.isArray(answers.serviceCatalogKeys) ? answers.serviceCatalogKeys : []
-  const name = firmName.trim() || 'O seu escritório'
+  const name = firmName.trim() || 'O seu gabinete'
   return {
     seo: {
       title: `${name} — contabilidade`.slice(0, 70),

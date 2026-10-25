@@ -206,7 +206,7 @@ export function MayaSetupProposalReviewEditor({
               </span>
             </label>
           ) : (
-            <p className="text-muted-foreground">Campanha IRS só para escritórios PT.</p>
+            <p className="text-muted-foreground">Campanha IRS só para gabinetes PT.</p>
           )
         ) : null}
 

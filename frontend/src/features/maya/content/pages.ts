@@ -625,7 +625,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     pathPrefix: '/app/firm/sobre',
     where: 'Sobre o Teglion',
     summary:
-      'O Teglion é o produto SaaS para escritórios; a AfDigital — Soluções Tecnológicas é quem o desenvolve e opera.',
+      'O Teglion é o produto SaaS para gabinetes; a AfDigital — Soluções Tecnológicas é quem o desenvolve e opera.',
     audience: 'Qualquer utilizador',
     goal: 'Perceber a identidade do produto.',
     topicIds: ['tour', 'human-support'],
