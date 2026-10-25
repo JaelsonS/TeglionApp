@@ -24,7 +24,7 @@ const documentRequestsController = require('../../modules/document-requests/docu
 const newsController = require('../../modules/news/news.controller');
 const broadcastsController = require('../../modules/broadcasts/broadcasts.controller');
 const trackingController = require('../../modules/tracking/tracking.controller');
-const { optionalSingle, uploadSingle, uploadAvatarSingle, uploadCsvSingle } = require('../../middlewares/upload.middleware');
+const { optionalSingle, uploadSingle, uploadAvatarSingle, uploadCsvSingle, uploadSaftSingle } = require('../../middlewares/upload.middleware');
 const automationController = require('../../modules/automations/automation.controller');
 const fiscalCalendarController = require('../../modules/fiscal/fiscal-calendar.controller');
 const fiscalCalendarNotesController = require('../../modules/fiscal/fiscal-calendar-notes.controller');
@@ -36,6 +36,10 @@ const caeHistoryController = require('../../modules/firm/cae-history.controller'
 const caeCatalogController = require('../../modules/firm/cae-catalog.controller');
 const mayaSetupController = require('../../modules/maya-setup/maya-setup.controller');
 const { mayaSetupGenerateLimiter } = require('../../modules/maya-setup/maya-setup.rate-limit');
+const feeChargesController = require('../../modules/fee-charges/fee-charges.controller');
+const rentalsController = require('../../modules/rentals/rentals.controller');
+const saftController = require('../../modules/saft/saft.controller');
+const fiscalCalculationsController = require('../../modules/fiscal-engine/fiscal-calculations.controller');
 
 const router = express.Router();
 
@@ -382,6 +386,11 @@ router.get(
   navBadgesController.getNavBadges,
 );
 router.get('/obligations/operational-dashboard', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationTemplatesController.operationalDashboard);
+router.get(
+  '/obligations/month-matrix',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  obligationsController.monthMatrix,
+);
 router.get('/obligation-templates', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationTemplatesController.listTemplates);
 router.post('/obligation-templates', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationTemplatesController.createTemplate);
 router.post('/obligations/from-template', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), obligationTemplatesController.createFromTemplate);
@@ -513,6 +522,16 @@ router.post(
 router.post('/clients', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.create);
 router.get('/clients/:id/hub', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.getHub);
 router.get(
+  '/clients/:id/billing',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  feeChargesController.getClientBilling,
+);
+router.patch(
+  '/clients/:id/billing',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  feeChargesController.patchClientBilling,
+);
+router.get(
   '/clients/:id/official-accesses',
   requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
   officialAccessesController.list,
@@ -626,6 +645,136 @@ router.get('/consultations/attention-count', requirePermission(PERMISSIONS.FIRM_
 router.get('/consultations', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), consultationsController.list);
 router.post('/consultations', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), consultationsController.create);
 router.patch('/consultations/:id', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), consultationsController.update);
+
+router.get('/fee-charges/meta', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.meta);
+router.get('/fee-charges/map', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.map);
+router.post('/fee-charges/generate', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.generate);
+router.patch('/fee-charges/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.patch);
+
+router.get('/rentals/meta', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.meta);
+router.get('/rentals/overview', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.overview);
+router.post('/rentals/properties', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.createProperty);
+router.patch('/rentals/properties/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.patchProperty);
+router.post(
+  '/rentals/properties/:propertyId/leases',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  rentalsController.createLease,
+);
+router.patch('/rentals/leases/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.patchLease);
+router.post('/rentals/receipts/generate', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.generateReceipts);
+router.patch('/rentals/receipts/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.patchReceipt);
+
+router.get('/saft/meta', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), saftController.meta);
+router.get('/saft/imports', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), saftController.list);
+router.get('/saft/imports/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), saftController.get);
+router.post(
+  '/saft/imports',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  uploadSaftSingle('file'),
+  saftController.importFile,
+);
+router.delete('/saft/imports/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), saftController.remove);
+
+router.get(
+  '/fiscal/vat/catalog',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.vatCatalog,
+);
+router.post(
+  '/fiscal/vat/simulate',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.vatSimulate,
+);
+router.post(
+  '/fiscal/vat/calculations',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.createVat,
+);
+router.get(
+  '/fiscal/irs/catalog',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.irsCatalog,
+);
+router.post(
+  '/fiscal/irs/simulate',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.irsSimulate,
+);
+router.post(
+  '/fiscal/irs/calculations',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.createIrs,
+);
+router.get(
+  '/fiscal/ss/catalog',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.ssCatalog,
+);
+router.post(
+  '/fiscal/ss/simulate',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.ssSimulate,
+);
+router.post(
+  '/fiscal/ss/calculations',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.createSs,
+);
+router.get(
+  '/fiscal/withholding/catalog',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.withholdingCatalog,
+);
+router.post(
+  '/fiscal/withholding/simulate',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.withholdingSimulate,
+);
+router.post(
+  '/fiscal/withholding/calculations',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.createWithholding,
+);
+router.get(
+  '/fiscal/imt/catalog',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.imtCatalog,
+);
+router.post(
+  '/fiscal/imt/simulate',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.imtSimulate,
+);
+router.post(
+  '/fiscal/imt/calculations',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.createImt,
+);
+router.get(
+  '/fiscal/irc/catalog',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.ircCatalog,
+);
+router.post(
+  '/fiscal/irc/simulate',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.ircSimulate,
+);
+router.post(
+  '/fiscal/irc/calculations',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.createIrc,
+);
+router.get(
+  '/fiscal/calculations',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.list,
+);
+router.get(
+  '/fiscal/calculations/:id',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.getById,
+);
 
 router.get('/broadcasts/meta', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), broadcastsController.getMeta);
 router.post(

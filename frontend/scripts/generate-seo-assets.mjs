@@ -53,6 +53,8 @@ function buildSitemap(posts) {
   const staticPages = [
     { loc: '/', changefreq: 'weekly', priority: '1.0' },
     { loc: '/pricing', changefreq: 'monthly', priority: '0.9' },
+    { loc: '/manual', changefreq: 'weekly', priority: '0.9' },
+    { loc: '/suporte', changefreq: 'monthly', priority: '0.7' },
     { loc: '/blog', changefreq: 'weekly', priority: '0.95' },
     { loc: '/case-studies', changefreq: 'monthly', priority: '0.7' },
     { loc: '/termos', changefreq: 'yearly', priority: '0.4' },

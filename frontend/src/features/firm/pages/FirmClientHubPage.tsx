@@ -27,6 +27,7 @@ import { ClientHubActivityHistoryPanel } from '@/features/firm/client-hub/Client
 import { ClientHubHistory } from '@/features/firm/client-hub/ClientHubHistory'
 import { deriveRiskReason } from '@/features/firm/client-hub/clientHubUtils'
 import { ClientHubOverviewMetrics } from '@/features/firm/client-hub/ClientHubOverviewMetrics'
+import { ClientHubBillingPanel } from '@/features/firm/payments/ClientHubBillingPanel'
 import {
   CLIENT_HUB_SECTIONS,
   isClientHubSection,
@@ -284,6 +285,10 @@ export function FirmClientHubPage() {
               </section>
             ) : null}
           </div>
+        ) : null}
+
+        {section === 'billing' ? (
+          <ClientHubBillingPanel clientId={cid} displayName={displayName} />
         ) : null}
 
         {section === 'timeline' ? (

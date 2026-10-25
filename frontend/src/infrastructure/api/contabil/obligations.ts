@@ -1,5 +1,47 @@
 import type { AxiosInstance } from 'axios'
 
+export type ObligationMonthMatrixItem = {
+  id: string
+  clientId?: string | null
+  clientName?: string | null
+  clientTaxId?: string | null
+  title?: string | null
+  status: string
+  period?: string | null
+  assignedStaffId?: string | null
+}
+
+export type ObligationMonthMatrixGroup = {
+  key: string
+  type: string
+  typeLabel: string
+  dueDate: string
+  title: string
+  total: number
+  treated: number
+  pending: number
+  overdue: number
+  waitingClient: number
+  ratioLabel: string
+  complete: boolean
+  items: ObligationMonthMatrixItem[]
+}
+
+export type ObligationMonthMatrix = {
+  yearMonth: string
+  dueDateGte: string
+  dueDateLte: string
+  summary: {
+    groups: number
+    total: number
+    treated: number
+    pending: number
+    completeGroups: number
+  }
+  groups: ObligationMonthMatrixGroup[]
+  note?: string
+}
+
 function appendObligationPayload(fd: FormData, payload: Record<string, unknown>) {
   const required = new Set(['clientId', 'type', 'period', 'dueDate', 'title'])
   for (const [key, value] of Object.entries(payload)) {
@@ -28,6 +70,11 @@ export function createContabilObligationsApi(api: AxiosInstance) {
 
     getOperationalDashboard: () =>
       api.get('/contabil/obligations/operational-dashboard').then((r) => r.data),
+
+    getMonthMatrix: (yearMonth: string) =>
+      api
+        .get('/contabil/obligations/month-matrix', { params: { yearMonth } })
+        .then((r) => r.data as ObligationMonthMatrix),
 
     listTemplates: () => api.get('/contabil/obligation-templates').then((r) => r.data),
 

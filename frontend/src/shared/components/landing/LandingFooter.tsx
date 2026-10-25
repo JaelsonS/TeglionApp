@@ -25,6 +25,7 @@ import {
 } from '@/shared/config/supportLinks'
 
 const LEGAL_FOOTER_LINKS: { to: string; label: string }[] = [
+  { to: '/manual', label: 'Manual (Maya)' },
   { to: '/suporte', label: 'Ajuda e suporte' },
   { to: '/termos', label: 'Termos' },
   { to: '/privacidade', label: 'Privacidade' },
@@ -96,6 +97,11 @@ export function LandingFooter() {
             <li>
               <Link to="/pricing" className="hover:text-[#0F2942]">
                 Preços
+              </Link>
+            </li>
+            <li>
+              <Link to="/manual" className="hover:text-[#0F2942]">
+                Manual do utilizador
               </Link>
             </li>
             <li>

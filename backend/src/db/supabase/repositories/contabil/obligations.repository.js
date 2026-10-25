@@ -6,7 +6,15 @@ const { resolveFirmTimezone, todayInTimezone } = require('../../../../utils/firm
 
 const OVERDUE_SYNC_TTL_SEC = 300;
 
-async function listObligations({ firmId, clientId, period, statusIn, limit = 500 }) {
+async function listObligations({
+  firmId,
+  clientId,
+  period,
+  statusIn,
+  dueDateGte,
+  dueDateLte,
+  limit = 500,
+}) {
   const sb = ensureClient();
   let q = sb
     .from('obligations')
@@ -17,6 +25,8 @@ async function listObligations({ firmId, clientId, period, statusIn, limit = 500
   if (clientId) q = q.eq('client_id', clientId);
   if (period) q = q.eq('period', period);
   if (statusIn?.length) q = q.in('status', statusIn);
+  if (dueDateGte) q = q.gte('due_date', dueDateGte);
+  if (dueDateLte) q = q.lte('due_date', dueDateLte);
   const { data, error } = await q;
   if (error) throw error;
   return (data || []).map(mapObligationRow);

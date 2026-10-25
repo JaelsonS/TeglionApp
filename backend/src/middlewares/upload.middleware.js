@@ -216,6 +216,52 @@ function uploadCsvSingle(fieldName = 'file') {
   };
 }
 
+/** SAF-T PT: .xml ou .zip — validação de conteúdo no serviço (XXE / AuditFile). */
+const uploadSaft = multer({
+  storage: memoryStorage,
+  limits: {
+    fileSize: Math.min(maxFileSizeBytes(), 25 * 1024 * 1024),
+    files: 1,
+  },
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    if (ext !== '.xml' && ext !== '.zip') {
+      return cb(new Error('Só são aceites ficheiros .xml ou .zip (SAF-T PT).'), false);
+    }
+    const mime = (file.mimetype || '').toLowerCase();
+    const allowed = new Set([
+      'text/xml',
+      'application/xml',
+      'application/zip',
+      'application/x-zip-compressed',
+      'application/octet-stream',
+      'text/plain',
+    ]);
+    if (mime && !allowed.has(mime)) {
+      return cb(new Error('Tipo MIME não permitido para SAF-T.'), false);
+    }
+    cb(null, true);
+  },
+});
+
+function uploadSaftSingle(fieldName = 'file') {
+  return (req, res, next) => {
+    uploadSaft.single(fieldName)(req, res, (err) => {
+      if (err) return next(err);
+      if (!req.file?.buffer) return next();
+      const ext = path.extname(req.file.originalname || '').toLowerCase();
+      if (ext === '.zip') {
+        const validation = validateMagicBytes(req.file.buffer, 'application/zip');
+        if (!validation.valid) {
+          logger.warn(`[UPLOAD SAF-T] ZIP magic inválido: ${validation.error}`);
+          return next(new Error(validation.error));
+        }
+      }
+      return next();
+    });
+  };
+}
+
 const uploadSingle = (fieldName = 'file') => wrapMulter(upload.single(fieldName));
 const uploadFields = (fields) => wrapMulter(upload.fields(fields));
 const uploadAvatarSingle = (fieldName = 'logo') => wrapMulter(uploadAvatar.single(fieldName));
@@ -227,6 +273,7 @@ module.exports = {
   optionalSingle,
   uploadSingle,
   uploadCsvSingle,
+  uploadSaftSingle,
   uploadFields,
   uploadAvatarSingle,
   assertUploadedFileMagic,

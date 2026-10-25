@@ -727,6 +727,56 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     primaryIntentId: 'portal-home',
   },
   {
+    id: 'firm-payments',
+    pathPrefix: '/app/firm/payments',
+    where: 'Pagamentos (avenças)',
+    summary:
+      'Mapa anual de avenças: gere o mês, marque estados e saldos. Stripe Connect é opcional — o registo manual funciona sempre.',
+    audience: 'Equipa que cobra honorários',
+    goal: 'Ter o mês gerado e os estados actualizados sem bloquear por falta de Connect.',
+    topicIds: ['fee-charges', 'payments', 'billing', 'manual-guide'],
+    primaryIntentId: 'fee-charges',
+  },
+  {
+    id: 'firm-rentals',
+    pathPrefix: '/app/firm/rentals',
+    where: 'Imóveis e rendas',
+    summary:
+      'Contratos e recibos internos para o escritório. Não são recibos oficiais AT.',
+    audience: 'Equipa que acompanha senhorios',
+    goal: 'Registar imóveis, contratos e recibos do mês com honestidade legal.',
+    topicIds: ['rentals-guide', 'manual-guide'],
+    primaryIntentId: 'rentals-guide',
+  },
+  {
+    id: 'firm-saft',
+    pathPrefix: '/app/firm/saft',
+    where: 'SAF-T (leitura)',
+    summary:
+      'Leitura de XML/ZIP SAF-T PT com totais — sem envio à AT.',
+    audience: 'Equipa fiscal / operação',
+    goal: 'Importar um ficheiro e validar cabeçalho e totais internamente.',
+    topicIds: ['saft-read', 'manual-guide'],
+    primaryIntentId: 'saft-read',
+  },
+  {
+    id: 'manual-public',
+    pathPrefix: '/manual',
+    where: 'Manual do utilizador',
+    summary:
+      'Guia completo na minha voz: capítulos do produto, limites honestos e links para a app.',
+    audience: 'Prospects e utilizadores Teglion',
+    goal: 'Encontrar o capítulo certo e, se ainda não for cliente, começar o trial.',
+    topicIds: [
+      'landing-manual',
+      'landing-what',
+      'landing-trial',
+      'landing-human',
+      'manual-guide',
+    ],
+    primaryIntentId: 'landing-manual',
+  },
+  {
     id: 'landing-home',
     pathPrefix: '/',
     exact: true,
@@ -744,6 +794,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
       'landing-page',
       'landing-portal',
       'landing-pricing',
+      'landing-manual',
       'landing-human',
     ],
     primaryIntentId: 'landing-what',
@@ -770,6 +821,7 @@ export const MAYA_LANDING_CATALOG_INTENT_IDS = [
   'landing-page',
   'landing-portal',
   'landing-pricing',
+  'landing-manual',
   'landing-human',
 ] as const
 
@@ -789,6 +841,10 @@ export const MAYA_CATALOG_INTENT_IDS = [
   'alerts',
   'news',
   'billing',
+  'fee-charges',
+  'rentals-guide',
+  'saft-read',
+  'manual-guide',
   'settings',
   'human-support',
 ] as const

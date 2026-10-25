@@ -60,8 +60,13 @@ export function ClientAccountPage() {
                 Pedidos, serviços, prazos e mensagens — sem ver os seus documentos. Para o seu caso concreto, fale com
                 o escritório.
               </p>
-              <div className="mt-3">
+              <div className="mt-3 flex flex-wrap gap-2">
                 <AskMayaButton intentId="portal-maya" />
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/manual" target="_blank" rel="noopener noreferrer">
+                    Manual Teglion (Maya)
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>

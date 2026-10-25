@@ -20,6 +20,7 @@ import { TasksByClientTableView } from '@/features/firm/tasks/TasksByClientTable
 import { TasksManualView } from '@/features/firm/tasks/TasksManualView'
 import { TasksObligationsView } from '@/features/firm/tasks/TasksObligationsView'
 import { TasksOperationsCalendarView } from '@/features/firm/tasks/TasksOperationsCalendarView'
+import { TasksFiscalMonthPanel } from '@/features/firm/tasks/TasksFiscalMonthPanel'
 import { TasksOverviewPanel } from '@/features/firm/tasks/TasksOverviewPanel'
 import { TasksWorkspaceShell } from '@/features/firm/tasks/TasksWorkspaceShell'
 import { firmTasksPath, parseTasksTabFromPathname } from '@/features/firm/tasks/firmTasksPaths'
@@ -303,6 +304,10 @@ export function FirmTasksWorkspacePage() {
         ) : null}
 
         {tab === 'obligations' ? <TasksObligationsView hub={obligationsHub} /> : null}
+
+        {tab === 'month' ? (
+          <TasksFiscalMonthPanel onSelectObligation={selectObligation} onMutate={invalidate} />
+        ) : null}
 
         {tab === 'manual' ? (
           <TasksManualView

@@ -2,6 +2,7 @@ const firmObligations = require('./firm-obligations.service');
 const obligationsFirm = require('./obligations-firm.service');
 const operationalService = require('./obligation-operational.service');
 const monthExclusionsService = require('./task-month-exclusions.service');
+const monthMatrixService = require('./obligation-month-matrix.service');
 const recurringRemoval = require('../recurrence/recurring-removal.service');
 const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
 const { getRepository } = require('../../db/supabase/repositories');
@@ -137,6 +138,19 @@ exports.dashboard = async (req, res, next) => {
     const firmId = requireUserFirmId(req);
     const dashboard = await firmObligations.getFirmDashboard({ firmId });
     return res.json(dashboard);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.monthMatrix = async (req, res, next) => {
+  try {
+    const firmId = requireUserFirmId(req);
+    const now = new Date();
+    const fallback = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const yearMonth = req.query.yearMonth ? String(req.query.yearMonth).trim() : fallback;
+    const matrix = await monthMatrixService.getMonthMatrix({ firmId, yearMonth });
+    return res.json(matrix);
   } catch (err) {
     return next(err);
   }

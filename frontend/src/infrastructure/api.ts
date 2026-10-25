@@ -15,6 +15,15 @@ import { createContabilFiscalCalendarApi } from '@/infrastructure/api/contabil/f
 import { createContabilGoogleCalendarApi } from '@/infrastructure/api/contabil/googleCalendar'
 import { createContabilGoogleDriveApi } from '@/infrastructure/api/contabil/googleDrive'
 import { createContabilLeadsApi } from '@/infrastructure/api/contabil/leads'
+import { createContabilFeeChargesApi } from '@/infrastructure/api/contabil/feeCharges'
+import { createContabilRentalsApi } from '@/infrastructure/api/contabil/rentals'
+import { createContabilSaftApi } from '@/infrastructure/api/contabil/saft'
+import { createContabilFiscalVatApi } from '@/infrastructure/api/contabil/fiscalVat'
+import { createContabilFiscalIrsApi } from '@/infrastructure/api/contabil/fiscalIrs'
+import { createContabilFiscalSsApi } from '@/infrastructure/api/contabil/fiscalSs'
+import { createContabilFiscalWithholdingApi } from '@/infrastructure/api/contabil/fiscalWithholding'
+import { createContabilFiscalImtApi } from '@/infrastructure/api/contabil/fiscalImt'
+import { createContabilFiscalIrcApi } from '@/infrastructure/api/contabil/fiscalIrc'
 import { createContabilMessagesApi } from '@/infrastructure/api/contabil/messages'
 import { createContabilNewsApi } from '@/infrastructure/api/contabil/news'
 import { createContabilNavBadgesApi } from '@/infrastructure/api/contabil/navBadges'
@@ -84,6 +93,15 @@ export const contabilInquiryTagsApi = createContabilInquiryTagsApi(api)
 export const contabilGoogleCalendarApi = createContabilGoogleCalendarApi(api)
 export const contabilGoogleDriveApi = createContabilGoogleDriveApi(api)
 export const contabilLeadsApi = createContabilLeadsApi(api)
+export const contabilFeeChargesApi = createContabilFeeChargesApi(api)
+export const contabilRentalsApi = createContabilRentalsApi(api)
+export const contabilSaftApi = createContabilSaftApi(api)
+export const contabilFiscalVatApi = createContabilFiscalVatApi(api)
+export const contabilFiscalIrsApi = createContabilFiscalIrsApi(api)
+export const contabilFiscalSsApi = createContabilFiscalSsApi(api)
+export const contabilFiscalWithholdingApi = createContabilFiscalWithholdingApi(api)
+export const contabilFiscalImtApi = createContabilFiscalImtApi(api)
+export const contabilFiscalIrcApi = createContabilFiscalIrcApi(api)
 export const clientPortalContabilApi = createClientPortalContabilApi(api)
 
 export type { BillingStatus, ConnectStatus }

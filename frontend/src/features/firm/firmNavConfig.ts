@@ -1,9 +1,11 @@
 import type { LucideIcon } from 'lucide-react'
 import {
+  Building2,
   CalendarCheck,
   CalendarDays,
   ClipboardCheck,
   ClipboardList,
+  FileArchive,
   Inbox,
   Landmark,
   LayoutGrid,
@@ -14,6 +16,8 @@ import {
   ReceiptText,
   Settings,
   UserRound,
+  Wallet,
+  Calculator,
 } from 'lucide-react'
 
 export type FirmNavItemConfig = {
@@ -56,6 +60,24 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         labelKey: 'contabil.firm.nav.clientsList',
         labelDefault: 'Clientes',
         icon: UserRound,
+      },
+      {
+        to: '/app/firm/payments',
+        labelKey: 'contabil.firm.nav.payments',
+        labelDefault: 'Pagamentos',
+        icon: Wallet,
+      },
+      {
+        to: '/app/firm/rentals',
+        labelKey: 'contabil.firm.nav.rentals',
+        labelDefault: 'Imóveis e rendas',
+        icon: Building2,
+      },
+      {
+        to: '/app/firm/saft',
+        labelKey: 'contabil.firm.nav.saft',
+        labelDefault: 'SAF-T (leitura)',
+        icon: FileArchive,
       },
       {
         to: '/app/firm/tasks/obligations',
@@ -105,6 +127,42 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         labelKey: 'contabil.firm.nav.fiscalCalendar',
         labelDefault: 'Calendário fiscal',
         icon: CalendarDays,
+      },
+      {
+        to: '/app/firm/calculators/iva',
+        labelKey: 'contabil.firm.nav.vatCalculator',
+        labelDefault: 'Calculadora IVA',
+        icon: Calculator,
+      },
+      {
+        to: '/app/firm/calculators/irs',
+        labelKey: 'contabil.firm.nav.irsCalculator',
+        labelDefault: 'Calculadora IRS',
+        icon: Calculator,
+      },
+      {
+        to: '/app/firm/calculators/ss',
+        labelKey: 'contabil.firm.nav.ssCalculator',
+        labelDefault: 'Calculadora SS',
+        icon: Calculator,
+      },
+      {
+        to: '/app/firm/calculators/retencao',
+        labelKey: 'contabil.firm.nav.withholdingCalculator',
+        labelDefault: 'Retenção IRS',
+        icon: Calculator,
+      },
+      {
+        to: '/app/firm/calculators/imt',
+        labelKey: 'contabil.firm.nav.imtCalculator',
+        labelDefault: 'Calculadora IMT',
+        icon: Calculator,
+      },
+      {
+        to: '/app/firm/calculators/irc',
+        labelKey: 'contabil.firm.nav.ircCalculator',
+        labelDefault: 'Calculadora IRC',
+        icon: Calculator,
       },
     ],
   },
@@ -224,6 +282,24 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     icon: UserRound,
   },
   {
+    to: '/app/firm/payments',
+    labelKey: 'contabil.firm.nav.payments',
+    labelDefault: 'Pagamentos',
+    icon: Wallet,
+  },
+  {
+    to: '/app/firm/rentals',
+    labelKey: 'contabil.firm.nav.rentals',
+    labelDefault: 'Imóveis e rendas',
+    icon: Building2,
+  },
+  {
+    to: '/app/firm/saft',
+    labelKey: 'contabil.firm.nav.saft',
+    labelDefault: 'SAF-T (leitura)',
+    icon: FileArchive,
+  },
+  {
     to: '/app/firm/documents',
     labelKey: 'contabil.firm.nav.documents',
     labelDefault: 'Documentos',
@@ -258,6 +334,42 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     labelKey: 'contabil.firm.nav.fiscalCalendar',
     labelDefault: 'Calendário fiscal',
     icon: CalendarDays,
+  },
+  {
+    to: '/app/firm/calculators/iva',
+    labelKey: 'contabil.firm.nav.vatCalculator',
+    labelDefault: 'Calculadora IVA',
+    icon: Calculator,
+  },
+  {
+    to: '/app/firm/calculators/irs',
+    labelKey: 'contabil.firm.nav.irsCalculator',
+    labelDefault: 'Calculadora IRS',
+    icon: Calculator,
+  },
+  {
+    to: '/app/firm/calculators/ss',
+    labelKey: 'contabil.firm.nav.ssCalculator',
+    labelDefault: 'Calculadora SS',
+    icon: Calculator,
+  },
+  {
+    to: '/app/firm/calculators/retencao',
+    labelKey: 'contabil.firm.nav.withholdingCalculator',
+    labelDefault: 'Retenção IRS',
+    icon: Calculator,
+  },
+  {
+    to: '/app/firm/calculators/imt',
+    labelKey: 'contabil.firm.nav.imtCalculator',
+    labelDefault: 'Calculadora IMT',
+    icon: Calculator,
+  },
+  {
+    to: '/app/firm/calculators/irc',
+    labelKey: 'contabil.firm.nav.ircCalculator',
+    labelDefault: 'Calculadora IRC',
+    icon: Calculator,
   },
   {
     to: '/app/firm/alerts',

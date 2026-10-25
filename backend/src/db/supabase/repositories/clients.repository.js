@@ -19,6 +19,13 @@ function mapClient(row) {
     lastLoginAt: row.last_login_at,
     assignedStaffId: row.assigned_staff_id,
     metadata: row.metadata || {},
+    retainerAmountCents:
+      row.retainer_amount_cents === null || row.retainer_amount_cents === undefined
+        ? null
+        : Number(row.retainer_amount_cents),
+    retainerCurrency: row.retainer_currency || 'EUR',
+    retainerActive: Boolean(row.retainer_active),
+    retainerDueDay: row.retainer_due_day != null ? Number(row.retainer_due_day) : 1,
   };
 }
 
@@ -61,6 +68,10 @@ async function updateClient(id, firmId, patch) {
   if (patch.taxId !== undefined) row.tax_id = patch.taxId || null;
   if (patch.status !== undefined) row.status = patch.status;
   if (patch.metadata !== undefined) row.metadata = patch.metadata;
+  if (patch.retainerAmountCents !== undefined) row.retainer_amount_cents = patch.retainerAmountCents;
+  if (patch.retainerCurrency !== undefined) row.retainer_currency = patch.retainerCurrency;
+  if (patch.retainerActive !== undefined) row.retainer_active = patch.retainerActive;
+  if (patch.retainerDueDay !== undefined) row.retainer_due_day = patch.retainerDueDay;
   const { data, error } = await sb.from('clients').update(row).eq('id', id).eq('firm_id', firmId).select().maybeSingle();
   if (error) throw error;
   return mapClient(data);
