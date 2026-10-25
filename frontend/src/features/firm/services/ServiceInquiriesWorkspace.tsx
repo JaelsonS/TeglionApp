@@ -566,7 +566,7 @@ export function ServiceInquiriesWorkspace() {
         onOpenChange={setTagsOpen}
         title="Etiquetas do escritório"
         description="Use as mesmas etiquetas em clientes, leads, solicitações e equipa."
-        className="h-auto max-h-[min(92dvh,760px)] w-[min(96vw,560px)] max-w-[min(96vw,560px)]"
+        className="w-[min(96vw,560px)] max-w-[min(96vw,560px)]"
       >
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           <p className="mb-4 text-sm text-muted-foreground">
@@ -594,7 +594,7 @@ export function ServiceInquiriesWorkspace() {
             ? `${detailQuery.data.inquiry.serviceName} — pedido, etiquetas e histórico no centro do ecrã.`
             : 'Pedido, etiquetas e histórico no centro do ecrã.'
         }
-        className="h-auto max-h-[min(92dvh,880px)] w-[min(96vw,720px)] max-w-[min(96vw,720px)]"
+        className="w-[min(96vw,720px)] max-w-[min(96vw,720px)]"
       >
         <div className="min-h-0 flex-1 overflow-y-auto px-5">
           {detailQuery.isLoading || !detailQuery.data ? (

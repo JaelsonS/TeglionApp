@@ -29,8 +29,10 @@ export function FirmWorkspaceFocusDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          'flex h-[min(92dvh,920px)] max-h-[min(92dvh,920px)] w-[min(96vw,960px)] max-w-[min(96vw,960px)] flex-col gap-0 overflow-hidden p-0',
+          'flex w-[min(96vw,960px)] max-w-[min(96vw,960px)] flex-col gap-0 p-0',
           className,
+          // Altura e overflow depois do className: `h-auto` nos callers cortava o scroll.
+          'h-[min(92dvh,920px)] max-h-[min(92dvh,920px)] overflow-hidden',
         )}
       >
         <DialogHeader className="shrink-0 border-b border-border/60 px-4 py-3 text-left">
@@ -43,7 +45,9 @@ export function FirmWorkspaceFocusDialog({
             <DialogDescription className="sr-only">Detalhe no centro do ecrã</DialogDescription>
           )}
         </DialogHeader>
-        <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
+          {children}
+        </div>
       </DialogContent>
     </Dialog>
   )

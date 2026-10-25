@@ -1455,7 +1455,7 @@ export function AgendaServicesCatalogPanel({
       onOpenChange={(open) => !open && setPreviewId(null)}
       title="Pré-visualização do formulário"
       description="Assim o cliente vê o pedido deste serviço — no centro do ecrã."
-      className="h-auto max-h-[min(92dvh,880px)] w-[min(96vw,640px)] max-w-[min(96vw,640px)]"
+      className="w-[min(96vw,640px)] max-w-[min(96vw,640px)]"
     >
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
         {previewService ? <ServiceFormPreview {...previewDataFor(previewService)} /> : null}
@@ -1467,7 +1467,7 @@ export function AgendaServicesCatalogPanel({
       onOpenChange={setCreateOpen}
       title="Criar serviço"
       description="Nome, duração e preço iniciais — pode ajustar tudo depois, incluindo IRS, formulário e agendamento, nas definições avançadas."
-      className="h-auto max-h-[min(92dvh,720px)] w-[min(96vw,560px)] max-w-[min(96vw,560px)]"
+      className="w-[min(96vw,560px)] max-w-[min(96vw,560px)]"
     >
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
         <div className="space-y-5">

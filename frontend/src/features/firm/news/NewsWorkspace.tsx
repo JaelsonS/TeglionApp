@@ -247,7 +247,7 @@ export function NewsWorkspace() {
         onOpenChange={(open) => !open && setEditing(null)}
         title={editing?.id || editing?._id ? 'Editar notícia' : 'Nova notícia'}
         description="Escreva, grave rascunho ou publique — no centro do ecrã."
-        className="h-auto max-h-[min(92dvh,880px)] w-[min(96vw,720px)] max-w-[min(96vw,720px)]"
+        className="w-[min(96vw,720px)] max-w-[min(96vw,720px)]"
       >
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           {editing ? (

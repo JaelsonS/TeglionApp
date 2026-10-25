@@ -126,7 +126,7 @@ export function FiscalCalendarDetailSheet({
       onOpenChange={onOpenChange}
       title={current.title}
       description="Prazo, estado e próximos passos — no centro do ecrã, para ler e agir sem tapar o calendário."
-      className="h-auto max-h-[min(92dvh,880px)] w-[min(96vw,760px)] max-w-[min(96vw,760px)]"
+      className="w-[min(96vw,760px)] max-w-[min(96vw,760px)]"
     >
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
         <div className="flex flex-wrap items-center gap-2 border-b border-border/50 px-5 py-3">
