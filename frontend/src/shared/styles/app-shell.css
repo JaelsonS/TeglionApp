@@ -133,6 +133,10 @@
     @apply w-[var(--cb-firm-sidebar-width)] shrink-0 overflow-visible;
   }
 
+  .cb-firm-sidebar-aside--collapsed {
+    @apply w-[var(--cb-firm-rail-width)];
+  }
+
   /* Desktop ≥1280px: rail + main em linha, largura total */
   .cb-firm-desktop-frame {
     @apply hidden h-full min-h-0 w-full min-w-0 flex-1 flex-row overflow-hidden;

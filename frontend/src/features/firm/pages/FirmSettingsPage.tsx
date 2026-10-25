@@ -151,7 +151,7 @@ export function FirmSettingsPage() {
       <div className="cb-settings-page">
         <PageHeader
           title="Definições"
-          subtitle="Identidade, página pública, equipa e segurança — escolha a secção abaixo."
+          subtitle="Configure o escritório no menu à esquerda. Comece por Identidade ou Pagamentos — tudo fica guardado neste ecrã."
           testId="firm-settings-header"
           secondary={
             <AskMayaButton
@@ -177,12 +177,24 @@ export function FirmSettingsPage() {
               className={cn('cb-settings-side-nav', settingsNavCollapsed && 'cb-settings-side-nav--collapsed')}
               aria-label="Secções de configuração"
             >
+              {!settingsNavCollapsed ? (
+                <div className="cb-settings-side-nav-heading">
+                  <p className="cb-settings-side-nav-heading-title">Definições do escritório</p>
+                  <p className="cb-settings-side-nav-heading-sub">
+                    Escolha a secção — identidade, pagamentos, equipa e segurança.
+                  </p>
+                </div>
+              ) : null}
               <button
                 type="button"
-                className="cb-settings-side-nav-collapse hidden lg:order-first lg:mb-2 lg:flex"
+                className="cb-settings-side-nav-collapse hidden lg:mb-2 lg:flex"
                 aria-expanded={!settingsNavCollapsed}
-                aria-label={settingsNavCollapsed ? 'Expandir menu de definições' : 'Minimizar menu de definições'}
-                title={settingsNavCollapsed ? 'Expandir menu' : 'Minimizar menu'}
+                aria-label={
+                  settingsNavCollapsed
+                    ? 'Mostrar nomes das secções de definições'
+                    : 'Mostrar só ícones nas secções de definições'
+                }
+                title={settingsNavCollapsed ? 'Mostrar nomes' : 'Só ícones'}
                 onClick={() => setSettingsNavCollapsed((v) => !v)}
               >
                 {settingsNavCollapsed ? (
@@ -191,7 +203,7 @@ export function FirmSettingsPage() {
                   <PanelLeftClose className="h-4 w-4" aria-hidden />
                 )}
                 {!settingsNavCollapsed ? (
-                  <span className="text-xs font-medium">Minimizar menu</span>
+                  <span className="text-xs font-medium">Só ícones</span>
                 ) : null}
               </button>
               {visibleTabs.map((item) => {

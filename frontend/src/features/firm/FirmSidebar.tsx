@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { PanelLeftClose } from 'lucide-react'
 
 import {
   FIRM_NAV_FLAT,
@@ -99,9 +100,12 @@ function NavGroup({
 export function FirmSidebar({
   onItemClick,
   variant = 'drawer',
+  onCollapse,
 }: {
   onItemClick?: () => void
   variant?: 'drawer' | 'desktop'
+  /** Só desktop: recolhe para rail de ícones. */
+  onCollapse?: () => void
 }) {
   const { t } = useTranslation('common')
   const { firm, firmLogoUrl } = useFirmBranding()
@@ -110,6 +114,9 @@ export function FirmSidebar({
   const fullLogoUrl = firmLogoUrl || toPublicAssetUrl(firm?.branding?.logoUrl)
   const subtitle = t('contabil.firm.subtitle', { defaultValue: 'Escritório' })
   const fallbackName = t('contabil.firm.fallback', { defaultValue: 'Teglion' })
+  const collapseLabel = t('contabil.firm.nav.collapseSidebar', {
+    defaultValue: 'Recolher menu',
+  })
 
   const labelFor = (item: FirmNavItemConfig) => t(item.labelKey, { defaultValue: item.labelDefault })
 
@@ -159,6 +166,22 @@ export function FirmSidebar({
         />
       </div>
       {nav}
+      {onCollapse ? (
+        <div className="cb-firm-sidebar-collapse">
+          <button
+            type="button"
+            className="cb-firm-sidebar-collapse-btn"
+            aria-expanded={true}
+            aria-label={collapseLabel}
+            title={collapseLabel}
+            data-testid="firm-desktop-sidebar-collapse"
+            onClick={onCollapse}
+          >
+            <PanelLeftClose className="h-4 w-4 shrink-0" aria-hidden />
+            <span>{collapseLabel}</span>
+          </button>
+        </div>
+      ) : null}
     </div>
   )
 }

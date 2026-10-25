@@ -131,78 +131,62 @@ export function FirmConnectPaymentsSection() {
     }
   }
 
+  const problemCopy = !configured
+    ? 'Stripe Connect ainda não está activa neste ambiente.'
+    : !paymentsAllowed
+      ? 'O plano actual não inclui pagamentos online.'
+      : !ready && account
+        ? humanizeConnectDisabledReason(account.requirementsDisabledReason) || pendingCopy
+        : 'Nenhum bloqueio conhecido.'
+
+  const nextStepCopy =
+    configured && canStart && !account
+      ? 'Ligar a conta Stripe do escritório com o botão abaixo.'
+      : configured && canStart && account && !ready
+        ? 'Continuar a configuração na Stripe.'
+        : ready
+          ? 'Nada — os clientes já podem pagar online.'
+          : 'Peça ao dono do escritório ou ao suporte se o botão não aparecer.'
+
   return (
-    <section className="cb-settings-panel space-y-6">
+    <section className="cb-settings-panel cb-settings-connect-stack">
       <div className="cb-settings-panel-hd">
         <span className="cb-settings-panel-icon">
           <CreditCard className="h-4 w-4" aria-hidden />
         </span>
         <div>
-          <h3 className="cb-settings-panel-title">Pagamentos dos clientes</h3>
+          <h3 className="cb-settings-panel-title">Recebimentos online (opcional)</h3>
           <p className="cb-settings-panel-sub">
-            Receba online na conta do escritório — o dinheiro não passa pela Teglion. A subscrição do produto
-            (plano mensal/anual) gere-se em Plano, não nesta página.
-          </p>
-        </div>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-3">
-        <div className="cb-settings-fieldset">
-          <p className="cb-settings-fieldset-title">A conta está pronta?</p>
-          <p className="cb-settings-fieldset-sub mt-1">{ready ? 'Sim — a receber dos clientes.' : statusLabel(account?.onboardingStatus, ready)}</p>
-        </div>
-        <div className="cb-settings-fieldset">
-          <p className="cb-settings-fieldset-title">Houve algum problema?</p>
-          <p className="cb-settings-fieldset-sub mt-1">
-            {!configured
-              ? 'Stripe Connect ainda não está activa neste ambiente.'
-              : !paymentsAllowed
-                ? 'O plano actual não inclui pagamentos online.'
-                : !ready && account
-                  ? humanizeConnectDisabledReason(account.requirementsDisabledReason) || pendingCopy
-                  : 'Nenhum bloqueio conhecido.'}
-          </p>
-        </div>
-        <div className="cb-settings-fieldset">
-          <p className="cb-settings-fieldset-title">O que fazer agora?</p>
-          <p className="cb-settings-fieldset-sub mt-1">
-            {configured && canStart && !account
-              ? 'Ligar a conta Stripe do escritório.'
-              : configured && canStart && account && !ready
-                ? 'Continuar a configuração na Stripe.'
-                : ready
-                  ? 'Nada — os clientes já podem pagar online.'
-                  : 'Peça ao dono do escritório ou ao suporte se o botão não aparecer.'}
+            O dinheiro dos clientes vai para a conta do escritório — a Teglion não o guarda. A
+            mensalidade do software gere-se em Plano, não aqui.
           </p>
         </div>
       </div>
 
       <div
         className={cn(
-          'rounded-xl border px-4 py-3 text-sm',
-          ready ? 'border-emerald-200 bg-emerald-50/80 text-emerald-950' : 'border-border bg-muted/30',
+          'cb-settings-connect-status',
+          ready ? 'border-emerald-200 bg-emerald-50/80 text-emerald-950' : 'border-border bg-muted/25',
         )}
         role="status"
       >
-        <div className="flex items-start gap-2">
+        <div className="flex items-start gap-3">
           {ready ? (
-            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
           ) : (
-            <Shield className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+            <Shield className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
           )}
-          <div>
-            <p className="font-medium">{statusLabel(account?.onboardingStatus, ready)}</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-base font-semibold">{statusLabel(account?.onboardingStatus, ready)}</p>
             {!configured ? (
-              <p className="mt-1 text-muted-foreground">
-                A Stripe Connect ainda não está activa neste ambiente (falta configuração no servidor).
-                Enquanto isso, o botão «Ligar» não aparece — contacte o suporte Teglion / AfDigital para
-                activar os pagamentos online em staging ou produção.
+              <p className="mt-1.5 text-muted-foreground">
+                Falta activar a Stripe Connect neste ambiente. Contacte o suporte Teglion / AfDigital —
+                o botão «Ligar» só aparece depois.
               </p>
             ) : null}
             {configured && !paymentsAllowed ? (
-              <p className="mt-1 text-muted-foreground">
-                O plano actual do escritório não inclui pagamentos online. Actualize o plano ou fale com o
-                suporte.
+              <p className="mt-1.5 text-muted-foreground">
+                O plano actual não inclui pagamentos online. Actualize o plano ou fale com o suporte.
               </p>
             ) : null}
             {account ? (
@@ -212,8 +196,8 @@ export function FirmConnectPaymentsSection() {
                 <li>Dados enviados à Stripe: {account.detailsSubmitted ? 'sim' : 'em falta'}</li>
               </ul>
             ) : configured && paymentsAllowed ? (
-              <p className="mt-1 text-muted-foreground">
-                Ainda não associou a conta Stripe do escritório. Use o botão abaixo para começar.
+              <p className="mt-1.5 text-muted-foreground">
+                Ainda não associou a conta Stripe. Use o botão em «Próximo passo» para começar.
               </p>
             ) : null}
             {!ready && account ? (
@@ -228,14 +212,36 @@ export function FirmConnectPaymentsSection() {
         </div>
       </div>
 
+      <div className="cb-settings-connect-steps">
+        <div className="cb-settings-connect-step">
+          <p className="cb-settings-connect-step-kicker">1 · O que é</p>
+          <p className="cb-settings-connect-step-title">Stripe Connect</p>
+          <p className="cb-settings-connect-step-body">
+            Ligação opcional para os clientes pagarem online. Sem Connect, continue a registar avenças
+            em{' '}
+            <Link to="/app/firm/payments" className="font-medium text-brand hover:underline">
+              Pagamentos
+            </Link>
+            .
+          </p>
+        </div>
+        <div className="cb-settings-connect-step">
+          <p className="cb-settings-connect-step-kicker">2 · Situação</p>
+          <p className="cb-settings-connect-step-title">
+            {ready ? 'Pronto' : statusLabel(account?.onboardingStatus, ready)}
+          </p>
+          <p className="cb-settings-connect-step-body">{problemCopy}</p>
+        </div>
+        <div className="cb-settings-connect-step">
+          <p className="cb-settings-connect-step-kicker">3 · Próximo passo</p>
+          <p className="cb-settings-connect-step-title">Acção</p>
+          <p className="cb-settings-connect-step-body">{nextStepCopy}</p>
+        </div>
+      </div>
+
       <p className="text-sm leading-relaxed text-muted-foreground">
-        Opcional: sem Stripe Connect continua a gerir avenças e pagamentos à mão em{' '}
-        <Link to="/app/firm/payments" className="font-medium text-brand hover:underline">
-          Pagamentos
-        </Link>
-        . Com Connect, os clientes podem pagar no Checkout da Stripe; o valor fica na conta do
-        escritório — a Teglion não custodia esse dinheiro. A taxa de serviço Teglion (manutenção da
-        integração) é diferente das taxas Stripe. A mensalidade do software está em{' '}
+        Com Connect, o valor fica na conta do escritório — a Teglion não custodia esse dinheiro. A taxa
+        de serviço Teglion é diferente das taxas Stripe. A mensalidade do software está em{' '}
         <Link to="/app/firm/billing" className="font-medium text-brand hover:underline">
           Plano
         </Link>
