@@ -47,3 +47,15 @@ Dashboard · Pedidos · Serviços · Mais · Mensagens · Documentos · Arquivo 
 - Não remover rotas nem funcionalidades; redirects OK.
 - Não alterar contratos backend.
 - Uma pele visual (tokens + design-system) em todas as superfícies.
+
+## Progresso (branch `feature/fase-repaginacao-ui`)
+
+| Wave | Conteúdo | Estado |
+|------|----------|--------|
+| Base | DS tokens, menu firm, Painel Hoje, PagePurpose | feito |
+| 2 | Público, pricing, tarefas, portal (arquivo/updates/conta) | feito |
+| 3 | Auth, legal, suporte, casos — navy + propósito | feito |
+| 4 | Landing, blog, manual — navy único | feito |
+| 5 | Residual navy, hero Teglion, 404/no-access | feito |
+| 6 | Labels menu firm + chrome portal | em curso |
+| Merge → staging | Só quando a repaginação estiver completa | pendente |

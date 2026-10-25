@@ -77,7 +77,7 @@ export function ClientPortalSidebar({
             <p className="truncate text-[13px] font-semibold leading-tight text-foreground">
               {firmName || 'Escritório'}
             </p>
-            <p className="truncate text-[11px] leading-tight text-muted-foreground">Portal cliente</p>
+            <p className="truncate text-[11px] leading-tight text-muted-foreground">Portal do cliente · Teglion</p>
           </div>
           {brandAction ? <div className="shrink-0">{brandAction}</div> : null}
         </div>
