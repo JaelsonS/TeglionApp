@@ -25,7 +25,11 @@ export function ManualIndexPage() {
   })
 
   return (
-    <LandingMarketingShell>
+    <LandingMarketingShell
+      title={`Manual do utilizador · ${BRAND.name}`}
+      description="Guia completo do Teglion na voz da Maya: primeiros passos, clientes, documentos, avenças e segurança."
+      path="/manual"
+    >
       <div className="landing-container px-5 py-10 sm:px-8 sm:py-14">
         <FadeInView>
           <div className="mx-auto max-w-3xl">

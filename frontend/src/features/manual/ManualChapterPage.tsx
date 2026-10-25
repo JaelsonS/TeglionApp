@@ -31,7 +31,11 @@ export function ManualChapterPage() {
   }
 
   return (
-    <LandingMarketingShell>
+    <LandingMarketingShell
+      title={`${chapter.title} · Manual Teglion`}
+      description={chapter.seoDescription}
+      path={`/manual/${chapter.slug}`}
+    >
       <article className="landing-container px-5 py-10 sm:px-8 sm:py-14">
         <div className="mx-auto max-w-3xl">
           <p className="text-sm text-[#4A5568]">

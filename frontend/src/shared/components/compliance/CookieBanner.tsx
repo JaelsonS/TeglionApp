@@ -48,7 +48,11 @@ export function CookieBanner() {
   const location = useLocation()
   const isAppRoute = location.pathname.startsWith('/app')
   const isMarketingRoute =
-    location.pathname === '/' || location.pathname === '/blog' || location.pathname.startsWith('/blog/')
+    location.pathname === '/' ||
+    location.pathname === '/blog' ||
+    location.pathname.startsWith('/blog/') ||
+    location.pathname === '/manual' ||
+    location.pathname.startsWith('/manual/')
 
   const userId = user?.id
   const cacheKey = useMemo(() => (userId ? getCacheKey(userId) : ANON_CONSENT_KEY), [userId])

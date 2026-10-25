@@ -35,6 +35,7 @@ describe('isPublicIntakeRoute', () => {
   it('nunca colide com isLightweightPublicRoute nem isAuthenticatedAppRoute (categorias mutuamente exclusivas)', () => {
     const samples = [
       '/', '/blog', '/blog/algum-post', '/pricing', '/case-studies', '/suporte',
+      '/manual', '/manual/primeiros-passos',
       '/termos', '/privacidade', '/cookies', '/dpa', '/aviso-legal',
       '/app/firm/dashboard', '/auth/firm/login', '/recover-password', '/reset-password',
       '/pedidos/xyz', '/llcnunes/servicos/consultoria',
@@ -43,5 +44,13 @@ describe('isPublicIntakeRoute', () => {
       const flags = [isLightweightPublicRoute(path), isAuthenticatedAppRoute(path), isPublicIntakeRoute(path)]
       expect(flags.filter(Boolean).length).toBeLessThanOrEqual(1)
     }
+  })
+})
+
+describe('isLightweightPublicRoute — Manual Maya', () => {
+  it('trata /manual e capítulos como marketing leve (sem AuthProvider)', () => {
+    expect(isLightweightPublicRoute('/manual')).toBe(true)
+    expect(isLightweightPublicRoute('/manual/pagamentos-e-avencas')).toBe(true)
+    expect(isPublicIntakeRoute('/manual')).toBe(false)
   })
 })
