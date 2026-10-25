@@ -2265,9 +2265,69 @@
     @apply flex flex-wrap items-center justify-between gap-2 border-t border-border/60 bg-muted/10 px-5 py-3;
   }
 
-  /* Chat escritório (IMG-12) */
+  /*
+   * Chat escritório — padrão Documentos na hierarquia (shell + KPIs + lead),
+   * mas scroll interno nas colunas (lista + thread): correcto para conversa.
+   */
+  .cb-chat-layout-page,
+  .cb-chat-layout-panel {
+    flex: 1 1 0%;
+    @apply flex min-h-0 flex-col overflow-hidden;
+  }
+
   .cb-chat-page {
-    @apply flex min-h-0 flex-1 flex-col gap-3;
+    @apply flex min-h-0 flex-1 flex-col gap-0;
+  }
+
+  .cb-chat-shell {
+    flex: 1 1 0%;
+    @apply flex min-h-0 flex-col overflow-hidden bg-[hsl(210_25%_97%)] shadow-none;
+  }
+
+  .cb-chat-shell > div:last-child {
+    flex: 1 1 0% !important;
+    @apply flex min-h-0 flex-col overflow-hidden;
+  }
+
+  .cb-chat-kpi-strip {
+    @apply mx-4 mt-3 grid shrink-0 grid-cols-1 gap-1.5 sm:mx-5 sm:grid-cols-3;
+  }
+
+  .cb-chat-kpi {
+    @apply flex items-center gap-2.5 rounded-xl border border-border/70 bg-card px-3 py-2 shadow-sm;
+  }
+
+  .cb-chat-kpi-icon {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground;
+  }
+
+  .cb-chat-kpi--brand .cb-chat-kpi-icon {
+    @apply bg-brand/10 text-brand;
+  }
+
+  .cb-chat-kpi--amber .cb-chat-kpi-icon {
+    @apply bg-amber-100 text-amber-800;
+  }
+
+  .cb-chat-kpi-value {
+    @apply text-lg font-bold tabular-nums tracking-tight text-foreground;
+  }
+
+  .cb-chat-kpi-label {
+    @apply text-xs text-muted-foreground;
+  }
+
+  .cb-chat-section-lead {
+    @apply mx-4 mb-2 mt-2 shrink-0 text-sm leading-snug text-muted-foreground sm:mx-5;
+  }
+
+  .cb-chat-section-lead-title {
+    @apply mb-0.5 block text-xs font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-chat-module-host {
+    flex: 1 1 0%;
+    @apply mx-4 mb-4 flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm sm:mx-5;
   }
 
   .cb-chat-page-hd {
@@ -2279,7 +2339,19 @@
   }
 
   .cb-chat-split.cb-firm-split-view {
-    @apply min-h-0 flex-1;
+    flex: 1 1 0%;
+    @apply flex min-h-0 flex-col overflow-hidden;
+  }
+
+  .cb-chat-split .cb-firm-split-desktop {
+    flex: 1 1 0%;
+    min-height: 0;
+  }
+
+  .cb-chat-split .cb-firm-split-list > *,
+  .cb-chat-split .cb-firm-split-detail > * {
+    flex: 1 1 0%;
+    @apply flex min-h-0 flex-col overflow-hidden;
   }
 
   .cb-chat-split-list.cb-firm-split-list {
