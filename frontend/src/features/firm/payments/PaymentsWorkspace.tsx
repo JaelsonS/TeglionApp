@@ -94,7 +94,7 @@ export function PaymentsWorkspace() {
             valor do cliente fica na conta do escritório.
           </p>
           <Button asChild variant="outline" size="sm" className="mt-3">
-            <Link to="/app/firm/settings?tab=pagamentos">Ver pagamentos online</Link>
+            <Link to="/app/firm/settings?tab=pagamentos">Receber dos clientes (Stripe)</Link>
           </Button>
         </div>
       ) : null}
