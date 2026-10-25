@@ -8,7 +8,7 @@ import type { FirmContabilDashboard } from '@/shared/types/contabil'
 
 export function useFirmDashboard(enabled = true) {
   const { user } = useAuth()
-  const tenantSlug = user?.tenant.slug ?? ''
+  const tenantSlug = user?.tenant?.slug ?? ''
 
   return useQuery({
     queryKey: queryKeys.firmDashboard(tenantSlug),

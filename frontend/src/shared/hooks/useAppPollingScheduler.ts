@@ -16,7 +16,7 @@ const FOCUS_DEBOUNCE_MS = 3_000
 export function useAppPollingScheduler(scope: 'firm' | 'client' | 'off') {
   const qc = useQueryClient()
   const { user } = useAuth()
-  const tenantSlug = user?.tenant.slug ?? ''
+  const tenantSlug = user?.tenant?.slug ?? ''
   const clientId = user?.clientId || user?.id || ''
   const lastTickRef = useRef(0)
 

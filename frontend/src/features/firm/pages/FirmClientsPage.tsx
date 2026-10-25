@@ -87,7 +87,7 @@ function normalizeRegimeLabel(v?: string | null) {
 export function FirmClientsPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const tenantSlug = user?.tenant.slug ?? ''
+  const tenantSlug = user?.tenant?.slug ?? ''
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
   const openCreate = searchParams.get('create') === '1'

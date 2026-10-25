@@ -76,7 +76,6 @@ function applyBrandingState(
 
 export function FirmBrandingProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
-  const tenantSlug = user?.tenant.slug ?? ''
   const [firm, setFirm] = useState<Firm | null>(null)
   const [firmLogoUrl, setFirmLogoUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)

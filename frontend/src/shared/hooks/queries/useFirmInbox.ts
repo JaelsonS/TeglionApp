@@ -23,7 +23,7 @@ type InboxFilters = {
 
 export function useFirmInbox(filters: InboxFilters = {}) {
   const { user } = useAuth()
-  const tenantSlug = user?.tenant.slug ?? ''
+  const tenantSlug = user?.tenant?.slug ?? ''
 
   return useQuery({
     queryKey: queryKeys.firmInbox(tenantSlug, {
