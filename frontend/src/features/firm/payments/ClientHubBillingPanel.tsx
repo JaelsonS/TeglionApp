@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Wallet } from 'lucide-react'
@@ -7,8 +7,18 @@ import { toast } from 'sonner'
 import { Button } from '@/shared/components/ui/button'
 import { EuroInput } from '@/shared/design-system'
 import { contabilFeeChargesApi } from '@/infrastructure/api'
+import type { FeeCharge } from '@/infrastructure/api/contabil/feeCharges'
 import { getErrorMessage } from '@/shared/utils/errors'
-import { formatEuroFromCents, statusTone } from '@/features/firm/payments/paymentsFormat'
+import {
+  countOverdueCharges,
+  formatEuroFromCents,
+  rowHealthLabel,
+  rowHealthTone,
+  rowPaymentHealth,
+  statusLabelPt,
+  statusTone,
+} from '@/features/firm/payments/paymentsFormat'
+import { ChargeEditDialog } from '@/features/firm/payments/ChargeEditDialog'
 import { cn } from '@/shared/lib/utils'
 
 type Props = { clientId: string; displayName: string }
@@ -24,6 +34,7 @@ export function ClientHubBillingPanel({ clientId, displayName }: Props) {
   const [active, setActive] = useState(false)
   const [dueDay, setDueDay] = useState(1)
   const [saving, setSaving] = useState(false)
+  const [edit, setEdit] = useState<FeeCharge | null>(null)
 
   useEffect(() => {
     const b = query.data?.billing
@@ -32,6 +43,15 @@ export function ClientHubBillingPanel({ clientId, displayName }: Props) {
     setActive(Boolean(b.retainerActive))
     setDueDay(b.retainerDueDay || 1)
   }, [query.data])
+
+  const charges = (query.data?.charges || []) as FeeCharge[]
+  const monthsMap = useMemo(() => {
+    const m: Record<string, FeeCharge> = {}
+    for (const c of charges) m[c.yearMonth] = c
+    return m
+  }, [charges])
+  const health = useMemo(() => rowPaymentHealth(monthsMap), [monthsMap])
+  const overdueCount = useMemo(() => countOverdueCharges(monthsMap), [monthsMap])
 
   async function save() {
     setSaving(true)
@@ -67,33 +87,36 @@ export function ClientHubBillingPanel({ clientId, displayName }: Props) {
     )
   }
 
-  const charges = (query.data.charges || []) as Array<{
-    id: string
-    yearMonth: string
-    amountCents: number
-    status: 'draft' | 'confirmed' | 'sent' | 'paid' | 'cancelled'
-    overdue?: boolean
-    paymentMethod?: string | null
-  }>
   const summary = query.data.summary as {
     paidCents: number
     openCents: number
     overdueCents: number
     draftCents: number
   }
+  const paymentMethods = (query.data.paymentMethods || []) as Array<{ id: string; label: string }>
 
   return (
     <div className="space-y-4">
       <section className="cb-client-hub-panel space-y-4 p-4 sm:p-5">
-        <div className="flex items-start gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand/10 text-brand">
-            <Wallet className="h-5 w-5" aria-hidden />
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand/10 text-brand">
+              <Wallet className="h-5 w-5" aria-hidden />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold tracking-tight">Avença mensal</h2>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                Honorários de {displayName}. Pode registar tudo à mão — Stripe Connect é opcional.
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base font-semibold tracking-tight">Avença mensal</h2>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              Honorários de {displayName}. Pode registar tudo à mão — Stripe Connect é opcional.
-            </p>
+          <div className="flex flex-col items-end gap-1">
+            <span className={cn(rowHealthTone(health))}>{rowHealthLabel(health)}</span>
+            {overdueCount > 0 ? (
+              <span className="text-xs font-medium text-rose-700">
+                {overdueCount} mês{overdueCount === 1 ? '' : 'es'} em atraso
+              </span>
+            ) : null}
           </div>
         </div>
 
@@ -146,9 +169,13 @@ export function ClientHubBillingPanel({ clientId, displayName }: Props) {
       <section className="cb-client-hub-panel space-y-3 p-4 sm:p-5">
         <h3 className="text-sm font-semibold">Saldos este ano</h3>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <MiniStat label="Pago" value={formatEuroFromCents(summary.paidCents)} />
-          <MiniStat label="Em aberto" value={formatEuroFromCents(summary.openCents)} />
-          <MiniStat label="Em atraso" value={formatEuroFromCents(summary.overdueCents)} />
+          <MiniStat label="Pago" value={formatEuroFromCents(summary.paidCents)} tone="ok" />
+          <MiniStat label="Em aberto" value={formatEuroFromCents(summary.openCents)} tone="open" />
+          <MiniStat
+            label="Em atraso"
+            value={formatEuroFromCents(summary.overdueCents)}
+            tone="overdue"
+          />
           <MiniStat label="Rascunho" value={formatEuroFromCents(summary.draftCents)} />
         </div>
       </section>
@@ -162,16 +189,23 @@ export function ClientHubBillingPanel({ clientId, displayName }: Props) {
         ) : (
           <ul className="divide-y divide-border/50">
             {charges.map((c) => (
-              <li key={c.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
-                <span className="font-medium tabular-nums">{c.yearMonth}</span>
-                <span
-                  className={cn(
-                    'rounded-md border px-2 py-0.5 text-xs font-medium',
-                    statusTone(c.status, c.overdue),
-                  )}
+              <li key={c.id}>
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between gap-3 py-2.5 text-left text-sm transition hover:bg-muted/30"
+                  onClick={() => setEdit(c)}
                 >
-                  {formatEuroFromCents(c.amountCents)}
-                </span>
+                  <span className="font-medium tabular-nums">{c.yearMonth}</span>
+                  <span
+                    className={cn(
+                      'inline-flex flex-col items-end rounded-md border px-2 py-1 text-xs font-medium',
+                      statusTone(c.status, c.overdue),
+                    )}
+                  >
+                    <span className="tabular-nums">{formatEuroFromCents(c.amountCents)}</span>
+                    <span className="opacity-80">{statusLabelPt(c.status, c.overdue)}</span>
+                  </span>
+                </button>
               </li>
             ))}
           </ul>
@@ -185,15 +219,54 @@ export function ClientHubBillingPanel({ clientId, displayName }: Props) {
         </Link>{' '}
         pode ligar a Stripe Connect. Não é obrigatório — o mapa funciona sempre em modo manual.
       </p>
+
+      <ChargeEditDialog
+        open={Boolean(edit)}
+        onOpenChange={(o) => {
+          if (!o) setEdit(null)
+        }}
+        charge={edit}
+        clientName={displayName}
+        paymentMethods={paymentMethods}
+        onSaved={() => {
+          void qc.invalidateQueries({ queryKey: ['client-billing', clientId] })
+          void qc.invalidateQueries({ queryKey: ['fee-charges-map'] })
+        }}
+      />
     </div>
   )
 }
 
-function MiniStat({ label, value }: { label: string; value: string }) {
+function MiniStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: string
+  tone?: 'ok' | 'open' | 'overdue'
+}) {
   return (
-    <div className="rounded-lg border border-border/60 bg-muted/20 px-3 py-2">
+    <div
+      className={cn(
+        'rounded-lg border px-3 py-2',
+        tone === 'ok' && 'border-emerald-200/80 bg-emerald-50/80',
+        tone === 'open' && 'border-sky-200/80 bg-sky-50/70',
+        tone === 'overdue' && 'border-rose-200/80 bg-rose-50/80',
+        !tone && 'border-border/60 bg-muted/20',
+      )}
+    >
       <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p className="text-sm font-semibold tabular-nums">{value}</p>
+      <p
+        className={cn(
+          'text-sm font-semibold tabular-nums',
+          tone === 'ok' && 'text-emerald-900',
+          tone === 'open' && 'text-sky-950',
+          tone === 'overdue' && 'text-rose-900',
+        )}
+      >
+        {value}
+      </p>
     </div>
   )
 }

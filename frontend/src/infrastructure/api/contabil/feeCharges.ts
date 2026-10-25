@@ -59,6 +59,15 @@ export function createContabilFeeChargesApi(api: AxiosInstance) {
       api.get('/contabil/fee-charges/map', { params }).then((r) => r.data as FeeChargesMapResponse),
     generate: (payload: { yearMonth: string; clientIds?: string[] }) =>
       api.post('/contabil/fee-charges/generate', payload).then((r) => r.data),
+    create: (payload: {
+      clientId: string
+      yearMonth: string
+      amountCents?: number
+      status?: FeeChargeStatus
+      dueDate?: string
+    }) => api.post('/contabil/fee-charges', payload).then((r) => r.data as { charge: FeeCharge; created: boolean }),
+    bootstrap: (payload?: { year?: number; defaultAmountCents?: number }) =>
+      api.post('/contabil/fee-charges/bootstrap', payload || {}).then((r) => r.data),
     patch: (id: string, payload: Record<string, unknown>) =>
       api.patch(`/contabil/fee-charges/${encodeURIComponent(id)}`, payload).then((r) => r.data),
     getClientBilling: (clientId: string) =>

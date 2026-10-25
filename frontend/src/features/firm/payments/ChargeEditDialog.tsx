@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { CheckCircle2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/shared/components/ui/button'
@@ -15,7 +15,13 @@ import { EuroInput } from '@/shared/design-system'
 import { contabilFeeChargesApi } from '@/infrastructure/api'
 import type { FeeCharge, FeeChargeStatus } from '@/infrastructure/api/contabil/feeCharges'
 import { getErrorMessage } from '@/shared/utils/errors'
-import { formatEuroFromCents } from '@/features/firm/payments/paymentsFormat'
+import {
+  formatEuroFromCents,
+  isChargeOverdue,
+  statusLabelPt,
+  statusTone,
+} from '@/features/firm/payments/paymentsFormat'
+import { cn } from '@/shared/lib/utils'
 
 const STATUSES: Array<{ id: FeeChargeStatus; label: string }> = [
   { id: 'draft', label: 'Rascunho' },
@@ -56,17 +62,17 @@ export function ChargeEditDialog({
     setNotes(charge.notes || '')
   }, [charge])
 
-  async function save() {
+  async function persist(next: {
+    status: FeeChargeStatus
+    paymentMethod: string | null
+    amountCents: number
+    notes: string | null
+  }) {
     if (!charge) return
     setSaving(true)
     try {
-      await contabilFeeChargesApi.patch(charge.id, {
-        status,
-        paymentMethod: method || null,
-        amountCents: Math.round(euros * 100),
-        notes: notes.trim() || null,
-      })
-      toast.success('Pagamento actualizado')
+      await contabilFeeChargesApi.patch(charge.id, next)
+      toast.success(next.status === 'paid' ? 'Marcado como pago' : 'Pagamento actualizado')
       onSaved()
       onOpenChange(false)
     } catch (err) {
@@ -76,6 +82,26 @@ export function ChargeEditDialog({
     }
   }
 
+  async function save() {
+    await persist({
+      status,
+      paymentMethod: method || null,
+      amountCents: Math.round(euros * 100),
+      notes: notes.trim() || null,
+    })
+  }
+
+  async function markPaid() {
+    await persist({
+      status: 'paid',
+      paymentMethod: method || null,
+      amountCents: Math.round(euros * 100),
+      notes: notes.trim() || null,
+    })
+  }
+
+  const overdue = charge ? isChargeOverdue(charge.status, charge.overdue) : false
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -83,10 +109,24 @@ export function ChargeEditDialog({
           <DialogTitle>Pagamento · {charge?.yearMonth}</DialogTitle>
           <DialogDescription>
             {clientName}
-            {charge ? ` · valor actual ${formatEuroFromCents(charge.amountCents)}` : null}
-            . Honorários do gabinete — não é fatura certificada da AT.
+            {charge ? ` · valor actual ${formatEuroFromCents(charge.amountCents)}` : null}. Honorários
+            do gabinete — não é fatura certificada da AT.
           </DialogDescription>
         </DialogHeader>
+
+        {charge ? (
+          <div
+            className={cn(
+              'flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm',
+              statusTone(charge.status, charge.overdue),
+            )}
+          >
+            <span className="font-medium">{statusLabelPt(charge.status, charge.overdue)}</span>
+            {overdue ? (
+              <span className="text-xs font-semibold">Prioridade · cobrar</span>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="space-y-4 py-1">
           <label className="block space-y-1.5 text-sm">
@@ -137,19 +177,41 @@ export function ChargeEditDialog({
           </label>
         </div>
 
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
-            Cancelar
-          </Button>
-          <Button type="button" onClick={() => void save()} disabled={saving || !charge}>
-            {saving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />A guardar…
-              </>
-            ) : (
-              'Guardar'
-            )}
-          </Button>
+        <DialogFooter className="flex-col gap-2 sm:flex-col sm:space-x-0">
+          {status !== 'paid' ? (
+            <Button
+              type="button"
+              className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
+              onClick={() => void markPaid()}
+              disabled={saving || !charge}
+            >
+              {saving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <CheckCircle2 className="mr-2 h-4 w-4" aria-hidden />
+              )}
+              Marcar como pago
+            </Button>
+          ) : null}
+          <div className="flex w-full justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={saving}
+            >
+              Cancelar
+            </Button>
+            <Button type="button" onClick={() => void save()} disabled={saving || !charge}>
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />A guardar…
+                </>
+              ) : (
+                'Guardar'
+              )}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
