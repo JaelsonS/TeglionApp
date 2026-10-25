@@ -26,13 +26,13 @@ import { emitAppDataChanged } from '@/shared/utils/appEvents'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { formatPtDate } from '@/shared/utils/contabilLocale'
 import type { DocumentDetailResponse, FirmDocumentRow } from './documentTypes'
+import { describeDocumentHistoryEvent } from '@/features/firm/documents-hub/documentsHistoryLabels'
 import {
   displayClientName,
   displayDocumentName,
   formatFileSize,
   mimeKind,
   mimeLabel,
-  relativeTimePt,
   validationBadgeVariant,
   validationLabel,
 } from './documentDisplay'
@@ -529,7 +529,7 @@ export function DocumentPreviewPanel({
           <section className="p-4">
             <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <History className="h-3.5 w-3.5" />
-              Histórico
+              Actividade recente
             </h3>
             {detailLoading ? (
               <div className="mt-3 space-y-2">
@@ -539,17 +539,18 @@ export function DocumentPreviewPanel({
               <p className="mt-3 text-sm text-muted-foreground">Sem eventos registados.</p>
             ) : (
               <ul className="mt-3 space-y-3">
-                {history.slice(0, 12).map((h) => (
-                  <li key={h.id} className="relative border-l-2 border-brand/20 pl-3">
-                    <p className="text-sm font-medium">{h.title || 'Evento'}</p>
-                    {h.description ? (
-                      <p className="text-xs text-muted-foreground">{h.description}</p>
-                    ) : null}
-                    <p className="mt-0.5 cb-text-caption">
-                      {h.createdAt ? relativeTimePt(h.createdAt) : ''}
-                    </p>
-                  </li>
-                ))}
+                {history.slice(0, 8).map((h) => {
+                  const ev = describeDocumentHistoryEvent(h)
+                  return (
+                    <li key={h.id} className="relative border-l-2 border-brand/20 pl-3">
+                      <p className="text-sm font-medium">{ev.title}</p>
+                      {ev.detail ? <p className="text-xs text-muted-foreground">{ev.detail}</p> : null}
+                      <p className="mt-0.5 cb-text-caption" title={ev.absoluteWhen || undefined}>
+                        {ev.whenLabel || ev.absoluteWhen || ''}
+                      </p>
+                    </li>
+                  )
+                })}
               </ul>
             )}
           </section>

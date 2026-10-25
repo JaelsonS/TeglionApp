@@ -117,6 +117,11 @@ function auditActionLabel(action) {
     'document.approved': 'Validação: aprovado',
     'document.rejected': 'Validação: rejeitado',
     'document.pending': 'Validação: pendente',
+    'document.preview': 'Pré-visualizado',
+    'document.download': 'Descarregado',
+    'document.resend_requested': 'Reenvio pedido ao cliente',
+    'document.validity_updated': 'Validade actualizada',
+    'document.removed': 'Documento removido',
   };
   return map[action] || action;
 }
