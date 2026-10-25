@@ -84,7 +84,7 @@ export function MayaPublicSiteInlineSetup({
   const auth = useAuthOptional()
   const user = auth?.user ?? null
   const owner = isFirmOwner(user)
-  const firmName = bundle.publicProfile.displayName || bundle.firm.name || 'O seu escritório'
+  const firmName = bundle.publicProfile.displayName || bundle.firm.name || 'O seu gabinete'
 
   const [expanded, setExpanded] = useState(true)
   const [step, setStep] = useState<Step>('consent')
@@ -117,7 +117,7 @@ export function MayaPublicSiteInlineSetup({
   useEffect(() => {
     function onOpen() {
       if (!owner) {
-        toast.error('Só o responsável do escritório pode usar a configuração rápida.')
+        toast.error('Só o responsável do gabinete pode usar a configuração rápida.')
         return
       }
       setExpanded(true)

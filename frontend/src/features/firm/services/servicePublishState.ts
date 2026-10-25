@@ -24,7 +24,7 @@ type ServiceLike = {
 
 /**
  * Distingue:
- * - Inactivo: não disponível no escritório
+ * - Inactivo: não disponível no gabinete
  * - Rascunho: activo mas sem publicação
  * - Pronto: marcado para o site mas falta slug (ou bloqueio de formulário tratado no save)
  * - Publicado: no site (isPubliclyListed + slug)

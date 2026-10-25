@@ -25,7 +25,7 @@ export function PublicSiteLegalFieldsEditor({ id, draft, onDraftChange }: Props)
         <p className="text-sm font-semibold text-foreground">Links legais no rodapé</p>
         <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
           Termos, Privacidade, Livro de Reclamações e elogios — aparecem no rodapé da página pública.
-          Responsabilidade do escritório; a Teglion (AfDigital) não presta aconselhamento jurídico.
+          Responsabilidade do gabinete; a Teglion (AfDigital) não presta aconselhamento jurídico.
         </p>
       </div>
       <div className="flex flex-wrap gap-2">

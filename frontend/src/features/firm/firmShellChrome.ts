@@ -1,5 +1,5 @@
 /**
- * Contrato de chrome do escritório (Fase 1E Bloco 1).
+ * Contrato de chrome do gabinete (Fase 1E Bloco 1).
  * Fonte única para classes de visibilidade — testável sem browser.
  */
 export const FIRM_SHELL_BREAKPOINTS = {

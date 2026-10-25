@@ -42,7 +42,7 @@ export const CLIENT_CREATE_FIELDS: MayaFieldHelp[] = [
   {
     id: 'displayName',
     name: 'Nome comercial',
-    meaning: 'Nome pelo qual o escritório trata o cliente no dia-a-dia.',
+    meaning: 'Nome pelo qual o gabinete trata o cliente no dia-a-dia.',
     why: 'Quando existe, é este o nome que costuma aparecer na lista e no título da ficha.',
     required: false,
     dependsOn: 'Só aparece quando o tipo é Empresa.',
@@ -117,7 +117,7 @@ export const CLIENT_CREATE_FIELDS: MayaFieldHelp[] = [
   {
     id: 'accountingType',
     name: 'Tipo de contabilidade',
-    meaning: 'Enquadramento contabilístico que o escritório usa para este cliente (lista fixa do assistente).',
+    meaning: 'Enquadramento contabilístico que o gabinete usa para este cliente (lista fixa do assistente).',
     required: true,
     dependsOn: 'Visível e obrigatório para Empresa e Independente. Oculto para Particular.',
     emptyConsequence: 'Nas regras em que o campo é obrigatório, o assistente não avança.',
@@ -197,7 +197,7 @@ export const CLIENT_CREATE_FIELDS: MayaFieldHelp[] = [
   {
     id: 'socialSecurityArea',
     name: 'Área da Segurança Social',
-    meaning: 'Área ou serviço da Segurança Social, para organização interna do escritório.',
+    meaning: 'Área ou serviço da Segurança Social, para organização interna do gabinete.',
     required: false,
     usedWhere: 'Ficha → Perfil.',
   },
@@ -260,11 +260,11 @@ export const CLIENT_CREATE_FIELDS: MayaFieldHelp[] = [
   {
     id: 'assignedStaff',
     name: 'Responsável na equipa',
-    meaning: 'Membro da equipa do escritório que fica responsável por este cliente. Lista a partir da equipa.',
+    meaning: 'Membro da equipa do gabinete que fica responsável por este cliente. Lista a partir da equipa.',
     why: 'Obriga a haver um dono interno do processo. Não cria acesso ao portal do cliente.',
     required: true,
     emptyConsequence: 'Não avança no passo Responsáveis sem indicar a pessoa.',
-    usedWhere: 'Ficha → Perfil → Responsável no escritório.',
+    usedWhere: 'Ficha → Perfil → Responsável no gabinete.',
   },
   {
     id: 'contactName',
@@ -301,7 +301,7 @@ export const CLIENT_CREATE_FIELDS: MayaFieldHelp[] = [
     name: 'Serviços contratados',
     meaning:
       'Caixas de selecção dos serviços activos do catálogo. Associa internamente o cliente a esses serviços. Não publica nada na página pública.',
-    why: 'Serve para o escritório saber o que este cliente tem contratado. Os serviços criam-se e publicam-se em Serviços.',
+    why: 'Serve para o gabinete saber o que este cliente tem contratado. Os serviços criam-se e publicam-se em Serviços.',
     required: false,
     dependsOn:
       'Se o catálogo não tiver serviços activos, o assistente avisa e o cliente é criado sem serviços pré-seleccionados. Crie serviços em Serviços, não em Definições.',
@@ -311,7 +311,7 @@ export const CLIENT_CREATE_FIELDS: MayaFieldHelp[] = [
     id: 'notes',
     name: 'Observações',
     meaning:
-      'Notas internas do escritório, no último passo do assistente. Só a equipa as vê — o cliente no portal não.',
+      'Notas internas do gabinete, no último passo do assistente. Só a equipa as vê — o cliente no portal não.',
     required: false,
     usedWhere: 'Ficha → Perfil → Notas internas. Distintas das Mensagens.',
   },
@@ -339,7 +339,7 @@ export const CLIENT_PROFILE_ONLY_FIELDS: MayaFieldHelp[] = [
     meaning:
       'Texto livre legado do responsável. O campo principal é «Membro da equipa». Use a lista da equipa sempre que possível.',
     required: false,
-    usedWhere: 'Ficha → Perfil → Responsável no escritório.',
+    usedWhere: 'Ficha → Perfil → Responsável no gabinete.',
   },
 ]
 
@@ -404,7 +404,7 @@ export const CLIENT_LIST_FIELDS: MayaFieldHelp[] = [
     id: 'filter-tag',
     name: 'Filtro Etiqueta',
     meaning:
-      'Só aparece se o escritório tiver etiquetas. Mostra clientes com essa etiqueta. «Todas» limpa o filtro.',
+      'Só aparece se o gabinete tiver etiquetas. Mostra clientes com essa etiqueta. «Todas» limpa o filtro.',
   },
 ]
 

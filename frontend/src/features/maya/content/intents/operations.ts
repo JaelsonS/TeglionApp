@@ -134,7 +134,7 @@ export const OPS_INTENTS = [
     title: 'Como usar o calendário fiscal?',
     shortDescription: 'calendário fiscal',
     answer:
-      'O Calendário Fiscal guarda prazos do escritório: importe o modelo Portugal, crie eventos e categorias, defina recorrência (mensal, trimestral, anual). Pode editar só uma ocorrência quando precisar. Alimenta a disciplina de prazos — as obrigações da carteira acompanham-se em Obrigações dos Clientes.',
+      'O Calendário Fiscal guarda prazos do gabinete: importe o modelo Portugal, crie eventos e categorias, defina recorrência (mensal, trimestral, anual). Pode editar só uma ocorrência quando precisar. Alimenta a disciplina de prazos — as obrigações da carteira acompanham-se em Obrigações dos Clientes.',
     steps: [
       'Importe o modelo Portugal ou crie eventos',
       'Configure categorias e cores',
@@ -215,7 +215,7 @@ export const OPS_INTENTS = [
       {
         id: 'schedule',
         name: 'Dias e horário',
-        meaning: 'Intervalos em que o escritório aceita marcações (ex.: segunda a sexta, 09:00–17:00).',
+        meaning: 'Intervalos em que o gabinete aceita marcações (ex.: segunda a sexta, 09:00–17:00).',
         usedWhere: 'Horários oferecidos na página pública.',
       },
       {

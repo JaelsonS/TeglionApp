@@ -216,11 +216,11 @@ export function FirmMfaChallengePage() {
       : step === 'challenge'
         ? 'Confirme a sua identidade'
         : fromRegistration || ownerEnrollment
-          ? 'Conta criada. Antes de entrar no Teglion, configure a autenticação de dois factores (obrigatório para o proprietário do escritório).'
+          ? 'Conta criada. Antes de entrar no Teglion, configure a autenticação de dois factores (obrigatório para o proprietário do gabinete).'
           : 'Use uma aplicação de autenticação compatível para configurar o Teglion.'
 
   return (
-    <AuthLayout title="Autenticação de dois factores" subtitle="Teglion">
+    <AuthLayout title="Autenticação de dois factores" subtitle="Protege o acesso ao gabinete no Teglion.">
       <AuthCard>
         <AuthHeader title={headerTitle} subtitle={headerSubtitle} showBrand compact />
 

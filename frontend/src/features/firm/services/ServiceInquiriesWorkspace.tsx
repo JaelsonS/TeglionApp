@@ -414,7 +414,7 @@ export function ServiceInquiriesWorkspace() {
         </p>
         <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={() => setTagsOpen(true)}>
           <Settings2 className="mr-1.5 h-3.5 w-3.5" />
-          Etiquetas do escritório
+          Etiquetas do gabinete
         </Button>
       </div>
 
@@ -564,7 +564,7 @@ export function ServiceInquiriesWorkspace() {
       <FirmWorkspaceFocusDialog
         open={tagsOpen}
         onOpenChange={setTagsOpen}
-        title="Etiquetas do escritório"
+        title="Etiquetas do gabinete"
         description="Use as mesmas etiquetas em clientes, leads, solicitações e equipa."
         className="w-[min(96vw,560px)] max-w-[min(96vw,560px)]"
       >

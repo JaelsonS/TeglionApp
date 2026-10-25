@@ -226,7 +226,7 @@ export function ServiceOfferOptionsEditor({
             <Input
               value={query}
               onChange={(e: FormChangeEvent) => setQuery(e.target.value)}
-              placeholder="Pesquisar serviços do escritório…"
+              placeholder="Pesquisar serviços do gabinete…"
               className="h-9 rounded-lg pl-8"
               autoFocus
             />

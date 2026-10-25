@@ -353,7 +353,8 @@
   }
 
   .cb-firm-nav-item-active {
-    @apply bg-brand/[0.08] text-brand;
+    @apply text-brand;
+    background-color: hsl(var(--cb-brand-soft));
     box-shadow: inset 3px 0 0 hsl(var(--cb-brand));
   }
 
@@ -515,12 +516,17 @@
   }
 
   .cb-firm-shell .staff-app-content-wrap.cb-firm-content-wrap {
-    @apply bg-muted/30;
+    background-color: hsl(var(--cb-canvas));
+    background-image: radial-gradient(
+      ellipse 90% 55% at 50% -18%,
+      hsl(var(--cb-brand) / 0.07),
+      transparent 58%
+    );
   }
 
   /* Topbar IMG-03 */
   .cb-firm-topbar {
-    @apply shrink-0 border-b border-border/60 bg-card;
+    @apply shrink-0 border-b border-border/60 bg-card/95 backdrop-blur-sm;
   }
 
   .cb-firm-topbar-compact {
@@ -709,11 +715,11 @@
   }
 
   .cb-docs-page {
-    @apply bg-card;
+    @apply bg-card/90 shadow-[var(--cb-shadow-card)];
   }
 
   .cb-docs-page-hd {
-    @apply border-b border-border/60;
+    @apply border-b border-border/60 bg-gradient-to-b from-brand/[0.03] to-transparent;
   }
 
   .cb-docs-page-title {
@@ -936,7 +942,7 @@
   }
 
   .cb-client-hub-header {
-    @apply bg-card;
+    @apply border-b border-border/60 bg-card/95 bg-gradient-to-b from-brand/[0.04] to-card shadow-[var(--cb-shadow-card)];
   }
 
   .cb-client-hub-back-row {
@@ -1387,7 +1393,7 @@
   }
 
   .cb-clients-panel {
-    @apply overflow-hidden rounded-lg border border-border/70 bg-card;
+    @apply overflow-hidden rounded-xl border border-border/70 bg-card shadow-[var(--cb-shadow-card)];
   }
 
   /* Desktop: painel preenche altura e a tabela faz scroll interno */
@@ -3304,8 +3310,9 @@
   }
 
   .cb-settings-tabs {
-    @apply -mx-1 flex max-w-[100vw] flex-wrap gap-1.5 overflow-x-auto overscroll-x-contain px-1 pb-1 sm:mx-0 sm:overflow-visible sm:px-0;
+    @apply -mx-1 flex max-w-[100vw] flex-nowrap gap-1.5 overflow-x-auto overscroll-x-contain px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
 
   .cb-settings-tabs::-webkit-scrollbar {
@@ -4375,7 +4382,7 @@
   }
 
   .pc-sidebar {
-    @apply hidden h-dvh w-[13.25rem] shrink-0 flex-col border-r border-border/60 bg-[#F3F2ED] xl:flex;
+    @apply hidden h-dvh w-[13.25rem] shrink-0 flex-col border-r border-border/60 bg-[hsl(var(--cb-canvas))] xl:flex;
   }
 
   .pc-sidebar-brand {
@@ -4395,7 +4402,7 @@
   }
 
   .pc-drawer-panel {
-    @apply absolute inset-y-0 left-0 flex w-[min(100%,16rem)] flex-col bg-[#F3F2ED] shadow-xl;
+    @apply absolute inset-y-0 left-0 flex w-[min(100%,16rem)] flex-col bg-[hsl(var(--cb-canvas))] shadow-xl;
     padding-top: env(safe-area-inset-top, 0px);
     animation: pc-drawer-in 160ms ease-out;
   }
@@ -4432,11 +4439,17 @@
 
   .pc-main {
     @apply flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden;
+    background-color: hsl(var(--cb-canvas));
+    background-image: radial-gradient(
+      ellipse 90% 50% at 50% -15%,
+      hsl(var(--cb-brand) / 0.06),
+      transparent 55%
+    );
   }
 
   .pc-topbar {
     /* Sem `display` aqui — `hidden`/`flex` no JSX têm de ganhar, senão há duas barras. */
-    @apply z-30 shrink-0 items-center gap-2 border-b border-border/80 bg-card/90 px-3 shadow-[0_1px_0_rgba(15,41,66,0.04)] backdrop-blur-md sm:gap-3 sm:px-4;
+    @apply z-30 shrink-0 items-center gap-2 border-b border-border/80 bg-card/90 px-3 shadow-[0_1px_0_rgba(11,58,110,0.05)] backdrop-blur-md sm:gap-3 sm:px-4;
     padding-top: env(safe-area-inset-top, 0px);
     padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
     padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
@@ -4452,6 +4465,13 @@
     @apply min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
+  }
+
+  /* Mobile: conteúdo não fica por baixo da bottom nav (+ footer credit) */
+  @media (max-width: 767px) {
+    .pc-shell .pc-scroll {
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    }
   }
 
   .pc-content {

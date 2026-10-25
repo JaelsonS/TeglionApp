@@ -44,7 +44,7 @@ export function MayaPublicSiteSetupRail({ onScrollToPreview }: Props) {
             <strong className="font-medium text-foreground">rever</strong> (preview + edição) →{' '}
             <strong className="font-medium text-foreground">publicar</strong>. À esquerda pode{' '}
             <strong className="font-medium text-foreground">perguntar à Maya</strong> — guia incluído; respostas IA
-            curtas se o escritório tiver add-on.
+            curtas se o gabinete tiver add-on.
           </p>
         </div>
         <Button type="button" variant="ghost" size="sm" className="shrink-0" onClick={dismiss} aria-label="Fechar painel">

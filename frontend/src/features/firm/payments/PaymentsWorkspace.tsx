@@ -66,8 +66,8 @@ export function PaymentsWorkspace() {
 
   return (
     <FirmModuleShell
-      title="Pagamentos"
-      subtitle="Avenças e honorários dos seus clientes — registo manual, com histórico e saldos. Stripe Connect é opcional."
+      title="Pagamentos (carteira)"
+      subtitle="Avenças e honorários da carteira (mapa, saldos, histórico). Receber via Stripe: Definições → Receber dos clientes. Plano Teglion é outra página."
       headerRight={
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => setYear((y) => y - 1)}>
@@ -91,10 +91,10 @@ export function PaymentsWorkspace() {
           <p className="mt-2 text-xs text-sky-900/80">
             Sem Stripe continua a marcar transferências, MB Way ou numerário aqui. Se activar o Connect, a
             taxa de serviço Teglion ({data.connect.platformFeePercent}%) é diferente das taxas Stripe — o
-            valor do cliente fica na conta do escritório.
+            valor do cliente fica na conta do gabinete.
           </p>
           <Button asChild variant="outline" size="sm" className="mt-3">
-            <Link to="/app/firm/settings?tab=pagamentos">Ver pagamentos online</Link>
+            <Link to="/app/firm/settings?tab=pagamentos">Receber dos clientes (Stripe)</Link>
           </Button>
         </div>
       ) : null}

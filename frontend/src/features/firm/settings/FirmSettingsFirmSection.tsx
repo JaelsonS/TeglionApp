@@ -51,7 +51,7 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
         displayName: publicDisplayName.trim() || null,
       })
       emitAppDataChanged({ scope: 'branding' })
-      toast.success('Dados do escritório guardados.')
+      toast.success('Dados do gabinete guardados.')
       onUpdated()
     } catch (err) {
       toast.error('Não foi possível guardar', { description: getErrorMessage(err) })
@@ -67,11 +67,11 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
           <Building2 className="h-4 w-4" aria-hidden />
         </span>
         <div>
-          <h2 className="cb-settings-panel-title">Dados do escritório</h2>
+          <h2 className="cb-settings-panel-title">Dados do gabinete</h2>
           <p className="cb-settings-panel-sub">
             {canEdit
               ? 'Identidade, contactos e dados fiscais. Nada disto é o logótipo (está em Identidade) nem o site público (está em Página pública).'
-              : 'Apenas o dono do escritório pode editar estes campos.'}
+              : 'Apenas o dono do gabinete pode editar estes campos.'}
           </p>
         </div>
       </div>
@@ -81,12 +81,12 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
           <div>
             <p className="cb-settings-fieldset-title">Identidade</p>
             <p className="cb-settings-fieldset-sub">
-              Como o escritório se chama na app e na barra do site público.
+              Como o gabinete se chama na app e na barra do site público.
             </p>
           </div>
         <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="firm-name">Nome do escritório</Label>
+          <Label htmlFor="firm-name">Nome do gabinete</Label>
           <Input
             id="firm-name"
             value={name}
@@ -108,7 +108,7 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
           />
           <p className="text-xs text-muted-foreground">
             Texto da barra superior do site público. O título grande abaixo da foto edita-se em Definições → Página
-            pública → Destaque principal. Se vazio, usa o nome do escritório acima.
+            pública → Destaque principal. Se vazio, usa o nome do gabinete acima.
           </p>
           <div className="cb-settings-public-bar-preview" aria-hidden>
             <div className="cb-settings-public-bar-preview-bar">
@@ -157,7 +157,7 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
           <div>
             <p className="cb-settings-fieldset-title">Dados fiscais (opcional)</p>
             <p className="cb-settings-fieldset-sub">
-              NIF e morada do escritório. Não invente dados — só o que o escritório realmente usa.
+              NIF e morada do gabinete. Não invente dados — só o que o gabinete realmente usa.
             </p>
           </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -168,7 +168,7 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
               value={taxId}
               onChange={(e: FormChangeEvent) => setTaxId(e.target.value)}
               disabled={!canEdit || saving}
-              placeholder="NIF do escritório"
+              placeholder="NIF do gabinete"
             />
           </div>
           <div className="space-y-2 sm:col-span-1">
@@ -188,7 +188,7 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
             Estado:{' '}
             <strong className="ml-1 text-foreground">
               {bundle.firm.status === 'ACTIVE' || bundle.firm.status === 'TRIAL'
-                ? 'Escritório activo'
+                ? 'Gabinete activo'
                 : bundle.firm.status}
             </strong>
             {bundle.firm.trialEndsAt
@@ -199,7 +199,7 @@ export function FirmSettingsFirmSection({ bundle, onUpdated }: Props) {
         {canEdit ? (
           <Button type="button" variant="primary" disabled={saving} loading={saving} onClick={() => void onSave()}>
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            Guardar dados do escritório
+            Guardar dados do gabinete
           </Button>
         ) : null}
       </div>

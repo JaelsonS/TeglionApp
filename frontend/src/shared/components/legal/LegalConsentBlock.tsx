@@ -192,7 +192,7 @@ export function LegalConsentBlock({ value, onChange, disabled, error }: Props) {
                     </span>
                     <button
                       type="button"
-                      className="shrink-0 text-xs font-semibold text-[#0f2942] underline underline-offset-2 hover:text-[#195285] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f2942]/30 rounded-sm"
+                      className="shrink-0 text-xs font-semibold text-[#0B3A6E] underline underline-offset-2 hover:text-[#195285] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B3A6E]/30 rounded-sm"
                       onClick={() => setActiveDoc(item)}
                       disabled={disabled}
                     >
@@ -227,7 +227,7 @@ export function LegalConsentBlock({ value, onChange, disabled, error }: Props) {
                   href={activeDoc.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#0f2942] text-sm font-semibold text-white transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f2942]/40"
+                  className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#0B3A6E] text-sm font-semibold text-white transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B3A6E]/40"
                 >
                   Ler documento completo
                 </a>

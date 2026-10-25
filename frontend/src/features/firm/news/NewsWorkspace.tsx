@@ -10,7 +10,7 @@ import { Input } from '@/shared/components/ui/input'
 import { AskMayaButton } from '@/features/maya'
 import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { SkeletonCard } from '@/shared/design-system/Skeleton'
-import { EmptyState } from '@/shared/design-system'
+import { EmptyState, PageHeader } from '@/shared/design-system'
 import { contabilNewsApi } from '@/infrastructure/api'
 import type { NewsArticle } from '@/shared/types/contabil'
 import { formatPtDate } from '@/shared/utils/contabilLocale'
@@ -102,18 +102,14 @@ export function NewsWorkspace() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 p-4 sm:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-xl font-semibold text-foreground">Notícias do portal</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Artigos longos que os clientes lêem em «Notícias» no portal.
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <AskMayaButton intentId="news" />
+      <PageHeader
+        title="Notícias"
+        subtitle="Artigos para os clientes no portal — diferente dos Alertas (avisos curtos)."
+        testId="firm-news-header"
+        secondary={<AskMayaButton intentId="news" />}
+        right={
           <Button
             type="button"
-            className="rounded-full"
             onClick={() =>
               setEditing({
                 title: '',
@@ -127,8 +123,8 @@ export function NewsWorkspace() {
             <Plus className="mr-1.5 h-4 w-4" />
             Nova notícia
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       <div className="flex flex-wrap gap-2">
         <div className="relative min-w-[200px] flex-1">
@@ -163,7 +159,7 @@ export function NewsWorkspace() {
           title={items.length === 0 ? 'Ainda sem notícias' : 'Nenhuma notícia neste filtro'}
           description={
             items.length === 0
-              ? 'Publique actualizações fiscais ou do escritório na página pública e no portal dos clientes.'
+              ? 'Publique actualizações fiscais ou do gabinete na página pública e no portal dos clientes.'
               : 'Altere o filtro de estado ou limpe a pesquisa.'
           }
           action={

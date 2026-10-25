@@ -42,7 +42,7 @@ export function ManualBlocks({ blocks }: { blocks: ManualBlock[] }) {
             )
           case 'h2':
             return (
-              <h2 key={i} className="pt-2 text-xl font-semibold tracking-tight text-[#0F2942]">
+              <h2 key={i} className="pt-2 text-xl font-semibold tracking-tight text-[#0B3A6E]">
                 {block.text}
               </h2>
             )

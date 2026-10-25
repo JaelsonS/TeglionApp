@@ -17,7 +17,7 @@ const FEATURES = [
   {
     icon: Users,
     title: 'Carteira de clientes',
-    text: 'Empresas, regimes e estado — a base do escritório num só painel.',
+    text: 'Empresas, regimes e estado — a base do gabinete num só painel.',
   },
   {
     icon: CalendarDays,
@@ -42,7 +42,7 @@ const FEATURES = [
   {
     icon: MessagesSquare,
     title: 'Mensagens no produto',
-    text: 'Escritório ↔ cliente no mesmo fluxo, sem WhatsApp perdido.',
+    text: 'Gabinete ↔ cliente no mesmo fluxo, sem WhatsApp perdido.',
   },
   {
     icon: Smartphone,
@@ -52,7 +52,7 @@ const FEATURES = [
   {
     icon: HardDrive,
     title: 'Google Calendar e Drive',
-    text: 'Agenda e ficheiros ligados à operação do escritório.',
+    text: 'Agenda e ficheiros ligados à operação do gabinete.',
   },
   {
     icon: Bell,
@@ -66,10 +66,10 @@ export function LandingFeatures() {
     <section id="funcionalidades" className="landing-section scroll-mt-24 bg-white">
       <div className="landing-container">
         <FadeInView className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#C9932E]">Já disponível</p>
-          <h2 className="mt-2 text-3xl font-semibold sm:text-4xl">Tudo o que o escritório precisa no dia a dia</h2>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#C9932E]">Já no produto</p>
+          <h2 className="mt-2 text-3xl font-semibold sm:text-4xl">O que o Teglion faz no dia a dia do gabinete</h2>
           <p className="mt-3 text-[#4A5568]">
-            Funcionalidades reais — não uma lista de “em desenvolvimento”.
+            Lista do que já pode usar — sem vender como pronto o que ainda está “em breve”.
           </p>
         </FadeInView>
 
@@ -79,10 +79,10 @@ export function LandingFeatures() {
             return (
               <FadeInStaggerItem key={item.title}>
                 <article className="landing-card flex h-full flex-col p-5 sm:p-6">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0F2942]/5 text-[#0F2942]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B3A6E]/5 text-[#0B3A6E]">
                     <Icon className="h-5 w-5" aria-hidden />
                   </div>
-                  <h3 className="mt-4 text-base font-semibold text-[#0F2942]">{item.title}</h3>
+                  <h3 className="mt-4 text-base font-semibold text-[#0B3A6E]">{item.title}</h3>
                   <p className="mt-2 text-[14px] leading-relaxed text-[#4A5568] sm:text-[15px]">{item.text}</p>
                 </article>
               </FadeInStaggerItem>
@@ -91,14 +91,14 @@ export function LandingFeatures() {
         </FadeInStagger>
 
         <FadeInView delay={0.05} className="mt-8">
-          <div className="flex flex-col gap-3 rounded-[14px] border border-dashed border-[#0F2942]/20 bg-[#FAFAF7] px-5 py-5 sm:flex-row sm:items-center sm:gap-5 sm:px-6">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#C9932E]/15 text-[#0F2942]">
+          <div className="flex flex-col gap-3 rounded-[14px] border border-dashed border-[#0B3A6E]/20 bg-[#FAFAF7] px-5 py-5 sm:flex-row sm:items-center sm:gap-5 sm:px-6">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#C9932E]/15 text-[#0B3A6E]">
               <Sparkles className="h-5 w-5" aria-hidden />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-base font-semibold text-[#0F2942]">IA no contexto do escritório</h3>
-                <span className="rounded-md bg-[#0F2942]/8 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#0F2942]">
+                <h3 className="text-base font-semibold text-[#0B3A6E]">IA no contexto do gabinete</h3>
+                <span className="rounded-md bg-[#0B3A6E]/8 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#0B3A6E]">
                   Em breve
                 </span>
               </div>

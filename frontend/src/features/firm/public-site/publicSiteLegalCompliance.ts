@@ -28,7 +28,7 @@ function isHttpsUrl(value: string | null | undefined): boolean {
   }
 }
 
-/** Texto ainda vazio ou só o modelo de referência (não adaptado pelo escritório). */
+/** Texto ainda vazio ou só o modelo de referência (não adaptado pelo gabinete). */
 export function isPublicSitePolicyTextConfigured(text: string | null | undefined): boolean {
   const t = norm(text)
   if (!t) return false
@@ -52,7 +52,7 @@ export function evaluatePublicSiteLegalGaps(config: PublicSiteConfig): PublicSit
     gaps.push({
       id: 'terms',
       label: 'Termos de Utilização',
-      detail: 'Revise e publique termos adaptados ao seu escritório (não deixe só o modelo vazio).',
+      detail: 'Revise e publique termos adaptados ao seu gabinete (não deixe só o modelo vazio).',
     })
   }
 
@@ -60,7 +60,7 @@ export function evaluatePublicSiteLegalGaps(config: PublicSiteConfig): PublicSit
     gaps.push({
       id: 'privacy',
       label: 'Política de Privacidade',
-      detail: 'Revise e publique a política de privacidade do escritório.',
+      detail: 'Revise e publique a política de privacidade do gabinete.',
     })
   }
 

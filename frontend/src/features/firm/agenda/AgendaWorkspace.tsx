@@ -274,8 +274,8 @@ export function AgendaWorkspace() {
             title="Agenda"
             subtitle={
               tab === 'settings'
-                ? 'Defina a sua disponibilidade para receber agendamentos.'
-                : 'Marque reuniões, configure disponibilidade e a disponibilidade na página pública.'
+                ? 'Horário em que o gabinete aceita marcações (página pública e portal).'
+                : 'Consultas e reuniões do gabinete — marque, veja o dia e gira a disponibilidade.'
             }
             testId="firm-agenda-header"
             secondary={
@@ -481,7 +481,7 @@ export function AgendaWorkspace() {
               selectedEvent.priceCents != null &&
               selectedEvent.priceCents > 0 ? (
                 <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-950">
-                  Pagamento confirmado via Stripe (o dinheiro foi para a conta Connect do escritório).
+                  Pagamento confirmado via Stripe (o dinheiro foi para a conta Connect do gabinete).
                 </p>
               ) : null}
               {selectedEvent.status === 'PENDING_PAYMENT' || selectedEvent.status === 'SCHEDULED' ? (

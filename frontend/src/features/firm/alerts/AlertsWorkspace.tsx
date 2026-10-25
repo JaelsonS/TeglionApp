@@ -12,7 +12,7 @@ import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { AskMayaButton } from '@/features/maya'
-import { EmptyState, FirmSplitView } from '@/shared/design-system'
+import { EmptyState, FirmSplitView, PageHeader } from '@/shared/design-system'
 import {
   Dialog,
   DialogContent,
@@ -308,22 +308,19 @@ export function AlertsWorkspace() {
 
   return (
     <>
-      <header className="cb-alerts-page-hd shrink-0" data-testid="firm-alerts-header">
-        <div className="cb-alerts-page-hd-row">
-          <div>
-            <h1 className="cb-alerts-page-title">Central de comunicação</h1>
-            <p className="cb-alerts-page-sub">
-              Comunicados fiscais para a carteira — profissional e rastreável
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <AskMayaButton intentId="alerts" />
+      <header className="cb-alerts-page-hd shrink-0 px-4 pt-4 sm:px-5" data-testid="firm-alerts-header">
+        <PageHeader
+          title="Alertas"
+          subtitle="Avisos curtos à carteira (prazos, urgências). Para artigos longos use Notícias."
+          testId="firm-alerts-title"
+          secondary={<AskMayaButton intentId="alerts" />}
+          right={
             <Button type="button" className="cb-alerts-btn-primary shrink-0" onClick={startCreate}>
               <Plus className="mr-2 h-4 w-4" />
               Novo comunicado
             </Button>
-          </div>
-        </div>
+          }
+        />
       </header>
 
       <div className="cb-firm-operational-panel flex min-h-0 flex-1 flex-col overflow-hidden">

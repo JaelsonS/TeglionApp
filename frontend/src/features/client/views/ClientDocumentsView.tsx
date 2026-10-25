@@ -207,7 +207,7 @@ export function ClientDocumentsView({ t }: { t: ReturnType<typeof getClientHubCo
             className={cn('pc-pill', filters.source === src && 'pc-pill-active')}
             onClick={() => persistFilters({ ...filters, source: src })}
           >
-            {src === 'all' ? 'Todos' : src === 'firm' ? 'Do escritório' : 'Enviados por mim'}
+            {src === 'all' ? 'Todos' : src === 'firm' ? 'Do gabinete' : 'Enviados por mim'}
           </button>
         ))}
       </div>

@@ -31,7 +31,7 @@ export function SocialButton({
             className={cn(
                 'group flex h-12 w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-sm transition duration-200',
                 'hover:border-slate-300 hover:bg-slate-50 hover:shadow-md',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0f2942]/30 focus-visible:ring-offset-2 focus-visible:ring-offset-white',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B3A6E]/30 focus-visible:ring-offset-2 focus-visible:ring-offset-white',
                 className,
             )}
         >

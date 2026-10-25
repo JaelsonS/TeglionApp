@@ -1,4 +1,4 @@
-/** Rotas do módulo Documentos (escritório). */
+/** Rotas do módulo Documentos (gabinete). */
 export const FIRM_DOCUMENTS_BASE = '/app/firm/documents' as const
 export const FIRM_DOCUMENTS_REQUESTS = `${FIRM_DOCUMENTS_BASE}/requests` as const
 export const FIRM_DOCUMENTS_FILES = `${FIRM_DOCUMENTS_BASE}/files` as const

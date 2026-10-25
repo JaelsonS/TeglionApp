@@ -43,7 +43,7 @@ export function ClientMorePage() {
                   {item.to === '/app/client/agenda'
                     ? 'Em atraso, esta semana, mais tarde'
                     : item.to === '/app/client/documents'
-                      ? 'Enviar e ver ficheiros do escritório'
+                      ? 'Enviar e ver ficheiros do gabinete'
                       : item.to === '/app/client/updates'
                         ? 'Alertas e novidades publicadas para si'
                         : 'Perfil, notificações, app e a Maya'}

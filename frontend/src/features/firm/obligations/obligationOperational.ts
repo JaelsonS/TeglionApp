@@ -74,7 +74,7 @@ export function displayObligationTitle(ob: ObligationRow): string {
   return safeDisplayText(ob.title || TYPE_LABELS[ob.type] || ob.type, 'Obrigação')
 }
 
-/** Notas visíveis ao cliente/escritório — ignora marcadores de demo e campos vazios. */
+/** Notas visíveis ao cliente/gabinete — ignora marcadores de demo e campos vazios. */
 export function displayObligationNotes(
   ...values: (string | null | undefined)[]
 ): string | null {

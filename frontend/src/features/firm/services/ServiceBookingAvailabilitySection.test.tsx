@@ -74,7 +74,7 @@ describe('ServiceBookingAvailabilitySection', () => {
       />,
     )
 
-    expect(await screen.findByText(/Usar horário do escritório/i)).toBeTruthy()
+    expect(await screen.findByText(/Usar horário do gabinete/i)).toBeTruthy()
     await waitFor(() => expect(getBookingSettings).toHaveBeenCalled())
 
     await user.click(screen.getByRole('radio', { name: /Personalizar horário deste serviço/i }))
@@ -115,7 +115,7 @@ describe('ServiceBookingAvailabilitySection', () => {
         onChange={onChange}
       />,
     )
-    await user.click(screen.getByRole('radio', { name: /Usar horário do escritório/i }))
+    await user.click(screen.getByRole('radio', { name: /Usar horário do gabinete/i }))
     expect(onChange).toHaveBeenCalledWith(null)
   })
 

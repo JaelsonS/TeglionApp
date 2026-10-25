@@ -1,13 +1,13 @@
-/** Marca e domínio oficial Teglion — escritórios de contabilidade em Portugal. */
+/** Marca e domínio oficial Teglion — gabinetes de contabilidade em Portugal. */
 export const BRAND = {
   name: 'Teglion',
-  tagline: 'Gestão completa para escritórios de contabilidade',
+  tagline: 'Gabinete, portal e página pública — a mesma operação',
   domain: 'teglion.com',
   url: 'https://www.teglion.com',
   apiUrl: 'https://teglionapp.onrender.com',
   initials: 'TL',
   colors: {
-    navy: '#0F2942',
+    navy: '#0B3A6E',
     gold: '#C9932E',
     canvas: '#FAFAF7',
     muted: '#4A5568',

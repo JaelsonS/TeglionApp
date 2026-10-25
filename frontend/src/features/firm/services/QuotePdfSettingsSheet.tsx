@@ -63,7 +63,7 @@ export function QuotePdfSettingsSheet({
         <div className="space-y-5">
           <label className="block space-y-1">
             <span className="text-caption font-medium text-muted-foreground">
-              Texto de abertura (ex.: saudação, apresentação do escritório)
+              Texto de abertura (ex.: saudação, apresentação do gabinete)
             </span>
             <Textarea
               rows={3}
@@ -87,12 +87,12 @@ export function QuotePdfSettingsSheet({
           </label>
           <label className="block space-y-1">
             <span className="text-caption font-medium text-muted-foreground">
-              Rodapé (ex.: dados bancários, contactos do escritório)
+              Rodapé (ex.: dados bancários, contactos do gabinete)
             </span>
             <Textarea
               rows={3}
               className="resize-none rounded-lg text-sm"
-              placeholder="IBAN PT50 0000 0000 0000 0000 0000 0 · geral@escritorio.pt"
+              placeholder="IBAN PT50 0000 0000 0000 0000 0000 0 · geral@gabinete.pt"
               value={footerText}
               onChange={(e: FormChangeEvent) => setFooterText(e.target.value)}
             />

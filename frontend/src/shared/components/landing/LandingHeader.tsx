@@ -75,7 +75,7 @@ export function LandingHeader() {
 
         <button
           type="button"
-          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] text-[#0F2942] transition hover:bg-[#0F2942]/6 lg:hidden"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] text-[#0B3A6E] transition hover:bg-[#0B3A6E]/6 lg:hidden"
           aria-expanded={menuOpen}
           aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'}
           onClick={() => setMenuOpen((v) => !v)}
@@ -90,7 +90,7 @@ export function LandingHeader() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-t border-[#0F2942]/10 bg-[#FAFAF7] lg:hidden"
+            className="border-t border-[#0B3A6E]/10 bg-[#FAFAF7] lg:hidden"
           >
             <nav className="flex flex-col gap-1 px-5 py-4">
               {NAV.map((item) =>
@@ -98,7 +98,7 @@ export function LandingHeader() {
                   <Link
                     key={item.href}
                     to={item.href}
-                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-[#0F2942]"
+                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-[#0B3A6E]"
                     onClick={() => setMenuOpen(false)}
                   >
                     {item.label}
@@ -107,7 +107,7 @@ export function LandingHeader() {
                   <a
                     key={item.href}
                     href={item.href}
-                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-[#0F2942]"
+                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-[#0B3A6E]"
                     onClick={() => setMenuOpen(false)}
                   >
                     {item.label}

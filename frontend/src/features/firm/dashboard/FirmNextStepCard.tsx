@@ -61,7 +61,7 @@ export function FirmPublicUrlCard({ publicUrl, published }: FirmPublicUrlCardPro
       <CardHeader className="pb-2">
         <div className="flex items-center gap-2">
           <Link2 className="h-4 w-4 text-brand" aria-hidden />
-          <CardTitle className="text-base">Página pública do escritório</CardTitle>
+          <CardTitle className="text-base">Página pública do gabinete</CardTitle>
         </div>
         <CardDescription>
           É aqui que potenciais clientes conhecem os seus serviços e entram em contacto.

@@ -97,14 +97,14 @@ export function FirmSettingsDangerZone({ bundle }: Props) {
         <div>
           <h2 className="cb-settings-panel-title text-destructive">Zona de perigo</h2>
           <p className="cb-settings-panel-sub">
-            Encerrar a conta desactiva o escritório e todas as sessões. Os dados permanecem arquivados conforme a
+            Encerrar a conta desactiva o gabinete e todas as sessões. Os dados permanecem arquivados conforme a
             política de privacidade — contacte o suporte para pedidos de eliminação definitiva.
           </p>
         </div>
       </div>
 
       <Button type="button" variant="destructive" className="rounded-lg" onClick={() => setOpen(true)}>
-        Encerrar conta do escritório
+        Encerrar conta do gabinete
       </Button>
 
       <ConfirmDialog
@@ -121,14 +121,14 @@ export function FirmSettingsDangerZone({ bundle }: Props) {
           }
         }}
         title="Confirmar encerramento"
-        description={`Esta acção é irreversível para o acesso diário. Para confirmar, escreva o nome exacto do escritório: ${firmName}`}
+        description={`Esta acção é irreversível para o acesso diário. Para confirmar, escreva o nome exacto do gabinete: ${firmName}`}
         confirmLabel={closing ? 'A encerrar…' : 'Encerrar definitivamente'}
         variant="destructive"
         testId="firm-close-account"
         onConfirm={onConfirmClose}
       >
         <div className="space-y-2">
-          <Label htmlFor="confirm-firm-name">Nome do escritório</Label>
+          <Label htmlFor="confirm-firm-name">Nome do gabinete</Label>
           <Input
             id="confirm-firm-name"
             value={confirmName}

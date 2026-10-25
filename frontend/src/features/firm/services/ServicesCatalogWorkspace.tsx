@@ -535,7 +535,7 @@ export function ServicesCatalogWorkspace({
                 icon={Sparkles}
                 title={
                   (excludeIrs ? services.filter((s) => !isIrsEntry(s)) : services).length === 0
-                    ? 'Comece pelos serviços que o escritório mais presta'
+                    ? 'Comece pelos serviços que o gabinete mais presta'
                     : 'Nenhum serviço neste filtro'
                 }
                 description={

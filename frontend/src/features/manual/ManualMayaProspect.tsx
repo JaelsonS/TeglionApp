@@ -18,7 +18,7 @@ export function ManualMayaProspect() {
         <div className="flex items-start gap-3">
           <MayaAvatar size="lg" variant="md" />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-[#0F2942]">Maya</p>
+            <p className="text-sm font-semibold text-[#0B3A6E]">Maya</p>
             <p className="mt-1 text-sm text-[#4A5568]">
               Ainda não tem conta? Eu explico o Teglion em linguagem simples — e posso apontá-lo para
               o trial de 14 dias. Se já é cliente, entre na app e peça-me ajuda no mesmo ícone.
@@ -31,7 +31,7 @@ export function ManualMayaProspect() {
                 <Link to={authFirmRegisterUrl()}>Testar 14 dias</Link>
               </Button>
               <Button type="button" size="sm" variant="ghost" asChild>
-                <Link to="/auth/client/login">Sou cliente do escritório</Link>
+                <Link to="/auth/client/login">Sou cliente do gabinete</Link>
               </Button>
             </div>
           </div>

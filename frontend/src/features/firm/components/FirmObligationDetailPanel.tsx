@@ -449,7 +449,7 @@ export function FirmObligationDetailPanel({
                   <FileText className="h-3.5 w-3.5 shrink-0 text-sky-600" />
                   <span className="min-w-0 flex-1 truncate">{d.title || 'Documento'}</span>
                   <span className="cb-pill cb-pill-green">
-                    {d.uploadedByRole === 'CLIENT' ? 'Cliente' : 'Escritório'}
+                    {d.uploadedByRole === 'CLIENT' ? 'Cliente' : 'Gabinete'}
                   </span>
                 </button>
               ))}

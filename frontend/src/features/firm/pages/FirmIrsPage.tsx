@@ -261,7 +261,7 @@ export function FirmIrsPage() {
               ) : models.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
                   <CheckCircle2 className="h-7 w-7 text-emerald-600/60" />
-                  <p className="text-sm text-muted-foreground">Todos os modelos IRS já estão no escritório.</p>
+                  <p className="text-sm text-muted-foreground">Todos os modelos IRS já estão no gabinete.</p>
                 </div>
               ) : (
                 <ul className="divide-y divide-border/40">

@@ -225,12 +225,12 @@ export function FiscalCalendarWorkspace() {
                 <CalendarDays className="h-5 w-5" aria-hidden />
               </div>
               <div className="min-w-0">
-                <h1 className="cb-operational-page-title font-display sm:text-2xl">
-                  {calendar?.name || 'Calendário Fiscal'}
+                <h1 className="cb-operational-page-title font-sans sm:text-2xl">
+                  {calendar?.name || 'Calendário fiscal'}
                 </h1>
                 <p className="cb-operational-page-sub text-sm">
                   {calendar?.description ||
-                    'Organize e acompanhe os principais prazos e obrigações fiscais do seu escritório.'}
+                    'Prazos genéricos do gabinete (IVA, IES…). Distinto das Obrigações por cliente.'}
                 </p>
               </div>
             </div>

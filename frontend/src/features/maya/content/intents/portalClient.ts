@@ -7,11 +7,11 @@ export const PORTAL_CLIENT_INTENTS = [
     shortDescription: 'início do portal',
     surface: 'client',
     answer:
-      'Este é o portal do seu escritório de contabilidade. Aqui envia o que lhe pedem, vê prazos, marca serviços e escreve à equipa. O Início mostra só o próximo passo — não precisa de caçar datas espalhadas.',
+      'Este é o portal do seu gabinete de contabilidade. Aqui envia o que lhe pedem, vê prazos, marca serviços e escreve à equipa. O Início mostra só o próximo passo — não precisa de caçar datas espalhadas.',
     steps: [
-      'Olhe o cartão «Próximo passo» — é o que o escritório precisa agora',
+      'Olhe o cartão «Próximo passo» — é o que o gabinete precisa agora',
       'Se houver um pedido, abra Pedidos e envie o documento',
-      'Em Serviços vê o que o escritório oferece e pode pedir ou agendar',
+      'Em Serviços vê o que o gabinete oferece e pode pedir ou agendar',
       'Use Mensagens para falar com a equipa',
     ],
     deepLink: '/app/client',
@@ -25,15 +25,15 @@ export const PORTAL_CLIENT_INTENTS = [
   defineIntent({
     id: 'portal-requests',
     title: 'O que são os pedidos',
-    shortDescription: 'pedidos do escritório',
+    shortDescription: 'pedidos do gabinete',
     surface: 'client',
     answer:
-      'Pedidos são documentos ou informações que o seu contabilista precisa. Cada cartão diz o que enviar. Quando entregar, o escritório vê no Teglion — não precisa de mandar pelo WhatsApp.',
+      'Pedidos são documentos ou informações que o seu contabilista precisa. Cada cartão diz o que enviar. Quando entregar, o gabinete vê no Teglion — não precisa de mandar pelo WhatsApp.',
     steps: [
       'Abra Pedidos na barra de baixo',
       'Escolha o pedido pendente',
       'Envie o ficheiro ou a resposta pedida',
-      'O estado passa a entregue quando o escritório confirmar',
+      'O estado passa a entregue quando o gabinete confirmar',
     ],
     deepLink: '/app/client/requests',
     relatedIntents: ['portal-documents', 'portal-home'],
@@ -43,20 +43,20 @@ export const PORTAL_CLIENT_INTENTS = [
         id: 'nao-tenho-doc',
         title: 'Não tenho o documento',
         answer:
-          'Escreva ao escritório em Mensagens e diga o que falta. Eles podem adiar o pedido ou indicar uma alternativa.',
+          'Escreva ao gabinete em Mensagens e diga o que falta. Eles podem adiar o pedido ou indicar uma alternativa.',
       },
     ],
   }),
   defineIntent({
     id: 'portal-services',
-    title: 'Serviços do escritório',
+    title: 'Serviços do gabinete',
     shortDescription: 'catálogo para o cliente',
     surface: 'client',
     answer:
-      'Em Serviços vê o que o escritório faz: IRS, IVA, consultoria, e outros. Cada cartão pode ter Agendar (escolhe um horário) ou Pedir (o escritório recebe uma mensagem). Não cria várias contas — fica tudo neste portal.',
+      'Em Serviços vê o que o gabinete faz: IRS, IVA, consultoria, e outros. Cada cartão pode ter Agendar (escolhe um horário) ou Pedir (o gabinete recebe uma mensagem). Não cria várias contas — fica tudo neste portal.',
     steps: [
       'Abra Serviços',
-      'Escolha o serviço (estão agrupados quando o escritório definiu categorias)',
+      'Escolha o serviço (estão agrupados quando o gabinete definiu categorias)',
       'Se tiver horário, escolha o dia e confirme',
       'Se for sob pedido, toque em Pedir — a equipa recebe a mensagem',
     ],
@@ -67,10 +67,10 @@ export const PORTAL_CLIENT_INTENTS = [
   defineIntent({
     id: 'portal-booking',
     title: 'Marcar um horário',
-    shortDescription: 'agendar com o escritório',
+    shortDescription: 'agendar com o gabinete',
     surface: 'client',
     answer:
-      'Alguns serviços pedem um horário. Escolhe o serviço, vê os espaços livres do escritório e confirma. O horário fica na agenda da equipa. Se não houver vagas, escreva em Mensagens.',
+      'Alguns serviços pedem um horário. Escolhe o serviço, vê os espaços livres do gabinete e confirma. O horário fica na agenda da equipa. Se não houver vagas, escreva em Mensagens.',
     steps: [
       'Abra Serviços e toque em Agendar',
       'Escolha um horário livre',
@@ -82,11 +82,11 @@ export const PORTAL_CLIENT_INTENTS = [
   }),
   defineIntent({
     id: 'portal-messages',
-    title: 'Falar com o escritório',
+    title: 'Falar com o gabinete',
     shortDescription: 'mensagens',
     surface: 'client',
     answer:
-      'Mensagens é a conversa segura com o seu escritório. Ficheiros e texto ficam no Teglion, com histórico. Use isto em vez de espalhar assuntos por e-mail e WhatsApp.',
+      'Mensagens é a conversa segura com o seu gabinete. Ficheiros e texto ficam no Teglion, com histórico. Use isto em vez de espalhar assuntos por e-mail e WhatsApp.',
     steps: [
       'Abra Mensagens',
       'Escreva o que precisa ou anexe um ficheiro',
@@ -102,7 +102,7 @@ export const PORTAL_CLIENT_INTENTS = [
     shortDescription: 'documentos do cliente',
     surface: 'client',
     answer:
-      'Em Documentos envia comprovativos ao escritório e vê o que eles lhe enviaram. O arquivo guarda o histórico. Isto não substitui o pedido pontual em Pedidos — os pedidos dizem exactamente o que falta agora.',
+      'Em Documentos envia comprovativos ao gabinete e vê o que eles lhe enviaram. O arquivo guarda o histórico. Isto não substitui o pedido pontual em Pedidos — os pedidos dizem exactamente o que falta agora.',
     steps: [
       'Abra Mais → Documentos',
       'Envie o ficheiro',
@@ -134,7 +134,7 @@ export const PORTAL_CLIENT_INTENTS = [
     shortDescription: 'definições do portal',
     surface: 'client',
     answer:
-      'Em Conta e ajuda está o seu perfil, as notificações do telemóvel, instalar o portal como aplicação, e a Maya. O rodapé AfDigital — Soluções Tecnológicas é quem opera o Teglion — o seu contrato e os seus dados fiscais são com o escritório.',
+      'Em Conta e ajuda está o seu perfil, as notificações do telemóvel, instalar o portal como aplicação, e a Maya. O rodapé AfDigital — Soluções Tecnológicas é quem opera o Teglion — o seu contrato e os seus dados fiscais são com o gabinete.',
     steps: [
       'Abra Mais → Conta e ajuda',
       'Active notificações se quiser avisos no telemóvel',
@@ -150,11 +150,11 @@ export const PORTAL_CLIENT_INTENTS = [
     shortDescription: 'assistente no portal',
     surface: 'client',
     answer:
-      'Eu explico os ecrãs deste portal: pedidos, serviços, prazos e mensagens. Não vejo os seus documentos, NIFs nem conversas privadas. Não substituo o contabilista — para o seu caso concreto, fale com o escritório.',
+      'Eu explico os ecrãs deste portal: pedidos, serviços, prazos e mensagens. Não vejo os seus documentos, NIFs nem conversas privadas. Não substituo o contabilista — para o seu caso concreto, fale com o gabinete.',
     steps: [
       'Toque no botão Maya',
       'Escolha o tema do ecrã em que está',
-      'Se precisar do escritório, abra Mensagens',
+      'Se precisar do gabinete, abra Mensagens',
     ],
     deepLink: '/app/client',
     relatedIntents: ['portal-home', 'portal-firm-contact'],
@@ -162,14 +162,14 @@ export const PORTAL_CLIENT_INTENTS = [
   defineIntent({
     id: 'portal-firm-contact',
     title: 'Falar com uma pessoa',
-    shortDescription: 'contacto do escritório',
+    shortDescription: 'contacto do gabinete',
     surface: 'client',
     answer:
-      'Para a sua contabilidade, a pessoa certa é a equipa do escritório — use Mensagens ou marque um serviço. A AfDigital — Soluções Tecnológicas opera o Teglion (o programa); não trata da sua declaração nem dos seus prazos.',
+      'Para a sua contabilidade, a pessoa certa é a equipa do gabinete — use Mensagens ou marque um serviço. A AfDigital — Soluções Tecnológicas opera o Teglion (o programa); não trata da sua declaração nem dos seus prazos.',
     steps: [
-      'Abra Mensagens para escrever ao escritório',
+      'Abra Mensagens para escrever ao gabinete',
       'Ou peça um serviço em Serviços',
-      'Em urgências fiscais, ligue ao escritório pelos contactos que eles lhe deram',
+      'Em urgências fiscais, ligue ao gabinete pelos contactos que eles lhe deram',
     ],
     deepLink: '/app/client/messages',
     relatedIntents: ['portal-messages', 'portal-services'],

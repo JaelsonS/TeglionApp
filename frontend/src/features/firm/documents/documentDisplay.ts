@@ -24,7 +24,7 @@ export function isFirmUploaded(d: Pick<FirmDocumentRow, 'uploadedByRole'>): bool
 }
 
 export function uploadedByLabel(d: Pick<FirmDocumentRow, 'uploadedByRole'>): string {
-  return isFirmUploaded(d) ? 'Escritório' : 'Cliente'
+  return isFirmUploaded(d) ? 'Gabinete' : 'Cliente'
 }
 
 export function formatFileSize(bytes?: number | null): string {

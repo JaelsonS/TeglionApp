@@ -84,7 +84,7 @@ export function ChargeEditDialog({
           <DialogDescription>
             {clientName}
             {charge ? ` · valor actual ${formatEuroFromCents(charge.amountCents)}` : null}
-            . Honorários do escritório — não é fatura certificada da AT.
+            . Honorários do gabinete — não é fatura certificada da AT.
           </DialogDescription>
         </DialogHeader>
 

@@ -56,7 +56,7 @@ function formatEuro(cents: number) {
   return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(cents / 100)
 }
 
-/** Início — um próximo passo, o essencial, e os serviços do escritório. */
+/** Início — um próximo passo, o essencial, e os serviços do gabinete. */
 export function ClientPremiumHome({
   t,
   hub,
@@ -148,7 +148,7 @@ export function ClientPremiumHome({
           <div className="flex items-start gap-3">
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-700" />
             <div className="min-w-0 flex-1">
-              <p className="cb-text-label text-red-800">Urgente do escritório</p>
+              <p className="cb-text-label text-red-800">Urgente do gabinete</p>
               <p className="mt-1 font-display text-lg font-semibold">{urgentBanner.title}</p>
               {urgentBanner.excerpt ? <p className="mt-1 text-sm text-red-900/80">{urgentBanner.excerpt}</p> : null}
               <Button type="button" size="sm" className="mt-3 rounded-full" onClick={onGoAlerts}>
@@ -247,7 +247,7 @@ export function ClientPremiumHome({
       <section>
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>
-            <h3 className="font-display text-lg font-semibold text-foreground">Serviços do escritório</h3>
+            <h3 className="font-display text-lg font-semibold text-foreground">Serviços do gabinete</h3>
             <p className="mt-0.5 text-sm text-muted-foreground">Peça ou agende sem sair do portal.</p>
           </div>
           <button
@@ -288,7 +288,7 @@ export function ClientPremiumHome({
             className="flex w-full items-center justify-between rounded-2xl border border-dashed border-border bg-card/60 px-4 py-5 text-left"
           >
             <span>
-              <span className="block text-sm font-semibold text-foreground">Falar com o escritório</span>
+              <span className="block text-sm font-semibold text-foreground">Falar com o gabinete</span>
               <span className="mt-0.5 block text-xs text-muted-foreground">
                 Ainda não há serviços publicados neste portal.
               </span>
@@ -303,7 +303,7 @@ export function ClientPremiumHome({
           {newsPreview.length > 0 ? (
             <section className="cb-card-padded">
               <div className="mb-3 flex items-center justify-between">
-                <span className="cb-text-label text-brand">Do escritório</span>
+                <span className="cb-text-label text-brand">Do gabinete</span>
                 <button type="button" className="text-xs font-semibold text-brand" onClick={onGoNews}>
                   Ver avisos
                 </button>
@@ -359,7 +359,7 @@ export function ClientPremiumHome({
         className="flex w-full items-center gap-2 rounded-2xl border border-border/60 bg-card px-4 py-3 text-sm text-foreground transition hover:border-brand/30"
       >
         <Bell className="h-4 w-4 shrink-0 text-brand" />
-        <span>Avisos e novidades do escritório</span>
+        <span>Avisos e novidades do gabinete</span>
         <ArrowRight className="ml-auto h-4 w-4 text-muted-foreground" />
       </button>
 

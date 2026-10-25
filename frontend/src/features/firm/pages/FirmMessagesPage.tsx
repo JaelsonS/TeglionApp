@@ -9,7 +9,7 @@ export function FirmMessagesPage() {
       <div className="shrink-0 px-4 pt-4 sm:px-5" data-testid="firm-messages-header">
         <PageHeader
           title="Mensagens"
-          subtitle="Conversas e anexos com a carteira de clientes — histórico num só lugar."
+          subtitle="Escreva ao cliente e receba anexos aqui — o histórico fica no Teglion, não no WhatsApp."
           testId="firm-messages-title"
           secondary={<AskMayaButton intentId="messages" />}
         />

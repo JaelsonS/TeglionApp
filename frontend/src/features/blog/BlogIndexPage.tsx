@@ -69,13 +69,13 @@ export function BlogIndexPage() {
       <section className="blog-hero-index">
         <div className="blog-container-wide blog-hero-index-inner">
           <div className="blog-hero-copy">
-            <p className="text-sm font-semibold uppercase tracking-wide blog-text-gold">Revista fiscal Teglion</p>
+            <p className="text-sm font-semibold uppercase tracking-wide blog-text-gold">Blog Teglion</p>
             <h1 className="blog-display mt-3 text-3xl font-semibold blog-text-navy sm:text-4xl lg:text-5xl">
-              Contabilidade portuguesa explicada sem rodeios
+              Contabilidade portuguesa, explicada sem rodeios
             </h1>
             <p className="mt-4 max-w-xl text-base blog-text-body sm:text-lg">
-              Guias práticos para independentes, PME e escritórios OCC: prazos, recibos verdes, IVA, IRS e o dia-a-dia
-              com clientes — escrito para quem precisa de decidir com clareza, não de decorar artigos de lei.
+              Artigos do produto Teglion para independentes, PME e escritórios: prazos, recibos verdes, IVA, IRS e
+              o dia-a-dia com clientes — para decidir com clareza, não para decorar a lei.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link to={authFirmRegisterUrl()} className="landing-btn-primary inline-flex">

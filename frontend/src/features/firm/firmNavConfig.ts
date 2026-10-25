@@ -36,11 +36,12 @@ export type FirmNavGroupConfig = {
   items: FirmNavItemConfig[]
 }
 
+/** Grupos legíveis (repaginação): mesmas rotas, nomes que explicam o quê. */
 export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
   {
     id: 'overview',
     titleKey: 'contabil.firm.nav.overview',
-    titleDefault: 'Visão geral',
+    titleDefault: 'Hoje',
     items: [
       {
         to: '/app/firm/dashboard',
@@ -53,7 +54,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
   {
     id: 'clients',
     titleKey: 'contabil.firm.nav.clients',
-    titleDefault: 'Clientes',
+    titleDefault: 'Clientes e carteira',
     items: [
       {
         to: '/app/firm/clients',
@@ -64,7 +65,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
       {
         to: '/app/firm/payments',
         labelKey: 'contabil.firm.nav.payments',
-        labelDefault: 'Pagamentos',
+        labelDefault: 'Pagamentos (carteira)',
         icon: Wallet,
       },
       {
@@ -76,13 +77,13 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
       {
         to: '/app/firm/saft',
         labelKey: 'contabil.firm.nav.saft',
-        labelDefault: 'SAF-T (leitura)',
+        labelDefault: 'SAF-T (consulta)',
         icon: FileArchive,
       },
       {
         to: '/app/firm/tasks/obligations',
         labelKey: 'contabil.firm.nav.obligations',
-        labelDefault: 'Obrigações dos Clientes',
+        labelDefault: 'Obrigações por cliente',
         icon: ClipboardCheck,
         end: false,
         badgeKey: 'obligations',
@@ -92,7 +93,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
   {
     id: 'operations',
     titleKey: 'contabil.firm.nav.operations',
-    titleDefault: 'Gestor de Operações',
+    titleDefault: 'Trabalho do gabinete',
     items: [
       {
         to: '/app/firm/tasks',
@@ -112,7 +113,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
       {
         to: '/app/firm/irs',
         labelKey: 'contabil.firm.nav.irs',
-        labelDefault: 'IRS',
+        labelDefault: 'Área IRS',
         icon: Landmark,
       },
       {
@@ -140,7 +141,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
   {
     id: 'comms',
     titleKey: 'contabil.firm.nav.comms',
-    titleDefault: 'Comunicação',
+    titleDefault: 'Comunicar',
     items: [
       {
         to: '/app/firm/documents',
@@ -160,7 +161,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
       {
         to: '/app/firm/alerts',
         labelKey: 'contabil.firm.nav.alerts',
-        labelDefault: 'Central de Alertas',
+        labelDefault: 'Alertas',
         icon: Megaphone,
       },
       {
@@ -174,12 +175,12 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
   {
     id: 'admin',
     titleKey: 'contabil.firm.nav.admin',
-    titleDefault: 'Configurações',
+    titleDefault: 'Conta Teglion',
     items: [
       {
         to: '/app/firm/billing',
         labelKey: 'nav.billing',
-        labelDefault: 'Plano',
+        labelDefault: 'Plano Teglion',
         icon: ReceiptText,
       },
       {
@@ -255,7 +256,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
   {
     to: '/app/firm/payments',
     labelKey: 'contabil.firm.nav.payments',
-    labelDefault: 'Pagamentos',
+    labelDefault: 'Pagamentos (carteira)',
     icon: Wallet,
   },
   {
@@ -267,7 +268,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
   {
     to: '/app/firm/saft',
     labelKey: 'contabil.firm.nav.saft',
-    labelDefault: 'SAF-T (leitura)',
+    labelDefault: 'SAF-T (consulta)',
     icon: FileArchive,
   },
   {
@@ -322,7 +323,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
   {
     to: '/app/firm/irs',
     labelKey: 'contabil.firm.nav.irs',
-    labelDefault: 'IRS',
+    labelDefault: 'Área IRS',
     icon: Landmark,
   },
   {
@@ -335,7 +336,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
   {
     to: '/app/firm/tasks/obligations',
     labelKey: 'contabil.firm.nav.obligations',
-    labelDefault: 'Obrigações dos Clientes',
+    labelDefault: 'Obrigações por cliente',
     icon: ClipboardCheck,
     end: false,
     badgeKey: 'obligations',
@@ -346,7 +347,7 @@ export const FIRM_NAV_RAIL_BOTTOM: FirmNavItemConfig[] = [
   {
     to: '/app/firm/billing',
     labelKey: 'nav.billing',
-    labelDefault: 'Plano',
+    labelDefault: 'Plano Teglion',
     icon: ReceiptText,
   },
   {
@@ -372,11 +373,12 @@ export const FIRM_NAV_DRAWER_ITEMS: FirmNavItemConfig[] = [...FIRM_NAV_RAIL_MAIN
 /** Rotas com etiqueta para breadcrumb no header. */
 export function firmNavLabelForPath(pathname: string): string | null {
   const matches = FIRM_NAV_FLAT.filter((i) => {
-    if (pathname === i.to) return true
-    if (i.end === false) return pathname.startsWith(`${i.to}/`)
+    const { pathname: targetPath } = parseNavTarget(i.to)
+    if (pathname === targetPath) return true
+    if (i.end === false) return pathname.startsWith(`${targetPath}/`)
     return false
   })
   if (!matches.length) return null
-  const best = matches.sort((a, b) => b.to.length - a.to.length)[0]
+  const best = matches.sort((a, b) => parseNavTarget(b.to).pathname.length - parseNavTarget(a.to).pathname.length)[0]
   return best.labelDefault
 }

@@ -48,7 +48,7 @@ export function ManualChapterPage() {
           <div className="mt-4 flex items-start gap-3">
             <MayaAvatar size="md" variant="md" />
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-[#0F2942]">{chapter.title}</h1>
+              <h1 className="text-3xl font-semibold tracking-tight text-[#0B3A6E]">{chapter.title}</h1>
               <p className="mt-1 text-[#4A5568]">{chapter.subtitle}</p>
             </div>
           </div>
@@ -61,7 +61,7 @@ export function ManualChapterPage() {
             <ManualMayaProspect />
           </div>
 
-          <nav className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-[#0F2942]/10 pt-6 text-sm">
+          <nav className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-[#0B3A6E]/10 pt-6 text-sm">
             {prev ? (
               <Link to={`/manual/${prev.slug}`} className="font-medium text-brand hover:underline">
                 ← {prev.title}

@@ -37,7 +37,7 @@ import { passwordPolicySchema } from '@/shared/utils/passwordPolicy'
 import { redirectFirmMfaGateIfNeeded } from '@/features/auth/firm/firmMfaGateRedirect'
 
 const schema = z.object({
-  firmName: z.string().min(2, 'Nome do escritório obrigatório'),
+  firmName: z.string().min(2, 'Nome do gabinete obrigatório'),
   ownerName: z.string().min(2, 'Nome obrigatório'),
   email: z.string().email('E-mail inválido'),
   password: passwordPolicySchema,
@@ -153,8 +153,8 @@ export function FirmRegisterPage() {
 
   return (
     <AuthLayout
-      title="Começar com o Teglion"
-      subtitle="Registe o seu escritório e comece a gerir clientes e obrigações com confiança."
+      title="Criar conta do gabinete"
+      subtitle="14 dias para experimentar — clientes, documentos e prazos no Teglion."
       leftPanelSlot={<OfficeScreensCarousel />}
     >
       <div className="w-full">
@@ -172,7 +172,7 @@ export function FirmRegisterPage() {
               />
               <div className="mt-6 space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-left text-sm text-emerald-900">
                 <p>
-                  A conta do escritório <strong>{pendingConfirm.firmName}</strong> foi criada.
+                  A conta do gabinete <strong>{pendingConfirm.firmName}</strong> foi criada.
                 </p>
                 <p>
                   {pendingConfirm.emailSent
@@ -183,7 +183,7 @@ export function FirmRegisterPage() {
               </div>
               <Link
                 to={authFirmLoginUrl()}
-                className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#0f2942] to-[#195285] text-sm font-semibold text-white shadow-[0_14px_28px_rgba(15,41,66,0.28)] transition hover:brightness-105"
+                className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#0B3A6E] to-[#195285] text-sm font-semibold text-white shadow-[0_14px_28px_rgba(11,58,110,0.28)] transition hover:brightness-105"
               >
                 Ir para o login
               </Link>
@@ -238,7 +238,7 @@ export function FirmRegisterPage() {
 
               <button
                 type="submit"
-                className="h-12 w-full rounded-2xl bg-gradient-to-r from-[#0f2942] to-[#195285] text-white shadow-[0_14px_28px_rgba(15,41,66,0.28)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
+                className="h-12 w-full rounded-2xl bg-gradient-to-r from-[#0B3A6E] to-[#195285] text-white shadow-[0_14px_28px_rgba(11,58,110,0.28)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={
                   submitting ||
                   !isFirmLegalConsentComplete(legal) ||

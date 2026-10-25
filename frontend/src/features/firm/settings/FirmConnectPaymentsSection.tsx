@@ -141,12 +141,12 @@ export function FirmConnectPaymentsSection() {
 
   const nextStepCopy =
     configured && canStart && !account
-      ? 'Ligar a conta Stripe do escritório com o botão abaixo.'
+      ? 'Ligar a conta Stripe do gabinete com o botão abaixo.'
       : configured && canStart && account && !ready
         ? 'Continuar a configuração na Stripe.'
         : ready
           ? 'Nada — os clientes já podem pagar online.'
-          : 'Peça ao dono do escritório ou ao suporte se o botão não aparecer.'
+          : 'Peça ao dono do gabinete ou ao suporte se o botão não aparecer.'
 
   return (
     <section className="cb-settings-panel cb-settings-connect-stack">
@@ -157,7 +157,7 @@ export function FirmConnectPaymentsSection() {
         <div>
           <h3 className="cb-settings-panel-title">Recebimentos online (opcional)</h3>
           <p className="cb-settings-panel-sub">
-            O dinheiro dos clientes vai para a conta do escritório — a Teglion não o guarda. A
+            O dinheiro dos clientes vai para a conta do gabinete — a Teglion não o guarda. A
             mensalidade do software gere-se em Plano, não aqui.
           </p>
         </div>
@@ -240,7 +240,7 @@ export function FirmConnectPaymentsSection() {
       </div>
 
       <p className="text-sm leading-relaxed text-muted-foreground">
-        Com Connect, o valor fica na conta do escritório — a Teglion não custodia esse dinheiro. A taxa
+        Com Connect, o valor fica na conta do gabinete — a Teglion não custodia esse dinheiro. A taxa
         de serviço Teglion é diferente das taxas Stripe. A mensalidade do software está em{' '}
         <Link to="/app/firm/billing" className="font-medium text-brand hover:underline">
           Plano
@@ -252,7 +252,7 @@ export function FirmConnectPaymentsSection() {
         <div className="rounded-xl border border-amber-200/80 bg-amber-50/70 px-4 py-3 text-sm text-amber-950">
           <p className="font-medium">Há uma actualização da política</p>
           <p className="mt-1 text-amber-950/90">
-            Peça ao responsável do escritório para a ler e aceitar antes de continuar.
+            Peça ao responsável do gabinete para a ler e aceitar antes de continuar.
           </p>
           {canStart ? (
             <Button
@@ -322,7 +322,7 @@ export function FirmConnectPaymentsSection() {
 
         {configured && paymentsAllowed && !canStart ? (
           <p className="text-sm text-muted-foreground">
-            Só o responsável (dono) do escritório pode ligar ou gerir a Stripe Connect.
+            Só o responsável (dono) do gabinete pode ligar ou gerir a Stripe Connect.
           </p>
         ) : null}
 

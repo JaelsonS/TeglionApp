@@ -67,7 +67,7 @@ describe('publicSitePublishReadiness', () => {
     expect(servicesItem?.ok).toBe(false)
   })
 
-  it('isPublicSiteContactVisible com Contactos activos e email do escritório', () => {
+  it('isPublicSiteContactVisible com Contactos activos e email do gabinete', () => {
     const config = minimalConfig()
     expect(
       isPublicSiteContactVisible(config, { email: 'contacto@firma.pt', phone: null, address: null }),

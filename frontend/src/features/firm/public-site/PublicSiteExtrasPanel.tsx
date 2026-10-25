@@ -153,7 +153,7 @@ export function PublicSiteExtrasPanel({
 
           <IdentitySubsection
             title="SEO (Google e partilhas)"
-            hint={`teglion.com/${firmSlug || '…'} · se vazio, usamos o nome do escritório e o destaque.`}
+            hint={`teglion.com/${firmSlug || '…'} · se vazio, usamos o nome do gabinete e o destaque.`}
           >
             <div className="space-y-3">
               <label className="block space-y-1.5">
@@ -176,7 +176,7 @@ export function PublicSiteExtrasPanel({
                 <span className="text-xs font-medium text-foreground">Descrição (meta description)</span>
                 <textarea
                   className="min-h-[88px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
-                  placeholder="Breve resumo do escritório para resultados de pesquisa."
+                  placeholder="Breve resumo do gabinete para resultados de pesquisa."
                   maxLength={200}
                   value={seoDesc}
                   onChange={(e: FormChangeEvent) =>

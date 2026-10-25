@@ -98,7 +98,7 @@ export function FirmSettingsNotificationsSection() {
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li className="rounded-lg border border-border/60 bg-muted/10 px-3 py-2">Convites de equipa e clientes</li>
           <li className="rounded-lg border border-border/60 bg-muted/10 px-3 py-2">Confirmação de e-mail e reset de senha</li>
-          <li className="rounded-lg border border-border/60 bg-muted/10 px-3 py-2">Avisos críticos do escritório</li>
+          <li className="rounded-lg border border-border/60 bg-muted/10 px-3 py-2">Avisos críticos do gabinete</li>
         </ul>
       </section>
     </div>

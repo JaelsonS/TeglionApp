@@ -40,7 +40,7 @@ import {
 import { redirectFirmMfaGateIfNeeded } from '@/features/auth/firm/firmMfaGateRedirect'
 
 const schema = z.object({
-  firmName: z.string().min(2, 'Nome do escritório obrigatório'),
+  firmName: z.string().min(2, 'Nome do gabinete obrigatório'),
   ownerName: z.string().min(2, 'Nome obrigatório'),
 })
 
@@ -165,7 +165,7 @@ export function FirmRegisterGooglePage() {
       )
       clearStoredOAuthPendingToken()
       if (redirectFirmMfaGateIfNeeded(res, navigate, { fromRegistration: true })) {
-        toast.success('Escritório criado. Configure a autenticação de dois factores para continuar.')
+        toast.success('Gabinete criado. Configure a autenticação de dois factores para continuar.')
         return
       }
       if (!setSession(res.user)) {
@@ -173,7 +173,7 @@ export function FirmRegisterGooglePage() {
         navigate(authFirmLoginUrl(), { replace: true })
         return
       }
-      toast.success('Escritório criado — bem-vindo!', {
+      toast.success('Gabinete criado — bem-vindo!', {
         description: 'Enviámos um e-mail de boas-vindas. Pode entrar sempre com Google.',
       })
       navigate('/app/firm/dashboard', { replace: true })
@@ -249,7 +249,7 @@ export function FirmRegisterGooglePage() {
         <AuthCard className="p-6 sm:p-7">
           <form className="space-y-4" onSubmit={(e) => void onSubmit(e)}>
             <div>
-              <Label htmlFor="countryCode">País do escritório</Label>
+              <Label htmlFor="countryCode">País do gabinete</Label>
               <select
                 id="countryCode"
                 className="mt-1.5 flex h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm"
@@ -301,7 +301,7 @@ export function FirmRegisterGooglePage() {
                 (isTurnstileEnabled() && !turnstileToken)
               }
             >
-              {submitting ? 'A criar escritório...' : 'Criar escritório com Google'}
+              {submitting ? 'A criar gabinete...' : 'Criar gabinete com Google'}
             </button>
           </form>
         </AuthCard>

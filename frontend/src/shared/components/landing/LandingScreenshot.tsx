@@ -11,7 +11,7 @@ export function LandingScreenshot({ src, alt, className, priority }: LandingScre
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-[14px] border border-[#E2E8F0] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_16px_40px_rgba(15,41,66,0.1)]',
+        'overflow-hidden rounded-[14px] border border-[#E2E8F0] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_16px_40px_rgba(11,58,110,0.1)]',
         className,
       )}
     >

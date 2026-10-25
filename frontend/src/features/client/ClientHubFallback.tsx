@@ -17,7 +17,7 @@ export function ClientHubFallback({ onRetry, retrying }: Props) {
         Não foi possível carregar os seus dados
       </h2>
       <p className="mt-2 text-sm text-muted-foreground">
-        A ligação ao escritório está temporariamente indisponível. Pode tentar de novo — as outras áreas do portal
+        A ligação ao gabinete está temporariamente indisponível. Pode tentar de novo — as outras áreas do portal
         continuam disponíveis.
       </p>
       <Button type="button" className="cb-btn-primary mt-6" disabled={retrying} onClick={onRetry}>

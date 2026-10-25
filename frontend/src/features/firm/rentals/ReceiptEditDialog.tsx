@@ -66,7 +66,7 @@ export function ReceiptEditDialog({ receipt, title, paymentMethods, onClose, onS
           {receipt.yearMonth} · actual {formatEuroFromCents(receipt.amountCents)}
         </p>
         <p className="mt-2 text-xs text-amber-900/90">
-          Controlo interno do escritório — não é recibo oficial AT.
+          Controlo interno do gabinete — não é recibo oficial AT.
         </p>
 
         <label className="mt-4 block text-sm font-medium">Estado</label>

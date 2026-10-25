@@ -6,6 +6,8 @@ export { EmptyState } from './EmptyState'
 export type { EmptyStateProps } from './EmptyState'
 export { PageHeader } from './PageHeader'
 export type { PageHeaderProps } from '@/shared/components/layout/PageHeader'
+export { PagePurposeHeader } from './PagePurposeHeader'
+export type { PagePurposeHeaderProps } from './PagePurposeHeader'
 export { Chip } from './Chip'
 export type { ChipProps } from './Chip'
 export {

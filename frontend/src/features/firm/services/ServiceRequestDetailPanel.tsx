@@ -136,7 +136,7 @@ export function ServiceRequestDetailPanel({
                 <li key={c.id} className="rounded-lg border border-border/50 bg-muted/15 px-3 py-2 text-sm">
                   <p className="whitespace-pre-wrap">{c.body}</p>
                   <p className="mt-1 cb-text-caption">
-                    {c.authorRole === 'FIRM' ? 'Escritório' : 'Cliente'}
+                    {c.authorRole === 'FIRM' ? 'Gabinete' : 'Cliente'}
                     {c.isInternal ? ' · interno' : ''}
                     {c.createdAt ? ` · ${formatDateTime(c.createdAt)}` : ''}
                   </p>

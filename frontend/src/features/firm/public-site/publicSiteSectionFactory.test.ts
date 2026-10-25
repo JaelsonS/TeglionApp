@@ -12,7 +12,7 @@ import type { PublicSiteSection } from '@/shared/types/firmPublicSite'
 const LABELS = {
   header: 'Barra do topo',
   hero: 'Destaque principal',
-  about: 'Sobre o escritório',
+  about: 'Sobre o gabinete',
   services: 'Consultorias com agendamento',
   bookingServices: 'Outros serviços',
   features: 'Diferenciais',

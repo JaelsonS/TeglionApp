@@ -144,7 +144,7 @@ export function FirmActivationAssistant() {
             Assistente de activação
           </DialogTitle>
           <DialogDescription>
-            Guia passo a passo até o escritório estar pronto — sem publicar nada automaticamente.
+            Guia passo a passo até o gabinete estar pronto — sem publicar nada automaticamente.
           </DialogDescription>
         </DialogHeader>
 
@@ -176,7 +176,7 @@ export function FirmActivationAssistant() {
         {loading && !progress ? (
           <p className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-            A verificar o estado do escritório…
+            A verificar o estado do gabinete…
           </p>
         ) : (
           <div className="space-y-4">

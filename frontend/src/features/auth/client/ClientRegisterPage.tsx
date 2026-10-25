@@ -23,14 +23,14 @@ export function ClientRegisterPage() {
         </div>
         <h1 className="mt-6 text-2xl font-semibold tracking-tight">Conta de cliente</h1>
         <p className="mt-3 text-sm leading-relaxed text-[#52525b] dark:text-[#a1a1aa]">
-          O acesso ao portal é criado pelo seu escritório de contabilidade. Peça ao responsável que o convide ou
+          O acesso ao portal é criado pelo seu gabinete de contabilidade. Peça ao responsável que o convide ou
           aprove o vínculo da sua conta.
         </p>
 
         <div className="mt-8 space-y-3 rounded-2xl border border-[#0a0a0b]/10 bg-white p-5 dark:border-white/10 dark:bg-[#18181b]">
           <p className="flex items-start gap-2 text-sm">
             <Mail className="mt-0.5 h-4 w-4 shrink-0" />
-            Já tem credenciais? Use o login de cliente com o e-mail que o escritório registou.
+            Já tem credenciais? Use o login de cliente com o e-mail que o gabinete registou.
           </p>
         </div>
 

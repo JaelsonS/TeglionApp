@@ -15,12 +15,12 @@ export function NotFoundPage() {
     >
       <section className="landing-section">
         <div className="landing-container flex min-h-[50vh] flex-col items-center justify-center text-center">
-          <p className="text-sm font-semibold uppercase tracking-wide text-brand">Erro 404</p>
-          <h1 className="mt-3 font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+          <p className="text-sm font-semibold uppercase tracking-wide text-brand">Teglion · 404</p>
+          <h1 className="mt-3 font-sans text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
             Página não encontrada
           </h1>
           <p className="mt-4 max-w-md text-muted-foreground">
-            O link pode estar desactualizado ou o endereço foi escrito incorretamente.
+            Este endereço não existe no Teglion — o link pode estar desactualizado ou ter um erro de escrita.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Button asChild className="rounded-[10px]">

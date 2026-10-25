@@ -1,7 +1,7 @@
 import type { MayaPageGuide } from '@/features/maya/content/types'
 
 /**
- * Guias por rota real do escritório (`/app/firm/...`).
+ * Guias por rota real do gabinete (`/app/firm/...`).
  * O mais específico (search + prefix maior) ganha em `resolveMayaPage`.
  */
 export const MAYA_PAGES: MayaPageGuide[] = [
@@ -9,13 +9,13 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     id: 'dashboard',
     pathPrefix: '/app/firm/dashboard',
     exact: true,
-    where: 'Painel do escritório',
+    where: 'Painel do gabinete',
     summary:
       'Aqui vê o estado da carteira de um relance: o que falta configurar, prazos próximos, documentos e o próximo passo recomendado.',
-    audience: 'Toda a equipa do escritório',
+    audience: 'Toda a equipa do gabinete',
     goal: 'Saber por onde começar o dia e o que precisa de atenção.',
     firstTimeHint:
-      'Responsável do escritório: use «Configuração rápida» para rascunho de página, serviços e agenda. Depois siga «Próximo passo» no Painel para publicar.',
+      'Responsável do gabinete: use «Configuração rápida» para rascunho de página, serviços e agenda. Depois siga «Próximo passo» no Painel para publicar.',
     topicIds: ['activation-assistant', 'maya-setup', 'tour', 'public-page', 'service', 'clients', 'dashboard-kpis'],
     primaryIntentId: 'tour',
   },
@@ -25,7 +25,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     exact: true,
     where: 'área de IRS',
     summary:
-      'Aqui configura os serviços de apoio ao IRS que o escritório oferece aos clientes, define o que precisa de recolher e publica um formulário na página pública. O Teglion não calcula o imposto — ajuda a captar pedidos e a organizar a informação.',
+      'Aqui configura os serviços de apoio ao IRS que o gabinete oferece aos clientes, define o que precisa de recolher e publica um formulário na página pública. O Teglion não calcula o imposto — ajuda a captar pedidos e a organizar a informação.',
     audience: 'Equipa que prepara a campanha de IRS e recebe os pedidos',
     goal: 'Ter pelo menos um serviço IRS publicado e receber pedidos em Solicitações.',
     firstTimeHint:
@@ -77,8 +77,8 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     pathPrefix: '/app/firm/services',
     where: 'Catálogo de Serviços',
     summary:
-      'Aqui define o que o escritório oferece: active um modelo, crie um serviço, configure o formulário e publique-o na página pública. IRS tem uma área própria.',
-    audience: 'Quem configura a oferta do escritório',
+      'Aqui define o que o gabinete oferece: active um modelo, crie um serviço, configure o formulário e publique-o na página pública. IRS tem uma área própria.',
+    audience: 'Quem configura a oferta do gabinete',
     goal: 'Ter serviços publicados para receber pedidos.',
     firstTimeHint: 'Active um modelo ou clique em adicionar serviço. Guardar ainda não publica — isso faz-se no passo Publicação.',
     emptyHint: 'Ainda não tem serviços. Adicione o primeiro e, quando estiver pronto, publique-o com um endereço (slug).',
@@ -143,7 +143,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     where: 'Acessos oficiais deste cliente',
     summary:
       'Está nas senhas dos portais desta empresa. Os nomes AT, SS, ViaCTT, IAPMEI e RU são sugestões e podem ser alterados. Guardar ou ver uma senha pede a palavra-passe dos Acessos oficiais — única daquele campo. O cliente no portal não vê este bloco.',
-    audience: 'Equipa do escritório que trata desta empresa nos portais do Estado',
+    audience: 'Equipa do gabinete que trata desta empresa nos portais do Estado',
     goal: 'Gravar ou consultar um acesso oficial com confirmação de identidade.',
     firstTimeHint:
       'O olho não mostra a senha logo: confirma primeiro que é você. A senha visível desaparece ao fim de cerca de 30 segundos.',
@@ -243,7 +243,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     exact: true,
     where: 'lista de Clientes',
     summary:
-      'Está na área de Clientes. Aqui fica a carteira do escritório: cadastrar, procurar, filtrar e abrir cada ficha. O botão «Novo cliente» abre o assistente neste ecrã. «Ficha CSV» exporta ou importa a carteira em texto (sem macros). Isto não é o portal do cliente.',
+      'Está na área de Clientes. Aqui fica a carteira do gabinete: cadastrar, procurar, filtrar e abrir cada ficha. O botão «Novo cliente» abre o assistente neste ecrã. «Ficha CSV» exporta ou importa a carteira em texto (sem macros). Isto não é o portal do cliente.',
     audience: 'Toda a equipa que gere a carteira',
     goal: 'Ter os clientes registados e, quando fizer sentido, com acesso ao portal.',
     firstTimeHint:
@@ -280,7 +280,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     pathPrefix: '/app/firm/documents/files',
     where: 'Documentos → Ficheiros',
     summary:
-      'Aqui vê os ficheiros já recebidos, organizados por cliente e período. Serve para consultar e gerir o que já está no escritório.',
+      'Aqui vê os ficheiros já recebidos, organizados por cliente e período. Serve para consultar e gerir o que já está no gabinete.',
     audience: 'Quem consulta o arquivo corrente',
     goal: 'Encontrar um ficheiro sem sair do hub de documentos.',
     topicIds: ['documents', 'documents-files', 'documents-history'],
@@ -324,7 +324,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     pathPrefix: '/app/firm/tasks/manual',
     where: 'Tarefas',
     summary:
-      'Aqui cria e organiza o trabalho interno da equipa — o que o escritório precisa de fazer, ligado ou não a uma obrigação.',
+      'Aqui cria e organiza o trabalho interno da equipa — o que o gabinete precisa de fazer, ligado ou não a uma obrigação.',
     audience: 'Equipa operacional',
     goal: 'Distribuir trabalho e não perder prazos internos.',
     topicIds: ['tasks-manual', 'obligations', 'clients'],
@@ -335,7 +335,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     pathPrefix: '/app/firm/tasks/calendar',
     where: 'calendário de operações',
     summary:
-      'Aqui vê tarefas e prazos em vista de calendário, para planear a semana do escritório.',
+      'Aqui vê tarefas e prazos em vista de calendário, para planear a semana do gabinete.',
     audience: 'Quem planeia a operação',
     goal: 'Ver o que cai em cada dia.',
     topicIds: ['tasks-manual', 'obligations', 'fiscal-calendar'],
@@ -357,7 +357,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     pathPrefix: '/app/firm/tasks',
     where: 'Gestor de Operações',
     summary:
-      'Aqui está o trabalho do escritório: resumo, obrigações dos clientes, tarefas internas, calendário e vista por cliente.',
+      'Aqui está o trabalho do gabinete: resumo, obrigações dos clientes, tarefas internas, calendário e vista por cliente.',
     audience: 'Toda a equipa operacional',
     goal: 'Saber o que está em atraso e o que fazer a seguir.',
     firstTimeHint: 'Comece pelo Resumo. Obrigações = prazos dos clientes. Tarefas = trabalho interno.',
@@ -370,7 +370,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     search: { key: 'panel', value: 'settings' },
     where: 'Definições da Agenda',
     summary:
-      'Aqui define os horários em que o escritório aceita marcações, a duração dos intervalos, até quando se pode marcar, e a ligação ao Google Calendar.',
+      'Aqui define os horários em que o gabinete aceita marcações, a duração dos intervalos, até quando se pode marcar, e a ligação ao Google Calendar.',
     audience: 'Quem configura o agendamento público',
     goal: 'Ter disponibilidade gravada para a página pública poder oferecer horários.',
     topicIds: ['booking', 'agenda', 'agenda-google', 'service'],
@@ -383,7 +383,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     summary:
       'Aqui marca reuniões com clientes, vê a semana ou o mês, e nas Definições configura a disponibilidade para agendamento na página pública.',
     audience: 'Quem agenda e atende',
-    goal: 'Ter a agenda do escritório visível e, se quiser, marcações a chegar do site.',
+    goal: 'Ter a agenda do gabinete visível e, se quiser, marcações a chegar do site.',
     firstTimeHint: 'Crie um evento ou abra Definições para definir horários de marcação.',
     topicIds: ['agenda', 'booking', 'agenda-google', 'service'],
     primaryIntentId: 'agenda',
@@ -393,7 +393,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     pathPrefix: '/app/firm/fiscal-calendar',
     where: 'Calendário fiscal',
     summary:
-      'Aqui organiza prazos fiscais do escritório: pode importar o modelo Portugal, criar eventos e categorias, e definir recorrências.',
+      'Aqui organiza prazos fiscais do gabinete: pode importar o modelo Portugal, criar eventos e categorias, e definir recorrências.',
     audience: 'Quem alimenta os prazos nacionais',
     goal: 'Ter os prazos certos a alimentar as obrigações dos clientes.',
     topicIds: ['fiscal-calendar', 'obligations'],
@@ -440,7 +440,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     where: 'Definições → Página pública',
     summary:
       'Aqui edita o site público: link, logótipos só do site (barra vs destaque), secções com imagens, rodapé e publicação. Não confundir com Identidade (portal).',
-    audience: 'Quem trata da presença pública do escritório',
+    audience: 'Quem trata da presença pública do gabinete',
     goal: 'Publicar o link teglion.com/o-seu-slug e partilhá-lo.',
     firstTimeHint:
       'Configure logótipos à direita se quiser site sem logo do portal; preencha o destaque; guarde → pré-visualize → publique.',
@@ -464,8 +464,8 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     search: { key: 'tab', value: 'pagamentos' },
     where: 'Definições → Pagamentos',
     summary:
-      'Aqui o responsável do escritório liga a conta Stripe para os clientes pagarem serviços online. O dinheiro vai para a conta do escritório — a mensalidade Teglion é outra área (Plano).',
-    audience: 'Responsável (dono) do escritório',
+      'Aqui o responsável do gabinete liga a conta Stripe para os clientes pagarem serviços online. O dinheiro vai para a conta do gabinete — a mensalidade Teglion é outra área (Plano).',
+    audience: 'Responsável (dono) do gabinete',
     goal: 'Deixar a conta Stripe pronta para receber nos serviços publicados.',
     topicIds: ['payments', 'billing', 'service'],
     primaryIntentId: 'payments',
@@ -476,7 +476,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     search: { key: 'tab', value: 'equipa' },
     where: 'Definições → Equipa',
     summary:
-      'Aqui gere quem trabalha no escritório: convidar por e-mail, criar membros, departamentos e permissões.',
+      'Aqui gere quem trabalha no gabinete: convidar por e-mail, criar membros, departamentos e permissões.',
     audience: 'Quem administra acessos da equipa',
     goal: 'Cada pessoa ter a conta certa, sem partilhar passwords.',
     topicIds: ['settings-team', 'settings', 'settings-profile'],
@@ -488,7 +488,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     search: { key: 'tab', value: 'perfil' },
     where: 'Definições → O seu perfil',
     summary:
-      'Aqui gere a sua conta pessoal no Teglion (nome, e-mail, palavra-passe) — não os dados do escritório.',
+      'Aqui gere a sua conta pessoal no Teglion (nome, e-mail, palavra-passe) — não os dados do gabinete.',
     audience: 'Cada utilizador da equipa',
     goal: 'Manter os seus dados de acesso correctos.',
     topicIds: ['settings-profile', 'settings'],
@@ -500,8 +500,8 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     search: { key: 'tab', value: 'escritorio' },
     where: 'Definições → Escritório',
     summary:
-      'Aqui estão o nome, contactos e dados fiscais do escritório — a identidade legal e de contacto da firma.',
-    audience: 'Quem pode editar dados do escritório',
+      'Aqui estão o nome, contactos e dados fiscais do gabinete — a identidade legal e de contacto da firma.',
+    audience: 'Quem pode editar dados do gabinete',
     goal: 'Ter nome e contactos certos no produto e na página pública.',
     topicIds: ['settings-firm', 'settings', 'public-page'],
     primaryIntentId: 'settings',
@@ -512,9 +512,9 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     search: { key: 'tab', value: 'identidade' },
     where: 'Definições → Identidade',
     summary:
-      'Logótipo do menu do escritório e do portal dos clientes — não substitui a configuração do site público (Página pública).',
-    audience: 'Quem trata da imagem do escritório',
-    goal: 'O escritório ser reconhecível dentro do Teglion e no portal.',
+      'Logótipo do menu do gabinete e do portal dos clientes — não substitui a configuração do site público (Página pública).',
+    audience: 'Quem trata da imagem do gabinete',
+    goal: 'O gabinete ser reconhecível dentro do Teglion e no portal.',
     firstTimeHint: 'Carregue o logótipo do portal; depois, se quiser, ajuste logótipos só do site em Página pública.',
     topicIds: ['settings-identity', 'public-page-logos', 'public-page', 'settings'],
     primaryIntentId: 'settings',
@@ -525,7 +525,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     search: { key: 'tab', value: 'etiquetas' },
     where: 'Definições → Etiquetas',
     summary:
-      'Aqui cria etiquetas para classificar clientes e outros registos do escritório.',
+      'Aqui cria etiquetas para classificar clientes e outros registos do gabinete.',
     audience: 'Quem organiza a carteira',
     goal: 'Filtrar e agrupar clientes com etiquetas consistentes.',
     topicIds: ['settings-tags', 'clients'],
@@ -537,8 +537,8 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     search: { key: 'tab', value: 'notificacoes' },
     where: 'Definições → Notificações',
     summary:
-      'Aqui escolhe que avisos o escritório quer receber sobre a operação no Teglion.',
-    audience: 'Equipa do escritório',
+      'Aqui escolhe que avisos o gabinete quer receber sobre a operação no Teglion.',
+    audience: 'Equipa do gabinete',
     goal: 'Receber o essencial, sem ruído.',
     topicIds: ['settings-notifications', 'settings'],
     primaryIntentId: 'settings',
@@ -550,7 +550,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     where: 'Ajuda e suporte',
     summary:
       'Aqui encontra os canais oficiais para falar com uma pessoa da AfDigital — WhatsApp, e-mail ou telefone.',
-    audience: 'Qualquer utilizador do escritório',
+    audience: 'Qualquer utilizador do gabinete',
     goal: 'Pedir ajuda humana quando a Maya não chega.',
     topicIds: ['human-support', 'tour'],
     primaryIntentId: 'human-support',
@@ -573,9 +573,9 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     search: { key: 'tab', value: 'encerrar' },
     where: 'Encerrar conta',
     summary:
-      'Aqui o responsável pode encerrar a conta do escritório. Esta acção é irreversível e só aparece a quem tem permissão para tal.',
-    audience: 'Responsável do escritório',
-    goal: 'Só usar se realmente pretende encerrar o escritório no Teglion.',
+      'Aqui o responsável pode encerrar a conta do gabinete. Esta acção é irreversível e só aparece a quem tem permissão para tal.',
+    audience: 'Responsável do gabinete',
+    goal: 'Só usar se realmente pretende encerrar o gabinete no Teglion.',
     topicIds: ['settings-close', 'billing', 'human-support'],
     primaryIntentId: 'settings',
   },
@@ -584,9 +584,9 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     pathPrefix: '/app/firm/settings',
     where: 'Definições',
     summary:
-      'Aqui configura a identidade, a página pública, os dados do escritório, pagamentos, o seu perfil, a equipa e as notificações. Escolha a secção no menu.',
-    audience: 'Equipa do escritório (algumas secções só o responsável)',
-    goal: 'Deixar o escritório identificável e a página pública pronta.',
+      'Aqui configura a identidade, a página pública, os dados do gabinete, pagamentos, o seu perfil, a equipa e as notificações. Escolha a secção no menu.',
+    audience: 'Equipa do gabinete (algumas secções só o responsável)',
+    goal: 'Deixar o gabinete identificável e a página pública pronta.',
     topicIds: [
       'settings',
       'settings-identity',
@@ -603,8 +603,8 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     pathPrefix: '/app/firm/billing',
     where: 'Plano e subscrição',
     summary:
-      'Aqui gere o plano Teglion do escritório (teste, mensal ou anual). Isto é a mensalidade da plataforma — não os pagamentos que os seus clientes lhe fazem.',
-    audience: 'Responsável do escritório',
+      'Aqui gere o plano Teglion do gabinete (teste, mensal ou anual). Isto é a mensalidade da plataforma — não os pagamentos que os seus clientes lhe fazem.',
+    audience: 'Responsável do gabinete',
     goal: 'Manter o acesso ao Teglion activo.',
     topicIds: ['billing', 'payments', 'tour'],
     primaryIntentId: 'billing',
@@ -615,7 +615,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     where: 'Ajuda e suporte',
     summary:
       'Canais oficiais para falar com uma pessoa da AfDigital. Eu, Maya, ajudo a usar o Teglion; o suporte humano trata de casos que precisam de uma pessoa.',
-    audience: 'Qualquer utilizador do escritório',
+    audience: 'Qualquer utilizador do gabinete',
     goal: 'Contactar suporte quando precisar.',
     topicIds: ['human-support', 'tour'],
     primaryIntentId: 'human-support',
@@ -625,7 +625,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     pathPrefix: '/app/firm/sobre',
     where: 'Sobre o Teglion',
     summary:
-      'O Teglion é o produto SaaS para escritórios; a AfDigital — Soluções Tecnológicas é quem o desenvolve e opera.',
+      'O Teglion é o produto SaaS para gabinetes; a AfDigital — Soluções Tecnológicas é quem o desenvolve e opera.',
     audience: 'Qualquer utilizador',
     goal: 'Perceber a identidade do produto.',
     topicIds: ['tour', 'human-support'],
@@ -637,8 +637,8 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     exact: true,
     where: 'Início do portal',
     summary:
-      'Aqui vê o próximo passo com o escritório, um resumo do que precisa de atenção, e os serviços que pode pedir.',
-    audience: 'Cliente do escritório',
+      'Aqui vê o próximo passo com o gabinete, um resumo do que precisa de atenção, e os serviços que pode pedir.',
+    audience: 'Cliente do gabinete',
     goal: 'Saber o que fazer agora, sem caçar datas.',
     firstTimeHint: 'Se for a primeira visita, comece pelo cartão «Próximo passo» ou pergunte à Maya.',
     topicIds: ['portal-home', 'portal-requests', 'portal-services', 'portal-maya'],
@@ -648,10 +648,10 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     id: 'portal-requests',
     pathPrefix: '/app/client/requests',
     where: 'Pedidos',
-    summary: 'Documentos e informações que o escritório lhe pediu. Entregue aqui — fica registado.',
-    audience: 'Cliente do escritório',
+    summary: 'Documentos e informações que o gabinete lhe pediu. Entregue aqui — fica registado.',
+    audience: 'Cliente do gabinete',
     goal: 'Não deixar pedidos pendentes.',
-    emptyHint: 'Sem pedidos neste momento. Quando o escritório precisar de algo, aparece aqui.',
+    emptyHint: 'Sem pedidos neste momento. Quando o gabinete precisar de algo, aparece aqui.',
     topicIds: ['portal-requests', 'portal-documents', 'portal-messages'],
     primaryIntentId: 'portal-requests',
   },
@@ -659,10 +659,10 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     id: 'portal-services',
     pathPrefix: '/app/client/services',
     where: 'Serviços',
-    summary: 'O que o seu escritório oferece. Pode agendar um horário ou pedir o serviço por mensagem.',
-    audience: 'Cliente do escritório',
+    summary: 'O que o seu gabinete oferece. Pode agendar um horário ou pedir o serviço por mensagem.',
+    audience: 'Cliente do gabinete',
     goal: 'Encontrar e pedir o serviço certo.',
-    emptyHint: 'O escritório ainda não publicou serviços neste portal. Use Mensagens.',
+    emptyHint: 'O gabinete ainda não publicou serviços neste portal. Use Mensagens.',
     topicIds: ['portal-services', 'portal-booking', 'portal-messages'],
     primaryIntentId: 'portal-services',
   },
@@ -670,9 +670,9 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     id: 'portal-messages',
     pathPrefix: '/app/client/messages',
     where: 'Mensagens',
-    summary: 'Conversa com a equipa do escritório. Texto e ficheiros ficam neste histórico.',
-    audience: 'Cliente do escritório',
-    goal: 'Falar com o escritório sem espalhar o assunto.',
+    summary: 'Conversa com a equipa do gabinete. Texto e ficheiros ficam neste histórico.',
+    audience: 'Cliente do gabinete',
+    goal: 'Falar com o gabinete sem espalhar o assunto.',
     topicIds: ['portal-messages', 'portal-firm-contact'],
     primaryIntentId: 'portal-messages',
   },
@@ -680,8 +680,8 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     id: 'portal-documents',
     pathPrefix: '/app/client/documents',
     where: 'Documentos',
-    summary: 'Envie comprovativos e veja o que o escritório lhe enviou.',
-    audience: 'Cliente do escritório',
+    summary: 'Envie comprovativos e veja o que o gabinete lhe enviou.',
+    audience: 'Cliente do gabinete',
     goal: 'Entregar ficheiros no sítio certo.',
     topicIds: ['portal-documents', 'portal-requests'],
     primaryIntentId: 'portal-documents',
@@ -691,7 +691,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     pathPrefix: '/app/client/agenda',
     where: 'Prazos',
     summary: 'Obrigações agrupadas: em atraso, esta semana, mais tarde. Toque para o detalhe.',
-    audience: 'Cliente do escritório',
+    audience: 'Cliente do gabinete',
     goal: 'Tratar primeiro o que está atrasado ou esta semana.',
     topicIds: ['portal-deadlines', 'portal-requests'],
     primaryIntentId: 'portal-deadlines',
@@ -701,7 +701,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     pathPrefix: '/app/client/more',
     where: 'Mais',
     summary: 'Prazos, documentos, avisos e a sua conta. A Maya também explica cada um destes ecrãs.',
-    audience: 'Cliente do escritório',
+    audience: 'Cliente do gabinete',
     goal: 'Chegar ao resto do portal sem sobrecarregar a barra principal.',
     topicIds: ['portal-home', 'portal-account', 'portal-deadlines'],
     primaryIntentId: 'portal-home',
@@ -711,7 +711,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     pathPrefix: '/app/client/account',
     where: 'Conta e ajuda',
     summary: 'O seu perfil neste portal, notificações, instalar a app, e ajuda da Maya.',
-    audience: 'Cliente do escritório',
+    audience: 'Cliente do gabinete',
     goal: 'Gerir a conta e pedir ajuda sem sair do portal.',
     topicIds: ['portal-account', 'portal-maya', 'portal-firm-contact'],
     primaryIntentId: 'portal-account',
@@ -720,8 +720,8 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     id: 'portal-updates',
     pathPrefix: '/app/client/updates',
     where: 'Avisos',
-    summary: 'Alertas e notícias que o escritório publicou para si.',
-    audience: 'Cliente do escritório',
+    summary: 'Alertas e notícias que o gabinete publicou para si.',
+    audience: 'Cliente do gabinete',
     goal: 'Não perder um aviso importante.',
     topicIds: ['portal-home', 'portal-messages'],
     primaryIntentId: 'portal-home',
@@ -742,7 +742,7 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     pathPrefix: '/app/firm/rentals',
     where: 'Imóveis e rendas',
     summary:
-      'Contratos e recibos internos para o escritório. Não são recibos oficiais AT.',
+      'Contratos e recibos internos para o gabinete. Não são recibos oficiais AT.',
     audience: 'Equipa que acompanha senhorios',
     goal: 'Registar imóveis, contratos e recibos do mês com honestidade legal.',
     topicIds: ['rentals-guide', 'manual-guide'],
@@ -782,9 +782,9 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     exact: true,
     where: 'página do Teglion',
     summary:
-      'Aqui apresenta-se o Teglion: a plataforma para escritórios de contabilidade em Portugal. Eu explico o produto, o trial de 14 dias, a página pública, o portal do cliente — e se quiser uma pessoa, abro o WhatsApp da AfDigital.',
+      'Aqui apresenta-se o Teglion: a plataforma para gabinetes de contabilidade em Portugal. Eu explico o produto, o trial de 14 dias, a página pública, o portal do cliente — e se quiser uma pessoa, abro o WhatsApp da AfDigital.',
     audience: 'Quem está a conhecer o Teglion',
-    goal: 'Perceber se o Teglion serve o escritório e começar o trial ou falar connosco.',
+    goal: 'Perceber se o Teglion serve o gabinete e começar o trial ou falar connosco.',
     firstTimeHint:
       'Se só tem um minuto: o Teglion organiza clientes, documentos, prazos e captação. Evoluímos o sistema todos os dias. Comece grátis 14 dias, ou fale com uma pessoa no WhatsApp.',
     topicIds: [

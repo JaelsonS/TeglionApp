@@ -11,7 +11,7 @@ type MfaGateResponse = {
 }
 
 type RedirectOptions = {
-  /** Registo novo escritório — copy específica no ecrã MFA. */
+  /** Registo novo gabinete — copy específica no ecrã MFA. */
   fromRegistration?: boolean
 }
 

@@ -302,7 +302,7 @@ export function TasksManualView({
                     <Building2 className="h-4 w-4" aria-hidden />
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground">Escritório</p>
+                    <p className="text-sm font-medium text-foreground">Gabinete</p>
                     <p className="text-xs text-muted-foreground">Não está ligada a nenhum cliente</p>
                   </div>
                 </div>

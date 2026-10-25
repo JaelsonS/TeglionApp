@@ -74,8 +74,8 @@ export function SaftWorkspace() {
 
   return (
     <FirmModuleShell
-      title="SAF-T (leitura)"
-      subtitle="Carregue um XML ou ZIP e veja cabeçalho e totais — sem envio à Autoridade Tributária."
+      title="SAF-T (consulta)"
+      subtitle="Importe um XML/ZIP e consulte cabeçalho e totais. Só leitura — sem envio à Autoridade Tributária."
       headerRight={
         <>
           <input

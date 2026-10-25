@@ -3,9 +3,7 @@ import type { ReactNode } from 'react'
 import { cn } from '@/shared/lib/utils'
 
 /**
- * Cabeçalho de conteúdo do portal cliente.
- * O título visível fica só na barra de cima do shell — aqui o H1 é para leitores
- * de ecrã; no conteúdo ficam o subtítulo e as acções (Maya, etc.).
+ * Cabeçalho do portal cliente — alinhado ao PageHeader do firm (título visível + propósito).
  */
 export function PageHeader({
   title,
@@ -20,35 +18,33 @@ export function PageHeader({
   actions?: ReactNode
   className?: string
 }) {
-  const hasBody = Boolean(subtitle || actions || breadcrumb)
-
   return (
-    <div className={cn(hasBody ? 'mb-4 md:mb-6' : undefined, className)}>
-      <h1 className="sr-only" data-testid="client-page-header">
-        {title}
-      </h1>
-      {hasBody ? (
-        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0">
-            {breadcrumb ? (
-              <p className="cb-text-label mb-1 text-muted-foreground">{breadcrumb}</p>
-            ) : null}
-            {subtitle ? (
-              <p
-                data-testid="client-page-header-subtitle"
-                className="max-w-3xl text-pretty text-sm leading-relaxed text-muted-foreground"
-              >
-                {subtitle}
-              </p>
-            ) : null}
-          </div>
-          {actions ? (
-            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
-              {actions}
-            </div>
-          ) : null}
-        </div>
+    <header
+      className={cn(
+        'mb-4 flex min-w-0 flex-col gap-3 sm:mb-5 sm:flex-row sm:items-end sm:justify-between sm:gap-4',
+        className,
+      )}
+      data-testid="client-page-header"
+    >
+      <div className="min-w-0 flex-1">
+        {breadcrumb ? (
+          <p className="cb-text-label mb-1 text-muted-foreground">{breadcrumb}</p>
+        ) : null}
+        <h1 className="text-balance break-words text-title font-semibold tracking-tight text-foreground sm:text-display">
+          {title}
+        </h1>
+        {subtitle ? (
+          <p
+            data-testid="client-page-header-subtitle"
+            className="mt-1.5 max-w-3xl text-pretty text-body leading-relaxed text-muted-foreground"
+          >
+            {subtitle}
+          </p>
+        ) : null}
+      </div>
+      {actions ? (
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">{actions}</div>
       ) : null}
-    </div>
+    </header>
   )
 }

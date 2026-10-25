@@ -19,7 +19,7 @@ export function Progress({ value, max = 100, className, label }: Props) {
       ) : null}
       <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div
-          className="h-full rounded-full bg-[#0f2942] transition-all duration-300 ease-out"
+          className="h-full rounded-full bg-[#0B3A6E] transition-all duration-300 ease-out"
           style={{ width: `${pct}%` }}
           role="progressbar"
           aria-valuenow={value}

@@ -266,7 +266,7 @@ export function FirmClientsPage() {
             title="Clientes"
             subtitle={
               filtered.length === total
-                ? `Carteira do escritório · ${activeCount} clientes activos`
+                ? `Lista da carteira — abra o hub de cada cliente para documentos, prazos e portal · ${activeCount} activos`
                 : `${filtered.length} de ${total} clientes — filtre, convide ao portal e abra o hub de cada empresa.`
             }
             testId="firm-clients-header"

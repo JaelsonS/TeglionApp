@@ -20,9 +20,9 @@ import { applyPageSeo } from '@/shared/utils/seo'
 export function LandingPage() {
   useLayoutEffect(() => {
     applyPageSeo({
-      title: 'Teglion — Plataforma para escritórios de contabilidade',
+      title: 'Teglion | Software para gabinetes de contabilidade em Portugal',
       description:
-        'Teglion é uma plataforma de gestão para escritórios de contabilidade, desenvolvida e operada pela AfDigital — Soluções Tecnológicas. Documentos, prazos, portal, serviços e pagamentos num só sítio. 14 dias grátis.',
+        'Teglion liga o painel do gabinete, o portal do cliente e a página pública: documentos com rasto, prazos, serviços e pagamentos no mesmo produto. Desenvolvido pela AfDigital — Soluções Tecnológicas. 14 dias grátis, sem cartão.',
       path: '/',
     })
   }, [])

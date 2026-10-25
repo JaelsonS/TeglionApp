@@ -3,8 +3,9 @@
  */
 @layer base {
   :root {
-    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-display: 'Inter', system-ui, sans-serif;
+    /* Família única UI — Plus Jakarta Sans em todo o produto */
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
 
     /* Portal cliente — referência oklch (mapeado em HSL para Tailwind) */
     --pc-bg-oklch: oklch(0.99 0.002 95);
@@ -12,14 +13,14 @@
     --pc-primary-oklch: oklch(0.28 0.06 250);
     --pc-accent-oklch: oklch(0.55 0.18 260);
 
-    /* Brand Teglion */
-    --cb-brand: 210 52% 16%;
-    --cb-brand-hover: 210 48% 22%;
-    --cb-brand-soft: 210 40% 94%;
-    --cb-accent: 243 75% 59%;
-    --cb-gold: 38 62% 48%;
-    --cb-gold-soft: 38 55% 94%;
-    --cb-canvas: 40 20% 97%;
+    /* Brand Teglion — navy #0B3A6E + acentos vivos para estados/CTAs */
+    --cb-brand: 210 82% 24%;
+    --cb-brand-hover: 210 78% 30%;
+    --cb-brand-soft: 210 48% 94%;
+    --cb-accent: 199 89% 42%;
+    --cb-gold: 38 92% 46%;
+    --cb-gold-soft: 38 90% 94%;
+    --cb-canvas: 210 24% 97%;
 
     --brand-navy: var(--cb-brand);
     --brand-blue: 213 94% 46%;

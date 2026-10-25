@@ -51,7 +51,7 @@ export const CLIENT_INTENTS = [
     title: 'O que é esta área de Clientes?',
     shortDescription: 'módulo Clientes',
     answer:
-      'Está na carteira do escritório — os clientes que a sua equipa administra no Teglion. Não é o portal do cliente: o portal é a área onde o próprio cliente entra, depois de convite. Aqui cadastra, procura, filtra e abre a ficha de cada empresa ou particular. O botão «Novo cliente» abre o assistente de cadastro neste ecrã (não existe uma página /clients/new). Clicar num cliente abre a ficha em /app/firm/clients/… com Resumo, Perfil, Acessos, Actividade, Obrigações, Documentos, Tarefas e Comunicação. «Ficha CSV» exporta a carteira (sem senhas) ou importa um modelo de texto; células vazias não apagam dados e .xlsx/macros são recusados.',
+      'Está na carteira do gabinete — os clientes que a sua equipa administra no Teglion. Não é o portal do cliente: o portal é a área onde o próprio cliente entra, depois de convite. Aqui cadastra, procura, filtra e abre a ficha de cada empresa ou particular. O botão «Novo cliente» abre o assistente de cadastro neste ecrã (não existe uma página /clients/new). Clicar num cliente abre a ficha em /app/firm/clients/… com Resumo, Perfil, Acessos, Actividade, Obrigações, Documentos, Tarefas e Comunicação. «Ficha CSV» exporta a carteira (sem senhas) ou importa um modelo de texto; células vazias não apagam dados e .xlsx/macros são recusados.',
     steps: [
       'Se a lista estiver vazia, clique em Novo cliente',
       'Use a pesquisa ou os filtros para encontrar um cliente existente',
@@ -131,7 +131,7 @@ export const CLIENT_INTENTS = [
     title: 'Como funcionam os filtros?',
     shortDescription: 'filtros de clientes',
     answer:
-      'Há quatro filtros. Tipo: Todos, Lda, SA, ENI ou Outro. Regime: filtra o regime de IVA normalizado na lista. Estado: Ativos (predefinição — esconde inactivos e os que estão em atenção/crítico), Atenção, Inativos ou Todos. Etiqueta: só aparece se o escritório tiver etiquetas. Combinam-se com a pesquisa. Para limpar, volte cada filtro a Todos / Ativos / Todas e apague a pesquisa. A paginação volta à página 1 sempre que muda um filtro.',
+      'Há quatro filtros. Tipo: Todos, Lda, SA, ENI ou Outro. Regime: filtra o regime de IVA normalizado na lista. Estado: Ativos (predefinição — esconde inactivos e os que estão em atenção/crítico), Atenção, Inativos ou Todos. Etiqueta: só aparece se o gabinete tiver etiquetas. Combinam-se com a pesquisa. Para limpar, volte cada filtro a Todos / Ativos / Todas e apague a pesquisa. A paginação volta à página 1 sempre que muda um filtro.',
     steps: [
       'Escolha Tipo se quiser só Lda, SA, ENI ou Outro',
       'Escolha Regime se quiser um IVA específico',
@@ -217,7 +217,7 @@ export const CLIENT_INTENTS = [
     title: 'Como preencher os dados fiscais?',
     shortDescription: 'passo fiscal',
     answer:
-      'O passo Fiscal pede o enquadramento que o escritório usa internamente. Empresa e Independente: tipo de contabilidade, início de actividade e CAE principal são obrigatórios; capital social e CAE secundários são opcionais. Empresa (não Particular): regime de IVA obrigatório; se for Isento, o motivo também. IRS/IRC é obrigatório. Segurança Social (área, isenção de 1 ano, data, declaração trimestral) é opcional. Particular não vê os campos de empresa (CAE, contabilidade, IVA de empresa). Isto não calcula impostos nem substitui a Autoridade Tributária.',
+      'O passo Fiscal pede o enquadramento que o gabinete usa internamente. Empresa e Independente: tipo de contabilidade, início de actividade e CAE principal são obrigatórios; capital social e CAE secundários são opcionais. Empresa (não Particular): regime de IVA obrigatório; se for Isento, o motivo também. IRS/IRC é obrigatório. Segurança Social (área, isenção de 1 ano, data, declaração trimestral) é opcional. Particular não vê os campos de empresa (CAE, contabilidade, IVA de empresa). Isto não calcula impostos nem substitui a Autoridade Tributária.',
     steps: [
       'Preencha o que estiver visível e obrigatório',
       'Se o IVA for Isento, indique o motivo',
@@ -255,7 +255,7 @@ export const CLIENT_INTENTS = [
     title: 'Como indicar responsáveis?',
     shortDescription: 'passo responsáveis',
     answer:
-      'Responsável na equipa é obrigatório — escolhe um membro da lista da equipa do escritório. Abaixo, o contacto principal no cliente (nome, função, e-mail, telefone) é opcional e não substitui o e-mail do cadastro usado no convite ao portal.',
+      'Responsável na equipa é obrigatório — escolhe um membro da lista da equipa do gabinete. Abaixo, o contacto principal no cliente (nome, função, e-mail, telefone) é opcional e não substitui o e-mail do cadastro usado no convite ao portal.',
     steps: [
       'Escolha o membro da equipa',
       'Preencha o contacto no cliente se já o conhecer',

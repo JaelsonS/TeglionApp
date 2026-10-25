@@ -37,8 +37,8 @@ import { cn } from '@/shared/lib/utils'
 const TABS = [
   { id: 'identidade', label: 'Identidade', shortLabel: 'Logo', icon: ImageIcon, danger: false },
   { id: 'pagina-publica', label: 'Página pública', shortLabel: 'Página', icon: Globe, danger: false },
-  { id: 'escritorio', label: 'Escritório', shortLabel: 'Escritório', icon: Building2, danger: false },
-  { id: 'pagamentos', label: 'Pagamentos', shortLabel: 'Pagamentos', icon: CreditCard, danger: false },
+  { id: 'escritorio', label: 'Gabinete', shortLabel: 'Gabinete', icon: Building2, danger: false },
+  { id: 'pagamentos', label: 'Receber dos clientes', shortLabel: 'Stripe', icon: CreditCard, danger: false },
   { id: 'perfil', label: 'O seu perfil', shortLabel: 'Perfil', icon: User, danger: false },
   { id: 'seguranca', label: 'Segurança', shortLabel: 'Segurança', icon: Lock, danger: false },
   { id: 'equipa', label: 'Equipa', shortLabel: 'Equipa', icon: Users, danger: false },
@@ -150,7 +150,7 @@ export function FirmSettingsPage() {
       <div className="cb-settings-page">
         <PageHeader
           title="Definições"
-          subtitle="Identidade, pagamentos, equipa e segurança — um só menu do escritório à esquerda."
+          subtitle="Configure identidade, página pública, Stripe Connect (receber dos clientes), equipa e segurança. Menu interno sempre com nomes."
           testId="firm-settings-header"
           secondary={
             <AskMayaButton
@@ -215,7 +215,7 @@ export function FirmSettingsPage() {
                     {activeTab === 'escritorio' &&
                       'Nome interno, contactos e dados fiscais — usados na app, na facturação e nas comunicações.'}
                     {activeTab === 'pagamentos' &&
-                      'Receber dos clientes via Stripe Connect, na conta bancária do escritório — separado da subscrição Teglion (Plano).'}
+                      'Stripe Connect: os clientes pagam ao gabinete (não é a subscrição Teglion em Plano).'}
                     {activeTab === 'perfil' &&
                       'O seu nome, e-mail de acesso, palavra-passe e cofre dos acessos oficiais.'}
                     {activeTab === 'seguranca' &&
@@ -223,13 +223,13 @@ export function FirmSettingsPage() {
                     {activeTab === 'equipa' &&
                       'Colaboradores, convites, cargos, departamentos e permissões — o dono define quem faz o quê.'}
                     {activeTab === 'etiquetas' &&
-                      'Biblioteca do escritório — clientes, leads, solicitações e equipa.'}
+                      'Biblioteca do gabinete — clientes, leads, solicitações e equipa.'}
                     {activeTab === 'notificacoes' && 'Alertas push e preferências de aviso.'}
                     {activeTab === 'ajuda' &&
                       'Maya, WhatsApp, email e telefone — suporte humano e assistente.'}
                     {activeTab === 'sobre' &&
                       'Produto AfDigital, redes oficiais e ligações para documentos legais.'}
-                    {activeTab === 'encerrar' && 'Acção irreversível — encerra o escritório.'}
+                    {activeTab === 'encerrar' && 'Acção irreversível — encerra o gabinete.'}
                   </p>
                 </div>
               </div>

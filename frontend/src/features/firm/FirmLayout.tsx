@@ -18,7 +18,7 @@ import { LiveEventsProvider } from '@/shared/providers/LiveEventsProvider'
 import { cn } from '@/shared/lib/utils'
 
 /**
- * Shell do escritório (Fase 1E Bloco 1 + UX-1):
+ * Shell do gabinete (Fase 1E Bloco 1 + UX-1):
  * - Mobile &lt;768: topbar + main + bottom nav
  * - Tablet 768–1279: icon rail + topbar compacta + main (sem bottom nav)
  * - Desktop ≥1280: sidebar completa ou rail colapsável (preferência local)
@@ -34,7 +34,7 @@ export function FirmLayout() {
   const isSettingsRoute = location.pathname.startsWith('/app/firm/settings')
 
   // Menu interno de Definições fica sempre com nomes (sem colapsar).
-  // O sidebar principal do escritório continua a poder minimizar em qualquer rota.
+  // O sidebar principal do gabinete continua a poder minimizar em qualquer rota.
 
   return (
     <LiveEventsProvider scope="firm">
@@ -50,7 +50,7 @@ export function FirmLayout() {
         {/* Tablet rail — 768–1279 */}
         <aside
           className={FIRM_SHELL_CHROME_CLASSES.tabletRailAside}
-          aria-label="Navegação do escritório"
+          aria-label="Navegação do gabinete"
           data-testid="firm-tablet-rail-aside"
         >
           <FirmTabletRail />
@@ -62,7 +62,7 @@ export function FirmLayout() {
             FIRM_SHELL_CHROME_CLASSES.desktopSidebarAside,
             collapsed && 'cb-firm-sidebar-aside--collapsed',
           )}
-          aria-label="Navegação do escritório"
+          aria-label="Navegação do gabinete"
           data-testid="firm-desktop-sidebar-aside"
         >
           {collapsed ? (

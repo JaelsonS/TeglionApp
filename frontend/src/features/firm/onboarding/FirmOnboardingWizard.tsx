@@ -83,7 +83,7 @@ export function FirmOnboardingWizard({ className }: FirmOnboardingWizardProps) {
         <div className="min-w-0">
           <p className="text-caption font-semibold uppercase tracking-wide text-brand">Primeiros passos</p>
           <h2 id="firm-onboarding-title" className="mt-1 text-title font-semibold text-foreground">
-            Acabou de criar o escritório. O que fazer agora?
+            Acabou de criar o gabinete. O que fazer agora?
           </h2>
           <p className="mt-1 max-w-2xl text-body text-muted-foreground">
             Siga a ordem abaixo: perfil → página pública → serviço publicado → carteira. Os passos
@@ -121,7 +121,7 @@ export function FirmOnboardingWizard({ className }: FirmOnboardingWizardProps) {
       {publicUrl ? (
         <div className="mt-4 flex flex-col gap-2 rounded-lg border border-border/60 bg-muted/20 p-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <p className="text-caption font-medium text-muted-foreground">Página pública do escritório</p>
+            <p className="text-caption font-medium text-muted-foreground">Página pública do gabinete</p>
             <p className="text-sm text-muted-foreground">
               É aqui que potenciais clientes conhecem os serviços e entram em contacto.
             </p>

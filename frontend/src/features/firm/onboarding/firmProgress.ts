@@ -1,5 +1,5 @@
 /**
- * Progressão do escritório — fonte única para onboarding + «próximo passo» do Dashboard.
+ * Progressão do gabinete — fonte única para onboarding + «próximo passo» do Dashboard.
  * Sem arquitetura exagerada: só regras de produto claras e testáveis.
  */
 
@@ -67,7 +67,7 @@ function buildPublicUrl(firmSlug: string | null): string | null {
 }
 
 export function computeFirmProgress(input: FirmProgressInput): FirmProgressResult {
-  const hasSlug = Boolean(input.firmSlug && input.firmSlug !== 'escritorio')
+  const hasSlug = Boolean(input.firmSlug && input.firmSlug !== 'gabinete')
   const hasService = input.serviceCount > 0
   const hasPublicService = input.publicServiceCount > 0
   const hasClient = input.clientCount > 0
@@ -75,7 +75,7 @@ export function computeFirmProgress(input: FirmProgressInput): FirmProgressResul
   const steps: FirmProgressStep[] = [
     {
       id: 'profile',
-      label: 'Configure o perfil do escritório',
+      label: 'Configure o perfil do gabinete',
       hint: 'Nome, logo e dados de contacto',
       to: '/app/firm/settings',
       done: input.hasLogo,
@@ -105,7 +105,7 @@ export function computeFirmProgress(input: FirmProgressInput): FirmProgressResul
     {
       id: 'client',
       label: 'Adicione a primeira empresa',
-      hint: 'Carteira de clientes do escritório',
+      hint: 'Carteira de clientes do gabinete',
       to: '/app/firm/clients',
       done: hasClient,
     },
@@ -157,8 +157,8 @@ function resolveNextAction(
   if (!input.hasLogo) {
     return {
       id: 'profile',
-      title: 'Configure o perfil do escritório',
-      description: 'Adicione o logo e os dados de contacto para o escritório ficar identificável na plataforma e na página pública.',
+      title: 'Configure o perfil do gabinete',
+      description: 'Adicione o logo e os dados de contacto para o gabinete ficar identificável na plataforma e na página pública.',
       ctaLabel: 'Abrir definições',
       to: '/app/firm/settings',
       mayaIntentId: 'tour',
@@ -169,7 +169,7 @@ function resolveNextAction(
   if (!flags.hasSlug || !input.publicSitePublished) {
     return {
       id: 'public-page',
-      title: 'Publique a página do escritório',
+      title: 'Publique a página do gabinete',
       description:
         'É aqui que potenciais clientes conhecem os seus serviços e entram em contacto. Configure o conteúdo e publique o link — ou deixe a Maya preparar um rascunho.',
       ctaLabel: 'Configurar página',
@@ -184,7 +184,7 @@ function resolveNextAction(
       id: 'service',
       title: 'Publique o seu primeiro serviço',
       description:
-        'Crie ou active um serviço que o escritório presta e marque-o como visível na página pública para começar a receber pedidos.',
+        'Crie ou active um serviço que o gabinete presta e marque-o como visível na página pública para começar a receber pedidos.',
       ctaLabel: 'Adicionar serviço',
       to: '/app/firm/services',
       mayaIntentId: 'service',
@@ -238,7 +238,7 @@ function resolveNextAction(
 
   return {
     id: 'ready',
-    title: 'O escritório está pronto a operar',
+    title: 'O gabinete está pronto a operar',
     description: 'Acompanhe a carteira, os pedidos e a agenda. Se precisar de orientação, abra a Maya.',
     ctaLabel: 'Ver serviços',
     to: '/app/firm/services',

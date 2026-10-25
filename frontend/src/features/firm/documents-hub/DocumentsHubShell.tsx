@@ -16,14 +16,14 @@ const SECTIONS = [
 ] as const
 
 const SUBTITLES: Record<string, string> = {
-  [FIRM_DOCUMENTS_REQUESTS]: 'Pedidos formais e pedidos de documentos',
-  [FIRM_DOCUMENTS_FILES]: 'Ficheiros recebidos por cliente e período',
-  [FIRM_DOCUMENTS_HISTORY]: 'Histórico consolidado de submissões',
+  [FIRM_DOCUMENTS_REQUESTS]: 'Peça documentos ao cliente com prazo — ele entrega no portal.',
+  [FIRM_DOCUMENTS_FILES]: 'Valide e organize os ficheiros que os clientes enviaram.',
+  [FIRM_DOCUMENTS_HISTORY]: 'Histórico de submissões — o que foi pedido, enviado e validado.',
 }
 
 export function DocumentsHubShell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
-  const subtitle = SUBTITLES[pathname] || 'Gestão documental do escritório'
+  const subtitle = SUBTITLES[pathname] || 'Gestão documental do gabinete'
 
   return (
     <FirmModuleShell

@@ -3,16 +3,23 @@ import { Link } from 'react-router-dom'
 import { FirmScrollPage } from '@/features/firm/FirmPageLayout'
 import { FirmAboutPanel, FirmHelpSupportPanel } from '@/features/firm/support/FirmSupportPanels'
 import { AskMayaButton } from '@/features/maya'
-import { PageHeader } from '@/shared/design-system'
+import { Button, PageHeader } from '@/shared/design-system'
 
 export function FirmHelpSupportPage() {
   return (
     <FirmScrollPage>
       <PageHeader
         title="Ajuda e suporte"
-        subtitle="Precisa de ajuda? Consulte a Maya ou fale directamente com uma pessoa da equipa."
+        subtitle="Dúvidas sobre o Teglion: abra a Maya, leia o Manual, ou contacte o suporte da AfDigital."
         testId="firm-help-support-header"
-        secondary={<AskMayaButton intentId="human-support" />}
+        secondary={
+          <div className="flex flex-wrap items-center gap-2">
+            <AskMayaButton intentId="human-support" />
+            <Button type="button" size="sm" variant="outline" asChild>
+              <Link to="/manual">Abrir Manual</Link>
+            </Button>
+          </div>
+        }
       />
       <FirmHelpSupportPanel />
       <p className="mt-6 text-sm text-muted-foreground">
@@ -31,7 +38,7 @@ export function FirmAboutPage() {
     <FirmScrollPage>
       <PageHeader
         title="Sobre o Teglion"
-        subtitle="Identidade do produto e da AfDigital — Soluções Tecnológicas."
+        subtitle="O que é o Teglion, quem o opera (AfDigital — Soluções Tecnológicas) e onde encontrar ajuda."
         testId="firm-about-header"
       />
       <FirmAboutPanel />

@@ -68,7 +68,7 @@ export function RentalsWorkspace() {
   return (
     <FirmModuleShell
       title="Imóveis e rendas"
-      subtitle="Contratos e recibos internos para o escritório acompanhar rendas — sem comunicação à AT."
+      subtitle="Controlo interno de contratos e recibos de renda dos clientes — não substitui comunicação à AT."
       headerRight={
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => setYear((y) => y - 1)}>
@@ -93,7 +93,7 @@ export function RentalsWorkspace() {
         <p className="font-medium">Registo interno</p>
         <p className="mt-1 text-amber-950/90">
           {data?.disclaimer ||
-            'Recibos de renda INTERNOS para controlo do escritório. Não são recibos oficiais do Portal das Finanças nem comunicação à AT.'}
+            'Recibos de renda INTERNOS para controlo do gabinete. Não são recibos oficiais do Portal das Finanças nem comunicação à AT.'}
         </p>
       </div>
 

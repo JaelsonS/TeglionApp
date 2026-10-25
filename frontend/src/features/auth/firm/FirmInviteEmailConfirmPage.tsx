@@ -24,7 +24,7 @@ export function FirmInviteEmailConfirmPage() {
         await teamInvitePublicApi.confirmEmail(token)
         setStatus('ok')
         setMessage(
-          'E-mail confirmado. A sua conta está activa — pode entrar no painel do escritório com o e-mail e a palavra-passe.',
+          'E-mail confirmado. A sua conta está activa — pode entrar no painel do gabinete com o e-mail e a palavra-passe.',
         )
       } catch (err) {
         setStatus('error')
