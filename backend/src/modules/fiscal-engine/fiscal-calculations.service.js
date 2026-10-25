@@ -11,6 +11,11 @@ const {
   simulateIrsBrackets,
   DEFAULT_VERSION: IRS_DEFAULT_VERSION,
 } = require('./irs-engine');
+const {
+  listRulePacks: listSsRulePacks,
+  simulateSs,
+  DEFAULT_VERSION: SS_DEFAULT_VERSION,
+} = require('./ss-engine');
 
 function toAppError(err) {
   if (err?.code === 'INVALID_AMOUNT' || err?.code === 'INVALID_RATE') {
@@ -40,6 +45,15 @@ function getIrsCatalog() {
   };
 }
 
+function getSsCatalog() {
+  return {
+    defaultVersion: SS_DEFAULT_VERSION,
+    packs: listSsRulePacks(),
+    disclaimer:
+      'Simulações de contribuições para a Segurança Social. Não substituem a Segurança Social Direta nem declarações oficiais.',
+  };
+}
+
 function runSimulate(body) {
   try {
     return simulateVat({
@@ -60,6 +74,19 @@ function runIrsSimulate(body) {
       filingStatus: body.filingStatus,
       includeSolidarity: body.includeSolidarity,
       ruleVersion: body.ruleVersion || IRS_DEFAULT_VERSION,
+    });
+  } catch (err) {
+    throw toAppError(err);
+  }
+}
+
+function runSsSimulate(body) {
+  try {
+    return simulateSs({
+      regimeCode: body.regimeCode,
+      baseCents: body.baseCents,
+      servicesCents: body.servicesCents,
+      ruleVersion: body.ruleVersion || SS_DEFAULT_VERSION,
     });
   } catch (err) {
     throw toAppError(err);
@@ -114,6 +141,17 @@ async function createIrsSimulation({ firmId, actorId, body }) {
   return persistSimulation({ firmId, actorId, body, simulation, metaExtra: {} });
 }
 
+async function createSsSimulation({ firmId, actorId, body }) {
+  const simulation = runSsSimulate(body);
+  return persistSimulation({
+    firmId,
+    actorId,
+    body,
+    simulation,
+    metaExtra: { regime: simulation.regime },
+  });
+}
+
 async function listCalculations({ firmId, limit, calcType }) {
   const items = await fiscalCalculationsRepository.listForFirm(firmId, { limit, calcType });
   return { items };
@@ -128,10 +166,13 @@ async function getCalculation({ firmId, id }) {
 module.exports = {
   getVatCatalog,
   getIrsCatalog,
+  getSsCatalog,
   runSimulate,
   runIrsSimulate,
+  runSsSimulate,
   createVatSimulation,
   createIrsSimulation,
+  createSsSimulation,
   listCalculations,
   getCalculation,
 };

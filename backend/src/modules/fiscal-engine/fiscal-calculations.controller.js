@@ -52,6 +52,32 @@ exports.createIrs = async (req, res, next) => {
   }
 };
 
+exports.ssCatalog = async (_req, res) => {
+  return res.json(fiscalCalculationsService.getSsCatalog());
+};
+
+exports.ssSimulate = async (req, res, next) => {
+  try {
+    const simulation = fiscalCalculationsService.runSsSimulate(req.body || {});
+    return res.json({ simulation });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.createSs = async (req, res, next) => {
+  try {
+    const result = await fiscalCalculationsService.createSsSimulation({
+      firmId: String(req.user.firmId),
+      actorId: req.user.id,
+      body: req.body || {},
+    });
+    return res.status(201).json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.list = async (req, res, next) => {
   try {
     const result = await fiscalCalculationsService.listCalculations({

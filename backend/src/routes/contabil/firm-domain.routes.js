@@ -680,6 +680,21 @@ router.post(
   fiscalCalculationsController.createIrs,
 );
 router.get(
+  '/fiscal/ss/catalog',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.ssCatalog,
+);
+router.post(
+  '/fiscal/ss/simulate',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.ssSimulate,
+);
+router.post(
+  '/fiscal/ss/calculations',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.createSs,
+);
+router.get(
   '/fiscal/calculations',
   requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
   fiscalCalculationsController.list,

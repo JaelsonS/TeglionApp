@@ -126,6 +126,12 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         labelDefault: 'Calculadora IRS',
         icon: Calculator,
       },
+      {
+        to: '/app/firm/calculators/ss',
+        labelKey: 'contabil.firm.nav.ssCalculator',
+        labelDefault: 'Calculadora SS',
+        icon: Calculator,
+      },
     ],
   },
   {
@@ -295,6 +301,12 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     to: '/app/firm/calculators/irs',
     labelKey: 'contabil.firm.nav.irsCalculator',
     labelDefault: 'Calculadora IRS',
+    icon: Calculator,
+  },
+  {
+    to: '/app/firm/calculators/ss',
+    labelKey: 'contabil.firm.nav.ssCalculator',
+    labelDefault: 'Calculadora SS',
     icon: Calculator,
   },
   {
