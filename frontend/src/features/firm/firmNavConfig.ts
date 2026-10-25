@@ -373,11 +373,12 @@ export const FIRM_NAV_DRAWER_ITEMS: FirmNavItemConfig[] = [...FIRM_NAV_RAIL_MAIN
 /** Rotas com etiqueta para breadcrumb no header. */
 export function firmNavLabelForPath(pathname: string): string | null {
   const matches = FIRM_NAV_FLAT.filter((i) => {
-    if (pathname === i.to) return true
-    if (i.end === false) return pathname.startsWith(`${i.to}/`)
+    const { pathname: targetPath } = parseNavTarget(i.to)
+    if (pathname === targetPath) return true
+    if (i.end === false) return pathname.startsWith(`${targetPath}/`)
     return false
   })
   if (!matches.length) return null
-  const best = matches.sort((a, b) => b.to.length - a.to.length)[0]
+  const best = matches.sort((a, b) => parseNavTarget(b.to).pathname.length - parseNavTarget(a.to).pathname.length)[0]
   return best.labelDefault
 }

@@ -715,11 +715,11 @@
   }
 
   .cb-docs-page {
-    @apply bg-card;
+    @apply bg-card/90 shadow-[var(--cb-shadow-card)];
   }
 
   .cb-docs-page-hd {
-    @apply border-b border-border/60;
+    @apply border-b border-border/60 bg-gradient-to-b from-brand/[0.03] to-transparent;
   }
 
   .cb-docs-page-title {
@@ -1393,7 +1393,7 @@
   }
 
   .cb-clients-panel {
-    @apply overflow-hidden rounded-lg border border-border/70 bg-card;
+    @apply overflow-hidden rounded-xl border border-border/70 bg-card shadow-[var(--cb-shadow-card)];
   }
 
   /* Desktop: painel preenche altura e a tabela faz scroll interno */

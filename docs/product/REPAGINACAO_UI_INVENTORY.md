@@ -62,4 +62,5 @@ Dashboard · Pedidos · Serviços · Mais · Mensagens · Documentos · Arquivo 
 | 8 | Booking return + clareza pagamentos | feito |
 | 9 | Copy pt-PT residual + inventário | feito |
 | 10 | Atmosfera canvas firm + portal (sem cream) | feito |
+| 11 | Topbar + painéis clientes/docs + crumb labels | feito |
 | Merge → staging | Só quando a repaginação estiver completa | pendente |
