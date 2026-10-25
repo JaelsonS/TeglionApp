@@ -1,7 +1,7 @@
 # Teglion V10 — Carta da frente Ops + Fiscal
 
 **Branch exclusiva:** `feature/fase-v10-ops-fiscal` (base: `staging`)  
-**Actualizado:** 25/10/2026 (Onda 1 em curso — avenças manuais + Connect opcional)  
+**Actualizado:** 25/10/2026 (Onda 1 commitada; Onda 2 motor IVA em curso)  
 **Estado:** implementação activa na branch `feature/fase-v10-ops-fiscal`
 
 Marca: **Teglion** (produto). Operador: **AfDigital — Soluções Tecnológicas**. Domínio: teglion.com.
@@ -94,8 +94,8 @@ Emissão oficial no Portal das Finanças, comunicação ATCUD/e-Fatura como soft
 | Onda | Nome | Resultado | Dependências |
 |---|---|---|---|
 | **0** | Carta + branch | Este documento + branch isolada | — |
-| **1** | Avenças & mapa de pagamentos | **Em curso.** Mensalidade na ficha, grelha ano, gerar em massa, estados manuais, saldos/histórico; Connect **opcional** com nudge; copy taxas | Clientes (+ Connect se quiser) |
-| **2** | Motor IVA (simulação) | Persistência + versão de regra + UI simples | Fase fiscal V10 |
+| **1** | Avenças & mapa de pagamentos | **Commitada** (`feat(payments): avenças…`). Manual + Connect opcional | Clientes (+ Connect se quiser) |
+| **2** | Motor IVA (simulação) | **Em curso.** Cêntimos, regras `PT-IVA-2026.1`, persistência, UI `/calculators/iva` | Onda 1 |
 | **3** | Calendário × cliente | Vista “prazo AT + N/M tratados” como Konta, sobre obrigações reais | Onda 1–2 |
 | **4** | Mais simuladores | IRS escalões, retenção, SS, rendas, IMT, IRC, TA — um a um com fonte | Contabilista revisor |
 | **5** | Imóveis / rendas (dados) | Contratos, inquilinos, recibos **internos**, sem comunicação AT | — |
@@ -213,4 +213,16 @@ Perfis Teglion a documentar: `FIRM_OWNER`, `FIRM_STAFF` (e permissões), cliente
 
 ## 10. Estado agora
 
-Onda 1 em implementação nesta branch. Migration local no repo; **não** aplicar em staging/prod sem autorização explícita.
+- Onda 1: commitada nesta branch (sem push).
+- Onda 2: motor IVA + UI + migration `20261025010000_fiscal_calculations.sql` no repo.
+- Migrations **não** aplicadas a staging/prod sem autorização.
+- Push geral para staging: só no fim do pacote de ondas, por pedido explícito.
+
+### Critério Onda 2
+
+- [x] Motor puro testável (10 € → 12,30 € a 23 %)
+- [x] Regras versionadas `PT-IVA-2026.1` (fonte documentada; validação contabilista pendente)
+- [x] Persistência com `firm_id` + histórico imutável por versão
+- [x] UI simples com disclaimer
+- [x] Testes unitários
+- [ ] UAT staging após migrations

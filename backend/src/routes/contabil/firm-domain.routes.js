@@ -37,6 +37,7 @@ const caeCatalogController = require('../../modules/firm/cae-catalog.controller'
 const mayaSetupController = require('../../modules/maya-setup/maya-setup.controller');
 const { mayaSetupGenerateLimiter } = require('../../modules/maya-setup/maya-setup.rate-limit');
 const feeChargesController = require('../../modules/fee-charges/fee-charges.controller');
+const fiscalCalculationsController = require('../../modules/fiscal-engine/fiscal-calculations.controller');
 
 const router = express.Router();
 
@@ -642,6 +643,32 @@ router.get('/fee-charges/meta', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAG
 router.get('/fee-charges/map', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.map);
 router.post('/fee-charges/generate', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.generate);
 router.patch('/fee-charges/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.patch);
+
+router.get(
+  '/fiscal/vat/catalog',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.vatCatalog,
+);
+router.post(
+  '/fiscal/vat/simulate',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.vatSimulate,
+);
+router.post(
+  '/fiscal/vat/calculations',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.createVat,
+);
+router.get(
+  '/fiscal/calculations',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.list,
+);
+router.get(
+  '/fiscal/calculations/:id',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.getById,
+);
 
 router.get('/broadcasts/meta', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), broadcastsController.getMeta);
 router.post(

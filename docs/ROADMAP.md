@@ -184,8 +184,8 @@ Carta canónica: [`docs/product/V10_OPS_FISCAL_CHARTER.md`](./product/V10_OPS_FI
 
 | Onda | Estado | Notas |
 |---|---|---|
-| **1 — Avenças / mapa Pagamentos** | `EM ANDAMENTO` | Manual sempre; Stripe Connect **opcional** com nudge. Migration `20261025000000_client_fee_charges.sql` — **não** aplicada a staging/prod sem autorização. |
-| 2 — Motor IVA | PLANEJADO | Depois da onda 1 estável |
+| **1 — Avenças / mapa Pagamentos** | `CONCLUÍDO` (código na branch) | Commit local; Connect opcional. Migration `20261025000000` — aplicar só com OK. |
+| **2 — Motor IVA** | `EM ANDAMENTO` | Simulação líquido/bruto + `fiscal_calculations`; UI `/app/firm/calculators/iva` |
 | 3–6 | PLANEJADO | Calendário×cliente, simuladores, rendas dados, SAF-T leitura |
 | 7–8 | PLANEJADO | Manual + landing (depois do produto) |
 | 9 | PLANEJADO | Caminho certificação AT (investimento + jurídico) |

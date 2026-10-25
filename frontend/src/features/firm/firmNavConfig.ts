@@ -15,6 +15,7 @@ import {
   Settings,
   UserRound,
   Wallet,
+  Calculator,
 } from 'lucide-react'
 
 export type FirmNavItemConfig = {
@@ -112,6 +113,12 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         labelKey: 'contabil.firm.nav.fiscalCalendar',
         labelDefault: 'Calendário fiscal',
         icon: CalendarDays,
+      },
+      {
+        to: '/app/firm/calculators/iva',
+        labelKey: 'contabil.firm.nav.vatCalculator',
+        labelDefault: 'Calculadora IVA',
+        icon: Calculator,
       },
     ],
   },
@@ -271,6 +278,12 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     labelKey: 'contabil.firm.nav.fiscalCalendar',
     labelDefault: 'Calendário fiscal',
     icon: CalendarDays,
+  },
+  {
+    to: '/app/firm/calculators/iva',
+    labelKey: 'contabil.firm.nav.vatCalculator',
+    labelDefault: 'Calculadora IVA',
+    icon: Calculator,
   },
   {
     to: '/app/firm/alerts',
