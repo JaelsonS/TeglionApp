@@ -499,6 +499,10 @@
     @apply mt-1.5 block text-sm leading-snug text-muted-foreground;
   }
 
+  .cb-calc-hub-card-purpose {
+    @apply mt-1.5 block text-xs leading-snug text-muted-foreground/90;
+  }
+
   .cb-calc-hub-card-arrow {
     @apply mt-1 text-muted-foreground/70 transition duration-200;
   }
@@ -509,6 +513,74 @@
 
   .cb-calc-hub-footer {
     @apply text-center text-xs text-muted-foreground/80;
+  }
+
+  .cb-calc-tool {
+    @apply mx-auto w-full max-w-5xl space-y-4 pb-12;
+  }
+
+  .cb-calc-tool-chrome {
+    @apply flex flex-wrap items-center justify-between gap-2;
+  }
+
+  .cb-calc-tool-back {
+    @apply text-muted-foreground hover:text-foreground;
+  }
+
+  .cb-calc-tool-badge {
+    @apply inline-flex items-center gap-1.5 rounded-md bg-muted/80 px-2 py-1 text-[0.7rem] font-medium uppercase tracking-wide text-muted-foreground;
+  }
+
+  .cb-calc-tool-purpose {
+    @apply rounded-xl border border-border/50 bg-gradient-to-r from-brand/[0.04] to-transparent px-4 py-2.5;
+  }
+
+  .cb-calc-tool-purpose-title {
+    @apply text-xs font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-calc-tool-purpose-detail {
+    @apply mt-0.5 text-sm leading-snug text-muted-foreground;
+  }
+
+  .cb-calc-disclaimer {
+    @apply mb-4 rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-sm text-amber-950;
+  }
+
+  .cb-calc-disclaimer-title {
+    @apply font-medium;
+  }
+
+  .cb-calc-disclaimer-body {
+    @apply mt-1 text-amber-950/90;
+  }
+
+  .cb-calc-disclaimer-hint {
+    @apply mt-1.5 text-xs text-amber-950/75;
+  }
+
+  .cb-calc-workspace-grid {
+    @apply grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)];
+  }
+
+  .cb-calc-form-panel {
+    @apply space-y-4 rounded-xl border border-border/70 bg-card p-4 sm:p-5;
+  }
+
+  .cb-calc-result-panel {
+    @apply space-y-1 rounded-xl border border-brand/25 bg-gradient-to-br from-brand/[0.05] via-card to-card p-4 shadow-sm sm:p-5;
+  }
+
+  .cb-calc-result-panel--empty {
+    @apply border-border/70 from-muted/20;
+  }
+
+  .cb-calc-history {
+    @apply mt-6 rounded-xl border border-border/70 bg-card p-4 sm:p-5;
+  }
+
+  .cb-calc-history-row {
+    @apply flex w-full flex-wrap items-center justify-between gap-2 py-2.5 text-left text-sm outline-none transition hover:bg-muted/40 focus-visible:bg-muted/50;
   }
 
   .cb-calc-modal-body {

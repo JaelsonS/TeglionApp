@@ -245,7 +245,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 5. Smoke: hub → abrir → simular → guardar → reabrir.
 
 **Rotas:** hub `/app/firm/calculators`; legacy `/calculators/{iva|irs|ss|retencao|imt|irc}` → `?open=`.  
-**Estado:** ☐ hub · ☐ IVA · ☐ IRS · ☐ SS · ☐ Retenção · ☐ IMT · ☐ IRC
+**Estado:** ✅ hub · ✅ IVA · ✅ IRS · ✅ SS · ✅ Retenção · ✅ IMT · ✅ IRC
 
 ### Fase 13 — Documentos (3 subrotas)
 
@@ -393,7 +393,7 @@ Este roadmap = **Wave páginas / produto**.
 | 9 | Área IRS | ✅ |
 | 10 | Serviços | ✅ |
 | 11 | Calendário fiscal | ✅ |
-| 12 | Calculadoras (0+6) | ☐ |
+| 12 | Calculadoras (0+6) | ✅ |
 | 13 | Documentos | ✅ |
 | 14 | Mensagens | ✅ |
 | 15 | Alertas | ✅ |
@@ -402,4 +402,4 @@ Este roadmap = **Wave páginas / produto**.
 | 18 | Definições (12) | ✅ |
 | L | Landing | ✅ |
 
-**Última actualização:** 2026-10-25 — Fases 13–18 e L concluídas (copy autoexplicativa + landing alinhada ao menu firm).
+**Última actualização:** 2026-10-25 — Fase 12 Calculadoras concluída (hub página completa + 6 tools com histórico reabrível). Programa 1–18 + L ✅.
