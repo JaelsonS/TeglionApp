@@ -7,7 +7,7 @@ export const BRAND = {
   apiUrl: 'https://teglionapp.onrender.com',
   initials: 'TL',
   colors: {
-    navy: '#0F2942',
+    navy: '#0B3A6E',
     gold: '#C9932E',
     canvas: '#FAFAF7',
     muted: '#4A5568',

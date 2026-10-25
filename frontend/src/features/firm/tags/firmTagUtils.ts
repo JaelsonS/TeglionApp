@@ -2,7 +2,7 @@ import type { FirmInquiryTag } from '@/infrastructure/api/contabil/inquiryTags'
 
 export type FirmEntityTag = Pick<FirmInquiryTag, 'id' | 'name' | 'colorHex'>
 
-export const SUGGESTED_TAG_COLORS = ['#0F2942', '#B45309', '#1B6B4A', '#9A3412', '#475569', '#854D0E']
+export const SUGGESTED_TAG_COLORS = ['#0B3A6E', '#B45309', '#1B6B4A', '#9A3412', '#475569', '#854D0E']
 
 export function tagTextColor(hex: string) {
   const raw = hex.replace('#', '')

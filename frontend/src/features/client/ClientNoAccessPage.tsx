@@ -20,10 +20,10 @@ export function ClientNoAccessPage() {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-destructive">
             <ShieldAlert className="h-6 w-6" />
           </div>
-          <CardTitle className="text-2xl">Acesso ainda não autorizado</CardTitle>
+          <CardTitle className="text-2xl">Portal ainda sem acesso</CardTitle>
           <CardDescription className="text-base">
-            O portal do cliente só está disponível depois do escritório confirmar o seu vínculo. Peça ao seu
-            contabilista para validar o convite ou aguarde a aprovação.
+            O escritório ainda não confirmou o seu vínculo. Peça validação do convite ou aguarde a aprovação —
+            depois o portal Teglion fica disponível.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 text-center text-sm text-muted-foreground">

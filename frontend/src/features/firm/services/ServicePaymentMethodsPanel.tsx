@@ -243,7 +243,7 @@ export function ServicePaymentMethodsPanel({
       >
         <input
           type="checkbox"
-          className="mt-1 accent-[var(--cb-brand,#0F2942)]"
+          className="mt-1 accent-[var(--cb-brand,#0B3A6E)]"
           checked={paymentRequired}
           disabled={!requiresBooking}
           onChange={(e) => togglePaymentRequired(e.target.checked)}
@@ -270,7 +270,7 @@ export function ServicePaymentMethodsPanel({
         <input
           type="radio"
           name="service-payment-method-offline"
-          className="mt-1 accent-[var(--cb-brand,#0F2942)]"
+          className="mt-1 accent-[var(--cb-brand,#0B3A6E)]"
           checked={paymentMethod === 'bank_transfer' && !paymentRequired}
           onChange={() => {
             onPaymentRequiredChange(false)
@@ -296,7 +296,7 @@ export function ServicePaymentMethodsPanel({
         <input
           type="radio"
           name="service-payment-method-offline"
-          className="mt-1 accent-[var(--cb-brand,#0F2942)]"
+          className="mt-1 accent-[var(--cb-brand,#0B3A6E)]"
           checked={paymentMethod === 'multibanco' && !paymentRequired}
           onChange={() => {
             onPaymentRequiredChange(false)

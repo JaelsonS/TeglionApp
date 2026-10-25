@@ -17,7 +17,7 @@ export function ClientAlertsPage() {
     <div className="space-y-6" data-testid="client-alerts-page">
       <PageHeader
         title={t.tabs.alerts}
-        subtitle="Comunicados, avisos fiscais e actualizações do seu escritório"
+        subtitle="Avisos curtos do escritório (prazos e urgências). Artigos longos estão em Notícias."
       />
       <ClientAlertsFeed />
     </div>

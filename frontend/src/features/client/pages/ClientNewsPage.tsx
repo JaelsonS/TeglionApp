@@ -17,7 +17,7 @@ export function ClientNewsPage() {
     <div className="space-y-6" data-testid="client-news-page">
       <PageHeader
         title={t.tabs.news}
-        subtitle="Artigos e novidades publicados pelo teu contabilista"
+        subtitle="Artigos e novidades publicados pelo seu escritório — leia aqui no portal."
       />
       <ClientNewsFeed />
     </div>

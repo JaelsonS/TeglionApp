@@ -529,7 +529,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
                                 name={`ans-${q.id}`}
                                 checked={selected}
                                 onChange={() => updateQuestion(q.id, { answerYes: yes })}
-                                className="accent-[var(--cb-brand,#0F2942)]"
+                                className="accent-[var(--cb-brand,#0B3A6E)]"
                               />
                               {label}
                             </label>
