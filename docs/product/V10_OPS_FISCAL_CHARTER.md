@@ -1,7 +1,7 @@
 # Teglion V10 — Carta da frente Ops + Fiscal
 
 **Branch exclusiva:** `feature/fase-v10-ops-fiscal` (base: `staging`)  
-**Actualizado:** 25/10/2026 (Ondas 1–6: + SAF-T leitura; sem push)  
+**Actualizado:** 25/10/2026 (Ondas 1–7: + Manual Maya; sem push)  
 **Estado:** implementação activa na branch `feature/fase-v10-ops-fiscal`
 
 Marca: **Teglion** (produto). Operador: **AfDigital — Soluções Tecnológicas**. Domínio: teglion.com.
@@ -100,7 +100,7 @@ Emissão oficial no Portal das Finanças, comunicação ATCUD/e-Fatura como soft
 | **4** | Mais simuladores | **Parcial.** IVA→IRC feitos; TA/pensões diferidos | Contabilista revisor |
 | **5** | Imóveis / rendas (dados) | **Commitada.** Contratos, inquilinos, recibos **internos**, sem comunicação AT | — |
 | **6** | SAF-T **leitura** | **Commitada.** XML/ZIP → totais; sem envio AT | Isolamento + checks estruturais |
-| **7** | Manual do utilizador Teglion | `/manual` (público) + link na app; capítulos + capturas reais | Ondas 1–3 estáveis |
+| **7** | Manual do utilizador Teglion | **Commitada.** `/manual` voz Maya + CTA prospect + links firm/client | Ondas 1–6 |
 | **8** | Landing repaginada | Mais clara e mais forte que ContaCRM+Konta juntos; só features **reais** | Manual + screenshots |
 | **9** | Caminho certificação | ADR + requisitos AT + investimento | Decisão jurídica |
 
@@ -219,8 +219,19 @@ Perfis Teglion a documentar: `FIRM_OWNER`, `FIRM_STAFF` (e permissões), cliente
 - Onda 4 (parcial): IRS + SS + retenção + IMT + IRC; `20261025060000_fiscal_calculations_irc.sql` a aplicar com OK.
 - Onda 5: imóveis / contratos / recibos internos; migration `20261025070000_client_rentals.sql` a aplicar com OK.
 - Onda 6: SAF-T leitura; migration `20261025080000_client_saft_imports.sql` a aplicar com OK.
+- Onda 7: Manual público `/manual` (voz Maya), CTA prospect, links na app firm/client; allowlist de links + testes.
 - Migrations **não** aplicadas a staging/prod sem autorização.
 - Push geral para staging: só no fim do pacote de ondas, por pedido explícito.
+
+### Critério Onda 7
+
+- [x] Rota pública `/manual` + `/manual/:slug` (antes de `/:firmSlug`)
+- [x] 18 capítulos na voz da Maya; estados available/partial/planned honestos
+- [x] Conteúdo tipado sem HTML cru; hrefs allowlistados; slug seguro
+- [x] Maya prospect (FAB + cartão) no Manual; Maya in-app (firm/client) com intents
+- [x] Links footer, Ajuda escritório, Conta cliente; SEO sitemap/llms
+- [ ] Capturas reais de ecrã (iteração contínua)
+- [ ] UAT staging
 
 ### Critério Onda 5
 

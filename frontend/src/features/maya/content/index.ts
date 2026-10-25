@@ -5,6 +5,7 @@ import { CLIENT_INTENTS } from '@/features/maya/content/intents/clients'
 import { IRS_INTENTS } from '@/features/maya/content/intents/irs'
 import { LANDING_INTENTS } from '@/features/maya/content/intents/landing'
 import { OPS_INTENTS } from '@/features/maya/content/intents/operations'
+import { OPS_V10_INTENTS } from '@/features/maya/content/intents/opsV10'
 import { SERVICE_INTENTS } from '@/features/maya/content/intents/services'
 import { SETTINGS_INTENTS } from '@/features/maya/content/intents/settings'
 import { ACTIVATION_ASSISTANT_INTENTS } from '@/features/maya/content/intents/activationAssistant'
@@ -23,6 +24,7 @@ export const MAYA_INTENTS: MayaIntent[] = [
   ...CLIENT_INTENTS,
   ...CLIENT_HUB_INTENTS,
   ...OPS_INTENTS,
+  ...OPS_V10_INTENTS,
   ...COMMS_INTENTS,
   ...SETTINGS_INTENTS,
   ...PORTAL_CLIENT_INTENTS,
@@ -43,12 +45,15 @@ export const MAYA_MODULE_INTENT: Record<string, string> = {
   obligations: 'obligations',
   tasks: 'obligations',
   'fiscal-calendar': 'fiscal-calendar',
-  payments: 'payments',
+  payments: 'fee-charges',
+  rentals: 'rentals-guide',
+  saft: 'saft-read',
   billing: 'billing',
   alerts: 'alerts',
   news: 'news',
-  help: 'human-support',
+  help: 'manual-guide',
   support: 'human-support',
+  manual: 'manual-guide',
 }
 
 const INTENT_BY_ID = new Map(MAYA_INTENTS.map((intent) => [intent.id, intent]))

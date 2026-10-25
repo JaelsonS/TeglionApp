@@ -74,6 +74,12 @@ const CaseStudiesPage = lazy(() =>
 const SupportPage = lazy(() =>
   import('@/features/marketing/SupportPage').then((m) => ({ default: m.SupportPage })),
 )
+const ManualIndexPage = lazy(() =>
+  import('@/features/manual/ManualIndexPage').then((m) => ({ default: m.ManualIndexPage })),
+)
+const ManualChapterPage = lazy(() =>
+  import('@/features/manual/ManualChapterPage').then((m) => ({ default: m.ManualChapterPage })),
+)
 const FirmFiscalCalendarPage = lazy(() =>
   import('@/features/firm/FirmFiscalCalendarPage').then((m) => ({ default: m.FirmFiscalCalendarPage })),
 )
@@ -214,6 +220,9 @@ export function ContabilAppRouter() {
         <Route path="/security" element={<Navigate to="/termos" replace />} />
         <Route path="/case-studies" element={<CaseStudiesPage />} />
         <Route path="/suporte" element={<SupportPage />} />
+        {/* /manual antes de /:firmSlug — evita capturar «manual» como slug de escritório */}
+        <Route path="/manual" element={<ManualIndexPage />} />
+        <Route path="/manual/:slug" element={<ManualChapterPage />} />
 
         <Route path="/blog" element={<BlogLayout />}>
           <Route index element={<BlogIndexPage />} />

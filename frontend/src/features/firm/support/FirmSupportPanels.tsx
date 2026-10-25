@@ -110,9 +110,16 @@ export function FirmHelpSupportPanel({ className }: { className?: string }) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
+          <AskMayaButton intentId="manual-guide" />
           <AskMayaButton intentId="human-support" />
+          <Button type="button" variant="outline" size="sm" asChild>
+            <Link to="/manual" target="_blank" rel="noopener noreferrer">
+              Abrir Manual completo (Maya)
+            </Link>
+          </Button>
           <p className="text-xs text-muted-foreground">
-            A Maya é a assistente guiada do {BRAND.name} — não substitui o suporte humano.
+            A Maya é a assistente guiada do {BRAND.name} — não substitui o suporte humano. O Manual
+            público explica cada módulo na voz dela.
           </p>
         </CardContent>
       </Card>

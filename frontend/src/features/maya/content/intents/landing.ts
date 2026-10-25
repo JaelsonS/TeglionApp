@@ -142,8 +142,28 @@ export const LANDING_INTENTS = [
       'Se for só uma dúvida rápida, continue comigo aqui',
     ],
     deepLink: BRAND.phone.whatsapp,
-    relatedIntents: ['landing-what', 'landing-trial'],
+    relatedIntents: ['landing-what', 'landing-trial', 'landing-manual'],
     ctaLabel: 'Abrir WhatsApp',
     followUpPrompt: 'Quer que eu explique o trial enquanto isso?',
+  }),
+  defineIntent({
+    id: 'landing-manual',
+    title: 'Manual do utilizador',
+    shortDescription: 'guia completo Maya',
+    surface: 'landing',
+    answer:
+      'Escrevi o Manual do Teglion na minha voz: primeiros passos, clientes, documentos, avenças, portal, segurança e FAQ. É público — pode ler antes de criar conta. Se já é cliente do escritório, entre no portal; se é o responsável do gabinete, comece o trial e use a Maya dentro da app.',
+    steps: [
+      'Abra o Manual e escolha um capítulo',
+      'Se fizer sentido, comece os 14 dias grátis',
+      'Já é cliente de um escritório? Entre no portal',
+    ],
+    deepLink: '/manual',
+    relatedIntents: ['landing-what', 'landing-trial', 'landing-human'],
+    ctaLabel: 'Abrir Manual',
+    nextSteps: [
+      { label: 'Começar trial', intentId: 'landing-trial' },
+      { label: 'Falar com pessoa', intentId: 'landing-human' },
+    ],
   }),
 ]
