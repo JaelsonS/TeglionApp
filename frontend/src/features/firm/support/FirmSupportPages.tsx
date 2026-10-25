@@ -38,7 +38,7 @@ export function FirmAboutPage() {
     <FirmScrollPage>
       <PageHeader
         title="Sobre o Teglion"
-        subtitle="Identidade do produto e da AfDigital — Soluções Tecnológicas."
+        subtitle="O que é o Teglion, quem o opera (AfDigital — Soluções Tecnológicas) e onde encontrar ajuda."
         testId="firm-about-header"
       />
       <FirmAboutPanel />

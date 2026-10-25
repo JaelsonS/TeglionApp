@@ -256,7 +256,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
   {
     to: '/app/firm/payments',
     labelKey: 'contabil.firm.nav.payments',
-    labelDefault: 'Pagamentos dos clientes',
+    labelDefault: 'Pagamentos (carteira)',
     icon: Wallet,
   },
   {
@@ -274,7 +274,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
   {
     to: '/app/firm/documents',
     labelKey: 'contabil.firm.nav.documents',
-    labelDefault: 'Documentos e pedidos',
+    labelDefault: 'Documentos',
     icon: Inbox,
     end: false,
     badgeKey: 'documents',
@@ -304,7 +304,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
   {
     to: '/app/firm/fiscal-calendar',
     labelKey: 'contabil.firm.nav.fiscalCalendar',
-    labelDefault: 'Calendário fiscal do escritório',
+    labelDefault: 'Calendário fiscal',
     icon: CalendarDays,
   },
   {
@@ -347,7 +347,7 @@ export const FIRM_NAV_RAIL_BOTTOM: FirmNavItemConfig[] = [
   {
     to: '/app/firm/billing',
     labelKey: 'nav.billing',
-    labelDefault: 'Plano (subscrição)',
+    labelDefault: 'Plano Teglion',
     icon: ReceiptText,
   },
   {

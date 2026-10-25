@@ -57,5 +57,6 @@ Dashboard · Pedidos · Serviços · Mais · Mensagens · Documentos · Arquivo 
 | 3 | Auth, legal, suporte, casos — navy + propósito | feito |
 | 4 | Landing, blog, manual — navy único | feito |
 | 5 | Residual navy, hero Teglion, 404/no-access | feito |
-| 6 | Labels menu firm + chrome portal | em curso |
+| 6 | Labels menu firm + chrome portal | feito |
+| 7 | Blog + Ajuda/Sobre + rail sync | em curso |
 | Merge → staging | Só quando a repaginação estiver completa | pendente |
