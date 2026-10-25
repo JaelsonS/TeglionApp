@@ -148,8 +148,14 @@ export function ChargeEditDialog({
       paymentMethods,
     })
     if (!ok) {
-      toast.error('Permita pop-ups para imprimir o recibo interno')
+      toast.error('Não foi possível preparar o recibo interno', {
+        description: 'Tente novamente. Se o problema continuar, verifique o bloqueador do browser.',
+      })
+      return
     }
+    toast.message('Recibo interno pronto', {
+      description: 'Use a caixa de impressão do sistema (PDF ou impressora). Não é fatura AT.',
+    })
   }
 
   const overdue = charge ? isChargeOverdue(charge.status, charge.overdue) : false

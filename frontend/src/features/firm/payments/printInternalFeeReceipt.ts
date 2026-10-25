@@ -32,14 +32,55 @@ export type InternalReceiptInput = {
   paymentMethods: Array<{ id: string; label: string }>
 }
 
+/** Imprime via iframe oculto — evita pop-up / about:blank / noopener null. */
+function printHtmlDocument(html: string): boolean {
+  const iframe = document.createElement('iframe')
+  iframe.setAttribute('title', 'Recibo interno')
+  iframe.setAttribute('aria-hidden', 'true')
+  iframe.style.cssText =
+    'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0;pointer-events:none'
+  document.body.appendChild(iframe)
+
+  const win = iframe.contentWindow
+  const doc = win?.document
+  if (!win || !doc) {
+    iframe.remove()
+    return false
+  }
+
+  doc.open()
+  doc.write(html)
+  doc.close()
+
+  const cleanup = () => {
+    try {
+      iframe.remove()
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const triggerPrint = () => {
+    try {
+      win.focus()
+      win.print()
+    } finally {
+      // Dar tempo ao diálogo de impressão antes de remover o iframe
+      window.setTimeout(cleanup, 1500)
+    }
+  }
+
+  // Imagens (logo) podem atrasar o layout
+  window.setTimeout(triggerPrint, 400)
+  return true
+}
+
 /**
- * Abre janela de impressão com recibo interno completo.
+ * Abre o diálogo de impressão com recibo interno completo.
  * Não é fatura AT — controlo do gabinete.
  */
 export function printInternalFeeReceipt(input: InternalReceiptInput) {
   const { charge, clientName, clientTaxId, firmName, firmLogoUrl, paymentMethods } = input
-  const w = window.open('', '_blank', 'noopener,noreferrer,width=820,height=980')
-  if (!w) return false
 
   const receiptNo = `RI-${charge.yearMonth.replace('-', '')}-${String(charge.id).slice(0, 8).toUpperCase()}`
   const issuedAt = new Date().toLocaleString('pt-PT', {
@@ -59,7 +100,7 @@ export function printInternalFeeReceipt(input: InternalReceiptInput) {
     ? `<img src="${escapeHtml(firmLogoUrl)}" alt="" style="max-height:56px;max-width:180px;object-fit:contain" />`
     : ''
 
-  w.document.write(`<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="utf-8" />
@@ -312,13 +353,8 @@ export function printInternalFeeReceipt(input: InternalReceiptInput) {
       </div>
     </div>
   </div>
-  <script>
-    window.addEventListener('load', function () {
-      setTimeout(function () { window.focus(); window.print(); }, 250);
-    });
-  </script>
 </body>
-</html>`)
-  w.document.close()
-  return true
+</html>`
+
+  return printHtmlDocument(html)
 }
