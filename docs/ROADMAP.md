@@ -187,7 +187,7 @@ Carta canónica: [`docs/product/V10_OPS_FISCAL_CHARTER.md`](./product/V10_OPS_FI
 | **1 — Avenças / mapa Pagamentos** | `CONCLUÍDO` (código na branch) | Commit local; Connect opcional. Migration `20261025000000` — aplicar só com OK. |
 | **2 — Motor IVA** | `CONCLUÍDO` (código na branch) | Simulação + `fiscal_calculations`; UI `/app/firm/calculators/iva` |
 | **3 — Mês fiscal N/M** | `CONCLUÍDO` (código na branch) | Tab `/app/firm/tasks/month`; sem migration |
-| **4 — Simuladores** | `EM ANDAMENTO` | IVA + IRS + SS + retenção I–III; IMT/IRC a seguir |
+| **4 — Simuladores** | `EM ANDAMENTO` | IVA + IRS + SS + retenção + IMT; IRC/rendas a seguir |
 | 5–6 | PLANEJADO | Rendas dados, SAF-T leitura |
 | 7–8 | PLANEJADO | Manual + landing (depois do produto) |
 | 9 | PLANEJADO | Caminho certificação AT (investimento + jurídico) |

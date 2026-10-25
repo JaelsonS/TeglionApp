@@ -138,6 +138,12 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         labelDefault: 'Retenção IRS',
         icon: Calculator,
       },
+      {
+        to: '/app/firm/calculators/imt',
+        labelKey: 'contabil.firm.nav.imtCalculator',
+        labelDefault: 'Calculadora IMT',
+        icon: Calculator,
+      },
     ],
   },
   {
@@ -319,6 +325,12 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     to: '/app/firm/calculators/retencao',
     labelKey: 'contabil.firm.nav.withholdingCalculator',
     labelDefault: 'Retenção IRS',
+    icon: Calculator,
+  },
+  {
+    to: '/app/firm/calculators/imt',
+    labelKey: 'contabil.firm.nav.imtCalculator',
+    labelDefault: 'Calculadora IMT',
     icon: Calculator,
   },
   {

@@ -12,15 +12,18 @@ const { simulateVat } = require('./vat-engine');
 const { simulateIrsBrackets } = require('./irs-engine');
 const { simulateSs } = require('./ss-engine');
 const { simulateWithholding } = require('./withholding-engine');
+const { simulateImt } = require('./imt-engine');
 const {
   runSimulate,
   runIrsSimulate,
   runSsSimulate,
   runWithholdingSimulate,
+  runImtSimulate,
   createVatSimulation,
   createIrsSimulation,
   createSsSimulation,
   createWithholdingSimulation,
+  createImtSimulation,
   getCalculation,
   listCalculations,
 } = require('./fiscal-calculations.service');
@@ -59,6 +62,16 @@ describe('V10 fiscal — invariantes monetários', () => {
       assert.equal(s.result.withholdingCents + s.result.netCents, R);
     }
   });
+
+  it('IMT: nunca negativo (amostra tabelas + flat)', () => {
+    for (const v of [0, 10_000_000, 20_000_000, 70_000_000, 120_000_000]) {
+      for (const table of ['I', 'II', 'III']) {
+        const s = simulateImt({ tableCode: table, taxableValueCents: v });
+        assert.ok(s.result.imtCents >= 0);
+      }
+    }
+    assert.ok(simulateImt({ flatRateCode: 'rustic', taxableValueCents: 50_000 }).result.imtCents >= 0);
+  });
 });
 
 describe('V10 fiscal — rejeição de input', () => {
@@ -67,10 +80,12 @@ describe('V10 fiscal — rejeição de input', () => {
     assert.throws(() => runIrsSimulate({ taxableIncomeCents: -10 }));
     assert.throws(() => runSsSimulate({ regimeCode: 'tco_lucrativo', baseCents: -1 }));
     assert.throws(() => runWithholdingSimulate({ tableCode: 'I', remunerationCents: -5 }));
+    assert.throws(() => runImtSimulate({ tableCode: 'I', taxableValueCents: -1 }));
     assert.throws(() => simulateVat({ amountCents: 100, rateCode: 'normal', ruleVersion: 'FAKE' }));
     assert.throws(() => simulateIrsBrackets({ taxableIncomeCents: 100, ruleVersion: 'FAKE' }));
     assert.throws(() => simulateSs({ regimeCode: 'nope', baseCents: 100 }));
     assert.throws(() => simulateWithholding({ tableCode: 'Z', remunerationCents: 100 }));
+    assert.throws(() => simulateImt({ tableCode: 'Z', taxableValueCents: 100 }));
   });
 
   it('IVA rejeita rateCode desconhecido', () => {
@@ -84,11 +99,13 @@ describe('V10 fiscal — disclaimers e calcType estáveis', () => {
     const irs = simulateIrsBrackets({ taxableIncomeCents: 100_000 });
     const ss = simulateSs({ regimeCode: 'ti_geral', baseCents: 100_000 });
     const wh = simulateWithholding({ tableCode: 'III', remunerationCents: 200_000, dependents: 1 });
+    const imt = simulateImt({ tableCode: 'I', taxableValueCents: 20_000_000 });
     assert.equal(vat.calcType, 'vat_net_gross');
     assert.equal(irs.calcType, 'irs_brackets');
     assert.equal(ss.calcType, 'ss_contributions');
     assert.equal(wh.calcType, 'irs_withholding');
-    for (const s of [vat, irs, ss, wh]) {
+    assert.equal(imt.calcType, 'imt');
+    for (const s of [vat, irs, ss, wh, imt]) {
       assert.ok(String(s.disclaimer).length > 40);
       assert.ok(s.ruleVersion);
       assert.ok(s.source?.label);
@@ -109,7 +126,7 @@ describe('V10 fiscal — isolamento tenant no serviço', () => {
     );
   }
 
-  it('create* exige cliente do mesmo firm (VAT/IRS/SS/WH)', async () => {
+  it('create* exige cliente do mesmo firm (VAT/IRS/SS/WH/IMT)', async () => {
     await assertClientIsolation(createVatSimulation, {
       direction: 'net_to_gross',
       amountCents: 1000,
@@ -124,6 +141,10 @@ describe('V10 fiscal — isolamento tenant no serviço', () => {
       tableCode: 'I',
       remunerationCents: 150_000,
       dependents: 0,
+    });
+    await assertClientIsolation(createImtSimulation, {
+      tableCode: 'I',
+      taxableValueCents: 20_000_000,
     });
   });
 
@@ -172,10 +193,20 @@ describe('V10 fiscal — isolamento tenant no serviço', () => {
         firmId: 'firm-evil',
       },
     });
-    assert.equal(seen.length, 4);
+    await createImtSimulation({
+      firmId: 'firm-secure',
+      actorId: 'u1',
+      body: {
+        tableCode: 'III',
+        taxableValueCents: 15_000_000,
+        clientId: 'c1',
+        firmId: 'firm-evil',
+      },
+    });
+    assert.equal(seen.length, 5);
     assert.deepEqual(
       seen.map((s) => s.calcType),
-      ['vat_net_gross', 'irs_brackets', 'ss_contributions', 'irs_withholding'],
+      ['vat_net_gross', 'irs_brackets', 'ss_contributions', 'irs_withholding', 'imt'],
     );
   });
 

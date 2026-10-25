@@ -21,6 +21,11 @@ const {
   simulateWithholding,
   DEFAULT_VERSION: WH_DEFAULT_VERSION,
 } = require('./withholding-engine');
+const {
+  listRulePacks: listImtRulePacks,
+  simulateImt,
+  DEFAULT_VERSION: IMT_DEFAULT_VERSION,
+} = require('./imt-engine');
 
 function toAppError(err) {
   if (err?.code === 'INVALID_AMOUNT' || err?.code === 'INVALID_RATE') {
@@ -65,6 +70,15 @@ function getWithholdingCatalog() {
     packs: listWhRulePacks(),
     disclaimer:
       'Simulações de retenção na fonte (continente, tabelas I–III). Não substituem recibo de vencimento oficial nem o Portal das Finanças.',
+  };
+}
+
+function getImtCatalog() {
+  return {
+    defaultVersion: IMT_DEFAULT_VERSION,
+    packs: listImtRulePacks(),
+    disclaimer:
+      'Simulações de IMT (continente). Não substituem a liquidação oficial nem o Portal das Finanças.',
   };
 }
 
@@ -114,6 +128,19 @@ function runWithholdingSimulate(body) {
       remunerationCents: body.remunerationCents,
       dependents: body.dependents,
       ruleVersion: body.ruleVersion || WH_DEFAULT_VERSION,
+    });
+  } catch (err) {
+    throw toAppError(err);
+  }
+}
+
+function runImtSimulate(body) {
+  try {
+    return simulateImt({
+      tableCode: body.tableCode,
+      flatRateCode: body.flatRateCode,
+      taxableValueCents: body.taxableValueCents,
+      ruleVersion: body.ruleVersion || IMT_DEFAULT_VERSION,
     });
   } catch (err) {
     throw toAppError(err);
@@ -190,6 +217,17 @@ async function createWithholdingSimulation({ firmId, actorId, body }) {
   });
 }
 
+async function createImtSimulation({ firmId, actorId, body }) {
+  const simulation = runImtSimulate(body);
+  return persistSimulation({
+    firmId,
+    actorId,
+    body,
+    simulation,
+    metaExtra: { regime: simulation.regime },
+  });
+}
+
 async function listCalculations({ firmId, limit, calcType }) {
   const items = await fiscalCalculationsRepository.listForFirm(firmId, { limit, calcType });
   return { items };
@@ -206,14 +244,17 @@ module.exports = {
   getIrsCatalog,
   getSsCatalog,
   getWithholdingCatalog,
+  getImtCatalog,
   runSimulate,
   runIrsSimulate,
   runSsSimulate,
   runWithholdingSimulate,
+  runImtSimulate,
   createVatSimulation,
   createIrsSimulation,
   createSsSimulation,
   createWithholdingSimulation,
+  createImtSimulation,
   listCalculations,
   getCalculation,
 };

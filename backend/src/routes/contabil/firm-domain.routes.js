@@ -710,6 +710,21 @@ router.post(
   fiscalCalculationsController.createWithholding,
 );
 router.get(
+  '/fiscal/imt/catalog',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.imtCatalog,
+);
+router.post(
+  '/fiscal/imt/simulate',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.imtSimulate,
+);
+router.post(
+  '/fiscal/imt/calculations',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.createImt,
+);
+router.get(
   '/fiscal/calculations',
   requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
   fiscalCalculationsController.list,

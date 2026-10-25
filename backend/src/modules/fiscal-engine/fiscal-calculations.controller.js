@@ -104,6 +104,32 @@ exports.createWithholding = async (req, res, next) => {
   }
 };
 
+exports.imtCatalog = async (_req, res) => {
+  return res.json(fiscalCalculationsService.getImtCatalog());
+};
+
+exports.imtSimulate = async (req, res, next) => {
+  try {
+    const simulation = fiscalCalculationsService.runImtSimulate(req.body || {});
+    return res.json({ simulation });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.createImt = async (req, res, next) => {
+  try {
+    const result = await fiscalCalculationsService.createImtSimulation({
+      firmId: String(req.user.firmId),
+      actorId: req.user.id,
+      body: req.body || {},
+    });
+    return res.status(201).json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.list = async (req, res, next) => {
   try {
     const result = await fiscalCalculationsService.listCalculations({
