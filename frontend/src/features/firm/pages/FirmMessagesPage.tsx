@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MessageSquare, Pin, ShieldAlert } from 'lucide-react'
 
 import { FirmMessagesModule } from '@/features/firm/chat/FirmMessagesModule'
@@ -7,7 +7,7 @@ import { AskMayaButton } from '@/features/maya'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { useFirmInbox } from '@/shared/hooks/queries/useFirmInbox'
 import { useAuth } from '@/shared/hooks/useAuth'
-import { getPinnedClientIds } from '@/features/firm/chat/chatUi'
+import { CHAT_PINS_CHANGED_EVENT, getPinnedClientIds } from '@/features/firm/chat/chatUi'
 import { cn } from '@/shared/lib/utils'
 
 const PAGE_SUBTITLE =
@@ -18,11 +18,27 @@ export function FirmMessagesPage() {
   const { user } = useAuth()
   const tenantSlug = user?.tenant.slug ?? ''
   const threads = inboxQuery.data?.threads ?? []
-  const pinnedIds = useMemo(() => getPinnedClientIds(tenantSlug), [tenantSlug])
+  const clients = inboxQuery.data?.clients ?? []
+  const [pinnedIds, setPinnedIds] = useState<string[]>(() => getPinnedClientIds(tenantSlug))
+
+  useEffect(() => {
+    setPinnedIds(getPinnedClientIds(tenantSlug))
+    const onPinsChanged = () => setPinnedIds(getPinnedClientIds(tenantSlug))
+    window.addEventListener(CHAT_PINS_CHANGED_EVENT, onPinsChanged)
+    window.addEventListener('storage', onPinsChanged)
+    return () => {
+      window.removeEventListener(CHAT_PINS_CHANGED_EVENT, onPinsChanged)
+      window.removeEventListener('storage', onPinsChanged)
+    }
+  }, [tenantSlug])
 
   const kpis = useMemo(() => {
     const unread = threads.reduce((acc, t) => acc + (t.unreadCount ?? (t.unread ? 1 : 0)), 0)
-    const pinned = threads.filter((t) => pinnedIds.includes(t.clientId)).length
+    const knownIds = new Set<string>([
+      ...threads.map((t) => t.clientId),
+      ...clients.map((c) => c._id),
+    ])
+    const pinned = pinnedIds.filter((id) => knownIds.has(id)).length
     return [
       {
         id: 'unread',

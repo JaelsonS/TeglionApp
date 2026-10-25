@@ -2,6 +2,9 @@ export type ChatListFilter = 'todos' | 'unread' | 'pinned'
 
 const PINNED_STORAGE_PREFIX = 'cb-firm-chat-pinned:'
 
+/** Evento no `window` quando a lista de conversas fixadas muda (KPI / filtros). */
+export const CHAT_PINS_CHANGED_EVENT = 'cb-firm-chat-pins-changed'
+
 const AVATAR_PALETTE: Array<{ bg: string; text: string }> = [
   { bg: 'bg-violet-100', text: 'text-violet-700' },
   { bg: 'bg-sky-100', text: 'text-sky-700' },
@@ -84,6 +87,7 @@ export function togglePinnedClientId(tenantSlug: string, clientId: string): stri
   const next = [...current]
   if (typeof window !== 'undefined' && tenantSlug) {
     window.localStorage.setItem(`${PINNED_STORAGE_PREFIX}${tenantSlug}`, JSON.stringify(next))
+    window.dispatchEvent(new CustomEvent(CHAT_PINS_CHANGED_EVENT, { detail: { tenantSlug, ids: next } }))
   }
   return next
 }
