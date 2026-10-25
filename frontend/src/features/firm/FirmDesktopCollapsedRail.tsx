@@ -19,7 +19,7 @@ export function FirmDesktopCollapsedRail({ onExpand }: { onExpand: () => void })
   const counts = useFirmNavBadgeCounts()
 
   const fullLogoUrl = firmLogoUrl || toPublicAssetUrl(firm?.branding?.logoUrl)
-  const subtitle = t('contabil.firm.subtitle', { defaultValue: 'Escritório' })
+  const subtitle = t('contabil.firm.subtitle', { defaultValue: 'Gabinete' })
   const fallbackName = t('contabil.firm.fallback', { defaultValue: 'Teglion' })
   const expandLabel = t('contabil.firm.nav.expandSidebar', {
     defaultValue: 'Expandir menu',

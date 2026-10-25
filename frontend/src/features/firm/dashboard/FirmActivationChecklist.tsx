@@ -30,7 +30,7 @@ export function FirmActivationChecklist({ progress, loading, isOwner }: FirmActi
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <p className="text-caption font-semibold uppercase tracking-wide text-muted-foreground">
-              Activacao do escritório
+              Activacao do gabinete
             </p>
             <CardTitle className="text-base">
               {compact ? 'Pronto a operar no Teglion' : 'O que falta para captar clientes online'}

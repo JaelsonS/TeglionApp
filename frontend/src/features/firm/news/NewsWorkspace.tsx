@@ -159,7 +159,7 @@ export function NewsWorkspace() {
           title={items.length === 0 ? 'Ainda sem notícias' : 'Nenhuma notícia neste filtro'}
           description={
             items.length === 0
-              ? 'Publique actualizações fiscais ou do escritório na página pública e no portal dos clientes.'
+              ? 'Publique actualizações fiscais ou do gabinete na página pública e no portal dos clientes.'
               : 'Altere o filtro de estado ou limpe a pesquisa.'
           }
           action={

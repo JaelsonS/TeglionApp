@@ -1,5 +1,5 @@
 /**
- * Orçamento de pedidos do chrome do escritório (Gate 1 / anti-429).
+ * Orçamento de pedidos do chrome do gabinete (Gate 1 / anti-429).
  * Mantém a regressão visível: badges = 1 endpoint; poll ≥ 3 min.
  */
 export const FIRM_SHELL_BADGE_POLL_MS = 180_000

@@ -99,7 +99,7 @@ export function AgendaAvailabilityPanel(props: Props) {
     showSlotSettings = true,
     defaultInterval = DEFAULT_INTERVAL,
     weeklyTitle = 'Horário semanal',
-    weeklySubtitle = 'Dias e intervalos em que o escritório atende.',
+    weeklySubtitle = 'Dias e intervalos em que o gabinete atende.',
     exceptionsTitle = 'Excepções do mês',
     exceptionsSubtitle,
     bookableServices,

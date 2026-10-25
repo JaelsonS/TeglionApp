@@ -19,7 +19,7 @@ export function ClientDocumentsPage() {
     <div className="space-y-6" data-testid="client-documents-page">
       <PageHeader
         title="Documentos"
-        subtitle="Envie ficheiros ao escritório e consulte o histórico. Pedidos formais estão em Pedidos."
+        subtitle="Envie ficheiros ao gabinete e consulte o histórico. Pedidos formais estão em Pedidos."
       />
       <ClientDocumentsView t={t} />
       <Link

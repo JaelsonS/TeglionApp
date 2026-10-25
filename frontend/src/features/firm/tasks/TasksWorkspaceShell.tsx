@@ -7,7 +7,7 @@ import { cn } from '@/shared/lib/utils'
 
 const SUBTITLES: Record<TasksOperationsTab, string> = {
   overview: 'O que a equipa tem em mãos — prioridades e estado num só sítio.',
-  obligations: 'Obrigações por cliente (prazos AT). Distinto do calendário fiscal genérico do escritório.',
+  obligations: 'Obrigações por cliente (prazos AT). Distinto do calendário fiscal genérico do gabinete.',
   month: 'Progresso do mês fiscal — quantos clientes já foram tratados em cada prazo.',
   manual: 'Tarefas internas criadas pela equipa (não são obrigações fiscais).',
   calendar: 'Vista mensal: obrigações e tarefas no mesmo calendário operacional.',

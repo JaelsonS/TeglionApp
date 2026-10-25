@@ -60,7 +60,7 @@ export function FirmTrialReminderBanner() {
   if (model.dismissible && dismissed) return null
 
   const waUrl = whatsappSupportUrl(
-    `Olá, sou dono(a) do escritório no Teglion. Faltam ${model.daysLeft} dias de teste — quero ajuda para activar o plano.`,
+    `Olá, sou dono(a) do gabinete no Teglion. Faltam ${model.daysLeft} dias de teste — quero ajuda para activar o plano.`,
   )
 
   const toneClass =

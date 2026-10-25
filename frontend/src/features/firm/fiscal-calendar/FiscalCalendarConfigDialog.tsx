@@ -115,7 +115,7 @@ export function FiscalCalendarConfigDialog({
         <DialogHeader className="shrink-0 border-b border-border/60 px-5 py-4 text-left">
           <DialogTitle>Configurar calendário fiscal</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            Defina o nome, categorias e preferências do calendário do escritório.
+            Defina o nome, categorias e preferências do calendário do gabinete.
           </p>
         </DialogHeader>
 

@@ -57,7 +57,7 @@ export function FirmTagsManager({ compact = false, onTagsChanged }: Props) {
     <div className="space-y-5">
       {!compact ? (
         <div className="space-y-2 rounded-xl border border-sky-200/80 bg-sky-50/80 px-3 py-3 text-sm text-sky-950">
-          <p className="font-medium text-brand">Etiquetas do escritório</p>
+          <p className="font-medium text-brand">Etiquetas do gabinete</p>
           <p>
             Uma lista única para marcar <strong>clientes</strong>, <strong>leads</strong>,{' '}
             <strong>solicitações</strong> e <strong>equipa</strong> (ex.: «Urgente», «VIP», «IRS 2025»).

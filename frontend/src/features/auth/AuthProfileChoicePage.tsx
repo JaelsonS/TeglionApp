@@ -49,7 +49,7 @@ export function AuthProfileChoicePage() {
             </div>
             <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700">
               <ShieldCheck className="h-4 w-4" />
-              Ambiente seguro para escritório e cliente
+              Ambiente seguro para gabinete e cliente
             </div>
           </div>
 

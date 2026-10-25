@@ -93,7 +93,7 @@ export function RentalsWorkspace() {
         <p className="font-medium">Registo interno</p>
         <p className="mt-1 text-amber-950/90">
           {data?.disclaimer ||
-            'Recibos de renda INTERNOS para controlo do escritório. Não são recibos oficiais do Portal das Finanças nem comunicação à AT.'}
+            'Recibos de renda INTERNOS para controlo do gabinete. Não são recibos oficiais do Portal das Finanças nem comunicação à AT.'}
         </p>
       </div>
 

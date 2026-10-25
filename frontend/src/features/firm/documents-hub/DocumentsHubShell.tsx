@@ -23,7 +23,7 @@ const SUBTITLES: Record<string, string> = {
 
 export function DocumentsHubShell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
-  const subtitle = SUBTITLES[pathname] || 'Gestão documental do escritório'
+  const subtitle = SUBTITLES[pathname] || 'Gestão documental do gabinete'
 
   return (
     <FirmModuleShell

@@ -77,7 +77,7 @@ export function ClientDashboardPage() {
           Olá, {greetingName(user?.fullName)}
         </h1>
         <p className="max-w-2xl text-body text-muted-foreground">
-          O que o escritório precisa de si agora — pedidos, prazos e mensagens num só sítio.
+          O que o gabinete precisa de si agora — pedidos, prazos e mensagens num só sítio.
         </p>
       </header>
 

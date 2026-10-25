@@ -44,7 +44,7 @@ export function ServiceFormPreview({
       <span className="font-medium text-foreground">Horário *</span>
       {calendarFirst
         ? ' — o cliente vê a disponibilidade primeiro e só depois preenche os dados.'
-        : ' — o cliente escolhe entre os horários disponíveis do escritório (ou deste serviço, se personalizados)'}
+        : ' — o cliente escolhe entre os horários disponíveis do gabinete (ou deste serviço, se personalizados)'}
     </p>
   )
 

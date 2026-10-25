@@ -18,7 +18,7 @@ type PickClientNextStepInput = {
 }
 
 /**
- * Um único próximo passo — a prioridade é o que o escritório precisa agora,
+ * Um único próximo passo — a prioridade é o que o gabinete precisa agora,
  * não um calendário de datas.
  */
 export function pickClientNextStep(input: PickClientNextStepInput): ClientNextStep {
@@ -38,8 +38,8 @@ export function pickClientNextStep(input: PickClientNextStepInput): ClientNextSt
       id: 'requests',
       title:
         input.pendingRequestsCount === 1
-          ? 'O escritório pediu-lhe um documento'
-          : `O escritório pediu-lhe ${input.pendingRequestsCount} documentos`,
+          ? 'O gabinete pediu-lhe um documento'
+          : `O gabinete pediu-lhe ${input.pendingRequestsCount} documentos`,
       description: 'Abra Pedidos, envie o que falta e fica registado — sem espalhar por WhatsApp.',
       ctaLabel: 'Abrir pedidos',
       to: '/app/client/requests',
@@ -54,7 +54,7 @@ export function pickClientNextStep(input: PickClientNextStepInput): ClientNextSt
         input.unreadMessagesCount === 1
           ? 'Tem uma mensagem nova'
           : `Tem ${input.unreadMessagesCount} mensagens novas`,
-      description: 'A equipa do escritório escreveu-lhe. A conversa fica neste portal.',
+      description: 'A equipa do gabinete escreveu-lhe. A conversa fica neste portal.',
       ctaLabel: 'Abrir mensagens',
       to: '/app/client/messages',
       tone: 'attention',
@@ -78,7 +78,7 @@ export function pickClientNextStep(input: PickClientNextStepInput): ClientNextSt
   return {
     id: 'clear',
     title: 'Tudo em dia por agora',
-    description: 'Quando o escritório precisar de si, aparece aqui. Entretanto pode pedir um serviço ou escrever à equipa.',
+    description: 'Quando o gabinete precisar de si, aparece aqui. Entretanto pode pedir um serviço ou escrever à equipa.',
     ctaLabel: 'Ver serviços',
     to: '/app/client/services',
     tone: 'ok',

@@ -17,7 +17,7 @@ export function requestTimelineEvents(request: DocumentRequest) {
   const events: Array<{ id: string; label: string; at?: string | null; tone?: 'default' | 'success' | 'warn' }> = [
     {
       id: 'created',
-      label: 'Pedido enviado pelo escritório',
+      label: 'Pedido enviado pelo gabinete',
       at: request.createdAt,
     },
   ]

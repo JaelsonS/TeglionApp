@@ -28,7 +28,7 @@ function hasConfiguredBooking(bookingPayload: unknown): boolean {
 }
 
 /**
- * Sinais reais do escritório → progresso / próximo passo (onboarding + Dashboard).
+ * Sinais reais do gabinete → progresso / próximo passo (onboarding + Dashboard).
  */
 export type FirmProgressSignals = {
   hasAnyService: boolean

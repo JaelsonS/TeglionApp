@@ -91,7 +91,7 @@ export function PaymentsWorkspace() {
           <p className="mt-2 text-xs text-sky-900/80">
             Sem Stripe continua a marcar transferências, MB Way ou numerário aqui. Se activar o Connect, a
             taxa de serviço Teglion ({data.connect.platformFeePercent}%) é diferente das taxas Stripe — o
-            valor do cliente fica na conta do escritório.
+            valor do cliente fica na conta do gabinete.
           </p>
           <Button asChild variant="outline" size="sm" className="mt-3">
             <Link to="/app/firm/settings?tab=pagamentos">Receber dos clientes (Stripe)</Link>

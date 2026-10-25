@@ -174,7 +174,7 @@ type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSaved: () => void
-  /** Catálogo do escritório — para escolher opções da oferta. */
+  /** Catálogo do gabinete — para escolher opções da oferta. */
   catalogServices?: AccountingService[]
   /** Semente ao criar a partir de um modelo Teglion (depois de activar, passe o serviço criado). */
   initialCatalogHint?: { name?: string; catalogKey?: string } | null
@@ -213,7 +213,7 @@ export function ServiceFullEditorSheet({
   const [imageFocusX, setImageFocusX] = useState<number | null>(null)
   const [imageFocusY, setImageFocusY] = useState<number | null>(null)
   const [imageZoom, setImageZoom] = useState<number | null>(null)
-  /** Só enviamos campos de imagem quando o escritório mexeu neles — reenviar
+  /** Só enviamos campos de imagem quando o gabinete mexeu neles — reenviar
    * o `imageUrl` devolvido pela API gravaria uma URL assinada temporária. */
   const [imageDirty, setImageDirty] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -568,7 +568,7 @@ export function ServiceFullEditorSheet({
     if (customized && !hasWeeklyDays && !hasSpecialDays) {
       toast.error('Horário do serviço incompleto', {
         description:
-          'Escolha pelo menos um dia no horário semanal ou adicione um dia especial, ou volte a «Usar horário do escritório».',
+          'Escolha pelo menos um dia no horário semanal ou adicione um dia especial, ou volte a «Usar horário do gabinete».',
       })
       return
     }
@@ -1014,7 +1014,7 @@ export function ServiceFullEditorSheet({
                       <span className="font-medium text-foreground">Pedir logo</span> — este documento é pedido ao
                       cliente assim que ele submete o formulário.{' '}
                       <span className="font-medium text-foreground">Só sugerir depois</span> — o documento aparece
-                      como sugestão na solicitação e só é pedido quando o escritório o decidir.
+                      como sugestão na solicitação e só é pedido quando o gabinete o decidir.
                     </p>
                     <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={addRequirement}>
                       <Plus className="mr-1 h-3.5 w-3.5" /> Adicionar documento
@@ -1200,9 +1200,9 @@ export function ServiceFullEditorSheet({
                       onCheckedChange={(checked: boolean | 'indeterminate') => setShowFirmLogo(Boolean(checked))}
                     />
                     <span>
-                      Mostrar logótipo do escritório na página deste serviço
+                      Mostrar logótipo do gabinete na página deste serviço
                       <span className="block text-xs text-muted-foreground">
-                        Usa o logótipo definido no perfil do escritório.
+                        Usa o logótipo definido no perfil do gabinete.
                       </span>
                     </span>
                   </label>
@@ -1263,7 +1263,7 @@ export function ServiceFullEditorSheet({
                     onCheckedChange={(checked: boolean | 'indeterminate') => setIsPubliclyListed(Boolean(checked))}
                   />
                   <span>
-                    Publicar na página pública do escritório
+                    Publicar na página pública do gabinete
                     <span className="block text-xs text-muted-foreground">
                       Precisa de um slug e de um formulário válido — perguntas de escolha sem opções bloqueiam a
                       publicação.
@@ -1339,7 +1339,7 @@ export function ServiceFullEditorSheet({
                 {showFirmLogo ? (
                   <div className="flex gap-2 rounded-xl border border-sky-200/80 bg-sky-50 px-3 py-2.5 text-xs text-sky-950">
                     <Info className="mt-0.5 h-4 w-4 shrink-0 text-sky-600" />
-                    <p>O logótipo do escritório aparece no topo desta página para o cliente.</p>
+                    <p>O logótipo do gabinete aparece no topo desta página para o cliente.</p>
                   </div>
                 ) : null}
                 <div className="rounded-2xl border border-brand/15 bg-card p-4 shadow-sm">

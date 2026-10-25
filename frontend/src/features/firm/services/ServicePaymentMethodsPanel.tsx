@@ -130,7 +130,7 @@ export function ServicePaymentMethodsPanel({
     }
     goConfigure(
       'Ligue os pagamentos online',
-      'Em Pagamentos, associe a conta Stripe do escritório. Depois pode receber por cartão e MB WAY.',
+      'Em Pagamentos, associe a conta Stripe do gabinete. Depois pode receber por cartão e MB WAY.',
     )
   }
 
@@ -157,7 +157,7 @@ export function ServicePaymentMethodsPanel({
   return (
     <div className="space-y-3">
       <p className="text-xs leading-relaxed text-muted-foreground">
-        Online, o cliente paga no Checkout da Stripe e o valor fica na conta do escritório. Detalhes
+        Online, o cliente paga no Checkout da Stripe e o valor fica na conta do gabinete. Detalhes
         e condições estão em Definições → Pagamentos.
         {connectState !== 'active' ? (
           <>
@@ -188,7 +188,7 @@ export function ServicePaymentMethodsPanel({
 
       {connectState === 'not_started' || connectState === 'env_off' ? (
         <div className="rounded-xl border border-border/60 bg-muted/15 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
-          Ainda não ligou a conta Stripe do escritório.{' '}
+          Ainda não ligou a conta Stripe do gabinete.{' '}
           <Link to={SETTINGS_PAYMENTS} className="font-medium text-brand underline-offset-2 hover:underline">
             Começar em Pagamentos
           </Link>{' '}
@@ -306,7 +306,7 @@ export function ServicePaymentMethodsPanel({
         <span className="min-w-0">
           <span className="text-sm font-medium">Referência Multibanco</span>
           <span className="block text-xs text-muted-foreground">
-            Indica a referência ao cliente (orçamento / PDF) — o escritório gere o pagamento
+            Indica a referência ao cliente (orçamento / PDF) — o gabinete gere o pagamento
           </span>
         </span>
       </label>

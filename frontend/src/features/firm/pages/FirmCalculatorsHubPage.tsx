@@ -85,7 +85,7 @@ export function FirmCalculatorsHubPage() {
           </span>
           <p>
             Uma entrada no menu, seis ferramentas aqui. Confirme sempre com a legislação e a revisão
-            profissional do escritório.
+            profissional do gabinete.
           </p>
         </div>
 
@@ -119,7 +119,7 @@ export function FirmCalculatorsHubPage() {
 
         <p className="cb-calc-hub-footer">
           <Calculator className="mr-1.5 inline h-3.5 w-3.5 align-text-bottom opacity-70" aria-hidden />
-          No menu do escritório aparece apenas «Calculadoras».
+          No menu do gabinete aparece apenas «Calculadoras».
         </p>
       </div>
 

@@ -26,7 +26,7 @@ export function ClientHubServicesSection({ selected, saving, onChange }: Props) 
   if (services.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
-        Nenhum serviço configurado no escritório. Configure em Definições.
+        Nenhum serviço configurado no gabinete. Configure em Definições.
       </p>
     )
   }

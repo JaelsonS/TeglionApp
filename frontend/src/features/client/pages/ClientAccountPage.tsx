@@ -42,7 +42,7 @@ export function ClientAccountPage() {
             <p className="truncate text-sm text-muted-foreground">{user?.email}</p>
             {firm?.name ? (
               <p className="mt-2 text-sm text-foreground">
-                Escritório: <span className="font-medium">{firm.name}</span>
+                Gabinete: <span className="font-medium">{firm.name}</span>
               </p>
             ) : null}
           </div>
@@ -58,7 +58,7 @@ export function ClientAccountPage() {
               <p className="font-display text-sm font-semibold text-foreground">A Maya explica este portal</p>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                 Pedidos, serviços, prazos e mensagens — sem ver os seus documentos. Para o seu caso concreto, fale com
-                o escritório.
+                o gabinete.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <AskMayaButton intentId="portal-maya" />
@@ -75,9 +75,9 @@ export function ClientAccountPage() {
           <Link to="/app/client/messages">
             <MessageSquare className="h-5 w-5 text-brand" aria-hidden />
             <span className="text-left">
-              <span className="block text-sm font-semibold">Escrever ao escritório</span>
+              <span className="block text-sm font-semibold">Escrever ao gabinete</span>
               <span className="block text-xs font-normal text-muted-foreground">
-                A AfDigital opera o Teglion; a sua contabilidade é com o escritório.
+                A AfDigital opera o Teglion; a sua contabilidade é com o gabinete.
               </span>
             </span>
           </Link>
@@ -88,7 +88,7 @@ export function ClientAccountPage() {
             <span className="text-left">
               <span className="block text-sm font-semibold">Pedir ou agendar um serviço</span>
               <span className="block text-xs font-normal text-muted-foreground">
-                Catálogo do escritório, com horário ou por mensagem
+                Catálogo do gabinete, com horário ou por mensagem
               </span>
             </span>
           </Link>
@@ -115,7 +115,7 @@ export function ClientAccountPage() {
       <section className="cb-card-padded space-y-3">
         <p className="text-xs leading-relaxed text-muted-foreground">
           Teglion é o produto. A AfDigital — Soluções Tecnológicas desenvolve e opera a plataforma. O contrato e os
-          dados fiscais são com o seu escritório.
+          dados fiscais são com o seu gabinete.
         </p>
         <Button
           type="button"

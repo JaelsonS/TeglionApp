@@ -33,14 +33,14 @@ type PermissionMeta = {
 }
 
 const PERMISSION_META: Record<string, PermissionMeta> = {
-    FIRM_READ: { label: 'Ver dados do escritório', description: 'Permite visualizar informações gerais e contexto do escritório.', group: 'Escritório' },
+    FIRM_READ: { label: 'Ver dados do gabinete', description: 'Permite visualizar informações gerais e contexto do gabinete.', group: 'Gabinete' },
     FIRM_CONSULTATIONS_MANAGE: { label: 'Gerir agenda e consultorias', description: 'Criar, editar e acompanhar marcações na agenda.', group: 'Operação' },
     USERS_READ: { label: 'Ver utilizadores', description: 'Visualizar colaboradores e dados básicos da equipa.', group: 'Equipa' },
     USERS_CREATE: { label: 'Criar utilizadores', description: 'Criar novos acessos de colaboradores.', group: 'Equipa' },
     USERS_CREATE_ADMIN: { label: 'Criar utilizadores administradores', description: 'Permite criar utilizadores com acesso administrativo.', group: 'Equipa' },
     USERS_UPDATE: { label: 'Editar utilizadores', description: 'Atualizar dados de colaboradores.', group: 'Equipa' },
     USERS_DELETE: { label: 'Desativar utilizadores', description: 'Desativar/restringir acesso de utilizadores.', group: 'Equipa' },
-    FIRM_CLIENTS_VIEW: { label: 'Ver carteira de clientes', description: 'Consultar empresas/clientes do escritório.', group: 'Clientes' },
+    FIRM_CLIENTS_VIEW: { label: 'Ver carteira de clientes', description: 'Consultar empresas/clientes do gabinete.', group: 'Clientes' },
     FIRM_CLIENTS_MANAGE: { label: 'Gerir carteira de clientes', description: 'Criar/editar clientes e respetivos dados.', group: 'Clientes' },
     FIRM_ACCOUNTING_SERVICES_VIEW: { label: 'Ver serviços contabilísticos', description: 'Consultar catálogo e pedidos de serviços.', group: 'Operação' },
     FIRM_ACCOUNTING_SERVICES_MANAGE: { label: 'Gerir serviços contabilísticos', description: 'Criar, editar e acompanhar serviços.', group: 'Operação' },
@@ -49,7 +49,7 @@ const PERMISSION_META: Record<string, PermissionMeta> = {
     FIRM_TASKS_MANAGE: { label: 'Gerir tarefas', description: 'Criar e acompanhar tarefas operacionais.', group: 'Operação' },
     FIRM_MESSAGES_MANAGE: { label: 'Gerir mensagens', description: 'Aceder e responder a mensagens com clientes.', group: 'Comunicação' },
     FIRM_BILLING_MANAGE: { label: 'Gerir faturação e plano', description: 'Aceder à subscrição, faturação e pagamentos.', group: 'Administração' },
-    FIRM_SETTINGS_MANAGE: { label: 'Gerir definições do escritório', description: 'Alterar configurações globais do escritório.', group: 'Administração' },
+    FIRM_SETTINGS_MANAGE: { label: 'Gerir definições do gabinete', description: 'Alterar configurações globais do gabinete.', group: 'Administração' },
     FIRM_TEAM_MANAGE: { label: 'Gerir equipa', description: 'Gerir estrutura da equipa e respetivos acessos.', group: 'Equipa' },
     FIRM_DEPARTMENTS_MANAGE: { label: 'Gerir departamentos', description: 'Criar e manter departamentos internos.', group: 'Equipa' },
     FIRM_INVITES_MANAGE: { label: 'Gerir convites', description: 'Enviar, reenviar e revogar convites de equipa.', group: 'Equipa' },
@@ -57,7 +57,7 @@ const PERMISSION_META: Record<string, PermissionMeta> = {
     FIRM_MEMBER_DEPARTMENT_MANAGE: { label: 'Alterar departamento do membro', description: 'Mover membros entre departamentos.', group: 'Equipa' },
     FIRM_MEMBER_PERMISSION_MANAGE: { label: 'Personalizar permissões do membro', description: 'Ajustar permissões individuais por colaborador.', group: 'Equipa' },
     FIRM_TEAM_AUDIT_VIEW: { label: 'Ver auditoria da equipa', description: 'Consultar histórico de alterações e acessos da equipa.', group: 'Auditoria' },
-    FIRM_REPORTS_VIEW: { label: 'Ver relatórios', description: 'Aceder a relatórios de gestão do escritório.', group: 'Relatórios' },
+    FIRM_REPORTS_VIEW: { label: 'Ver relatórios', description: 'Aceder a relatórios de gestão do gabinete.', group: 'Relatórios' },
 }
 
 function permissionMeta(permission: string): PermissionMeta {
@@ -427,7 +427,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
     }
 
     const renderAccessLabel = (member: TeamSettingsMember) => {
-        if (member.role === 'FIRM_OWNER') return 'Dono do escritório'
+        if (member.role === 'FIRM_OWNER') return 'Dono do gabinete'
         return 'Colaborador'
     }
 
@@ -528,7 +528,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
             {!canManageTeam ? (
                 <p className="rounded-lg border border-border/60 bg-muted/20 p-3 text-sm text-muted-foreground">
                     Pode consultar membros, cargo e departamento. Para criar ou convidar colaboradores precisa da
-                    permissão de gestão de equipa — peça ao dono do escritório se necessário.
+                    permissão de gestão de equipa — peça ao dono do gabinete se necessário.
                 </p>
             ) : null}
 
@@ -700,7 +700,7 @@ export function FirmSettingsTeamSection({ bundle }: Props) {
                         </span>
                         <div>
                             <p className="cb-settings-action-title">Departamentos</p>
-                            <p className="cb-settings-action-sub">Organização interna do escritório</p>
+                            <p className="cb-settings-action-sub">Organização interna do gabinete</p>
                         </div>
                     </div>
                     <div className="cb-settings-action-body">

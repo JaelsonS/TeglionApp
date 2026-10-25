@@ -94,7 +94,7 @@ export function FirmBillingPage() {
       <div className="cb-billing-page">
         <PageHeader
           title="Plano e subscrição"
-          subtitle={`Subscrição Teglion (SaaS) — ${trialDays} dias de teste, depois mensal (${monthlyLabel}) ou anual (${yearlyLabel}). Distinto dos pagamentos que os clientes fazem ao escritório (Definições → Pagamentos).`}
+          subtitle={`Subscrição Teglion (SaaS) — ${trialDays} dias de teste, depois mensal (${monthlyLabel}) ou anual (${yearlyLabel}). Distinto dos pagamentos que os clientes fazem ao gabinete (Definições → Pagamentos).`}
           testId="firm-billing-header"
           secondary={<AskMayaButton intentId="billing" />}
         />
@@ -129,7 +129,7 @@ export function FirmBillingPage() {
               <p className="cb-settings-fieldset-title">O que posso fazer agora?</p>
               <p className="cb-settings-fieldset-sub mt-1">
                 {billing.status === 'ACTIVE'
-                  ? 'Gerir cartão e faturas no Stripe, ou voltar ao escritório.'
+                  ? 'Gerir cartão e faturas no Stripe, ou voltar ao gabinete.'
                   : 'Activar mensal ou anual. Pagamentos dos clientes (Connect) ficam em Definições → Pagamentos.'}
               </p>
             </div>
@@ -149,7 +149,7 @@ export function FirmBillingPage() {
               <p>
                 <strong>Acesso em pausa.</strong>{' '}
                 {trialExpired
-                  ? 'Os 14 dias terminaram. Escolhe um plano para voltares ao escritório.'
+                  ? 'Os 14 dias terminaram. Escolhe um plano para voltares ao gabinete.'
                   : 'Regulariza a subscrição para continuar.'}
               </p>
             )}
@@ -181,7 +181,7 @@ export function FirmBillingPage() {
               {monthlyLabel}
               <span className="cb-billing-card-period"> / mês</span>
             </p>
-            <p className="cb-billing-card-desc">{p.plan.monthly.note} · por escritório</p>
+            <p className="cb-billing-card-desc">{p.plan.monthly.note} · por gabinete</p>
             <ul className="cb-billing-card-features">
               {p.plan.features.map((f) => (
                 <li key={f}>
@@ -249,7 +249,7 @@ export function FirmBillingPage() {
         {planLocked ? (
           <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-border/60 bg-muted/20 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-foreground">
-              O escritório já tem um plano pago. Para mudar o intervalo, actualizar o cartão ou ver faturas, use o portal Stripe.
+              O gabinete já tem um plano pago. Para mudar o intervalo, actualizar o cartão ou ver faturas, use o portal Stripe.
             </p>
             {billing?.hasSubscription ? (
               <Button

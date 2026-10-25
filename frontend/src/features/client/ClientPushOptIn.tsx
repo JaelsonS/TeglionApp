@@ -32,7 +32,7 @@ export function ClientPushOptIn({ className }: { className?: string }) {
       const result = await subscribe()
       trackProductEvent('client_push_enabled', { surface: 'client', result })
       toast.success('Notificações activadas', {
-        description: 'Vai receber avisos do escritório neste dispositivo.',
+        description: 'Vai receber avisos do gabinete neste dispositivo.',
       })
     } catch (err) {
       if (err instanceof PushSetupError) {
@@ -64,9 +64,9 @@ export function ClientPushOptIn({ className }: { className?: string }) {
         }
       >
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-foreground">Avisos do escritório no telemóvel</p>
+          <p className="text-sm font-semibold text-foreground">Avisos do gabinete no telemóvel</p>
           <p className="text-xs text-muted-foreground">
-            Mensagens, obrigações e pedidos do escritório — mesmo com a app fechada.
+            Mensagens, obrigações e pedidos do gabinete — mesmo com a app fechada.
             {needsPwaInstallForPush() ? ' No iPhone, instale primeiro no ecrã inicial.' : ''}
           </p>
         </div>

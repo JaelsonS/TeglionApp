@@ -65,4 +65,6 @@ Dashboard · Pedidos · Serviços · Mais · Mensagens · Documentos · Arquivo 
 | 11 | Topbar + painéis clientes/docs + crumb labels | feito |
 | 12 | Hub cliente + calendário fiscal | feito |
 | 13 | Vocabulário PT «gabinete» + copy/SEO própria Teglion | feito |
+| 14 | «Gabinete» na app firm/client (UI) | feito |
+| **Estado geral** | **~90%** — falta QA responsivo real, Maya/manual residual, merge staging | **não 100%** |
 | Merge → staging | Só quando a repaginação estiver completa | pendente |

@@ -371,7 +371,7 @@ export function FirmMessagesModule({ embeddedClientId }: { embeddedClientId?: st
       className="h-full min-h-[16rem] rounded-none border-0 bg-transparent"
       icon={MessageSquare}
       title="Escolha uma conversa"
-      description="Seleccione um cliente à esquerda para ver mensagens e anexos. As conversas ficam privadas ao seu escritório."
+      description="Seleccione um cliente à esquerda para ver mensagens e anexos. As conversas ficam privadas ao seu gabinete."
     />
   ) : (
     <div className="cb-chat-main">

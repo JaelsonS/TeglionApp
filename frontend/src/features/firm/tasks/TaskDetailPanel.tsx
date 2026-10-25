@@ -252,7 +252,7 @@ export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose
                   </Button>
                 ))
               ) : (
-                <p className="text-xs text-muted-foreground">Tarefa do escritório — sem cliente da carteira.</p>
+                <p className="text-xs text-muted-foreground">Tarefa do gabinete — sem cliente da carteira.</p>
               )}
             </div>
 
@@ -331,7 +331,7 @@ export function TaskDetailPanel({ taskId, teamNames, clients, teamItems, onClose
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{d.title || 'Documento'}</p>
                       <p className="cb-text-caption">
-                        {d.category || 'Ficheiro'} · {d.uploadedByRole === 'CLIENT' ? 'Cliente' : 'Escritório'}
+                        {d.category || 'Ficheiro'} · {d.uploadedByRole === 'CLIENT' ? 'Cliente' : 'Gabinete'}
                       </p>
                     </div>
                     <div className="flex shrink-0 gap-1">

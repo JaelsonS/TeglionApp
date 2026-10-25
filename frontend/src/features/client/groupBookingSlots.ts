@@ -23,7 +23,7 @@ function formatDayHeading(iso: string, timezone: string) {
   return raw.charAt(0).toUpperCase() + raw.slice(1)
 }
 
-/** Agrupa horários ISO por dia civil no fuso do escritório. */
+/** Agrupa horários ISO por dia civil no fuso do gabinete. */
 export function groupBookingSlots(slots: string[], timezone = 'Europe/Lisbon'): BookingSlotDayGroup[] {
   const byDay = new Map<string, string[]>()
   for (const iso of slots) {

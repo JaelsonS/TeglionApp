@@ -23,7 +23,7 @@ type FirmModuleShellProps = {
   embedded?: boolean
 }
 
-/** Cabeçalho + tabs unificados para módulos do escritório. */
+/** Cabeçalho + tabs unificados para módulos do gabinete. */
 export function FirmModuleShell({
   title,
   subtitle,

@@ -11,7 +11,7 @@ export function humanizeConnectDisabledReason(raw: string | null | undefined): s
     'requirements.past_due':
       'Ainda faltam dados na Stripe (por exemplo identidade ou conta bancária). Continue a configuração para activar os pagamentos.',
     'requirements.pending_verification':
-      'A Stripe está a verificar os dados do escritório. Isto pode demorar um pouco — volte a verificar mais tarde.',
+      'A Stripe está a verificar os dados do gabinete. Isto pode demorar um pouco — volte a verificar mais tarde.',
     'rejected.fraud':
       'A Stripe recusou esta conta. Contacte o suporte Stripe ou a Teglion se precisar de ajuda.',
     'rejected.terms_of_service':
@@ -48,7 +48,7 @@ export function connectPendingSummary(opts: {
   if (human) return human
   const due = opts.currentlyDue?.filter(Boolean) ?? []
   if (due.length > 0) {
-    return 'A Stripe pediu mais algumas informações do escritório. Continue a configuração em Pagamentos — demora só uns minutos.'
+    return 'A Stripe pediu mais algumas informações do gabinete. Continue a configuração em Pagamentos — demora só uns minutos.'
   }
   return 'A conta Stripe ainda não está pronta a receber. Continue a configuração em Pagamentos.'
 }

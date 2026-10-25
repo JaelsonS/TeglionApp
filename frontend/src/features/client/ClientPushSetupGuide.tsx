@@ -43,10 +43,10 @@ export function ClientPushSetupGuide({
     ? 'Active as notificações nas definições'
     : platform === 'ios'
       ? 'Instale o Teglion no iPhone'
-      : 'Como receber avisos do escritório'
+      : 'Como receber avisos do gabinete'
 
   const description = showPermission
-    ? 'O Teglion precisa da sua permissão para avisar sobre mensagens, obrigações e pedidos do escritório.'
+    ? 'O Teglion precisa da sua permissão para avisar sobre mensagens, obrigações e pedidos do gabinete.'
     : platform === 'ios'
       ? 'No iPhone, as notificações só funcionam quando abre o portal pela app instalada no ecrã inicial — não pelo Safari normal.'
       : 'Para receber avisos mesmo com a app fechada, instale o Teglion e permita notificações neste dispositivo.'

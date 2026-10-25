@@ -44,7 +44,7 @@ export function trialBannerMessage(daysLeft: number, endLabel: string): string {
     return `O teste gratuito termina hoje (${endLabel}). Active o plano para manter o acesso da equipa e dos clientes.`
   }
   if (daysLeft === 1) {
-    return `Falta 1 dia de teste (até ${endLabel}). Active o plano para não interromper o escritório.`
+    return `Falta 1 dia de teste (até ${endLabel}). Active o plano para não interromper o gabinete.`
   }
   return `Faltam ${daysLeft} dias de teste gratuito (até ${endLabel}). Pode activar o plano mensal ou anual quando quiser.`
 }

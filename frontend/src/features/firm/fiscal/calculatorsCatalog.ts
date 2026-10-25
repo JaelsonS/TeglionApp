@@ -28,7 +28,7 @@ export const FIRM_CALCULATORS: readonly {
   {
     id: 'irs',
     title: 'IRS',
-    description: 'Estimativas de IRS para conferência interna do escritório.',
+    description: 'Estimativas de IRS para conferência interna do gabinete.',
     badge: 'Rendimentos',
     icon: Landmark,
   },

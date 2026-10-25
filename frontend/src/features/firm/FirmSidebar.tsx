@@ -96,7 +96,7 @@ function NavGroup({
   )
 }
 
-/** Menu escritório — sidebar com labels (desktop) ou drawer (mobile). */
+/** Menu gabinete — sidebar com labels (desktop) ou drawer (mobile). */
 export function FirmSidebar({
   onItemClick,
   variant = 'drawer',
@@ -112,7 +112,7 @@ export function FirmSidebar({
   const counts = useFirmNavBadgeCounts()
 
   const fullLogoUrl = firmLogoUrl || toPublicAssetUrl(firm?.branding?.logoUrl)
-  const subtitle = t('contabil.firm.subtitle', { defaultValue: 'Escritório' })
+  const subtitle = t('contabil.firm.subtitle', { defaultValue: 'Gabinete' })
   const fallbackName = t('contabil.firm.fallback', { defaultValue: 'Teglion' })
   const collapseLabel = t('contabil.firm.nav.collapseSidebar', {
     defaultValue: 'Recolher menu',

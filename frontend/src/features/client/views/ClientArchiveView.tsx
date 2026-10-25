@@ -144,7 +144,7 @@ export function ClientArchiveView() {
         <EmptyState
           icon={Archive}
           title="Sem ficheiros neste ano"
-          description="Documentos validados pelo escritório ficam aqui para consulta."
+          description="Documentos validados pelo gabinete ficam aqui para consulta."
         />
       ) : (
         <div className="space-y-3">

@@ -74,12 +74,12 @@ function actorLine(item: ClientHubTimelineItem): string | null {
       item.actorRole === 'CLIENT'
         ? 'Cliente'
         : item.actorRole === 'FIRM'
-          ? 'Escritório'
+          ? 'Gabinete'
           : null
     return role ? `${item.actorName} · ${role}` : item.actorName
   }
   if (item.actorRole === 'CLIENT') return 'Cliente'
-  if (item.actorRole === 'FIRM') return 'Escritório'
+  if (item.actorRole === 'FIRM') return 'Gabinete'
   return null
 }
 

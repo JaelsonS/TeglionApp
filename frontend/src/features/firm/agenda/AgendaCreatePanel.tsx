@@ -56,7 +56,7 @@ export function AgendaCreatePanel(props: Props) {
           <Sparkles className="h-4 w-4 text-primary" />
           <div>
             <h3 className="font-display text-base font-semibold">Nova reunião</h3>
-            <p className="text-xs text-muted-foreground">Marcação rápida pelo escritório</p>
+            <p className="text-xs text-muted-foreground">Marcação rápida pelo gabinete</p>
           </div>
         </div>
         <Button variant="ghost" size="sm" className="rounded-full" onClick={onClose}>

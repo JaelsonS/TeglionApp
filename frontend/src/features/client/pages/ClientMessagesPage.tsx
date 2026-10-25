@@ -17,7 +17,7 @@ export function ClientMessagesPage() {
     <div className="space-y-6" data-testid="client-messages-page">
       <PageHeader
         title="Mensagens"
-        subtitle="Conversa com o escritório — anexos e histórico ficam aqui. Pedidos formais de documentos estão em Pedidos."
+        subtitle="Conversa com o gabinete — anexos e histórico ficam aqui. Pedidos formais de documentos estão em Pedidos."
       />
       <ClientMessagesPanel t={t} />
     </div>

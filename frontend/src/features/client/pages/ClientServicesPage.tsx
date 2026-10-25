@@ -52,7 +52,7 @@ export function ClientServicesPage() {
     setRequestingId(service.id)
     try {
       await clientPortalContabilApi.sendMessage({ body: requestBodyFor(service) })
-      toast.success('Pedido enviado ao escritório')
+      toast.success('Pedido enviado ao gabinete')
       navigate('/app/client/messages')
     } catch (err) {
       toast.error('Não foi possível enviar o pedido', { description: getErrorMessage(err) })
@@ -89,7 +89,7 @@ export function ClientServicesPage() {
         <>
           <PageHeader
             title={`Agendar · ${bookingService.name}`}
-            subtitle="Escolha um horário livre. Se não houver vaga, escreva ao escritório."
+            subtitle="Escolha um horário livre. Se não houver vaga, escreva ao gabinete."
             actions={
               <Button type="button" variant="outline" className="rounded-full" onClick={closeBooking}>
                 <ArrowLeft className="mr-1.5 h-4 w-4" />
@@ -103,7 +103,7 @@ export function ClientServicesPage() {
         <>
           <PageHeader
             title="Serviços"
-            subtitle="O que o seu escritório oferece. Agende um horário ou peça por mensagem."
+            subtitle="O que o seu gabinete oferece. Agende um horário ou peça por mensagem."
             actions={<AskMayaButton intentId="portal-services" />}
           />
 
@@ -120,7 +120,7 @@ export function ClientServicesPage() {
               <Briefcase className="mx-auto h-8 w-8 text-muted-foreground/70" />
               <p className="mt-3 font-display text-lg font-semibold text-foreground">Ainda sem serviços neste portal</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                O escritório ainda não publicou o catálogo aqui. Escreva à equipa se precisar de alguma coisa.
+                O gabinete ainda não publicou o catálogo aqui. Escreva à equipa se precisar de alguma coisa.
               </p>
               <Button type="button" className="mt-4 rounded-full" onClick={() => navigate('/app/client/messages')}>
                 <MessageSquare className="mr-1.5 h-4 w-4" />

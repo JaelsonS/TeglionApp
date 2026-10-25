@@ -108,7 +108,7 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
       toast.success(
         draft.enabled
           ? `Horários de «${service.name}» guardados.`
-          : `«${service.name}» voltou ao horário geral do escritório.`,
+          : `«${service.name}» voltou ao horário geral do gabinete.`,
       )
       setDrafts((prev) => {
         const next = { ...prev }
@@ -129,7 +129,7 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
     setSavingId(service.id)
     try {
       await contabilAccountingServicesApi.patch(service.id, { bookingOverrides: null })
-      toast.success(`«${service.name}» voltou ao horário geral do escritório.`)
+      toast.success(`«${service.name}» voltou ao horário geral do gabinete.`)
       setDrafts((prev) => {
         const next = { ...prev }
         delete next[service.id]
@@ -239,7 +239,7 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
             const duration = service.durationMinutes || 60
             const summary = draft.enabled
               ? summarizeBookingSchedule(draft.schedule) || 'Horário próprio'
-              : 'Horário geral do escritório'
+              : 'Horário geral do gabinete'
             return (
               <div key={service.id} className={cn('cb-agenda-svc-row', open && 'cb-agenda-svc-row-open')}>
                 <div className="cb-agenda-svc-row-main">
@@ -387,7 +387,7 @@ export function AgendaServiceHoursPanel({ services, servicesLoading, onReload, f
             <p>
               <span className="font-semibold text-foreground">Herda por defeito</span>
               <span className="mt-0.5 block">
-                Cada serviço herda o horário geral do escritório até personalizar.
+                Cada serviço herda o horário geral do gabinete até personalizar.
               </span>
             </p>
           </div>

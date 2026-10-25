@@ -20,7 +20,7 @@ export function resolvePublicSiteSectionVisitorSummary(
       return 'O visitante vê: destaque principal com texto e/ou imagem de fundo.'
     }
     case 'about':
-      return 'O visitante vê: texto sobre o escritório (e foto, se carregar).'
+      return 'O visitante vê: texto sobre o gabinete (e foto, se carregar).'
     case 'services':
     case 'bookingServices': {
       const booking = section.type === 'services'

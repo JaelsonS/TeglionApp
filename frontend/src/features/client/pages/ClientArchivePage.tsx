@@ -6,7 +6,7 @@ export function ClientArchivePage() {
     <div className="space-y-6" data-testid="client-archive-page">
       <PageHeader
         title="Arquivo"
-        subtitle="Documentos já validados pelo escritório — consulte e transfira por ano."
+        subtitle="Documentos já validados pelo gabinete — consulte e transfira por ano."
       />
       <ClientArchiveView />
     </div>

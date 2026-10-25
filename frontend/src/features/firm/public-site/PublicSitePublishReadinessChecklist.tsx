@@ -28,7 +28,7 @@ export function PublicSitePublishReadinessChecklist({
         <p className="text-[11px] text-muted-foreground">
           {allReady ? 'Requisitos mínimos cumpridos' : `${readyCount}/${items.length} itens mínimos`}
           {legalPending
-            ? ' · Livro de Reclamações e políticas do escritório por rever'
+            ? ' · Livro de Reclamações e políticas do gabinete por rever'
             : ' · Documentos legais indicados'}
         </p>
       </div>
@@ -36,10 +36,10 @@ export function PublicSitePublishReadinessChecklist({
         <p className="flex items-start gap-1.5 rounded-md border border-amber-500/35 bg-amber-500/10 px-2.5 py-2 text-[11px] leading-snug text-amber-950 dark:text-amber-100">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
           <span>
-            Em Portugal, o site do escritório deve permitir aceder ao{' '}
+            Em Portugal, o site do gabinete deve permitir aceder ao{' '}
             <span className="font-medium">Livro de Reclamações</span> e ter{' '}
             <span className="font-medium">Termos</span> e <span className="font-medium">Privacidade</span> adaptados ao
-            seu negócio. A Teglion não presta aconselhamento jurídico — a responsabilidade legal é do escritório.
+            seu negócio. A Teglion não presta aconselhamento jurídico — a responsabilidade legal é do gabinete.
           </span>
         </p>
       ) : null}

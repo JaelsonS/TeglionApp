@@ -384,7 +384,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
               <p className="text-xs font-semibold uppercase tracking-wide text-brand/80">Serviços › IRS</p>
               <h2 className="mt-1 text-xl font-semibold tracking-tight text-foreground">{displayTitle}</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Anexos, perguntas e pagamento — o ano fiscal é definido pelo escritório. Para banner, logótipo,
+                Anexos, perguntas e pagamento — o ano fiscal é definido pelo gabinete. Para banner, logótipo,
                 publicação completa e apagar, use <span className="font-medium text-foreground">Editar</span> na
                 lista IRS.
               </p>
@@ -443,7 +443,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
               <div className="shrink-0 border-b border-brand/10 bg-brand/[0.04] px-4 py-3">
                 <h3 className="text-base font-semibold text-foreground">Anexos</h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  Active os anexos e edite os nomes como a lógica do escritório — título e descrição são
+                  Active os anexos e edite os nomes como a lógica do gabinete — título e descrição são
                   livres.
                 </p>
               </div>
@@ -572,7 +572,7 @@ export function IrsModelo3EditorSheet({ service, open, onOpenChange, onSaved }: 
                 <div className="border-b border-brand/10 bg-brand/[0.04] px-4 py-3">
                   <h3 className="text-base font-semibold">Pagamento</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Mesmas opções dos outros serviços — configure o que o escritório usa hoje.
+                    Mesmas opções dos outros serviços — configure o que o gabinete usa hoje.
                   </p>
                 </div>
                 <div className="p-3">

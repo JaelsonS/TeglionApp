@@ -74,8 +74,8 @@ export function AgendaSettingsView(props: Props) {
 
       toast.success(
         payload.servicePatches.length
-          ? `Dia ${payload.date} guardado (escritório + ${payload.servicePatches.length} serviço(s)).`
-          : `Dia ${payload.date} guardado no horário do escritório.`,
+          ? `Dia ${payload.date} guardado (gabinete + ${payload.servicePatches.length} serviço(s)).`
+          : `Dia ${payload.date} guardado no horário do gabinete.`,
       )
     } catch (err) {
       toast.error('Não foi possível guardar o dia', { description: getErrorMessage(err) })
@@ -146,7 +146,7 @@ export function AgendaSettingsView(props: Props) {
               <Layers className="h-4 w-4" aria-hidden />
             </span>
             <div>
-              <h3 className="cb-agenda-settings-block-title">Serviços do escritório</h3>
+              <h3 className="cb-agenda-settings-block-title">Serviços do gabinete</h3>
               <p className="cb-agenda-settings-block-sub">
                 Crie, edite e publique cada serviço na página pública
               </p>

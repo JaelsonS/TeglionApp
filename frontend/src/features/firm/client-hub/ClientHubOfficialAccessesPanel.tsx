@@ -613,7 +613,7 @@ export function ClientHubOfficialAccessesPanel({ clientId }: { clientId: string 
             : stepUp?.kind === 'copy'
               ? 'A senha vai para a área de transferência e some daqui em cerca de 30 segundos. A consulta fica na auditoria.'
               : stepUp?.kind === 'reveal'
-                ? 'A senha fica visível cerca de 30 segundos. Esta consulta fica na auditoria do escritório.'
+                ? 'A senha fica visível cerca de 30 segundos. Esta consulta fica na auditoria do gabinete.'
                 : stepUp?.kind === 'remove'
                   ? 'A senha cifrada deste portal é apagada. Confirme com a palavra-passe dos Acessos oficiais.'
                   : 'Confirme a identidade para gravar este acesso. A senha do portal é cifrada antes de ficar guardada.'

@@ -53,8 +53,8 @@ describe('evaluatePublicSiteLegalGaps', () => {
     const gaps = evaluatePublicSiteLegalGaps(
       legalConfig({
         complaintsBookUrl: DEFAULT_COMPLAINTS_BOOK_URL,
-        termsText: 'Termos do escritório Silva.',
-        privacyText: 'Privacidade do escritório Silva.',
+        termsText: 'Termos do gabinete Silva.',
+        privacyText: 'Privacidade do gabinete Silva.',
       }),
     )
     expect(gaps).toHaveLength(0)

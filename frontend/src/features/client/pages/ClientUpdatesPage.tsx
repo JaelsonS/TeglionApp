@@ -14,7 +14,7 @@ import { isContabilMode } from '@/shared/config/productMode'
 import { getInitialAppLocale } from '@/shared/i18n/appLocale'
 import { cn } from '@/shared/lib/utils'
 
-/** Alertas + notícias do escritório numa só página. */
+/** Alertas + notícias do gabinete numa só página. */
 export function ClientUpdatesPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const locale = useMemo(
@@ -39,7 +39,7 @@ export function ClientUpdatesPage() {
     <div className="space-y-6" data-testid="client-updates-page">
       <PageHeader
         title="Avisos"
-        subtitle="Alertas e notícias do seu escritório — o que precisa de saber agora."
+        subtitle="Alertas e notícias do seu gabinete — o que precisa de saber agora."
       />
 
       <div className="flex flex-wrap gap-2">

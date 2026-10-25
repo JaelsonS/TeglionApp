@@ -91,7 +91,7 @@ export function FirmDashboardPage() {
   const firstName = String(user?.fullName || '')
     .trim()
     .split(/\s+/)[0]
-  const greeting = firstName ? `Olá, ${firstName}` : 'Painel do escritório'
+  const greeting = firstName ? `Olá, ${firstName}` : 'Painel do gabinete'
   const isFirmOwner =
     user?.role === 'FIRM_OWNER' ||
     user?.role === 'PLATFORM_OWNER' ||
@@ -208,7 +208,7 @@ export function FirmDashboardPage() {
       <div className="cb-dash-page" data-testid="firm-dashboard">
         <PageHeader
           title={greeting}
-          subtitle={`O que precisa de si agora no escritório · actualizado ${relativeUpdated(updatedAt)}${
+          subtitle={`O que precisa de si agora no gabinete · actualizado ${relativeUpdated(updatedAt)}${
             data ? ` · ${data.totalClients} clientes` : ''
           }`}
           testId="firm-dashboard-header"
@@ -252,7 +252,7 @@ export function FirmDashboardPage() {
         {progress?.nextAction || (isFirmOwner && progress) ? (
           <details className="mb-4 rounded-xl border border-border/70 bg-card p-3 open:shadow-sm">
             <summary className="cursor-pointer text-sm font-semibold text-foreground">
-              Configurar o escritório
+              Configurar o gabinete
               <span className="ml-2 font-normal text-muted-foreground">(passos iniciais · Maya e Manual)</span>
             </summary>
             <div className="mt-3 space-y-3">

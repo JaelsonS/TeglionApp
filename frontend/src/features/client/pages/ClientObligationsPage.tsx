@@ -85,7 +85,7 @@ export function ClientObligationsPage() {
     <div className="space-y-5" data-testid="client-obligations-page">
       <PageHeader
         title="Prazos"
-        subtitle="Obrigações e entregas pedidas pelo escritório — em atraso, esta semana, ou mais tarde."
+        subtitle="Obrigações e entregas pedidas pelo gabinete — em atraso, esta semana, ou mais tarde."
         actions={<AskMayaButton intentId="portal-deadlines" />}
       />
 
@@ -97,7 +97,7 @@ export function ClientObligationsPage() {
           onClick={() => navigate('/app/client/messages')}
         >
           <MessageSquare className="mr-1.5 h-4 w-4" aria-hidden />
-          Escrever ao escritório
+          Escrever ao gabinete
         </Button>
         <Button type="button" variant="ghost" className="rounded-full" onClick={() => navigate('/app/client/services')}>
           Pedir um serviço

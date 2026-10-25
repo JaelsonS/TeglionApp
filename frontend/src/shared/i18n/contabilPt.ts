@@ -5,12 +5,12 @@ export const contabilPt = {
   brand: 'Teglion',
   nav: { login: 'Entrar', trial: 'Começar gratuitamente' },
   hero: {
-    badge: 'Para escritórios de contabilidade em Portugal',
-    title: 'O escritório e o portal do cliente no mesmo sítio.',
+    badge: 'Para gabinetes de contabilidade em Portugal',
+    title: 'O gabinete e o portal do cliente no mesmo sítio.',
     subtitle:
       'Chega de Excel, WhatsApp e e-mails perdidos. Obrigações, documentos e mensagens com histórico — e o cliente sabe o que falta entregar.',
     ctaFirm: 'Começar gratuitamente',
-    ctaClient: 'Sou cliente de um escritório',
+    ctaClient: 'Sou cliente de um gabinete',
     ctaDemo: 'Ver demonstração',
     trustLine: `${PRICING_TEXT.trialDays} dias grátis · depois a partir de ${PRICING_TEXT.yearlyMonthlyLabel}/mês (anual) · sem cartão no registo`,
   },
@@ -22,7 +22,7 @@ export const contabilPt = {
       name: 'Teste gratuito',
       price: '0 €',
       period: `${PRICING_TEXT.trialDays} dias`,
-      description: 'Usa o escritório e o portal como se já fosses cliente. Sem cartão.',
+      description: 'Usa o gabinete e o portal como se já fosses cliente. Sem cartão.',
       features: [
         'Sem cartão no registo',
         'Dados só do teu escritório',
@@ -70,7 +70,7 @@ export const contabilPt = {
       },
       {
         q: 'O preço é por utilizador ou por cliente?',
-        a: 'Por escritório. Toda a equipa usa a mesma subscrição.',
+        a: 'Por gabinete. Toda a equipa usa a mesma subscrição.',
       },
       {
         q: 'Mensal ou anual?',
@@ -84,13 +84,13 @@ export const contabilPt = {
     title: 'Como funciona',
     subtitle: 'Do convite ao fecho do período, sem e-mails perdidos.',
     steps: [
-      { title: 'Configure o escritório', body: 'Crie a conta, importe clientes e defina responsáveis internos.' },
+      { title: 'Configure o gabinete', body: 'Crie a conta, importe clientes e defina responsáveis internos.' },
       { title: 'Peça documentos com clareza', body: 'O cliente recebe tarefas e envia ficheiros em dois cliques.' },
       { title: 'Feche obrigações com controlo', body: 'IVA, SS e IRC com estados visuais e histórico de mensagens.' },
     ],
   },
   problem: {
-    title: 'O dia a dia do escritório não devia depender de e-mails e folhas soltas',
+    title: 'O dia a dia do gabinete não devia depender de e-mails e folhas soltas',
     items: [
       { title: 'Documentos perdidos', body: 'PDFs e fotografias espalhados por e-mail, WhatsApp e pastas partilhadas.' },
       { title: 'Prazos fiscais em risco', body: 'IVA, SS e IRC sem visão clara do que falta por cliente.' },
@@ -99,7 +99,7 @@ export const contabilPt = {
   },
   solution: {
     title: 'Uma plataforma, dois espaços',
-    body: 'O escritório gere a carteira com controlo total. O cliente entrega documentos em dois cliques no telemóvel.',
+    body: 'O gabinete gere a carteira com controlo total. O cliente entrega documentos em dois cliques no telemóvel.',
   },
   product: {
     title: 'Tudo o que precisa no ciclo mensal',
@@ -125,8 +125,8 @@ export const contabilPt = {
   },
   preview: {
     title: 'Produto real — não mockups genéricos',
-    subtitle: 'Painel do escritório e portal do cliente, desenhados para o ciclo mensal em Portugal.',
-    firm: 'Painel do escritório',
+    subtitle: 'Painel do gabinete e portal do cliente, desenhados para o ciclo mensal em Portugal.',
+    firm: 'Painel do gabinete',
     client: 'Portal do cliente',
   },
   clientPortal: {
@@ -142,11 +142,11 @@ export const contabilPt = {
   security: {
     title: 'Os seus dados, tratados como deve ser',
     body:
-      'Cada escritório opera num espaço isolado — os dados dos seus clientes nunca se misturam com outros. Ligações encriptadas, acessos por perfil e conformidade com o RGPD desde o primeiro dia.',
+      'Cada gabinete opera num espaço isolado — os dados dos seus clientes nunca se misturam com outros. Ligações encriptadas, acessos por perfil e conformidade com o RGPD desde o primeiro dia.',
     tags: ['Dados isolados por escritório', 'Encriptação', 'RGPD', 'Controlo de acessos', 'Histórico de ações'],
   },
   ctaFinal: {
-    title: 'Comece a digitalizar o seu escritório hoje',
+    title: 'Comece a digitalizar o seu gabinete hoje',
     subtitle: 'Crie a conta em minutos, convide a equipa e o primeiro cliente — com conformidade RGPD activa.',
     firm: 'Começar gratuitamente',
     client: 'Entrar como cliente',
@@ -154,7 +154,7 @@ export const contabilPt = {
   landing: {
     stats: [
       { value: '1 sistema', label: 'Substitui folhas soltas e chats dispersos' },
-      { value: '2 portais', label: 'Escritório + cliente final integrados' },
+      { value: '2 portais', label: 'Gabinete + cliente final integrados' },
       { value: 'RGPD', label: 'Consentimento e DPA auditáveis' },
     ],
     product: {
@@ -162,7 +162,7 @@ export const contabilPt = {
       subtitle: 'Mesmos ecrãs da aplicação, com dados de demonstração — o que vê é o que existe no sistema.',
       tabs: {
         clientPortal: 'Portal do cliente',
-        dashboard: 'Painel do escritório',
+        dashboard: 'Painel do gabinete',
         clients: 'Carteira de clientes',
         obligations: 'Obrigações fiscais',
       },
@@ -182,14 +182,14 @@ export const contabilPt = {
   auth: {
     chooseTitle: 'Como pretende aceder?',
     chooseSubtitle: 'Escolha o seu perfil para continuar.',
-    firmTitle: 'Sou um escritório de contabilidade',
+    firmTitle: 'Sou um gabinete de contabilidade',
     firmDesc: 'Gerir clientes, obrigações e equipa.',
-    clientTitle: 'Sou cliente de um escritório',
+    clientTitle: 'Sou cliente de um gabinete',
     clientDesc: 'Ver obrigações e enviar documentos.',
-    registerFirmTitle: 'Criar conta do escritório',
+    registerFirmTitle: 'Criar conta do gabinete',
     registerFirmSubtitle:
       '14 dias grátis, sem cartão.. Aproveite para convidar o primeiro cliente e testar o ciclo mensal completo.',
-    firmName: 'Nome do escritório',
+    firmName: 'Nome do gabinete',
     ownerName: 'O seu nome',
     email: 'E-mail',
     password: 'Palavra-passe',
@@ -197,14 +197,14 @@ export const contabilPt = {
     hasAccount: 'Já tem conta?',
     loginLink: 'Entrar',
     backChoice: 'Voltar à escolha de perfil',
-    loginFirmTitle: 'Entrar no escritório',
+    loginFirmTitle: 'Entrar no gabinete',
     loginFirmSubtitle: 'Aceda ao painel da sua equipa.',
     loginClientTitle: 'Entrar como cliente',
     loginClientSubtitle: 'Veja obrigações e envie documentos ao seu contabilista.',
   },
   invite: {
     title: 'Criar conta de cliente',
-    invitedBy: 'Convite do escritório',
+    invitedBy: 'Convite do gabinete',
     name: 'Nome completo',
     email: 'E-mail',
     password: 'Palavra-passe',

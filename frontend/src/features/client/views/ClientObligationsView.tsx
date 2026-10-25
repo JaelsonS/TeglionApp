@@ -285,7 +285,7 @@ export function ClientObligationsView({
               <EmptyState
                 icon={Calendar}
                 title="Sem prazos neste período"
-                description="Quando o escritório enviar obrigações, elas aparecem agrupadas: em atraso, esta semana, mais tarde."
+                description="Quando o gabinete enviar obrigações, elas aparecem agrupadas: em atraso, esta semana, mais tarde."
               />
             ) : (
               <div className="space-y-5">
@@ -400,7 +400,7 @@ export function ClientObligationsView({
 
                 {displayObligationNotes(selected.accountantNotes, selected.notes) ? (
                   <section className="rounded-xl border border-border/60 bg-card p-4">
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Observações do escritório</p>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Observações do gabinete</p>
                     <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
                       {displayObligationNotes(selected.accountantNotes, selected.notes)}
                     </p>
@@ -415,7 +415,7 @@ export function ClientObligationsView({
                     </span>
                   </div>
                   {selected.attachments.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">O escritório ainda não anexou documentos para esta obrigação.</p>
+                    <p className="text-sm text-muted-foreground">O gabinete ainda não anexou documentos para esta obrigação.</p>
                   ) : (
                     <ul className="space-y-2">
                       {selected.attachments.map((doc) => (
