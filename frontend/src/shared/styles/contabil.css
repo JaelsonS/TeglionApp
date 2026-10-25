@@ -3291,11 +3291,6 @@
     @apply grid w-full min-w-0 gap-4 md:grid-cols-[minmax(14.5rem,17rem)_minmax(0,1fr)] md:items-start md:gap-5 lg:grid-cols-[minmax(16rem,18.5rem)_minmax(0,1fr)] lg:gap-6;
   }
 
-  /* Em Definições a sidebar principal fica expandida — menu interno sempre com nomes. */
-  .cb-firm-shell--settings .cb-firm-sidebar-collapse {
-    @apply hidden;
-  }
-
   .cb-settings-side-nav-heading {
     @apply mb-2 hidden border-b border-border/50 px-3 pb-3 pt-2 md:block;
   }

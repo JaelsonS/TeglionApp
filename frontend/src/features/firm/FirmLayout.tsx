@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from 'react'
+import { Suspense } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 
 import { FirmDesktopCollapsedRail } from '@/features/firm/FirmDesktopCollapsedRail'
@@ -33,24 +33,17 @@ export function FirmLayout() {
     new URLSearchParams(location.search).get('tab') === 'pagina-publica'
   const isSettingsRoute = location.pathname.startsWith('/app/firm/settings')
 
-  // Em Definições: sidebar principal sempre expandida (nomes) + menu interno com labels.
-  // Só o menu grande do escritório pode colapsar — e nunca dentro de Definições.
-  useEffect(() => {
-    if (isSettingsRoute && collapsed) {
-      setCollapsed(false)
-    }
-  }, [isSettingsRoute, collapsed, setCollapsed])
-
-  const desktopCollapsed = collapsed && !isSettingsRoute
+  // Menu interno de Definições fica sempre com nomes (sem colapsar).
+  // O sidebar principal do escritório continua a poder minimizar em qualquer rota.
 
   return (
     <LiveEventsProvider scope="firm">
       <div
         data-testid="firm-shell"
-        data-sidebar-collapsed={desktopCollapsed ? '1' : '0'}
+        data-sidebar-collapsed={collapsed ? '1' : '0'}
         className={cn(
           'staff-app-shell cb-firm-shell',
-          desktopCollapsed && 'cb-firm-shell--sidebar-collapsed',
+          collapsed && 'cb-firm-shell--sidebar-collapsed',
           isSettingsRoute && 'cb-firm-shell--settings',
         )}
       >
@@ -67,18 +60,15 @@ export function FirmLayout() {
         <aside
           className={cn(
             FIRM_SHELL_CHROME_CLASSES.desktopSidebarAside,
-            desktopCollapsed && 'cb-firm-sidebar-aside--collapsed',
+            collapsed && 'cb-firm-sidebar-aside--collapsed',
           )}
           aria-label="Navegação do escritório"
           data-testid="firm-desktop-sidebar-aside"
         >
-          {desktopCollapsed ? (
+          {collapsed ? (
             <FirmDesktopCollapsedRail onExpand={() => setCollapsed(false)} />
           ) : (
-            <FirmSidebar
-              variant="desktop"
-              onCollapse={isSettingsRoute ? undefined : () => setCollapsed(true)}
-            />
+            <FirmSidebar variant="desktop" onCollapse={() => setCollapsed(true)} />
           )}
         </aside>
 
