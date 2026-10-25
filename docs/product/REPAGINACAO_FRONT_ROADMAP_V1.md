@@ -146,7 +146,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 | **Gap UI** | Edit completo em falta; forms incompletos vs backend; picker senhorio sem puxar NIF/contacto |
 | **Alvo** | CRUD visual completo via create+patch; soft-archive via status; sem inventar DELETE hard |
 | **Subfases** | **4.1** lista/ano · **4.2** imóvel · **4.3** contrato + dados cliente · **4.4** recibos |
-| **Estado** | ☐ |
+| **Estado** | ✅ 2026-10-25 |
 
 ### Fase 5 — SAF-T (consulta)
 
@@ -384,7 +384,7 @@ Este roadmap = **Wave páginas / produto**.
 |------|------|--------|
 | 1 | Painel | ✅ |
 | 2 | Clientes | ✅ |
-| 3 | Pagamentos | ☐ |
+| 3 | Pagamentos | ✅ |
 | 4 | Imóveis e rendas | ☐ |
 | 5 | SAF-T | ☐ |
 | 6 | Obrigações | ☐ |

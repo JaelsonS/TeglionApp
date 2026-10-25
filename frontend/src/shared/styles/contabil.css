@@ -2250,6 +2250,20 @@
     @apply col-span-2 justify-self-end pt-0.5 cb-text-caption text-muted-foreground/80;
   }
 
+  /* Pagamentos carteira (Fase 3) — espelha agenda: chrome fixo + grelha com scroll útil */
+  .cb-payments-layout-page,
+  .cb-payments-layout-page .cb-firm-operational-panel {
+    @apply min-h-0 flex-1;
+  }
+
+  .cb-payments-body {
+    @apply flex min-h-0 flex-1 flex-col overflow-hidden;
+  }
+
+  .cb-payments-client-col {
+    @apply min-w-[240px] max-w-[280px] w-[260px];
+  }
+
   /* Agenda consultorias (IMG-17) */
   .cb-agenda-layout-page,
   .cb-agenda-layout-page .cb-firm-operational-panel {

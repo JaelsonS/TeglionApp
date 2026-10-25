@@ -67,7 +67,7 @@ export function PaymentsWorkspace() {
   return (
     <FirmModuleShell
       title="Pagamentos (carteira)"
-      subtitle="Avenças e honorários da carteira (mapa, saldos, histórico). Receber via Stripe: Definições → Receber dos clientes. Plano Teglion é outra página."
+      subtitle="Mapa anual das avenças dos seus clientes. Isto não é o Plano Teglion nem o Stripe Connect — só o controlo interno da carteira."
       headerRight={
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => setYear((y) => y - 1)}>
@@ -82,132 +82,143 @@ export function PaymentsWorkspace() {
           </Button>
         </div>
       }
-      bodyClassName="overflow-auto px-4 pb-6 sm:px-5"
+      bodyClassName="cb-payments-body px-4 pb-4 sm:px-5"
     >
-      {data?.connect?.nudge ? (
-        <div className="mb-4 rounded-xl border border-sky-200/80 bg-sky-50/70 px-4 py-3 text-sm text-sky-950">
-          <p className="font-medium">Recebimentos online (opcional)</p>
-          <p className="mt-1 text-sky-950/90">{data.connect.nudge}</p>
-          <p className="mt-2 text-xs text-sky-900/80">
-            Sem Stripe continua a marcar transferências, MB Way ou numerário aqui. Se activar o Connect, a
-            taxa de serviço Teglion ({data.connect.platformFeePercent}%) é diferente das taxas Stripe — o
-            valor do cliente fica na conta do gabinete.
-          </p>
-          <Button asChild variant="outline" size="sm" className="mt-3">
-            <Link to="/app/firm/settings?tab=pagamentos">Receber dos clientes (Stripe)</Link>
-          </Button>
-        </div>
-      ) : null}
+      <div className="cb-payments-chrome shrink-0 space-y-3 pb-3">
+        {data?.connect?.nudge ? (
+          <div className="rounded-xl border border-sky-200/80 bg-sky-50/70 px-4 py-3 text-sm text-sky-950">
+            <p className="font-medium">Recebimentos online (opcional)</p>
+            <p className="mt-1 text-sky-950/90">{data.connect.nudge}</p>
+            <p className="mt-2 text-xs text-sky-900/80">
+              Sem Stripe continua a marcar transferências, MB Way ou numerário aqui. Se activar o Connect, a
+              taxa de serviço Teglion ({data.connect.platformFeePercent}%) é diferente das taxas Stripe — o
+              valor do cliente fica na conta do gabinete.
+            </p>
+            <Button asChild variant="outline" size="sm" className="mt-3">
+              <Link to="/app/firm/settings?tab=pagamentos">Receber dos clientes (Stripe)</Link>
+            </Button>
+          </div>
+        ) : null}
 
-      {data?.summary ? (
-        <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <SummaryCard label="Pago" value={formatEuroFromCents(data.summary.paidCents)} />
-          <SummaryCard label="Em aberto" value={formatEuroFromCents(data.summary.openCents)} />
-          <SummaryCard label="Em atraso" value={formatEuroFromCents(data.summary.overdueCents)} tone="warn" />
-          <SummaryCard label="Rascunho" value={formatEuroFromCents(data.summary.draftCents)} />
-        </div>
-      ) : null}
+        {data?.summary ? (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <SummaryCard label="Pago" value={formatEuroFromCents(data.summary.paidCents)} />
+            <SummaryCard label="Em aberto" value={formatEuroFromCents(data.summary.openCents)} />
+            <SummaryCard label="Em atraso" value={formatEuroFromCents(data.summary.overdueCents)} tone="warn" />
+            <SummaryCard label="Rascunho" value={formatEuroFromCents(data.summary.draftCents)} />
+          </div>
+        ) : null}
 
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <div className="relative min-w-[200px] flex-1 max-w-sm">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="pl-9"
-            placeholder="Pesquisar nome ou NIF"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            aria-label="Pesquisar cliente"
-          />
-        </div>
-        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-          <Legend swatch="bg-muted" label="Rascunho" />
-          <Legend swatch="bg-sky-100" label="Confirmada" />
-          <Legend swatch="bg-violet-100" label="Enviada" />
-          <Legend swatch="bg-emerald-100" label="Paga" />
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[200px] max-w-sm flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="pl-9"
+              placeholder="Pesquisar nome ou NIF"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              aria-label="Pesquisar cliente"
+            />
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <Legend swatch="bg-muted" label="Rascunho" />
+            <Legend swatch="bg-sky-100" label="Confirmada" />
+            <Legend swatch="bg-violet-100" label="Enviada" />
+            <Legend swatch="bg-emerald-100" label="Paga" />
+          </div>
         </div>
       </div>
 
-      {mapQuery.isLoading ? (
-        <div className="flex items-center gap-2 py-16 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />A carregar mapa…
-        </div>
-      ) : null}
+      <div className="cb-payments-grid-wrap cb-table-scroll min-h-0 flex-1 overflow-auto">
+        {mapQuery.isLoading ? (
+          <div className="flex items-center gap-2 py-16 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />A carregar mapa…
+          </div>
+        ) : null}
 
-      {mapQuery.isError ? (
-        <p className="py-8 text-sm text-destructive">{getErrorMessage(mapQuery.error)}</p>
-      ) : null}
+        {mapQuery.isError ? (
+          <p className="py-8 text-sm text-destructive">{getErrorMessage(mapQuery.error)}</p>
+        ) : null}
 
-      {data && data.rows.length === 0 ? (
-        <EmptyState
-          icon={Wallet}
-          title="Ainda sem clientes neste mapa"
-          description="Defina a avença mensal na ficha do cliente (Faturação) e use Gerar pagamentos para preencher o mês."
-        />
-      ) : null}
+        {data && data.rows.length === 0 ? (
+          <EmptyState
+            icon={Wallet}
+            title="Ainda sem clientes neste mapa"
+            description="Defina a avença mensal na ficha do cliente (Faturação) e use Gerar pagamentos para preencher o mês."
+          />
+        ) : null}
 
-      {data && data.rows.length > 0 ? (
-        <div className="overflow-x-auto rounded-xl border border-border/70 bg-card">
-          <table className="w-full min-w-[960px] border-collapse text-left text-sm">
-            <thead>
-              <tr className="border-b border-border/60 bg-muted/30">
-                <th className="sticky left-0 z-10 bg-muted/30 px-3 py-2.5 font-medium">Cliente</th>
-                {monthKeys.map((ym, i) => (
-                  <th key={ym} className="px-1.5 py-2.5 text-center text-xs font-medium text-muted-foreground">
-                    {MONTH_SHORT[i]}
+        {data && data.rows.length > 0 ? (
+          <div className="overflow-x-auto rounded-xl border border-border/70 bg-card">
+            <table className="w-full min-w-[960px] border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-border/60 bg-muted/30">
+                  <th className="cb-payments-client-col sticky left-0 z-10 bg-muted/30 px-3 py-2.5 font-medium">
+                    Cliente
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.rows.map((row) => (
-                <tr key={row.clientId} className="border-b border-border/40 last:border-0">
-                  <td className="sticky left-0 z-10 max-w-[200px] bg-card px-3 py-2 align-middle">
-                    <Link
-                      to={`/app/firm/clients/${row.clientId}?section=billing`}
-                      className="block truncate font-medium text-foreground hover:text-brand hover:underline"
-                    >
-                      {row.displayName}
-                    </Link>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {row.taxId || '—'}
-                      {row.billing.retainerActive && row.billing.retainerAmountCents != null
-                        ? ` · ${formatEuroFromCents(row.billing.retainerAmountCents)}/mês`
-                        : ' · sem avença activa'}
-                    </p>
-                  </td>
-                  {monthKeys.map((ym) => {
-                    const cell = row.months[ym]
-                    return (
-                      <td key={ym} className="px-1 py-1.5 text-center align-middle">
-                        {cell ? (
-                          <button
-                            type="button"
-                            className={cn(
-                              'mx-auto block w-full max-w-[4.5rem] rounded-md border px-1 py-1.5 text-[11px] font-medium tabular-nums transition hover:opacity-90',
-                              statusTone(cell.status, cell.overdue),
-                            )}
-                            onClick={() => setEdit({ charge: cell, clientName: row.displayName })}
-                            title={data.statusLabels[cell.status] || cell.status}
-                          >
-                            {formatEuroFromCents(cell.amountCents).replace('\u00a0', ' ')}
-                          </button>
-                        ) : (
-                          <span className="inline-block text-xs text-muted-foreground/50">—</span>
-                        )}
-                      </td>
-                    )
-                  })}
+                  {monthKeys.map((ym, i) => (
+                    <th key={ym} className="px-1.5 py-2.5 text-center text-xs font-medium text-muted-foreground">
+                      {MONTH_SHORT[i]}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : null}
+              </thead>
+              <tbody>
+                {data.rows.map((row) => {
+                  const retainerLabel =
+                    row.billing.retainerActive && row.billing.retainerAmountCents != null
+                      ? `${formatEuroFromCents(row.billing.retainerAmountCents)}/mês`
+                      : 'sem avença activa'
+                  const clientTitle = `${row.displayName}${row.taxId ? ` · ${row.taxId}` : ''} · ${retainerLabel}`
+                  return (
+                    <tr key={row.clientId} className="border-b border-border/40 last:border-0">
+                      <td className="cb-payments-client-col sticky left-0 z-10 bg-card px-3 py-2 align-middle">
+                        <Link
+                          to={`/app/firm/clients/${row.clientId}?section=billing`}
+                          className="block truncate font-medium text-foreground hover:text-brand hover:underline"
+                          title={clientTitle}
+                        >
+                          {row.displayName}
+                        </Link>
+                        <p className="truncate text-xs text-muted-foreground" title={clientTitle}>
+                          {row.taxId || '—'} · {retainerLabel}
+                        </p>
+                      </td>
+                      {monthKeys.map((ym) => {
+                        const cell = row.months[ym]
+                        return (
+                          <td key={ym} className="px-1 py-1.5 text-center align-middle">
+                            {cell ? (
+                              <button
+                                type="button"
+                                className={cn(
+                                  'mx-auto block w-full max-w-[4.5rem] rounded-md border px-1 py-1.5 text-[11px] font-medium tabular-nums transition hover:opacity-90',
+                                  statusTone(cell.status, cell.overdue),
+                                )}
+                                onClick={() => setEdit({ charge: cell, clientName: row.displayName })}
+                                title={data.statusLabels[cell.status] || cell.status}
+                              >
+                                {formatEuroFromCents(cell.amountCents).replace('\u00a0', ' ')}
+                              </button>
+                            ) : (
+                              <span className="inline-block text-xs text-muted-foreground/50">—</span>
+                            )}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
 
-      <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-        Estes registos são o controlo interno das avenças do gabinete. Não substituem faturação certificada
-        nem declarações à AT.
-      </p>
+        <p className="mt-3 pb-2 text-xs leading-relaxed text-muted-foreground">
+          Controlo interno das avenças do gabinete. Não substitui faturação certificada nem declarações à AT.
+          Stripe Connect: Definições → Receber dos clientes. Assinatura Teglion: menu Plano.
+        </p>
+      </div>
 
       <ChargeEditDialog
         open={Boolean(edit)}
