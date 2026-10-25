@@ -157,13 +157,28 @@ export function FirmSidebar({
   return (
     <div className="cb-firm-sidebar">
       <div className="cb-firm-sidebar-header">
-        <FirmSidebarHeader
-          name={firm?.name}
-          logoUrl={fullLogoUrl}
-          subtitle={subtitle}
-          fallbackName={fallbackName}
-          size="panel"
-        />
+        <div className="cb-firm-sidebar-header-row">
+          <FirmSidebarHeader
+            name={firm?.name}
+            logoUrl={fullLogoUrl}
+            subtitle={subtitle}
+            fallbackName={fallbackName}
+            size="panel"
+          />
+          {onCollapse ? (
+            <button
+              type="button"
+              className="cb-firm-sidebar-collapse-icon"
+              aria-expanded={true}
+              aria-label={collapseLabel}
+              title={collapseLabel}
+              data-testid="firm-desktop-sidebar-collapse"
+              onClick={onCollapse}
+            >
+              <PanelLeftClose className="h-4 w-4" aria-hidden />
+            </button>
+          ) : null}
+        </div>
       </div>
       {nav}
       {onCollapse ? (
@@ -174,7 +189,7 @@ export function FirmSidebar({
             aria-expanded={true}
             aria-label={collapseLabel}
             title={collapseLabel}
-            data-testid="firm-desktop-sidebar-collapse"
+            data-testid="firm-desktop-sidebar-collapse-footer"
             onClick={onCollapse}
           >
             <PanelLeftClose className="h-4 w-4 shrink-0" aria-hidden />

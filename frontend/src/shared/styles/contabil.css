@@ -300,6 +300,18 @@
     @apply shrink-0 px-4 py-4;
   }
 
+  .cb-firm-sidebar-header-row {
+    @apply flex items-start gap-2;
+  }
+
+  .cb-firm-sidebar-header-row > :first-child {
+    @apply min-w-0 flex-1;
+  }
+
+  .cb-firm-sidebar-collapse-icon {
+    @apply mt-0.5 inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border/50 bg-card text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground;
+  }
+
   .cb-firm-sidebar-nav {
     @apply min-h-0 flex-1 overflow-y-auto px-3 pb-2 pt-2;
   }
@@ -3288,19 +3300,19 @@
   }
 
   .cb-settings-hub {
-    @apply grid w-full min-w-0 gap-4 md:grid-cols-[minmax(14.5rem,17rem)_minmax(0,1fr)] md:items-start md:gap-5 lg:grid-cols-[minmax(16rem,18.5rem)_minmax(0,1fr)] lg:gap-6;
+    @apply grid w-full min-w-0 gap-4 md:grid-cols-[minmax(13.5rem,15.5rem)_minmax(0,1fr)] md:items-start md:gap-4 lg:grid-cols-[minmax(14rem,16rem)_minmax(0,1fr)] lg:gap-5;
   }
 
   .cb-settings-side-nav-heading {
-    @apply mb-2 hidden border-b border-border/50 px-3 pb-3 pt-2 md:block;
+    @apply mb-1.5 hidden px-2 pb-2 pt-1 md:block;
   }
 
   .cb-settings-side-nav-heading-title {
-    @apply text-sm font-semibold tracking-tight text-foreground;
+    @apply text-[11px] font-semibold uppercase tracking-[0.06em] text-muted-foreground;
   }
 
   .cb-settings-side-nav-heading-sub {
-    @apply mt-0.5 text-[11px] leading-snug text-muted-foreground;
+    @apply mt-1 text-[11px] leading-snug text-muted-foreground/90 normal-case tracking-normal font-normal;
   }
 
   .cb-settings-connect-stack {
@@ -3331,16 +3343,16 @@
     @apply mt-1 text-sm leading-relaxed text-muted-foreground;
   }
 
+  /* Índice da página (não é um 2.º sidebar da app). */
   .cb-settings-side-nav {
-    @apply sticky top-16 z-10 -mx-1 flex max-w-[100vw] snap-x snap-mandatory gap-1 overflow-x-auto overscroll-x-contain rounded-2xl border border-border/50 bg-card p-2 shadow-sm sm:top-20 sm:mx-0 sm:gap-1 sm:p-2.5 md:max-w-none md:snap-none md:flex-col md:overflow-visible md:p-3;
+    @apply sticky top-16 z-10 -mx-1 flex max-w-[100vw] snap-x snap-mandatory gap-0.5 overflow-x-auto overscroll-x-contain rounded-xl border border-border/40 bg-muted/20 p-1.5 sm:top-20 sm:mx-0 sm:gap-0.5 sm:p-2 md:max-w-none md:snap-none md:flex-col md:overflow-visible md:border-0 md:bg-transparent md:p-0 md:shadow-none;
     scrollbar-width: none;
     -ms-overflow-style: none;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Ícones do menu interno: compactos — o destaque é o nome + estado activo, não um bloco gigante. */
   .cb-settings-side-nav-icon {
-    @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted/50 text-foreground/65 transition-colors sm:h-8 sm:w-8;
+    @apply flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-foreground/60 transition-colors sm:h-7 sm:w-7;
   }
 
   .cb-settings-side-nav::-webkit-scrollbar {
@@ -3348,7 +3360,7 @@
   }
 
   .cb-settings-side-nav-item {
-    @apply relative inline-flex w-auto shrink-0 cursor-pointer snap-start items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs font-medium leading-snug text-muted-foreground transition-colors duration-150 hover:bg-muted/60 hover:text-foreground sm:px-3 sm:py-2.5 sm:text-sm md:w-full;
+    @apply relative inline-flex w-auto shrink-0 cursor-pointer snap-start items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs font-medium leading-snug text-muted-foreground transition-colors duration-150 hover:bg-muted/55 hover:text-foreground sm:px-2.5 sm:py-2 sm:text-sm md:w-full;
   }
 
   .cb-settings-side-nav-item:focus-visible {
@@ -3356,16 +3368,16 @@
   }
 
   .cb-settings-side-nav-item--active {
-    @apply bg-brand/[0.1] font-semibold text-brand shadow-none ring-1 ring-brand/20;
+    @apply bg-muted/70 font-semibold text-foreground shadow-none;
   }
 
   .cb-settings-side-nav-item--active:hover {
-    @apply bg-brand/[0.14] text-brand;
+    @apply bg-muted/80 text-foreground;
   }
 
   .cb-settings-side-nav-item--active::before {
     content: '';
-    @apply absolute left-1 top-1/2 hidden h-7 w-1 -translate-y-1/2 rounded-full bg-brand lg:block;
+    @apply absolute left-0 top-1/2 hidden h-5 w-0.5 -translate-y-1/2 rounded-full bg-brand md:block;
   }
 
   .cb-settings-side-nav-item--danger {
@@ -3390,7 +3402,7 @@
   }
 
   .cb-settings-side-nav-item--active .cb-settings-side-nav-icon {
-    @apply bg-brand text-primary-foreground;
+    @apply bg-brand/10 text-brand;
   }
 
   .cb-settings-side-nav-item--danger .cb-settings-side-nav-icon {

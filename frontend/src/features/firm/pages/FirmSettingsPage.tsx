@@ -150,7 +150,7 @@ export function FirmSettingsPage() {
       <div className="cb-settings-page">
         <PageHeader
           title="Definições"
-          subtitle="Configure o escritório no menu à esquerda — identidade, pagamentos, equipa e segurança."
+          subtitle="O menu à esquerda é o do escritório. Aqui em baixo escolhe a secção desta página."
           testId="firm-settings-header"
           secondary={
             <AskMayaButton
@@ -171,10 +171,10 @@ export function FirmSettingsPage() {
           </div>
         ) : bundle ? (
           <div className="cb-settings-hub">
-            <nav ref={navRef} className="cb-settings-side-nav" aria-label="Secções de configuração">
+            <nav ref={navRef} className="cb-settings-side-nav" aria-label="Secções desta página">
               <div className="cb-settings-side-nav-heading">
-                <p className="cb-settings-side-nav-heading-title">Secções</p>
-                <p className="cb-settings-side-nav-heading-sub">Clique no nome para abrir.</p>
+                <p className="cb-settings-side-nav-heading-title">Nesta página</p>
+                <p className="cb-settings-side-nav-heading-sub">Não é o menu do escritório — só as secções das Definições.</p>
               </div>
               {visibleTabs.map((item) => {
                 const Icon = item.icon
