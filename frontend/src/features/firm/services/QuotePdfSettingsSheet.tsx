@@ -3,9 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 
+import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { Button } from '@/shared/components/ui/button'
-import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
-import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { api } from '@/infrastructure/api'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -53,17 +52,15 @@ export function QuotePdfSettingsSheet({
   })
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
-        <SheetHiddenTitle>Personalizar PDF de orçamento</SheetHiddenTitle>
-        <div className="space-y-5 py-2">
-          <div>
-            <h2 className="text-lg font-bold">Personalizar PDF de orçamento</h2>
-            <p className="cb-text-caption">
-              Estes textos aparecem em todos os orçamentos que gerar a partir de agora — não precisa de os
-              reescrever a cada pedido. O nome do cliente, o serviço e o valor continuam sempre automáticos.
-            </p>
-          </div>
+    <FirmWorkspaceFocusDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Personalizar PDF de orçamento"
+      description="Estes textos aparecem em todos os orçamentos que gerar a partir de agora — não precisa de os reescrever a cada pedido. O nome do cliente, o serviço e o valor continuam sempre automáticos."
+      className="w-[min(96vw,640px)] max-w-[min(96vw,640px)]"
+    >
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+        <div className="space-y-5">
           <label className="block space-y-1">
             <span className="text-caption font-medium text-muted-foreground">
               Texto de abertura (ex.: saudação, apresentação do escritório)
@@ -113,7 +110,7 @@ export function QuotePdfSettingsSheet({
             </Button>
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </div>
+    </FirmWorkspaceFocusDialog>
   )
 }

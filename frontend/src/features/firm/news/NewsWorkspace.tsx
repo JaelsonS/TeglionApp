@@ -8,12 +8,7 @@ import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { AskMayaButton } from '@/features/maya'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/shared/components/ui/sheet'
+import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { SkeletonCard } from '@/shared/design-system/Skeleton'
 import { EmptyState } from '@/shared/design-system'
 import { contabilNewsApi } from '@/infrastructure/api'
@@ -247,11 +242,14 @@ export function NewsWorkspace() {
         </ul>
       )}
 
-      <Sheet open={Boolean(editing)} onOpenChange={(open: boolean) => !open && setEditing(null)}>
-        <SheetContent className="flex w-full flex-col overflow-y-auto sm:max-w-lg">
-          <SheetHeader>
-            <SheetTitle>{editing?.id || editing?._id ? 'Editar notícia' : 'Nova notícia'}</SheetTitle>
-          </SheetHeader>
+      <FirmWorkspaceFocusDialog
+        open={Boolean(editing)}
+        onOpenChange={(open) => !open && setEditing(null)}
+        title={editing?.id || editing?._id ? 'Editar notícia' : 'Nova notícia'}
+        description="Escreva, grave rascunho ou publique — no centro do ecrã."
+        className="w-[min(96vw,720px)] max-w-[min(96vw,720px)]"
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           {editing ? (
             <NewsComposer
               draft={editing}
@@ -261,8 +259,8 @@ export function NewsWorkspace() {
               onPublish={() => void save(true)}
             />
           ) : null}
-        </SheetContent>
-      </Sheet>
+        </div>
+      </FirmWorkspaceFocusDialog>
 
       <ConfirmDialog
         open={Boolean(deleteTarget)}

@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react'
 import { ChevronDown, ChevronRight, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
-import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
-import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
 import { RichTextEditor, DurationMinutesField, EuroInput } from '@/shared/design-system'
 import { IntakeStartModeFields } from '@/features/firm/services/IntakeStartModeFields'
 import {
@@ -90,14 +89,14 @@ export function ServiceEditorSheet({ service, open, onOpenChange, onSaved }: Pro
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full flex-col overflow-hidden p-0 sm:max-w-lg">
-        <SheetHiddenTitle>Editar serviço</SheetHiddenTitle>
-        <div className="shrink-0 border-b border-border/60 px-5 py-4">
-          <h2 className="text-lg font-semibold tracking-tight">Editar serviço</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">Configure o que o cliente vê e como paga.</p>
-        </div>
-
+    <FirmWorkspaceFocusDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Editar serviço"
+      description="Configure o que o cliente vê e como paga."
+      className="w-[min(96vw,680px)] max-w-[min(96vw,680px)]"
+    >
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">
           <section className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sobre o serviço</p>
@@ -192,7 +191,7 @@ export function ServiceEditorSheet({ service, open, onOpenChange, onSaved }: Pro
             Guardar serviço
           </Button>
         </div>
-      </SheetContent>
-    </Sheet>
+      </div>
+    </FirmWorkspaceFocusDialog>
   )
 }

@@ -3,10 +3,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { FileText, Inbox, Loader2, Mail, Phone, Plus, Settings2, Tag } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
-import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
-import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
 import { EmptyState } from '@/shared/design-system'
 import { Link } from 'react-router-dom'
 import {
@@ -562,33 +561,42 @@ export function ServiceInquiriesWorkspace() {
         </div>
       )}
 
-      <Sheet open={tagsOpen} onOpenChange={setTagsOpen}>
-        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md">
-          <SheetHiddenTitle>Etiquetas do escritório</SheetHiddenTitle>
-          <div className="space-y-4 py-4">
-            <div>
-              <h2 className="text-lg font-bold">Etiquetas do escritório</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Use as mesmas etiquetas em clientes, leads, solicitações e equipa. Também em{' '}
-                <Link to="/app/firm/settings?tab=etiquetas" className="font-medium text-brand underline-offset-2 hover:underline">
-                  Definições
-                </Link>
-                .
-              </p>
-            </div>
-            <FirmTagsManager
-              compact
-              onTagsChanged={() => {
-                void qc.invalidateQueries({ queryKey: ['service-inquiries'] })
-              }}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
+      <FirmWorkspaceFocusDialog
+        open={tagsOpen}
+        onOpenChange={setTagsOpen}
+        title="Etiquetas do escritório"
+        description="Use as mesmas etiquetas em clientes, leads, solicitações e equipa."
+        className="w-[min(96vw,560px)] max-w-[min(96vw,560px)]"
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          <p className="mb-4 text-sm text-muted-foreground">
+            Também em{' '}
+            <Link to="/app/firm/settings?tab=etiquetas" className="font-medium text-brand underline-offset-2 hover:underline">
+              Definições
+            </Link>
+            .
+          </p>
+          <FirmTagsManager
+            compact
+            onTagsChanged={() => {
+              void qc.invalidateQueries({ queryKey: ['service-inquiries'] })
+            }}
+          />
+        </div>
+      </FirmWorkspaceFocusDialog>
 
-      <Sheet open={Boolean(selectedId)} onOpenChange={(open: boolean) => !open && setSelectedId(null)}>
-        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
-          <SheetHiddenTitle>Detalhe da solicitação</SheetHiddenTitle>
+      <FirmWorkspaceFocusDialog
+        open={Boolean(selectedId)}
+        onOpenChange={(open) => !open && setSelectedId(null)}
+        title={detailQuery.data?.inquiry.requesterName || 'Detalhe da solicitação'}
+        description={
+          detailQuery.data?.inquiry.serviceName
+            ? `${detailQuery.data.inquiry.serviceName} — pedido, etiquetas e histórico no centro do ecrã.`
+            : 'Pedido, etiquetas e histórico no centro do ecrã.'
+        }
+        className="w-[min(96vw,720px)] max-w-[min(96vw,720px)]"
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto px-5">
           {detailQuery.isLoading || !detailQuery.data ? (
             <div className="flex h-40 items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -898,8 +906,8 @@ export function ServiceInquiriesWorkspace() {
               </div>
             </div>
           )}
-        </SheetContent>
-      </Sheet>
+        </div>
+      </FirmWorkspaceFocusDialog>
 
       <NotifyClientChannelsDialog
         open={notifyDialog === 'received'}
