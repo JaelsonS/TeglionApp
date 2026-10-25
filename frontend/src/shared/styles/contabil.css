@@ -1486,9 +1486,30 @@
     @apply animate-pulse rounded-lg bg-muted;
   }
 
-  /* Painel operacional — Fase 1 repaginação páginas */
+  /* Painel operacional — padrão Documentos (shell + lead + KPIs) */
+  .cb-dash-layout-page .cb-firm-operational-panel,
+  .cb-dash-layout-panel {
+    @apply min-h-0 w-full;
+  }
+
+  .cb-dash-page-shell {
+    @apply border-0 bg-transparent shadow-none;
+  }
+
   .cb-dash-page {
-    @apply w-full min-w-0 space-y-5 pb-4;
+    @apply w-full min-w-0 space-y-5 px-4 pb-6 sm:px-5;
+  }
+
+  .cb-dash-section-lead {
+    @apply shrink-0 px-4 pb-2 pt-1 text-sm leading-snug text-muted-foreground sm:px-5;
+  }
+
+  .cb-dash-section-lead-title {
+    @apply mb-0.5 block text-xs font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-dash-toolbar {
+    @apply flex flex-wrap items-center justify-between gap-2 border-b border-border/50 px-4 py-2.5 sm:px-5;
   }
 
   .cb-dash-ph {

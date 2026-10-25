@@ -42,7 +42,8 @@ import { openActivationAssistant } from '@/features/firm/activation/openActivati
 import { ClientsSpreadsheetDialog } from '@/features/firm/clients/ClientsSpreadsheetDialog'
 import { CLIENTS_CSV_IMPORT_OPEN_EVENT } from '@/features/firm/clients/openClientsCsvImport'
 import { Button } from '@/shared/components/ui/button'
-import { EmptyState, PagePurposeHeader, SkeletonCard } from '@/shared/design-system'
+import { EmptyState, SkeletonCard } from '@/shared/design-system'
+import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { useFirmDashboard } from '@/shared/hooks/queries/useFirmDashboard'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { contabilMessagesApi } from '@/infrastructure/api'
@@ -203,53 +204,62 @@ export function FirmDashboardPage() {
 
   const updatedAt = dashboardQuery.dataUpdatedAt
   const publicPublished = Boolean(progress?.steps.find((s) => s.id === 'publicPage')?.done)
+  const pageSubtitle = `Prioridades, prazos e atalhos do gabinete. Actualizado ${relativeUpdated(updatedAt)}${
+    data ? ` · ${data.totalClients} clientes na carteira` : ''
+  }`
+
+  const headerRight = (
+    <div className="flex flex-wrap items-center gap-2">
+      <AskMayaButton intentId="setup" />
+      <Button type="button" size="sm" variant="outline" asChild>
+        <Link to="/manual/primeiros-passos">Guia</Link>
+      </Button>
+      <Button type="button" size="sm" onClick={() => navigate(firmTasksPath('manual'))}>
+        <Plus className="mr-1 h-4 w-4" />
+        Nova tarefa
+      </Button>
+    </div>
+  )
 
   return (
-    <FirmScrollPage>
-      <div className="cb-dash-page" data-testid="firm-dashboard">
-        <PagePurposeHeader
+    <FirmScrollPage className="cb-dash-layout-page">
+      <div className="cb-firm-operational-panel cb-dash-layout-panel flex min-w-0 flex-1 flex-col">
+        <FirmModuleShell
+          className="cb-dash-page-shell cb-dash-page-scroll"
           title={greeting}
-          purpose={`Centro de comando do gabinete: prioridades, prazos e atalhos. Actualizado ${relativeUpdated(updatedAt)}${
-            data ? ` · ${data.totalClients} clientes na carteira` : ''
-          }`}
-          testId="firm-dashboard-header"
-          secondary={
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar indicadores por período">
-                {(
-                  [
-                    ['all', 'Tudo'],
-                    ['today', 'Hoje'],
-                    ['week', 'Esta semana'],
-                  ] as const
-                ).map(([key, label]) => (
-                  <Button
-                    key={key}
-                    type="button"
-                    size="sm"
-                    variant={scope === key ? 'primary' : 'outline'}
-                    onClick={() => setScope(key)}
-                  >
-                    {label}
-                  </Button>
-                ))}
-              </div>
-              <Button type="button" size="sm" variant="ghost" asChild>
-                <Link to="/manual/primeiros-passos">Guia</Link>
-              </Button>
+          subtitle={pageSubtitle}
+          headerRight={headerRight}
+          bodyClassName="gap-0"
+        >
+          <div className="cb-dash-toolbar" role="group" aria-label="Filtrar indicadores por período">
+            <div className="flex flex-wrap gap-1.5">
+              {(
+                [
+                  ['all', 'Tudo'],
+                  ['today', 'Hoje'],
+                  ['week', 'Esta semana'],
+                ] as const
+              ).map(([key, label]) => (
+                <Button
+                  key={key}
+                  type="button"
+                  size="sm"
+                  variant={scope === key ? 'primary' : 'outline'}
+                  onClick={() => setScope(key)}
+                >
+                  {label}
+                </Button>
+              ))}
             </div>
-          }
-          right={
-            <div className="flex flex-wrap items-center gap-2">
-              <AskMayaButton intentId="setup" />
-              <Button type="button" size="sm" variant="outline" onClick={() => navigate(firmTasksPath('manual'))}>
-                <Plus className="h-4 w-4" />
-                Nova tarefa
-              </Button>
-            </div>
-          }
-        />
+          </div>
 
+          <p className="cb-dash-section-lead" data-testid="dashboard-section-lead">
+            <span className="cb-dash-section-lead-title">O que precisa de atenção hoje</span>
+            KPIs clicáveis abrem obrigações, documentos ou tarefas. Em baixo: filas operacionais e
+            contexto do dia.
+          </p>
+
+          <div className="cb-dash-page" data-testid="firm-dashboard">
         {progress?.nextAction || (isFirmOwner && progress) ? (
           <details className="cb-dash-setup">
             <summary className="cb-dash-setup-summary">
@@ -311,7 +321,7 @@ export function FirmDashboardPage() {
                 title="Precisa da sua atenção"
                 purpose="Números clicáveis: abrem obrigações, documentos ou tarefas filtrados pelo período escolhido."
               />
-              <div className="cb-dash-kpi-row">
+              <div className="cb-dash-kpi-row" data-testid="dashboard-kpi-strip">
                 <DashKpi
                   label="Em atraso"
                   sub="obrigações"
@@ -596,6 +606,8 @@ export function FirmDashboardPage() {
             </div>
           </>
         ) : null}
+          </div>
+        </FirmModuleShell>
       </div>
       {isFirmOwner ? (
         <ClientsSpreadsheetDialog
