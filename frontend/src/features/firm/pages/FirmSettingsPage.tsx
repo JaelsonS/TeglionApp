@@ -150,7 +150,7 @@ export function FirmSettingsPage() {
       <div className="cb-settings-page">
         <PageHeader
           title="Definições"
-          subtitle="Configure o escritório no menu à esquerda. Identidade, pagamentos, equipa e segurança — nomes sempre visíveis."
+          subtitle="Configure o escritório no menu à esquerda — identidade, pagamentos, equipa e segurança."
           testId="firm-settings-header"
           secondary={
             <AskMayaButton
