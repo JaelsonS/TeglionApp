@@ -143,10 +143,9 @@ export function FirmClientsPage() {
   }, [])
 
   const effectiveView = isMobile ? 'grid' : view
-  const includeInactive = estadoFilter === 'inativos' || estadoFilter === 'todos'
-  const clientsQuery = useFirmClientsDirectory({ limit: 500, includeInactive })
+  /** Sempre a carteira completa — KPIs e filtros partilham a mesma base (senão os cards mentiam). */
+  const clientsQuery = useFirmClientsDirectory({ limit: 500, includeInactive: true })
   const items = clientsQuery.data?.items || []
-  const total = clientsQuery.data?.total ?? items.length
   const loading = clientsQuery.isLoading
   const refreshClients = useCallback(() => {
     return queryClient.invalidateQueries({ queryKey: queryKeys.firmClientsDirectoryRoot(tenantSlug) })
@@ -168,6 +167,17 @@ export function FirmClientsPage() {
     queryFn: () => contabilInquiryTagsApi.list().then((r) => r.items),
   })
   const firmTags = Array.isArray(tagsQuery.data) ? tagsQuery.data : []
+
+  const isInactive = useCallback((c: Client) => Boolean(c.status && c.status !== 'ACTIVE'), [])
+  const isAttention = useCallback((c: Client) => {
+    if (isInactive(c)) return false
+    return c.operationalStatus === 'atencao' || c.operationalStatus === 'critico'
+  }, [isInactive])
+  /** «Activo» do KPI = carteira activa sem alerta (partição com «em atenção»). */
+  const isActiveClient = useCallback(
+    (c: Client) => !isInactive(c) && !isAttention(c),
+    [isInactive, isAttention],
+  )
 
   const regimeOptions = useMemo(() => {
     const set = new Set<string>()
@@ -197,44 +207,56 @@ export function FirmClientsPage() {
       const regime = normalizeRegimeLabel(c.vatRegime || c.fiscalProfile?.vatRegime)
       if (regimeFilter !== 'todos' && regime !== regimeFilter) return false
 
-      const inactive = c.status && c.status !== 'ACTIVE'
       if (estadoFilter === 'ativos') {
-        if (inactive) return false
+        if (!isActiveClient(c)) return false
       } else if (estadoFilter === 'atencao') {
-        if (inactive) return false
-        if (c.operationalStatus !== 'atencao' && c.operationalStatus !== 'critico') return false
+        if (!isAttention(c)) return false
       } else if (estadoFilter === 'inativos') {
-        if (!inactive) return false
+        if (!isInactive(c)) return false
       }
 
-      if (portalFilter === 'sem_portal' && !isWithoutPortal(c)) return false
+      if (portalFilter === 'sem_portal') {
+        /** Carteira operativa (activo + atenção), nunca inactivos. */
+        if (isInactive(c) || !isWithoutPortal(c)) return false
+      }
 
       if (tagFilter && !(c.tags || []).some((t) => t.id === tagFilter)) return false
 
       return true
     })
-  }, [items, search, typeFilter, regimeFilter, estadoFilter, portalFilter, tagFilter])
+  }, [
+    items,
+    search,
+    typeFilter,
+    regimeFilter,
+    estadoFilter,
+    portalFilter,
+    tagFilter,
+    isActiveClient,
+    isAttention,
+    isInactive,
+  ])
 
-  const activeCount = useMemo(
-    () => items.filter((c) => !c.status || c.status === 'ACTIVE').length,
-    [items],
-  )
-
-  const kpis = useMemo((): ClientsKpi[] => {
+  const kpiCounts = useMemo(() => {
+    let active = 0
     let attention = 0
     let noPortal = 0
     for (const c of items) {
-      const inactive = c.status && c.status !== 'ACTIVE'
-      if (!inactive && (c.operationalStatus === 'atencao' || c.operationalStatus === 'critico')) {
-        attention += 1
-      }
-      if (isWithoutPortal(c)) noPortal += 1
+      if (isActiveClient(c)) active += 1
+      if (isAttention(c)) attention += 1
+      /** Sem portal = carteira operativa sem acesso (activo + atenção). */
+      if (!isInactive(c) && isWithoutPortal(c)) noPortal += 1
     }
+    return { active, attention, noPortal, total: items.length }
+  }, [items, isActiveClient, isAttention, isInactive])
+
+  const kpis = useMemo((): ClientsKpi[] => {
+    const { active, attention, noPortal, total } = kpiCounts
     return [
       {
         id: 'active',
-        value: activeCount,
-        label: activeCount === 1 ? 'activo' : 'activos',
+        value: active,
+        label: active === 1 ? 'activo' : 'activos',
         tone: 'emerald',
         icon: CLIENTS_KPI_ICONS.active,
       },
@@ -260,17 +282,26 @@ export function FirmClientsPage() {
         icon: CLIENTS_KPI_ICONS.total,
       },
     ]
-  }, [items, activeCount, total])
+  }, [kpiCounts])
 
   const activeKpiId = useMemo((): ClientsKpiId | null => {
-    if (portalFilter === 'sem_portal') return 'portal'
-    if (estadoFilter === 'atencao' && portalFilter === 'todos') return 'attention'
-    if (estadoFilter === 'ativos' && portalFilter === 'todos') return 'active'
-    if (estadoFilter === 'todos' && portalFilter === 'todos') return 'total'
+    const cleanExtras =
+      !search.trim() && typeFilter === 'todos' && regimeFilter === 'todos' && tagFilter === ''
+    if (!cleanExtras) return null
+    if (portalFilter === 'sem_portal' && estadoFilter === 'todos') return 'portal'
+    if (portalFilter !== 'todos') return null
+    if (estadoFilter === 'atencao') return 'attention'
+    if (estadoFilter === 'ativos') return 'active'
+    if (estadoFilter === 'todos') return 'total'
     return null
-  }, [estadoFilter, portalFilter])
+  }, [estadoFilter, portalFilter, search, typeFilter, regimeFilter, tagFilter])
 
   const applyKpiFilter = useCallback((id: ClientsKpiId) => {
+    /** Limpa pesquisa/tipo/regime/etiqueta para o resultado bater certo com o número do card. */
+    setSearch('')
+    setTypeFilter('todos')
+    setRegimeFilter('todos')
+    setTagFilter('')
     if (id === 'active') {
       setEstadoFilter('ativos')
       setPortalFilter('todos')
@@ -278,6 +309,7 @@ export function FirmClientsPage() {
       setEstadoFilter('atencao')
       setPortalFilter('todos')
     } else if (id === 'portal') {
+      /** Estado «todos» + sem portal (o filtro já exclui inactivos). */
       setEstadoFilter('todos')
       setPortalFilter('sem_portal')
     } else {
@@ -486,14 +518,14 @@ export function FirmClientsPage() {
               <EmptyState
                 className="col-span-full"
                 icon={Building2}
-                title={total === 0 ? 'Ainda não tem clientes' : 'Nenhum cliente neste filtro'}
+                title={kpiCounts.total === 0 ? 'Ainda não tem clientes' : 'Nenhum cliente neste filtro'}
                 description={
-                  total === 0
+                  kpiCounts.total === 0
                     ? 'Adicione a primeira empresa à carteira para organizar documentos, prazos e o portal do cliente.'
                     : 'Ajuste a pesquisa ou os filtros para ver outros clientes.'
                 }
                 action={
-                  total === 0 ? (
+                  kpiCounts.total === 0 ? (
                     <Button size="sm" variant="primary" onClick={() => setOpenCreate(true)}>
                       <Plus className="h-4 w-4" />
                       Novo cliente
@@ -575,14 +607,14 @@ export function FirmClientsPage() {
                     <td colSpan={9}>
                       <EmptyState
                         icon={Building2}
-                        title={total === 0 ? 'Ainda não tem clientes' : 'Nenhum cliente neste filtro'}
+                        title={kpiCounts.total === 0 ? 'Ainda não tem clientes' : 'Nenhum cliente neste filtro'}
                         description={
-                          total === 0
+                          kpiCounts.total === 0
                             ? 'Adicione a primeira empresa à carteira para organizar documentos, prazos e o portal.'
                             : 'Ajuste a pesquisa ou os filtros para ver outros clientes.'
                         }
                         action={
-                          total === 0 ? (
+                          kpiCounts.total === 0 ? (
                             <Button size="sm" variant="primary" onClick={() => setOpenCreate(true)}>
                               <Plus className="h-4 w-4" />
                               Novo cliente
