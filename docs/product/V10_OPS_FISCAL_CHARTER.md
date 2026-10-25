@@ -1,8 +1,8 @@
 # Teglion V10 — Carta da frente Ops + Fiscal
 
 **Branch exclusiva:** `feature/fase-v10-ops-fiscal` (base: `staging`)  
-**Actualizado:** 25/10/2026 (Ondas 1–7: + Manual Maya; sem push)  
-**Estado:** implementação activa na branch `feature/fase-v10-ops-fiscal`
+**Actualizado:** 25/10/2026 (Ondas 1–7 em **staging** via PR #192 @ `26116d5`; diagnóstico Master Prompt: [`FASE0_DIAGNOSTICO_MASTER_V10_2026-10-25.md`](./FASE0_DIAGNOSTICO_MASTER_V10_2026-10-25.md))  
+**Estado:** código V10 em staging (UAT); `main` ainda sem estas ondas
 
 Marca: **Teglion** (produto). Operador: **AfDigital — Soluções Tecnológicas**. Domínio: teglion.com.
 
