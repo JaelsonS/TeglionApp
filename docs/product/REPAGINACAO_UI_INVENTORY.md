@@ -61,4 +61,5 @@ Dashboard · Pedidos · Serviços · Mais · Mensagens · Documentos · Arquivo 
 | 7 | Blog + Ajuda/Sobre + rail sync | feito |
 | 8 | Booking return + clareza pagamentos | feito |
 | 9 | Copy pt-PT residual + inventário | feito |
+| 10 | Atmosfera canvas firm + portal (sem cream) | feito |
 | Merge → staging | Só quando a repaginação estiver completa | pendente |
