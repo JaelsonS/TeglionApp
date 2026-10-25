@@ -898,6 +898,19 @@
     @apply flex min-h-0 flex-1 flex-col overflow-hidden p-3 sm:p-4;
   }
 
+  .cb-docs-workspace > .cb-docs-kpi-strip,
+  .cb-docs-workspace > .cb-docs-section-lead,
+  .cb-docs-workspace > .cb-docs-toolbar,
+  .cb-docs-workspace > .cb-docs-history-hint,
+  .cb-docs-workspace > .cb-docs-pagination {
+    @apply shrink-0;
+  }
+
+  .cb-docs-files-list {
+    @apply min-h-0 overflow-y-auto overscroll-y-contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .cb-docs-toolbar {
     @apply mb-3 flex flex-wrap items-center gap-2;
   }
@@ -960,7 +973,7 @@
   }
 
   .cb-docs-preview {
-    @apply relative shrink-0 flex-col border-l border-border/60 bg-card lg:w-[26rem];
+    @apply relative flex min-h-0 shrink-0 flex-col overflow-hidden border-l border-border/60 bg-card lg:w-[26rem];
     width: min(100%, 22rem);
     max-width: min(38%, 32rem);
   }
@@ -3271,7 +3284,7 @@
   }
 
   .cb-docs-req-card {
-    @apply group flex w-full items-stretch gap-2 rounded-xl border border-border/70 bg-card px-3 py-3 text-left shadow-sm transition hover:border-brand/35 hover:bg-brand/[0.03];
+    @apply flex w-full items-stretch gap-2 rounded-xl border border-border/70 bg-card px-3 py-3 text-left shadow-sm transition hover:border-brand/35 hover:bg-brand/[0.03];
   }
 
   .cb-docs-req-card-selected {

@@ -49,7 +49,7 @@ export function RequestRow({
     <button
       type="button"
       onClick={onSelect}
-      className={cn('cb-docs-req-card', selected && 'cb-docs-req-card-selected')}
+      className={cn('group cb-docs-req-card', selected && 'cb-docs-req-card-selected')}
       aria-pressed={selected}
     >
       <div className="cb-docs-req-card-main">
