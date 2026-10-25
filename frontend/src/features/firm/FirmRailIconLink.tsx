@@ -11,7 +11,7 @@ export function firmRailTestId(to: string, prefix = 'firm-rail') {
   return `${prefix}-${to.replace(/\//g, '-')}`
 }
 
-/** Ícone do rail (tablet ou desktop colapsado). */
+/** Ícone do rail (tablet ou desktop colapsado) com tooltip visível no hover. */
 export function FirmRailIconLink({
   item,
   label,
@@ -33,9 +33,8 @@ export function FirmRailIconLink({
       end={item.end}
       data-testid={firmRailTestId(item.to, testIdPrefix)}
       aria-label={label}
-      title={label}
       className={cn(
-        'cb-firm-icon-nav',
+        'cb-firm-icon-nav cb-firm-icon-nav--tooltip',
         isActive ? 'cb-firm-icon-nav-active' : 'cb-firm-icon-nav-inactive',
       )}
     >
@@ -46,6 +45,9 @@ export function FirmRailIconLink({
             {badge > 99 ? '99+' : badge}
           </span>
         ) : null}
+      </span>
+      <span className="cb-firm-rail-tooltip" role="tooltip">
+        {label}
       </span>
     </NavLink>
   )
