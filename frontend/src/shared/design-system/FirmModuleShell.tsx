@@ -35,8 +35,10 @@ export function FirmModuleShell({
   tabsClassName,
   embedded = false,
 }: FirmModuleShellProps) {
-  /** Documentos usa scroll de página; outros módulos podem prender altura. */
-  const pageScroll = Boolean(className?.includes('cb-docs-page'))
+  /** Documentos / Tarefas (tabs de fluxo) usam scroll de página; splits prendem altura. */
+  const pageScroll = Boolean(
+    className?.includes('cb-docs-page') || className?.includes('cb-tasks-page-scroll'),
+  )
 
   return (
     <div

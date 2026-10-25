@@ -9,6 +9,7 @@ import { FirmChatConversationRow } from '@/features/firm/chat/FirmChatConversati
 import { FirmChatMessageBubble } from '@/features/firm/chat/FirmChatMessageBubble'
 import {
   type ChatListFilter,
+  CHAT_PINS_CHANGED_EVENT,
   getPinnedClientIds,
   isClientOnline,
   previewLastMessage,
@@ -99,6 +100,13 @@ export function FirmMessagesModule({ embeddedClientId }: { embeddedClientId?: st
 
   useEffect(() => {
     setPinnedIds(getPinnedClientIds(tenantSlug))
+    const onPinsChanged = () => setPinnedIds(getPinnedClientIds(tenantSlug))
+    window.addEventListener(CHAT_PINS_CHANGED_EVENT, onPinsChanged)
+    window.addEventListener('storage', onPinsChanged)
+    return () => {
+      window.removeEventListener(CHAT_PINS_CHANGED_EVENT, onPinsChanged)
+      window.removeEventListener('storage', onPinsChanged)
+    }
   }, [tenantSlug])
 
   useEffect(() => {

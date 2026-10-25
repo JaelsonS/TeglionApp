@@ -279,6 +279,16 @@ export function FirmTasksWorkspacePage() {
   const headerAction = (
     <div className="flex items-center gap-2">
       <AskMayaButton intentId="obligations" />
+      {tab === 'obligations' ? (
+        <Button
+          type="button"
+          className="h-8 rounded-md px-3.5 text-xs"
+          onClick={openCreateRecurringObligation}
+        >
+          <Plus className="mr-1.5 h-3.5 w-3.5" />
+          Nova obrigação
+        </Button>
+      ) : null}
       {tab === 'manual' || tab === 'calendar' ? (
         <Button type="button" className="h-8 rounded-md px-3.5 text-xs" onClick={openCreateTask}>
           <Plus className="mr-1.5 h-3.5 w-3.5" />
@@ -289,11 +299,15 @@ export function FirmTasksWorkspacePage() {
   )
 
   return (
-    <FirmWorkspacePage className="cb-tasks-page xl:min-h-0 xl:flex-1">
-      <TasksWorkspaceShell activeTab={tab} headerAction={headerAction}>
+    <FirmWorkspacePage className="cb-tasks-page cb-tasks-layout-page xl:min-h-0 xl:flex-1">
+      <div className="cb-firm-operational-panel cb-tasks-layout-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <TasksWorkspaceShell
+        activeTab={tab}
+        headerAction={headerAction}
+        overviewKpis={overviewKpis}
+      >
         {tab === 'overview' ? (
           <TasksOverviewPanel
-            kpis={overviewKpis}
             obligations={obligationsHub.items}
             manualTasks={manualItems}
             teamNames={teamNames}
@@ -374,6 +388,7 @@ export function FirmTasksWorkspacePage() {
           />
         ) : null}
       </TasksWorkspaceShell>
+      </div>
 
       {Boolean(openTaskId) && tab !== 'obligations' ? (
         <FirmWorkspaceFocusDialog
