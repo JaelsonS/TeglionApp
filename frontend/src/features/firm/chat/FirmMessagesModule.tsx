@@ -61,7 +61,7 @@ export function FirmMessagesModule({ embeddedClientId }: { embeddedClientId?: st
   const [searchParams, setSearchParams] = useSearchParams()
   const qc = useQueryClient()
   const { user } = useAuth()
-  const tenantSlug = user?.tenant.slug ?? ''
+  const tenantSlug = user?.tenant?.slug ?? ''
   const selectedClientId = embeddedClientId || searchParams.get('client')
 
   const [listQuery, setListQuery] = useState('')

@@ -28,7 +28,7 @@ export function FirmTrialReminderBanner() {
   const firmSession = isFirmSessionUser(user)
   const { status, trialEndsAt, isLoading } = useFirmAccess(firmSession)
 
-  const tenantSlug = user?.tenant.slug || ''
+  const tenantSlug = user?.tenant?.slug || ''
   const trialIso = trialEndsAt?.toISOString() || ''
   const dismissKey = tenantSlug && trialIso ? trialBannerDismissStorageKey(tenantSlug, trialIso) : ''
 

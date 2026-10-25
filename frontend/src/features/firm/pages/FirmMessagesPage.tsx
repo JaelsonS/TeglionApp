@@ -16,7 +16,7 @@ const PAGE_SUBTITLE =
 export function FirmMessagesPage() {
   const inboxQuery = useFirmInbox()
   const { user } = useAuth()
-  const tenantSlug = user?.tenant.slug ?? ''
+  const tenantSlug = user?.tenant?.slug ?? ''
   const threads = inboxQuery.data?.threads ?? []
   const clients = inboxQuery.data?.clients ?? []
   const [pinnedIds, setPinnedIds] = useState<string[]>(() => getPinnedClientIds(tenantSlug))

@@ -17,13 +17,14 @@ const CHUNK_RECOVERY_KEY = 'teglion.chunk-recovery'
 
 function isChunkLoadFailure(value: unknown): boolean {
   const text = String(value || '')
+  // Não usar `/assets/*.js` no stack — qualquer erro de runtime nos bundles
+  // casava e mascarava o crash real (ex.: tenant null) como «cache desactualizada».
   return (
     text.includes('Unable to preload CSS') ||
     text.includes('Failed to fetch dynamically imported module') ||
     text.includes('Importing a module script failed') ||
     text.includes('Loading chunk') ||
-    // Stale hashed JS after deploy (avoid matching unrelated /assets/ noise)
-    (text.includes('/assets/') && /\.m?js(\?|$)/.test(text))
+    text.includes('error loading dynamically imported module')
   )
 }
 
@@ -255,12 +256,26 @@ const app = (
           return <div>A actualizar a aplicação…</div>
         }
         return (
-          <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif', maxWidth: 420 }}>
+          <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif', maxWidth: 480 }}>
             <p style={{ marginTop: 0 }}>
               {isChunk
                 ? 'A versão em cache ficou desactualizada após um deploy. Limpe a cache e recarregue.'
                 : 'Ocorreu um erro inesperado. Recarregue a página.'}
             </p>
+            {!isChunk && message ? (
+              <pre
+                style={{
+                  fontSize: 12,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  background: '#f4f4f5',
+                  padding: 12,
+                  borderRadius: 8,
+                }}
+              >
+                {message.slice(0, 500)}
+              </pre>
+            ) : null}
             <button
               type="button"
               onClick={() => {
