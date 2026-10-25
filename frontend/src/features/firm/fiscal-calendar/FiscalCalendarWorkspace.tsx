@@ -226,7 +226,7 @@ export function FiscalCalendarWorkspace() {
               </div>
               <div className="min-w-0">
                 <h1 className="cb-operational-page-title font-sans sm:text-2xl">
-                  {calendar?.name || 'Calendário fiscal do escritório'}
+                  {calendar?.name || 'Calendário fiscal'}
                 </h1>
                 <p className="cb-operational-page-sub text-sm">
                   {calendar?.description ||

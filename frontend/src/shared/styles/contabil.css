@@ -942,7 +942,7 @@
   }
 
   .cb-client-hub-header {
-    @apply bg-card;
+    @apply border-b border-border/60 bg-card/95 bg-gradient-to-b from-brand/[0.04] to-card shadow-[var(--cb-shadow-card)];
   }
 
   .cb-client-hub-back-row {
