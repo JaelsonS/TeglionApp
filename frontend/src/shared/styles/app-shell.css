@@ -172,6 +172,17 @@
     @apply flex w-full min-w-0 max-w-full flex-col gap-2 pb-3 xl:min-h-0 xl:flex-1 xl:gap-3 xl:pb-2;
   }
 
+  /*
+   * Desktop: páginas workspace (Documentos, Mensagens, …) usam scroll interno nas colunas.
+   * Sem isto o content-wrap também faz scroll e o utilizador só consegue pan no painel direito.
+   */
+  @media (min-width: 1280px) {
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-firm-workspace-page) {
+      overflow: hidden;
+      padding-bottom: 0.75rem;
+    }
+  }
+
   /* Toolbars/headers não encolhem; painéis de workspace (tarefas, split) precisam de min-h-0 para scroll interno. */
   .cb-firm-workspace-page> :not(.cb-firm-split-host):not(.cb-operational-split):not(.cb-firm-operational-panel):not(.cb-firm-split-view):not(.cb-tasks-panel) {
     @apply shrink-0;

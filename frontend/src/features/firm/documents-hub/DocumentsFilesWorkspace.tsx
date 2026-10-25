@@ -49,7 +49,6 @@ export function DocumentsFilesWorkspace() {
   const previewAsSheet = useDocsPreviewSheet()
   const sheetOpen = Boolean(hub.selectedId) && previewAsSheet
   const hasDesktopPreview = Boolean(hub.selectedId) && !previewAsSheet
-  const [previewFocus, setPreviewFocus] = useState(false)
 
   const selectedDoc = useMemo(
     () => hub.items.find((d) => d._id === hub.selectedId) || hub.detail?.document || null,
@@ -141,7 +140,6 @@ export function DocumentsFilesWorkspace() {
         className={cn(
           'cb-docs-split cb-docs-files-split',
           hasDesktopPreview && 'cb-docs-split-selected',
-          hasDesktopPreview && previewFocus && 'cb-docs-split-focus',
         )}
       >
         <div className="cb-docs-table-wrap cb-docs-files-list">
@@ -170,10 +168,7 @@ export function DocumentsFilesWorkspace() {
                   key={doc._id}
                   doc={doc}
                   selected={hub.selectedId === doc._id}
-                  onSelect={() => {
-                    setPreviewFocus(true)
-                    hub.selectDocument(doc._id)
-                  }}
+                  onSelect={() => hub.selectDocument(doc._id)}
                 />
               ))}
             </ul>
@@ -194,33 +189,16 @@ export function DocumentsFilesWorkspace() {
 
         <aside
           className="cb-docs-preview hidden xl:flex"
-          onClick={() => hasDesktopPreview && setPreviewFocus(true)}
-          onKeyDown={() => {}}
           role={hasDesktopPreview ? 'region' : undefined}
           aria-label={hasDesktopPreview ? 'Pré-visualização do documento' : undefined}
         >
-          {hasDesktopPreview ? (
-            <button
-              type="button"
-              className="cb-docs-preview-focus-toggle"
-              onClick={(e) => {
-                e.stopPropagation()
-                setPreviewFocus((v) => !v)
-              }}
-            >
-              {previewFocus ? 'Mostrar lista' : 'Expandir pré-visualização'}
-            </button>
-          ) : null}
           <DocumentPreviewPanel
             doc={selectedDoc}
             detail={hub.detail}
             detailLoading={hub.detailLoading}
             getPreviewUrl={hub.getPreviewUrl}
             onRefresh={hub.refresh}
-            onClose={() => {
-              setPreviewFocus(false)
-              hub.selectDocument(null)
-            }}
+            onClose={() => hub.selectDocument(null)}
             layout={hasDesktopPreview ? 'expanded' : 'default'}
           />
         </aside>
