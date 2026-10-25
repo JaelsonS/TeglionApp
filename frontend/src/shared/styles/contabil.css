@@ -430,13 +430,9 @@
     @apply absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-caption font-bold text-white ring-2 ring-card;
   }
 
-  .cb-firm-rail-tooltip {
-    @apply pointer-events-none absolute left-[calc(100%+0.55rem)] top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-md border border-border/70 bg-popover px-2.5 py-1.5 text-xs font-medium text-popover-foreground opacity-0 shadow-md transition-opacity duration-100;
-  }
-
-  .cb-firm-icon-nav--tooltip:hover .cb-firm-rail-tooltip,
-  .cb-firm-icon-nav--tooltip:focus-visible .cb-firm-rail-tooltip {
-    @apply opacity-100;
+  /* Tooltip do rail no body (fixed) — não é cortado pelo overflow-y. */
+  .cb-firm-rail-tooltip-fixed {
+    @apply pointer-events-none fixed z-[80] -translate-y-1/2 whitespace-nowrap rounded-md border border-border/70 bg-popover px-2.5 py-1.5 text-xs font-medium text-popover-foreground shadow-md;
   }
 
   .cb-firm-nav-tooltip {
@@ -3300,9 +3296,51 @@
   }
 
   .cb-settings-hub {
-    @apply grid w-full min-w-0 gap-4 md:grid-cols-[minmax(13.5rem,15.5rem)_minmax(0,1fr)] md:items-start md:gap-4 lg:grid-cols-[minmax(14rem,16rem)_minmax(0,1fr)] lg:gap-5;
+    @apply flex w-full min-w-0 flex-col gap-4;
   }
 
+  .cb-settings-hub--single {
+    @apply gap-5;
+  }
+
+  .cb-settings-tabs {
+    @apply -mx-1 flex max-w-[100vw] flex-wrap gap-1.5 overflow-x-auto overscroll-x-contain px-1 pb-1 sm:mx-0 sm:overflow-visible sm:px-0;
+    scrollbar-width: none;
+  }
+
+  .cb-settings-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cb-settings-tab {
+    @apply inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-border/55 bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:bg-muted/40 hover:text-foreground sm:text-sm;
+  }
+
+  .cb-settings-tab--active {
+    @apply border-brand/35 bg-brand/[0.08] font-semibold text-brand;
+  }
+
+  .cb-settings-tab--danger {
+    @apply text-destructive hover:border-destructive/30 hover:bg-destructive/5 hover:text-destructive;
+  }
+
+  .cb-settings-tab--danger.cb-settings-tab--active {
+    @apply border-destructive/35 bg-destructive/10 text-destructive;
+  }
+
+  .cb-settings-tab-label-full {
+    @apply hidden sm:inline;
+  }
+
+  .cb-settings-tab-label-short {
+    @apply inline sm:hidden;
+  }
+
+  .cb-settings-tab-badge {
+    @apply rounded-full bg-brand/15 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-brand;
+  }
+
+  /* Legado — manter classes antigas inofensivas se algum CSS residual referenciar */
   .cb-settings-side-nav-heading {
     @apply mb-1.5 hidden px-2 pb-2 pt-1 md:block;
   }
@@ -3312,7 +3350,7 @@
   }
 
   .cb-settings-side-nav-heading-sub {
-    @apply mt-1 text-[11px] leading-snug text-muted-foreground/90 normal-case tracking-normal font-normal;
+    @apply mt-1 text-[11px] font-normal normal-case leading-snug tracking-normal text-muted-foreground/90;
   }
 
   .cb-settings-connect-stack {

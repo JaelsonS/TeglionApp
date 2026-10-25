@@ -150,7 +150,7 @@ export function FirmSettingsPage() {
       <div className="cb-settings-page">
         <PageHeader
           title="Definições"
-          subtitle="O menu à esquerda é o do escritório. Aqui em baixo escolhe a secção desta página."
+          subtitle="Identidade, pagamentos, equipa e segurança — um só menu do escritório à esquerda."
           testId="firm-settings-header"
           secondary={
             <AskMayaButton
@@ -170,12 +170,8 @@ export function FirmSettingsPage() {
             <div className="h-64 animate-pulse rounded-xl bg-muted/50" />
           </div>
         ) : bundle ? (
-          <div className="cb-settings-hub">
-            <nav ref={navRef} className="cb-settings-side-nav" aria-label="Secções desta página">
-              <div className="cb-settings-side-nav-heading">
-                <p className="cb-settings-side-nav-heading-title">Nesta página</p>
-                <p className="cb-settings-side-nav-heading-sub">Não é o menu do escritório — só as secções das Definições.</p>
-              </div>
+          <div className="cb-settings-hub cb-settings-hub--single">
+            <nav ref={navRef} className="cb-settings-tabs" aria-label="Secções das Definições">
               {visibleTabs.map((item) => {
                 const Icon = item.icon
                 const active = item.id === activeTab
@@ -185,23 +181,18 @@ export function FirmSettingsPage() {
                     type="button"
                     data-tab={item.id}
                     className={cn(
-                      'cb-settings-side-nav-item',
-                      active && 'cb-settings-side-nav-item--active',
-                      item.danger && 'cb-settings-side-nav-item--danger',
+                      'cb-settings-tab',
+                      active && 'cb-settings-tab--active',
+                      item.danger && 'cb-settings-tab--danger',
                     )}
                     aria-current={active ? 'page' : undefined}
-                    aria-label={item.label}
                     onClick={() => setTab(item.id)}
                   >
-                    <span className="cb-settings-side-nav-icon">
-                      <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                    </span>
-                    <span className="cb-settings-side-nav-label">
-                      <span className="cb-settings-side-nav-label-full">{item.label}</span>
-                      <span className="cb-settings-side-nav-label-short">{item.shortLabel}</span>
-                    </span>
+                    <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    <span className="cb-settings-tab-label-full">{item.label}</span>
+                    <span className="cb-settings-tab-label-short">{item.shortLabel}</span>
                     {item.id === 'equipa' && bundle.team?.length ? (
-                      <span className="cb-settings-side-nav-badge">{bundle.team.length}</span>
+                      <span className="cb-settings-tab-badge">{bundle.team.length}</span>
                     ) : null}
                   </button>
                 )

@@ -6,13 +6,13 @@ import {
   FIRM_NAV_RAIL_MAIN,
   type FirmNavItemConfig,
 } from '@/features/firm/firmNavConfig'
-import { FirmRailIconLink } from '@/features/firm/FirmRailIconLink'
+import { FirmRailIconButton, FirmRailIconLink } from '@/features/firm/FirmRailIconLink'
 import { resolveFirmNavBadge, useFirmNavBadgeCounts } from '@/features/firm/useFirmNavBadges'
 import { FirmSidebarHeader } from '@/shared/components/layout/FirmSidebarHeader'
 import { useFirmBranding } from '@/shared/hooks/useFirmBranding'
 import { toPublicAssetUrl } from '@/infrastructure/api'
 
-/** Rail de ícones no desktop quando a sidebar principal está recolhida. */
+/** Rail único (desktop) — todos os ícones no mesmo menu, tooltips em todos. */
 export function FirmDesktopCollapsedRail({ onExpand }: { onExpand: () => void }) {
   const { t } = useTranslation('common')
   const { firm, firmLogoUrl } = useFirmBranding()
@@ -27,6 +27,8 @@ export function FirmDesktopCollapsedRail({ onExpand }: { onExpand: () => void })
 
   const labelFor = (item: FirmNavItemConfig) =>
     t(item.labelKey, { defaultValue: item.labelDefault })
+
+  const allItems = [...FIRM_NAV_RAIL_MAIN, ...FIRM_NAV_RAIL_BOTTOM]
 
   return (
     <div className="cb-firm-icon-rail" data-testid="firm-desktop-collapsed-rail">
@@ -52,7 +54,7 @@ export function FirmDesktopCollapsedRail({ onExpand }: { onExpand: () => void })
         className="cb-firm-icon-rail-nav app-scroll"
         aria-label={t('nav.main', { defaultValue: 'Menu principal' })}
       >
-        {FIRM_NAV_RAIL_MAIN.map((item) => (
+        {allItems.map((item) => (
           <FirmRailIconLink
             key={item.to}
             item={item}
@@ -61,32 +63,15 @@ export function FirmDesktopCollapsedRail({ onExpand }: { onExpand: () => void })
             testIdPrefix="firm-desktop-rail"
           />
         ))}
-      </nav>
-
-      <div className="cb-firm-icon-rail-bottom">
-        {FIRM_NAV_RAIL_BOTTOM.map((item) => (
-          <FirmRailIconLink
-            key={item.to}
-            item={item}
-            label={labelFor(item)}
-            badge={resolveFirmNavBadge(item, counts)}
-            testIdPrefix="firm-desktop-rail"
-          />
-        ))}
-        <button
-          type="button"
-          className="cb-firm-icon-nav cb-firm-icon-nav-inactive cb-firm-icon-nav--tooltip"
-          aria-label={expandLabel}
+        <FirmRailIconButton
+          label={expandLabel}
+          testId="firm-desktop-sidebar-expand"
           aria-expanded={false}
-          data-testid="firm-desktop-sidebar-expand"
           onClick={onExpand}
         >
           <PanelLeftOpen className="cb-firm-rail-icon" strokeWidth={1.75} aria-hidden />
-          <span className="cb-firm-rail-tooltip" role="tooltip">
-            {expandLabel}
-          </span>
-        </button>
-      </div>
+        </FirmRailIconButton>
+      </nav>
     </div>
   )
 }
