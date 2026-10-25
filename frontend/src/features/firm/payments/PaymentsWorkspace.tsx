@@ -36,6 +36,7 @@ import {
   ClientPaymentsDialog,
   type PaymentsMapRow,
 } from '@/features/firm/payments/ClientPaymentsDialog'
+import { GenerateMonthDialog } from '@/features/firm/payments/GenerateMonthDialog'
 
 const MAP_KEY = ['fee-charges-map'] as const
 
@@ -54,7 +55,11 @@ export function PaymentsWorkspace() {
   })
   const [generating, setGenerating] = useState(false)
   const [creatingKey, setCreatingKey] = useState<string | null>(null)
-  const [edit, setEdit] = useState<{ charge: FeeCharge; clientName: string } | null>(null)
+  const [edit, setEdit] = useState<{
+    charge: FeeCharge
+    clientName: string
+    clientTaxId?: string | null
+  } | null>(null)
   const [sheetRow, setSheetRow] = useState<PaymentsMapRow | null>(null)
 
   useEffect(() => {
@@ -195,7 +200,11 @@ export function PaymentsWorkspace() {
         status: 'draft',
       })
       await refreshMap()
-      setEdit({ charge: res.charge, clientName: row.displayName })
+      setEdit({
+        charge: res.charge,
+        clientName: row.displayName,
+        clientTaxId: row.taxId,
+      })
       toast.success(res.created ? 'Mês criado — ajuste o estado' : 'Mês já existia')
     } catch (err) {
       toast.error('Não foi possível criar o mês', { description: getErrorMessage(err) })
@@ -401,7 +410,11 @@ export function PaymentsWorkspace() {
                                   type="button"
                                   className={cn(statusTone(cell.status, cell.overdue))}
                                   onClick={() =>
-                                    setEdit({ charge: cell, clientName: row.displayName })
+                                    setEdit({
+                                      charge: cell,
+                                      clientName: row.displayName,
+                                      clientTaxId: row.taxId,
+                                    })
                                   }
                                   title={`${statusLabelPt(cell.status, cell.overdue)} · clicar para editar`}
                                 >
@@ -467,7 +480,9 @@ export function PaymentsWorkspace() {
         row={sheetRow}
         year={year}
         monthKeys={monthKeys}
-        onEditCharge={(charge, clientName) => setEdit({ charge, clientName })}
+        onEditCharge={(charge, clientName) =>
+          setEdit({ charge, clientName, clientTaxId: sheetRow?.taxId })
+        }
         onCreateMonth={(yearMonth) => {
           if (!sheetRow) return
           void createMonthCharge(sheetRow, yearMonth)
@@ -487,56 +502,20 @@ export function PaymentsWorkspace() {
         }}
         charge={edit?.charge || null}
         clientName={edit?.clientName || ''}
+        clientTaxId={edit?.clientTaxId}
         paymentMethods={data?.paymentMethods || []}
         onSaved={() => void refreshMap()}
       />
 
-      {generateOpen ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
-          <div
-            role="dialog"
-            aria-modal
-            className="w-full max-w-md rounded-xl border border-border bg-card p-5 shadow-lg"
-          >
-            <h2 className="text-lg font-semibold">Gerar avenças do mês</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Cria rascunho só para clientes com avença activa ({activeRetainerCount} agora). Sem
-              avença: abra o cliente, defina o valor e active-a — ou use «+» na célula.
-            </p>
-            <label className="mt-4 block space-y-1.5 text-sm">
-              <span className="font-medium">Mês</span>
-              <Input
-                type="month"
-                value={generateMonth}
-                onChange={(e) => setGenerateMonth(e.target.value)}
-              />
-            </label>
-            <div className="mt-5 flex flex-wrap justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setGenerateOpen(false)}
-                disabled={generating}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="button"
-                onClick={() => void runGenerate()}
-                disabled={generating || activeRetainerCount === 0}
-              >
-                {generating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />A gerar…
-                  </>
-                ) : (
-                  'Gerar'
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <GenerateMonthDialog
+        open={generateOpen}
+        onOpenChange={setGenerateOpen}
+        yearMonth={generateMonth}
+        onYearMonthChange={setGenerateMonth}
+        activeRetainerCount={activeRetainerCount}
+        generating={generating}
+        onGenerate={() => void runGenerate()}
+      />
     </FirmModuleShell>
   )
 }
