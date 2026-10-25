@@ -225,7 +225,7 @@ export function DocumentPreviewPanel({
 
   if (!doc) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 p-10 text-center text-muted-foreground">
+      <div className="flex min-h-[16rem] flex-col items-center justify-center gap-3 p-10 text-center text-muted-foreground">
         <FileStack className="h-12 w-12 opacity-30" />
         <p className="max-w-xs text-sm">Selecione um documento na lista para pré-visualizar e validar.</p>
       </div>
@@ -314,7 +314,12 @@ export function DocumentPreviewPanel({
   )
 
   return (
-    <div className={cn('cb-firm-detail-embed cb-docs-preview-panel flex h-full min-h-0 flex-col', expanded && 'cb-docs-preview-panel-expanded')}>
+    <div
+      className={cn(
+        'cb-firm-detail-embed cb-docs-preview-panel flex w-full min-w-0 flex-col',
+        expanded && 'cb-docs-preview-panel-expanded',
+      )}
+    >
       <header className="flex shrink-0 flex-col gap-3 border-b border-border/60 px-4 py-3 sm:px-5 sm:py-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -340,15 +345,15 @@ export function DocumentPreviewPanel({
 
       <div
         className={cn(
-          'grid min-h-0 flex-1',
+          'grid',
           expanded ? 'xl:grid-cols-[minmax(0,1fr)_280px]' : 'xl:grid-cols-[minmax(0,1fr)_260px]',
         )}
       >
-        <div className="flex min-h-0 flex-col border-b border-border/60 xl:border-b-0 xl:border-r">
+        <div className="flex flex-col border-b border-border/60 xl:border-b-0 xl:border-r">
           <div
             className={cn(
-              'relative min-h-[240px] flex-1 bg-muted/30',
-              expanded ? 'min-h-[min(52vh,520px)] xl:min-h-[min(60vh,640px)]' : 'xl:min-h-[320px]',
+              'relative bg-muted/30',
+              expanded ? 'min-h-[min(52vh,520px)] xl:min-h-[min(60vh,640px)]' : 'min-h-[240px] xl:min-h-[320px]',
             )}
           >
             {previewLoading ? (
@@ -360,7 +365,7 @@ export function DocumentPreviewPanel({
             ) : previewUrl ? (
               <iframe title={displayDocumentName(doc)} src={previewUrl} className="h-full min-h-[280px] w-full" />
             ) : (
-              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+              <div className="flex min-h-[240px] items-center justify-center text-sm text-muted-foreground">
                 Pré-visualização indisponível para este tipo de ficheiro.
               </div>
             )}
@@ -368,7 +373,7 @@ export function DocumentPreviewPanel({
           <div className="flex flex-wrap gap-2 border-t border-border/60 p-3 xl:hidden">{actionButtons}</div>
         </div>
 
-        <aside className="flex min-h-0 flex-col overflow-y-auto">
+        <aside className="flex flex-col">
           <section className="border-b border-border/60 p-4">
             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Detalhes</h3>
             <dl className="mt-3 space-y-2 text-sm">

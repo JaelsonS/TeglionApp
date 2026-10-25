@@ -173,27 +173,47 @@
   }
 
   /*
-   * Desktop: páginas workspace — content-wrap não faz scroll; as colunas internas sim.
-   * flex-basis 0% + min-height 0 em toda a cadeia (senão o overflow:hidden corta sem scrollbar).
+   * Desktop workspace (exceto Documentos): content-wrap sem scroll; colunas internas.
+   * Documentos (.cb-docs-layout-page): um único scroll no content-wrap — evita “pedaços”.
    */
   @media (min-width: 1280px) {
-    .cb-firm-shell .cb-firm-content-wrap:has(.cb-firm-workspace-page) {
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-firm-workspace-page):not(:has(.cb-docs-layout-page)) {
       overflow: hidden;
       padding-bottom: 0.75rem;
     }
 
-    .cb-firm-shell .cb-firm-content-wrap:has(.cb-firm-workspace-page) > .cb-firm-workspace-page {
+    .cb-firm-shell
+      .cb-firm-content-wrap:has(.cb-firm-workspace-page):not(:has(.cb-docs-layout-page))
+      > .cb-firm-workspace-page {
       flex: 1 1 0%;
       min-height: 0;
       overflow: hidden;
     }
 
-    .cb-firm-shell .cb-firm-workspace-page > .cb-firm-operational-panel {
+    .cb-firm-shell
+      .cb-firm-workspace-page:not(.cb-docs-layout-page)
+      > .cb-firm-operational-panel {
       flex: 1 1 0%;
       min-height: 0;
       overflow: hidden;
       height: auto;
       max-height: 100%;
+    }
+
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-docs-layout-page) {
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 1.25rem;
+    }
+
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-docs-layout-page) > .cb-docs-layout-page {
+      flex: none;
+      height: auto;
+      min-height: 0;
+      max-height: none;
+      overflow: visible;
     }
   }
 

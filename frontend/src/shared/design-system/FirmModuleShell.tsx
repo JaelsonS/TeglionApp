@@ -35,12 +35,17 @@ export function FirmModuleShell({
   tabsClassName,
   embedded = false,
 }: FirmModuleShellProps) {
+  /** Documentos usa scroll de página; outros módulos podem prender altura. */
+  const pageScroll = Boolean(className?.includes('cb-docs-page'))
+
   return (
     <div
       className={cn(
         embedded
           ? 'flex min-w-0 flex-col'
-          : 'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden',
+          : pageScroll
+            ? 'flex min-w-0 w-full flex-col'
+            : 'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden',
         className,
       )}
     >
@@ -72,10 +77,11 @@ export function FirmModuleShell({
         className={cn(
           embedded
             ? 'min-w-0 flex-col'
-            : 'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden',
+            : pageScroll
+              ? 'flex w-full min-w-0 flex-col'
+              : 'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden',
           bodyClassName,
         )}
-        style={embedded ? undefined : { flex: '1 1 0%' }}
       >
         {children}
       </div>

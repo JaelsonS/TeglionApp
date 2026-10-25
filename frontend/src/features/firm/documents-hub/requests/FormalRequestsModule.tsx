@@ -322,9 +322,8 @@ export function FormalRequestsModule() {
   )
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+    <div className="flex w-full min-w-0 flex-col">
       <FirmSplitView
-        className="min-h-0 flex-1"
         hasSelection={Boolean(selectedRequestId)}
         onClearSelection={() => updateParams({ request: null })}
         sheetTitle={selectedRequest?.title || 'Pedido'}

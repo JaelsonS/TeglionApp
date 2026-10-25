@@ -40,11 +40,7 @@ export function DocumentsHubShell({ children }: { children: ReactNode }) {
       headerRight={<AskMayaButton intentId="documents" />}
       bodyClassName="gap-0"
     >
-      <div
-        className={cn('flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden')}
-        style={{ flex: '1 1 0%' }}
-        data-documents-section={sectionKey}
-      >
+      <div className={cn('flex w-full min-w-0 flex-col')} data-documents-section={sectionKey}>
         {children}
       </div>
     </FirmModuleShell>
