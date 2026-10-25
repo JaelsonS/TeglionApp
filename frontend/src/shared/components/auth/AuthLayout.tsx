@@ -16,20 +16,20 @@ export function AuthLayout({
     leftPanelSlot?: ReactNode
 }) {
     return (
-        <main className="min-h-screen bg-[#f5f7fb] text-slate-950">
+        <main className="min-h-screen bg-background font-sans text-foreground">
             <div className="relative min-h-screen overflow-hidden">
-                <div className="pointer-events-none absolute left-[-120px] top-[-120px] h-80 w-80 rounded-full bg-[#0f2942]/15 blur-3xl" />
-                <div className="pointer-events-none absolute right-[-120px] top-[20%] h-96 w-96 rounded-full bg-[#2b6cb0]/15 blur-3xl" />
+                <div className="pointer-events-none absolute left-[-120px] top-[-120px] h-80 w-80 rounded-full bg-brand/15 blur-3xl" />
+                <div className="pointer-events-none absolute right-[-120px] top-[20%] h-96 w-96 rounded-full bg-info/20 blur-3xl" />
 
                 <div className="relative mx-auto grid min-h-screen w-full max-w-7xl grid-cols-1 gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:items-stretch lg:px-10 lg:py-10">
-                    <section className="hidden overflow-hidden rounded-[2rem] border border-[#0f2942]/10 bg-gradient-to-br from-[#0f2942] via-[#123a61] to-[#195285] p-10 text-white shadow-[0_40px_120px_rgba(15,41,66,0.32)] lg:sticky lg:top-8 lg:flex lg:self-start lg:flex-col lg:gap-6">
+                    <section className="hidden overflow-hidden rounded-[2rem] border border-brand/10 bg-gradient-to-br from-brand via-[hsl(210_75%_28%)] to-[hsl(199_70%_36%)] p-10 text-primary-foreground shadow-[0_40px_120px_hsl(var(--cb-brand)/0.32)] lg:sticky lg:top-8 lg:flex lg:self-start lg:flex-col lg:gap-6">
                         <div>
                             <BrandMark size="lg" variant="onDark" showName nameClassName="text-xl" />
-                            <p className="mt-10 max-w-md text-4xl font-semibold leading-tight">
-                                Gestão contábil com cara de produto enterprise.
+                            <p className="mt-10 max-w-md font-sans text-4xl font-semibold leading-tight">
+                                Gestão clara para o escritório e o cliente.
                             </p>
-                            <p className="mt-5 max-w-md text-base leading-relaxed text-slate-200">
-                                Centralize clientes, documentos, obrigações e comunicação num fluxo claro e seguro para escritório e cliente final.
+                            <p className="mt-5 max-w-md text-base leading-relaxed text-primary-foreground/85">
+                                Clientes, documentos, prazos e mensagens num só fluxo — fácil de perceber desde o primeiro dia.
                             </p>
                         </div>
 

@@ -208,34 +208,39 @@ export function FirmDashboardPage() {
       <div className="cb-dash-page" data-testid="firm-dashboard">
         <PageHeader
           title={greeting}
-          subtitle={`Estado do escritório e o que fazer a seguir · actualizado ${relativeUpdated(updatedAt)}${
-            data ? ` · ${data.totalClients} empresas` : ''
+          subtitle={`O que precisa de si agora no escritório · actualizado ${relativeUpdated(updatedAt)}${
+            data ? ` · ${data.totalClients} clientes` : ''
           }`}
           testId="firm-dashboard-header"
           secondary={
-            <div className="flex flex-wrap gap-1.5" role="group" aria-label="Período">
-              {(
-                [
-                  ['all', 'Tudo'],
-                  ['today', 'Hoje'],
-                  ['week', 'Esta semana'],
-                ] as const
-              ).map(([key, label]) => (
-                <Button
-                  key={key}
-                  type="button"
-                  size="sm"
-                  variant={scope === key ? 'primary' : 'outline'}
-                  onClick={() => setScope(key)}
-                >
-                  {label}
-                </Button>
-              ))}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap gap-1.5" role="group" aria-label="Período">
+                {(
+                  [
+                    ['all', 'Tudo'],
+                    ['today', 'Hoje'],
+                    ['week', 'Esta semana'],
+                  ] as const
+                ).map(([key, label]) => (
+                  <Button
+                    key={key}
+                    type="button"
+                    size="sm"
+                    variant={scope === key ? 'primary' : 'outline'}
+                    onClick={() => setScope(key)}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+              <Button type="button" size="sm" variant="ghost" asChild>
+                <Link to="/manual/primeiros-passos">Guia</Link>
+              </Button>
             </div>
           }
           right={
             <div className="flex flex-wrap items-center gap-2">
-              <AskMayaButton intentId="tour" />
+              <AskMayaButton intentId="setup" />
               <Button type="button" size="sm" variant="outline" onClick={() => navigate(firmTasksPath('manual'))}>
                 <Plus className="h-4 w-4" />
                 Nova tarefa
@@ -244,24 +249,32 @@ export function FirmDashboardPage() {
           }
         />
 
-        <FirmOnboardingWizard className="mb-4" />
-
-        {progress?.nextAction ? (
-          <div className="mb-4 grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-            <FirmNextStepCard
-              action={progress.nextAction}
-              loading={progressLoading}
-              isOwner={isFirmOwner}
-            />
-            <FirmPublicUrlCard publicUrl={progress.publicUrl} published={publicPublished} />
-          </div>
-        ) : null}
-
-        {isFirmOwner && progress ? (
-          <div className="mb-4">
-            <FirmActivationChecklist progress={progress} loading={progressLoading} isOwner={isFirmOwner} />
-          </div>
-        ) : null}
+        {progress?.nextAction || (isFirmOwner && progress) ? (
+          <details className="mb-4 rounded-xl border border-border/70 bg-card p-3 open:shadow-sm">
+            <summary className="cursor-pointer text-sm font-semibold text-foreground">
+              Configurar o escritório
+              <span className="ml-2 font-normal text-muted-foreground">(passos iniciais · Maya e Manual)</span>
+            </summary>
+            <div className="mt-3 space-y-3">
+              <FirmOnboardingWizard />
+              {progress?.nextAction ? (
+                <div className="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+                  <FirmNextStepCard
+                    action={progress.nextAction}
+                    loading={progressLoading}
+                    isOwner={isFirmOwner}
+                  />
+                  <FirmPublicUrlCard publicUrl={progress.publicUrl} published={publicPublished} />
+                </div>
+              ) : null}
+              {isFirmOwner && progress ? (
+                <FirmActivationChecklist progress={progress} loading={progressLoading} isOwner={isFirmOwner} />
+              ) : null}
+            </div>
+          </details>
+        ) : (
+          <FirmOnboardingWizard className="mb-4" />
+        )}
 
         {loading && !data ? (
           <div className="cb-dash-kpi-row">
@@ -289,6 +302,10 @@ export function FirmDashboardPage() {
 
         {data ? (
           <>
+            <section className="mb-5" aria-labelledby="dash-precisa-si">
+              <h2 id="dash-precisa-si" className="mb-3 text-title font-semibold tracking-tight text-foreground">
+                Precisa de si
+              </h2>
             <div className="cb-dash-kpi-row">
               <DashKpi
                 label="Em atraso"
@@ -323,6 +340,7 @@ export function FirmDashboardPage() {
                 onClick={() => navigate(firmTasksPath('manual'))}
               />
             </div>
+            </section>
 
             <div className="cb-dash-cols">
               <div className="flex flex-col gap-3">
@@ -418,6 +436,7 @@ export function FirmDashboardPage() {
               </div>
 
               <aside className="flex flex-col gap-3">
+                <h2 className="text-title font-semibold tracking-tight text-foreground">Hoje</h2>
                 <section className="cb-dash-panel">
                   <div className="cb-dash-panel-hd">
                     <span className="cb-dash-panel-title">Estado da carteira</span>
@@ -519,9 +538,11 @@ export function FirmDashboardPage() {
                   )}
                 </DashPanel>
 
-                <section className="cb-dash-panel">
+                <section className="cb-dash-panel" aria-labelledby="dash-acoes">
                   <div className="cb-dash-panel-hd">
-                    <span className="cb-dash-panel-title">Atalhos</span>
+                    <span id="dash-acoes" className="cb-dash-panel-title">
+                      Acções rápidas
+                    </span>
                   </div>
                   <div className="cb-dash-shortcuts">
                     {QUICK_LINKS.map(({ to, label, icon: Icon }) => (
@@ -530,6 +551,15 @@ export function FirmDashboardPage() {
                         {label}
                       </Link>
                     ))}
+                    <Link to="/app/firm/messages" className="cb-dash-sc">
+                      <MessageSquare className="h-3.5 w-3.5 text-brand" />
+                      Mensagens
+                      {messagesUnread > 0 ? ` (${messagesUnread})` : ''}
+                    </Link>
+                    <Link to="/manual" className="cb-dash-sc">
+                      <FileText className="h-3.5 w-3.5 text-brand" />
+                      Manual
+                    </Link>
                   </div>
                 </section>
 

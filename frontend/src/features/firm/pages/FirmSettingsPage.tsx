@@ -150,7 +150,7 @@ export function FirmSettingsPage() {
       <div className="cb-settings-page">
         <PageHeader
           title="Definições"
-          subtitle="Identidade, pagamentos, equipa e segurança — um só menu do escritório à esquerda."
+          subtitle="Configure identidade, página pública, Stripe Connect (receber dos clientes), equipa e segurança. Menu interno sempre com nomes."
           testId="firm-settings-header"
           secondary={
             <AskMayaButton

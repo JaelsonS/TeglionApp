@@ -72,11 +72,13 @@ export function ClientDashboardPage() {
 
   return (
     <div data-testid="client-dashboard-page" className="space-y-6">
-      <header className="space-y-1">
-        <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+      <header className="space-y-1.5">
+        <h1 className="font-sans text-title font-semibold tracking-tight text-foreground sm:text-display">
           Olá, {greetingName(user?.fullName)}
         </h1>
-        <p className="text-sm text-muted-foreground">O que precisa de si agora.</p>
+        <p className="max-w-2xl text-body text-muted-foreground">
+          O que o escritório precisa de si agora — pedidos, prazos e mensagens num só sítio.
+        </p>
       </header>
 
       {hubQuery.isLoading ? (

@@ -94,7 +94,7 @@ export function FirmBillingPage() {
       <div className="cb-billing-page">
         <PageHeader
           title="Plano e subscrição"
-          subtitle={`${trialDays} dias de teste · depois mensal (${monthlyLabel}) ou anual (${yearlyLabel} — ~${yearlyMonthlyLabel}/mês). Sem alteração à lógica de pagamento.`}
+          subtitle={`Subscrição Teglion (SaaS) — ${trialDays} dias de teste, depois mensal (${monthlyLabel}) ou anual (${yearlyLabel}). Distinto dos pagamentos que os clientes fazem ao escritório (Definições → Pagamentos).`}
           testId="firm-billing-header"
           secondary={<AskMayaButton intentId="billing" />}
         />

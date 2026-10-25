@@ -66,8 +66,8 @@ export function PaymentsWorkspace() {
 
   return (
     <FirmModuleShell
-      title="Pagamentos"
-      subtitle="Avenças e honorários dos seus clientes — registo manual, com histórico e saldos. Stripe Connect é opcional."
+      title="Pagamentos dos clientes"
+      subtitle="Avenças e honorários da carteira (mapa, saldos, histórico). Não é o Plano Teglion — Stripe Connect liga-se em Definições → Pagamentos."
       headerRight={
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => setYear((y) => y - 1)}>

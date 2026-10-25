@@ -353,7 +353,8 @@
   }
 
   .cb-firm-nav-item-active {
-    @apply bg-brand/[0.08] text-brand;
+    @apply text-brand;
+    background-color: hsl(var(--cb-brand-soft));
     box-shadow: inset 3px 0 0 hsl(var(--cb-brand));
   }
 

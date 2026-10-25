@@ -37,12 +37,12 @@ export function ManualIndexPage() {
               <MayaAvatar size="lg" variant="md" />
               <div>
                 <p className="text-sm font-medium text-brand">Maya · Manual {BRAND.name}</p>
-                <h1 className="text-3xl font-semibold tracking-tight text-[#0F2942] sm:text-4xl">
+                <h1 className="font-sans text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                   O guia completo, na minha voz
                 </h1>
               </div>
             </div>
-            <p className="mt-4 text-base leading-relaxed text-[#4A5568]">
+            <p className="mt-4 text-base leading-relaxed text-muted-foreground">
               Sou a Maya. Aqui explico o Teglion como se estivéssemos no mesmo ecrã — para quem ainda
               está a descobrir o produto e para quem já trabalha no escritório ou no portal do
               cliente. Sem jargão inútil. Sem promessas que o produto ainda não cumpre.

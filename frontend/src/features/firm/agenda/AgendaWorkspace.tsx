@@ -274,8 +274,8 @@ export function AgendaWorkspace() {
             title="Agenda"
             subtitle={
               tab === 'settings'
-                ? 'Defina a sua disponibilidade para receber agendamentos.'
-                : 'Marque reuniões, configure disponibilidade e a disponibilidade na página pública.'
+                ? 'Horário em que o escritório aceita marcações (página pública e portal).'
+                : 'Consultas e reuniões do escritório — marque, veja o dia e gira a disponibilidade.'
             }
             testId="firm-agenda-header"
             secondary={

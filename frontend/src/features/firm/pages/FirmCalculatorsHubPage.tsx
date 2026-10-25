@@ -74,7 +74,7 @@ export function FirmCalculatorsHubPage() {
       <div className="cb-calc-hub" data-testid="firm-calculators-hub">
         <PageHeader
           title="Calculadoras"
-          subtitle="Escolha uma ferramenta. Abre num painel — simulações de apoio, não declarações oficiais."
+          subtitle="Seis simuladores de apoio (IVA, IRS, SS, retenção, IMT, IRC). Não substituem a declaração oficial."
           testId="firm-calculators-hub-header"
           secondary={<AskMayaButton intentId="dashboard" />}
         />

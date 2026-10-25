@@ -36,11 +36,12 @@ export type FirmNavGroupConfig = {
   items: FirmNavItemConfig[]
 }
 
+/** Grupos legíveis (repaginação): mesmas rotas, nomes que explicam o quê. */
 export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
   {
     id: 'overview',
     titleKey: 'contabil.firm.nav.overview',
-    titleDefault: 'Visão geral',
+    titleDefault: 'Hoje',
     items: [
       {
         to: '/app/firm/dashboard',
@@ -53,7 +54,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
   {
     id: 'clients',
     titleKey: 'contabil.firm.nav.clients',
-    titleDefault: 'Clientes',
+    titleDefault: 'Clientes e carteira',
     items: [
       {
         to: '/app/firm/clients',
@@ -64,7 +65,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
       {
         to: '/app/firm/payments',
         labelKey: 'contabil.firm.nav.payments',
-        labelDefault: 'Pagamentos',
+        labelDefault: 'Pagamentos dos clientes',
         icon: Wallet,
       },
       {
@@ -76,13 +77,13 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
       {
         to: '/app/firm/saft',
         labelKey: 'contabil.firm.nav.saft',
-        labelDefault: 'SAF-T (leitura)',
+        labelDefault: 'SAF-T (consulta)',
         icon: FileArchive,
       },
       {
         to: '/app/firm/tasks/obligations',
         labelKey: 'contabil.firm.nav.obligations',
-        labelDefault: 'Obrigações dos Clientes',
+        labelDefault: 'Obrigações por cliente',
         icon: ClipboardCheck,
         end: false,
         badgeKey: 'obligations',
@@ -92,7 +93,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
   {
     id: 'operations',
     titleKey: 'contabil.firm.nav.operations',
-    titleDefault: 'Gestor de Operações',
+    titleDefault: 'Trabalho do escritório',
     items: [
       {
         to: '/app/firm/tasks',
@@ -112,7 +113,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
       {
         to: '/app/firm/irs',
         labelKey: 'contabil.firm.nav.irs',
-        labelDefault: 'IRS',
+        labelDefault: 'Área IRS',
         icon: Landmark,
       },
       {
@@ -125,7 +126,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
       {
         to: '/app/firm/fiscal-calendar',
         labelKey: 'contabil.firm.nav.fiscalCalendar',
-        labelDefault: 'Calendário fiscal',
+        labelDefault: 'Calendário fiscal do escritório',
         icon: CalendarDays,
       },
       {
@@ -140,12 +141,12 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
   {
     id: 'comms',
     titleKey: 'contabil.firm.nav.comms',
-    titleDefault: 'Comunicação',
+    titleDefault: 'Comunicar',
     items: [
       {
         to: '/app/firm/documents',
         labelKey: 'contabil.firm.nav.documents',
-        labelDefault: 'Documentos',
+        labelDefault: 'Documentos e pedidos',
         icon: Inbox,
         end: false,
         badgeKey: 'documents',
@@ -160,7 +161,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
       {
         to: '/app/firm/alerts',
         labelKey: 'contabil.firm.nav.alerts',
-        labelDefault: 'Central de Alertas',
+        labelDefault: 'Alertas',
         icon: Megaphone,
       },
       {
@@ -174,12 +175,12 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
   {
     id: 'admin',
     titleKey: 'contabil.firm.nav.admin',
-    titleDefault: 'Configurações',
+    titleDefault: 'Conta Teglion',
     items: [
       {
         to: '/app/firm/billing',
         labelKey: 'nav.billing',
-        labelDefault: 'Plano',
+        labelDefault: 'Plano (subscrição)',
         icon: ReceiptText,
       },
       {
@@ -255,7 +256,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
   {
     to: '/app/firm/payments',
     labelKey: 'contabil.firm.nav.payments',
-    labelDefault: 'Pagamentos',
+    labelDefault: 'Pagamentos dos clientes',
     icon: Wallet,
   },
   {
@@ -267,13 +268,13 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
   {
     to: '/app/firm/saft',
     labelKey: 'contabil.firm.nav.saft',
-    labelDefault: 'SAF-T (leitura)',
+    labelDefault: 'SAF-T (consulta)',
     icon: FileArchive,
   },
   {
     to: '/app/firm/documents',
     labelKey: 'contabil.firm.nav.documents',
-    labelDefault: 'Documentos',
+    labelDefault: 'Documentos e pedidos',
     icon: Inbox,
     end: false,
     badgeKey: 'documents',
@@ -303,7 +304,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
   {
     to: '/app/firm/fiscal-calendar',
     labelKey: 'contabil.firm.nav.fiscalCalendar',
-    labelDefault: 'Calendário fiscal',
+    labelDefault: 'Calendário fiscal do escritório',
     icon: CalendarDays,
   },
   {
@@ -322,7 +323,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
   {
     to: '/app/firm/irs',
     labelKey: 'contabil.firm.nav.irs',
-    labelDefault: 'IRS',
+    labelDefault: 'Área IRS',
     icon: Landmark,
   },
   {
@@ -335,7 +336,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
   {
     to: '/app/firm/tasks/obligations',
     labelKey: 'contabil.firm.nav.obligations',
-    labelDefault: 'Obrigações dos Clientes',
+    labelDefault: 'Obrigações por cliente',
     icon: ClipboardCheck,
     end: false,
     badgeKey: 'obligations',
@@ -346,7 +347,7 @@ export const FIRM_NAV_RAIL_BOTTOM: FirmNavItemConfig[] = [
   {
     to: '/app/firm/billing',
     labelKey: 'nav.billing',
-    labelDefault: 'Plano',
+    labelDefault: 'Plano (subscrição)',
     icon: ReceiptText,
   },
   {

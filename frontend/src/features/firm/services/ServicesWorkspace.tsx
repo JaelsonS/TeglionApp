@@ -228,7 +228,7 @@ export function ServicesWorkspace() {
       <div className="cb-services-page-hd shrink-0 space-y-4">
         <PageHeader
           title="Central de Serviços"
-          subtitle="Pedidos e orçamentos dos clientes activos — do contacto à entrega. Pedidos novos da página pública estão em Solicitações."
+          subtitle="Catálogo e pedidos de serviço do escritório. Pedidos novos da página pública aparecem em Solicitações."
           testId="firm-services-central-header"
           right={
             <>

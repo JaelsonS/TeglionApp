@@ -85,7 +85,7 @@ export function ClientObligationsPage() {
     <div className="space-y-5" data-testid="client-obligations-page">
       <PageHeader
         title="Prazos"
-        subtitle="Agrupados: em atraso, esta semana, mais tarde. A data completa fica no detalhe."
+        subtitle="Obrigações e entregas pedidas pelo escritório — em atraso, esta semana, ou mais tarde."
         actions={<AskMayaButton intentId="portal-deadlines" />}
       />
 
