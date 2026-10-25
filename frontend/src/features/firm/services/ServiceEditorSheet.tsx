@@ -94,7 +94,7 @@ export function ServiceEditorSheet({ service, open, onOpenChange, onSaved }: Pro
       onOpenChange={onOpenChange}
       title="Editar serviço"
       description="Configure o que o cliente vê e como paga."
-      className="h-auto max-h-[min(92dvh,880px)] w-[min(96vw,680px)] max-w-[min(96vw,680px)]"
+      className="w-[min(96vw,680px)] max-w-[min(96vw,680px)]"
     >
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">

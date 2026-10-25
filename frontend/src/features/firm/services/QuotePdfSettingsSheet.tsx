@@ -57,7 +57,7 @@ export function QuotePdfSettingsSheet({
       onOpenChange={onOpenChange}
       title="Personalizar PDF de orçamento"
       description="Estes textos aparecem em todos os orçamentos que gerar a partir de agora — não precisa de os reescrever a cada pedido. O nome do cliente, o serviço e o valor continuam sempre automáticos."
-      className="h-auto max-h-[min(92dvh,760px)] w-[min(96vw,640px)] max-w-[min(96vw,640px)]"
+      className="w-[min(96vw,640px)] max-w-[min(96vw,640px)]"
     >
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
         <div className="space-y-5">

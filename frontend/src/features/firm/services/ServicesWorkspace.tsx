@@ -447,7 +447,7 @@ export function ServicesWorkspace() {
           onOpenChange={(open) => !open && clearRequest()}
           title={selectedFromList?.title || 'Detalhe do pedido'}
           description="Pedido, orçamento e histórico — no centro do ecrã."
-          className="h-auto max-h-[min(92dvh,880px)] w-[min(96vw,720px)] max-w-[min(96vw,720px)]"
+          className="w-[min(96vw,720px)] max-w-[min(96vw,720px)]"
         >
           <div className="min-h-0 flex-1 overflow-y-auto">{detailPanel}</div>
         </FirmWorkspaceFocusDialog>

@@ -221,7 +221,7 @@ export function DocumentsFilesWorkspace() {
           onOpenChange={(open) => !open && hub.selectDocument(null)}
           title={selectedDoc ? displayDocumentName(selectedDoc) : 'Pré-visualização do documento'}
           description="Documento no centro do ecrã — valide, descarregue ou feche sem perder a lista."
-          className="h-auto max-h-[min(92dvh,880px)] w-[min(96vw,760px)] max-w-[min(96vw,760px)]"
+          className="w-[min(96vw,760px)] max-w-[min(96vw,760px)]"
         >
           <div className="min-h-0 flex-1 overflow-y-auto">
             <DocumentPreviewPanel
