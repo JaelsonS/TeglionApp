@@ -9,7 +9,6 @@ import {
   Loader2,
   Plus,
   Search,
-  Sparkles,
   Wallet,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -54,7 +53,6 @@ export function PaymentsWorkspace() {
     return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}`
   })
   const [generating, setGenerating] = useState(false)
-  const [bootstrapping, setBootstrapping] = useState(false)
   const [creatingKey, setCreatingKey] = useState<string | null>(null)
   const [edit, setEdit] = useState<{ charge: FeeCharge; clientName: string } | null>(null)
   const [sheetRow, setSheetRow] = useState<PaymentsMapRow | null>(null)
@@ -164,7 +162,7 @@ export function PaymentsWorkspace() {
         toast.message('Nada gerado', {
           description:
             activeRetainerCount === 0
-              ? 'Nenhum cliente tem avença activa. Use «Montar operação» ou defina a avença no cliente.'
+              ? 'Nenhum cliente tem avença activa. Abra o cliente, defina o valor e active a avença.'
               : 'Todos os clientes com avença já têm este mês.',
         })
       } else {
@@ -179,25 +177,6 @@ export function PaymentsWorkspace() {
       toast.error('Não foi possível gerar', { description: getErrorMessage(err) })
     } finally {
       setGenerating(false)
-    }
-  }
-
-  async function runBootstrap() {
-    setBootstrapping(true)
-    try {
-      const res = await contabilFeeChargesApi.bootstrap({
-        year,
-        defaultAmountCents: 15000,
-      })
-      toast.success('Operação do ano montada', {
-        description: `${res.activated} avença(s) activadas · ${res.created} mês(es) · pagos e em atraso misturados`,
-      })
-      setHealthFilter('todos')
-      await refreshMap()
-    } catch (err) {
-      toast.error('Não foi possível montar a operação', { description: getErrorMessage(err) })
-    } finally {
-      setBootstrapping(false)
     }
   }
 
@@ -239,20 +218,6 @@ export function PaymentsWorkspace() {
           <Button type="button" variant="outline" size="sm" onClick={() => setYear((y) => y + 1)}>
             <ChevronRight className="h-4 w-4" aria-hidden />
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => void runBootstrap()}
-            disabled={bootstrapping}
-          >
-            {bootstrapping ? (
-              <Loader2 className="mr-1.5 h-4 w-4 animate-spin" aria-hidden />
-            ) : (
-              <Sparkles className="mr-1.5 h-4 w-4" aria-hidden />
-            )}
-            Montar operação
-          </Button>
           <Button type="button" size="sm" onClick={() => setGenerateOpen(true)}>
             Gerar mês
           </Button>
@@ -282,24 +247,14 @@ export function PaymentsWorkspace() {
       {!mapQuery.isLoading && data && !hasAnyCharge ? (
         <div className="cb-payments-empty-banner" data-testid="payments-empty-banner">
           <div className="min-w-0 flex-1">
-            <p className="font-semibold text-foreground">O mapa ainda não tem operação</p>
+            <p className="font-semibold text-foreground">Ainda sem avenças neste mapa</p>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Todos os clientes estão sem meses gerados
-              {activeRetainerCount === 0 ? ' e sem avença activa' : ''}. Monte uma operação com
-              clientes adimplentes e em dívida, ou clique num «+» para criar um mês.
+              Abra um cliente, defina o valor mensal e active a avença — depois use «Gerar mês», ou
+              clique em «+» numa célula para criar só esse mês.
             </p>
           </div>
-          <Button type="button" onClick={() => void runBootstrap()} disabled={bootstrapping}>
-            {bootstrapping ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />A montar…
-              </>
-            ) : (
-              <>
-                <Sparkles className="mr-2 h-4 w-4" aria-hidden />
-                Montar operação {year}
-              </>
-            )}
+          <Button type="button" onClick={() => setGenerateOpen(true)}>
+            Gerar mês
           </Button>
         </div>
       ) : null}
@@ -545,8 +500,8 @@ export function PaymentsWorkspace() {
           >
             <h2 className="text-lg font-semibold">Gerar avenças do mês</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Cria rascunho só para clientes com avença activa ({activeRetainerCount} agora). Se
-              estiver a zero, use «Montar operação» primeiro.
+              Cria rascunho só para clientes com avença activa ({activeRetainerCount} agora). Sem
+              avença: abra o cliente, defina o valor e active-a — ou use «+» na célula.
             </p>
             <label className="mt-4 block space-y-1.5 text-sm">
               <span className="font-medium">Mês</span>
@@ -565,28 +520,19 @@ export function PaymentsWorkspace() {
               >
                 Cancelar
               </Button>
-              {activeRetainerCount === 0 ? (
-                <Button
-                  type="button"
-                  onClick={() => {
-                    setGenerateOpen(false)
-                    void runBootstrap()
-                  }}
-                  disabled={bootstrapping}
-                >
-                  Montar operação
-                </Button>
-              ) : (
-                <Button type="button" onClick={() => void runGenerate()} disabled={generating}>
-                  {generating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />A gerar…
-                    </>
-                  ) : (
-                    'Gerar'
-                  )}
-                </Button>
-              )}
+              <Button
+                type="button"
+                onClick={() => void runGenerate()}
+                disabled={generating || activeRetainerCount === 0}
+              >
+                {generating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />A gerar…
+                  </>
+                ) : (
+                  'Gerar'
+                )}
+              </Button>
             </div>
           </div>
         </div>
