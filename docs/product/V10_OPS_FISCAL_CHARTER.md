@@ -1,7 +1,7 @@
 # Teglion V10 — Carta da frente Ops + Fiscal
 
 **Branch exclusiva:** `feature/fase-v10-ops-fiscal` (base: `staging`)  
-**Actualizado:** 25/10/2026 (Ondas 1–3 commitadas na branch; sem push)  
+**Actualizado:** 25/10/2026 (Ondas 1–3 + IRS escalões commitados na branch; sem push)  
 **Estado:** implementação activa na branch `feature/fase-v10-ops-fiscal`
 
 Marca: **Teglion** (produto). Operador: **AfDigital — Soluções Tecnológicas**. Domínio: teglion.com.
@@ -97,7 +97,7 @@ Emissão oficial no Portal das Finanças, comunicação ATCUD/e-Fatura como soft
 | **1** | Avenças & mapa de pagamentos | **Commitada** (`feat(payments): avenças…`). Manual + Connect opcional | Clientes (+ Connect se quiser) |
 | **2** | Motor IVA (simulação) | **Commitada** (`feat(fiscal): motor IVA…`). Cêntimos, `PT-IVA-2026.1`, UI `/calculators/iva` | Onda 1 |
 | **3** | Calendário × cliente | **Commitada.** Vista «Mês fiscal» N/M em `/app/firm/tasks/month` | Onda 1–2 |
-| **4** | Mais simuladores | IRS escalões, retenção, SS, rendas, IMT, IRC, TA — um a um com fonte | Contabilista revisor |
+| **4** | Mais simuladores | **Em curso.** IRS escalões (`PT-IRS-2026.1`) em `/calculators/irs`; próximos: retenção, SS, … | Contabilista revisor |
 | **5** | Imóveis / rendas (dados) | Contratos, inquilinos, recibos **internos**, sem comunicação AT | — |
 | **6** | SAF-T **leitura** | XML/ZIP → totais; sem envio AT | Isolamento + XSD |
 | **7** | Manual do utilizador Teglion | `/manual` (público) + link na app; capítulos + capturas reais | Ondas 1–3 estáveis |
@@ -216,6 +216,7 @@ Perfis Teglion a documentar: `FIRM_OWNER`, `FIRM_STAFF` (e permissões), cliente
 - Onda 1: commitada nesta branch (sem push).
 - Onda 2: motor IVA + UI + migration `20261025010000_fiscal_calculations.sql` no repo (SQL já implantado pelo owner em ambiente de trabalho).
 - Onda 3: matriz mês fiscal (API + UI); **sem migration nova**.
+- Onda 4 (parcial): motor IRS escalões + UI; migration `20261025020000_fiscal_calculations_irs.sql` (alarga `calc_type`) — aplicar com OK.
 - Migrations **não** aplicadas a staging/prod sem autorização.
 - Push geral para staging: só no fim do pacote de ondas, por pedido explícito.
 
@@ -236,3 +237,12 @@ Perfis Teglion a documentar: `FIRM_OWNER`, `FIRM_STAFF` (e permissões), cliente
 - [x] Marcar tratado a partir da lista expandida
 - [x] Disclaimer: não inventa prazos AT
 - [x] Testes unitários do agregador
+
+### Critério Onda 4 (parcial — IRS escalões)
+
+- [x] Motor puro art. 68.º + 68.º-A (continente), cêntimos
+- [x] Regras `PT-IRS-2026.1` (fonte folheto AT 2026; redução Lei 64-B/2026 ainda **não** aplicada)
+- [x] Persistência `irs_brackets` + UI `/calculators/irs` + disclaimer
+- [x] Testes unitários
+- [ ] Retenção na fonte / SS / outros simuladores
+- [ ] Validação contabilista + UAT staging

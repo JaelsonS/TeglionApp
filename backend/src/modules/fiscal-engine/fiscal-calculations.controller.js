@@ -26,6 +26,32 @@ exports.createVat = async (req, res, next) => {
   }
 };
 
+exports.irsCatalog = async (_req, res) => {
+  return res.json(fiscalCalculationsService.getIrsCatalog());
+};
+
+exports.irsSimulate = async (req, res, next) => {
+  try {
+    const simulation = fiscalCalculationsService.runIrsSimulate(req.body || {});
+    return res.json({ simulation });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.createIrs = async (req, res, next) => {
+  try {
+    const result = await fiscalCalculationsService.createIrsSimulation({
+      firmId: String(req.user.firmId),
+      actorId: req.user.id,
+      body: req.body || {},
+    });
+    return res.status(201).json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.list = async (req, res, next) => {
   try {
     const result = await fiscalCalculationsService.listCalculations({

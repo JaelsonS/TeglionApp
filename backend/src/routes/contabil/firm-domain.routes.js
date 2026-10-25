@@ -665,6 +665,21 @@ router.post(
   fiscalCalculationsController.createVat,
 );
 router.get(
+  '/fiscal/irs/catalog',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.irsCatalog,
+);
+router.post(
+  '/fiscal/irs/simulate',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.irsSimulate,
+);
+router.post(
+  '/fiscal/irs/calculations',
+  requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
+  fiscalCalculationsController.createIrs,
+);
+router.get(
   '/fiscal/calculations',
   requirePermission(PERMISSIONS.FIRM_OBLIGATIONS_MANAGE),
   fiscalCalculationsController.list,

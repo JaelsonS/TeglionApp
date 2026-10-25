@@ -120,6 +120,12 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         labelDefault: 'Calculadora IVA',
         icon: Calculator,
       },
+      {
+        to: '/app/firm/calculators/irs',
+        labelKey: 'contabil.firm.nav.irsCalculator',
+        labelDefault: 'Calculadora IRS',
+        icon: Calculator,
+      },
     ],
   },
   {
@@ -283,6 +289,12 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     to: '/app/firm/calculators/iva',
     labelKey: 'contabil.firm.nav.vatCalculator',
     labelDefault: 'Calculadora IVA',
+    icon: Calculator,
+  },
+  {
+    to: '/app/firm/calculators/irs',
+    labelKey: 'contabil.firm.nav.irsCalculator',
+    labelDefault: 'Calculadora IRS',
     icon: Calculator,
   },
   {

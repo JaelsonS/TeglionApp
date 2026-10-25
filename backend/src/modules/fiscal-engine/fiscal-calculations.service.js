@@ -1,7 +1,16 @@
 const { AppError } = require('../../middlewares/error.middleware');
 const clientsRepository = require('../../db/supabase/repositories/clients.repository');
 const fiscalCalculationsRepository = require('../../db/supabase/repositories/fiscal-calculations.repository');
-const { listRulePacks, simulateVat, DEFAULT_VERSION } = require('./vat-engine');
+const {
+  listRulePacks: listVatRulePacks,
+  simulateVat,
+  DEFAULT_VERSION: VAT_DEFAULT_VERSION,
+} = require('./vat-engine');
+const {
+  listRulePacks: listIrsRulePacks,
+  simulateIrsBrackets,
+  DEFAULT_VERSION: IRS_DEFAULT_VERSION,
+} = require('./irs-engine');
 
 function toAppError(err) {
   if (err?.code === 'INVALID_AMOUNT' || err?.code === 'INVALID_RATE') {
@@ -15,10 +24,19 @@ function toAppError(err) {
 
 function getVatCatalog() {
   return {
-    defaultVersion: DEFAULT_VERSION,
-    packs: listRulePacks(),
+    defaultVersion: VAT_DEFAULT_VERSION,
+    packs: listVatRulePacks(),
     disclaimer:
       'Simulações de apoio ao trabalho do escritório. Não substituem software certificado nem declarações à AT.',
+  };
+}
+
+function getIrsCatalog() {
+  return {
+    defaultVersion: IRS_DEFAULT_VERSION,
+    packs: listIrsRulePacks(),
+    disclaimer:
+      'Simulações de coleta sobre rendimento coletável (escalões gerais, continente). Não substituem a declaração de IRS nem o Portal das Finanças.',
   };
 }
 
@@ -28,16 +46,27 @@ function runSimulate(body) {
       direction: body.direction,
       amountCents: body.amountCents,
       rateCode: body.rateCode,
-      ruleVersion: body.ruleVersion || DEFAULT_VERSION,
+      ruleVersion: body.ruleVersion || VAT_DEFAULT_VERSION,
     });
   } catch (err) {
     throw toAppError(err);
   }
 }
 
-async function createVatSimulation({ firmId, actorId, body }) {
-  const simulation = runSimulate(body);
+function runIrsSimulate(body) {
+  try {
+    return simulateIrsBrackets({
+      taxableIncomeCents: body.taxableIncomeCents,
+      filingStatus: body.filingStatus,
+      includeSolidarity: body.includeSolidarity,
+      ruleVersion: body.ruleVersion || IRS_DEFAULT_VERSION,
+    });
+  } catch (err) {
+    throw toAppError(err);
+  }
+}
 
+async function persistSimulation({ firmId, actorId, body, simulation, metaExtra }) {
   let clientId = body.clientId || null;
   if (clientId) {
     const client = await clientsRepository.findClientById(firmId, clientId);
@@ -57,16 +86,32 @@ async function createVatSimulation({ firmId, actorId, body }) {
     input: simulation.input,
     result: simulation.result,
     meta: {
-      rate: simulation.rate,
       source: simulation.source,
       rounding: simulation.rounding,
       limitations: simulation.limitations,
       disclaimer: simulation.disclaimer,
+      ...metaExtra,
     },
     createdBy: actorId || null,
   });
 
   return { calculation: row, simulation };
+}
+
+async function createVatSimulation({ firmId, actorId, body }) {
+  const simulation = runSimulate(body);
+  return persistSimulation({
+    firmId,
+    actorId,
+    body,
+    simulation,
+    metaExtra: { rate: simulation.rate },
+  });
+}
+
+async function createIrsSimulation({ firmId, actorId, body }) {
+  const simulation = runIrsSimulate(body);
+  return persistSimulation({ firmId, actorId, body, simulation, metaExtra: {} });
 }
 
 async function listCalculations({ firmId, limit, calcType }) {
@@ -82,8 +127,11 @@ async function getCalculation({ firmId, id }) {
 
 module.exports = {
   getVatCatalog,
+  getIrsCatalog,
   runSimulate,
+  runIrsSimulate,
   createVatSimulation,
+  createIrsSimulation,
   listCalculations,
   getCalculation,
 };
