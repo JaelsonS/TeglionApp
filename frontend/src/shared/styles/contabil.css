@@ -1751,21 +1751,52 @@
   }
 
   /* Empresas — lista tabela (Fase 2) */
+  /*
+   * Clientes — scroll único no .cb-firm-content-wrap (como Documentos).
+   * Grelha e lista crescem com a página; sem overflow:hidden a cortar o grid.
+   */
   .cb-clients-page {
     @apply w-full min-w-0 space-y-0;
+    flex: none;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
   }
 
   .cb-clients-layout-page,
-  .cb-clients-layout-page .cb-firm-operational-panel {
-    @apply min-h-0 flex-1;
+  .cb-clients-layout-panel {
+    @apply flex w-full min-w-0 flex-col;
+    flex: none;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  /* Ganha ao rule xl `.cb-firm-workspace-page > .cb-firm-operational-panel { flex-1 }` */
+  .cb-firm-workspace-page.cb-clients-layout-page > .cb-clients-layout-panel {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
   }
 
   .cb-clients-shell {
     @apply border-0 bg-transparent shadow-none;
+    flex: none;
+    height: auto;
+    overflow: visible;
   }
 
+  .cb-clients-page-scroll > div,
   .cb-clients-body {
-    @apply flex min-h-0 flex-1 flex-col;
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
   }
 
   .cb-clients-kpi-strip {
@@ -1813,7 +1844,10 @@
   }
 
   .cb-clients-section-host {
-    @apply flex min-h-0 min-w-0 flex-1 flex-col px-3 pb-3 sm:px-4;
+    @apply flex w-full min-w-0 flex-col px-3 pb-4 sm:px-4;
+    flex: none;
+    height: auto;
+    overflow: visible;
   }
 
   .cb-clients-toolbar-hint {
@@ -1825,60 +1859,25 @@
   }
 
   .cb-clients-panel {
-    @apply overflow-hidden rounded-xl border border-border/70 bg-card shadow-[var(--cb-shadow-card)];
+    @apply overflow-visible rounded-xl border border-border/70 bg-card shadow-[var(--cb-shadow-card)];
   }
 
-  /* Desktop: painel preenche altura e a tabela faz scroll interno */
-  @media (min-width: 1280px) {
-    .cb-clients-page {
-      @apply flex min-h-0 flex-1 flex-col;
-    }
-
-    .cb-clients-page .cb-clients-shell,
-    .cb-clients-page .cb-clients-body,
-    .cb-clients-page .cb-clients-section-host {
-      @apply flex min-h-0 flex-1 flex-col;
-    }
-
-    .cb-clients-page .cb-clients-table-wrap {
-      @apply min-h-0 flex-1 overflow-auto;
-    }
+  .cb-clients-page .cb-clients-table-wrap,
+  .cb-clients-page .cb-table-scroll {
+    flex: none;
+    max-height: none;
+    height: auto;
+    overflow-x: auto;
+    overflow-y: visible;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
-  /*
-   * Tablet/mobile: NÃO prender o scroll dentro do painel.
-   * overflow:auto na tabela + overflow-hidden no painel engolia o pan vertical
-   * (iPad/iPhone) — scroll deve ser o da página (.cb-firm-content-wrap).
-   */
-  @media (max-width: 1279px) {
-    .cb-clients-page {
-      flex: none;
-      height: auto;
-      min-height: 0;
-    }
-
-    .cb-clients-page .cb-clients-shell,
-    .cb-clients-page .cb-clients-body,
-    .cb-clients-page .cb-clients-section-host,
-    .cb-clients-page .cb-clients-panel {
-      overflow: visible;
-      height: auto;
-      flex: none;
-    }
-
-    .cb-clients-page .cb-clients-table-wrap,
-    .cb-clients-page .cb-table-scroll {
-      flex: none;
-      max-height: none;
-      overflow-x: auto;
-      overflow-y: visible;
-      overscroll-behavior-x: contain;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .cb-clients-page .cb-clients-grid {
-      overflow: visible;
-    }
+  .cb-clients-page .cb-clients-grid {
+    flex: none;
+    height: auto;
+    max-height: none;
+    overflow: visible;
   }
   .cb-clients-panel-hd {
     @apply border-b border-border/60 px-4 py-3.5;

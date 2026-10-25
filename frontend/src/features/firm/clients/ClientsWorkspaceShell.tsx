@@ -17,7 +17,7 @@ export function ClientsWorkspaceShell({
 }) {
   return (
     <FirmModuleShell
-      className="cb-clients-shell"
+      className="cb-clients-shell cb-clients-page-scroll"
       title="Clientes"
       subtitle={PAGE_SUBTITLE}
       headerRight={headerRight}
