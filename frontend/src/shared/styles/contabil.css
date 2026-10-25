@@ -1196,9 +1196,9 @@
     @apply animate-pulse rounded-lg bg-muted;
   }
 
-  /* Painel operacional (IMG-04) */
+  /* Painel operacional — Fase 1 repaginação páginas */
   .cb-dash-page {
-    @apply w-full min-w-0 space-y-4 pb-2;
+    @apply w-full min-w-0 space-y-5 pb-4;
   }
 
   .cb-dash-ph {
@@ -1229,12 +1229,52 @@
     @apply inline-flex h-8 items-center gap-1.5 rounded-md bg-brand px-3.5 text-xs font-medium text-primary-foreground hover:bg-brand-hover;
   }
 
+  .cb-dash-setup {
+    @apply mb-1 rounded-xl border border-border/70 bg-card open:shadow-sm;
+  }
+
+  .cb-dash-setup-summary {
+    @apply flex cursor-pointer list-none flex-col gap-0.5 px-3.5 py-3 sm:flex-row sm:items-baseline sm:gap-2;
+  }
+
+  .cb-dash-setup-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .cb-dash-setup-summary-title {
+    @apply text-sm font-semibold text-foreground;
+  }
+
+  .cb-dash-setup-summary-hint {
+    @apply text-xs font-normal text-muted-foreground;
+  }
+
+  .cb-dash-setup-body {
+    @apply space-y-3 border-t border-border/60 px-3.5 pb-3.5 pt-3;
+  }
+
+  .cb-dash-band {
+    @apply space-y-3;
+  }
+
+  .cb-dash-section-hd {
+    @apply space-y-1;
+  }
+
+  .cb-dash-section-title {
+    @apply text-title font-semibold tracking-tight text-foreground;
+  }
+
+  .cb-dash-section-purpose {
+    @apply max-w-3xl text-pretty text-sm leading-relaxed text-muted-foreground;
+  }
+
   .cb-dash-kpi-row {
-    @apply grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-6;
+    @apply grid grid-cols-2 gap-2.5 sm:grid-cols-2 lg:grid-cols-4;
   }
 
   .cb-dash-kpi {
-    @apply cursor-pointer rounded-lg border border-border/70 bg-card px-3.5 py-3 text-left transition-colors hover:border-brand/20 hover:bg-muted/20;
+    @apply min-h-[5.5rem] cursor-pointer rounded-lg border border-border/70 bg-card px-3.5 py-3 text-left transition-colors hover:border-brand/25 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30;
   }
 
   .cb-dash-kpi-label {
@@ -1270,8 +1310,12 @@
   }
 
   .cb-dash-cols {
-    @apply grid gap-3.5;
-    grid-template-columns: minmax(0, 1fr) 300px;
+    @apply grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(280px,340px)] xl:items-start;
+  }
+
+  .cb-dash-col-main,
+  .cb-dash-col-aside {
+    @apply flex min-w-0 flex-col gap-3;
   }
 
   .cb-dash-panel {
@@ -1279,11 +1323,19 @@
   }
 
   .cb-dash-panel-hd {
-    @apply flex items-center justify-between gap-2 border-b border-border/60 px-3.5 py-2.5;
+    @apply flex items-start justify-between gap-3 border-b border-border/60 px-3.5 py-2.5;
+  }
+
+  .cb-dash-panel-hd-text {
+    @apply min-w-0 flex-1 space-y-0.5;
   }
 
   .cb-dash-panel-title {
     @apply flex items-center gap-1.5 cb-text-body font-semibold;
+  }
+
+  .cb-dash-panel-purpose {
+    @apply text-pretty text-xs leading-snug text-muted-foreground;
   }
 
   .cb-dash-panel-link {

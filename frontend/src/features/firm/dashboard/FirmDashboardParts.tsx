@@ -75,6 +75,7 @@ export function DashKpi({
 export function DashPanel({
   title,
   titleIcon,
+  purpose,
   linkLabel,
   linkTo,
   headerAction,
@@ -82,6 +83,8 @@ export function DashPanel({
 }: {
   title: string
   titleIcon?: React.ReactNode
+  /** Uma linha sob o título — para que serve este painel. */
+  purpose?: string
   linkLabel?: string
   linkTo?: string
   headerAction?: React.ReactNode
@@ -90,11 +93,14 @@ export function DashPanel({
   return (
     <section className="cb-dash-panel">
       <div className="cb-dash-panel-hd">
-        <span className="cb-dash-panel-title">
-          {titleIcon}
-          {title}
-        </span>
-        <div className="flex items-center gap-2">
+        <div className="cb-dash-panel-hd-text">
+          <span className="cb-dash-panel-title">
+            {titleIcon}
+            {title}
+          </span>
+          {purpose ? <p className="cb-dash-panel-purpose">{purpose}</p> : null}
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
           {headerAction}
           {linkLabel && linkTo ? (
             <Link to={linkTo} className="cb-dash-panel-link">
@@ -105,6 +111,26 @@ export function DashPanel({
       </div>
       {children}
     </section>
+  )
+}
+
+/** Título de banda do painel (hierarquia: atenção → trabalho → contexto). */
+export function DashSectionHeading({
+  id,
+  title,
+  purpose,
+}: {
+  id: string
+  title: string
+  purpose: string
+}) {
+  return (
+    <div className="cb-dash-section-hd">
+      <h2 id={id} className="cb-dash-section-title">
+        {title}
+      </h2>
+      <p className="cb-dash-section-purpose">{purpose}</p>
+    </div>
   )
 }
 

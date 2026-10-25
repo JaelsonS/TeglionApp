@@ -50,12 +50,18 @@ Dashboard · Pedidos · Serviços · Mais · Mensagens · Documentos · Arquivo 
 - Vocabulário PT de mercado: **gabinete** (não imitar copy de concorrentes).
 - Shell responsivo: mobile &lt;768 · tablet 768–1279 · desktop ≥1280.
 
-## Progresso — **COMPLETO**
+## Progresso — Wave shells/tokens **COMPLETO**
 
 | Wave | Conteúdo | Estado |
 |------|----------|--------|
 | Base–14 | DS, shells, propósitos, landing/SEO própria, gabinete app | feito |
 | 15 | Smoke responsivo (tabs settings, clearance portal) | feito |
 | 16 | Maya + Manual residual «gabinete» | feito |
-| **Entrega** | Repaginação UI fechada na branch | **100%** |
-| Merge → staging | PR / merge geral | a seguir |
+| **Entrega** | Repaginação UI (pele/shell) fechada na branch | **100%** |
+| Merge → staging | PR #200 | feito |
+
+## Próximo programa — páginas completas
+
+Repaginação **página a página** (18 menus + subfases, incl. 6 calculadoras e 12 tabs de Definições):
+
+→ [`REPAGINACAO_FRONT_ROADMAP_V1.md`](./REPAGINACAO_FRONT_ROADMAP_V1.md)
