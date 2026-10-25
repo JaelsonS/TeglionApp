@@ -75,6 +75,7 @@ export function FirmModuleShell({
             : 'flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden',
           bodyClassName,
         )}
+        style={embedded ? undefined : { flex: '1 1 0%' }}
       >
         {children}
       </div>

@@ -42,6 +42,7 @@ export function DocumentsHubShell({ children }: { children: ReactNode }) {
     >
       <div
         className={cn('flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden')}
+        style={{ flex: '1 1 0%' }}
         data-documents-section={sectionKey}
       >
         {children}
