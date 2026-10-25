@@ -5,14 +5,9 @@ import { toast } from 'sonner'
 
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { DocumentsKpiStrip } from '@/features/firm/documents-hub/DocumentsKpiStrip'
-import { DocumentPreviewPanel } from '@/features/firm/documents/DocumentPreviewPanel'
 import { useDocumentsHub } from '@/features/firm/documents/useDocumentsHub'
-import {
-  displayDocumentName,
-  mimeIcon,
-  validationLabel,
-} from '@/features/firm/documents/documentDisplay'
 import type { FirmDocumentRow } from '@/features/firm/documents/documentTypes'
+import { DocumentsHistoryDetailPanel } from '@/features/firm/documents-hub/DocumentsHistoryDetailPanel'
 import {
   buildDocumentsHistoryRows,
   exportHistoryCsv,
@@ -178,7 +173,7 @@ export function DocumentsHistoryWorkspace() {
       <DocumentsKpiStrip items={kpis} />
       <p className="cb-docs-section-lead">
         <span className="cb-docs-section-lead-title">Histórico com exportação</span>
-        Clique numa linha para abrir todos os ficheiros dessa submissão no centro do ecrã.
+        Clique numa linha para ver a auditoria organizada dessa submissão (ficheiros e linha do tempo).
       </p>
 
       <div className="cb-docs-toolbar">
@@ -369,45 +364,24 @@ export function DocumentsHistoryWorkspace() {
         onOpenChange={(open) => {
           if (!open) closeHistoryRow()
         }}
-        title={openRow ? `${openRow.typeLabel} · ${openRow.clientName}` : 'Histórico da submissão'}
+        title={openRow ? `Histórico · ${openRow.clientName}` : 'Histórico da submissão'}
         description={
           openRow
-            ? `${openRow.period} · ${openRow.docCount} ficheiro${openRow.docCount === 1 ? '' : 's'} · ${historyStatusLabel(openRow.status)}`
+            ? `${openRow.typeLabel} · ${openRow.period} · auditoria dos ficheiros e acções`
             : undefined
         }
-        className="w-[min(96vw,920px)] max-w-[min(96vw,920px)]"
+        className="w-[min(96vw,720px)] max-w-[min(96vw,720px)]"
       >
-        {openRowDocs.length > 1 ? (
-          <div className="cb-docs-history-doc-switcher">
-            {openRowDocs.map((doc) => {
-              const Icon = mimeIcon(doc.mimeType, displayDocumentName(doc))
-              const active = focusDoc?._id === doc._id
-              return (
-                <button
-                  key={doc._id}
-                  type="button"
-                  className={cn('cb-docs-history-doc-chip', active && 'cb-docs-history-doc-chip-active')}
-                  onClick={() => hub.selectDocument(doc._id)}
-                >
-                  <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                  <span className="truncate">{displayDocumentName(doc)}</span>
-                  <span className="shrink-0 text-caption text-muted-foreground">
-                    {validationLabel(doc.validationStatus)}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
+        {openRow ? (
+          <DocumentsHistoryDetailPanel
+            row={openRow}
+            docs={openRowDocs}
+            focusDoc={focusDoc}
+            detail={hub.detail}
+            detailLoading={hub.detailLoading}
+            onSelectDoc={(id) => hub.selectDocument(id)}
+          />
         ) : null}
-        <DocumentPreviewPanel
-          doc={focusDoc}
-          detail={hub.detail}
-          detailLoading={hub.detailLoading}
-          getPreviewUrl={hub.getPreviewUrl}
-          onRefresh={hub.refresh}
-          onClose={closeHistoryRow}
-          layout="default"
-        />
       </FirmWorkspaceFocusDialog>
     </div>
   )

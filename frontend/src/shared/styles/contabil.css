@@ -3580,16 +3580,112 @@
     @apply cursor-pointer transition hover:bg-brand/[0.03];
   }
 
-  .cb-docs-history-doc-switcher {
-    @apply flex flex-wrap gap-1.5 border-b border-border/60 bg-muted/15 px-3 py-2.5;
+  .cb-docs-hist-detail {
+    @apply flex flex-col gap-0;
   }
 
-  .cb-docs-history-doc-chip {
-    @apply inline-flex max-w-full items-center gap-1.5 rounded-lg border border-border/70 bg-card px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-brand/40 hover:text-foreground;
+  .cb-docs-hist-summary {
+    @apply flex items-start justify-between gap-3 border-b border-border/60 bg-muted/10 px-4 py-3.5;
   }
 
-  .cb-docs-history-doc-chip-active {
-    @apply border-brand/50 bg-brand/[0.08] text-foreground ring-1 ring-brand/20;
+  .cb-docs-hist-summary-kicker {
+    @apply text-caption font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-docs-hist-summary-title {
+    @apply mt-0.5 text-base font-semibold text-foreground;
+  }
+
+  .cb-docs-hist-summary-meta {
+    @apply mt-1 text-xs leading-relaxed text-muted-foreground;
+  }
+
+  .cb-docs-hist-section {
+    @apply border-b border-border/60 px-4 py-3.5;
+  }
+
+  .cb-docs-hist-section-hd {
+    @apply mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground;
+  }
+
+  .cb-docs-hist-section-hint {
+    @apply mb-3 text-xs leading-snug text-muted-foreground;
+  }
+
+  .cb-docs-hist-doc-list {
+    @apply m-0 list-none space-y-1.5 p-0;
+  }
+
+  .cb-docs-hist-doc-row {
+    @apply flex w-full items-center gap-2.5 rounded-xl border border-border/70 bg-card px-3 py-2.5 text-left transition hover:border-brand/35 hover:bg-brand/[0.03];
+  }
+
+  .cb-docs-hist-doc-row-active {
+    @apply border-brand/50 bg-brand/[0.06] ring-1 ring-brand/20;
+  }
+
+  .cb-docs-hist-doc-icon {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/50 text-muted-foreground;
+  }
+
+  .cb-docs-hist-empty {
+    @apply rounded-xl border border-dashed border-border/70 bg-muted/10 px-3 py-6 text-center text-sm text-muted-foreground;
+  }
+
+  .cb-docs-hist-timeline {
+    @apply m-0 list-none space-y-0 p-0;
+  }
+
+  .cb-docs-hist-event {
+    @apply relative flex gap-3 border-l-2 border-border/70 py-2.5 pl-3.5;
+  }
+
+  .cb-docs-hist-event-dot {
+    @apply absolute -left-[5px] top-3.5 h-2 w-2 rounded-full bg-border;
+  }
+
+  .cb-docs-hist-event--ok {
+    @apply border-l-emerald-400/80;
+  }
+
+  .cb-docs-hist-event--ok .cb-docs-hist-event-dot {
+    @apply bg-emerald-500;
+  }
+
+  .cb-docs-hist-event--warn {
+    @apply border-l-amber-400/80;
+  }
+
+  .cb-docs-hist-event--warn .cb-docs-hist-event-dot {
+    @apply bg-amber-500;
+  }
+
+  .cb-docs-hist-event--danger {
+    @apply border-l-rose-400/80;
+  }
+
+  .cb-docs-hist-event--danger .cb-docs-hist-event-dot {
+    @apply bg-rose-500;
+  }
+
+  .cb-docs-hist-event--info {
+    @apply border-l-brand/50;
+  }
+
+  .cb-docs-hist-event--info .cb-docs-hist-event-dot {
+    @apply bg-brand;
+  }
+
+  .cb-docs-hist-event--muted .cb-docs-hist-event-dot {
+    @apply bg-muted-foreground/40;
+  }
+
+  .cb-docs-hist-actions {
+    @apply flex flex-col gap-2 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .cb-docs-hist-actions-hint {
+    @apply text-xs text-muted-foreground;
   }
 
   .cb-docs-files-split.cb-docs-split-selected .cb-docs-table-wrap {
