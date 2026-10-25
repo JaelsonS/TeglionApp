@@ -251,125 +251,6 @@ async function createCharge({ firmId, clientId, yearMonth, amountCents, status, 
   return { charge: { ...charge, overdue: isOverdue(charge) }, created: true };
 }
 
-/**
- * Monta operação do ano: activa avenças em falta, gera meses e marca
- * parte como paga / em atraso — para o mapa deixar de ser só traços.
- */
-async function bootstrapOperationalYear({
-  firmId,
-  year,
-  defaultAmountCents = 15000,
-  actorId,
-}) {
-  const y = assertYear(year);
-  const amount = Math.round(Number(defaultAmountCents));
-  if (!Number.isFinite(amount) || amount <= 0) {
-    throw new AppError('Valor de avença inválido', 400, 'INVALID_RETAINER');
-  }
-
-  const today = todayISODate();
-  const now = new Date();
-  const currentMonth =
-    now.getUTCFullYear() === y ? now.getUTCMonth() + 1 : y < now.getUTCFullYear() ? 12 : 1;
-  const lastMonth = Math.max(1, Math.min(12, currentMonth));
-
-  const clients = await clientsRepository.listClients(firmId, {
-    limit: 500,
-    includeInactive: false,
-  });
-
-  let activated = 0;
-  let created = 0;
-  let markedPaid = 0;
-  let markedOverdue = 0;
-
-  for (let i = 0; i < clients.length; i += 1) {
-    const client = clients[i];
-    let amountCents = client.retainerAmountCents;
-    let dueDay = client.retainerDueDay || 8;
-
-    if (!client.retainerActive || amountCents == null || amountCents <= 0) {
-      amountCents = amount;
-      await clientsRepository.updateClient(client.id, firmId, {
-        retainerActive: true,
-        retainerAmountCents: amountCents,
-        retainerDueDay: dueDay,
-        retainerCurrency: 'EUR',
-      });
-      activated += 1;
-    } else {
-      amountCents = Number(client.retainerAmountCents);
-      dueDay = client.retainerDueDay || 8;
-    }
-
-    /** Padrão operacional: ~1/3 adimplente, ~1/3 com atraso, resto em aberto/rascunho. */
-    const bucket = i % 3;
-
-    for (let m = 1; m <= lastMonth; m += 1) {
-      const ym = `${y}-${String(m).padStart(2, '0')}`;
-      let existing = await feeChargesRepository.findOpenCharge(firmId, client.id, ym);
-      if (!existing) {
-        let status = 'draft';
-        let paidAt = null;
-        let dueDate = dueDateForMonth(ym, dueDay);
-
-        if (bucket === 0) {
-          /** Adimplente: meses fechados pagos; mês actual confirmado. */
-          if (m < lastMonth) {
-            status = 'paid';
-            paidAt = `${dueDate}T12:00:00.000Z`;
-          } else {
-            status = 'confirmed';
-          }
-        } else if (bucket === 1) {
-          /** Inadimplente: meses antigos pagos; últimos 1–2 enviados e vencidos. */
-          if (m < lastMonth - 1) {
-            status = 'paid';
-            paidAt = `${dueDate}T12:00:00.000Z`;
-          } else {
-            status = 'sent';
-            if (dueDate >= today) {
-              const past = new Date(`${today}T00:00:00.000Z`);
-              past.setUTCDate(past.getUTCDate() - 14);
-              dueDate = past.toISOString().slice(0, 10);
-            }
-          }
-        } else if (m < lastMonth) {
-          status = 'confirmed';
-        }
-
-        existing = await feeChargesRepository.insertCharge({
-          firmId,
-          clientId: client.id,
-          yearMonth: ym,
-          amountCents,
-          currency: 'EUR',
-          status,
-          dueDate,
-          paidAt,
-          source: 'bootstrap',
-          createdBy: actorId || null,
-        });
-        created += 1;
-        if (status === 'paid') markedPaid += 1;
-        if (status === 'sent' && isOverdue({ ...existing, status, dueDate }, today)) {
-          markedOverdue += 1;
-        }
-      }
-    }
-  }
-
-  return {
-    year: y,
-    clients: clients.length,
-    activated,
-    created,
-    markedPaid,
-    markedOverdue,
-    monthsFilled: lastMonth,
-  };
-}
-
 async function patchCharge({ firmId, chargeId, patch }) {
   const existing = await feeChargesRepository.findChargeById(firmId, chargeId);
   if (!existing) throw new AppError('Pagamento não encontrado', 404, 'CHARGE_NOT_FOUND');
@@ -416,7 +297,6 @@ module.exports = {
   getYearMap,
   generateCharges,
   createCharge,
-  bootstrapOperationalYear,
   patchCharge,
   isOverdue,
   dueDateForMonth,
