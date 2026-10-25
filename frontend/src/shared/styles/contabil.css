@@ -2799,6 +2799,18 @@
     @apply bg-emerald-100 text-emerald-800;
   }
 
+  .cb-payments-kpi--rose .cb-payments-kpi-icon {
+    @apply bg-rose-100 text-rose-800;
+  }
+
+  .cb-payments-kpi--rose {
+    @apply border-rose-200/80 bg-rose-50/50;
+  }
+
+  .cb-payments-kpi--emerald {
+    @apply border-emerald-200/70 bg-emerald-50/40;
+  }
+
   .cb-payments-kpi-value {
     @apply text-sm font-bold tabular-nums tracking-tight text-foreground sm:text-base;
   }
@@ -2827,7 +2839,51 @@
   }
 
   .cb-payments-toolbar {
-    @apply flex flex-wrap items-center gap-2;
+    @apply flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center;
+  }
+
+  .cb-payments-health-filters {
+    @apply flex flex-wrap gap-1.5;
+  }
+
+  .cb-payments-health-chip {
+    @apply inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-card px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition hover:border-border hover:text-foreground;
+  }
+
+  .cb-payments-health-chip--active {
+    @apply border-brand/40 bg-brand/5 text-foreground shadow-sm;
+  }
+
+  .cb-payments-health-chip--overdue.cb-payments-health-chip--active {
+    @apply border-rose-300 bg-rose-50 text-rose-950;
+  }
+
+  .cb-payments-health-chip--open.cb-payments-health-chip--active {
+    @apply border-sky-300 bg-sky-50 text-sky-950;
+  }
+
+  .cb-payments-health-chip--ok.cb-payments-health-chip--active {
+    @apply border-emerald-300 bg-emerald-50 text-emerald-950;
+  }
+
+  .cb-payments-health-chip-count {
+    @apply rounded-md bg-muted/70 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-foreground/80;
+  }
+
+  .cb-payments-health-chip--active .cb-payments-health-chip-count {
+    @apply bg-white/80;
+  }
+
+  .cb-payments-legend {
+    @apply flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground;
+  }
+
+  .cb-payments-legend-item {
+    @apply inline-flex items-center gap-1.5;
+  }
+
+  .cb-payments-legend-swatch {
+    @apply h-2.5 w-2.5 rounded-sm border;
   }
 
   .cb-payments-grid-wrap {
@@ -2840,12 +2896,136 @@
     -webkit-overflow-scrolling: touch;
   }
 
+  .cb-payments-table-frame {
+    @apply overflow-x-auto rounded-xl border border-border/70 bg-card;
+  }
+
+  .cb-payments-table {
+    @apply w-full min-w-[1080px] border-collapse text-left text-sm;
+  }
+
+  .cb-payments-table thead tr {
+    @apply border-b border-border/60 bg-muted/30;
+  }
+
+  .cb-payments-table th {
+    @apply px-1.5 py-2.5 text-center text-xs font-medium text-muted-foreground;
+  }
+
+  .cb-payments-table th.cb-payments-client-col {
+    @apply px-3 text-left font-medium text-foreground;
+  }
+
+  .cb-payments-table tbody tr {
+    @apply border-b border-border/40 last:border-0;
+  }
+
+  .cb-payments-table tbody tr.cb-payments-row--overdue {
+    @apply bg-rose-50/35;
+  }
+
+  .cb-payments-table tbody tr.cb-payments-row--ok {
+    @apply bg-emerald-50/20;
+  }
+
+  .cb-payments-table td {
+    @apply px-1 py-1.5 text-center align-middle;
+  }
+
+  .cb-payments-table td.cb-payments-client-col {
+    @apply bg-card px-3 text-left;
+  }
+
+  .cb-payments-row--overdue td.cb-payments-client-col {
+    @apply bg-rose-50/50;
+  }
+
+  .cb-payments-row--ok td.cb-payments-client-col {
+    @apply bg-emerald-50/40;
+  }
+
+  .cb-payments-client-btn {
+    @apply flex w-full flex-col items-start gap-1 rounded-lg px-1 py-0.5 text-left transition hover:bg-muted/40;
+  }
+
+  .cb-payments-client-name {
+    @apply block w-full truncate text-sm font-semibold text-foreground;
+  }
+
+  .cb-payments-client-meta {
+    @apply block w-full truncate text-xs text-muted-foreground;
+  }
+
   .cb-payments-foot {
     @apply shrink-0 text-xs leading-relaxed text-muted-foreground;
   }
 
   .cb-payments-client-col {
-    @apply min-w-[240px] max-w-[280px] w-[260px];
+    @apply min-w-[240px] max-w-[300px] w-[280px];
+  }
+
+  .cb-pay-cell {
+    @apply mx-auto flex w-full max-w-[5.25rem] flex-col items-center gap-0.5 rounded-md border px-1 py-1.5 text-center transition hover:opacity-95;
+  }
+
+  .cb-pay-cell-amount {
+    @apply text-[11px] font-bold tabular-nums leading-tight;
+  }
+
+  .cb-pay-cell-status {
+    @apply text-[9px] font-semibold uppercase tracking-wide leading-tight opacity-90;
+  }
+
+  .cb-pay-cell-empty {
+    @apply inline-block text-xs text-muted-foreground/45;
+  }
+
+  .cb-pay-cell--draft {
+    @apply border-slate-200 bg-slate-100 text-slate-700;
+  }
+
+  .cb-pay-cell--confirmed {
+    @apply border-sky-300 bg-sky-100 text-sky-950;
+  }
+
+  .cb-pay-cell--sent {
+    @apply border-violet-300 bg-violet-100 text-violet-950;
+  }
+
+  .cb-pay-cell--paid {
+    @apply border-emerald-400 bg-emerald-500 text-white;
+  }
+
+  .cb-pay-cell--overdue {
+    @apply border-rose-500 bg-rose-600 text-white shadow-sm;
+  }
+
+  .cb-pay-cell--cancelled {
+    @apply border-border/70 bg-muted/40 text-muted-foreground line-through;
+  }
+
+  .cb-pay-cell--empty {
+    @apply border-dashed border-border/60 bg-transparent text-muted-foreground;
+  }
+
+  .cb-pay-health {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide;
+  }
+
+  .cb-pay-health--ok {
+    @apply bg-emerald-500 text-white;
+  }
+
+  .cb-pay-health--overdue {
+    @apply bg-rose-600 text-white;
+  }
+
+  .cb-pay-health--open {
+    @apply bg-sky-500 text-white;
+  }
+
+  .cb-pay-health--empty {
+    @apply bg-slate-200 text-slate-700;
   }
 
   .cb-rentals-body {
