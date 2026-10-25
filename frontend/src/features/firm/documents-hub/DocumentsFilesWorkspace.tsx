@@ -17,9 +17,8 @@ import { formatDateTime } from '@/shared/utils/date'
 import { cn } from '@/shared/lib/utils'
 import { Input } from '@/shared/components/ui/input'
 import { Button } from '@/shared/components/ui/button'
+import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { EmptyState } from '@/shared/design-system'
-import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
-import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
 
 function statusPillClass(status?: string | null) {
   if (status === 'APPROVED') return 'cb-docs-pill-approved'
@@ -28,7 +27,7 @@ function statusPillClass(status?: string | null) {
   return 'cb-docs-pill-muted'
 }
 
-/** Preview lateral fixo só em ≥1280px; abaixo disso usa Sheet. */
+/** Preview fixo só em ≥1280px; abaixo disso usa o diálogo centrado. */
 function useDocsPreviewSheet() {
   const query = '(max-width: 1279px)'
   const [useSheet, setUseSheet] = useState(
@@ -217,23 +216,24 @@ export function DocumentsFilesWorkspace() {
       </div>
 
       {previewAsSheet ? (
-      <Sheet open={sheetOpen} onOpenChange={(o: { id?: string; value?: string; label?: string; [key: string]: unknown }) => !o && hub.selectDocument(null)}>
-        <SheetContent side="right" className="flex w-full flex-col p-0 sm:max-w-lg">
-          <SheetHiddenTitle>
-            {selectedDoc
-              ? displayDocumentName(selectedDoc)
-              : 'Pré-visualização do documento'}
-          </SheetHiddenTitle>
-          <DocumentPreviewPanel
-            doc={selectedDoc}
-            detail={hub.detail}
-            detailLoading={hub.detailLoading}
-            getPreviewUrl={hub.getPreviewUrl}
-            onRefresh={hub.refresh}
-            onClose={() => hub.selectDocument(null)}
-          />
-        </SheetContent>
-      </Sheet>
+        <FirmWorkspaceFocusDialog
+          open={sheetOpen}
+          onOpenChange={(open) => !open && hub.selectDocument(null)}
+          title={selectedDoc ? displayDocumentName(selectedDoc) : 'Pré-visualização do documento'}
+          description="Documento no centro do ecrã — valide, descarregue ou feche sem perder a lista."
+          className="h-auto max-h-[min(92dvh,880px)] w-[min(96vw,760px)] max-w-[min(96vw,760px)]"
+        >
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <DocumentPreviewPanel
+              doc={selectedDoc}
+              detail={hub.detail}
+              detailLoading={hub.detailLoading}
+              getPreviewUrl={hub.getPreviewUrl}
+              onRefresh={hub.refresh}
+              onClose={() => hub.selectDocument(null)}
+            />
+          </div>
+        </FirmWorkspaceFocusDialog>
       ) : null}
 
       <p className="cb-docs-foot">Teglion — Documentos / Ficheiros</p>

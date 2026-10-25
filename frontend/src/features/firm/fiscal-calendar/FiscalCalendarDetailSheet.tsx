@@ -16,8 +16,8 @@ import {
   URGENCY_LABELS,
 } from '@/features/firm/fiscal-calendar/fiscalCalendarUtils'
 import type { FirmFiscalCategory, FirmFiscalEvent } from '@/infrastructure/api/contabil/fiscalCalendar'
+import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { Button } from '@/shared/components/ui/button'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/shared/components/ui/sheet'
 import { cn } from '@/shared/lib/utils'
 import type { ObligationType } from '@/shared/types/contabil'
 import type { Client } from '@/shared/types/clients'
@@ -121,48 +121,51 @@ export function FiscalCalendarDetailSheet({
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
-        <SheetHeader className="shrink-0 border-b border-border/60 px-5 py-4 text-left">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-semibold', style.pill)}>
-              {style.label}
+    <FirmWorkspaceFocusDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={current.title}
+      description="Prazo, estado e próximos passos — no centro do ecrã, para ler e agir sem tapar o calendário."
+      className="h-auto max-h-[min(92dvh,880px)] w-[min(96vw,760px)] max-w-[min(96vw,760px)]"
+    >
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border/50 px-5 py-3">
+          <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-semibold', style.pill)}>
+            {style.label}
+          </span>
+          <span
+            className={cn(
+              'rounded-full px-2.5 py-0.5 text-xs font-medium',
+              current.eventKind === 'INTERNAL'
+                ? 'bg-slate-500/15 text-slate-700'
+                : 'bg-brand/10 text-brand',
+            )}
+          >
+            {KIND_LABELS[current.eventKind] || current.eventKind}
+          </span>
+          <span
+            className={cn(
+              'rounded-full px-2.5 py-0.5 text-xs font-medium',
+              urgency === 'overdue' && 'bg-rose-500/15 text-rose-700',
+              urgency === 'soon' && 'bg-amber-500/15 text-amber-800',
+              urgency === 'upcoming' && 'bg-sky-500/15 text-sky-800',
+              urgency === 'future' && 'bg-muted text-muted-foreground',
+            )}
+          >
+            {URGENCY_LABELS[urgency]}
+          </span>
+          {current.isRecurring ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+              <Repeat2 className="h-3 w-3" />
+              Recorrente
+              {current.recurrence?.frequency
+                ? ` · ${RECURRENCE_LABELS[current.recurrence.frequency] || ''}`
+                : ''}
             </span>
-            <span
-              className={cn(
-                'rounded-full px-2.5 py-0.5 text-xs font-medium',
-                current.eventKind === 'INTERNAL'
-                  ? 'bg-slate-500/15 text-slate-700'
-                  : 'bg-brand/10 text-brand',
-              )}
-            >
-              {KIND_LABELS[current.eventKind] || current.eventKind}
-            </span>
-            <span
-              className={cn(
-                'rounded-full px-2.5 py-0.5 text-xs font-medium',
-                urgency === 'overdue' && 'bg-rose-500/15 text-rose-700',
-                urgency === 'soon' && 'bg-amber-500/15 text-amber-800',
-                urgency === 'upcoming' && 'bg-sky-500/15 text-sky-800',
-                urgency === 'future' && 'bg-muted text-muted-foreground',
-              )}
-            >
-              {URGENCY_LABELS[urgency]}
-            </span>
-            {current.isRecurring ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                <Repeat2 className="h-3 w-3" />
-                Recorrente
-                {current.recurrence?.frequency
-                  ? ` · ${RECURRENCE_LABELS[current.recurrence.frequency] || ''}`
-                  : ''}
-              </span>
-            ) : null}
-          </div>
-          <SheetTitle className="mt-2 text-base leading-snug">{current.title}</SheetTitle>
-        </SheetHeader>
+          ) : null}
+        </div>
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain px-5 py-4">
+        <div className="grid min-h-0 flex-1 gap-6 px-5 py-4 md:grid-cols-[minmax(0,1.2fr)_minmax(16rem,0.9fr)]">
           <dl className="space-y-3 text-sm">
             <div>
               <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Data</dt>
@@ -226,46 +229,48 @@ export function FiscalCalendarDetailSheet({
             ) : null}
           </dl>
 
-          <section className="mt-5 grid gap-2 border-t border-border/60 pt-4">
-            <Button type="button" variant="outline" className="justify-start gap-2" onClick={() => onEdit(current, 'occurrence')}>
-              <Pencil className="h-4 w-4" />
-              {current.isRecurring ? 'Editar apenas este evento' : 'Editar'}
-            </Button>
-            {current.isRecurring ? (
-              <Button type="button" variant="outline" className="justify-start gap-2" onClick={() => onEdit(current, 'series')}>
-                <Repeat2 className="h-4 w-4" />
-                Editar toda a série
+          <aside className="space-y-4">
+            <section className="grid gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Acções</p>
+              <Button type="button" variant="outline" className="justify-start gap-2" onClick={() => onEdit(current, 'occurrence')}>
+                <Pencil className="h-4 w-4" />
+                {current.isRecurring ? 'Editar apenas este evento' : 'Editar'}
               </Button>
-            ) : null}
-            <Button type="button" variant="outline" className="justify-start gap-2" onClick={() => onDuplicate(current)}>
-              <Copy className="h-4 w-4" />
-              Duplicar
-            </Button>
-            {current.status !== 'COMPLETED' ? (
-              <Button type="button" variant="outline" className="justify-start" onClick={() => onMarkCompleted(current)}>
-                Marcar como concluído
+              {current.isRecurring ? (
+                <Button type="button" variant="outline" className="justify-start gap-2" onClick={() => onEdit(current, 'series')}>
+                  <Repeat2 className="h-4 w-4" />
+                  Editar toda a série
+                </Button>
+              ) : null}
+              <Button type="button" variant="outline" className="justify-start gap-2" onClick={() => onDuplicate(current)}>
+                <Copy className="h-4 w-4" />
+                Duplicar
               </Button>
-            ) : null}
-            <Button type="button" variant="outline" className="justify-start gap-2" onClick={() => onToggleActive(current)}>
-              <Power className="h-4 w-4" />
-              {current.isActive ? 'Desativar' : 'Ativar'}
-            </Button>
-            <Button type="button" variant="outline" className="justify-start gap-2 text-rose-700" onClick={() => onArchive(current)}>
-              <Archive className="h-4 w-4" />
-              Arquivar
-            </Button>
-          </section>
-        </div>
+              {current.status !== 'COMPLETED' ? (
+                <Button type="button" variant="outline" className="justify-start" onClick={() => onMarkCompleted(current)}>
+                  Marcar como concluído
+                </Button>
+              ) : null}
+              <Button type="button" variant="outline" className="justify-start gap-2" onClick={() => onToggleActive(current)}>
+                <Power className="h-4 w-4" />
+                {current.isActive ? 'Desativar' : 'Ativar'}
+              </Button>
+              <Button type="button" variant="outline" className="justify-start gap-2 text-rose-700" onClick={() => onArchive(current)}>
+                <Archive className="h-4 w-4" />
+                Arquivar
+              </Button>
+            </section>
 
-        {current.eventKind === 'FISCAL' ? (
-          <div className="shrink-0 border-t border-border/60 px-5 py-4">
-            <div className="grid gap-2">
-              <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {current.eventKind === 'FISCAL' ? (
+              <div className="grid gap-2 border-t border-border/60 pt-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Criação rápida de obrigação
                 </p>
+                <p className="text-xs text-muted-foreground">
+                  Escolha o cliente e crie já a obrigação deste prazo, ou abra o formulário pré-preenchido.
+                </p>
                 <select
-                  className="mb-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                   value={quickClientId}
                   onChange={(e: ChangeEvent<HTMLSelectElement>) => setQuickClientId(e.target.value)}
                 >
@@ -284,32 +289,32 @@ export function FiscalCalendarDetailSheet({
                 >
                   {creatingQuick ? 'A criar…' : 'Criar agora e notificar cliente'}
                 </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="w-full"
+                  onClick={() => {
+                    const createType = fiscalCategoryToObligationType()
+                    const qs = new URLSearchParams({
+                      create: '1',
+                      createType,
+                      createPeriod: current.periodLabel || current.startDate.slice(0, 7),
+                      createDueDate: current.startDate || '',
+                    })
+                    navigate(`/app/firm/tasks/obligations?${qs}`)
+                    onOpenChange(false)
+                  }}
+                >
+                  Criar obrigação (pré-preenchida)
+                </Button>
+                <Button asChild variant="outline" className="w-full">
+                  <Link to="/app/firm/tasks/obligations">Ver obrigações dos clientes</Link>
+                </Button>
               </div>
-              <Button
-                type="button"
-                variant="default"
-                className="w-full"
-                onClick={() => {
-                  const createType = fiscalCategoryToObligationType()
-                  const qs = new URLSearchParams({
-                    create: '1',
-                    createType,
-                    createPeriod: current.periodLabel || current.startDate.slice(0, 7),
-                    createDueDate: current.startDate || '',
-                  })
-                  navigate(`/app/firm/tasks/obligations?${qs}`)
-                  onOpenChange(false)
-                }}
-              >
-                Criar obrigação (pré-preenchida)
-              </Button>
-              <Button asChild variant="outline" className="w-full">
-                <Link to="/app/firm/tasks/obligations">Ver obrigações dos clientes</Link>
-              </Button>
-            </div>
-          </div>
-        ) : null}
-      </SheetContent>
-    </Sheet>
+            ) : null}
+          </aside>
+        </div>
+      </div>
+    </FirmWorkspaceFocusDialog>
   )
 }

@@ -17,10 +17,9 @@ import {
   servicePriorityClass,
   SERVICE_PRIORITY_LABEL,
 } from '@/features/firm/services/serviceLabels'
+import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
-import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
-import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
 import { EmptyState, PageHeader } from '@/shared/design-system'
 import { api } from '@/infrastructure/api'
 import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
@@ -443,14 +442,15 @@ export function ServicesWorkspace() {
       </div>
 
       {detailAsSheet ? (
-        <Sheet open={Boolean(selectedId)} onOpenChange={(o: { id?: string; value?: string; label?: string; [key: string]: unknown }) => !o && clearRequest()}>
-          <SheetContent side="right" className="flex w-full flex-col p-0 sm:max-w-lg">
-            <SheetHiddenTitle>
-              {selectedFromList?.title || 'Detalhe do pedido'}
-            </SheetHiddenTitle>
-            {detailPanel}
-          </SheetContent>
-        </Sheet>
+        <FirmWorkspaceFocusDialog
+          open={Boolean(selectedId)}
+          onOpenChange={(open) => !open && clearRequest()}
+          title={selectedFromList?.title || 'Detalhe do pedido'}
+          description="Pedido, orçamento e histórico — no centro do ecrã."
+          className="h-auto max-h-[min(92dvh,880px)] w-[min(96vw,720px)] max-w-[min(96vw,720px)]"
+        >
+          <div className="min-h-0 flex-1 overflow-y-auto">{detailPanel}</div>
+        </FirmWorkspaceFocusDialog>
       ) : null}
 
       <ServiceQuoteDialog
