@@ -82,10 +82,10 @@ export function buildDocumentsHistoryRows(items: FirmDocumentRow[]): DocumentsHi
 }
 
 export function historyStatusLabel(status: DocumentsHistoryRow['status']) {
-  if (status === 'entregue') return 'Entregue'
+  if (status === 'entregue') return 'Aprovado'
   if (status === 'atrasado') return 'Atrasado'
   if (status === 'rejeitado') return 'Rejeitado'
-  return 'Em revisão'
+  return 'Parcial'
 }
 
 export function historyStatusPill(status: DocumentsHistoryRow['status']) {

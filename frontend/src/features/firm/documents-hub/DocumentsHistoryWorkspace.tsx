@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
-import { Download, Trash2 } from 'lucide-react'
+import type { FormChangeEvent } from '@/shared/types/react-events'
+import { CheckCircle2, Download, FileStack, Search, ShieldX, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
+import { DocumentsKpiStrip } from '@/features/firm/documents-hub/DocumentsKpiStrip'
 import { useDocumentsHub } from '@/features/firm/documents/useDocumentsHub'
 import {
   buildDocumentsHistoryRows,
@@ -13,17 +15,32 @@ import {
 } from '@/features/firm/documents-hub/documentsHistoryUtils'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
+import { Input } from '@/shared/components/ui/input'
 import { contabilDocumentsApi } from '@/infrastructure/api'
 import { emitAppDataChanged } from '@/shared/utils/appEvents'
 import { formatDateTime } from '@/shared/utils/date'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 
+const PAGE_SIZES = [10, 25, 50] as const
+
+function initials(name: string) {
+  const parts = String(name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase()
+}
+
 export function DocumentsHistoryWorkspace() {
   const hub = useDocumentsHub()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(10)
 
   const sourceItems = useMemo(() => {
     let list = hub.items
@@ -32,8 +49,7 @@ export function DocumentsHistoryWorkspace() {
     }
     if (hub.filters.period) {
       list = list.filter(
-        (d) =>
-          d.period === hub.filters.period || d.obligationPeriod === hub.filters.period,
+        (d) => d.period === hub.filters.period || d.obligationPeriod === hub.filters.period,
       )
     }
     const q = hub.filters.q.trim().toLowerCase()
@@ -49,13 +65,30 @@ export function DocumentsHistoryWorkspace() {
 
   const filteredRows = useMemo(() => buildDocumentsHistoryRows(sourceItems), [sourceItems])
 
+  const kpis = useMemo(() => {
+    const approved = filteredRows.filter((r) => r.status === 'entregue').length
+    const rejected = filteredRows.filter((r) => r.status === 'rejeitado').length
+    return [
+      { id: 'all', value: filteredRows.length, label: 'submissões', tone: 'muted' as const, icon: FileStack },
+      { id: 'ok', value: approved, label: 'aprovadas', tone: 'emerald' as const, icon: CheckCircle2 },
+      { id: 'rej', value: rejected, label: 'rejeitadas', tone: 'rose' as const, icon: ShieldX },
+    ]
+  }, [filteredRows])
+
+  const pageCount = Math.max(1, Math.ceil(filteredRows.length / pageSize))
+  const safePage = Math.min(page, pageCount)
+  const pageRows = useMemo(() => {
+    const start = (safePage - 1) * pageSize
+    return filteredRows.slice(start, start + pageSize)
+  }, [filteredRows, safePage, pageSize])
+
   const selectedRows = useMemo(
     () => filteredRows.filter((r) => selectedIds.has(r.id)),
     [filteredRows, selectedIds],
   )
 
   const allSelected =
-    filteredRows.length > 0 && filteredRows.every((r) => selectedIds.has(r.id))
+    pageRows.length > 0 && pageRows.every((r) => selectedIds.has(r.id))
 
   const toggleRow = (id: string) => {
     setSelectedIds((prev) => {
@@ -67,8 +100,15 @@ export function DocumentsHistoryWorkspace() {
   }
 
   const toggleAll = () => {
-    if (allSelected) setSelectedIds(new Set())
-    else setSelectedIds(new Set(filteredRows.map((r) => r.id)))
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (allSelected) {
+        for (const r of pageRows) next.delete(r.id)
+      } else {
+        for (const r of pageRows) next.add(r.id)
+      }
+      return next
+    })
   }
 
   const documentIdsToDelete = useMemo(
@@ -99,17 +139,25 @@ export function DocumentsHistoryWorkspace() {
     }
   }
 
+  const rangeStart = filteredRows.length === 0 ? 0 : (safePage - 1) * pageSize + 1
+  const rangeEnd = Math.min(safePage * pageSize, filteredRows.length)
+
   return (
     <div className="cb-docs-workspace">
-      <p className="cb-docs-history-purpose">
-        Vista de auditoria: cada linha agrupa uma submissão. Use a selecção para exportar CSV ou remover
-        registos — distinto dos pedidos activos em Pedidos.
+      <DocumentsKpiStrip items={kpis} />
+      <p className="cb-docs-section-lead">
+        <span className="cb-docs-section-lead-title">Histórico com exportação</span>
+        Auditoria das submissões: o que foi enviado, por quem e com que resultado.
       </p>
+
       <div className="cb-docs-toolbar">
         <select
           className="cb-docs-filter"
           value={hub.filters.period || ''}
-          onChange={(e) => hub.updateParams({ period: e.target.value || null })}
+          onChange={(e) => {
+            setPage(1)
+            hub.updateParams({ period: e.target.value || null })
+          }}
           aria-label="Filtrar período"
         >
           <option value="">Período: Todos</option>
@@ -122,9 +170,10 @@ export function DocumentsHistoryWorkspace() {
         <select
           className="cb-docs-filter"
           value={hub.filters.clientId || ''}
-          onChange={(e) =>
+          onChange={(e) => {
+            setPage(1)
             hub.updateParams({ clientId: e.target.value || null })
-          }
+          }}
           aria-label="Filtrar cliente"
         >
           <option value="">Cliente: Todos</option>
@@ -134,54 +183,51 @@ export function DocumentsHistoryWorkspace() {
             </option>
           ))}
         </select>
+        <div className="cb-docs-search">
+          <Search className="cb-docs-search-icon" aria-hidden />
+          <Input
+            value={hub.filters.q}
+            onChange={(e: FormChangeEvent) => {
+              setPage(1)
+              hub.updateParams({ q: e.target.value || null })
+            }}
+            placeholder="Pesquisar no histórico…"
+            className="cb-docs-search-input"
+          />
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-9 rounded-lg border-brand/40 text-brand hover:bg-brand/[0.06]"
+          disabled={filteredRows.length === 0}
+          onClick={() => exportHistoryCsv(selectedRows.length > 0 ? selectedRows : filteredRows)}
+        >
+          <Download className="mr-1.5 h-3.5 w-3.5" />
+          Exportar CSV
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-9 rounded-lg border-red-200/80 text-red-700 hover:bg-red-50"
+          disabled={selectedRows.length === 0}
+          onClick={() => setDeleteOpen(true)}
+        >
+          <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+          Eliminar seleccionados
+        </Button>
       </div>
 
       {selectedRows.length > 0 ? (
-        <div className="cb-docs-history-actions">
-          <p className="text-xs text-muted-foreground">
-            {selectedRows.length} linha{selectedRows.length === 1 ? '' : 's'} seleccionada
-            {selectedRows.length === 1 ? '' : 's'} · {documentIdsToDelete.length} ficheiro
-            {documentIdsToDelete.length === 1 ? '' : 's'}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 rounded-lg text-xs"
-              onClick={() => exportHistoryCsv(selectedRows)}
-            >
-              <Download className="mr-1.5 h-3.5 w-3.5" />
-              Exportar CSV
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 rounded-lg border-red-200/80 text-xs text-red-700 hover:bg-red-50"
-              onClick={() => setDeleteOpen(true)}
-            >
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              Apagar
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="h-8 text-xs"
-              onClick={() => setSelectedIds(new Set())}
-            >
-              Limpar selecção
-            </Button>
-          </div>
-        </div>
-      ) : (
         <p className="cb-docs-history-hint">
-          Seleccione as linhas com a caixa à esquerda para exportar CSV ou apagar submissões.
+          {selectedRows.length} linha{selectedRows.length === 1 ? '' : 's'} seleccionada
+          {selectedRows.length === 1 ? '' : 's'} · {documentIdsToDelete.length} ficheiro
+          {documentIdsToDelete.length === 1 ? '' : 's'}
         </p>
-      )}
+      ) : null}
 
-      <div className="cb-docs-table-wrap">
+      <div className="cb-docs-table-wrap cb-docs-history-table-wrap">
         <table className="cb-docs-table cb-table-mobile-cards">
           <thead>
             <tr>
@@ -189,7 +235,7 @@ export function DocumentsHistoryWorkspace() {
                 <Checkbox
                   checked={allSelected}
                   onCheckedChange={() => toggleAll()}
-                  aria-label="Seleccionar todas as linhas"
+                  aria-label="Seleccionar todas as linhas da página"
                 />
               </th>
               <th>Período</th>
@@ -208,14 +254,14 @@ export function DocumentsHistoryWorkspace() {
                   A carregar…
                 </td>
               </tr>
-            ) : filteredRows.length === 0 ? (
+            ) : pageRows.length === 0 ? (
               <tr>
                 <td colSpan={8} className="cb-docs-empty">
                   Sem submissões no filtro seleccionado.
                 </td>
               </tr>
             ) : (
-              filteredRows.map((r) => (
+              pageRows.map((r) => (
                 <HistoryRow
                   key={r.id}
                   row={r}
@@ -226,6 +272,53 @@ export function DocumentsHistoryWorkspace() {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="cb-docs-pagination">
+        <p className="cb-docs-pagination-range">
+          {filteredRows.length === 0
+            ? '0 resultados'
+            : `${rangeStart}–${rangeEnd} de ${filteredRows.length}`}
+        </p>
+        <div className="cb-docs-pagination-controls">
+          <label className="cb-docs-pagination-size">
+            Linhas por página
+            <select
+              className="cb-docs-filter ml-2"
+              value={pageSize}
+              onChange={(e) => {
+                setPage(1)
+                setPageSize(Number(e.target.value) as (typeof PAGE_SIZES)[number])
+              }}
+            >
+              {PAGE_SIZES.map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8"
+            disabled={safePage <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            Anterior
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8"
+            disabled={safePage >= pageCount}
+            onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+          >
+            Seguinte
+          </Button>
+        </div>
       </div>
 
       <ConfirmDialog
@@ -256,17 +349,25 @@ function HistoryRow({
       <td className="cb-table-mobile-actions" onClick={(e) => e.stopPropagation()}>
         <Checkbox checked={selected} onCheckedChange={onToggle} aria-label={`Seleccionar ${row.clientName}`} />
       </td>
-      <td className="font-medium" data-label="Período">{row.period}</td>
+      <td className="font-medium" data-label="Período">
+        {row.period}
+      </td>
       <td data-label="Tipo">{row.typeLabel}</td>
       <td data-label="Cliente">{row.clientName}</td>
-      <td className="tabular-nums" data-label="Documentos">{row.docCount} docs</td>
+      <td className="tabular-nums" data-label="Documentos">
+        <span className="cb-docs-count-badge">{row.docCount}</span>
+      </td>
       <td data-label="Estado">
         <span className={historyStatusPill(row.status)}>{historyStatusLabel(row.status)}</span>
       </td>
       <td className="whitespace-nowrap text-muted-foreground" data-label="Submetido em">
         {row.submittedAt ? formatDateTime(row.submittedAt) : '—'}
       </td>
-      <td className="text-muted-foreground" data-label="Por">{row.submittedBy}</td>
+      <td data-label="Por">
+        <span className="cb-docs-avatar" title={row.submittedBy}>
+          {initials(row.submittedBy)}
+        </span>
+      </td>
     </tr>
   )
 }
