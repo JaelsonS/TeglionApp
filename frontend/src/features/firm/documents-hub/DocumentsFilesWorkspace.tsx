@@ -235,8 +235,6 @@ export function DocumentsFilesWorkspace() {
           </div>
         </FirmWorkspaceFocusDialog>
       ) : null}
-
-      <p className="cb-docs-foot">Teglion — Documentos / Ficheiros</p>
     </div>
   )
 }

@@ -988,6 +988,18 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     >
       <PublicSiteEditorModeBar mode={uiMode} onModeChange={handleUiModeChange} />
 
+      <div
+        className="cb-public-site-purpose rounded-xl border border-brand/20 bg-gradient-to-br from-brand/[0.05] via-card to-card px-4 py-3 text-sm leading-snug text-muted-foreground"
+        data-testid="public-site-purpose"
+      >
+        <p className="font-medium text-foreground">Página pública do gabinete</p>
+        <p className="mt-1">
+          O endereço partilhável onde clientes veem serviços, marcam consultas e entregam contactos — a
+          mesma identidade do portal, editável aqui. Publique quando o link, secções e contactos estiverem
+          correctos; não substitui declarações oficiais à AT.
+        </p>
+      </div>
+
       {simpleMode ? (
         <>
           <PublicSiteCoachBroadcast

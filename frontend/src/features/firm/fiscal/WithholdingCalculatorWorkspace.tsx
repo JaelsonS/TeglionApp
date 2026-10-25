@@ -3,6 +3,15 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Calculator, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import {
+  CalculatorDisclaimer,
+  CalculatorHistorySection,
+  CalculatorResultPanel,
+  ResultRow,
+  centsToEuros,
+  formatEuroFromCents,
+  type FiscalCalculationRow,
+} from '@/features/firm/fiscal/calculatorShared'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { Button } from '@/shared/components/ui/button'
 import { EuroInput } from '@/shared/design-system'
@@ -10,13 +19,24 @@ import { contabilFiscalWithholdingApi } from '@/infrastructure/api'
 import type { WithholdingSimulation } from '@/infrastructure/api/contabil/fiscalWithholding'
 import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
 import { getErrorMessage } from '@/shared/utils/errors'
-import { cn } from '@/shared/lib/utils'
-
-function formatEuroFromCents(cents: number) {
-  return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format((cents || 0) / 100)
-}
 
 type TableOpt = { code: string; label: string; minDependents?: number }
+
+function simulationFromRow(row: FiscalCalculationRow): WithholdingSimulation {
+  const meta = row.meta || {}
+  return {
+    calcType: row.calcType || 'irs_withholding',
+    jurisdiction: 'PT',
+    tax: 'IRS',
+    ruleVersion: row.ruleVersion,
+    table: (meta.table || {}) as WithholdingSimulation['table'],
+    input: row.input as WithholdingSimulation['input'],
+    result: row.result as WithholdingSimulation['result'],
+    disclaimer: String(meta.disclaimer || ''),
+    source: meta.source as WithholdingSimulation['source'],
+    limitations: meta.limitations as string[] | undefined,
+  }
+}
 
 export function WithholdingCalculatorWorkspace({ embedded = false }: { embedded?: boolean } = {}) {
   const qc = useQueryClient()
@@ -56,6 +76,16 @@ export function WithholdingCalculatorWorkspace({ embedded = false }: { embedded?
 
   const remunerationCents = useMemo(() => Math.round(euros * 100), [euros])
 
+  function reopen(row: FiscalCalculationRow) {
+    const input = row.input || {}
+    setTableCode(String(input.tableCode || tableCode))
+    setEuros(centsToEuros(input.remunerationCents))
+    setDependents(Number(input.dependents || 0))
+    setClientId(row.clientId ? String(row.clientId) : '')
+    setSimulation(simulationFromRow(row))
+    toast.message('Simulação reaberta do histórico')
+  }
+
   async function runSimulate(save: boolean) {
     if (remunerationCents < 0) {
       toast.error('Indique a remuneração mensal')
@@ -86,6 +116,8 @@ export function WithholdingCalculatorWorkspace({ embedded = false }: { embedded?
     }
   }
 
+  const historyItems = (historyQuery.data?.items || []) as FiscalCalculationRow[]
+
   return (
     <FirmModuleShell
       embedded={embedded}
@@ -93,16 +125,13 @@ export function WithholdingCalculatorWorkspace({ embedded = false }: { embedded?
       subtitle="Tabelas I–III continente 2026 (trabalho dependente). Estimativa mensal — não é recibo oficial."
       bodyClassName={embedded ? 'overflow-visible' : 'overflow-auto px-4 pb-6 sm:px-5'}
     >
-      <div className="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-sm text-amber-950">
-        <p className="font-medium">Simulação de apoio</p>
-        <p className="mt-1 text-amber-950/90">
-          {catalogQuery.data?.disclaimer ||
-            'Confirme a tabela e o despacho vigentes no Portal das Finanças.'}
-        </p>
-      </div>
+      <CalculatorDisclaimer
+        text={catalogQuery.data?.disclaimer}
+        fallback="Confirme a tabela e o despacho vigentes no Portal das Finanças."
+      />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <section className="space-y-4 rounded-xl border border-border/70 bg-card p-4 sm:p-5">
+      <div className="cb-calc-workspace-grid">
+        <section className="cb-calc-form-panel">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand/10 text-brand">
               <Calculator className="h-4 w-4" aria-hidden />
@@ -175,12 +204,13 @@ export function WithholdingCalculatorWorkspace({ embedded = false }: { embedded?
           </div>
         </section>
 
-        <section className="space-y-4 rounded-xl border border-border/70 bg-card p-4 sm:p-5">
-          <h2 className="text-sm font-semibold">Resultado</h2>
+        <CalculatorResultPanel empty={!simulation}>
           {!simulation ? (
-            <p className="text-sm text-muted-foreground">Indique a remuneração e calcule a retenção estimada.</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Indique a remuneração e calcule a retenção estimada.
+            </p>
           ) : (
-            <div className="space-y-3">
+            <div className="mt-3 space-y-3">
               <ResultRow
                 label="Retenção IRS"
                 value={formatEuroFromCents(simulation.result.withholdingCents)}
@@ -209,65 +239,33 @@ export function WithholdingCalculatorWorkspace({ embedded = false }: { embedded?
               {simulation.result.familyRateReduced ? (
                 <p className="text-xs text-emerald-800">Aplicada redução de 1 p.p. (≥ 3 dependentes).</p>
               ) : null}
-              <p className="text-xs leading-relaxed text-muted-foreground">{simulation.disclaimer}</p>
+              {simulation.disclaimer ? (
+                <p className="text-xs leading-relaxed text-muted-foreground">{simulation.disclaimer}</p>
+              ) : null}
               <p className="text-[11px] text-muted-foreground">
                 Tabela {simulation.table.code} · {simulation.ruleVersion}
               </p>
             </div>
           )}
-        </section>
+        </CalculatorResultPanel>
       </div>
 
-      <section className="mt-6 rounded-xl border border-border/70 bg-card p-4 sm:p-5">
-        <h2 className="text-sm font-semibold">Histórico recente</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Cálculos guardados não mudam se as regras futuras forem actualizadas.
-        </p>
-        {historyQuery.isLoading ? (
-          <p className="mt-3 text-sm text-muted-foreground">A carregar…</p>
-        ) : (historyQuery.data?.items || []).length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">Ainda sem simulações de retenção guardadas.</p>
-        ) : (
-          <ul className="mt-3 divide-y divide-border/50">
-            {(historyQuery.data?.items || []).map(
-              (row: {
-                id: string
-                ruleVersion: string
-                createdAt: string
-                result: { withholdingCents?: number }
-                meta?: { table?: { code?: string } }
-              }) => (
-                <li key={row.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
-                  <span className="text-muted-foreground">
-                    {new Date(row.createdAt).toLocaleString('pt-PT')} · Tabela{' '}
-                    {row.meta?.table?.code || '?'} · {row.ruleVersion}
-                  </span>
-                  <span className="tabular-nums font-medium">
-                    {formatEuroFromCents(row.result?.withholdingCents ?? 0)}
-                  </span>
-                </li>
-              ),
-            )}
-          </ul>
-        )}
-      </section>
+      <CalculatorHistorySection
+        loading={historyQuery.isLoading}
+        emptyLabel="Ainda sem simulações de retenção guardadas."
+        items={historyItems}
+        onSelect={reopen}
+        renderSummary={(row) => {
+          const meta = row.meta || {}
+          const table = (meta.table || {}) as { code?: string }
+          return (
+            <>
+              Tabela {table.code || '?'} ·{' '}
+              {formatEuroFromCents(Number(row.result?.withholdingCents ?? 0))}
+            </>
+          )
+        }}
+      />
     </FirmModuleShell>
-  )
-}
-
-function ResultRow({
-  label,
-  value,
-  strong,
-}: {
-  label: string
-  value: string
-  strong?: boolean
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3 border-b border-border/40 pb-2 last:border-0">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className={cn('tabular-nums text-sm', strong && 'text-base font-semibold')}>{value}</span>
-    </div>
   )
 }

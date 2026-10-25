@@ -48,6 +48,8 @@ export function createContabilFiscalIrsApi(api: AxiosInstance) {
           params: { calcType: 'irs_brackets', ...params },
         })
         .then((r) => r.data),
+    get: (id: string) =>
+      api.get(`/contabil/fiscal/calculations/${encodeURIComponent(id)}`).then((r) => r.data),
   }
 }
 

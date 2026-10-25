@@ -67,9 +67,9 @@ export function LandingFeatures() {
       <div className="landing-container">
         <FadeInView className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wide text-[#C9932E]">Já no produto</p>
-          <h2 className="mt-2 text-3xl font-semibold sm:text-4xl">O que o Teglion faz no dia a dia do gabinete</h2>
+          <h2 className="mt-2 text-3xl font-semibold sm:text-4xl">Fluxos que o gabinete usa todos os dias</h2>
           <p className="mt-3 text-[#4A5568]">
-            Lista do que já pode usar — sem vender como pronto o que ainda está “em breve”.
+            Resumo por tema — a grelha completa do menu está na secção seguinte. Sem vender IA ou AT como prontas.
           </p>
         </FadeInView>
 

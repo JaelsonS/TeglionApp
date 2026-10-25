@@ -4,6 +4,15 @@ import { firmTasksPath } from '@/features/firm/tasks/firmTasksPaths'
 import type { TasksOperationsTab } from '@/features/firm/tasks/tasksOperationsUtils'
 import { cn } from '@/shared/lib/utils'
 
+const TAB_HINTS: Record<TasksOperationsTab, string> = {
+  overview: 'Prioridades e KPIs do dia',
+  obligations: 'Prazos fiscais por cliente',
+  month: 'Cobertura do mês na carteira',
+  manual: 'Board de tarefas internas',
+  calendar: 'Ops — não é Agenda de consultas',
+  clients: 'Carga agregada por empresa',
+}
+
 const TABS: { id: TasksOperationsTab; label: string }[] = [
   { id: 'overview', label: 'Visão geral' },
   { id: 'obligations', label: 'Obrigações fiscais' },
@@ -33,6 +42,7 @@ export function TasksOperationsTabBar({ active }: { active: TasksOperationsTab }
             key={id}
             to={{ pathname: firmTasksPath(id), search: search ? `?${search}` : '' }}
             data-testid={`firm-tasks-tab-${id}`}
+            title={TAB_HINTS[id]}
             className={({ isActive }: { isActive: boolean }) => cn('cb-tasks-tab', isActive && 'cb-tasks-tab-active')}
           >
             {label}

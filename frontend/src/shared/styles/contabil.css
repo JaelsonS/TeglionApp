@@ -499,6 +499,10 @@
     @apply mt-1.5 block text-sm leading-snug text-muted-foreground;
   }
 
+  .cb-calc-hub-card-purpose {
+    @apply mt-1.5 block text-xs leading-snug text-muted-foreground/90;
+  }
+
   .cb-calc-hub-card-arrow {
     @apply mt-1 text-muted-foreground/70 transition duration-200;
   }
@@ -509,6 +513,74 @@
 
   .cb-calc-hub-footer {
     @apply text-center text-xs text-muted-foreground/80;
+  }
+
+  .cb-calc-tool {
+    @apply mx-auto w-full max-w-5xl space-y-4 pb-12;
+  }
+
+  .cb-calc-tool-chrome {
+    @apply flex flex-wrap items-center justify-between gap-2;
+  }
+
+  .cb-calc-tool-back {
+    @apply text-muted-foreground hover:text-foreground;
+  }
+
+  .cb-calc-tool-badge {
+    @apply inline-flex items-center gap-1.5 rounded-md bg-muted/80 px-2 py-1 text-[0.7rem] font-medium uppercase tracking-wide text-muted-foreground;
+  }
+
+  .cb-calc-tool-purpose {
+    @apply rounded-xl border border-border/50 bg-gradient-to-r from-brand/[0.04] to-transparent px-4 py-2.5;
+  }
+
+  .cb-calc-tool-purpose-title {
+    @apply text-xs font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-calc-tool-purpose-detail {
+    @apply mt-0.5 text-sm leading-snug text-muted-foreground;
+  }
+
+  .cb-calc-disclaimer {
+    @apply mb-4 rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-sm text-amber-950;
+  }
+
+  .cb-calc-disclaimer-title {
+    @apply font-medium;
+  }
+
+  .cb-calc-disclaimer-body {
+    @apply mt-1 text-amber-950/90;
+  }
+
+  .cb-calc-disclaimer-hint {
+    @apply mt-1.5 text-xs text-amber-950/75;
+  }
+
+  .cb-calc-workspace-grid {
+    @apply grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)];
+  }
+
+  .cb-calc-form-panel {
+    @apply space-y-4 rounded-xl border border-border/70 bg-card p-4 sm:p-5;
+  }
+
+  .cb-calc-result-panel {
+    @apply space-y-1 rounded-xl border border-brand/25 bg-gradient-to-br from-brand/[0.05] via-card to-card p-4 shadow-sm sm:p-5;
+  }
+
+  .cb-calc-result-panel--empty {
+    @apply border-border/70 from-muted/20;
+  }
+
+  .cb-calc-history {
+    @apply mt-6 rounded-xl border border-border/70 bg-card p-4 sm:p-5;
+  }
+
+  .cb-calc-history-row {
+    @apply flex w-full flex-wrap items-center justify-between gap-2 py-2.5 text-left text-sm outline-none transition hover:bg-muted/40 focus-visible:bg-muted/50;
   }
 
   .cb-calc-modal-body {
@@ -741,6 +813,22 @@
 
   .cb-docs-page-tab-active {
     @apply border-brand text-brand;
+  }
+
+  .cb-docs-tab-purpose {
+    @apply border-b border-border/50 bg-gradient-to-r from-brand/[0.04] to-transparent px-4 py-2.5 sm:px-5;
+  }
+
+  .cb-docs-tab-purpose-title {
+    @apply text-xs font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-docs-tab-purpose-detail {
+    @apply mt-0.5 text-sm leading-snug text-muted-foreground;
+  }
+
+  .cb-docs-history-purpose {
+    @apply mb-3 text-sm leading-snug text-muted-foreground;
   }
 
   .cb-docs-workspace {
@@ -1196,9 +1284,9 @@
     @apply animate-pulse rounded-lg bg-muted;
   }
 
-  /* Painel operacional (IMG-04) */
+  /* Painel operacional — Fase 1 repaginação páginas */
   .cb-dash-page {
-    @apply w-full min-w-0 space-y-4 pb-2;
+    @apply w-full min-w-0 space-y-5 pb-4;
   }
 
   .cb-dash-ph {
@@ -1229,12 +1317,52 @@
     @apply inline-flex h-8 items-center gap-1.5 rounded-md bg-brand px-3.5 text-xs font-medium text-primary-foreground hover:bg-brand-hover;
   }
 
+  .cb-dash-setup {
+    @apply mb-1 rounded-xl border border-border/70 bg-card open:shadow-sm;
+  }
+
+  .cb-dash-setup-summary {
+    @apply flex cursor-pointer list-none flex-col gap-0.5 px-3.5 py-3 sm:flex-row sm:items-baseline sm:gap-2;
+  }
+
+  .cb-dash-setup-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .cb-dash-setup-summary-title {
+    @apply text-sm font-semibold text-foreground;
+  }
+
+  .cb-dash-setup-summary-hint {
+    @apply text-xs font-normal text-muted-foreground;
+  }
+
+  .cb-dash-setup-body {
+    @apply space-y-3 border-t border-border/60 px-3.5 pb-3.5 pt-3;
+  }
+
+  .cb-dash-band {
+    @apply space-y-3;
+  }
+
+  .cb-dash-section-hd {
+    @apply space-y-1;
+  }
+
+  .cb-dash-section-title {
+    @apply text-title font-semibold tracking-tight text-foreground;
+  }
+
+  .cb-dash-section-purpose {
+    @apply max-w-3xl text-pretty text-sm leading-relaxed text-muted-foreground;
+  }
+
   .cb-dash-kpi-row {
-    @apply grid grid-cols-2 gap-2.5 md:grid-cols-3 lg:grid-cols-6;
+    @apply grid grid-cols-2 gap-2.5 sm:grid-cols-2 lg:grid-cols-4;
   }
 
   .cb-dash-kpi {
-    @apply cursor-pointer rounded-lg border border-border/70 bg-card px-3.5 py-3 text-left transition-colors hover:border-brand/20 hover:bg-muted/20;
+    @apply min-h-[5.5rem] cursor-pointer rounded-lg border border-border/70 bg-card px-3.5 py-3 text-left transition-colors hover:border-brand/25 hover:bg-muted/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30;
   }
 
   .cb-dash-kpi-label {
@@ -1270,8 +1398,12 @@
   }
 
   .cb-dash-cols {
-    @apply grid gap-3.5;
-    grid-template-columns: minmax(0, 1fr) 300px;
+    @apply grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(280px,340px)] xl:items-start;
+  }
+
+  .cb-dash-col-main,
+  .cb-dash-col-aside {
+    @apply flex min-w-0 flex-col gap-3;
   }
 
   .cb-dash-panel {
@@ -1279,11 +1411,19 @@
   }
 
   .cb-dash-panel-hd {
-    @apply flex items-center justify-between gap-2 border-b border-border/60 px-3.5 py-2.5;
+    @apply flex items-start justify-between gap-3 border-b border-border/60 px-3.5 py-2.5;
+  }
+
+  .cb-dash-panel-hd-text {
+    @apply min-w-0 flex-1 space-y-0.5;
   }
 
   .cb-dash-panel-title {
     @apply flex items-center gap-1.5 cb-text-body font-semibold;
+  }
+
+  .cb-dash-panel-purpose {
+    @apply text-pretty text-xs leading-snug text-muted-foreground;
   }
 
   .cb-dash-panel-link {
@@ -1387,9 +1527,17 @@
     @apply px-3.5 py-6 text-center cb-text-caption;
   }
 
-  /* Empresas — lista tabela (IMG-05) */
+  /* Empresas — lista tabela (Fase 2) */
   .cb-clients-page {
     @apply w-full min-w-0 space-y-0;
+  }
+
+  .cb-clients-toolbar-hint {
+    @apply px-0 pb-2 text-pretty text-xs leading-relaxed text-muted-foreground sm:px-0;
+  }
+
+  .cb-client-hub-section-purpose {
+    @apply border-t border-border/50 pt-2 text-pretty text-xs leading-relaxed text-muted-foreground;
   }
 
   .cb-clients-panel {
@@ -2188,6 +2336,24 @@
 
   .cb-chat-compose-foot {
     @apply col-span-2 justify-self-end pt-0.5 cb-text-caption text-muted-foreground/80;
+  }
+
+  /* Pagamentos carteira (Fase 3) — espelha agenda: chrome fixo + grelha com scroll útil */
+  .cb-payments-layout-page,
+  .cb-payments-layout-page .cb-firm-operational-panel {
+    @apply min-h-0 flex-1;
+  }
+
+  .cb-payments-body {
+    @apply flex min-h-0 flex-1 flex-col overflow-hidden;
+  }
+
+  .cb-payments-client-col {
+    @apply min-w-[240px] max-w-[280px] w-[260px];
+  }
+
+  .cb-rentals-body {
+    @apply flex min-h-0 flex-1 flex-col overflow-hidden;
   }
 
   /* Agenda consultorias (IMG-17) */
@@ -3015,6 +3181,10 @@
 
   .cb-docs-requests-toolbar-title {
     @apply text-sm font-semibold text-foreground;
+  }
+
+  .cb-docs-requests-toolbar-sub {
+    @apply mt-0.5 max-w-prose text-xs leading-snug text-muted-foreground;
   }
 
   .cb-docs-requests-btn {
@@ -4157,6 +4327,22 @@
     @apply space-y-6 pb-10;
   }
 
+  .cb-billing-disambiguation {
+    @apply rounded-2xl border border-brand/15 bg-brand/[0.03] px-4 py-3 text-sm;
+  }
+
+  .cb-billing-disambiguation-title {
+    @apply font-semibold text-foreground;
+  }
+
+  .cb-billing-disambiguation-list {
+    @apply mt-2 list-disc space-y-1.5 pl-5 text-muted-foreground;
+  }
+
+  .cb-billing-disambiguation-list strong {
+    @apply font-medium text-foreground;
+  }
+
   .cb-billing-page-hd {
     @apply border-b border-border/60 pb-4;
   }
@@ -4348,6 +4534,34 @@
 
   .cb-alerts-empty {
     @apply flex flex-col items-center justify-center p-8 text-center text-muted-foreground;
+  }
+
+  .cb-news-page-hd {
+    @apply border-b border-border/60 bg-card;
+  }
+
+  .cb-news-workspace {
+    @apply gap-3 pt-3;
+  }
+
+  .cb-news-identity {
+    @apply flex flex-col gap-1.5 rounded-xl border border-dashed border-brand/20 bg-muted/20 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-3;
+  }
+
+  .cb-news-identity-badge {
+    @apply w-fit shrink-0 rounded-md bg-brand/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-news-identity-copy {
+    @apply text-sm leading-snug text-muted-foreground;
+  }
+
+  .cb-news-toolbar {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .cb-news-list-item {
+    @apply shadow-[var(--cb-shadow-card)];
   }
 
   /* Portal cliente — layout e superfícies */

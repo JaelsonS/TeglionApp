@@ -41,6 +41,8 @@ export function createContabilFiscalWithholdingApi(api: AxiosInstance) {
           params: { calcType: 'irs_withholding', ...params },
         })
         .then((r) => r.data),
+    get: (id: string) =>
+      api.get(`/contabil/fiscal/calculations/${encodeURIComponent(id)}`).then((r) => r.data),
   }
 }
 

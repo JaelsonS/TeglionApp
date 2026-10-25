@@ -310,8 +310,8 @@ export function AlertsWorkspace() {
     <>
       <header className="cb-alerts-page-hd shrink-0 px-4 pt-4 sm:px-5" data-testid="firm-alerts-header">
         <PageHeader
-          title="Alertas"
-          subtitle="Avisos curtos à carteira (prazos, urgências). Para artigos longos use Notícias."
+          title="Central de alertas"
+          subtitle="Comunicados curtos e prioritários para o portal — prazos, urgências, confirmação de leitura. Artigos longos → Notícias."
           testId="firm-alerts-title"
           secondary={<AskMayaButton intentId="alerts" />}
           right={

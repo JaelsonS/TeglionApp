@@ -3,6 +3,15 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Calculator, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import {
+  CalculatorDisclaimer,
+  CalculatorHistorySection,
+  CalculatorResultPanel,
+  ResultRow,
+  centsToEuros,
+  formatEuroFromCents,
+  type FiscalCalculationRow,
+} from '@/features/firm/fiscal/calculatorShared'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { Button } from '@/shared/components/ui/button'
 import { EuroInput } from '@/shared/design-system'
@@ -12,12 +21,24 @@ import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDi
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 
-function formatEuroFromCents(cents: number) {
-  return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format((cents || 0) / 100)
-}
-
 type TableOpt = { code: string; label: string }
 type FlatOpt = { code: string; label: string; ratePercent: number }
+
+function simulationFromRow(row: FiscalCalculationRow): ImtSimulation {
+  const meta = row.meta || {}
+  return {
+    calcType: row.calcType || 'imt',
+    jurisdiction: 'PT',
+    tax: 'IMT',
+    ruleVersion: row.ruleVersion,
+    regime: (meta.regime || {}) as ImtSimulation['regime'],
+    input: row.input as ImtSimulation['input'],
+    result: row.result as ImtSimulation['result'],
+    disclaimer: String(meta.disclaimer || ''),
+    source: meta.source as ImtSimulation['source'],
+    limitations: meta.limitations as string[] | undefined,
+  }
+}
 
 export function ImtCalculatorWorkspace({ embedded = false }: { embedded?: boolean } = {}) {
   const qc = useQueryClient()
@@ -53,6 +74,21 @@ export function ImtCalculatorWorkspace({ embedded = false }: { embedded?: boolea
 
   const taxableValueCents = useMemo(() => Math.round(euros * 100), [euros])
 
+  function reopen(row: FiscalCalculationRow) {
+    const input = row.input || {}
+    if (input.flatRateCode) {
+      setMode('flat')
+      setFlatRateCode(String(input.flatRateCode))
+    } else {
+      setMode('table')
+      setTableCode(String(input.tableCode || tableCode))
+    }
+    setEuros(centsToEuros(input.taxableValueCents))
+    setClientId(row.clientId ? String(row.clientId) : '')
+    setSimulation(simulationFromRow(row))
+    toast.message('Simulação reaberta do histórico')
+  }
+
   async function runSimulate(save: boolean) {
     if (taxableValueCents < 0) {
       toast.error('Indique o valor tributável')
@@ -84,6 +120,8 @@ export function ImtCalculatorWorkspace({ embedded = false }: { embedded?: boolea
     }
   }
 
+  const historyItems = (historyQuery.data?.items || []) as FiscalCalculationRow[]
+
   return (
     <FirmModuleShell
       embedded={embedded}
@@ -91,16 +129,13 @@ export function ImtCalculatorWorkspace({ embedded = false }: { embedded?: boolea
       subtitle="Imposto Municipal sobre as Transmissões — continente 2026. Simulação — não é liquidação oficial."
       bodyClassName={embedded ? 'overflow-visible' : 'overflow-auto px-4 pb-6 sm:px-5'}
     >
-      <div className="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-sm text-amber-950">
-        <p className="font-medium">Simulação de apoio</p>
-        <p className="mt-1 text-amber-950/90">
-          {catalogQuery.data?.disclaimer ||
-            'Use o maior entre o preço e o VPT. Não inclui Imposto do Selo nem isenções.'}
-        </p>
-      </div>
+      <CalculatorDisclaimer
+        text={catalogQuery.data?.disclaimer}
+        fallback="Use o maior entre o preço e o VPT. Não inclui Imposto do Selo nem isenções."
+      />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <section className="space-y-4 rounded-xl border border-border/70 bg-card p-4 sm:p-5">
+      <div className="cb-calc-workspace-grid">
+        <section className="cb-calc-form-panel">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand/10 text-brand">
               <Calculator className="h-4 w-4" aria-hidden />
@@ -203,12 +238,11 @@ export function ImtCalculatorWorkspace({ embedded = false }: { embedded?: boolea
           </div>
         </section>
 
-        <section className="space-y-4 rounded-xl border border-border/70 bg-card p-4 sm:p-5">
-          <h2 className="text-sm font-semibold">Resultado</h2>
+        <CalculatorResultPanel empty={!simulation}>
           {!simulation ? (
-            <p className="text-sm text-muted-foreground">Indique o valor e calcule o IMT estimado.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Indique o valor e calcule o IMT estimado.</p>
           ) : (
-            <div className="space-y-3">
+            <div className="mt-3 space-y-3">
               <ResultRow label="IMT" value={formatEuroFromCents(simulation.result.imtCents)} strong />
               <ResultRow
                 label={simulation.result.flat ? 'Taxa única' : 'Taxa marginal'}
@@ -229,60 +263,31 @@ export function ImtCalculatorWorkspace({ embedded = false }: { embedded?: boolea
                 })} %`}
               />
               <p className="text-xs text-muted-foreground">{simulation.regime.label}</p>
-              <p className="text-xs leading-relaxed text-muted-foreground">{simulation.disclaimer}</p>
+              {simulation.disclaimer ? (
+                <p className="text-xs leading-relaxed text-muted-foreground">{simulation.disclaimer}</p>
+              ) : null}
               <p className="text-[11px] text-muted-foreground">Versão {simulation.ruleVersion}</p>
             </div>
           )}
-        </section>
+        </CalculatorResultPanel>
       </div>
 
-      <section className="mt-6 rounded-xl border border-border/70 bg-card p-4 sm:p-5">
-        <h2 className="text-sm font-semibold">Histórico recente</h2>
-        {historyQuery.isLoading ? (
-          <p className="mt-3 text-sm text-muted-foreground">A carregar…</p>
-        ) : (historyQuery.data?.items || []).length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">Ainda sem simulações IMT guardadas.</p>
-        ) : (
-          <ul className="mt-3 divide-y divide-border/50">
-            {(historyQuery.data?.items || []).map(
-              (row: {
-                id: string
-                ruleVersion: string
-                createdAt: string
-                result: { imtCents?: number }
-                meta?: { regime?: { label?: string } }
-              }) => (
-                <li key={row.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
-                  <span className="text-muted-foreground">
-                    {new Date(row.createdAt).toLocaleString('pt-PT')} ·{' '}
-                    {row.meta?.regime?.label || row.ruleVersion}
-                  </span>
-                  <span className="tabular-nums font-medium">
-                    {formatEuroFromCents(row.result?.imtCents ?? 0)}
-                  </span>
-                </li>
-              ),
-            )}
-          </ul>
-        )}
-      </section>
+      <CalculatorHistorySection
+        loading={historyQuery.isLoading}
+        emptyLabel="Ainda sem simulações IMT guardadas."
+        items={historyItems}
+        onSelect={reopen}
+        renderSummary={(row) => {
+          const meta = row.meta || {}
+          const regime = (meta.regime || {}) as { label?: string }
+          return (
+            <>
+              {regime.label ? `${regime.label} · ` : ''}
+              {formatEuroFromCents(Number(row.result?.imtCents ?? 0))}
+            </>
+          )
+        }}
+      />
     </FirmModuleShell>
-  )
-}
-
-function ResultRow({
-  label,
-  value,
-  strong,
-}: {
-  label: string
-  value: string
-  strong?: boolean
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3 border-b border-border/40 pb-2 last:border-0">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className={cn('tabular-nums text-sm', strong && 'text-base font-semibold')}>{value}</span>
-    </div>
   )
 }

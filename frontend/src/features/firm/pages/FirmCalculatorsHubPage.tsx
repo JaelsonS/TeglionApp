@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ArrowRight, Calculator, Info } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Calculator, Info } from 'lucide-react'
 
 import {
   FIRM_CALCULATORS,
@@ -14,8 +14,8 @@ import { WithholdingCalculatorWorkspace } from '@/features/firm/fiscal/Withholdi
 import { ImtCalculatorWorkspace } from '@/features/firm/fiscal/ImtCalculatorWorkspace'
 import { IrcCalculatorWorkspace } from '@/features/firm/fiscal/IrcCalculatorWorkspace'
 import { FirmScrollPage } from '@/features/firm/FirmPageLayout'
-import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { AskMayaButton } from '@/features/maya'
+import { Button } from '@/shared/components/ui/button'
 import { PageHeader } from '@/shared/design-system'
 import { cn } from '@/shared/lib/utils'
 
@@ -54,6 +54,7 @@ export function FirmCalculatorsHubPage() {
           const next = new URLSearchParams(prev)
           if (id) next.set('open', id)
           else next.delete('open')
+          next.delete('calc')
           return next
         },
         { replace: true },
@@ -69,12 +70,55 @@ export function FirmCalculatorsHubPage() {
     }
   }, [params, setOpen])
 
+  if (active) {
+    const Icon = active.icon
+    return (
+      <FirmScrollPage>
+        <div className="cb-calc-tool" data-testid={`firm-calculator-tool-${active.id}`}>
+          <div className="cb-calc-tool-chrome">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="cb-calc-tool-back -ml-2"
+              onClick={() => setOpen(null)}
+              data-testid="firm-calculator-back"
+            >
+              <ArrowLeft className="mr-1.5 h-4 w-4" aria-hidden />
+              Todas as calculadoras
+            </Button>
+            <AskMayaButton intentId="dashboard" />
+          </div>
+
+          <PageHeader
+            title={active.title}
+            subtitle={`${active.description} Simulação de apoio interno — não substitui declaração oficial.`}
+            testId={`firm-calculator-header-${active.id}`}
+            secondary={
+              <span className="cb-calc-tool-badge" aria-hidden>
+                <Icon className="h-4 w-4" strokeWidth={1.75} />
+                {active.badge}
+              </span>
+            }
+          />
+
+          <div className="cb-calc-tool-purpose" data-testid="firm-calculator-purpose">
+            <p className="cb-calc-tool-purpose-title">O que faz esta ferramenta</p>
+            <p className="cb-calc-tool-purpose-detail">{active.purpose}</p>
+          </div>
+
+          <CalculatorBody id={active.id} />
+        </div>
+      </FirmScrollPage>
+    )
+  }
+
   return (
     <FirmScrollPage>
       <div className="cb-calc-hub" data-testid="firm-calculators-hub">
         <PageHeader
           title="Calculadoras"
-          subtitle="Seis simuladores de apoio (IVA, IRS, SS, retenção, IMT, IRC). Não substituem a declaração oficial."
+          subtitle="Uma entrada no menu, seis simuladores de apoio (IVA, IRS, SS, retenção, IMT, IRC). Não substituem a declaração oficial."
           testId="firm-calculators-hub-header"
           secondary={<AskMayaButton intentId="dashboard" />}
         />
@@ -83,10 +127,14 @@ export function FirmCalculatorsHubPage() {
           <span className="cb-calc-hub-banner-icon" aria-hidden>
             <Info className="h-4 w-4" strokeWidth={2} />
           </span>
-          <p>
-            Uma entrada no menu, seis ferramentas aqui. Confirme sempre com a legislação e a revisão
-            profissional do gabinete.
-          </p>
+          <div>
+            <p className="font-medium text-foreground">Simulação de apoio ao gabinete</p>
+            <p className="mt-0.5">
+              Escolha a ferramenta, calcule, guarde no histórico e reabra quando precisar. Confirme sempre
+              com a legislação e a revisão profissional — estas páginas não emitem nem substituem actos
+              oficiais.
+            </p>
+          </div>
         </div>
 
         <ul className="cb-calc-hub-grid">
@@ -96,7 +144,7 @@ export function FirmCalculatorsHubPage() {
               <li key={calc.id}>
                 <button
                   type="button"
-                  className={cn('cb-calc-hub-card', openId === calc.id && 'cb-calc-hub-card--active')}
+                  className={cn('cb-calc-hub-card')}
                   data-testid={`firm-calculator-card-${calc.id}`}
                   onClick={() => setOpen(calc.id)}
                 >
@@ -109,6 +157,7 @@ export function FirmCalculatorsHubPage() {
                       <span className="cb-calc-hub-card-badge">{calc.badge}</span>
                     </span>
                     <span className="cb-calc-hub-card-desc">{calc.description}</span>
+                    <span className="cb-calc-hub-card-purpose">{calc.purpose}</span>
                   </span>
                   <ArrowRight className="cb-calc-hub-card-arrow h-4 w-4 shrink-0" aria-hidden />
                 </button>
@@ -119,25 +168,9 @@ export function FirmCalculatorsHubPage() {
 
         <p className="cb-calc-hub-footer">
           <Calculator className="mr-1.5 inline h-3.5 w-3.5 align-text-bottom opacity-70" aria-hidden />
-          No menu do gabinete aparece apenas «Calculadoras».
+          Deep-links legacy (/calculators/iva, …) abrem a mesma ferramenta via ?open=.
         </p>
       </div>
-
-      <FirmWorkspaceFocusDialog
-        open={Boolean(active)}
-        onOpenChange={(open) => !open && setOpen(null)}
-        title={active?.title ?? 'Calculadora'}
-        description={
-          active ? `${active.description} · Simulação de apoio interno.` : undefined
-        }
-        className="cb-calc-modal w-[min(96vw,72rem)] max-w-[min(96vw,72rem)]"
-      >
-        {active ? (
-          <div className="cb-calc-modal-body px-4 py-4 sm:px-5 sm:py-5">
-            <CalculatorBody id={active.id} />
-          </div>
-        ) : null}
-      </FirmWorkspaceFocusDialog>
     </FirmScrollPage>
   )
 }

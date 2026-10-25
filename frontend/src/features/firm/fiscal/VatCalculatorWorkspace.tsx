@@ -3,6 +3,15 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Calculator, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import {
+  CalculatorDisclaimer,
+  CalculatorHistorySection,
+  CalculatorResultPanel,
+  ResultRow,
+  centsToEuros,
+  formatEuroFromCents,
+  type FiscalCalculationRow,
+} from '@/features/firm/fiscal/calculatorShared'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { Button } from '@/shared/components/ui/button'
 import { EuroInput } from '@/shared/design-system'
@@ -12,8 +21,27 @@ import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDi
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 
-function formatEuroFromCents(cents: number) {
-  return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format((cents || 0) / 100)
+function simulationFromRow(row: FiscalCalculationRow): VatSimulation {
+  const meta = row.meta || {}
+  const rate = (meta.rate || {}) as VatSimulation['rate']
+  return {
+    calcType: row.calcType || 'vat_net_gross',
+    jurisdiction: 'PT',
+    tax: 'IVA',
+    ruleVersion: row.ruleVersion,
+    rate: {
+      code: String(rate.code || ''),
+      label: String(rate.label || ''),
+      percent: Number(rate.percent || 0),
+      bps: Number(rate.bps || 0),
+    },
+    input: row.input as VatSimulation['input'],
+    result: row.result as VatSimulation['result'],
+    disclaimer: String(meta.disclaimer || ''),
+    source: meta.source as VatSimulation['source'],
+    rounding: meta.rounding as VatSimulation['rounding'],
+    limitations: meta.limitations as string[] | undefined,
+  }
 }
 
 export function VatCalculatorWorkspace({ embedded = false }: { embedded?: boolean } = {}) {
@@ -47,6 +75,17 @@ export function VatCalculatorWorkspace({ embedded = false }: { embedded?: boolea
 
   const amountCents = useMemo(() => Math.round(euros * 100), [euros])
 
+  function reopen(row: FiscalCalculationRow) {
+    const input = row.input || {}
+    const dir = input.direction === 'gross_to_net' ? 'gross_to_net' : 'net_to_gross'
+    setDirection(dir)
+    setRateCode(String(input.rateCode || rateCode))
+    setEuros(centsToEuros(input.amountCents))
+    setClientId(row.clientId ? String(row.clientId) : '')
+    setSimulation(simulationFromRow(row))
+    toast.message('Simulação reaberta do histórico')
+  }
+
   async function runSimulate(save: boolean) {
     if (amountCents < 0) {
       toast.error('Indique um valor')
@@ -77,6 +116,8 @@ export function VatCalculatorWorkspace({ embedded = false }: { embedded?: boolea
     }
   }
 
+  const historyItems = (historyQuery.data?.items || []) as FiscalCalculationRow[]
+
   return (
     <FirmModuleShell
       embedded={embedded}
@@ -84,16 +125,13 @@ export function VatCalculatorWorkspace({ embedded = false }: { embedded?: boolea
       subtitle="Simulação líquido ↔ total com taxas 23 %, 13 % e 6 %. Resultado guardável e versionado — não é declaração oficial."
       bodyClassName={embedded ? 'overflow-visible' : 'overflow-auto px-4 pb-6 sm:px-5'}
     >
-      <div className="mb-4 rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-sm text-amber-950">
-        <p className="font-medium">Simulação de apoio</p>
-        <p className="mt-1 text-amber-950/90">
-          {catalogQuery.data?.disclaimer ||
-            'Não substitui software certificado nem a declaração periódica de IVA.'}
-        </p>
-      </div>
+      <CalculatorDisclaimer
+        text={catalogQuery.data?.disclaimer}
+        fallback="Não substitui software certificado nem a declaração periódica de IVA."
+      />
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <section className="space-y-4 rounded-xl border border-border/70 bg-card p-4 sm:p-5">
+      <div className="cb-calc-workspace-grid">
+        <section className="cb-calc-form-panel">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand/10 text-brand">
               <Calculator className="h-4 w-4" aria-hidden />
@@ -183,12 +221,13 @@ export function VatCalculatorWorkspace({ embedded = false }: { embedded?: boolea
           </div>
         </section>
 
-        <section className="space-y-4 rounded-xl border border-border/70 bg-card p-4 sm:p-5">
-          <h2 className="text-sm font-semibold">Resultado</h2>
+        <CalculatorResultPanel empty={!simulation}>
           {!simulation ? (
-            <p className="text-sm text-muted-foreground">Indique um valor e calcule para ver a discriminação.</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Indique um valor e calcule para ver a discriminação.
+            </p>
           ) : (
-            <div className="space-y-3">
+            <div className="mt-3 space-y-3">
               <ResultRow label="Líquido" value={formatEuroFromCents(simulation.result.netCents)} />
               <ResultRow
                 label={`IVA (${simulation.rate.percent} %)`}
@@ -199,67 +238,36 @@ export function VatCalculatorWorkspace({ embedded = false }: { embedded?: boolea
                 value={formatEuroFromCents(simulation.result.grossCents)}
                 strong
               />
-              <p className="text-xs leading-relaxed text-muted-foreground">{simulation.disclaimer}</p>
+              {simulation.disclaimer ? (
+                <p className="text-xs leading-relaxed text-muted-foreground">{simulation.disclaimer}</p>
+              ) : null}
               <p className="text-[11px] text-muted-foreground">
                 Versão {simulation.ruleVersion}
                 {simulation.rounding?.description ? ` · ${simulation.rounding.description}` : ''}
               </p>
             </div>
           )}
-        </section>
+        </CalculatorResultPanel>
       </div>
 
-      <section className="mt-6 rounded-xl border border-border/70 bg-card p-4 sm:p-5">
-        <h2 className="text-sm font-semibold">Histórico recente</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Cálculos guardados não mudam se as regras futuras forem actualizadas.
-        </p>
-        {historyQuery.isLoading ? (
-          <p className="mt-3 text-sm text-muted-foreground">A carregar…</p>
-        ) : (historyQuery.data?.items || []).length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">Ainda sem simulações guardadas.</p>
-        ) : (
-          <ul className="mt-3 divide-y divide-border/50">
-            {(historyQuery.data?.items || []).map(
-              (row: {
-                id: string
-                ruleVersion: string
-                createdAt: string
-                result: { netCents: number; vatCents: number; grossCents: number }
-                meta?: { rate?: { percent?: number } }
-              }) => (
-                <li key={row.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
-                  <span className="text-muted-foreground">
-                    {new Date(row.createdAt).toLocaleString('pt-PT')} · {row.ruleVersion}
-                  </span>
-                  <span className="tabular-nums font-medium">
-                    {formatEuroFromCents(row.result?.netCents)} + IVA{' '}
-                    {row.meta?.rate?.percent != null ? `${row.meta.rate.percent}%` : ''} ={' '}
-                    {formatEuroFromCents(row.result?.grossCents)}
-                  </span>
-                </li>
-              ),
-            )}
-          </ul>
-        )}
-      </section>
+      <CalculatorHistorySection
+        loading={historyQuery.isLoading}
+        emptyLabel="Ainda sem simulações guardadas."
+        items={historyItems}
+        onSelect={reopen}
+        renderSummary={(row) => {
+          const result = row.result || {}
+          const meta = row.meta || {}
+          const rate = (meta.rate || {}) as { percent?: number }
+          return (
+            <>
+              {formatEuroFromCents(Number(result.netCents || 0))} + IVA{' '}
+              {rate.percent != null ? `${rate.percent}%` : ''} ={' '}
+              {formatEuroFromCents(Number(result.grossCents || 0))}
+            </>
+          )
+        }}
+      />
     </FirmModuleShell>
-  )
-}
-
-function ResultRow({
-  label,
-  value,
-  strong,
-}: {
-  label: string
-  value: string
-  strong?: boolean
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3 border-b border-border/40 pb-2 last:border-0">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className={cn('tabular-nums text-sm', strong && 'text-base font-semibold')}>{value}</span>
-    </div>
   )
 }

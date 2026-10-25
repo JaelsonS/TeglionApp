@@ -275,7 +275,7 @@ export function AgendaWorkspace() {
             subtitle={
               tab === 'settings'
                 ? 'Horário em que o gabinete aceita marcações (página pública e portal).'
-                : 'Consultas e reuniões do gabinete — marque, veja o dia e gira a disponibilidade.'
+                : 'Consultas e reuniões com clientes — distinto do Calendário fiscal (prazos AT) e de Tarefas → Calendário (operações internas).'
             }
             testId="firm-agenda-header"
             secondary={

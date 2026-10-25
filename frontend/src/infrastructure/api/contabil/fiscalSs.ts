@@ -45,6 +45,8 @@ export function createContabilFiscalSsApi(api: AxiosInstance) {
           params: { calcType: 'ss_contributions', ...params },
         })
         .then((r) => r.data),
+    get: (id: string) =>
+      api.get(`/contabil/fiscal/calculations/${encodeURIComponent(id)}`).then((r) => r.data),
   }
 }
 

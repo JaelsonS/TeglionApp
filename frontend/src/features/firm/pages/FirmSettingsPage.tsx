@@ -150,7 +150,7 @@ export function FirmSettingsPage() {
       <div className="cb-settings-page">
         <PageHeader
           title="Definições"
-          subtitle="Configure identidade, página pública, Stripe Connect (receber dos clientes), equipa e segurança. Menu interno sempre com nomes."
+          subtitle="Doze áreas — cada separador explica o propósito em baixo. Página pública e Stripe Connect são produtos à parte do plano Teglion."
           testId="firm-settings-header"
           secondary={
             <AskMayaButton
@@ -209,27 +209,30 @@ export function FirmSettingsPage() {
                 <div className="min-w-0">
                   <h2 className="cb-settings-hub-panel-title">{activeMeta.label}</h2>
                   <p className="cb-settings-hub-panel-sub">
-                    {activeTab === 'identidade' && 'Logótipo no menu, portal do cliente e comunicações.'}
+                    {activeTab === 'identidade' &&
+                      'Logótipo e cor de destaque — aparecem no menu do gabinete, portal do cliente e emails.'}
                     {activeTab === 'pagina-publica' &&
-                      'Configure o site partilhável: identidade, secções, cores e publicação.'}
+                      'Site teglion.com/… com serviços, marcação e contactos — edite secções, pré-visualize e publique quando estiver pronto.'}
                     {activeTab === 'escritorio' &&
-                      'Nome interno, contactos e dados fiscais — usados na app, na facturação e nas comunicações.'}
+                      'Razão social, morada, NIF e contactos — alimentam documentos, comunicações e dados legais da página pública.'}
                     {activeTab === 'pagamentos' &&
-                      'Stripe Connect: os clientes pagam ao gabinete (não é a subscrição Teglion em Plano).'}
+                      'Ligue Stripe Connect para cobranças online dos clientes — distinto da carteira (menu Pagamentos) e do plano SaaS (menu Plano).'}
                     {activeTab === 'perfil' &&
-                      'O seu nome, e-mail de acesso, palavra-passe e cofre dos acessos oficiais.'}
+                      'Dados de login, palavra-passe e cofre pessoal de credenciais AT/SS (acesso protegido por MFA).'}
                     {activeTab === 'seguranca' &&
-                      'Autenticação de dois factores com aplicação autenticadora, códigos de recuperação e política por função.'}
+                      'MFA obrigatório por função, códigos de recuperação e políticas de acesso à app.'}
                     {activeTab === 'equipa' &&
-                      'Colaboradores, convites, cargos, departamentos e permissões — o dono define quem faz o quê.'}
+                      'Convites, cargos e permissões — quem pode editar clientes, publicar ou gerir pagamentos.'}
                     {activeTab === 'etiquetas' &&
-                      'Biblioteca do gabinete — clientes, leads, solicitações e equipa.'}
-                    {activeTab === 'notificacoes' && 'Alertas push e preferências de aviso.'}
+                      'Etiquetas reutilizáveis para clientes, leads, tarefas e equipa — filtros consistentes em toda a app.'}
+                    {activeTab === 'notificacoes' &&
+                      'Push e email: escolha o que recebe sobre documentos, mensagens, tarefas e pagamentos.'}
                     {activeTab === 'ajuda' &&
-                      'Maya, WhatsApp, email e telefone — suporte humano e assistente.'}
+                      'Maya no produto, contactos AfDigital e atalhos para documentação — suporte humano em português.'}
                     {activeTab === 'sobre' &&
-                      'Produto AfDigital, redes oficiais e ligações para documentos legais.'}
-                    {activeTab === 'encerrar' && 'Acção irreversível — encerra o gabinete.'}
+                      'Marca Teglion (produto AfDigital), versão da app e ligações legais — sem confundir com o seu gabinete.'}
+                    {activeTab === 'encerrar' &&
+                      'Exporte o que precisar antes — encerra o tenant e remove o acesso da equipa.'}
                   </p>
                 </div>
               </div>

@@ -24,6 +24,7 @@ import { FirmNextStepCard, FirmPublicUrlCard } from '@/features/firm/dashboard/F
 import {
   DashKpi,
   DashPanel,
+  DashSectionHeading,
   ObligationDashRows,
   PortfolioBar,
 } from '@/features/firm/dashboard/FirmDashboardParts'
@@ -41,7 +42,7 @@ import { openActivationAssistant } from '@/features/firm/activation/openActivati
 import { ClientsSpreadsheetDialog } from '@/features/firm/clients/ClientsSpreadsheetDialog'
 import { CLIENTS_CSV_IMPORT_OPEN_EVENT } from '@/features/firm/clients/openClientsCsvImport'
 import { Button } from '@/shared/components/ui/button'
-import { EmptyState, PageHeader, SkeletonCard } from '@/shared/design-system'
+import { EmptyState, PagePurposeHeader, SkeletonCard } from '@/shared/design-system'
 import { useFirmDashboard } from '@/shared/hooks/queries/useFirmDashboard'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { contabilMessagesApi } from '@/infrastructure/api'
@@ -206,15 +207,15 @@ export function FirmDashboardPage() {
   return (
     <FirmScrollPage>
       <div className="cb-dash-page" data-testid="firm-dashboard">
-        <PageHeader
+        <PagePurposeHeader
           title={greeting}
-          subtitle={`O que precisa de si agora no gabinete · actualizado ${relativeUpdated(updatedAt)}${
-            data ? ` · ${data.totalClients} clientes` : ''
+          purpose={`Centro de comando do gabinete: prioridades, prazos e atalhos. Actualizado ${relativeUpdated(updatedAt)}${
+            data ? ` · ${data.totalClients} clientes na carteira` : ''
           }`}
           testId="firm-dashboard-header"
           secondary={
             <div className="flex flex-wrap items-center gap-2">
-              <div className="flex flex-wrap gap-1.5" role="group" aria-label="Período">
+              <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar indicadores por período">
                 {(
                   [
                     ['all', 'Tudo'],
@@ -250,12 +251,14 @@ export function FirmDashboardPage() {
         />
 
         {progress?.nextAction || (isFirmOwner && progress) ? (
-          <details className="mb-4 rounded-xl border border-border/70 bg-card p-3 open:shadow-sm">
-            <summary className="cursor-pointer text-sm font-semibold text-foreground">
-              Configurar o gabinete
-              <span className="ml-2 font-normal text-muted-foreground">(passos iniciais · Maya e Manual)</span>
+          <details className="cb-dash-setup">
+            <summary className="cb-dash-setup-summary">
+              <span className="cb-dash-setup-summary-title">Primeiros passos do gabinete</span>
+              <span className="cb-dash-setup-summary-hint">
+                Configure página pública, Maya e activação — pode fechar quando terminar
+              </span>
             </summary>
-            <div className="mt-3 space-y-3">
+            <div className="cb-dash-setup-body">
               <FirmOnboardingWizard />
               {progress?.nextAction ? (
                 <div className="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
@@ -302,50 +305,58 @@ export function FirmDashboardPage() {
 
         {data ? (
           <>
-            <section className="mb-5" aria-labelledby="dash-precisa-si">
-              <h2 id="dash-precisa-si" className="mb-3 text-title font-semibold tracking-tight text-foreground">
-                Precisa de si
-              </h2>
-            <div className="cb-dash-kpi-row">
-              <DashKpi
-                label="Em atraso"
-                sub="obrigações"
-                value={kpiOverdue}
-                tone="red"
-                icon={AlertTriangle}
-                onClick={() => navigate(firmTasksPath('obligations'))}
+            <section className="cb-dash-band" aria-labelledby="dash-precisa-si">
+              <DashSectionHeading
+                id="dash-precisa-si"
+                title="Precisa da sua atenção"
+                purpose="Números clicáveis: abrem obrigações, documentos ou tarefas filtrados pelo período escolhido."
               />
-              <DashKpi
-                label="Críticas 48h"
-                sub="vencem em breve"
-                value={kpiCritical}
-                tone="red"
-                icon={Clock}
-                onClick={() => navigate(firmTasksPath('obligations'))}
-              />
-              <DashKpi
-                label="Docs p/ validar"
-                sub="aguardam revisão"
-                value={kpiPendingDocs}
-                tone="orange"
-                icon={FileText}
-                onClick={() => navigate('/app/firm/documents/files')}
-              />
-              <DashKpi
-                label="Tarefas abertas"
-                sub={tasksKpiSub}
-                value={kpiTasks}
-                tone="neutral"
-                icon={ClipboardList}
-                onClick={() => navigate(firmTasksPath('manual'))}
-              />
-            </div>
+              <div className="cb-dash-kpi-row">
+                <DashKpi
+                  label="Em atraso"
+                  sub="obrigações"
+                  value={kpiOverdue}
+                  tone="red"
+                  icon={AlertTriangle}
+                  onClick={() => navigate(firmTasksPath('obligations'))}
+                />
+                <DashKpi
+                  label="Críticas 48h"
+                  sub="vencem em breve"
+                  value={kpiCritical}
+                  tone="red"
+                  icon={Clock}
+                  onClick={() => navigate(firmTasksPath('obligations'))}
+                />
+                <DashKpi
+                  label="Docs p/ validar"
+                  sub="aguardam revisão"
+                  value={kpiPendingDocs}
+                  tone="orange"
+                  icon={FileText}
+                  onClick={() => navigate('/app/firm/documents/files')}
+                />
+                <DashKpi
+                  label="Tarefas abertas"
+                  sub={tasksKpiSub}
+                  value={kpiTasks}
+                  tone="neutral"
+                  icon={ClipboardList}
+                  onClick={() => navigate(firmTasksPath('manual'))}
+                />
+              </div>
             </section>
 
             <div className="cb-dash-cols">
-              <div className="flex flex-col gap-3">
+              <div className="cb-dash-col-main">
+                <DashSectionHeading
+                  id="dash-trabalho"
+                  title="Trabalho por prioridade"
+                  purpose="Listas operacionais: prazos críticos, atrasos e documentos à espera de validação."
+                />
                 <DashPanel
                   title="Prioridade 48h"
+                  purpose="Obrigações que vencem nas próximas 48 horas — notifique os clientes se precisar."
                   titleIcon={<AlertTriangle className="h-3.5 w-3.5 text-red-600" />}
                   linkLabel="ver todas"
                   linkTo={firmTasksPath('obligations')}
@@ -377,6 +388,7 @@ export function FirmDashboardPage() {
 
                 <DashPanel
                   title="Obrigações em atraso"
+                  purpose="Prazos já ultrapassados — trate primeiro estes clientes."
                   titleIcon={<AlertCircle className="h-3.5 w-3.5 text-red-600" />}
                   linkLabel={`${kpiOverdue} no total`}
                   linkTo={firmTasksPath('obligations')}
@@ -391,6 +403,7 @@ export function FirmDashboardPage() {
 
                 <DashPanel
                   title="Documentos pendentes validação"
+                  purpose="Ficheiros enviados pelos clientes que ainda precisam da sua revisão."
                   titleIcon={<Inbox className="h-3.5 w-3.5 text-orange-600" />}
                   linkLabel={`${kpiPendingDocs} por rever`}
                   linkTo="/app/firm/documents/files"
@@ -435,11 +448,18 @@ export function FirmDashboardPage() {
                 </DashPanel>
               </div>
 
-              <aside className="flex flex-col gap-3">
-                <h2 className="text-title font-semibold tracking-tight text-foreground">Hoje</h2>
+              <aside className="cb-dash-col-aside" aria-labelledby="dash-hoje">
+                <DashSectionHeading
+                  id="dash-hoje"
+                  title="Hoje no gabinete"
+                  purpose="Saúde da carteira, agenda do dia, actividade recente e atalhos para o trabalho corrente."
+                />
                 <section className="cb-dash-panel">
                   <div className="cb-dash-panel-hd">
-                    <span className="cb-dash-panel-title">Estado da carteira</span>
+                    <div className="cb-dash-panel-hd-text">
+                      <span className="cb-dash-panel-title">Estado da carteira</span>
+                      <p className="cb-dash-panel-purpose">Clientes em dia, em atenção ou críticos.</p>
+                    </div>
                   </div>
                   <div className="cb-dash-bar-wrap">
                     <PortfolioBar
@@ -473,6 +493,7 @@ export function FirmDashboardPage() {
 
                 <DashPanel
                   title="Agenda hoje"
+                  purpose="Consultas e reuniões marcadas para hoje."
                   titleIcon={<Calendar className="h-3.5 w-3.5 text-sky-600" />}
                   linkLabel="ver agenda"
                   linkTo="/app/firm/agenda"
@@ -512,7 +533,11 @@ export function FirmDashboardPage() {
                   )}
                 </DashPanel>
 
-                <DashPanel title="Atividade recente" titleIcon={<Check className="h-3.5 w-3.5 text-muted-foreground" />}>
+                <DashPanel
+                  title="Atividade recente"
+                  purpose="Resumo rápido de prazos, documentos e reuniões recentes."
+                  titleIcon={<Check className="h-3.5 w-3.5 text-muted-foreground" />}
+                >
                   {activity.length === 0 ? (
                     <EmptyState
                       className="border-0 bg-transparent py-8"
@@ -540,9 +565,12 @@ export function FirmDashboardPage() {
 
                 <section className="cb-dash-panel" aria-labelledby="dash-acoes">
                   <div className="cb-dash-panel-hd">
-                    <span id="dash-acoes" className="cb-dash-panel-title">
-                      Acções rápidas
-                    </span>
+                    <div className="cb-dash-panel-hd-text">
+                      <span id="dash-acoes" className="cb-dash-panel-title">
+                        Acções rápidas
+                      </span>
+                      <p className="cb-dash-panel-purpose">Atalhos para o trabalho do dia.</p>
+                    </div>
                   </div>
                   <div className="cb-dash-shortcuts">
                     {QUICK_LINKS.map(({ to, label, icon: Icon }) => (

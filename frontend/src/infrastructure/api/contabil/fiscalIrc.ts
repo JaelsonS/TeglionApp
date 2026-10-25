@@ -37,6 +37,8 @@ export function createContabilFiscalIrcApi(api: AxiosInstance) {
       api
         .get('/contabil/fiscal/calculations', { params: { calcType: 'irc', ...params } })
         .then((r) => r.data),
+    get: (id: string) =>
+      api.get(`/contabil/fiscal/calculations/${encodeURIComponent(id)}`).then((r) => r.data),
   }
 }
 

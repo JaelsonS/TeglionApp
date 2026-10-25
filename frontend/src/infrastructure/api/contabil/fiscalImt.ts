@@ -35,6 +35,8 @@ export function createContabilFiscalImtApi(api: AxiosInstance) {
       api
         .get('/contabil/fiscal/calculations', { params: { calcType: 'imt', ...params } })
         .then((r) => r.data),
+    get: (id: string) =>
+      api.get(`/contabil/fiscal/calculations/${encodeURIComponent(id)}`).then((r) => r.data),
   }
 }
 

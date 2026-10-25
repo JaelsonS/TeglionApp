@@ -41,7 +41,7 @@ import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { AskMayaButton } from '@/features/maya'
-import { EmptyState, PageHeader } from '@/shared/design-system'
+import { EmptyState, PagePurposeHeader } from '@/shared/design-system'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -262,19 +262,17 @@ export function FirmClientsPage() {
     <FirmScrollPage className="cb-clients-page">
       <div className="cb-clients-panel">
         <div className="cb-clients-panel-hd">
-          <PageHeader
+          <PagePurposeHeader
             title="Clientes"
-            subtitle={
+            purpose={
               filtered.length === total
-                ? `Lista da carteira — abra o hub de cada cliente para documentos, prazos e portal · ${activeCount} activos`
-                : `${filtered.length} de ${total} clientes — filtre, convide ao portal e abra o hub de cada empresa.`
+                ? `Carteira do gabinete: criar, filtrar, convidar ao portal e abrir o hub de cada empresa (documentos, prazos, faturação). ${activeCount} activos.`
+                : `${filtered.length} de ${total} clientes com os filtros actuais. Limpe filtros para ver a carteira completa · ${activeCount} activos no total.`
             }
             testId="firm-clients-header"
-            secondary={
-              <AskMayaButton />
-            }
+            secondary={<AskMayaButton />}
             right={
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button size="sm" variant="outline" onClick={() => setSpreadsheetOpen(true)}>
                   <FileSpreadsheet className="h-4 w-4" />
                   Ficha CSV
@@ -288,6 +286,9 @@ export function FirmClientsPage() {
           />
         </div>
 
+        <p className="cb-clients-toolbar-hint">
+          Filtre por tipo, regime IVA, estado ou etiqueta. Clique numa linha para abrir o hub do cliente.
+        </p>
         <div className="cb-clients-toolbar">
           <div className="cb-clients-search">
             <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
