@@ -178,6 +178,18 @@ Portugal é o único mercado onde eu tenho uso real hoje (5 escritórios em prod
 
 - **Regra que eu sigo nessa fase:** nenhuma mudança que eu fizer nas Fases 3-5 (arquitetura multi-país, Brasil) pode alterar o comportamento que um escritório português vê hoje. Ver Fase 3 pros testes de regressão que eu preciso rodar.
 
+### Frente V10 Ops + Fiscal (branch `feature/fase-v10-ops-fiscal`) — iniciada 25/10/2026
+
+Carta canónica: [`docs/product/V10_OPS_FISCAL_CHARTER.md`](./product/V10_OPS_FISCAL_CHARTER.md).
+
+| Onda | Estado | Notas |
+|---|---|---|
+| **1 — Avenças / mapa Pagamentos** | `EM ANDAMENTO` | Manual sempre; Stripe Connect **opcional** com nudge. Migration `20261025000000_client_fee_charges.sql` — **não** aplicada a staging/prod sem autorização. |
+| 2 — Motor IVA | PLANEJADO | Depois da onda 1 estável |
+| 3–6 | PLANEJADO | Calendário×cliente, simuladores, rendas dados, SAF-T leitura |
+| 7–8 | PLANEJADO | Manual + landing (depois do produto) |
+| 9 | PLANEJADO | Caminho certificação AT (investimento + jurídico) |
+
 ### Frente de evolução de produto/segurança (iniciada 20/08/2026)
 
 Abri uma frente própria, maior que um item avulso desta fase. A auditoria item a item (arquivo) fica em [`historico/auditorias/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md`](./historico/auditorias/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md). A **ordem obrigatória** das fases desta frente (actualizada 21/08/2026) está em [ADR-0012](./decisions/ADR-0012-ordem-frente-evolucao-produto.md) — **não alterar sem autorização explícita**.

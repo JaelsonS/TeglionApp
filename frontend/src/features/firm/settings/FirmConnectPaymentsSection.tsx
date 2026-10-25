@@ -229,9 +229,13 @@ export function FirmConnectPaymentsSection() {
       </div>
 
       <p className="text-sm leading-relaxed text-muted-foreground">
-        Os clientes pagam no Checkout da Stripe; o valor fica na conta do escritório. A Teglion não
-        custodia esse dinheiro. Condições e responsabilidades estão na política que o responsável
-        aceita ao ligar os pagamentos. A subscrição do Teglion (mensal/anual) está em{' '}
+        Opcional: sem Stripe Connect continua a gerir avenças e pagamentos à mão em{' '}
+        <Link to="/app/firm/payments" className="font-medium text-brand hover:underline">
+          Pagamentos
+        </Link>
+        . Com Connect, os clientes podem pagar no Checkout da Stripe; o valor fica na conta do
+        escritório — a Teglion não custodia esse dinheiro. A taxa de serviço Teglion (manutenção da
+        integração) é diferente das taxas Stripe. A mensalidade do software está em{' '}
         <Link to="/app/firm/billing" className="font-medium text-brand hover:underline">
           Plano
         </Link>

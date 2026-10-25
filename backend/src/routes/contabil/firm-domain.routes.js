@@ -36,6 +36,7 @@ const caeHistoryController = require('../../modules/firm/cae-history.controller'
 const caeCatalogController = require('../../modules/firm/cae-catalog.controller');
 const mayaSetupController = require('../../modules/maya-setup/maya-setup.controller');
 const { mayaSetupGenerateLimiter } = require('../../modules/maya-setup/maya-setup.rate-limit');
+const feeChargesController = require('../../modules/fee-charges/fee-charges.controller');
 
 const router = express.Router();
 
@@ -513,6 +514,16 @@ router.post(
 router.post('/clients', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.create);
 router.get('/clients/:id/hub', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), clientsController.getHub);
 router.get(
+  '/clients/:id/billing',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  feeChargesController.getClientBilling,
+);
+router.patch(
+  '/clients/:id/billing',
+  requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
+  feeChargesController.patchClientBilling,
+);
+router.get(
   '/clients/:id/official-accesses',
   requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE),
   officialAccessesController.list,
@@ -626,6 +637,11 @@ router.get('/consultations/attention-count', requirePermission(PERMISSIONS.FIRM_
 router.get('/consultations', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), consultationsController.list);
 router.post('/consultations', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), consultationsController.create);
 router.patch('/consultations/:id', requirePermission(PERMISSIONS.FIRM_CONSULTATIONS_MANAGE), consultationsController.update);
+
+router.get('/fee-charges/meta', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.meta);
+router.get('/fee-charges/map', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.map);
+router.post('/fee-charges/generate', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.generate);
+router.patch('/fee-charges/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.patch);
 
 router.get('/broadcasts/meta', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), broadcastsController.getMeta);
 router.post(

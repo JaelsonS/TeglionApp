@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   MessageSquare,
   ScrollText,
+  Wallet,
 } from 'lucide-react'
 
 export type ClientHubSection =
@@ -19,6 +20,7 @@ export type ClientHubSection =
   | 'documents'
   | 'tasks'
   | 'messages'
+  | 'billing'
 
 export const CLIENT_HUB_SECTIONS: Array<{
   id: ClientHubSection
@@ -27,6 +29,7 @@ export const CLIENT_HUB_SECTIONS: Array<{
 }> = [
   { id: 'overview', label: 'Resumo', icon: LayoutDashboard },
   { id: 'profile', label: 'Perfil', icon: Building2 },
+  { id: 'billing', label: 'Faturação', icon: Wallet },
   { id: 'accesses', label: 'Acessos', icon: KeyRound },
   { id: 'timeline', label: 'Actividade', icon: Activity },
   { id: 'obligations', label: 'Obrigações', icon: ClipboardList },

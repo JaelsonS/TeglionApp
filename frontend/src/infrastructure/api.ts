@@ -15,6 +15,7 @@ import { createContabilFiscalCalendarApi } from '@/infrastructure/api/contabil/f
 import { createContabilGoogleCalendarApi } from '@/infrastructure/api/contabil/googleCalendar'
 import { createContabilGoogleDriveApi } from '@/infrastructure/api/contabil/googleDrive'
 import { createContabilLeadsApi } from '@/infrastructure/api/contabil/leads'
+import { createContabilFeeChargesApi } from '@/infrastructure/api/contabil/feeCharges'
 import { createContabilMessagesApi } from '@/infrastructure/api/contabil/messages'
 import { createContabilNewsApi } from '@/infrastructure/api/contabil/news'
 import { createContabilNavBadgesApi } from '@/infrastructure/api/contabil/navBadges'
@@ -84,6 +85,7 @@ export const contabilInquiryTagsApi = createContabilInquiryTagsApi(api)
 export const contabilGoogleCalendarApi = createContabilGoogleCalendarApi(api)
 export const contabilGoogleDriveApi = createContabilGoogleDriveApi(api)
 export const contabilLeadsApi = createContabilLeadsApi(api)
+export const contabilFeeChargesApi = createContabilFeeChargesApi(api)
 export const clientPortalContabilApi = createClientPortalContabilApi(api)
 
 export type { BillingStatus, ConnectStatus }
