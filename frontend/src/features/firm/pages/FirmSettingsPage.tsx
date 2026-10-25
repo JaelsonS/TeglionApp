@@ -38,7 +38,7 @@ const TABS = [
   { id: 'identidade', label: 'Identidade', shortLabel: 'Logo', icon: ImageIcon, danger: false },
   { id: 'pagina-publica', label: 'Página pública', shortLabel: 'Página', icon: Globe, danger: false },
   { id: 'escritorio', label: 'Escritório', shortLabel: 'Escritório', icon: Building2, danger: false },
-  { id: 'pagamentos', label: 'Pagamentos', shortLabel: 'Pagamentos', icon: CreditCard, danger: false },
+  { id: 'pagamentos', label: 'Receber dos clientes', shortLabel: 'Stripe', icon: CreditCard, danger: false },
   { id: 'perfil', label: 'O seu perfil', shortLabel: 'Perfil', icon: User, danger: false },
   { id: 'seguranca', label: 'Segurança', shortLabel: 'Segurança', icon: Lock, danger: false },
   { id: 'equipa', label: 'Equipa', shortLabel: 'Equipa', icon: Users, danger: false },
@@ -215,7 +215,7 @@ export function FirmSettingsPage() {
                     {activeTab === 'escritorio' &&
                       'Nome interno, contactos e dados fiscais — usados na app, na facturação e nas comunicações.'}
                     {activeTab === 'pagamentos' &&
-                      'Receber dos clientes via Stripe Connect, na conta bancária do escritório — separado da subscrição Teglion (Plano).'}
+                      'Stripe Connect: os clientes pagam ao escritório (não é a subscrição Teglion em Plano).'}
                     {activeTab === 'perfil' &&
                       'O seu nome, e-mail de acesso, palavra-passe e cofre dos acessos oficiais.'}
                     {activeTab === 'seguranca' &&
