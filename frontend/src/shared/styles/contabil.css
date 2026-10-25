@@ -1755,6 +1755,67 @@
     @apply w-full min-w-0 space-y-0;
   }
 
+  .cb-clients-layout-page,
+  .cb-clients-layout-page .cb-firm-operational-panel {
+    @apply min-h-0 flex-1;
+  }
+
+  .cb-clients-shell {
+    @apply border-0 bg-transparent shadow-none;
+  }
+
+  .cb-clients-body {
+    @apply flex min-h-0 flex-1 flex-col;
+  }
+
+  .cb-clients-kpi-strip {
+    @apply mb-0 grid shrink-0 grid-cols-2 gap-1.5 px-4 pt-3 sm:grid-cols-4 sm:px-5;
+  }
+
+  .cb-clients-kpi {
+    @apply flex items-center gap-2.5 rounded-xl border border-border/70 bg-card px-3 py-2 shadow-sm;
+  }
+
+  .cb-clients-kpi-icon {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground;
+  }
+
+  .cb-clients-kpi--brand .cb-clients-kpi-icon {
+    @apply bg-brand/10 text-brand;
+  }
+
+  .cb-clients-kpi--amber .cb-clients-kpi-icon {
+    @apply bg-amber-100 text-amber-800;
+  }
+
+  .cb-clients-kpi--emerald .cb-clients-kpi-icon {
+    @apply bg-emerald-100 text-emerald-800;
+  }
+
+  .cb-clients-kpi--rose .cb-clients-kpi-icon {
+    @apply bg-rose-100 text-rose-800;
+  }
+
+  .cb-clients-kpi-value {
+    @apply text-lg font-bold tabular-nums tracking-tight text-foreground;
+  }
+
+  .cb-clients-kpi-label {
+    @apply text-xs text-muted-foreground;
+  }
+
+  .cb-clients-section-lead {
+    @apply shrink-0 px-4 pb-2 pt-3 text-sm leading-snug text-muted-foreground sm:px-5;
+  }
+
+  .cb-clients-section-lead-title {
+    @apply mb-0.5 block text-xs font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-clients-section-host {
+    @apply flex min-h-0 min-w-0 flex-1 flex-col px-3 pb-3 sm:px-4;
+  }
+
   .cb-clients-toolbar-hint {
     @apply px-0 pb-2 text-pretty text-xs leading-relaxed text-muted-foreground sm:px-0;
   }
@@ -1773,7 +1834,9 @@
       @apply flex min-h-0 flex-1 flex-col;
     }
 
-    .cb-clients-page .cb-clients-panel {
+    .cb-clients-page .cb-clients-shell,
+    .cb-clients-page .cb-clients-body,
+    .cb-clients-page .cb-clients-section-host {
       @apply flex min-h-0 flex-1 flex-col;
     }
 
@@ -1794,9 +1857,13 @@
       min-height: 0;
     }
 
+    .cb-clients-page .cb-clients-shell,
+    .cb-clients-page .cb-clients-body,
+    .cb-clients-page .cb-clients-section-host,
     .cb-clients-page .cb-clients-panel {
       overflow: visible;
       height: auto;
+      flex: none;
     }
 
     .cb-clients-page .cb-clients-table-wrap,
