@@ -30,8 +30,13 @@ import {
   type CompanyTypeLabel,
 } from '@/features/firm/clients/clientCompanyAvatar'
 import { resolvePortalInviteUi } from '@/features/firm/clients/portalInviteStatus'
-import { FirmScrollPage } from '@/features/firm/FirmPageLayout'
+import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
 import { ClientsSpreadsheetDialog } from '@/features/firm/clients/ClientsSpreadsheetDialog'
+import {
+  CLIENTS_KPI_ICONS,
+  type ClientsKpi,
+} from '@/features/firm/clients/ClientsKpiStrip'
+import { ClientsWorkspaceShell } from '@/features/firm/clients/ClientsWorkspaceShell'
 import { CreateCompanyWizard } from '@/features/firm/components/CreateCompanyWizard'
 import { FirmClientBulkInviteDialog } from '@/features/firm/components/FirmClientBulkInviteDialog'
 import { FirmClientInviteButton } from '@/features/firm/components/FirmClientInviteButton'
@@ -41,7 +46,7 @@ import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Checkbox } from '@/shared/components/ui/checkbox'
 import { AskMayaButton } from '@/features/maya'
-import { EmptyState, PagePurposeHeader } from '@/shared/design-system'
+import { EmptyState } from '@/shared/design-system'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -206,6 +211,49 @@ export function FirmClientsPage() {
     [items],
   )
 
+  const kpis = useMemo((): ClientsKpi[] => {
+    let attention = 0
+    let noPortal = 0
+    for (const c of items) {
+      const inactive = c.status && c.status !== 'ACTIVE'
+      if (!inactive && (c.operationalStatus === 'atencao' || c.operationalStatus === 'critico')) {
+        attention += 1
+      }
+      const portal = c.portalAccessStatus
+      if (!portal || portal === 'NO_ACCESS' || portal === 'PENDING_INVITE') noPortal += 1
+    }
+    return [
+      {
+        id: 'active',
+        value: activeCount,
+        label: activeCount === 1 ? 'activo' : 'activos',
+        tone: 'emerald',
+        icon: CLIENTS_KPI_ICONS.active,
+      },
+      {
+        id: 'attention',
+        value: attention,
+        label: attention === 1 ? 'em atenção' : 'em atenção',
+        tone: attention > 0 ? 'amber' : 'muted',
+        icon: CLIENTS_KPI_ICONS.attention,
+      },
+      {
+        id: 'portal',
+        value: noPortal,
+        label: noPortal === 1 ? 'sem portal' : 'sem portal',
+        tone: noPortal > 0 ? 'rose' : 'muted',
+        icon: CLIENTS_KPI_ICONS.noPortal,
+      },
+      {
+        id: 'total',
+        value: total,
+        label: total === 1 ? 'na carteira' : 'na carteira',
+        tone: 'brand',
+        icon: CLIENTS_KPI_ICONS.total,
+      },
+    ]
+  }, [items, activeCount, total])
+
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
@@ -258,37 +306,24 @@ export function FirmClientsPage() {
     navigate(`/app/firm/clients/${encodeURIComponent(id)}`)
   }
 
-  return (
-    <FirmScrollPage className="cb-clients-page">
-      <div className="cb-clients-panel">
-        <div className="cb-clients-panel-hd">
-          <PagePurposeHeader
-            title="Clientes"
-            purpose={
-              filtered.length === total
-                ? `Carteira do gabinete: criar, filtrar, convidar ao portal e abrir o hub de cada empresa (documentos, prazos, faturação). ${activeCount} activos.`
-                : `${filtered.length} de ${total} clientes com os filtros actuais. Limpe filtros para ver a carteira completa · ${activeCount} activos no total.`
-            }
-            testId="firm-clients-header"
-            secondary={<AskMayaButton />}
-            right={
-              <div className="flex flex-wrap items-center gap-2">
-                <Button size="sm" variant="outline" onClick={() => setSpreadsheetOpen(true)}>
-                  <FileSpreadsheet className="h-4 w-4" />
-                  Ficha CSV
-                </Button>
-                <Button size="sm" variant="primary" onClick={() => setOpenCreate(true)}>
-                  <Plus className="h-4 w-4" />
-                  Novo cliente
-                </Button>
-              </div>
-            }
-          />
-        </div>
+  const headerRight = (
+    <div className="flex flex-wrap items-center gap-2">
+      <AskMayaButton />
+      <Button size="sm" variant="outline" onClick={() => setSpreadsheetOpen(true)}>
+        <FileSpreadsheet className="h-4 w-4" />
+        Ficha CSV
+      </Button>
+      <Button size="sm" variant="primary" onClick={() => setOpenCreate(true)}>
+        <Plus className="h-4 w-4" />
+        Novo cliente
+      </Button>
+    </div>
+  )
 
-        <p className="cb-clients-toolbar-hint">
-          Filtre por tipo, regime IVA, estado ou etiqueta. Clique numa linha para abrir o hub do cliente.
-        </p>
+  return (
+    <FirmWorkspacePage className="cb-clients-page cb-clients-layout-page xl:min-h-0 xl:flex-1">
+      <div className="cb-firm-operational-panel cb-clients-layout-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <ClientsWorkspaceShell headerRight={headerRight} kpis={kpis}>
         <div className="cb-clients-toolbar">
           <div className="cb-clients-search">
             <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -489,11 +524,24 @@ export function FirmClientsPage() {
               <tbody>
                 {pageItems.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="cb-dash-empty">
-                      Nenhum cliente neste filtro.
-                      <Button className="mt-2 h-8" size="sm" onClick={() => setOpenCreate(true)}>
-                        Novo cliente
-                      </Button>
+                    <td colSpan={9}>
+                      <EmptyState
+                        icon={Building2}
+                        title={total === 0 ? 'Ainda não tem clientes' : 'Nenhum cliente neste filtro'}
+                        description={
+                          total === 0
+                            ? 'Adicione a primeira empresa à carteira para organizar documentos, prazos e o portal.'
+                            : 'Ajuste a pesquisa ou os filtros para ver outros clientes.'
+                        }
+                        action={
+                          total === 0 ? (
+                            <Button size="sm" variant="primary" onClick={() => setOpenCreate(true)}>
+                              <Plus className="h-4 w-4" />
+                              Novo cliente
+                            </Button>
+                          ) : undefined
+                        }
+                      />
                     </td>
                   </tr>
                 ) : (
@@ -569,7 +617,7 @@ export function FirmClientsPage() {
                             <DropdownMenuContent align="end" className="w-44">
                               <DropdownMenuItem onClick={() => openHub(c._id)}>
                                 <ExternalLink className="mr-2 h-3.5 w-3.5" />
-                                Abrir cockpit
+                                Abrir hub
                               </DropdownMenuItem>
                               <DropdownMenuItem asChild>
                                 <Link to={`/app/firm/messages?client=${encodeURIComponent(c._id)}`}>
@@ -635,6 +683,7 @@ export function FirmClientsPage() {
             </button>
           </div>
         </div>
+        </ClientsWorkspaceShell>
       </div>
 
       <CreateCompanyWizard open={openCreate} onOpenChange={setOpenCreate} onCreated={() => void refreshClients()} />
@@ -677,7 +726,7 @@ export function FirmClientsPage() {
           await refreshClients()
         }}
       />
-    </FirmScrollPage>
+    </FirmWorkspacePage>
   )
 }
 
