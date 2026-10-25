@@ -1,4 +1,4 @@
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 
 import { FirmDesktopCollapsedRail } from '@/features/firm/FirmDesktopCollapsedRail'
@@ -32,6 +32,13 @@ export function FirmLayout() {
     location.pathname.startsWith('/app/firm/settings') &&
     new URLSearchParams(location.search).get('tab') === 'pagina-publica'
   const isSettingsRoute = location.pathname.startsWith('/app/firm/settings')
+
+  // Em Definições o menu secundário precisa de espaço e nomes — evita dois rails de ícones.
+  useEffect(() => {
+    if (isSettingsRoute && collapsed) {
+      setCollapsed(false)
+    }
+  }, [isSettingsRoute, collapsed, setCollapsed])
 
   return (
     <LiveEventsProvider scope="firm">

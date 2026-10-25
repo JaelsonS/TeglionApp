@@ -3249,11 +3249,11 @@
   }
 
   .cb-settings-hub {
-    @apply grid w-full min-w-0 gap-4 lg:grid-cols-[minmax(15rem,17.5rem)_minmax(0,1fr)] lg:items-start lg:gap-6;
+    @apply grid w-full min-w-0 gap-4 md:grid-cols-[minmax(14.5rem,17rem)_minmax(0,1fr)] md:items-start md:gap-5 lg:grid-cols-[minmax(16rem,18.5rem)_minmax(0,1fr)] lg:gap-6;
   }
 
   .cb-firm-shell--sidebar-collapsed .cb-settings-hub {
-    @apply lg:grid-cols-[minmax(16rem,19rem)_minmax(0,1fr)] lg:gap-7;
+    @apply md:grid-cols-[minmax(15.5rem,19rem)_minmax(0,1fr)] md:gap-6;
   }
 
   .cb-settings-hub--nav-collapsed {
@@ -3261,7 +3261,7 @@
   }
 
   .cb-settings-side-nav-heading {
-    @apply mb-1 hidden px-2.5 pt-1 lg:block;
+    @apply mb-2 hidden border-b border-border/50 px-3 pb-3 pt-2 md:block;
   }
 
   .cb-settings-side-nav-heading-title {
@@ -3326,15 +3326,10 @@
   }
 
   .cb-settings-side-nav {
-    @apply sticky top-16 z-10 -mx-1 flex max-w-[100vw] snap-x snap-mandatory gap-1 overflow-x-auto overscroll-x-contain rounded-2xl border border-border/40 bg-card p-1.5 shadow-sm sm:top-20 sm:mx-0 sm:gap-1.5 sm:p-2 lg:max-w-none lg:snap-none lg:flex-col lg:overflow-visible;
+    @apply sticky top-16 z-10 -mx-1 flex max-w-[100vw] snap-x snap-mandatory gap-1 overflow-x-auto overscroll-x-contain rounded-2xl border border-border/50 bg-card p-2 shadow-sm sm:top-20 sm:mx-0 sm:gap-1 sm:p-2.5 md:max-w-none md:snap-none md:flex-col md:overflow-visible md:p-3;
     scrollbar-width: none;
     -ms-overflow-style: none;
     -webkit-overflow-scrolling: touch;
-    background-image: linear-gradient(
-      180deg,
-      color-mix(in oklab, var(--card) 100%, transparent),
-      color-mix(in oklab, var(--muted) 18%, var(--card))
-    );
   }
 
   .cb-settings-side-nav::-webkit-scrollbar {
@@ -3342,7 +3337,7 @@
   }
 
   .cb-settings-side-nav-item {
-    @apply relative inline-flex shrink-0 cursor-pointer snap-start items-center gap-2 rounded-xl px-2.5 py-2 text-left text-[11px] font-medium leading-tight text-muted-foreground transition-all duration-150 hover:bg-muted/55 hover:text-foreground sm:gap-2.5 sm:px-3 sm:py-2.5 sm:text-sm;
+    @apply relative inline-flex w-auto shrink-0 cursor-pointer snap-start items-center gap-2.5 rounded-xl px-2.5 py-2 text-left text-xs font-medium leading-snug text-muted-foreground transition-colors duration-150 hover:bg-muted/60 hover:text-foreground sm:px-3 sm:py-2.5 sm:text-sm md:w-full;
   }
 
   .cb-settings-side-nav-item:focus-visible {
@@ -3371,49 +3366,24 @@
   }
 
   .cb-settings-side-nav-icon {
-    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors sm:h-9 sm:w-9 sm:rounded-xl;
-    background: color-mix(in oklab, var(--muted) 70%, transparent);
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted/55 text-foreground/70 transition-colors sm:h-9 sm:w-9 sm:rounded-xl;
   }
 
   .cb-settings-side-nav-label {
-    @apply min-w-0 whitespace-nowrap;
+    @apply min-w-0 truncate whitespace-nowrap;
   }
 
+  /* Nomes sempre legíveis a partir de tablet; no telemóvel usa rótulo curto */
   .cb-settings-side-nav-label-full {
-    @apply hidden lg:inline;
+    @apply hidden md:inline;
   }
 
   .cb-settings-side-nav-label-short {
-    @apply inline lg:hidden;
-  }
-
-  .cb-settings-side-nav-item[data-tab='identidade'] .cb-settings-side-nav-icon {
-    color: #0d9488;
-    background: color-mix(in oklab, #0d9488 12%, transparent);
-  }
-
-  .cb-settings-side-nav-item[data-tab='escritorio'] .cb-settings-side-nav-icon {
-    color: #2563eb;
-    background: color-mix(in oklab, #2563eb 12%, transparent);
-  }
-
-  .cb-settings-side-nav-item[data-tab='perfil'] .cb-settings-side-nav-icon {
-    color: #7c3aed;
-    background: color-mix(in oklab, #7c3aed 12%, transparent);
-  }
-
-  .cb-settings-side-nav-item[data-tab='equipa'] .cb-settings-side-nav-icon {
-    color: #ea580c;
-    background: color-mix(in oklab, #ea580c 12%, transparent);
-  }
-
-  .cb-settings-side-nav-item[data-tab='notificacoes'] .cb-settings-side-nav-icon {
-    color: #0891b2;
-    background: color-mix(in oklab, #0891b2 12%, transparent);
+    @apply inline md:hidden;
   }
 
   .cb-settings-side-nav-item--active .cb-settings-side-nav-icon {
-    @apply bg-brand text-primary-foreground ring-0;
+    @apply bg-brand text-primary-foreground;
   }
 
   .cb-settings-side-nav-item--danger .cb-settings-side-nav-icon {
@@ -3421,38 +3391,13 @@
   }
 
   .cb-settings-side-nav-badge {
-    @apply ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums sm:ml-auto sm:px-2;
+    @apply ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums sm:px-2;
     background: color-mix(in oklab, var(--brand) 14%, transparent);
     color: var(--brand);
   }
 
   .cb-settings-side-nav-item--active .cb-settings-side-nav-badge {
     @apply bg-brand/15 text-brand;
-  }
-
-  .cb-settings-side-nav-item[data-tab='pagina-publica'] .cb-settings-side-nav-icon {
-    color: #0284c7;
-    background: color-mix(in oklab, #0284c7 12%, transparent);
-  }
-
-  .cb-settings-side-nav-item[data-tab='pagamentos'] .cb-settings-side-nav-icon {
-    color: #0f766e;
-    background: color-mix(in oklab, #0f766e 12%, transparent);
-  }
-
-  .cb-settings-side-nav-item[data-tab='etiquetas'] .cb-settings-side-nav-icon {
-    color: #b45309;
-    background: color-mix(in oklab, #b45309 12%, transparent);
-  }
-
-  .cb-settings-side-nav-item[data-tab='ajuda'] .cb-settings-side-nav-icon {
-    color: #4f46e5;
-    background: color-mix(in oklab, #4f46e5 12%, transparent);
-  }
-
-  .cb-settings-side-nav-item[data-tab='sobre'] .cb-settings-side-nav-icon {
-    color: #334155;
-    background: color-mix(in oklab, #334155 12%, transparent);
   }
 
   /* Site público — layout responsivo pela largura do contentor (editor miniatura + telemóvel real) */
