@@ -1,12 +1,14 @@
 .landing-page {
-  --landing-bg: #fafaf7;
-  --landing-navy: #0f2942;
-  --landing-navy-hover: #1a3a5c;
-  --landing-body: #4a5568;
+  /* Alinhado ao DS Teglion (navy #0B3A6E + Plus Jakarta Sans) */
+  --landing-bg: #f5f7fa;
+  --landing-navy: #0b3a6e;
+  --landing-navy-hover: #0e4a8a;
+  --landing-body: #4a5b70;
   --landing-mint: #c8e6d0;
-  --landing-ice: #e3f0ff;
+  --landing-ice: #e8f0f7;
   background: var(--landing-bg);
   color: var(--landing-body);
+  font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.6;
   overflow-x: hidden;

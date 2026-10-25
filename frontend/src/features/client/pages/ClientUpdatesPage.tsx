@@ -39,7 +39,7 @@ export function ClientUpdatesPage() {
     <div className="space-y-6" data-testid="client-updates-page">
       <PageHeader
         title="Avisos"
-        subtitle="O que o escritório quer que saiba — alertas rápidos e novidades"
+        subtitle="Alertas e notícias do seu escritório — o que precisa de saber agora."
       />
 
       <div className="flex flex-wrap gap-2">

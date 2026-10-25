@@ -22,7 +22,7 @@ export function ClientAccountPage() {
     <div className="mx-auto max-w-xl space-y-6" data-testid="client-account-page">
       <PageHeader
         title="Conta e ajuda"
-        subtitle="O seu perfil neste portal, avisos no telemóvel, e a Maya."
+        subtitle="Perfil, notificações no telemóvel, e ajuda da Maya ou do Manual."
         actions={<AskMayaButton intentId="portal-account" />}
       />
 

@@ -408,9 +408,14 @@ export function ServiceIntakePublicPage() {
               <img src={service.imageUrl} alt="" className="h-full w-full" style={servicePositionedImageStyle(service)} />
             </div>
           ) : null}
-          <h1 className="text-2xl font-bold text-[hsl(var(--brand-text,var(--foreground)))]">{service.serviceName}</h1>
+          <h1 className="font-sans text-2xl font-semibold text-[hsl(var(--brand-text,var(--foreground)))]">
+            {service.serviceName}
+          </h1>
+          <p className="mt-1 text-body text-muted-foreground">
+            Pedido sem login — preencha os dados e o escritório recebe automaticamente.
+          </p>
           {service.description ? (
-            <SanitizedServiceHtml html={service.description} className="text-sm text-muted-foreground" />
+            <SanitizedServiceHtml html={service.description} className="mt-2 text-sm text-muted-foreground" />
           ) : null}
         </header>
 
