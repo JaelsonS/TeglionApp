@@ -73,7 +73,10 @@ export async function fetchDocumentPreviewUrl(
   const res = await api.get(path, { responseType: 'blob' })
   const blob = res.data as Blob
   if (!blob || blob.size === 0) return null
-  return URL.createObjectURL(blob)
+  // Chrome PDF viewer no iframe exige MIME correcto; axios por vezes devolve octet-stream.
+  const type = blob.type && blob.type !== 'application/octet-stream' ? blob.type : 'application/pdf'
+  const typed = blob.type === type ? blob : new Blob([blob], { type })
+  return URL.createObjectURL(typed)
 }
 
 export async function fetchDocumentBlobUrl(docId: string, context: 'firm' | 'client' = 'firm'): Promise<string> {
