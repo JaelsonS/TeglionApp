@@ -403,7 +403,7 @@
   }
 
   .cb-firm-icon-nav-active {
-    @apply bg-brand/12 text-brand ring-1 ring-brand/25;
+    @apply bg-brand/[0.12] text-brand ring-1 ring-brand/25;
   }
 
   .cb-firm-icon-nav-active .cb-firm-rail-icon {
