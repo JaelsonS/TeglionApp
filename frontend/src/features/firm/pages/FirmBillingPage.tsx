@@ -99,6 +99,25 @@ export function FirmBillingPage() {
           secondary={<AskMayaButton intentId="billing" />}
         />
 
+        <div className="cb-billing-disambiguation" role="note" data-testid="firm-billing-disambiguation">
+          <p className="cb-billing-disambiguation-title">Não confundir estes três fluxos</p>
+          <ul className="cb-billing-disambiguation-list">
+            <li>
+              <strong>Pagamentos (carteira)</strong> — avenças que os seus clientes pagam ao gabinete (
+              <Link to="/app/firm/payments" className="text-brand hover:underline">
+                menu Pagamentos
+              </Link>
+              ).
+            </li>
+            <li>
+              <strong>Receber dos clientes</strong> — Stripe Connect para cobranças online (Definições → Pagamentos).
+            </li>
+            <li>
+              <strong>Esta página (Plano Teglion)</strong> — subscrição SaaS à AfDigital para usar o software.
+            </li>
+          </ul>
+        </div>
+
         {isLoading ? <PageLoading label="A carregar o plano…" /> : null}
 
         {!isLoading && billing ? (

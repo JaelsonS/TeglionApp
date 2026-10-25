@@ -134,7 +134,12 @@ export function FormalRequestsModule() {
   const toolbar = (
     <div className="cb-docs-requests-toolbar">
       <div className="cb-docs-requests-toolbar-hd">
-        <p className="cb-docs-requests-toolbar-title">Pedidos formais</p>
+        <div className="min-w-0">
+          <p className="cb-docs-requests-toolbar-title">Pedidos formais</p>
+          <p className="cb-docs-requests-toolbar-sub">
+            O cliente recebe no portal — quando envia, os ficheiros aparecem em Documentos → Ficheiros.
+          </p>
+        </div>
         <Button
           type="button"
           size="sm"

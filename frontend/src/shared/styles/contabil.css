@@ -743,6 +743,22 @@
     @apply border-brand text-brand;
   }
 
+  .cb-docs-tab-purpose {
+    @apply border-b border-border/50 bg-gradient-to-r from-brand/[0.04] to-transparent px-4 py-2.5 sm:px-5;
+  }
+
+  .cb-docs-tab-purpose-title {
+    @apply text-xs font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-docs-tab-purpose-detail {
+    @apply mt-0.5 text-sm leading-snug text-muted-foreground;
+  }
+
+  .cb-docs-history-purpose {
+    @apply mb-3 text-sm leading-snug text-muted-foreground;
+  }
+
   .cb-docs-workspace {
     @apply flex min-h-0 flex-1 flex-col overflow-hidden p-3 sm:p-4;
   }
@@ -3095,6 +3111,10 @@
     @apply text-sm font-semibold text-foreground;
   }
 
+  .cb-docs-requests-toolbar-sub {
+    @apply mt-0.5 max-w-prose text-xs leading-snug text-muted-foreground;
+  }
+
   .cb-docs-requests-btn {
     @apply bg-brand text-primary-foreground hover:bg-brand/90;
   }
@@ -4235,6 +4255,22 @@
     @apply space-y-6 pb-10;
   }
 
+  .cb-billing-disambiguation {
+    @apply rounded-2xl border border-brand/15 bg-brand/[0.03] px-4 py-3 text-sm;
+  }
+
+  .cb-billing-disambiguation-title {
+    @apply font-semibold text-foreground;
+  }
+
+  .cb-billing-disambiguation-list {
+    @apply mt-2 list-disc space-y-1.5 pl-5 text-muted-foreground;
+  }
+
+  .cb-billing-disambiguation-list strong {
+    @apply font-medium text-foreground;
+  }
+
   .cb-billing-page-hd {
     @apply border-b border-border/60 pb-4;
   }
@@ -4426,6 +4462,34 @@
 
   .cb-alerts-empty {
     @apply flex flex-col items-center justify-center p-8 text-center text-muted-foreground;
+  }
+
+  .cb-news-page-hd {
+    @apply border-b border-border/60 bg-card;
+  }
+
+  .cb-news-workspace {
+    @apply gap-3 pt-3;
+  }
+
+  .cb-news-identity {
+    @apply flex flex-col gap-1.5 rounded-xl border border-dashed border-brand/20 bg-muted/20 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-3;
+  }
+
+  .cb-news-identity-badge {
+    @apply w-fit shrink-0 rounded-md bg-brand/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-news-identity-copy {
+    @apply text-sm leading-snug text-muted-foreground;
+  }
+
+  .cb-news-toolbar {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .cb-news-list-item {
+    @apply shadow-[var(--cb-shadow-card)];
   }
 
   /* Portal cliente — layout e superfícies */

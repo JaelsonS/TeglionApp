@@ -101,6 +101,10 @@ export function DocumentsHistoryWorkspace() {
 
   return (
     <div className="cb-docs-workspace">
+      <p className="cb-docs-history-purpose">
+        Vista de auditoria: cada linha agrupa uma submissão. Use a selecção para exportar CSV ou remover
+        registos — distinto dos pedidos activos em Pedidos.
+      </p>
       <div className="cb-docs-toolbar">
         <select
           className="cb-docs-filter"
@@ -234,8 +238,6 @@ export function DocumentsHistoryWorkspace() {
         variant="destructive"
         onConfirm={handleDelete}
       />
-
-      <p className="cb-docs-foot">Teglion — Documentos / Histórico</p>
     </div>
   )
 }

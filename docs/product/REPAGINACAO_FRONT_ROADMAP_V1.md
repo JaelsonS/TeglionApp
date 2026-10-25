@@ -255,7 +255,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 | **13.2** | `/documents/files` | Ficheiros / validação |
 | **13.3** | `/documents/history` | Histórico + export |
 
-**Estado:** ☐☐☐
+**Estado:** ✅✅✅
 
 ### Fase 14 — Mensagens
 
@@ -264,7 +264,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 | **Ficheiros** | `FirmMessagesPage.tsx`, `FirmMessagesModule`, Drive picker |
 | **Alvo** | Chat full-height limpo; lista + thread; anexos; pins; unread |
 | **Subfases** | **14.1** lista · **14.2** thread · **14.3** anexos/Drive |
-| **Estado** | ☐ |
+| **Estado** | ✅ |
 
 ### Fase 15 — Central de alertas
 
@@ -273,7 +273,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 | **Ficheiros** | `AlertsWorkspace.tsx`, composer, preview, analytics |
 | **Alvo** | Distinto visualmente de Notícias; publish/draft claros |
 | **Subfases** | **15.1** lista · **15.2** composer · **15.3** analytics |
-| **Estado** | ☐ |
+| **Estado** | ✅ |
 
 ### Fase 16 — Notícias
 
@@ -282,7 +282,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 | **Ficheiros** | `NewsWorkspace.tsx`, composer, body renderer |
 | **Alvo** | Mesmo padrão de qualidade que Alertas, identidade própria |
 | **Subfases** | **16.1** lista · **16.2** composer · **16.3** publish/media |
-| **Estado** | ☐ |
+| **Estado** | ✅ |
 
 ### Fase 17 — Plano Teglion
 
@@ -291,7 +291,7 @@ Fonte de navegação: [`firmNavConfig.ts`](../../frontend/src/features/firm/firm
 | **Ficheiros** | `FirmBillingPage.tsx` |
 | **Alvo** | Trial/checkout/portal óbvios; **nunca** confundir com Pagamentos carteira nem Stripe Connect |
 | **Subfases** | **17.1** estado · **17.2** checkout · **17.3** copy |
-| **Estado** | ☐ |
+| **Estado** | ✅ |
 
 ### Fase 18 — Definições (12 tabs = 12 subfases)
 
@@ -394,11 +394,11 @@ Este roadmap = **Wave páginas / produto**.
 | 10 | Serviços | ✅ |
 | 11 | Calendário fiscal | ✅ |
 | 12 | Calculadoras (0+6) | ☐ |
-| 13 | Documentos | ☐ |
-| 14 | Mensagens | ☐ |
-| 15 | Alertas | ☐ |
-| 16 | Notícias | ☐ |
-| 17 | Plano | ☐ |
+| 13 | Documentos | ✅ |
+| 14 | Mensagens | ✅ |
+| 15 | Alertas | ✅ |
+| 16 | Notícias | ✅ |
+| 17 | Plano | ✅ |
 | 18 | Definições (12) | ☐ |
 | L | Landing | ☐ |
 
