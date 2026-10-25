@@ -3045,9 +3045,141 @@
   }
 
 
-  .cb-rentals-body {
-    @apply flex min-h-0 flex-1 flex-col overflow-hidden;
+  /* Imóveis e rendas — scroll de página (padrão Pagamentos) */
+  .cb-rentals-page,
+  .cb-rentals-layout-page,
+  .cb-rentals-layout-panel {
+    @apply flex w-full min-w-0 flex-col;
+    flex: none;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
   }
+
+  .cb-firm-workspace-page.cb-rentals-layout-page > .cb-rentals-layout-panel {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
+  }
+
+  .cb-rentals-shell {
+    @apply border-0 bg-transparent shadow-none;
+    flex: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .cb-rentals-page-scroll > div,
+  .cb-rentals-body {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
+  }
+
+  .cb-rentals-kpi-strip {
+    @apply mb-0 grid shrink-0 grid-cols-2 gap-1.5 px-4 pt-3 sm:grid-cols-4 sm:px-5;
+  }
+
+  .cb-rentals-kpi {
+    @apply flex items-center gap-2.5 rounded-xl border border-border/70 bg-card px-3 py-2 shadow-sm;
+  }
+
+  .cb-rentals-kpi-icon {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground;
+  }
+
+  .cb-rentals-kpi--brand .cb-rentals-kpi-icon { @apply bg-brand/10 text-brand; }
+  .cb-rentals-kpi--emerald .cb-rentals-kpi-icon { @apply bg-emerald-100 text-emerald-800; }
+  .cb-rentals-kpi--rose .cb-rentals-kpi-icon { @apply bg-rose-100 text-rose-800; }
+  .cb-rentals-kpi--emerald { @apply border-emerald-200/70 bg-emerald-50/40; }
+  .cb-rentals-kpi--rose { @apply border-rose-200/80 bg-rose-50/50; }
+
+  .cb-rentals-kpi-value {
+    @apply text-sm font-bold tabular-nums tracking-tight text-foreground sm:text-base;
+  }
+
+  .cb-rentals-kpi-label { @apply text-xs text-muted-foreground; }
+
+  .cb-rentals-section-lead {
+    @apply shrink-0 px-4 pb-2 pt-3 text-sm leading-snug text-muted-foreground sm:px-5;
+  }
+
+  .cb-rentals-section-lead-title {
+    @apply mb-0.5 block text-xs font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-rentals-section-host {
+    @apply flex w-full min-w-0 flex-col gap-3 px-3 pb-4 sm:px-4;
+    flex: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .cb-rentals-toolbar {
+    @apply flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center;
+  }
+
+  .cb-rentals-legend {
+    @apply flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground;
+  }
+
+  .cb-rentals-legend-item { @apply inline-flex items-center gap-1.5; }
+  .cb-rentals-legend-swatch { @apply h-2.5 w-2.5 rounded-sm border; }
+
+  .cb-rentals-list {
+    flex: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .cb-rentals-card {
+    @apply rounded-2xl border border-border/70 bg-card p-4 shadow-sm;
+  }
+
+  .cb-rentals-months {
+    @apply grid grid-cols-3 gap-1.5 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-12;
+  }
+
+  .cb-rentals-foot {
+    @apply shrink-0 text-xs leading-relaxed text-muted-foreground;
+  }
+
+  .cb-rent-cell {
+    @apply flex min-h-[4.25rem] w-full flex-col items-center justify-center gap-0.5 rounded-lg border px-1 py-1.5 text-center transition hover:opacity-95;
+  }
+
+  .cb-rent-cell-month {
+    @apply text-[10px] font-semibold uppercase tracking-wide opacity-80;
+  }
+
+  .cb-rent-cell-amount {
+    @apply text-[11px] font-bold tabular-nums leading-tight;
+  }
+
+  .cb-rent-cell-status {
+    @apply text-[9px] font-semibold uppercase tracking-wide leading-tight opacity-90;
+  }
+
+  .cb-rent-cell--draft { @apply border-slate-200 bg-slate-100 text-slate-700; }
+  .cb-rent-cell--issued { @apply border-sky-300 bg-sky-100 text-sky-950; }
+  .cb-rent-cell--paid { @apply border-emerald-400 bg-emerald-500 text-white; }
+  .cb-rent-cell--overdue { @apply border-rose-500 bg-rose-600 text-white shadow-sm; }
+  .cb-rent-cell--cancelled { @apply border-border/70 bg-muted/40 text-muted-foreground line-through; }
+  .cb-rent-cell--empty { @apply border-dashed border-border/60 bg-transparent text-muted-foreground; }
+  .cb-rent-cell--add { @apply border-dashed border-brand/45 bg-brand/5 text-brand hover:bg-brand/10; }
+
+  .cb-rent-health {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide;
+  }
+  .cb-rent-health--ok { @apply bg-emerald-500 text-white; }
+  .cb-rent-health--overdue { @apply bg-rose-600 text-white; }
+  .cb-rent-health--open { @apply bg-sky-500 text-white; }
+  .cb-rent-health--empty { @apply bg-slate-200 text-slate-700; }
 
   /* Agenda consultorias (IMG-17) */
   .cb-agenda-layout-page,

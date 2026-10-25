@@ -1,26 +1,42 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Loader2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/shared/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
 import { contabilClientsApi, contabilRentalsApi } from '@/infrastructure/api'
 import type { ClientProperty } from '@/infrastructure/api/contabil/rentals'
 import { getErrorMessage } from '@/shared/utils/errors'
 
 type Props = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
   initial?: ClientProperty | null
   initialClient?: { id: string; displayName: string; taxId?: string | null } | null
-  onClose: () => void
   onSaved: () => void
 }
 
-export function PropertyDialog({ initial, initialClient, onClose, onSaved }: Props) {
+export function PropertyDialog({
+  open,
+  onOpenChange,
+  initial,
+  initialClient,
+  onSaved,
+}: Props) {
   const isEdit = Boolean(initial?.id)
   const clientsQuery = useQuery({
     queryKey: ['clients-for-rentals'],
     queryFn: () => contabilClientsApi.list({ limit: 200 }),
-    enabled: !isEdit,
+    enabled: open && !isEdit,
   })
   const clients = useMemo(() => clientsQuery.data?.items || [], [clientsQuery.data])
 
@@ -31,8 +47,20 @@ export function PropertyDialog({ initial, initialClient, onClose, onSaved }: Pro
   const [locality, setLocality] = useState(initial?.locality || '')
   const [artigoMatricial, setArtigoMatricial] = useState(initial?.artigoMatricial || '')
   const [notes, setNotes] = useState(initial?.notes || '')
-  const [status, setStatus] = useState(initial?.status || 'active')
   const [saving, setSaving] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    setClientId(initial?.clientId || initialClient?.id || '')
+    setLabel(initial?.label || '')
+    setAddressLine(initial?.addressLine || '')
+    setPostalCode(initial?.postalCode || '')
+    setLocality(initial?.locality || '')
+    setArtigoMatricial(initial?.artigoMatricial || '')
+    setNotes(initial?.notes || '')
+    setConfirmDelete(false)
+  }, [open, initial?.id, initialClient?.id])
 
   const selectedClient = useMemo(() => {
     if (isEdit && initialClient) return initialClient
@@ -63,7 +91,7 @@ export function PropertyDialog({ initial, initialClient, onClose, onSaved }: Pro
         locality: locality.trim() || null,
         artigoMatricial: artigoMatricial.trim() || null,
         notes: notes.trim() || null,
-        status,
+        status: 'active',
       }
       if (isEdit && initial) {
         await contabilRentalsApi.patchProperty(initial.id, payload)
@@ -73,6 +101,7 @@ export function PropertyDialog({ initial, initialClient, onClose, onSaved }: Pro
         toast.success('Imóvel criado')
       }
       onSaved()
+      onOpenChange(false)
     } catch (err) {
       toast.error(isEdit ? 'Não foi possível guardar' : 'Não foi possível criar', {
         description: getErrorMessage(err),
@@ -82,103 +111,156 @@ export function PropertyDialog({ initial, initialClient, onClose, onSaved }: Pro
     }
   }
 
+  async function archiveProperty() {
+    if (!initial) return
+    setSaving(true)
+    try {
+      await contabilRentalsApi.patchProperty(initial.id, { status: 'archived' })
+      toast.success('Imóvel apagado da lista')
+      onSaved()
+      onOpenChange(false)
+    } catch (err) {
+      toast.error('Não foi possível apagar', { description: getErrorMessage(err) })
+    } finally {
+      setSaving(false)
+      setConfirmDelete(false)
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
-      <div
-        role="dialog"
-        aria-modal
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border bg-background p-5 shadow-lg"
-      >
-        <h2 className="text-lg font-semibold">{isEdit ? 'Editar imóvel' : 'Novo imóvel'}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {isEdit
-            ? 'Actualize os dados do imóvel. O senhorio não muda aqui — altere o cliente na ficha se necessário.'
-            : 'Associe o imóvel ao cliente senhorio da carteira.'}
-        </p>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[90vh] max-w-lg flex-col gap-0 overflow-hidden rounded-2xl p-0">
+        <DialogHeader className="shrink-0 space-y-1 border-b border-border/60 px-5 py-4 text-left">
+          <DialogTitle>{isEdit ? 'Editar imóvel' : 'Novo imóvel'}</DialogTitle>
+          <DialogDescription>
+            {isEdit
+              ? 'Actualize os dados. Apagar arquiva o imóvel (sai da lista activa).'
+              : 'Associe o imóvel ao cliente senhorio da carteira.'}
+          </DialogDescription>
+        </DialogHeader>
 
-        {!isEdit ? (
-          <>
-            <label className="mt-4 block text-sm font-medium">Cliente (senhorio)</label>
-            <select
-              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-              value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
-              aria-label="Cliente senhorio"
-            >
-              <option value="">—</option>
-              {clients.map((c) => {
-                const name = c.fullName || c.name || c._id
-                const nif = c.taxId ? ` · NIF ${c.taxId}` : ''
-                return (
-                  <option key={c._id} value={c._id}>
-                    {name}
-                    {nif}
-                  </option>
-                )
-              })}
-            </select>
-          </>
-        ) : null}
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
+          {!isEdit ? (
+            <label className="block space-y-1.5 text-sm">
+              <span className="font-medium">Cliente (senhorio)</span>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={clientId}
+                onChange={(e) => setClientId(e.target.value)}
+              >
+                <option value="">—</option>
+                {clients.map((c) => {
+                  const name = c.fullName || c.name || c._id
+                  const nif = c.taxId ? ` · NIF ${c.taxId}` : ''
+                  return (
+                    <option key={c._id} value={c._id}>
+                      {name}
+                      {nif}
+                    </option>
+                  )
+                })}
+              </select>
+            </label>
+          ) : null}
 
-        {selectedClient ? (
-          <div className="mt-3 rounded-lg border border-border/70 bg-muted/20 px-3 py-2 text-sm">
-            <p className="font-medium text-foreground">{selectedClient.displayName}</p>
-            <p className="text-xs text-muted-foreground">
-              NIF {selectedClient.taxId || '—'} · dados da ficha do cliente
-            </p>
+          {selectedClient ? (
+            <div className="rounded-lg border border-border/70 bg-muted/20 px-3 py-2 text-sm">
+              <p className="font-medium">{selectedClient.displayName}</p>
+              <p className="text-xs text-muted-foreground">NIF {selectedClient.taxId || '—'}</p>
+            </div>
+          ) : null}
+
+          <label className="block space-y-1.5 text-sm">
+            <span className="font-medium">Identificação</span>
+            <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="T2 — Rua X" />
+          </label>
+          <label className="block space-y-1.5 text-sm">
+            <span className="font-medium">Morada</span>
+            <Input value={addressLine} onChange={(e) => setAddressLine(e.target.value)} />
+          </label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block space-y-1.5 text-sm">
+              <span className="font-medium">Código postal</span>
+              <Input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
+            </label>
+            <label className="block space-y-1.5 text-sm">
+              <span className="font-medium">Localidade</span>
+              <Input value={locality} onChange={(e) => setLocality(e.target.value)} />
+            </label>
           </div>
-        ) : null}
-
-        <label className="mt-3 block text-sm font-medium">Identificação</label>
-        <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="T2 — Rua X" />
-
-        <label className="mt-3 block text-sm font-medium">Morada</label>
-        <Input value={addressLine} onChange={(e) => setAddressLine(e.target.value)} />
-
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium">Código postal</label>
-            <Input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder="1000-001" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Localidade</label>
-            <Input value={locality} onChange={(e) => setLocality(e.target.value)} />
-          </div>
+          <label className="block space-y-1.5 text-sm">
+            <span className="font-medium">Artigo matricial</span>
+            <Input value={artigoMatricial} onChange={(e) => setArtigoMatricial(e.target.value)} />
+          </label>
+          <label className="block space-y-1.5 text-sm">
+            <span className="font-medium">Notas</span>
+            <Input value={notes} onChange={(e) => setNotes(e.target.value)} />
+          </label>
         </div>
 
-        <label className="mt-3 block text-sm font-medium">Artigo matricial</label>
-        <Input
-          value={artigoMatricial}
-          onChange={(e) => setArtigoMatricial(e.target.value)}
-          placeholder="Opcional"
-        />
+        <DialogFooter className="flex-col gap-2 border-t border-border/60 bg-muted/15 px-5 py-3 sm:flex-col sm:space-x-0">
+          {isEdit ? (
+            confirmDelete ? (
+              <div className="flex w-full flex-col gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3">
+                <p className="text-sm text-rose-950">Apagar este imóvel da lista activa?</p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setConfirmDelete(false)}
+                    disabled={saving}
+                  >
+                    Não
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={() => void archiveProperty()}
+                    disabled={saving}
+                  >
+                    Sim, apagar
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                onClick={() => setConfirmDelete(true)}
+                disabled={saving}
+              >
+                <Trash2 className="mr-2 h-4 w-4" aria-hidden />
+                Apagar imóvel
+              </Button>
+            )
+          ) : null}
 
-        <label className="mt-3 block text-sm font-medium">Notas internas</label>
-        <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Opcional" />
-
-        {isEdit ? (
-          <>
-            <label className="mt-3 block text-sm font-medium">Estado</label>
-            <select
-              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
+          <div className="flex w-full justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={saving}
             >
-              <option value="active">Activo</option>
-              <option value="archived">Arquivado</option>
-            </select>
-          </>
-        ) : null}
-
-        <div className="mt-5 flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
-            Cancelar
-          </Button>
-          <Button type="button" onClick={() => void save()} disabled={saving}>
-            {saving ? 'A guardar…' : isEdit ? 'Guardar' : 'Criar'}
-          </Button>
-        </div>
-      </div>
-    </div>
+              Cancelar
+            </Button>
+            <Button type="button" onClick={() => void save()} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />A guardar…
+                </>
+              ) : isEdit ? (
+                'Guardar'
+              ) : (
+                'Criar'
+              )}
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

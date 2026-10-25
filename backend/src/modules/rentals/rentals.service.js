@@ -357,6 +357,47 @@ async function generateReceipts({ firmId, yearMonth, leaseIds, actorId }) {
   };
 }
 
+async function createReceipt({ firmId, leaseId, yearMonth, amountCents, status, dueDate, actorId }) {
+  const ym = assertYearMonth(yearMonth);
+  const lease = await rentalsRepository.findLeaseById(firmId, leaseId);
+  if (!lease) throw new AppError('Contrato não encontrado', 404, 'LEASE_NOT_FOUND');
+
+  const existing = await rentalsRepository.findOpenReceipt(firmId, leaseId, ym);
+  if (existing) {
+    return {
+      receipt: { ...existing, overdue: isOverdue(existing) },
+      created: false,
+      disclaimer: INTERNAL_DISCLAIMER,
+    };
+  }
+
+  let cents = amountCents != null ? Math.round(Number(amountCents)) : Number(lease.monthlyRentCents);
+  if (!Number.isFinite(cents) || cents < 0) {
+    throw new AppError('Valor inválido', 400, 'INVALID_AMOUNT');
+  }
+  const st = status && RECEIPT_STATUSES.includes(String(status)) ? String(status) : 'draft';
+  const due = dueDate || dueDateForMonth(ym, lease.rentDueDay);
+
+  const receipt = await rentalsRepository.insertReceipt({
+    firmId,
+    leaseId,
+    yearMonth: ym,
+    amountCents: cents,
+    currency: lease.currency || 'EUR',
+    status: st,
+    dueDate: due,
+    paidAt: st === 'paid' ? new Date().toISOString() : null,
+    source: 'manual',
+    createdBy: actorId || null,
+  });
+
+  return {
+    receipt: { ...receipt, overdue: isOverdue(receipt) },
+    created: true,
+    disclaimer: INTERNAL_DISCLAIMER,
+  };
+}
+
 async function patchReceipt({ firmId, receiptId, patch }) {
   const existing = await rentalsRepository.findReceiptById(firmId, receiptId);
   if (!existing) throw new AppError('Recibo não encontrado', 404, 'RECEIPT_NOT_FOUND');
@@ -405,6 +446,7 @@ module.exports = {
   createLease,
   patchLease,
   generateReceipts,
+  createReceipt,
   patchReceipt,
   isOverdue,
   dueDateForMonth,

@@ -1,38 +1,68 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Loader2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/shared/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
 import { contabilRentalsApi } from '@/infrastructure/api'
 import type { PropertyLease } from '@/infrastructure/api/contabil/rentals'
 import { getErrorMessage } from '@/shared/utils/errors'
 
 type Props = {
+  open: boolean
+  onOpenChange: (open: boolean) => void
   propertyId: string
   propertyLabel: string
   initial?: PropertyLease | null
-  onClose: () => void
   onSaved: () => void
 }
 
-export function LeaseDialog({ propertyId, propertyLabel, initial, onClose, onSaved }: Props) {
+export function LeaseDialog({
+  open,
+  onOpenChange,
+  propertyId,
+  propertyLabel,
+  initial,
+  onSaved,
+}: Props) {
   const isEdit = Boolean(initial?.id)
-  const [tenantDisplayName, setTenantDisplayName] = useState(initial?.tenantDisplayName || '')
-  const [tenantNif, setTenantNif] = useState(initial?.tenantNif || '')
-  const [tenantEmail, setTenantEmail] = useState(initial?.tenantEmail || '')
-  const [tenantPhone, setTenantPhone] = useState(initial?.tenantPhone || '')
-  const [startDate, setStartDate] = useState(
-    initial?.startDate?.slice(0, 10) || new Date().toISOString().slice(0, 10),
-  )
-  const [endDate, setEndDate] = useState(initial?.endDate?.slice(0, 10) || '')
-  const [rentEuro, setRentEuro] = useState(
-    initial ? String((initial.monthlyRentCents / 100).toFixed(2)) : '800',
-  )
-  const [rentDueDay, setRentDueDay] = useState(String(initial?.rentDueDay ?? 1))
-  const [leaseType, setLeaseType] = useState(initial?.leaseType || 'habitacao')
-  const [status, setStatus] = useState(initial?.status || 'active')
-  const [notes, setNotes] = useState(initial?.notes || '')
+  const [tenantDisplayName, setTenantDisplayName] = useState('')
+  const [tenantNif, setTenantNif] = useState('')
+  const [tenantEmail, setTenantEmail] = useState('')
+  const [tenantPhone, setTenantPhone] = useState('')
+  const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10))
+  const [endDate, setEndDate] = useState('')
+  const [rentEuro, setRentEuro] = useState('800')
+  const [rentDueDay, setRentDueDay] = useState('1')
+  const [leaseType, setLeaseType] = useState('habitacao')
+  const [status, setStatus] = useState('active')
+  const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    setTenantDisplayName(initial?.tenantDisplayName || '')
+    setTenantNif(initial?.tenantNif || '')
+    setTenantEmail(initial?.tenantEmail || '')
+    setTenantPhone(initial?.tenantPhone || '')
+    setStartDate(initial?.startDate?.slice(0, 10) || new Date().toISOString().slice(0, 10))
+    setEndDate(initial?.endDate?.slice(0, 10) || '')
+    setRentEuro(initial ? String((initial.monthlyRentCents / 100).toFixed(2)) : '800')
+    setRentDueDay(String(initial?.rentDueDay ?? 1))
+    setLeaseType(initial?.leaseType || 'habitacao')
+    setStatus(initial?.status || 'active')
+    setNotes(initial?.notes || '')
+    setConfirmDelete(false)
+  }, [open, initial?.id])
 
   async function save() {
     const euros = Number(String(rentEuro).replace(',', '.'))
@@ -68,6 +98,7 @@ export function LeaseDialog({ propertyId, propertyLabel, initial, onClose, onSav
         toast.success('Contrato criado')
       }
       onSaved()
+      onOpenChange(false)
     } catch (err) {
       toast.error(isEdit ? 'Não foi possível guardar' : 'Não foi possível criar', {
         description: getErrorMessage(err),
@@ -77,94 +108,164 @@ export function LeaseDialog({ propertyId, propertyLabel, initial, onClose, onSav
     }
   }
 
+  async function cancelLease() {
+    if (!initial) return
+    setSaving(true)
+    try {
+      await contabilRentalsApi.patchLease(initial.id, { status: 'cancelled' })
+      toast.success('Contrato apagado')
+      onSaved()
+      onOpenChange(false)
+    } catch (err) {
+      toast.error('Não foi possível apagar', { description: getErrorMessage(err) })
+    } finally {
+      setSaving(false)
+      setConfirmDelete(false)
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
-      <div
-        role="dialog"
-        aria-modal
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border bg-background p-5 shadow-lg"
-      >
-        <h2 className="text-lg font-semibold">{isEdit ? 'Editar contrato' : 'Novo contrato'}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{propertyLabel}</p>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[90vh] max-w-lg flex-col gap-0 overflow-hidden rounded-2xl p-0">
+        <DialogHeader className="shrink-0 space-y-1 border-b border-border/60 px-5 py-4 text-left">
+          <DialogTitle>{isEdit ? 'Editar contrato' : 'Novo contrato'}</DialogTitle>
+          <DialogDescription>{propertyLabel}</DialogDescription>
+        </DialogHeader>
 
-        <label className="mt-4 block text-sm font-medium">Inquilino</label>
-        <Input value={tenantDisplayName} onChange={(e) => setTenantDisplayName(e.target.value)} />
-
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium">NIF inquilino</label>
-            <Input value={tenantNif} onChange={(e) => setTenantNif(e.target.value)} />
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
+          <label className="block space-y-1.5 text-sm">
+            <span className="font-medium">Inquilino</span>
+            <Input value={tenantDisplayName} onChange={(e) => setTenantDisplayName(e.target.value)} />
+          </label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block space-y-1.5 text-sm">
+              <span className="font-medium">NIF</span>
+              <Input value={tenantNif} onChange={(e) => setTenantNif(e.target.value)} />
+            </label>
+            <label className="block space-y-1.5 text-sm">
+              <span className="font-medium">Telefone</span>
+              <Input value={tenantPhone} onChange={(e) => setTenantPhone(e.target.value)} />
+            </label>
           </div>
-          <div>
-            <label className="block text-sm font-medium">Telefone</label>
-            <Input value={tenantPhone} onChange={(e) => setTenantPhone(e.target.value)} />
+          <label className="block space-y-1.5 text-sm">
+            <span className="font-medium">Email</span>
+            <Input type="email" value={tenantEmail} onChange={(e) => setTenantEmail(e.target.value)} />
+          </label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block space-y-1.5 text-sm">
+              <span className="font-medium">Início</span>
+              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            </label>
+            <label className="block space-y-1.5 text-sm">
+              <span className="font-medium">Fim</span>
+              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            </label>
           </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block space-y-1.5 text-sm">
+              <span className="font-medium">Renda mensal (€)</span>
+              <Input value={rentEuro} onChange={(e) => setRentEuro(e.target.value)} inputMode="decimal" />
+            </label>
+            <label className="block space-y-1.5 text-sm">
+              <span className="font-medium">Dia vencimento</span>
+              <Input value={rentDueDay} onChange={(e) => setRentDueDay(e.target.value)} inputMode="numeric" />
+            </label>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block space-y-1.5 text-sm">
+              <span className="font-medium">Tipo</span>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={leaseType}
+                onChange={(e) => setLeaseType(e.target.value)}
+              >
+                <option value="habitacao">Habitação</option>
+                <option value="comercio">Comércio</option>
+                <option value="outro">Outro</option>
+              </select>
+            </label>
+            <label className="block space-y-1.5 text-sm">
+              <span className="font-medium">Estado</span>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <option value="active">Activo</option>
+                <option value="ended">Terminado</option>
+                <option value="cancelled">Cancelado</option>
+              </select>
+            </label>
+          </div>
+          <label className="block space-y-1.5 text-sm">
+            <span className="font-medium">Notas</span>
+            <Input value={notes} onChange={(e) => setNotes(e.target.value)} />
+          </label>
         </div>
 
-        <label className="mt-3 block text-sm font-medium">Email</label>
-        <Input
-          type="email"
-          value={tenantEmail}
-          onChange={(e) => setTenantEmail(e.target.value)}
-          placeholder="opcional"
-        />
+        <DialogFooter className="flex-col gap-2 border-t border-border/60 bg-muted/15 px-5 py-3 sm:flex-col sm:space-x-0">
+          {isEdit ? (
+            confirmDelete ? (
+              <div className="flex w-full flex-col gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3">
+                <p className="text-sm text-rose-950">Apagar / cancelar este contrato?</p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setConfirmDelete(false)}
+                    disabled={saving}
+                  >
+                    Não
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={() => void cancelLease()}
+                    disabled={saving}
+                  >
+                    Sim, apagar
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                onClick={() => setConfirmDelete(true)}
+                disabled={saving}
+              >
+                <Trash2 className="mr-2 h-4 w-4" aria-hidden />
+                Apagar contrato
+              </Button>
+            )
+          ) : null}
 
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium">Início</label>
-            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+          <div className="flex w-full justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={saving}
+            >
+              Cancelar
+            </Button>
+            <Button type="button" onClick={() => void save()} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />A guardar…
+                </>
+              ) : isEdit ? (
+                'Guardar'
+              ) : (
+                'Criar'
+              )}
+            </Button>
           </div>
-          <div>
-            <label className="block text-sm font-medium">Fim (opcional)</label>
-            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-          </div>
-        </div>
-
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium">Renda mensal (€)</label>
-            <Input value={rentEuro} onChange={(e) => setRentEuro(e.target.value)} inputMode="decimal" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Dia vencimento (1–28)</label>
-            <Input value={rentDueDay} onChange={(e) => setRentDueDay(e.target.value)} inputMode="numeric" />
-          </div>
-        </div>
-
-        <label className="mt-3 block text-sm font-medium">Tipo de contrato</label>
-        <select
-          className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-          value={leaseType}
-          onChange={(e) => setLeaseType(e.target.value)}
-        >
-          <option value="habitacao">Habitação</option>
-          <option value="comercio">Comércio</option>
-          <option value="outro">Outro</option>
-        </select>
-
-        <label className="mt-3 block text-sm font-medium">Estado</label>
-        <select
-          className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="active">Activo</option>
-          <option value="ended">Terminado</option>
-          <option value="cancelled">Cancelado</option>
-        </select>
-
-        <label className="mt-3 block text-sm font-medium">Notas</label>
-        <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Opcional" />
-
-        <div className="mt-5 flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onClose} disabled={saving}>
-            Cancelar
-          </Button>
-          <Button type="button" onClick={() => void save()} disabled={saving}>
-            {saving ? 'A guardar…' : isEdit ? 'Guardar' : 'Criar'}
-          </Button>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

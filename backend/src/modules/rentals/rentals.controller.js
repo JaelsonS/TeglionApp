@@ -89,6 +89,24 @@ exports.generateReceipts = async (req, res, next) => {
   }
 };
 
+exports.createReceipt = async (req, res, next) => {
+  try {
+    const body = req.body || {};
+    const result = await rentalsService.createReceipt({
+      firmId: String(req.user.firmId),
+      leaseId: String(body.leaseId || ''),
+      yearMonth: body.yearMonth || body.period,
+      amountCents: body.amountCents,
+      status: body.status,
+      dueDate: body.dueDate,
+      actorId: req.user.id,
+    });
+    return res.status(result.created ? 201 : 200).json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.patchReceipt = async (req, res, next) => {
   try {
     const result = await rentalsService.patchReceipt({
