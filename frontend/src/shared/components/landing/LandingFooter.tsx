@@ -77,7 +77,7 @@ export function LandingFooter() {
           <p className="mt-4 text-sm leading-relaxed text-[#4A5568]">
             O {BRAND.name} é uma plataforma de software desenvolvida e operada pela{' '}
             <AgencyNameLink className="text-[#0B3A6E]">{AGENCY.name}</AgencyNameLink>. A utilização
-            da plataforma pelos escritórios e os dados inseridos pelos seus utilizadores estão
+            da plataforma pelos gabinetes e os dados inseridos pelos seus utilizadores estão
             sujeitos às responsabilidades definidas nos documentos legais no rodapé.
           </p>
         </div>

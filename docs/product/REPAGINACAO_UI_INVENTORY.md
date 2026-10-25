@@ -64,4 +64,5 @@ Dashboard · Pedidos · Serviços · Mais · Mensagens · Documentos · Arquivo 
 | 10 | Atmosfera canvas firm + portal (sem cream) | feito |
 | 11 | Topbar + painéis clientes/docs + crumb labels | feito |
 | 12 | Hub cliente + calendário fiscal | feito |
+| 13 | Vocabulário PT «gabinete» + copy/SEO própria Teglion | feito |
 | Merge → staging | Só quando a repaginação estiver completa | pendente |

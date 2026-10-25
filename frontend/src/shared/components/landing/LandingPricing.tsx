@@ -25,7 +25,7 @@ function buildPlans({
       period: `/ ${trialDays} dias`,
       note: 'Sem cartão no registo',
       features: [
-        'Escritório + portal + página pública',
+        'Gabinete + portal + página pública',
         'Serviços, IRS e pagamentos na plataforma',
         'Utilizadores ilimitados no trial',
       ],
@@ -39,7 +39,7 @@ function buildPlans({
       name: 'Mensal',
       price: monthlyLabel,
       period: '/ mês',
-      note: 'Por escritório · IVA à parte se aplicável',
+      note: 'Por gabinete · IVA à parte se aplicável',
       features: [
         'Mesmo produto do teste',
         'Documentos, prazos e mensagens',
@@ -57,7 +57,7 @@ function buildPlans({
       period: '/ mês',
       note: (
         <>
-          Cobrado <strong className="text-[#0B3A6E]">{yearlyTotalLabel} / ano</strong> · por escritório
+          Cobrado <strong className="text-[#0B3A6E]">{yearlyTotalLabel} / ano</strong> · por gabinete
         </>
       ),
       features: [

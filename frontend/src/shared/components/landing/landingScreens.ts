@@ -36,7 +36,7 @@ export const LANDING_CAROUSEL_SLIDES: {
     title: 'Ficheiros',
     copy: 'Organiza documentos por empresa, pasta e período — com upload rápido.',
     src: LANDING_SCREENS.documentosFicheiros,
-    alt: 'Gestão de ficheiros do escritório',
+    alt: 'Gestão de ficheiros do gabinete',
   },
   {
     title: 'Documentos — validação',

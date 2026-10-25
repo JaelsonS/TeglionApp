@@ -172,7 +172,7 @@ export function ClientLoginPage() {
         <AuthCard>
           <AuthHeader
             title="Entrar no portal"
-            subtitle="Documentos, pedidos e mensagens com o seu escritório — use o e-mail do convite."
+            subtitle="Documentos, pedidos e mensagens com o seu gabinete — use o e-mail do convite."
           />
 
           {serverWaking ? <ServerWakingBanner startedAt={serverWakingSince} className="mt-6" /> : null}
@@ -181,12 +181,12 @@ export function ClientLoginPage() {
             <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
               <p className="font-semibold">Ainda não há palavra-passe nesta conta</p>
               <ol className="mt-2 list-decimal space-y-1 pl-4 text-caption leading-relaxed text-amber-900/90">
-                <li>Abra o email «Acesso ao portal» enviado pelo escritório.</li>
+                <li>Abra o email «Acesso ao portal» enviado pelo gabinete.</li>
                 <li>Clique no link do convite e defina a palavra-passe.</li>
                 <li>Volte aqui e entre com o mesmo e-mail e a senha criada.</li>
               </ol>
               <p className="mt-2 text-caption text-amber-900/80">
-                Se não encontrar o email, peça ao escritório um novo convite (ou que defina uma palavra-passe
+                Se não encontrar o email, peça ao gabinete um novo convite (ou que defina uma palavra-passe
                 inicial).
               </p>
             </div>

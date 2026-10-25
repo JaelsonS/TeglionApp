@@ -15,7 +15,7 @@ const ITEMS = [
   },
   {
     title: 'Tudo no mesmo sítio',
-    text: 'Documentos, mensagens e obrigações no fluxo do escritório — não espalhados por cinco apps.',
+    text: 'Documentos, mensagens e obrigações no fluxo do gabinete — não espalhados por cinco apps.',
   },
 ] as const
 
@@ -26,7 +26,7 @@ export function LandingBenefits() {
         <FadeInView className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold sm:text-4xl">O que muda no dia a dia</h2>
           <p className="mt-3 text-[#4A5568]">
-            Resultados que um escritório sente na primeira semana — não promessas vazias.
+            Resultados que um gabinete sente na primeira semana — não promessas vazias.
           </p>
         </FadeInView>
         <FadeInStagger className="mx-auto mt-12 grid max-w-4xl gap-5 sm:grid-cols-2">

@@ -6,7 +6,7 @@ import { FadeInStagger, FadeInStaggerItem, FadeInView } from '@/shared/component
 const STEPS = [
   {
     n: '01',
-    title: 'Cria o escritório',
+    title: 'Cria o gabinete',
     body: 'Conta em minutos — equipa, clientes e operação prontos a usar.',
   },
   {
@@ -26,8 +26,10 @@ export function LandingHowItWorks() {
     <section id="como-funciona" className="landing-section scroll-mt-24 bg-white">
       <div className="landing-container">
         <FadeInView className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-semibold sm:text-4xl">Como funciona</h2>
-          <p className="mt-3 text-[#4A5568]">Do registo à operação completa — sem montar cinco ferramentas.</p>
+          <h2 className="text-3xl font-semibold sm:text-4xl">Como o Teglion arranca</h2>
+          <p className="mt-3 text-[#4A5568]">
+            Do registo à operação com portal e página pública — sem montar cinco ferramentas.
+          </p>
         </FadeInView>
         <FadeInStagger className="mt-14 grid gap-8 md:grid-cols-3">
           {STEPS.map((s) => (

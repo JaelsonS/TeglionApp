@@ -44,9 +44,9 @@ const SSO_ERROR_MESSAGES: Record<string, string> = {
   invalid_state: 'Sessão expirada. Tente entrar com Google novamente.',
   email_unverified: 'Confirme o e-mail na conta Google antes de continuar.',
   account_not_found:
-    'Não encontrámos escritório com este e-mail Google. Crie uma conta ou use e-mail e palavra-passe.',
-  account_inactive: 'Conta desactivada. Contacte o administrador do escritório.',
-  sso_mismatch: 'Esta conta Google não corresponde ao escritório registado. Use o e-mail correcto ou contacte o suporte.',
+    'Não encontrámos gabinete com este e-mail Google. Crie uma conta ou use e-mail e palavra-passe.',
+  account_inactive: 'Conta desactivada. Contacte o administrador do gabinete.',
+  sso_mismatch: 'Esta conta Google não corresponde ao gabinete registado. Use o e-mail correcto ou contacte o suporte.',
   sso_failed: 'Não foi possível entrar com Google. Tente novamente.',
 }
 
@@ -171,19 +171,19 @@ export function FirmLoginPage() {
 
   return (
     <AuthLayout
-      title="Área do escritório"
+      title="Área do gabinete"
       subtitle="Login da equipa — clientes, documentos, prazos e mensagens num só sítio."
       leftPanelSlot={<OfficeScreensCarousel />}
     >
       <div className="mx-auto max-w-md">
         <AuthCard>
           <AuthHeader
-            title="Entrar no escritório"
-            subtitle="Use o e-mail profissional e a palavra-passe da conta do escritório."
+            title="Entrar no gabinete"
+            subtitle="Use o e-mail profissional e a palavra-passe da conta do gabinete."
           />
 
           <div className="mt-6 rounded-2xl border border-[#0B3A6E]/10 bg-[#0B3A6E]/5 px-4 py-3 text-sm text-slate-700">
-            Se é cliente final, volte atrás e escolha «Sou cliente de um escritório».
+            Se é cliente final, volte atrás e escolha «Sou cliente de um gabinete».
           </div>
 
           {serverWaking ? <ServerWakingBanner startedAt={serverWakingSince} className="mt-6" /> : null}

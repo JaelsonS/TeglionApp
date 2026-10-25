@@ -5,13 +5,13 @@ import { FadeInStagger, FadeInStaggerItem, FadeInView } from '@/shared/component
 const OFFERS = [
   {
     icon: Globe2,
-    title: 'Página pública do escritório',
+    title: 'Página pública do gabinete',
     text: 'O teu site no Teglion: marca, serviços e marcação — sem montar landing à parte nem gerir links soltos.',
   },
   {
     icon: Package,
     title: 'Serviços à tua medida',
-    text: 'Cria e personaliza o catálogo: consultorias, pacotes e o que o escritório vende no dia a dia.',
+    text: 'Cria e personaliza o catálogo: consultorias, pacotes e o que o gabinete vende no dia a dia.',
   },
   {
     icon: FileSpreadsheet,
@@ -21,7 +21,7 @@ const OFFERS = [
   {
     icon: CreditCard,
     title: 'Pagamentos na plataforma',
-    text: 'O cliente final paga o escritório no fluxo de marcação. Cobrança ligada à operação, não a outro sistema.',
+    text: 'O cliente final paga o gabinete no fluxo de marcação. Cobrança ligada à operação, não a outro sistema.',
   },
 ] as const
 

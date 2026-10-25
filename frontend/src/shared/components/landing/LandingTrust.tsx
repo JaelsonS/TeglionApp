@@ -41,12 +41,12 @@ export function LandingTrust() {
             <AgencyProductLine linkClassName="text-[#0B3A6E] hover:text-[#C9932E]" />
           </p>
           <p className="mt-5 text-[15px] leading-relaxed text-[#4A5568] sm:text-base">
-            O {BRAND.name} é uma plataforma de gestão para escritórios de contabilidade, desenvolvida e
+            O {BRAND.name} é uma plataforma de gestão para gabinetes de contabilidade, desenvolvida e
             operada pela <AgencyNameLink className="text-[#0B3A6E]" />. {BRAND.name} é o nome do
             produto — não uma empresa independente.
           </p>
           <p className="mt-4 text-[15px] leading-relaxed text-[#4A5568] sm:text-base">
-            Cada escritório mantém a responsabilidade pelas informações, documentos e dados que
+            Cada gabinete mantém a responsabilidade pelas informações, documentos e dados que
             introduz na plataforma e pela utilização que faz do serviço. A {AGENCY.name} é
             responsável pela plataforma e pelos serviços que efetivamente presta, nos termos
             aplicáveis.

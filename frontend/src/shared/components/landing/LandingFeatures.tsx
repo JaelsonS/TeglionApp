@@ -17,7 +17,7 @@ const FEATURES = [
   {
     icon: Users,
     title: 'Carteira de clientes',
-    text: 'Empresas, regimes e estado — a base do escritório num só painel.',
+    text: 'Empresas, regimes e estado — a base do gabinete num só painel.',
   },
   {
     icon: CalendarDays,
@@ -42,7 +42,7 @@ const FEATURES = [
   {
     icon: MessagesSquare,
     title: 'Mensagens no produto',
-    text: 'Escritório ↔ cliente no mesmo fluxo, sem WhatsApp perdido.',
+    text: 'Gabinete ↔ cliente no mesmo fluxo, sem WhatsApp perdido.',
   },
   {
     icon: Smartphone,
@@ -52,7 +52,7 @@ const FEATURES = [
   {
     icon: HardDrive,
     title: 'Google Calendar e Drive',
-    text: 'Agenda e ficheiros ligados à operação do escritório.',
+    text: 'Agenda e ficheiros ligados à operação do gabinete.',
   },
   {
     icon: Bell,
@@ -66,10 +66,10 @@ export function LandingFeatures() {
     <section id="funcionalidades" className="landing-section scroll-mt-24 bg-white">
       <div className="landing-container">
         <FadeInView className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#C9932E]">Já disponível</p>
-          <h2 className="mt-2 text-3xl font-semibold sm:text-4xl">Tudo o que o escritório precisa no dia a dia</h2>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#C9932E]">Já no produto</p>
+          <h2 className="mt-2 text-3xl font-semibold sm:text-4xl">O que o Teglion faz no dia a dia do gabinete</h2>
           <p className="mt-3 text-[#4A5568]">
-            Funcionalidades reais — não uma lista de “em desenvolvimento”.
+            Lista do que já pode usar — sem vender como pronto o que ainda está “em breve”.
           </p>
         </FadeInView>
 
@@ -97,7 +97,7 @@ export function LandingFeatures() {
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-base font-semibold text-[#0B3A6E]">IA no contexto do escritório</h3>
+                <h3 className="text-base font-semibold text-[#0B3A6E]">IA no contexto do gabinete</h3>
                 <span className="rounded-md bg-[#0B3A6E]/8 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#0B3A6E]">
                   Em breve
                 </span>

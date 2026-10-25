@@ -6,11 +6,11 @@ import { FadeInStagger, FadeInStaggerItem, FadeInView } from '@/shared/component
 const TRUST_STATS = [
   {
     title: 'Sem risco',
-    text: '14 dias para usar o escritório completo. Não pedimos cartão.',
+    text: '14 dias para usar o gabinete completo. Não pedimos cartão.',
   },
   {
-    title: 'Escritório no controlo total',
-    text: 'Total organização e controlo do seu escritório.',
+    title: 'Gabinete no controlo total',
+    text: 'Total organização e controlo do seu gabinete.',
   },
   {
     title: 'Rasto claro',
@@ -65,14 +65,14 @@ export function LandingSocialProof({ className, showStats = true }: LandingSocia
 
         <FadeInView className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wide text-[#C9932E]">
-            Feito para escritórios de contabilidade
+            Identidade Teglion
           </p>
           <h2 className="mt-2 text-3xl font-semibold text-[#0B3A6E] sm:text-4xl">
-            Menos caos. Mais fechos a tempo.
+            Método no gabinete. Clareza no cliente.
           </h2>
           <p className="mt-4 text-[17px] leading-relaxed text-[#4A5568]">
-            Clientes, documentos, prazos, página pública e pagamentos no mesmo sistema — para a equipa
-            trabalhar com método e o cliente deixar de perguntar “já enviei?”.
+            Pedidos com rasto, prazos no painel e portal aberto — a equipa sabe o próximo passo e o
+            cliente deixa de perguntar “já enviei?” sem saber aonde.
           </p>
         </FadeInView>
 

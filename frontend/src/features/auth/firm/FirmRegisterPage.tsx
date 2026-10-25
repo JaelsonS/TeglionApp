@@ -37,7 +37,7 @@ import { passwordPolicySchema } from '@/shared/utils/passwordPolicy'
 import { redirectFirmMfaGateIfNeeded } from '@/features/auth/firm/firmMfaGateRedirect'
 
 const schema = z.object({
-  firmName: z.string().min(2, 'Nome do escritório obrigatório'),
+  firmName: z.string().min(2, 'Nome do gabinete obrigatório'),
   ownerName: z.string().min(2, 'Nome obrigatório'),
   email: z.string().email('E-mail inválido'),
   password: passwordPolicySchema,
@@ -153,7 +153,7 @@ export function FirmRegisterPage() {
 
   return (
     <AuthLayout
-      title="Criar conta do escritório"
+      title="Criar conta do gabinete"
       subtitle="14 dias para experimentar — clientes, documentos e prazos no Teglion."
       leftPanelSlot={<OfficeScreensCarousel />}
     >
@@ -172,7 +172,7 @@ export function FirmRegisterPage() {
               />
               <div className="mt-6 space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-left text-sm text-emerald-900">
                 <p>
-                  A conta do escritório <strong>{pendingConfirm.firmName}</strong> foi criada.
+                  A conta do gabinete <strong>{pendingConfirm.firmName}</strong> foi criada.
                 </p>
                 <p>
                   {pendingConfirm.emailSent

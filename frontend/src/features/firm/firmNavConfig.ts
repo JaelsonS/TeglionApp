@@ -93,7 +93,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
   {
     id: 'operations',
     titleKey: 'contabil.firm.nav.operations',
-    titleDefault: 'Trabalho do escritório',
+    titleDefault: 'Trabalho do gabinete',
     items: [
       {
         to: '/app/firm/tasks',

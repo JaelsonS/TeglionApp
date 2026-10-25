@@ -99,7 +99,7 @@ export function SupportPage() {
             <h1 className="mt-2 text-3xl font-semibold text-[#0B3A6E] sm:text-4xl md:text-5xl">Como podemos ajudar?</h1>
             <p className="mt-3 text-base text-[#4A5568] sm:mt-4 sm:text-lg">
               Dúvidas de conta, trial ou utilização do produto — telefone, WhatsApp, e-mail ou formulário.
-              Questões fiscais dos seus clientes tratam-se no escritório, não aqui.
+              Questões fiscais dos seus clientes tratam-se no gabinete, não aqui.
             </p>
           </FadeInView>
         </div>

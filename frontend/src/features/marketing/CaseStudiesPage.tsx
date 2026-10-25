@@ -20,11 +20,11 @@ export function CaseStudiesPage() {
               Histórias reais, quando existirem
             </h1>
             <p className="mt-4 text-lg leading-relaxed text-[#4A5568]">
-              Esta página só publica depoimentos autorizados — sem inventar resultados. Quando um escritório
+              Esta página só publica depoimentos autorizados — sem inventar resultados. Quando um gabinete
               partilhar a experiência no {BRAND.name}, a história aparece aqui com contexto real.
             </p>
             <p className="mt-4 text-[15px] leading-relaxed text-[#4A5568]">
-              Se gere um escritório e quer experimentar cedo, o trial de 14 dias é o caminho mais simples. Se
+              Se gere um gabinete e quer experimentar cedo, o trial de 14 dias é o caminho mais simples. Se
               preferir conversar antes, escreva-nos.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

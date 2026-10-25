@@ -26,11 +26,12 @@ export function LandingHero() {
               Teglion
             </p>
             <h1 className="mt-3 max-w-xl text-[1.45rem] font-semibold leading-[1.2] text-[#0B3A6E]/90 sm:text-[1.85rem] md:text-3xl lg:text-[2.15rem]">
-              Um sistema. Zero saltos entre WhatsApp, email e links.
+              Gabinete, portal e página pública — a mesma operação.
             </h1>
             <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-[#4A5568] sm:mt-5 sm:text-[17px]">
-              Gestão para escritórios de contabilidade: documentos, prazos, portal do cliente, página
-              pública, serviços, IRS e pagamentos — no mesmo sítio.
+              Software para gabinetes de contabilidade em Portugal: a equipa trabalha no painel, o
+              cliente entrega no portal e a oferta vive no site público — documentos, prazos, serviços
+              e pagamentos sem saltar de ferramenta.
             </p>
             <div className="mt-6 flex w-full flex-col items-stretch gap-3 sm:mt-8 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
               <Link to={authFirmRegisterUrl()} className="landing-btn-primary w-full px-6 py-3.5 sm:w-auto sm:px-8">
@@ -45,7 +46,7 @@ export function LandingHero() {
               </button>
             </div>
             <p className="mt-4 text-[13px] text-[#4A5568] sm:text-sm">
-              Sem cartão. Escritório completo desde o primeiro dia.
+              Sem cartão · Sem fidelização · Produto da AfDigital — Soluções Tecnológicas
             </p>
           </FadeInView>
 
@@ -62,7 +63,7 @@ export function LandingHero() {
             >
               <LandingScreenshot
                 src={LANDING_SCREENS.dashboard}
-                alt="Painel do escritório no Teglion"
+                alt="Painel Teglion do gabinete de contabilidade"
                 priority
                 className="shadow-[0_20px_50px_rgba(11,58,110,0.12)]"
               />
