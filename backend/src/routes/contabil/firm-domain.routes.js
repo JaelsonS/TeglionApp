@@ -663,6 +663,7 @@ router.post(
 );
 router.patch('/rentals/leases/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.patchLease);
 router.post('/rentals/receipts/generate', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.generateReceipts);
+router.post('/rentals/receipts', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.createReceipt);
 router.patch('/rentals/receipts/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), rentalsController.patchReceipt);
 
 router.get('/saft/meta', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), saftController.meta);

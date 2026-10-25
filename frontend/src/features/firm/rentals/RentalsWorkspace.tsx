@@ -1,6 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, ChevronLeft, ChevronRight, Loader2, Pencil, Plus, Search } from 'lucide-react'
+import {
+  AlertTriangle,
+  Building2,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Loader2,
+  Pencil,
+  Plus,
+  Search,
+  Wallet,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
@@ -18,13 +29,27 @@ import { cn } from '@/shared/lib/utils'
 import {
   MONTH_SHORT,
   formatEuroFromCents,
+  leaseHealth,
+  leaseHealthLabel,
+  leaseHealthTone,
+  receiptLabelPt,
   receiptTone,
 } from '@/features/firm/rentals/rentalsFormat'
 import { ReceiptEditDialog } from '@/features/firm/rentals/ReceiptEditDialog'
 import { PropertyDialog } from '@/features/firm/rentals/PropertyDialog'
 import { LeaseDialog } from '@/features/firm/rentals/LeaseDialog'
+import { GenerateRentReceiptsDialog } from '@/features/firm/rentals/GenerateRentReceiptsDialog'
 
 const OVERVIEW_KEY = ['rentals-overview'] as const
+
+type ReceiptEditCtx = {
+  receipt: RentReceipt
+  propertyLabel: string
+  landlordName: string
+  landlordTaxId?: string | null
+  tenantName: string
+  tenantNif?: string | null
+}
 
 export function RentalsWorkspace() {
   const qc = useQueryClient()
@@ -46,7 +71,8 @@ export function RentalsWorkspace() {
     return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}`
   })
   const [generating, setGenerating] = useState(false)
-  const [edit, setEdit] = useState<{ receipt: RentReceipt; title: string } | null>(null)
+  const [creatingKey, setCreatingKey] = useState<string | null>(null)
+  const [edit, setEdit] = useState<ReceiptEditCtx | null>(null)
 
   useEffect(() => {
     const t = setTimeout(() => setQDebounced(q.trim()), 300)
@@ -61,16 +87,74 @@ export function RentalsWorkspace() {
   const data = overviewQuery.data
   const monthKeys = data?.months || []
 
+  const activeLeaseCount = useMemo(() => {
+    let n = 0
+    for (const row of data?.rows || []) {
+      for (const lease of row.leases || []) {
+        if (lease.status === 'active') n += 1
+      }
+    }
+    return n
+  }, [data?.rows])
+
+  const kpis = useMemo(() => {
+    const s = data?.summary
+    if (!s) return []
+    return [
+      {
+        id: 'paid',
+        label: 'Pago',
+        value: formatEuroFromCents(s.paidCents),
+        tone: 'emerald' as const,
+        icon: Wallet,
+      },
+      {
+        id: 'open',
+        label: 'Em aberto',
+        value: formatEuroFromCents(s.openCents),
+        tone: 'brand' as const,
+        icon: FileText,
+      },
+      {
+        id: 'overdue',
+        label: 'Em atraso',
+        value: formatEuroFromCents(s.overdueCents),
+        tone: 'rose' as const,
+        icon: AlertTriangle,
+      },
+      {
+        id: 'draft',
+        label: 'Rascunho',
+        value: formatEuroFromCents(s.draftCents),
+        tone: 'muted' as const,
+        icon: FileText,
+      },
+    ]
+  }, [data?.summary])
+
+  function refresh() {
+    return qc.invalidateQueries({ queryKey: OVERVIEW_KEY })
+  }
+
   async function runGenerate() {
     setGenerating(true)
     try {
       const res = await contabilRentalsApi.generateReceipts({ yearMonth: generateMonth })
-      toast.success(
-        `Gerados ${res.createdCount} recibo(s)` +
-          (res.skippedCount ? ` · ${res.skippedCount} ignorados` : ''),
-      )
+      if (!res.createdCount) {
+        toast.message('Nada gerado', {
+          description:
+            activeLeaseCount === 0
+              ? 'Sem contratos activos. Crie um imóvel e um contrato.'
+              : 'Todos os contratos elegíveis já têm este mês.',
+        })
+      } else {
+        toast.success(
+          `Gerados ${res.createdCount} recibo(s)` +
+            (res.skippedCount ? ` · ${res.skippedCount} ignorados` : ''),
+        )
+      }
       setGenerateOpen(false)
-      await qc.invalidateQueries({ queryKey: OVERVIEW_KEY })
+      await refresh()
     } catch (err) {
       toast.error('Não foi possível gerar', { description: getErrorMessage(err) })
     } finally {
@@ -78,10 +162,31 @@ export function RentalsWorkspace() {
     }
   }
 
+  async function createMonthReceipt(lease: PropertyLease, yearMonth: string, ctx: Omit<ReceiptEditCtx, 'receipt'>) {
+    const key = `${lease.id}:${yearMonth}`
+    setCreatingKey(key)
+    try {
+      const res = await contabilRentalsApi.createReceipt({
+        leaseId: lease.id,
+        yearMonth,
+        amountCents: lease.monthlyRentCents,
+        status: 'draft',
+      })
+      await refresh()
+      setEdit({ ...ctx, receipt: res.receipt })
+      toast.success(res.created ? 'Mês criado — ajuste o estado' : 'Mês já existia')
+    } catch (err) {
+      toast.error('Não foi possível criar o mês', { description: getErrorMessage(err) })
+    } finally {
+      setCreatingKey(null)
+    }
+  }
+
   return (
     <FirmModuleShell
+      className="cb-rentals-shell cb-rentals-page-scroll"
       title="Imóveis e rendas"
-      subtitle="Contratos e recibos de renda dos clientes do gabinete — registo interno. Não substitui o Portal das Finanças nem comunicação à AT."
+      subtitle="Contratos e recibos internos de renda — quem pagou, quem deve, edição e recibo sem sair da página."
       headerRight={
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => setYear((y) => y - 1)}>
@@ -100,285 +205,278 @@ export function RentalsWorkspace() {
           </Button>
         </div>
       }
-      bodyClassName="cb-rentals-body px-4 pb-4 sm:px-5"
+      bodyClassName="gap-0 cb-rentals-body"
     >
-      <div className="cb-rentals-chrome shrink-0 space-y-3 pb-3">
-        <div className="rounded-xl border border-amber-200/80 bg-amber-50/70 px-4 py-3 text-sm text-amber-950">
-          <p className="font-medium">Registo interno do gabinete</p>
-          <p className="mt-1 text-amber-950/90">
-            {data?.disclaimer ||
-              'Recibos de renda INTERNOS para controlo. Não são recibos oficiais do Portal das Finanças nem comunicação à AT.'}
-          </p>
-        </div>
-
-        {data?.summary ? (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <SummaryChip label="Pago" value={formatEuroFromCents(data.summary.paidCents)} />
-            <SummaryChip label="Em aberto" value={formatEuroFromCents(data.summary.openCents)} />
-            <SummaryChip label="Atrasado" value={formatEuroFromCents(data.summary.overdueCents)} warn />
-            <SummaryChip label="Rascunho" value={formatEuroFromCents(data.summary.draftCents)} />
-          </div>
-        ) : null}
-
-        <div className="flex items-center gap-2">
-          <Search className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-          <Input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Procurar imóvel, senhorio ou inquilino…"
-            className="max-w-md"
-            aria-label="Procurar imóveis"
-          />
-        </div>
-      </div>
-
-      <div className="cb-rentals-list min-h-0 flex-1 overflow-auto">
-        {overviewQuery.isLoading ? (
-          <div className="flex items-center gap-2 py-12 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />A carregar…
-          </div>
-        ) : overviewQuery.isError ? (
-          <p className="py-8 text-sm text-destructive">Não foi possível carregar os imóveis.</p>
-        ) : !data?.rows?.length ? (
-          <EmptyState
-            icon={Building2}
-            title="Ainda sem imóveis"
-            description="Adicione um imóvel do cliente (senhorio), crie o contrato com o inquilino e gere os recibos do mês."
-            action={
-              <Button type="button" onClick={() => setPropertyEdit({})}>
-                Novo imóvel
-              </Button>
-            }
-          />
-        ) : (
-          <div className="space-y-4 pb-4">
-            {data.rows.map((row) => (
-              <section
-                key={row.property.id}
-                className="rounded-2xl border border-border/70 bg-card p-4"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h2 className="text-base font-semibold">{row.property.label}</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Senhorio: {row.client.displayName}
-                      {row.client.taxId ? ` · NIF ${row.client.taxId}` : ''}
-                    </p>
-                    {(row.property.addressLine || row.property.locality) && (
-                      <p className="mt-0.5 text-sm text-muted-foreground">
-                        {[row.property.addressLine, row.property.postalCode, row.property.locality]
-                          .filter(Boolean)
-                          .join(', ')}
-                      </p>
-                    )}
-                    {row.property.artigoMatricial ? (
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        Artigo matricial: {row.property.artigoMatricial}
-                      </p>
-                    ) : null}
-                    {row.property.status && row.property.status !== 'active' ? (
-                      <p className="mt-1 text-xs font-medium text-amber-800">
-                        Estado: {row.property.status}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setPropertyEdit({ property: row.property, client: row.client })
-                      }
-                    >
-                      <Pencil className="mr-1 h-3.5 w-3.5" aria-hidden />
-                      Editar imóvel
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        setLeaseEdit({ propertyId: row.property.id, label: row.property.label })
-                      }
-                    >
-                      Novo contrato
-                    </Button>
-                  </div>
+      {kpis.length > 0 ? (
+        <div className="cb-rentals-kpi-strip" data-testid="rentals-kpi-strip">
+          {kpis.map((item) => {
+            const Icon = item.icon
+            return (
+              <div key={item.id} className={cn('cb-rentals-kpi', `cb-rentals-kpi--${item.tone}`)}>
+                <span className="cb-rentals-kpi-icon" aria-hidden>
+                  <Icon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="cb-rentals-kpi-value">{item.value}</p>
+                  <p className="cb-rentals-kpi-label">{item.label}</p>
                 </div>
-
-                {!row.leases.length ? (
-                  <p className="mt-3 text-sm text-muted-foreground">Sem contratos. Crie um para gerar recibos.</p>
-                ) : (
-                  <div className="mt-4 space-y-4 overflow-x-auto">
-                    {row.leases.map((lease) => (
-                      <LeaseRow
-                        key={lease.id}
-                        lease={lease}
-                        monthKeys={monthKeys}
-                        statusLabels={data.statusLabels}
-                        onEditLease={() =>
-                          setLeaseEdit({
-                            propertyId: row.property.id,
-                            label: row.property.label,
-                            lease,
-                          })
-                        }
-                        onEditReceipt={(receipt) =>
-                          setEdit({
-                            receipt,
-                            title: `${row.property.label} · ${lease.tenantDisplayName}`,
-                          })
-                        }
-                      />
-                    ))}
-                  </div>
-                )}
-              </section>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {generateOpen ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-background p-5 shadow-lg">
-            <h2 className="text-lg font-semibold">Gerar recibos</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Cria rascunhos para contratos activos no mês escolhido (ignora os que já existem).
-            </p>
-            <label className="mt-4 block text-sm font-medium">Mês (AAAA-MM)</label>
-            <Input
-              value={generateMonth}
-              onChange={(e) => setGenerateMonth(e.target.value)}
-              placeholder="2026-10"
-            />
-            <div className="mt-5 flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => setGenerateOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="button" onClick={() => void runGenerate()} disabled={generating}>
-                {generating ? 'A gerar…' : 'Gerar'}
-              </Button>
-            </div>
-          </div>
+              </div>
+            )
+          })}
         </div>
       ) : null}
 
-      {propertyEdit ? (
-        <PropertyDialog
-          initial={propertyEdit.property}
-          initialClient={propertyEdit.client}
-          onClose={() => setPropertyEdit(null)}
-          onSaved={async () => {
-            setPropertyEdit(null)
-            await qc.invalidateQueries({ queryKey: OVERVIEW_KEY })
-          }}
-        />
-      ) : null}
+      <p className="cb-rentals-section-lead">
+        <span className="cb-rentals-section-lead-title">Mapa de rendas</span>
+        Recibos internos do gabinete — não substituem o Portal das Finanças nem comunicação à AT.
+        Clique numa célula para editar, apagar ou gerar recibo interno.
+      </p>
 
-      {leaseEdit ? (
-        <LeaseDialog
-          propertyId={leaseEdit.propertyId}
-          propertyLabel={leaseEdit.label}
-          initial={leaseEdit.lease}
-          onClose={() => setLeaseEdit(null)}
-          onSaved={async () => {
-            setLeaseEdit(null)
-            await qc.invalidateQueries({ queryKey: OVERVIEW_KEY })
-          }}
-        />
-      ) : null}
+      <div className="cb-rentals-section-host">
+        <div className="cb-rentals-toolbar">
+          <div className="relative min-w-[200px] max-w-sm flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="pl-9"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Procurar imóvel, senhorio ou inquilino…"
+              aria-label="Procurar imóveis"
+            />
+          </div>
+          <div className="cb-rentals-legend" aria-hidden>
+            <Legend swatch="cb-rent-cell--draft" label="Rascunho" />
+            <Legend swatch="cb-rent-cell--issued" label="Emitido" />
+            <Legend swatch="cb-rent-cell--paid" label="Pago" />
+            <Legend swatch="cb-rent-cell--overdue" label="Em atraso" />
+            <Legend swatch="cb-rent-cell--add" label="Criar mês" />
+          </div>
+        </div>
 
-      {edit ? (
-        <ReceiptEditDialog
-          receipt={edit.receipt}
-          title={edit.title}
-          paymentMethods={data?.paymentMethods || []}
-          onClose={() => setEdit(null)}
-          onSaved={async () => {
-            await qc.invalidateQueries({ queryKey: OVERVIEW_KEY })
-          }}
-        />
-      ) : null}
+        <div className="cb-rentals-list">
+          {overviewQuery.isLoading ? (
+            <div className="flex items-center gap-2 py-12 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />A carregar…
+            </div>
+          ) : overviewQuery.isError ? (
+            <p className="py-8 text-sm text-destructive">Não foi possível carregar os imóveis.</p>
+          ) : !data?.rows?.length ? (
+            <EmptyState
+              icon={Building2}
+              title="Ainda sem imóveis"
+              description="Adicione um imóvel do cliente (senhorio), crie o contrato com o inquilino e gere os recibos do mês."
+              action={
+                <Button type="button" onClick={() => setPropertyEdit({})}>
+                  Novo imóvel
+                </Button>
+              }
+            />
+          ) : (
+            <div className="space-y-4 pb-2">
+              {data.rows.map((row) => (
+                <section key={row.property.id} className="cb-rentals-card">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h2 className="text-base font-semibold tracking-tight">{row.property.label}</h2>
+                      <p className="text-sm text-muted-foreground">
+                        Senhorio: {row.client.displayName}
+                        {row.client.taxId ? ` · NIF ${row.client.taxId}` : ''}
+                      </p>
+                      {(row.property.addressLine || row.property.locality) && (
+                        <p className="mt-0.5 text-sm text-muted-foreground">
+                          {[row.property.addressLine, row.property.postalCode, row.property.locality]
+                            .filter(Boolean)
+                            .join(', ')}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setPropertyEdit({ property: row.property, client: row.client })
+                        }
+                      >
+                        <Pencil className="mr-1 h-3.5 w-3.5" aria-hidden />
+                        Editar / apagar
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setLeaseEdit({ propertyId: row.property.id, label: row.property.label })
+                        }
+                      >
+                        <Plus className="mr-1 h-3.5 w-3.5" aria-hidden />
+                        Contrato
+                      </Button>
+                    </div>
+                  </div>
+
+                  {!(row.leases || []).filter((l) => l.status !== 'cancelled').length ? (
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Sem contratos. Crie um para gerar recibos.
+                    </p>
+                  ) : (
+                    <div className="mt-4 space-y-5">
+                      {(row.leases || [])
+                        .filter((l) => l.status !== 'cancelled')
+                        .map((lease) => {
+                        const health = leaseHealth(lease.months)
+                        const ctx = {
+                          propertyLabel: row.property.label,
+                          landlordName: row.client.displayName,
+                          landlordTaxId: row.client.taxId,
+                          tenantName: lease.tenantDisplayName,
+                          tenantNif: lease.tenantNif,
+                        }
+                        return (
+                          <div key={lease.id}>
+                            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-sm font-semibold">{lease.tenantDisplayName}</span>
+                                <span className={cn(leaseHealthTone(health))}>
+                                  {leaseHealthLabel(health)}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {formatEuroFromCents(lease.monthlyRentCents)}/mês · dia{' '}
+                                  {lease.rentDueDay}
+                                  {lease.tenantNif ? ` · NIF ${lease.tenantNif}` : ''}
+                                </span>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  setLeaseEdit({
+                                    propertyId: row.property.id,
+                                    label: row.property.label,
+                                    lease,
+                                  })
+                                }
+                              >
+                                <Pencil className="mr-1 h-3.5 w-3.5" aria-hidden />
+                                Editar / apagar
+                              </Button>
+                            </div>
+                            <div className="cb-rentals-months">
+                              {monthKeys.map((ym, i) => {
+                                const cell = lease.months?.[ym]
+                                const key = `${lease.id}:${ym}`
+                                const busy = creatingKey === key
+                                return cell ? (
+                                  <button
+                                    key={ym}
+                                    type="button"
+                                    className={cn(receiptTone(cell.status, cell.overdue))}
+                                    onClick={() => setEdit({ ...ctx, receipt: cell })}
+                                    title={receiptLabelPt(cell.status, cell.overdue)}
+                                  >
+                                    <span className="cb-rent-cell-month">{MONTH_SHORT[i]}</span>
+                                    <span className="cb-rent-cell-amount">
+                                      {formatEuroFromCents(cell.amountCents).replace('\u00a0', ' ')}
+                                    </span>
+                                    <span className="cb-rent-cell-status">
+                                      {receiptLabelPt(cell.status, cell.overdue)}
+                                    </span>
+                                  </button>
+                                ) : (
+                                  <button
+                                    key={ym}
+                                    type="button"
+                                    className="cb-rent-cell cb-rent-cell--add"
+                                    disabled={busy || lease.status !== 'active'}
+                                    onClick={() => void createMonthReceipt(lease, ym, ctx)}
+                                    title="Criar recibo deste mês"
+                                  >
+                                    {busy ? (
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                                    ) : (
+                                      <>
+                                        <span className="cb-rent-cell-month">{MONTH_SHORT[i]}</span>
+                                        <Plus className="h-3.5 w-3.5" aria-hidden />
+                                        <span className="cb-rent-cell-status">Criar</span>
+                                      </>
+                                    )}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </section>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <p className="cb-rentals-foot">
+          Controlo interno de rendas. Não substitui recibos do Portal das Finanças nem declarações à
+          AT.
+        </p>
+      </div>
+
+      <GenerateRentReceiptsDialog
+        open={generateOpen}
+        onOpenChange={setGenerateOpen}
+        yearMonth={generateMonth}
+        onYearMonthChange={setGenerateMonth}
+        activeLeaseCount={activeLeaseCount}
+        generating={generating}
+        onGenerate={() => void runGenerate()}
+      />
+
+      <PropertyDialog
+        open={Boolean(propertyEdit)}
+        onOpenChange={(o) => {
+          if (!o) setPropertyEdit(null)
+        }}
+        initial={propertyEdit?.property}
+        initialClient={propertyEdit?.client}
+        onSaved={() => void refresh()}
+      />
+
+      <LeaseDialog
+        open={Boolean(leaseEdit)}
+        onOpenChange={(o) => {
+          if (!o) setLeaseEdit(null)
+        }}
+        propertyId={leaseEdit?.propertyId || ''}
+        propertyLabel={leaseEdit?.label || ''}
+        initial={leaseEdit?.lease}
+        onSaved={() => void refresh()}
+      />
+
+      <ReceiptEditDialog
+        open={Boolean(edit)}
+        onOpenChange={(o) => {
+          if (!o) setEdit(null)
+        }}
+        receipt={edit?.receipt || null}
+        propertyLabel={edit?.propertyLabel || ''}
+        landlordName={edit?.landlordName || ''}
+        landlordTaxId={edit?.landlordTaxId}
+        tenantName={edit?.tenantName || ''}
+        tenantNif={edit?.tenantNif}
+        paymentMethods={data?.paymentMethods || []}
+        onSaved={() => void refresh()}
+      />
     </FirmModuleShell>
   )
 }
 
-function SummaryChip({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
+function Legend({ swatch, label }: { swatch: string; label: string }) {
   return (
-    <div
-      className={cn(
-        'rounded-xl border border-border/70 bg-card px-3 py-2.5',
-        warn && 'border-amber-200/80 bg-amber-50/40',
-      )}
-    >
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-0.5 text-sm font-semibold tabular-nums">{value}</p>
-    </div>
-  )
-}
-
-function LeaseRow({
-  lease,
-  monthKeys,
-  statusLabels,
-  onEditLease,
-  onEditReceipt,
-}: {
-  lease: PropertyLease
-  monthKeys: string[]
-  statusLabels: Record<string, string>
-  onEditLease: () => void
-  onEditReceipt: (r: RentReceipt) => void
-}) {
-  const months = lease.months || {}
-  return (
-    <div>
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
-          <span className="font-medium">{lease.tenantDisplayName}</span>
-          <span className="text-muted-foreground">
-            {formatEuroFromCents(lease.monthlyRentCents)}/mês · dia {lease.rentDueDay}
-            {lease.tenantNif ? ` · NIF ${lease.tenantNif}` : ''}
-            {lease.status !== 'active' ? ` · ${lease.status}` : ''}
-          </span>
-        </div>
-        <Button type="button" variant="ghost" size="sm" onClick={onEditLease}>
-          <Pencil className="mr-1 h-3.5 w-3.5" aria-hidden />
-          Editar contrato
-        </Button>
-      </div>
-      <div className="inline-grid min-w-max grid-cols-12 gap-1">
-        {monthKeys.map((ym, i) => {
-          const cell = months[ym]
-          return (
-            <button
-              key={ym}
-              type="button"
-              disabled={!cell}
-              onClick={() => cell && onEditReceipt(cell)}
-              title={
-                cell
-                  ? `${ym}: ${statusLabels[cell.status] || cell.status}${cell.overdue ? ' (atrasado)' : ''}`
-                  : ym
-              }
-              className={cn(
-                'flex h-14 w-14 flex-col items-center justify-center rounded-lg border text-[10px] leading-tight',
-                cell
-                  ? receiptTone(cell.status, cell.overdue)
-                  : 'border-dashed border-border/60 text-muted-foreground/70',
-                cell && 'cursor-pointer hover:ring-2 hover:ring-brand/30',
-              )}
-            >
-              <span className="font-medium">{MONTH_SHORT[i]}</span>
-              <span className="tabular-nums">
-                {cell ? formatEuroFromCents(cell.amountCents).replace(/\s/g, '') : '—'}
-              </span>
-            </button>
-          )
-        })}
-      </div>
-    </div>
+    <span className="cb-rentals-legend-item">
+      <span className={cn('cb-rentals-legend-swatch', swatch)} aria-hidden />
+      {label}
+    </span>
   )
 }

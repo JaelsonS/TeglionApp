@@ -84,6 +84,16 @@ export function createContabilRentalsApi(api: AxiosInstance) {
       api.patch(`/contabil/rentals/leases/${encodeURIComponent(id)}`, payload).then((r) => r.data),
     generateReceipts: (payload: { yearMonth: string; leaseIds?: string[] }) =>
       api.post('/contabil/rentals/receipts/generate', payload).then((r) => r.data),
+    createReceipt: (payload: {
+      leaseId: string
+      yearMonth: string
+      amountCents?: number
+      status?: RentReceiptStatus
+      dueDate?: string
+    }) =>
+      api
+        .post('/contabil/rentals/receipts', payload)
+        .then((r) => r.data as { receipt: RentReceipt; created: boolean }),
     patchReceipt: (id: string, payload: Record<string, unknown>) =>
       api.patch(`/contabil/rentals/receipts/${encodeURIComponent(id)}`, payload).then((r) => r.data),
   }
