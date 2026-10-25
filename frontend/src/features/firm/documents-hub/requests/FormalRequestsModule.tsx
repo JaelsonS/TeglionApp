@@ -253,7 +253,7 @@ export function FormalRequestsModule() {
   )
 
   const listBody = (
-    <div className="cb-docs-req-list min-h-0 flex-1 overflow-y-auto">
+    <div className="cb-docs-req-list">
       {loading || loadingRequests ? (
         <div className="space-y-2 p-2">
           {[1, 2, 3, 4].map((i) => (
@@ -322,8 +322,9 @@ export function FormalRequestsModule() {
   )
 
   return (
-    <>
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
       <FirmSplitView
+        className="min-h-0 flex-1"
         hasSelection={Boolean(selectedRequestId)}
         onClearSelection={() => updateParams({ request: null })}
         sheetTitle={selectedRequest?.title || 'Pedido'}
@@ -343,6 +344,6 @@ export function FormalRequestsModule() {
         sending={sending}
         onSubmit={submitNewRequest}
       />
-    </>
+    </div>
   )
 }

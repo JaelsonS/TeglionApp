@@ -173,13 +173,27 @@
   }
 
   /*
-   * Desktop: páginas workspace (Documentos, Mensagens, …) usam scroll interno nas colunas.
-   * Sem isto o content-wrap também faz scroll e o utilizador só consegue pan no painel direito.
+   * Desktop: páginas workspace — content-wrap não faz scroll; as colunas internas sim.
+   * flex-basis 0% + min-height 0 em toda a cadeia (senão o overflow:hidden corta sem scrollbar).
    */
   @media (min-width: 1280px) {
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-firm-workspace-page) {
       overflow: hidden;
       padding-bottom: 0.75rem;
+    }
+
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-firm-workspace-page) > .cb-firm-workspace-page {
+      flex: 1 1 0%;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .cb-firm-shell .cb-firm-workspace-page > .cb-firm-operational-panel {
+      flex: 1 1 0%;
+      min-height: 0;
+      overflow: hidden;
+      height: auto;
+      max-height: 100%;
     }
   }
 

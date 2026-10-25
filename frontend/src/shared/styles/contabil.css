@@ -627,7 +627,8 @@
 
   /* S2 — FirmSplitView (Documentos, Alertas) */
   .cb-firm-split-view {
-    @apply flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden;
+    flex: 1 1 0%;
+    @apply flex min-h-0 w-full min-w-0 flex-col overflow-hidden;
   }
 
   .cb-firm-split-toolbar {
@@ -635,26 +636,36 @@
   }
 
   .cb-firm-split-desktop {
-    @apply hidden min-h-0 flex-1 overflow-hidden;
+    @apply hidden min-h-0 overflow-hidden;
+    flex: 1 1 0%;
   }
 
   @media (min-width: 1280px) {
     .cb-firm-split-desktop {
       @apply flex;
+      min-height: 0;
     }
   }
 
   .cb-firm-split-list {
     @apply flex min-h-0 min-w-[260px] max-w-md shrink-0 flex-col overflow-hidden border-r border-border/70 bg-card;
     width: min(380px, 36%);
+    flex: 0 0 auto;
   }
 
-  .cb-firm-split-list>* {
-    @apply flex min-h-0 min-w-0 flex-1 flex-col;
+  .cb-firm-split-list > * {
+    flex: 1 1 0%;
+    @apply flex min-h-0 min-w-0 flex-col overflow-hidden;
   }
 
   .cb-firm-split-detail {
-    @apply flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-muted/15;
+    flex: 1 1 0%;
+    @apply flex min-h-0 min-w-0 flex-col overflow-hidden bg-muted/15;
+  }
+
+  .cb-firm-split-detail > * {
+    flex: 1 1 0%;
+    @apply flex min-h-0 min-w-0 flex-col overflow-hidden;
   }
 
   .cb-firm-split-mobile {
@@ -783,15 +794,24 @@
   /* Documentos — página (IMG-08 / IMG-09) */
   .cb-docs-layout-page,
   .cb-docs-layout-panel {
-    @apply min-h-0 flex-1;
+    flex: 1 1 0%;
+    @apply flex min-h-0 flex-col overflow-hidden;
   }
 
   .cb-docs-page {
-    @apply bg-card/90 shadow-[var(--cb-shadow-card)];
+    flex: 1 1 0%;
+    @apply flex min-h-0 flex-col overflow-hidden bg-card/90 shadow-[var(--cb-shadow-card)];
   }
 
   .cb-docs-page-v2 {
     @apply bg-[hsl(210_25%_97%)] shadow-none;
+  }
+
+  @media (min-width: 1280px) {
+    .cb-firm-split-desktop {
+      flex-direction: row;
+      align-items: stretch;
+    }
   }
 
   .cb-docs-page-hd {
@@ -859,11 +879,11 @@
   }
 
   .cb-docs-kpi-strip {
-    @apply mb-3 grid grid-cols-1 gap-2 sm:grid-cols-3;
+    @apply mb-2 grid grid-cols-1 gap-1.5 sm:grid-cols-3;
   }
 
   .cb-docs-kpi {
-    @apply flex items-center gap-3 rounded-xl border border-border/70 bg-card px-3.5 py-3 shadow-sm;
+    @apply flex items-center gap-2.5 rounded-xl border border-border/70 bg-card px-3 py-2 shadow-sm;
   }
 
   .cb-docs-kpi-icon {
@@ -3279,6 +3299,12 @@
     @apply border-brand bg-brand text-white shadow-sm hover:border-brand hover:bg-brand/90 hover:text-white;
   }
 
+  .cb-docs-req-list {
+    flex: 1 1 0%;
+    @apply min-h-0 overflow-y-auto overscroll-y-contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .cb-docs-req-list-inner {
     @apply space-y-2 p-2;
   }
@@ -3329,7 +3355,8 @@
   }
 
   .cb-docs-req-detail {
-    @apply flex h-full min-h-0 flex-col bg-card;
+    flex: 1 1 0%;
+    @apply flex min-h-0 flex-col overflow-hidden bg-card;
   }
 
   .cb-docs-req-detail-hd {
@@ -3337,7 +3364,9 @@
   }
 
   .cb-docs-req-detail-body {
-    @apply min-h-0 flex-1 space-y-3 overflow-y-auto p-4;
+    flex: 1 1 0%;
+    @apply min-h-0 space-y-3 overflow-y-auto overscroll-y-contain p-4;
+    -webkit-overflow-scrolling: touch;
   }
 
   .cb-docs-req-section {
