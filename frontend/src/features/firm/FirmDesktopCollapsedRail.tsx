@@ -75,14 +75,16 @@ export function FirmDesktopCollapsedRail({ onExpand }: { onExpand: () => void })
         ))}
         <button
           type="button"
-          className="cb-firm-icon-nav cb-firm-icon-nav-inactive"
+          className="cb-firm-icon-nav cb-firm-icon-nav-inactive cb-firm-icon-nav--tooltip"
           aria-label={expandLabel}
           aria-expanded={false}
-          title={expandLabel}
           data-testid="firm-desktop-sidebar-expand"
           onClick={onExpand}
         >
           <PanelLeftOpen className="cb-firm-rail-icon" strokeWidth={1.75} aria-hidden />
+          <span className="cb-firm-rail-tooltip" role="tooltip">
+            {expandLabel}
+          </span>
         </button>
       </div>
     </div>
