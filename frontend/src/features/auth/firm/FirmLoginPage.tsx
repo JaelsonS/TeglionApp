@@ -128,7 +128,8 @@ export function FirmLoginPage() {
           navigate('/app/firm/billing', { replace: true })
           return
         }
-        navigate('/app', { replace: true })
+        // Conta Control Center → /app/ops (nunca dashboard comercial).
+        navigate(res.user?.platformOps ? '/app/ops' : '/app', { replace: true })
         void prefetchAuthCsrf()
       })
     } catch (err: unknown) {

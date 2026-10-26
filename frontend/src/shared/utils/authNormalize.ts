@@ -140,9 +140,15 @@ export function normalizeAuthUser(raw: unknown): AuthUser {
     avatarUrl: record.avatarUrl ? String(record.avatarUrl) : null,
     onboardingCompleted: Boolean(record.onboardingCompleted ?? false),
     isActive: Boolean(record.isActive ?? true),
+    platformOps: Boolean(record.platformOps),
     createdAt: record.createdAt as string | undefined,
     updatedAt: record.updatedAt as string | undefined,
   }
+}
+
+/** Operador AfDigital do Control Center (não é um gabinete comercial). */
+export function isPlatformOpsUser(user: AuthUser | null | undefined): boolean {
+  return Boolean(user?.platformOps)
 }
 
 export function tryNormalizeAuthUser(raw: unknown): AuthUser | null {

@@ -65,7 +65,7 @@ export function FirmMfaChallengePage() {
   const location = useLocation()
   const [params, setParams] = useSearchParams()
   const toast = useApiToast()
-  const { setSession } = useAuth()
+  const { setSession, user } = useAuth()
 
   const reason = params.get('reason') === 'enroll' ? 'enroll' : 'challenge'
   const fromRegistration = params.get('flow') === 'register'
@@ -170,7 +170,7 @@ export function FirmMfaChallengePage() {
       if (!setSession(res.user)) throw new Error('Sessão inválida após autenticação.')
       toast.success('Identidade confirmada.')
       void prefetchAuthCsrf()
-      navigate('/app', { replace: true })
+      navigate(res.user?.platformOps ? '/app/ops' : '/app', { replace: true })
     } catch (err) {
       const message = mfaUserFacingError(err)
       setFieldError(message)
@@ -434,7 +434,8 @@ export function FirmMfaChallengePage() {
               className="w-full rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground"
               onClick={() => {
                 void prefetchAuthCsrf()
-                navigate('/app', { replace: true })
+                // user já está em sessão após enroll — preferir Control Center se for ops.
+                navigate(user?.platformOps ? '/app/ops' : '/app', { replace: true })
               }}
             >
               Concluir
