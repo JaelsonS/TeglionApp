@@ -22,18 +22,19 @@ const Toaster = lazy(() => import('sonner').then((m) => ({ default: m.Toaster })
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : undefined
 
   useEffect(() => {
-    if (!isLightweightPublicRoute(pathname)) {
+    if (!isLightweightPublicRoute(pathname, hostname)) {
       ensureContabilStyles()
     }
-  }, [pathname])
+  }, [pathname, hostname])
 
-  if (isLightweightPublicRoute(pathname)) {
+  if (isLightweightPublicRoute(pathname, hostname)) {
     return <>{children}</>
   }
 
-  if (isPublicIntakeRoute(pathname)) {
+  if (isPublicIntakeRoute(pathname, hostname)) {
     // Sem login, mas usam useQuery — só o QueryClientProvider, sem AuthProvider
     // nem FirmBrandingProvider (nenhuma das duas páginas precisa).
     return (

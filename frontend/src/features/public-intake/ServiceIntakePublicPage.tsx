@@ -29,6 +29,7 @@ import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtm
 import { TeglionPublicCredit } from '@/features/public-intake/TeglionPublicCredit'
 import { PublicSlotCalendar } from '@/features/public-intake/PublicSlotCalendar'
 import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
+import { publicSitePath } from '@/shared/utils/publicHost'
 
 function formatScheduledAt(iso: string) {
   return new Date(iso).toLocaleString('pt-PT', {
@@ -107,8 +108,16 @@ function QuestionField({
   )
 }
 
-export function ServiceIntakePublicPage() {
-  const { firmSlug, serviceSlug } = useParams<{ firmSlug: string; serviceSlug: string }>()
+type ServiceIntakePublicPageProps = {
+  forcedFirmSlug?: string
+}
+
+export function ServiceIntakePublicPage({ forcedFirmSlug }: ServiceIntakePublicPageProps = {}) {
+  const { firmSlug: paramFirmSlug, serviceSlug } = useParams<{
+    firmSlug: string
+    serviceSlug: string
+  }>()
+  const firmSlug = forcedFirmSlug || paramFirmSlug
   const queryClient = useQueryClient()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -471,7 +480,7 @@ export function ServiceIntakePublicPage() {
             {service.options!.map((opt) => (
               <li key={opt.slug}>
                 <Link
-                  to={`/${encodeURIComponent(firmSlug!)}/servicos/${encodeURIComponent(opt.slug)}`}
+                  to={publicSitePath(firmSlug!, 'servicos', opt.slug)}
                   className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-background px-4 py-3 transition hover:border-primary/40 hover:shadow-sm"
                 >
                   <span className="min-w-0">

@@ -37,6 +37,7 @@ import { buildGoogleMapsUrl } from '@/shared/utils/googleMapsUrl'
 import { resolveFirstPublicSiteImageUrl, resolvePublicSiteImageUrl } from '@/features/public-intake/publicSiteImageResolve'
 import { PublicSiteFeaturedServices } from '@/features/public-intake/PublicSiteFeaturedServices'
 import { PublicSiteSectionLayout } from '@/features/public-intake/PublicSiteSectionLayout'
+import { publicSitePath } from '@/shared/utils/publicHost'
 import {
   Accordion,
   AccordionContent,
@@ -313,7 +314,7 @@ function ServiceCard({
   showPrices?: boolean
   openInNewTab?: boolean
 }) {
-  const href = `/${encodeURIComponent(firmSlug)}/servicos/${encodeURIComponent(service.slug)}`
+  const href = publicSitePath(firmSlug, 'servicos', service.slug)
   const className =
     'block overflow-hidden rounded-2xl border border-border/50 bg-card shadow-sm transition hover:border-primary/40 hover:shadow-md'
   const body = (

@@ -6,13 +6,19 @@ import { CheckCircle2, Clock, Loader2, XCircle } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { BrandMark } from '@/shared/components/brand/BrandMark'
 import { contabilPublicApi } from '@/infrastructure/api'
+import { publicSitePath } from '@/shared/utils/publicHost'
 
 /**
  * Retorno do Stripe Checkout — UX apenas.
  * O estado paid/confirmed vem do webhook (poll deste endpoint).
  */
-export function BookingPaymentReturnPage() {
-  const { firmSlug } = useParams<{ firmSlug: string }>()
+type BookingPaymentReturnPageProps = {
+  forcedFirmSlug?: string
+}
+
+export function BookingPaymentReturnPage({ forcedFirmSlug }: BookingPaymentReturnPageProps = {}) {
+  const { firmSlug: paramFirmSlug } = useParams<{ firmSlug: string }>()
+  const firmSlug = forcedFirmSlug || paramFirmSlug
   const [searchParams] = useSearchParams()
   const consultationId = searchParams.get('c') || ''
   const token = searchParams.get('t') || ''
@@ -125,7 +131,7 @@ export function BookingPaymentReturnPage() {
 
         {firmSlug ? (
           <Button asChild variant="outline" className="mt-2 rounded-full">
-            <Link to={`/${firmSlug}`}>Voltar à página do escritório</Link>
+            <Link to={publicSitePath(firmSlug || '')}>Voltar à página do escritório</Link>
           </Button>
         ) : null}
       </div>
