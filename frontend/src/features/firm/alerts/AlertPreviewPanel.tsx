@@ -36,8 +36,8 @@ export function AlertPreviewPanel({ item, onEdit, onDelete, onAnalytics, onPubli
         )}
       >
         <EmptyState
-          title="Selecione um alerta"
-          description="Escolha um comunicado na lista para pré-visualizar o conteúdo, destinatários e estatísticas."
+          title="Seleccione um comunicado"
+          description="Escolha na lista para pré-visualizar conteúdo, destinatários, prazo e envolvimento de leitura."
         />
       </div>
     )
