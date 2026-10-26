@@ -161,22 +161,32 @@ function trustedSpaCanSkipCsrfCookieHeaderPair(req) {
 }
 
 /**
- * Staging e produção partilham TLD (`.teglion.com`): o browser pode enviar
- * csrfToken de produção junto com o header correcto de staging → mismatch.
- * Com sessão válida + SPA Ajax + origin allowlist, o header prova o double-submit.
+ * Staging partilha TLD com produção (`.teglion.com`): o browser pode enviar
+ * csrfToken de prod junto com o header correcto de staging → mismatch.
+ *
+ * PRODUÇÃO: nunca bypass — double-submit estrito (clientes reais).
+ * STAGING: bypass estreito (sessão + SPA Ajax + origin staging allowlist)
+ * só enquanto cookies Domain=.teglion.com puderem colidir. Detecta staging via
+ * FRONTEND_URL (Render staging também usa NODE_ENV=production).
  */
 function hasAuthSessionCookie(req) {
   return Boolean(req.cookies?.accessToken || req.cookies?.refreshToken);
 }
 
+function isStagingDeployment() {
+  const { isStagingFrontendUrl } = require('../utils/cors-critical-origins');
+  return isStagingFrontendUrl(env.FRONTEND_URL);
+}
+
 function trustedAuthenticatedSpaCanBypassCsrfMismatch(req, csrfHeader) {
+  if (!isStagingDeployment()) return false;
   const header = String(csrfHeader || '').trim();
-  if (header.length < 16) return false;
+  // Token CSRF do servidor é hex 64 chars; exigir forma mínima credível.
+  if (header.length < 32 || !/^[a-fA-F0-9]+$/.test(header)) return false;
   if (!looksLikeBrowserSpaAjax(req)) return false;
   if (!hasAuthSessionCookie(req)) return false;
   const origin = resolveOrigin(req);
   if (!origin) return false;
-  if (env.isDevelopment && isLocalDevOrigin(origin)) return true;
   return isAllowedConfiguredOrigin(origin);
 }
 
@@ -200,10 +210,25 @@ function normalizeCookieDomain(raw) {
   return trimmed.startsWith('.') ? trimmed.slice(1) : trimmed;
 }
 
+function resolveRequestHost(req) {
+  const forwarded = String(req?.headers?.['x-forwarded-host'] || '')
+    .split(',')[0]
+    .trim();
+  const raw = forwarded || String(req?.headers?.host || req?.hostname || '');
+  return raw.split(':')[0].toLowerCase();
+}
+
+function isStagingAuthHost(host) {
+  const h = String(host || '').toLowerCase();
+  return h === 'staging.teglion.com' || h === 'www.staging.teglion.com';
+}
+
 function shouldApplyCookieDomain(req) {
   if (!env.COOKIE_DOMAIN) return false;
-  const host = String(req?.hostname || '').toLowerCase();
+  const host = resolveRequestHost(req);
   if (!host) return false;
+  // Alinhado a auth-cookies: host-only em staging evita colisão com prod.
+  if (isStagingAuthHost(host) || isStagingDeployment()) return false;
   const cookieDomain = normalizeCookieDomain(env.COOKIE_DOMAIN);
   if (!cookieDomain) return false;
   return host === cookieDomain || host.endsWith(`.${cookieDomain}`);
@@ -280,11 +305,9 @@ const csrfProtection = (req, res, next) => {
   const csrfHeader = req.get(CSRF_HEADER_NAME);
 
   if (!csrfCookie || !csrfHeader) {
-    if (
-      trustedSpaCanSkipCsrfCookieHeaderPair(req) ||
-      allowsAuthCredentialedPostWithoutOrigin(req) ||
-      trustedAuthenticatedSpaCanBypassCsrfMismatch(req, csrfHeader)
-    ) {
+    // Sem par cookie+header: só excepções de auth público / MFA — nunca o bypass
+    // de mismatch de staging (esse só aplica quando ambos existem e diferem).
+    if (trustedSpaCanSkipCsrfCookieHeaderPair(req) || allowsAuthCredentialedPostWithoutOrigin(req)) {
       return next();
     }
     logger.warn(`[CSRF] Bloqueado: ${req.method} ${req.path} sem token CSRF`);
@@ -296,7 +319,9 @@ const csrfProtection = (req, res, next) => {
 
   if (!safeCompare(csrfCookie, csrfHeader)) {
     if (trustedAuthenticatedSpaCanBypassCsrfMismatch(req, csrfHeader)) {
-      logger.info(`[CSRF] Bypass mismatch (SPA autenticado): ${req.method} ${pathWithoutQuery(req)}`);
+      logger.info(
+        `[CSRF] Bypass mismatch staging-only (SPA autenticado): ${req.method} ${pathWithoutQuery(req)}`,
+      );
       return next();
     }
     logger.warn(`[CSRF] Bloqueado: token CSRF inválido em ${req.method} ${req.path}`);
@@ -368,4 +393,7 @@ module.exports = {
   generateCsrfToken,
   CSRF_COOKIE_NAME,
   CSRF_HEADER_NAME,
+  // test helpers
+  trustedAuthenticatedSpaCanBypassCsrfMismatch,
+  isStagingDeployment,
 };
