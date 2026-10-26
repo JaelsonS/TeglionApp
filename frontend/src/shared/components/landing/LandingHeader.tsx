@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
+import { LandingBrandMark } from '@/shared/components/landing/LandingBrandMark'
 import { authFirmRegisterUrl, authProfileChoiceUrl } from '@/shared/constants/authPaths'
 import { LANDING_ANCHORS } from '@/shared/constants/landingAnchors'
-import { BRAND } from '@/shared/config/brand'
 import { cn } from '@/shared/lib/utils'
 
 const NAV = [
@@ -44,27 +44,7 @@ export function LandingHeader() {
       )}
     >
       <div className="landing-container flex h-16 items-center justify-between gap-4 px-5 sm:px-8">
-        <Link to="/" className="flex shrink-0 items-center gap-2.5">
-          <img
-            src={BRAND.assets.icon}
-            alt=""
-            className={cn('h-9 w-9 rounded-xl sm:hidden', onDark && 'brightness-0 invert')}
-            aria-hidden
-          />
-          <img
-            src={BRAND.assets.wordmark}
-            alt={BRAND.name}
-            className={cn('landing-nav-brand hidden h-8 sm:block', onDark && 'brightness-0 invert')}
-          />
-          <span
-            className={cn(
-              'text-lg font-semibold tracking-tight sm:hidden',
-              onDark ? 'text-white' : 'text-[var(--landing-navy)]',
-            )}
-          >
-            {BRAND.name}
-          </span>
-        </Link>
+        <LandingBrandMark onDark={onDark || menuOpen} />
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Principal">
           {NAV.map((item) =>
