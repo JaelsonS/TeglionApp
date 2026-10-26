@@ -657,13 +657,13 @@ async function refreshSession({ refreshToken }) {
 }
 
 /**
- * Refresh: owner sem MFA permanece em enrollment (sem sessão completa).
- * Owner/staff com MFA activo: refresh OK (MFA já cumprido nesta autenticação).
- * Staff/consultant sem MFA: refresh OK (MFA opcional).
+ * Refresh: contas com MFA obrigatório (owner ou email PLATFORM_OPS) sem MFA
+ * permanecem em enrollment (sem sessão completa). Com MFA activo: refresh OK.
+ * Staff/consultant fora da allowlist sem MFA: refresh OK (MFA opcional).
  */
 async function assertFirmUserRefreshMfaAllowed(row) {
   const mfa = require('./mfa.service');
-  if (mfa.mfaRequiredForRole(row.role) && row.mfa_enabled !== true) {
+  if (mfa.mfaRequiredForUser(row) && row.mfa_enabled !== true) {
     if (row.id) {
       await authRefreshSessionsRepository.deleteAllForActor('firm_user', row.id).catch(() => {});
     }

@@ -313,8 +313,9 @@ const env = {
   /** Control Center AfDigital — off por omissão; activar só com true literal. */
   PLATFORM_OPS_ENABLED: String(process.env.PLATFORM_OPS_ENABLED || '').toLowerCase() === 'true',
   /**
-   * Emails (CSV) autorizados no Control Center. Comparação case-insensitive.
+   * Email autorizado no Control Center (exactamente 1). Comparação case-insensitive.
    * Ex.: PLATFORM_OPS_EMAIL_ALLOWLIST=afdigitalweb.st@gmail.com
+   * Conta com este email: MFA obrigatória no login (enrollment + challenge em cada entrada).
    */
   PLATFORM_OPS_EMAIL_ALLOWLIST: String(process.env.PLATFORM_OPS_EMAIL_ALLOWLIST || '')
     .split(',')

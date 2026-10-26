@@ -16,9 +16,12 @@ Painel interno onde o operador AfDigital (blue + red team):
 ## Modelo de segurança (não negociável)
 
 1. **Gate de ambiente:** `PLATFORM_OPS_ENABLED=true` (só com literal `true`).
-2. **Allowlist de emails:** `PLATFORM_OPS_EMAIL_ALLOWLIST` (CSV). Sem email na lista → 403.
+2. **Allowlist de um único email:** `PLATFORM_OPS_EMAIL_ALLOWLIST` (exactamente 1). 0 ou >1 → 503.
 3. **Sessão existente:** cookie HttpOnly da app firm (sem Bearer em prod).
-4. **MFA TOTP obrigatória** na conta do operador (`mfa_enabled`).
+4. **MFA TOTP obrigatória** na conta do operador:
+   - após criar/definir a password → `MFA_ENROLLMENT_REQUIRED` no próximo login;
+   - com MFA activo → `MFA_CHALLENGE_REQUIRED` em **cada** login;
+   - não pode desactivar MFA enquanto o email estiver na allowlist.
 5. **Clientes do portal** nunca acedem.
 6. **Todas as leituras/ações** do Center geram `audit_logs` com `firm_id` null e `actor_role=PLATFORM_OPS`.
 7. **Sem** service role no browser; **sem** SIEM pago nesta fase (Sentry + Postgres).
@@ -51,7 +54,13 @@ PLATFORM_OPS_ENABLED=true
 PLATFORM_OPS_EMAIL_ALLOWLIST=afdigitalweb.st@gmail.com
 ```
 
-Operador: login firm normal com esse email + MFA activado → abrir `/app/ops`.
+Operador (primeiro acesso):
+
+1. Conta firm com esse email (já existente ou convite).
+2. Definir password («Esqueci a password» / reset se ainda não tiver).
+3. Login → ecrã de enrollment MFA (obrigatório).
+4. Logins seguintes → desafio MFA (TOTP) sempre.
+5. Abrir `/app/ops`.
 
 ## Fora de âmbito (onda 0)
 

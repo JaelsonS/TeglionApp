@@ -76,6 +76,49 @@ describe('mfa.service policy + challenge JWT', () => {
     );
     assert.equal(gate.status, mfa.STATUS.MFA_CHALLENGE_REQUIRED);
   });
+
+  test('staff na allowlist PLATFORM_OPS sem MFA → MFA_ENROLLMENT_REQUIRED', () => {
+    const { env } = require('../../config/env');
+    const original = [...(env.PLATFORM_OPS_EMAIL_ALLOWLIST || [])];
+    try {
+      env.PLATFORM_OPS_EMAIL_ALLOWLIST.length = 0;
+      env.PLATFORM_OPS_EMAIL_ALLOWLIST.push('ops@afdigital.example');
+      const gate = mfa.resolvePostCredentialGate(
+        baseOwner({
+          role: 'FIRM_STAFF',
+          email: 'ops@afdigital.example',
+          mfa_enabled: false,
+        }),
+      );
+      assert.equal(gate.status, mfa.STATUS.MFA_ENROLLMENT_REQUIRED);
+      assert.equal(gate.mfa.purpose, MFA_PURPOSES.ENROLL);
+      assert.equal(mfa.mfaRequiredForUser({ role: 'FIRM_STAFF', email: 'ops@afdigital.example' }), true);
+    } finally {
+      env.PLATFORM_OPS_EMAIL_ALLOWLIST.length = 0;
+      for (const e of original) env.PLATFORM_OPS_EMAIL_ALLOWLIST.push(e);
+    }
+  });
+
+  test('staff na allowlist PLATFORM_OPS com MFA → MFA_CHALLENGE_REQUIRED', () => {
+    const { env } = require('../../config/env');
+    const original = [...(env.PLATFORM_OPS_EMAIL_ALLOWLIST || [])];
+    try {
+      env.PLATFORM_OPS_EMAIL_ALLOWLIST.length = 0;
+      env.PLATFORM_OPS_EMAIL_ALLOWLIST.push('ops@afdigital.example');
+      const gate = mfa.resolvePostCredentialGate(
+        baseOwner({
+          role: 'FIRM_STAFF',
+          email: 'ops@afdigital.example',
+          mfa_enabled: true,
+        }),
+      );
+      assert.equal(gate.status, mfa.STATUS.MFA_CHALLENGE_REQUIRED);
+      assert.equal(gate.mfa.purpose, MFA_PURPOSES.VERIFY);
+    } finally {
+      env.PLATFORM_OPS_EMAIL_ALLOWLIST.length = 0;
+      for (const e of original) env.PLATFORM_OPS_EMAIL_ALLOWLIST.push(e);
+    }
+  });
 });
 
 describe('mfa.service recovery codes', () => {
