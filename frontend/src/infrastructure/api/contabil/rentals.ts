@@ -38,13 +38,15 @@ export type PropertyLease = {
 
 export type ClientProperty = {
   id: string
-  clientId: string
+  clientId?: string | null
   label: string
   addressLine?: string | null
   postalCode?: string | null
   locality?: string | null
   artigoMatricial?: string | null
   notes?: string | null
+  costCategory?: string
+  supplierName?: string | null
   status: string
 }
 

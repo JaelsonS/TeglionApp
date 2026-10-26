@@ -26,6 +26,8 @@ function mapClient(row) {
     retainerCurrency: row.retainer_currency || 'EUR',
     retainerActive: Boolean(row.retainer_active),
     retainerDueDay: row.retainer_due_day != null ? Number(row.retainer_due_day) : 1,
+    retainerStartMonth: row.retainer_start_month || null,
+    retainerEndMonth: row.retainer_end_month || null,
   };
 }
 
@@ -72,6 +74,12 @@ async function updateClient(id, firmId, patch) {
   if (patch.retainerCurrency !== undefined) row.retainer_currency = patch.retainerCurrency;
   if (patch.retainerActive !== undefined) row.retainer_active = patch.retainerActive;
   if (patch.retainerDueDay !== undefined) row.retainer_due_day = patch.retainerDueDay;
+  if (patch.retainerStartMonth !== undefined) {
+    row.retainer_start_month = patch.retainerStartMonth ? String(patch.retainerStartMonth) : null;
+  }
+  if (patch.retainerEndMonth !== undefined) {
+    row.retainer_end_month = patch.retainerEndMonth ? String(patch.retainerEndMonth) : null;
+  }
   const { data, error } = await sb.from('clients').update(row).eq('id', id).eq('firm_id', firmId).select().maybeSingle();
   if (error) throw error;
   return mapClient(data);

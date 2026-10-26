@@ -71,7 +71,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
       {
         to: '/app/firm/rentals',
         labelKey: 'contabil.firm.nav.rentals',
-        labelDefault: 'Imóveis e rendas',
+        labelDefault: 'Custos e contratos',
         icon: Building2,
       },
       {
@@ -262,7 +262,7 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
   {
     to: '/app/firm/rentals',
     labelKey: 'contabil.firm.nav.rentals',
-    labelDefault: 'Imóveis e rendas',
+    labelDefault: 'Custos e contratos',
     icon: Building2,
   },
   {

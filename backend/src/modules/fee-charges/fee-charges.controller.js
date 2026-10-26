@@ -46,6 +46,8 @@ exports.generate = async (req, res, next) => {
     const result = await feeChargesService.generateCharges({
       firmId: String(req.user.firmId),
       yearMonth: body.yearMonth || body.period,
+      fromYearMonth: body.fromYearMonth || body.from,
+      toYearMonth: body.toYearMonth || body.to,
       clientIds: body.clientIds,
       actorId: req.user.id,
     });

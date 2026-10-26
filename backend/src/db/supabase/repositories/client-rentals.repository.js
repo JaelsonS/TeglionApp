@@ -5,13 +5,15 @@ function mapProperty(row) {
   return {
     id: row.id,
     firmId: row.firm_id,
-    clientId: row.client_id,
+    clientId: row.client_id || null,
     label: row.label,
     addressLine: row.address_line || null,
     postalCode: row.postal_code || null,
     locality: row.locality || null,
     artigoMatricial: row.artigo_matricial || null,
     notes: row.notes || null,
+    costCategory: row.cost_category || 'outro',
+    supplierName: row.supplier_name || null,
     status: row.status,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -95,13 +97,15 @@ async function insertProperty(data) {
     .from('client_properties')
     .insert({
       firm_id: data.firmId,
-      client_id: data.clientId,
+      client_id: data.clientId || null,
       label: data.label,
       address_line: data.addressLine || null,
       postal_code: data.postalCode || null,
       locality: data.locality || null,
       artigo_matricial: data.artigoMatricial || null,
       notes: data.notes || null,
+      cost_category: data.costCategory || 'outro',
+      supplier_name: data.supplierName || null,
       status: data.status || 'active',
     })
     .select('*')
@@ -118,6 +122,8 @@ async function updateProperty(id, firmId, patch) {
   if (patch.locality !== undefined) row.locality = patch.locality;
   if (patch.artigoMatricial !== undefined) row.artigo_matricial = patch.artigoMatricial;
   if (patch.notes !== undefined) row.notes = patch.notes;
+  if (patch.costCategory !== undefined) row.cost_category = patch.costCategory;
+  if (patch.supplierName !== undefined) row.supplier_name = patch.supplierName;
   if (patch.status !== undefined) row.status = patch.status;
 
   const sb = getSupabaseAdmin();

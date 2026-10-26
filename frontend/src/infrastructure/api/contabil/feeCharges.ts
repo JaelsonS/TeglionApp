@@ -23,6 +23,8 @@ export type ClientBilling = {
   retainerCurrency: string
   retainerActive: boolean
   retainerDueDay: number
+  retainerStartMonth?: string | null
+  retainerEndMonth?: string | null
 }
 
 export type FeeChargesMapResponse = {
@@ -57,8 +59,12 @@ export function createContabilFeeChargesApi(api: AxiosInstance) {
     meta: () => api.get('/contabil/fee-charges/meta').then((r) => r.data),
     map: (params?: { year?: number; q?: string }) =>
       api.get('/contabil/fee-charges/map', { params }).then((r) => r.data as FeeChargesMapResponse),
-    generate: (payload: { yearMonth: string; clientIds?: string[] }) =>
-      api.post('/contabil/fee-charges/generate', payload).then((r) => r.data),
+    generate: (payload: {
+      yearMonth?: string
+      fromYearMonth?: string
+      toYearMonth?: string
+      clientIds?: string[]
+    }) => api.post('/contabil/fee-charges/generate', payload).then((r) => r.data),
     create: (payload: {
       clientId: string
       yearMonth: string

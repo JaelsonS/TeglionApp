@@ -51,7 +51,7 @@ describe('rentals helpers', () => {
   });
 
   it('disclaimer interno está presente', () => {
-    assert.match(INTERNAL_DISCLAIMER, /INTERNOS/i);
+    assert.match(INTERNAL_DISCLAIMER, /gabinete|interno/i);
     assert.match(INTERNAL_DISCLAIMER, /AT/i);
   });
 });
@@ -105,7 +105,7 @@ describe('rentals generate + isolation', () => {
     assert.equal(result.skippedCount, 2);
     assert.ok(result.skipped.some((s) => s.leaseId === 'l2' && s.reason === 'NOT_STARTED'));
     assert.ok(result.skipped.some((s) => s.leaseId === 'l3' && s.reason === 'EXISTS'));
-    assert.match(result.disclaimer, /INTERNOS/i);
+    assert.match(result.disclaimer, /gabinete|interno/i);
   });
 
   it('patchReceipt recusa outro escritório (404)', async () => {
@@ -195,7 +195,7 @@ describe('rentals generate + isolation', () => {
     const overview = await listOverview({ firmId: 'firm-a', year: 2026 });
     assert.equal(overview.rows.length, 1);
     assert.equal(overview.summary.paidCents, 80000);
-    assert.match(overview.disclaimer, /INTERNOS/i);
+    assert.match(overview.disclaimer, /gabinete|interno/i);
   });
 
   it('listOverview: imóvel arquivado sai da lista e do KPI pago', async () => {

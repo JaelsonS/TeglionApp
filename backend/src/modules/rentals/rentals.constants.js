@@ -1,5 +1,16 @@
 const PROPERTY_STATUSES = ['active', 'archived'];
 
+const COST_CATEGORIES = [
+  { id: 'arrendamento', label: 'Arrendamento / renda do escritório' },
+  { id: 'luz', label: 'Electricidade' },
+  { id: 'gas', label: 'Gás' },
+  { id: 'agua', label: 'Água' },
+  { id: 'software', label: 'Software / licenças' },
+  { id: 'telecom', label: 'Telecomunicações' },
+  { id: 'seguro', label: 'Seguros' },
+  { id: 'outro', label: 'Outro' },
+];
+
 const LEASE_STATUSES = ['draft', 'active', 'ended', 'cancelled'];
 
 const LEASE_TYPES = [
@@ -26,10 +37,11 @@ const RENT_PAYMENT_METHODS = [
 ];
 
 const INTERNAL_DISCLAIMER =
-  'Recibos de renda INTERNOS para controlo do escritório. Não são recibos oficiais do Portal das Finanças nem comunicação à AT.';
+  'Registo interno de custos e contratos do gabinete (renda, luz, gás, software, etc.). Não substitui facturas oficiais nem o Portal das Finanças.';
 
 module.exports = {
   PROPERTY_STATUSES,
+  COST_CATEGORIES,
   LEASE_STATUSES,
   LEASE_TYPES,
   RECEIPT_STATUSES,

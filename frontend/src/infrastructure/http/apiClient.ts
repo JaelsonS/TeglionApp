@@ -15,7 +15,7 @@ import {
   getApiBaseUrlCandidates,
   normalizeApiBase,
 } from './apiBase'
-import { CSRF_HEADER_NAME, ensureCsrfToken } from './csrf'
+import { CSRF_HEADER_NAME, clearClientCsrfCache, ensureCsrfToken } from './csrf'
 
 export const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -178,6 +178,7 @@ function flushQueue(success: boolean) {
 
 type ApiRequestWithFallback = AxiosRequestConfig & {
   _retry?: boolean
+  _csrfRetry?: boolean
   __apiFallbackAttempts?: number
 }
 
@@ -277,6 +278,27 @@ api.interceptors.response.use(
     if (status === 429) {
       pauseQueriesAfterRateLimit(getRateLimitBackoffMs(error, 90_000))
       return Promise.reject(error)
+    }
+
+    const errorCode = String(
+      (error.response?.data as { code?: string } | undefined)?.code || '',
+    ).toUpperCase()
+
+    // CSRF stale (ex. staging partilha cookie de prod) — refresh forçado + 1 retry.
+    if (
+      status === 403 &&
+      errorCode === 'CSRF_INVALID' &&
+      originalRequest &&
+      !originalRequest._csrfRetry
+    ) {
+      originalRequest._csrfRetry = true
+      clearClientCsrfCache()
+      const csrfToken = await ensureCsrfToken(refreshApi, { force: true })
+      originalRequest.headers = originalRequest.headers ?? {}
+      if (csrfToken) {
+        ;(originalRequest.headers as Record<string, string>)[CSRF_HEADER_NAME] = csrfToken
+      }
+      return api.request(originalRequest)
     }
 
     if (status === 403 || status === 404) {
