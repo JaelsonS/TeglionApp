@@ -81,41 +81,64 @@ export function CalculatorHistorySection({
   items,
   renderSummary,
   onSelect,
+  clientNameById,
+  filterClientId,
 }: {
   loading: boolean
   emptyLabel: string
   items: FiscalCalculationRow[]
   renderSummary: (row: FiscalCalculationRow) => ReactNode
   onSelect: (row: FiscalCalculationRow) => void
+  /** Mapa id → nome para enriquecer linhas. */
+  clientNameById?: Map<string, string>
+  /** Se definido, mostra só simulações deste cliente. */
+  filterClientId?: string
 }) {
+  const visible = filterClientId
+    ? items.filter((row) => String(row.clientId || '') === filterClientId)
+    : items
+
   return (
     <section className="cb-calc-history">
       <h2 className="text-sm font-semibold">Histórico recente</h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        Clique numa linha para reabrir inputs e resultado. Cálculos guardados não mudam se as regras futuras
-        forem actualizadas.
+        Clique numa linha para reabrir inputs e resultado.
+        {filterClientId
+          ? ' A mostrar só simulações do cliente seleccionado.'
+          : ' Cálculos guardados não mudam se as regras futuras forem actualizadas.'}
       </p>
       {loading ? (
         <p className="mt-3 text-sm text-muted-foreground">A carregar…</p>
-      ) : items.length === 0 ? (
+      ) : visible.length === 0 ? (
         <p className="mt-3 text-sm text-muted-foreground">{emptyLabel}</p>
       ) : (
         <ul className="mt-3 divide-y divide-border/50">
-          {items.map((row) => (
-            <li key={row.id}>
-              <button
-                type="button"
-                className="cb-calc-history-row"
-                onClick={() => onSelect(row)}
-                data-testid={`calc-history-${row.id}`}
-              >
-                <span className="text-muted-foreground">
-                  {new Date(row.createdAt).toLocaleString('pt-PT')} · {row.ruleVersion}
-                </span>
-                <span className="tabular-nums font-medium">{renderSummary(row)}</span>
-              </button>
-            </li>
-          ))}
+          {visible.map((row) => {
+            const cid = row.clientId ? String(row.clientId) : ''
+            const clientLabel = cid && clientNameById?.get(cid)
+            return (
+              <li key={row.id}>
+                <button
+                  type="button"
+                  className="cb-calc-history-row"
+                  onClick={() => onSelect(row)}
+                  data-testid={`calc-history-${row.id}`}
+                >
+                  <span className="min-w-0 text-left text-muted-foreground">
+                    <span className="block">
+                      {new Date(row.createdAt).toLocaleString('pt-PT')} · {row.ruleVersion}
+                    </span>
+                    {clientLabel ? (
+                      <span className="mt-0.5 block truncate text-[11px] font-medium text-foreground/80">
+                        {clientLabel}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="shrink-0 tabular-nums font-medium">{renderSummary(row)}</span>
+                </button>
+              </li>
+            )
+          })}
         </ul>
       )}
     </section>

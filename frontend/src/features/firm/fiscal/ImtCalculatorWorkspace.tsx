@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Calculator, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { CalculatorClientBar } from '@/features/firm/fiscal/CalculatorClientBar'
 import {
   CalculatorDisclaimer,
   CalculatorHistorySection,
@@ -12,12 +13,12 @@ import {
   formatEuroFromCents,
   type FiscalCalculationRow,
 } from '@/features/firm/fiscal/calculatorShared'
+import { useCalculatorClient } from '@/features/firm/fiscal/useCalculatorClient'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { Button } from '@/shared/components/ui/button'
 import { EuroInput } from '@/shared/design-system'
 import { contabilFiscalImtApi } from '@/infrastructure/api'
 import type { ImtSimulation } from '@/infrastructure/api/contabil/fiscalImt'
-import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 
@@ -40,7 +41,10 @@ function simulationFromRow(row: FiscalCalculationRow): ImtSimulation {
   }
 }
 
-export function ImtCalculatorWorkspace({ embedded = false }: { embedded?: boolean } = {}) {
+export function ImtCalculatorWorkspace({
+  embedded = false,
+  initialClientId,
+}: { embedded?: boolean; initialClientId?: string } = {}) {
   const qc = useQueryClient()
   const catalogQuery = useQuery({
     queryKey: ['fiscal-imt-catalog'],
@@ -49,9 +53,9 @@ export function ImtCalculatorWorkspace({ embedded = false }: { embedded?: boolea
   })
   const historyQuery = useQuery({
     queryKey: ['fiscal-imt-history'],
-    queryFn: () => contabilFiscalImtApi.list({ limit: 20 }),
+    queryFn: () => contabilFiscalImtApi.list({ limit: 40 }),
   })
-  const clientsQuery = useFirmClientsDirectory({ limit: 300 })
+  const { clientId, setClientId, hints, onHints, clientNameById } = useCalculatorClient(initialClientId)
 
   const pack = catalogQuery.data?.packs?.[0]
   const tables: TableOpt[] = pack?.tables || []
@@ -61,7 +65,6 @@ export function ImtCalculatorWorkspace({ embedded = false }: { embedded?: boolea
   const [tableCode, setTableCode] = useState('I')
   const [flatRateCode, setFlatRateCode] = useState('rustic')
   const [euros, setEuros] = useState(0)
-  const [clientId, setClientId] = useState('')
   const [simulation, setSimulation] = useState<ImtSimulation | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -133,6 +136,14 @@ export function ImtCalculatorWorkspace({ embedded = false }: { embedded?: boolea
         text={catalogQuery.data?.disclaimer}
         fallback="Use o maior entre o preço e o VPT. Não inclui Imposto do Selo nem isenções."
       />
+
+      <CalculatorClientBar clientId={clientId} onClientIdChange={setClientId} onHints={onHints} />
+
+      {hints ? (
+        <p className="cb-calc-client-hint">
+          Associe o comprador/cliente para guardar no histórico. Valor de aquisição / VPT continua manual.
+        </p>
+      ) : null}
 
       <div className="cb-calc-workspace-grid">
         <section className="cb-calc-form-panel">
@@ -211,22 +222,6 @@ export function ImtCalculatorWorkspace({ embedded = false }: { embedded?: boolea
             <span className="text-xs text-muted-foreground">Maior entre preço e valor patrimonial tributário.</span>
           </label>
 
-          <label className="block space-y-1.5 text-sm">
-            <span className="font-medium">Cliente (opcional)</span>
-            <select
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-              value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
-            >
-              <option value="">— Sem cliente —</option>
-              {(clientsQuery.data?.items || []).map((c) => (
-                <option key={c._id || c.id} value={c._id || c.id}>
-                  {c.displayName || c.fullName || c.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
           <div className="flex flex-wrap gap-2 pt-1">
             <Button type="button" onClick={() => void runSimulate(false)} disabled={busy}>
               {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden /> : null}
@@ -274,9 +269,13 @@ export function ImtCalculatorWorkspace({ embedded = false }: { embedded?: boolea
 
       <CalculatorHistorySection
         loading={historyQuery.isLoading}
-        emptyLabel="Ainda sem simulações IMT guardadas."
+        emptyLabel={
+          clientId ? 'Sem simulações IMT guardadas para este cliente.' : 'Ainda sem simulações IMT guardadas.'
+        }
         items={historyItems}
         onSelect={reopen}
+        clientNameById={clientNameById}
+        filterClientId={clientId || undefined}
         renderSummary={(row) => {
           const meta = row.meta || {}
           const regime = (meta.regime || {}) as { label?: string }

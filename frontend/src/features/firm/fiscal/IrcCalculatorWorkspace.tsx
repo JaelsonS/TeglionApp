@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Calculator, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { CalculatorClientBar } from '@/features/firm/fiscal/CalculatorClientBar'
 import {
   CalculatorDisclaimer,
   CalculatorHistorySection,
@@ -12,12 +13,12 @@ import {
   formatEuroFromCents,
   type FiscalCalculationRow,
 } from '@/features/firm/fiscal/calculatorShared'
+import { useCalculatorClient } from '@/features/firm/fiscal/useCalculatorClient'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { Button } from '@/shared/components/ui/button'
 import { EuroInput } from '@/shared/design-system'
 import { contabilFiscalIrcApi } from '@/infrastructure/api'
 import type { IrcSimulation } from '@/infrastructure/api/contabil/fiscalIrc'
-import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
 import { getErrorMessage } from '@/shared/utils/errors'
 
 type Regime = { code: string; label: string }
@@ -38,7 +39,10 @@ function simulationFromRow(row: FiscalCalculationRow): IrcSimulation {
   }
 }
 
-export function IrcCalculatorWorkspace({ embedded = false }: { embedded?: boolean } = {}) {
+export function IrcCalculatorWorkspace({
+  embedded = false,
+  initialClientId,
+}: { embedded?: boolean; initialClientId?: string } = {}) {
   const qc = useQueryClient()
   const catalogQuery = useQuery({
     queryKey: ['fiscal-irc-catalog'],
@@ -47,9 +51,9 @@ export function IrcCalculatorWorkspace({ embedded = false }: { embedded?: boolea
   })
   const historyQuery = useQuery({
     queryKey: ['fiscal-irc-history'],
-    queryFn: () => contabilFiscalIrcApi.list({ limit: 20 }),
+    queryFn: () => contabilFiscalIrcApi.list({ limit: 40 }),
   })
-  const clientsQuery = useFirmClientsDirectory({ limit: 300 })
+  const { clientId, setClientId, hints, onHints, clientNameById } = useCalculatorClient(initialClientId)
 
   const pack = catalogQuery.data?.packs?.[0]
   const regimes: Regime[] = pack?.regimes || []
@@ -58,7 +62,6 @@ export function IrcCalculatorWorkspace({ embedded = false }: { embedded?: boolea
   const [euros, setEuros] = useState(0)
   const [includeState, setIncludeState] = useState(true)
   const [municipalPct, setMunicipalPct] = useState(0)
-  const [clientId, setClientId] = useState('')
   const [simulation, setSimulation] = useState<IrcSimulation | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -127,6 +130,19 @@ export function IrcCalculatorWorkspace({ embedded = false }: { embedded?: boolea
         fallback="Confirme elegibilidade PME e a taxa de derrama do município no Portal das Finanças."
       />
 
+      <CalculatorClientBar clientId={clientId} onClientIdChange={setClientId} onHints={onHints} />
+
+      {hints?.suggestedIrc || hints?.irsFramework ? (
+        <p className="cb-calc-client-hint">
+          {hints.irsFramework ? (
+            <>
+              Enquadramento no perfil: <strong>{hints.irsFramework}</strong>.{' '}
+            </>
+          ) : null}
+          Matéria coletável e derrama municipal continuam manuais.
+        </p>
+      ) : null}
+
       <div className="cb-calc-workspace-grid">
         <section className="cb-calc-form-panel">
           <div className="flex items-center gap-2">
@@ -181,22 +197,6 @@ export function IrcCalculatorWorkspace({ embedded = false }: { embedded?: boolea
               onChange={(e) => setMunicipalPct(Math.min(1.5, Math.max(0, Number(e.target.value) || 0)))}
             />
             <span className="text-xs text-muted-foreground">Máximo 1,5 %. 0 = sem derrama municipal.</span>
-          </label>
-
-          <label className="block space-y-1.5 text-sm">
-            <span className="font-medium">Cliente (opcional)</span>
-            <select
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-              value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
-            >
-              <option value="">— Sem cliente —</option>
-              {(clientsQuery.data?.items || []).map((c) => (
-                <option key={c._id || c.id} value={c._id || c.id}>
-                  {c.displayName || c.fullName || c.name}
-                </option>
-              ))}
-            </select>
           </label>
 
           <div className="flex flex-wrap gap-2 pt-1">
@@ -265,9 +265,13 @@ export function IrcCalculatorWorkspace({ embedded = false }: { embedded?: boolea
 
       <CalculatorHistorySection
         loading={historyQuery.isLoading}
-        emptyLabel="Ainda sem simulações IRC guardadas."
+        emptyLabel={
+          clientId ? 'Sem simulações IRC guardadas para este cliente.' : 'Ainda sem simulações IRC guardadas.'
+        }
         items={historyItems}
         onSelect={reopen}
+        clientNameById={clientNameById}
+        filterClientId={clientId || undefined}
         renderSummary={(row) => {
           const meta = row.meta || {}
           const regime = (meta.regime || {}) as { label?: string }
