@@ -324,6 +324,14 @@ const csrfProtection = (req, res, next) => {
       );
       return next();
     }
+    // Login/recover em staging: cookie csrf de prod (Domain=.teglion.com) ≠ header
+    // fresco de staging — sem sessão ainda, o bypass autenticado não aplica.
+    if (isStagingDeployment() && trustedSpaCanSkipCsrfCookieHeaderPair(req)) {
+      logger.info(
+        `[CSRF] Bypass mismatch staging public auth: ${req.method} ${pathWithoutQuery(req)}`,
+      );
+      return next();
+    }
     logger.warn(`[CSRF] Bloqueado: token CSRF inválido em ${req.method} ${req.path}`);
     return res.status(403).json({
       error: 'CSRF validation failed',
