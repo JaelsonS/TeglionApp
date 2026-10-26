@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { platformOpsApi } from '@/infrastructure/api'
 import { authOpsLoginUrl } from '@/shared/constants/authPaths'
 import { useAuth } from '@/shared/hooks/useAuth'
+import { cn } from '@/shared/lib/utils'
 import { getErrorMessage } from '@/shared/utils/errors'
 
 export function PlatformOpsOverviewPage() {
@@ -72,14 +73,21 @@ export function PlatformOpsOverviewPage() {
   }
 
   const cards = [
-    { label: 'Gabinetes', value: overview.data.firmsTotal },
-    { label: 'Utilizadores firm activos', value: overview.data.activeFirmUsers },
-    { label: 'Eventos audit (24h)', value: overview.data.auditEventsLast24h },
+    { label: 'Gabinetes', value: overview.data.firmsTotal, warn: false },
+    { label: 'Utilizadores firm activos', value: overview.data.activeFirmUsers, warn: false },
+    {
+      label: 'Eventos audit (24h)',
+      value: overview.data.auditEventsLast24h,
+      warn: overview.data.auditEventsLast24h >= 200,
+    },
     {
       label: 'Contas em lockout',
       value: overview.data.lockedAccounts == null ? '—' : overview.data.lockedAccounts,
+      warn: (overview.data.lockedAccounts || 0) > 0,
     },
   ]
+
+  const anomalies = overview.data.anomalies || []
 
   return (
     <div className="space-y-6">
@@ -90,17 +98,51 @@ export function PlatformOpsOverviewPage() {
           {new Date(overview.data.generatedAt).toLocaleString('pt-PT')}
         </p>
       </div>
+
+      {anomalies.length > 0 ? (
+        <div className="space-y-2">
+          <h2 className="text-sm font-semibold">Anomalias</h2>
+          <ul className="space-y-2">
+            {anomalies.map((a) => (
+              <li
+                key={a.code}
+                className={cn(
+                  'rounded-xl border px-3 py-2 text-sm',
+                  a.severity === 'high' && 'border-destructive/40 bg-destructive/5',
+                  a.severity === 'medium' && 'border-amber-500/40 bg-amber-500/5',
+                  a.severity === 'low' && 'border-border/70 bg-muted/30',
+                )}
+              >
+                {a.href ? (
+                  <Link to={a.href} className="font-medium text-brand hover:underline">
+                    {a.message}
+                  </Link>
+                ) : (
+                  <span className="font-medium">{a.message}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (
-          <div key={c.label} className="rounded-2xl border border-border/70 bg-card px-4 py-3">
+          <div
+            key={c.label}
+            className={cn(
+              'rounded-2xl border bg-card px-4 py-3',
+              c.warn ? 'border-amber-500/50' : 'border-border/70',
+            )}
+          >
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{c.label}</p>
             <p className="mt-2 text-2xl font-semibold tabular-nums">{c.value}</p>
           </div>
         ))}
       </div>
       <p className="text-xs text-muted-foreground">
-        Onda 0: leitura de sinais existentes (audit + lockouts). Próximo: filtros, anomalias e aprovação de
-        registo. Documentação em <code>docs/product/TEGLION_CONTROL_CENTER_CHARTER.md</code>.
+        Onda 1: detalhe de gabinete, suspender/reactivar, limpar lockouts, filtros e CSV. Documentação em{' '}
+        <code>docs/product/TEGLION_CONTROL_CENTER_CHARTER.md</code>.
       </p>
     </div>
   )
