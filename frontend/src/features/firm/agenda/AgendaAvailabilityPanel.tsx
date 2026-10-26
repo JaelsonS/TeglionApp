@@ -661,12 +661,12 @@ export function AgendaAvailabilityPanel(props: Props) {
             onChange={(e) => onHorizon(Number(e.target.value))}
             aria-label="Horizonte em dias"
           >
-            {[7, 14, 21, 30, 45, 60].map((d) => (
+            {[7, 14, 21, 30, 45, 60, 90].map((d) => (
               <option key={d} value={d}>
                 {d} dias
               </option>
             ))}
-            {!([7, 14, 21, 30, 45, 60] as number[]).includes(horizon) ? (
+            {!([7, 14, 21, 30, 45, 60, 90] as number[]).includes(horizon) ? (
               <option value={horizon}>{horizon} dias</option>
             ) : null}
           </select>

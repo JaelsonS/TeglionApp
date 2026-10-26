@@ -18,7 +18,8 @@ const TZ_SET = new Set(BOOKING_TIMEZONES);
 
 const DEFAULT_BOOKING = Object.freeze({
   slotMinutes: 30,
-  horizonDays: 14,
+  /** Quantos dias à frente a página pública mostra slots (1–90). */
+  horizonDays: 30,
   leadTimeHours: 2,
   weekdays: [1, 2, 3, 4, 5],
   dayStart: '09:00',
@@ -128,7 +129,7 @@ function deriveDayBounds(schedule) {
 function normalizeBooking(raw) {
   const b = raw && typeof raw === 'object' ? raw : {};
   const slotMinutes = clamp(Number(b.slotMinutes) || DEFAULT_BOOKING.slotMinutes, 15, 120);
-  const horizonDays = clamp(Number(b.horizonDays) || DEFAULT_BOOKING.horizonDays, 1, 60);
+  const horizonDays = clamp(Number(b.horizonDays) || DEFAULT_BOOKING.horizonDays, 1, 90);
   // 0 é valor válido (aceitar marcações imediatas) — não usar `||` (tratava 0 como ausente).
   const leadRaw = Number(b.leadTimeHours);
   const leadTimeHours = clamp(
@@ -346,7 +347,16 @@ async function listSlotsForBooking({ firmId, serviceId, fromIso, toIso, ignoreHo
   const now = Date.now();
   const fromMs = Math.max(now + booking.leadTimeHours * 60 * 60 * 1000, new Date(fromIso).getTime());
   let toMs = new Date(toIso).getTime();
-  const horizonEnd = now + booking.horizonDays * 24 * 60 * 60 * 1000;
+  let horizonEnd = now + booking.horizonDays * 24 * 60 * 60 * 1000;
+  // Datas especiais (dateOverrides) configuradas pela equipa devem aparecer
+  // mesmo que fiquem um pouco além do horizonte semanal — até ao `to` pedido.
+  const requestedToMs = Number.isFinite(toMs) ? toMs : horizonEnd;
+  for (const dateStr of Object.keys(booking.dateOverrides || {})) {
+    const dayEndMs = dayjs.tz(`${dateStr} 23:59:59`, booking.timezone).valueOf();
+    if (Number.isFinite(dayEndMs) && dayEndMs >= fromMs && dayEndMs <= requestedToMs) {
+      horizonEnd = Math.max(horizonEnd, dayEndMs);
+    }
+  }
   toMs = Math.min(toMs, horizonEnd);
 
   if (!Number.isFinite(fromMs) || !Number.isFinite(toMs) || toMs <= fromMs) {

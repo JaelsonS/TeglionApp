@@ -128,6 +128,26 @@ export function createContabilServiceInquiriesApi(api: AxiosInstance) {
         .post(`/contabil/service-inquiries/${encodeURIComponent(id)}/confirm-consultation`)
         .then((r) => r.data as { ok: boolean; emailed: boolean; consultation: { id: string; scheduledAt: string; status: string } }),
 
+    rescheduleConsultation: (
+      id: string,
+      payload: { scheduledAt: string; notifyChannels?: Array<'email' | 'sms'> },
+    ) =>
+      api
+        .post(`/contabil/service-inquiries/${encodeURIComponent(id)}/reschedule-consultation`, payload)
+        .then(
+          (r) =>
+            r.data as {
+              ok: boolean
+              notified: boolean
+              consultation: { id: string; scheduledAt: string; status: string }
+              delivery: {
+                email?: { sent?: boolean; skipped?: boolean } | null
+                sms?: { sent?: boolean; skipped?: boolean; reason?: string } | null
+                channels?: string[]
+              }
+            },
+        ),
+
     notifyClient: (
       id: string,
       payload: { purpose: 'received' | 'checklist'; notifyChannels: Array<'email' | 'sms'> },

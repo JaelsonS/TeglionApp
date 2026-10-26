@@ -77,7 +77,7 @@ export function AgendaWorkspace() {
   const [assigneeId, setAssigneeId] = useState('')
 
   const [slotMin, setSlotMin] = useState(30)
-  const [horizon, setHorizon] = useState(14)
+  const [horizon, setHorizon] = useState(30)
   const [bookingTz, setBookingTz] = useState('Europe/Lisbon')
   const [schedule, setSchedule] = useState<BookingDaySchedule>({
     1: [{ start: '09:00', end: '17:00' }],

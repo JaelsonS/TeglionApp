@@ -86,7 +86,7 @@ const CHOICE_TYPES: IntakeQuestionType[] = ['single_choice', 'multiple_choice', 
  * primeira vez — independentes das regras gerais (o painel não recebe a config do gabinete). */
 const DEFAULT_BOOKING_OVERRIDE: FirmBookingSettings = {
   slotMinutes: 30,
-  horizonDays: 14,
+  horizonDays: 30,
   leadTimeHours: 2,
   weekdays: [1, 2, 3, 4, 5],
   dayStart: '09:00',
