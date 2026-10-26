@@ -86,13 +86,12 @@ async function listPublicCatalogServices(firmId) {
       for (const opt of s.options) optionChildIds.add(opt.id);
     }
   }
-  const items = [];
-  for (const s of withOptions) {
-    if (!s.isPubliclyListed || !s.slug) continue;
-    if (optionChildIds.has(s.id)) continue;
-    items.push(await mapPublicServiceSummary(s, groupNameById, { options: s.options || [] }));
-  }
-  return items;
+  const candidates = withOptions.filter(
+    (s) => s.isPubliclyListed && s.slug && !optionChildIds.has(s.id),
+  );
+  return Promise.all(
+    candidates.map((s) => mapPublicServiceSummary(s, groupNameById, { options: s.options || [] })),
+  );
 }
 
 async function resolveGroupNameMap(firmId) {
@@ -181,35 +180,44 @@ async function getPublicFirmSite(req, res, next) {
     const firm = await firmsRepository.findFirmBySlugOrLabel(firmSlug);
     if (!firm) throw new AppError('Escritório não encontrado', 404, { code: 'NOT_FOUND' });
 
-    const site = await firmPublicSiteService.getSite(firm.id);
+    // imageMode none: não assina draft+published — só o config servido (abaixo).
+    const site = await firmPublicSiteService.getSite(firm.id, { imageMode: 'none' });
     const previewToken = req.query.preview ? String(req.query.preview).trim() : null;
     const previewValid = firmPublicSiteService.isPreviewTokenValid(site, previewToken);
-    let config = previewValid
+    const rawConfig = previewValid
       ? site.draft
       : site.published || firmPublicSiteService.buildConfigFromLegacySettings(firm);
 
-    config = firmPublicSiteService.repairHeroImageReferences(
-      JSON.parse(JSON.stringify(config)),
+    const repaired = firmPublicSiteService.repairHeroImageReferences(
+      JSON.parse(JSON.stringify(rawConfig)),
     );
 
-    const items = await listPublicCatalogServices(firm.id);
+    const [config, items, showTeglionCredit] = await Promise.all([
+      firmPublicSiteService.resolveConfigImages(repaired),
+      listPublicCatalogServices(firm.id),
+      entitlements.showTeglionBranding(firm.id),
+    ]);
 
-    let headerLogoUrl = null;
-    let heroLogoUrl = null;
-    let logoUrl = null;
-    try {
-      headerLogoUrl = await firmPublicSiteService.resolvePublicSiteZoneLogoUrl('header', config, firm);
-      heroLogoUrl = await firmPublicSiteService.resolvePublicSiteZoneLogoUrl('hero', config, firm);
-      logoUrl = headerLogoUrl;
-    } catch {
-      headerLogoUrl = null;
-      heroLogoUrl = null;
-      logoUrl = null;
-    }
+    const [headerLogoUrl, heroLogoUrl, shareMeta] = await Promise.all([
+      firmPublicSiteService.resolvePublicSiteZoneLogoUrl('header', config, firm).catch(() => null),
+      firmPublicSiteService.resolvePublicSiteZoneLogoUrl('hero', config, firm).catch(() => null),
+      !previewValid && site.published
+        ? firmPublicSiteService.resolvePublicShareMeta(config, firm, {
+            firmSlug,
+            publicOrigin: env.FRONTEND_URL,
+          })
+        : Promise.resolve(null),
+    ]);
+    const logoUrl = headerLogoUrl;
+    const shareImageUrl = shareMeta?.imageUrl || null;
     const contact = firm.settings?.contact || {};
 
     if (previewValid) {
       res.set('X-Robots-Tag', 'noindex');
+      res.set('Cache-Control', 'private, no-store');
+    } else {
+      // CDN/browser: 60s fresco; SWR evita thundering herd sem servir preview.
+      res.set('Cache-Control', 'public, max-age=60, s-maxage=120, stale-while-revalidate=300');
     }
 
     // storageKey contém firmId no path — nunca expor no JSON público (só url assinada).
@@ -236,19 +244,8 @@ async function getPublicFirmSite(req, res, next) {
       ),
     };
 
-    const showTeglionCredit = await entitlements.showTeglionBranding(firm.id);
-
     const publicSlugs = items.map((s) => s.slug).filter(Boolean);
     const publicSections = firmPublicSiteService.filterPublicCtas(config.sections, publicSlugs);
-
-    let shareImageUrl = null;
-    if (!previewValid && site.published) {
-      const shareMeta = await firmPublicSiteService.resolvePublicShareMeta(config, firm, {
-        firmSlug: String(req.params.firmSlug || '').trim(),
-        publicOrigin: env.FRONTEND_URL,
-      });
-      shareImageUrl = shareMeta.imageUrl;
-    }
 
     return res.json({
       firmName: resolvePublicFirmName(firm),
@@ -488,6 +485,7 @@ async function getPublicSlots(req, res, next) {
       fromIso,
       toIso,
     });
+    res.set('Cache-Control', 'public, max-age=30, s-maxage=60, stale-while-revalidate=120');
     return res.json({ slots });
   } catch (err) {
     return next(err);

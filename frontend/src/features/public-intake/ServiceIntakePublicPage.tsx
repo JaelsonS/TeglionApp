@@ -135,6 +135,8 @@ export function ServiceIntakePublicPage() {
     queryFn: () => contabilPublicApi.getPublicService(firmSlug!, serviceSlug!),
     enabled: Boolean(firmSlug && serviceSlug),
     retry: false,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
   })
 
   const calendarFirst = Boolean(query.data?.requiresBooking && query.data?.intakeStartMode === 'calendar')
@@ -168,6 +170,8 @@ export function ServiceIntakePublicPage() {
         (calendarFirst ? step === calendarStep : step === 2),
     ),
     retry: false,
+    staleTime: 30_000,
+    gcTime: 5 * 60_000,
   })
 
   useEffect(() => {
