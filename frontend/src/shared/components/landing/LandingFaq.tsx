@@ -35,11 +35,15 @@ const FAQ: { q: string; a: ReactNode }[] = [
   },
   {
     q: 'Quanto custa depois do teste?',
-    a: `${PRICING_TEXT.monthlyLabel}/mês ou ${PRICING_TEXT.yearlyTotalLabel}/ano (equiv. ${PRICING_TEXT.yearlyMonthlyLabel}/mês), por gabinete. Os ${PRICING_TEXT.trialDays} dias são grátis e sem cartão — só paga se decidir ficar.`,
+    a: `${PRICING_TEXT.monthlyLabel}/mês ou ${PRICING_TEXT.yearlyTotalLabel}/ano (equiv. ${PRICING_TEXT.yearlyMonthlyLabel}/mês), por gabinete — preços promocionais de lançamento. Os ${PRICING_TEXT.trialDays} dias são grátis e sem cartão — só paga se decidir ficar.`,
+  },
+  {
+    q: 'Estes preços vão subir? Quem aderir agora fica com este valor?',
+    a: 'Sim — são valores promocionais de lançamento e vão actualizar para uma grelha sustentável. Quem aderir neste preço mantém esse valor enquanto a subscrição estiver activa (sem interrupção). Novos gabinetes, após o período promocional, entram na grelha actualizada. O Teglion completo (produto + infraestrutura + suporte) não se sustenta indefinidamente nestes valores de lançamento.',
   },
   {
     q: 'O que está incluído?',
-    a: 'Painel do gabinete, portal do cliente, página pública, catálogo de serviços, fluxos de IRS, pedidos de documentos, mensagens, prazos e pagamentos do cliente final na plataforma.',
+    a: 'Painel do gabinete, portal do cliente, página pública, catálogo de serviços, fluxos de IRS, pedidos de documentos, mensagens, prazos, carteira de avenças, calculadoras de apoio e pagamentos do cliente final na plataforma (Connect opcional). Não inclui emissão certificada na AT — isso, se existir no futuro, será camada à parte e honesta na copy.',
   },
   {
     q: 'Os clientes podem pagar no Teglion?',

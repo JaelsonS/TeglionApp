@@ -7,100 +7,72 @@ import { LANDING_SCREENS } from '@/shared/components/landing/landingScreens'
 const PILLARS = [
   {
     id: 'gabinete',
+    eyebrow: 'Painel',
     title: 'Painel do gabinete',
-    body: 'Clientes, documentos, prazos, IRS, serviços e pagamentos — a operação diária num só sítio.',
+    body: 'A equipa vê prioridades, prazos, tarefas e pedidos num só lugar.',
     icon: Building2,
     src: LANDING_SCREENS.dashboard,
     alt: 'Painel operacional do Teglion',
   },
   {
     id: 'portal',
+    eyebrow: 'Portal',
     title: 'Portal do cliente',
-    body: 'O cliente entrega ficheiros, vê o que falta e fala consigo — no browser, sem instalar app.',
+    body: 'No browser, sem app a instalar. O cliente sabe o que falta e entrega.',
     icon: Users,
     src: LANDING_SCREENS.portalCliente,
     alt: 'Portal do cliente Teglion',
   },
   {
     id: 'publico',
+    eyebrow: 'Página pública',
     title: 'Página pública',
-    body: 'Site do gabinete com a sua marca: serviços, marcação e contactos — ligado à mesma carteira e ao portal.',
+    body: 'O site com a marca do gabinete: serviços, marcação e captação.',
     icon: Globe2,
     src: LANDING_SCREENS.paginaPublica,
     alt: 'Página pública de exemplo — Maya Contabilidade, gerada no Teglion',
   },
 ] as const
 
-const HIGHLIGHTS = [
-  'Documentos com rasto do pedido à validação',
-  'Obrigações e tarefas da equipa no mesmo fluxo',
-  'Serviços, IRS e leads da página pública',
-  'Pagamentos do cliente final na plataforma',
-  'Agenda com clientes e Google Calendar opcional',
-  '14 dias grátis — depois mensal ou anual',
-] as const
-
 export function LandingProof() {
   return (
-    <section id="produto" className="landing-section scroll-mt-24 -mt-4 sm:-mt-8">
+    <section id="produto" className="landing-section scroll-mt-24">
       <div className="landing-container">
-        <FadeInView className="mx-auto max-w-2xl text-center">
-          <p className="landing-kicker">O produto</p>
-          <h2 className="mt-3 text-[1.75rem] leading-tight tracking-tight sm:text-4xl">
-            Três espaços. Um sistema.
+        <FadeInView className="max-w-2xl">
+          <p className="landing-kicker">Três espaços, um sistema</p>
+          <h2 className="mt-3 text-[1.85rem] leading-tight tracking-tight sm:text-4xl">
+            Tudo o que o gabinete faz, ligado.
           </h2>
-          <p className="mt-4 text-[15px] leading-relaxed text-[var(--landing-muted)] sm:text-base">
-            Operação completa para o gabinete — sem uma ferramenta por canal.
-          </p>
         </FadeInView>
 
-        <FadeInStagger className="mt-12 grid gap-8 lg:mt-14 lg:grid-cols-3 lg:gap-6">
+        <FadeInStagger className="mt-10 grid gap-5 sm:mt-12 md:grid-cols-3 md:gap-6">
           {PILLARS.map((p) => {
             const Icon = p.icon
             return (
               <FadeInStaggerItem key={p.id}>
-                <article className="landing-card flex h-full flex-col overflow-hidden p-0">
+                <article className="landing-card landing-pillar-card flex h-full flex-col overflow-hidden p-0">
                   <LandingScreenshot
                     src={p.src}
                     alt={p.alt}
                     className="rounded-none border-0 shadow-none"
                   />
-                  <div className="flex flex-1 items-start gap-3 p-4 sm:p-5">
-                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--landing-navy)]/8 text-[var(--landing-navy)]">
-                      <Icon className="h-4 w-4" aria-hidden />
+                  <div className="flex flex-1 flex-col gap-2 p-5 sm:p-6">
+                    <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[var(--landing-navy)]/8 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--landing-navy)]">
+                      <Icon className="h-3.5 w-3.5" aria-hidden />
+                      {p.eyebrow}
                     </span>
-                    <div className="min-w-0">
-                      <h3 className="text-base font-bold tracking-tight sm:text-lg">{p.title}</h3>
-                      <p className="mt-1.5 text-[14px] leading-relaxed text-[var(--landing-muted)]">
-                        {p.body}
-                      </p>
-                    </div>
+                    <h3 className="text-lg font-bold tracking-tight text-[var(--landing-navy)]">
+                      {p.title}
+                    </h3>
+                    <p className="text-[14px] leading-relaxed text-[var(--landing-muted)] sm:text-[15px]">
+                      {p.body}
+                    </p>
                   </div>
                 </article>
               </FadeInStaggerItem>
             )
           })}
         </FadeInStagger>
-
-        <FadeInView className="mx-auto mt-12 max-w-3xl sm:mt-14">
-          <p className="text-center text-sm font-semibold text-[var(--landing-navy)]">
-            Incluído no mesmo plano
-          </p>
-          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-            {HIGHLIGHTS.map((item) => (
-              <li
-                key={item}
-                className="flex items-start gap-2.5 rounded-xl border border-[var(--landing-navy)]/8 bg-white px-3.5 py-2.5 text-[14px] text-[var(--landing-body)]"
-              >
-                <span
-                  className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--landing-gold)]"
-                  aria-hidden
-                />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </FadeInView>
       </div>
     </section>
   )

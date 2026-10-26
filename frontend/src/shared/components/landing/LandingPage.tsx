@@ -9,6 +9,7 @@ import { LandingHero } from '@/shared/components/landing/LandingHero'
 import { LandingHowItWorks } from '@/shared/components/landing/LandingHowItWorks'
 import { LandingPain } from '@/shared/components/landing/LandingPain'
 import { LandingPricing } from '@/shared/components/landing/LandingPricing'
+import { LandingProductModules } from '@/shared/components/landing/LandingProductModules'
 import { LandingProof } from '@/shared/components/landing/LandingProof'
 import { LandingSalesMaya } from '@/shared/components/landing/LandingSalesMaya'
 import { applyPageSeo } from '@/shared/utils/seo'
@@ -54,6 +55,7 @@ export function LandingPage() {
         <LandingHero />
         <LandingProof />
         <LandingPain />
+        <LandingProductModules />
         <LandingHowItWorks />
         <LandingPricing />
         <LandingFaq />

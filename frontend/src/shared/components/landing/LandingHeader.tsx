@@ -10,10 +10,10 @@ import { cn } from '@/shared/lib/utils'
 
 const NAV = [
   { href: LANDING_ANCHORS.produto, label: 'Produto' },
-  { href: LANDING_ANCHORS.precos, label: 'Preços' },
   { href: LANDING_ANCHORS.comoFunciona, label: 'Como funciona' },
-  { href: '/blog', label: 'Blog', route: true },
+  { href: LANDING_ANCHORS.precos, label: 'Preços' },
   { href: LANDING_ANCHORS.faq, label: 'FAQ' },
+  { href: '/blog', label: 'Blog', route: true },
 ] as const
 
 export function LandingHeader() {
