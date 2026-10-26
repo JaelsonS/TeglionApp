@@ -21,34 +21,40 @@ function normalizePhone(phone) {
 async function sendSms({ to, message }) {
   if (!env.SMS_ENABLED || !env.BREVO_API_KEY) {
     console.log('[Teglion][sms] skip (desativado):', to);
-    return { skipped: true };
+    return { skipped: true, reason: 'sms_disabled' };
   }
   const recipient = normalizePhone(to);
-  if (!recipient || !message) return { skipped: true };
+  if (!recipient || !message) return { skipped: true, reason: 'invalid_recipient_or_message' };
 
   // Transacional + texto curto (≤320 ≈ 2 SMS) reduz risco de bloqueio Brevo.
   const content = String(message).replace(/\s+/g, ' ').trim().slice(0, 320);
-  if (!content) return { skipped: true };
+  if (!content) return { skipped: true, reason: 'empty_content' };
 
   const sender = env.BREVO_SMS_SENDER || 'Teglion';
-  await axios.post(
-    BREVO_SMS_URL,
-    {
-      sender,
-      recipient,
-      content,
-      type: 'transactional',
-    },
-    {
-      headers: {
-        'api-key': env.BREVO_API_KEY,
-        'Content-Type': 'application/json',
+  try {
+    await axios.post(
+      BREVO_SMS_URL,
+      {
+        sender,
+        recipient,
+        content,
+        type: 'transactional',
       },
-      timeout: 15000,
-    },
-  );
-
-  return { sent: true };
+      {
+        headers: {
+          'api-key': env.BREVO_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        timeout: 15000,
+      },
+    );
+    return { sent: true };
+  } catch (err) {
+    const status = err?.response?.status;
+    const detail = err?.response?.data || err?.message;
+    console.error('[Teglion][sms] Brevo falhou:', status || '', detail);
+    return { skipped: true, reason: 'brevo_error', status: status || null };
+  }
 }
 
 module.exports = { sendSms, normalizePhone };

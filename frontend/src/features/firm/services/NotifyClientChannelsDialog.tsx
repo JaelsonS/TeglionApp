@@ -12,7 +12,7 @@ import {
 } from '@/shared/components/ui/dialog'
 import { cn } from '@/shared/lib/utils'
 
-export type NotifyChannel = 'email' | 'sms' | 'whatsapp'
+export type NotifyChannel = 'email' | 'sms'
 
 type Props = {
   open: boolean
@@ -58,12 +58,6 @@ export function NotifyClientChannelsDialog({
       id: 'sms',
       label: 'SMS',
       hint: hasPhone ? 'Texto curto transacional (Brevo)' : 'Sem telemóvel no contacto',
-      enabled: hasPhone,
-    },
-    {
-      id: 'whatsapp',
-      label: 'WhatsApp',
-      hint: hasPhone ? 'Abre o WhatsApp com mensagem pronta (sem custo API)' : 'Sem telemóvel no contacto',
       enabled: hasPhone,
     },
   ]

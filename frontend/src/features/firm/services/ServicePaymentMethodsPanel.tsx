@@ -156,25 +156,19 @@ export function ServicePaymentMethodsPanel({
 
   return (
     <div className="space-y-3">
-      <p className="text-xs leading-relaxed text-muted-foreground">
-        Online, o cliente paga no Checkout da Stripe e o valor fica na conta do gabinete. Detalhes
-        e condições estão em Definições → Pagamentos.
-        {connectState !== 'active' ? (
-          <>
-            {' '}
-            <Link to={SETTINGS_PAYMENTS} className="font-medium text-brand underline-offset-2 hover:underline">
-              Abrir Pagamentos
-            </Link>
-          </>
-        ) : null}
-      </p>
-
-      {connectState === 'pending' ? (
+      {connectState === 'active' ? (
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Online, o cliente paga no Checkout da Stripe e o valor fica na conta do gabinete. Detalhes
+          e condições estão em Definições → Pagamentos.
+        </p>
+      ) : connectState === 'pending' ? (
         <div className="flex items-start gap-2 rounded-xl border border-amber-200/80 bg-amber-50/70 px-3 py-2.5 text-xs text-amber-950">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
           <div>
             <p className="font-medium">Quase a receber online</p>
-            <p className="mt-1 leading-relaxed">{pendingMessage}</p>
+            <p className="mt-1 leading-relaxed">
+              Ainda não está a receber pelo Teglion — termine a ligação Stripe. {pendingMessage}
+            </p>
             <Link
               to={SETTINGS_PAYMENTS}
               className="mt-2 inline-flex items-center gap-1 font-medium text-amber-950 underline-offset-2 hover:underline"
@@ -184,17 +178,17 @@ export function ServicePaymentMethodsPanel({
             </Link>
           </div>
         </div>
-      ) : null}
-
-      {connectState === 'not_started' || connectState === 'env_off' ? (
+      ) : connectState === 'loading' ? (
+        <p className="text-xs leading-relaxed text-muted-foreground">A verificar pagamentos online…</p>
+      ) : (
         <div className="rounded-xl border border-border/60 bg-muted/15 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
-          Ainda não ligou a conta Stripe do gabinete.{' '}
+          Para receber online pelo Teglion (cartão / MB WAY), ligue a conta Stripe do gabinete em{' '}
           <Link to={SETTINGS_PAYMENTS} className="font-medium text-brand underline-offset-2 hover:underline">
-            Começar em Pagamentos
-          </Link>{' '}
-          — depois estes meios ficam prontos.
+            Definições → Pagamentos
+          </Link>
+          . Até lá, use transferência ou Multibanco — o valor não passa pela Stripe do Teglion.
         </div>
-      ) : null}
+      )}
 
       <p className="text-xs font-medium text-muted-foreground">Receber online</p>
 
