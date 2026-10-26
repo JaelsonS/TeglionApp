@@ -106,6 +106,15 @@ export function PlatformOpsFirmsPage() {
                     <Link to={`/app/ops/firms/${f.id}`} className="text-brand hover:underline">
                       {f.name}
                     </Link>
+                    {f.isNew24h ? (
+                      <span className="ml-2 rounded bg-brand/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-brand">
+                        Novo
+                      </span>
+                    ) : f.isNew7d ? (
+                      <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+                        7d
+                      </span>
+                    ) : null}
                     {f.internalOps ? (
                       <span className="ml-2 text-[10px] uppercase text-muted-foreground">ops</span>
                     ) : null}

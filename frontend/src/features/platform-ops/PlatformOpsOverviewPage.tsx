@@ -74,7 +74,11 @@ export function PlatformOpsOverviewPage() {
 
   const cards = [
     { label: 'Gabinetes', value: overview.data.firmsTotal, warn: false },
-    { label: 'Utilizadores firm activos', value: overview.data.activeFirmUsers, warn: false },
+    {
+      label: 'Novos 24h / 7d',
+      value: `${overview.data.firmsNew24h ?? '—'} / ${overview.data.firmsNew7d ?? '—'}`,
+      warn: (overview.data.firmsNew24h || 0) >= 5,
+    },
     {
       label: 'Eventos audit (24h)',
       value: overview.data.auditEventsLast24h,
@@ -88,6 +92,7 @@ export function PlatformOpsOverviewPage() {
   ]
 
   const anomalies = overview.data.anomalies || []
+  const recent = overview.data.recentFirms || []
 
   return (
     <div className="space-y-6">
@@ -101,7 +106,7 @@ export function PlatformOpsOverviewPage() {
 
       {anomalies.length > 0 ? (
         <div className="space-y-2">
-          <h2 className="text-sm font-semibold">Anomalias</h2>
+          <h2 className="text-sm font-semibold">Alertas / anomalias</h2>
           <ul className="space-y-2">
             {anomalies.map((a) => (
               <li
@@ -140,8 +145,42 @@ export function PlatformOpsOverviewPage() {
           </div>
         ))}
       </div>
+
+      {recent.length > 0 ? (
+        <div>
+          <h2 className="text-sm font-semibold">Gabinetes recentes (7d)</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Modo 1A — registo livre; monitorizar e suspender/cancelar se necessário.
+          </p>
+          <ul className="mt-2 divide-y divide-border/50 rounded-xl border border-border/70">
+            {recent.map((f) => (
+              <li key={f.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link to={`/app/ops/firms/${f.id}`} className="font-medium text-brand hover:underline">
+                    {f.name}
+                  </Link>
+                  {f.isNew24h ? (
+                    <span className="rounded bg-brand/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-brand">
+                      Novo 24h
+                    </span>
+                  ) : f.isNew7d ? (
+                    <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase text-muted-foreground">
+                      Novo 7d
+                    </span>
+                  ) : null}
+                  <span className="text-xs text-muted-foreground">{f.status || '—'}</span>
+                </div>
+                <time className="text-xs text-muted-foreground">
+                  {new Date(f.createdAt).toLocaleString('pt-PT')}
+                </time>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <p className="text-xs text-muted-foreground">
-        Onda 1: detalhe de gabinete, suspender/reactivar, limpar lockouts, filtros e CSV. Documentação em{' '}
+        Onda 2 Defesa: novos gabinetes, trial/cancelar, geo-IP, abuso, Sentry. Ver{' '}
         <code>docs/product/TEGLION_CONTROL_CENTER_CHARTER.md</code>.
       </p>
     </div>
