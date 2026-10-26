@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Calculator, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { CalculatorClientBar } from '@/features/firm/fiscal/CalculatorClientBar'
 import {
   CalculatorDisclaimer,
   CalculatorHistorySection,
@@ -12,12 +13,12 @@ import {
   formatEuroFromCents,
   type FiscalCalculationRow,
 } from '@/features/firm/fiscal/calculatorShared'
+import { useCalculatorClient } from '@/features/firm/fiscal/useCalculatorClient'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { Button } from '@/shared/components/ui/button'
 import { EuroInput } from '@/shared/design-system'
 import { contabilFiscalSsApi } from '@/infrastructure/api'
 import type { SsSimulation } from '@/infrastructure/api/contabil/fiscalSs'
-import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 
@@ -46,7 +47,10 @@ function simulationFromRow(row: FiscalCalculationRow): SsSimulation {
   }
 }
 
-export function SsCalculatorWorkspace({ embedded = false }: { embedded?: boolean } = {}) {
+export function SsCalculatorWorkspace({
+  embedded = false,
+  initialClientId,
+}: { embedded?: boolean; initialClientId?: string } = {}) {
   const qc = useQueryClient()
   const catalogQuery = useQuery({
     queryKey: ['fiscal-ss-catalog'],
@@ -55,9 +59,9 @@ export function SsCalculatorWorkspace({ embedded = false }: { embedded?: boolean
   })
   const historyQuery = useQuery({
     queryKey: ['fiscal-ss-history'],
-    queryFn: () => contabilFiscalSsApi.list({ limit: 20 }),
+    queryFn: () => contabilFiscalSsApi.list({ limit: 40 }),
   })
-  const clientsQuery = useFirmClientsDirectory({ limit: 300 })
+  const { clientId, setClientId, hints, onHints, clientNameById } = useCalculatorClient(initialClientId)
 
   const pack = catalogQuery.data?.packs?.[0]
   const regimes: Regime[] = pack?.regimes || []
@@ -65,7 +69,6 @@ export function SsCalculatorWorkspace({ embedded = false }: { embedded?: boolean
   const [regimeCode, setRegimeCode] = useState('tco_lucrativo')
   const [euros, setEuros] = useState(0)
   const [tiMode, setTiMode] = useState<'base' | 'services'>('base')
-  const [clientId, setClientId] = useState('')
   const [simulation, setSimulation] = useState<SsSimulation | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -74,6 +77,11 @@ export function SsCalculatorWorkspace({ embedded = false }: { embedded?: boolean
       setRegimeCode(regimes[0].code)
     }
   }, [regimes, regimeCode])
+
+  useEffect(() => {
+    if (!hints?.suggestedSsTi) return
+    if (regimes.some((r) => r.code === 'ti_geral')) setRegimeCode('ti_geral')
+  }, [hints?.clientId, hints?.suggestedSsTi, regimes])
 
   const selected = useMemo(
     () => regimes.find((r) => r.code === regimeCode) || null,
@@ -143,6 +151,16 @@ export function SsCalculatorWorkspace({ embedded = false }: { embedded?: boolean
         text={catalogQuery.data?.disclaimer}
         fallback="Confirme sempre o enquadramento na Segurança Social Direta."
       />
+
+      <CalculatorClientBar clientId={clientId} onClientIdChange={setClientId} onHints={onHints} />
+
+      {hints?.suggestedSsTi ? (
+        <p className="cb-calc-client-hint">
+          Perfil sugere trabalhador independente
+          {hints.ssOneYearExemption ? ' · isenção 1.º ano marcada no perfil (confirme elegibilidade)' : ''}.
+          Regime TI pré-seleccionado; indique a base ou a prestação manualmente.
+        </p>
+      ) : null}
 
       <div className="cb-calc-workspace-grid">
         <section className="cb-calc-form-panel">
@@ -214,22 +232,6 @@ export function SsCalculatorWorkspace({ embedded = false }: { embedded?: boolean
             <EuroInput value={euros} onChange={setEuros} />
           </label>
 
-          <label className="block space-y-1.5 text-sm">
-            <span className="font-medium">Cliente (opcional)</span>
-            <select
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-              value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
-            >
-              <option value="">— Sem cliente —</option>
-              {(clientsQuery.data?.items || []).map((c) => (
-                <option key={c._id || c.id} value={c._id || c.id}>
-                  {c.displayName || c.fullName || c.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
           <div className="flex flex-wrap gap-2 pt-1">
             <Button type="button" onClick={() => void runSimulate(false)} disabled={busy}>
               {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden /> : null}
@@ -281,9 +283,13 @@ export function SsCalculatorWorkspace({ embedded = false }: { embedded?: boolean
 
       <CalculatorHistorySection
         loading={historyQuery.isLoading}
-        emptyLabel="Ainda sem simulações SS guardadas."
+        emptyLabel={
+          clientId ? 'Sem simulações SS guardadas para este cliente.' : 'Ainda sem simulações SS guardadas.'
+        }
         items={historyItems}
         onSelect={reopen}
+        clientNameById={clientNameById}
+        filterClientId={clientId || undefined}
         renderSummary={(row) => {
           const meta = row.meta || {}
           const regime = (meta.regime || {}) as { label?: string }

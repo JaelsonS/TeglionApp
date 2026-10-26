@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Calculator, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { CalculatorClientBar } from '@/features/firm/fiscal/CalculatorClientBar'
 import {
   CalculatorDisclaimer,
   CalculatorHistorySection,
@@ -12,12 +13,12 @@ import {
   formatEuroFromCents,
   type FiscalCalculationRow,
 } from '@/features/firm/fiscal/calculatorShared'
+import { useCalculatorClient } from '@/features/firm/fiscal/useCalculatorClient'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { Button } from '@/shared/components/ui/button'
 import { EuroInput } from '@/shared/design-system'
 import { contabilFiscalVatApi } from '@/infrastructure/api'
 import type { VatSimulation } from '@/infrastructure/api/contabil/fiscalVat'
-import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 
@@ -44,7 +45,10 @@ function simulationFromRow(row: FiscalCalculationRow): VatSimulation {
   }
 }
 
-export function VatCalculatorWorkspace({ embedded = false }: { embedded?: boolean } = {}) {
+export function VatCalculatorWorkspace({
+  embedded = false,
+  initialClientId,
+}: { embedded?: boolean; initialClientId?: string } = {}) {
   const qc = useQueryClient()
   const catalogQuery = useQuery({
     queryKey: ['fiscal-vat-catalog'],
@@ -53,9 +57,9 @@ export function VatCalculatorWorkspace({ embedded = false }: { embedded?: boolea
   })
   const historyQuery = useQuery({
     queryKey: ['fiscal-vat-history'],
-    queryFn: () => contabilFiscalVatApi.list({ limit: 20, calcType: 'vat_net_gross' }),
+    queryFn: () => contabilFiscalVatApi.list({ limit: 40, calcType: 'vat_net_gross' }),
   })
-  const clientsQuery = useFirmClientsDirectory({ limit: 300 })
+  const { clientId, setClientId, hints, onHints, clientNameById } = useCalculatorClient(initialClientId)
 
   const pack = catalogQuery.data?.packs?.[0]
   const rates = pack?.rates || []
@@ -63,7 +67,6 @@ export function VatCalculatorWorkspace({ embedded = false }: { embedded?: boolea
   const [direction, setDirection] = useState<'net_to_gross' | 'gross_to_net'>('net_to_gross')
   const [rateCode, setRateCode] = useState('normal')
   const [euros, setEuros] = useState(0)
-  const [clientId, setClientId] = useState('')
   const [simulation, setSimulation] = useState<VatSimulation | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -130,6 +133,15 @@ export function VatCalculatorWorkspace({ embedded = false }: { embedded?: boolea
         fallback="Não substitui software certificado nem a declaração periódica de IVA."
       />
 
+      <CalculatorClientBar clientId={clientId} onClientIdChange={setClientId} onHints={onHints} />
+
+      {hints?.vatRegime ? (
+        <p className="cb-calc-client-hint">
+          Regime IVA no perfil: <strong>{hints.vatRegime}</strong>. Escolha a taxa adequada à operação;
+          o valor continua manual.
+        </p>
+      ) : null}
+
       <div className="cb-calc-workspace-grid">
         <section className="cb-calc-form-panel">
           <div className="flex items-center gap-2">
@@ -194,22 +206,6 @@ export function VatCalculatorWorkspace({ embedded = false }: { embedded?: boolea
             </select>
           </label>
 
-          <label className="block space-y-1.5 text-sm">
-            <span className="font-medium">Cliente (opcional)</span>
-            <select
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-              value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
-            >
-              <option value="">— Sem cliente —</option>
-              {(clientsQuery.data?.items || []).map((c) => (
-                <option key={c._id || c.id} value={c._id || c.id}>
-                  {c.displayName || c.fullName || c.name}
-                </option>
-              ))}
-            </select>
-          </label>
-
           <div className="flex flex-wrap gap-2 pt-1">
             <Button type="button" onClick={() => void runSimulate(false)} disabled={busy}>
               {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden /> : null}
@@ -252,9 +248,13 @@ export function VatCalculatorWorkspace({ embedded = false }: { embedded?: boolea
 
       <CalculatorHistorySection
         loading={historyQuery.isLoading}
-        emptyLabel="Ainda sem simulações guardadas."
+        emptyLabel={
+          clientId ? 'Sem simulações IVA guardadas para este cliente.' : 'Ainda sem simulações guardadas.'
+        }
         items={historyItems}
         onSelect={reopen}
+        clientNameById={clientNameById}
+        filterClientId={clientId || undefined}
         renderSummary={(row) => {
           const result = row.result || {}
           const meta = row.meta || {}

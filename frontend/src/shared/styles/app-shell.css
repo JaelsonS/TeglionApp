@@ -185,7 +185,9 @@
         :has(.cb-saft-layout-page)
       ):not(:has(.cb-tasks-layout-page)):not(:has(.cb-agenda-layout-page)):not(
         :has(.cb-fiscal-cal-layout-page)
-      ):not(:has(.cb-irs-layout-page)):not(:has(.cb-services-layout-page)) {
+      ):not(:has(.cb-irs-layout-page)):not(:has(.cb-services-layout-page)):not(
+        :has(.cb-calc-layout-page)
+      ) {
       overflow: hidden;
       padding-bottom: 0.75rem;
     }
@@ -197,7 +199,9 @@
         :has(.cb-saft-layout-page)
       ):not(:has(.cb-tasks-layout-page)):not(:has(.cb-agenda-layout-page)):not(
         :has(.cb-fiscal-cal-layout-page)
-      ):not(:has(.cb-irs-layout-page)):not(:has(.cb-services-layout-page))
+      ):not(:has(.cb-irs-layout-page)):not(:has(.cb-services-layout-page)):not(
+        :has(.cb-calc-layout-page)
+      )
       > .cb-firm-workspace-page {
       flex: 1 1 0%;
       min-height: 0;
@@ -209,7 +213,9 @@
         .cb-payments-layout-page
       ):not(.cb-rentals-layout-page):not(.cb-saft-layout-page):not(.cb-tasks-layout-page):not(
         .cb-agenda-layout-page
-      ):not(.cb-fiscal-cal-layout-page):not(.cb-irs-layout-page):not(.cb-services-layout-page)
+      ):not(.cb-fiscal-cal-layout-page):not(.cb-irs-layout-page):not(.cb-services-layout-page):not(
+        .cb-calc-layout-page
+      )
       > .cb-firm-operational-panel {
       flex: 1 1 0%;
       min-height: 0;
@@ -227,7 +233,8 @@
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-agenda-layout-page),
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-fiscal-cal-layout-page),
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-irs-layout-page),
-    .cb-firm-shell .cb-firm-content-wrap:has(.cb-services-layout-page) {
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-services-layout-page),
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-calc-layout-page) {
       overflow-x: hidden;
       overflow-y: auto;
       overscroll-behavior-y: contain;
@@ -244,7 +251,8 @@
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-agenda-layout-page) > .cb-agenda-layout-page,
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-fiscal-cal-layout-page) > .cb-fiscal-cal-layout-page,
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-irs-layout-page) > .cb-irs-layout-page,
-    .cb-firm-shell .cb-firm-content-wrap:has(.cb-services-layout-page) > .cb-services-layout-page {
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-services-layout-page) > .cb-services-layout-page,
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-calc-layout-page) > .cb-calc-layout-page {
       flex: none;
       height: auto;
       min-height: 0;
