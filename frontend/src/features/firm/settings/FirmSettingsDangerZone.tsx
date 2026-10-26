@@ -188,7 +188,7 @@ export function FirmSettingsDangerZone({ bundle }: Props) {
             onChange={(e) => setNpsComment(e.target.value)}
             placeholder="Partilhe o que faltou para a sua operação no dia a dia."
             disabled={closing}
-            rows={4}
+            rows={3}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
           />
         </div>
