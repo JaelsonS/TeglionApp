@@ -6,6 +6,7 @@ function mountApiRoutes(app, { prefix = '/api', deprecated = false } = {}) {
   const contabilPublicRoutes = require('./contabil-public.routes');
   const contabilPortalRoutes = require('./contabil-portal.routes');
   const contabilRoutes = require('./contabil.routes');
+  const platformOpsRoutes = require('./platform-ops.routes');
 
   if (deprecated) {
     app.use(prefix, (req, res, next) => {
@@ -19,6 +20,7 @@ function mountApiRoutes(app, { prefix = '/api', deprecated = false } = {}) {
   app.use(`${prefix}/public`, contabilPublicRoutes);
   app.use(`${prefix}/contabil`, contabilRoutes);
   app.use(`${prefix}/client-portal`, contabilPortalRoutes);
+  app.use(`${prefix}/platform-ops`, platformOpsRoutes);
 }
 
 module.exports = { mountApiRoutes };

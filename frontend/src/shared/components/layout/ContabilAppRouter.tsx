@@ -65,6 +65,23 @@ const ServiceIntakePortalPage = lazy(() =>
 const FirmPublicSitePage = lazy(() =>
   import('@/features/public-intake/FirmPublicSitePage').then((m) => ({ default: m.FirmPublicSitePage })),
 )
+const PlatformOpsShell = lazy(() =>
+  import('@/features/platform-ops/PlatformOpsShell').then((m) => ({ default: m.PlatformOpsShell })),
+)
+const PlatformOpsOverviewPage = lazy(() =>
+  import('@/features/platform-ops/PlatformOpsOverviewPage').then((m) => ({
+    default: m.PlatformOpsOverviewPage,
+  })),
+)
+const PlatformOpsFirmsPage = lazy(() =>
+  import('@/features/platform-ops/PlatformOpsFirmsPage').then((m) => ({ default: m.PlatformOpsFirmsPage })),
+)
+const PlatformOpsAuditPage = lazy(() =>
+  import('@/features/platform-ops/PlatformOpsAuditPage').then((m) => ({ default: m.PlatformOpsAuditPage })),
+)
+const PlatformOpsLoginsPage = lazy(() =>
+  import('@/features/platform-ops/PlatformOpsLoginsPage').then((m) => ({ default: m.PlatformOpsLoginsPage })),
+)
 
 const PricingPage = lazy(() =>
   import('@/features/marketing/PricingPage').then((m) => ({ default: m.PricingPage })),
@@ -279,6 +296,20 @@ export function ContabilAppRouter() {
           }
         >
           <Route index element={<AppShell />} />
+
+          <Route
+            path="ops"
+            element={
+              <RequireRole roles={[...FIRM_APP_ROLES]}>
+                <PlatformOpsShell />
+              </RequireRole>
+            }
+          >
+            <Route index element={<PlatformOpsOverviewPage />} />
+            <Route path="firms" element={<PlatformOpsFirmsPage />} />
+            <Route path="audit" element={<PlatformOpsAuditPage />} />
+            <Route path="logins" element={<PlatformOpsLoginsPage />} />
+          </Route>
 
           <Route
             path="firm"

@@ -76,6 +76,7 @@ export {
   contabilFiscalImtApi,
   contabilFiscalIrcApi,
   clientPortalContabilApi,
+  platformOpsApi,
 } from '@/infrastructure/api/contabilApis'
 
 export type { BillingStatus } from '@/infrastructure/api/contabil/billing'
