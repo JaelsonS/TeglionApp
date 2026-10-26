@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -146,7 +147,7 @@ export function PropertyDialog({
               <select
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                 value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
+                onChange={(e: FormChangeEvent) => setClientId(e.target.value)}
               >
                 <option value="">—</option>
                 {clients.map((c) => {
@@ -172,29 +173,29 @@ export function PropertyDialog({
 
           <label className="block space-y-1.5 text-sm">
             <span className="font-medium">Identificação</span>
-            <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="T2 — Rua X" />
+            <Input value={label} onChange={(e: FormChangeEvent) => setLabel(e.target.value)} placeholder="T2 — Rua X" />
           </label>
           <label className="block space-y-1.5 text-sm">
             <span className="font-medium">Morada</span>
-            <Input value={addressLine} onChange={(e) => setAddressLine(e.target.value)} />
+            <Input value={addressLine} onChange={(e: FormChangeEvent) => setAddressLine(e.target.value)} />
           </label>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block space-y-1.5 text-sm">
               <span className="font-medium">Código postal</span>
-              <Input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
+              <Input value={postalCode} onChange={(e: FormChangeEvent) => setPostalCode(e.target.value)} />
             </label>
             <label className="block space-y-1.5 text-sm">
               <span className="font-medium">Localidade</span>
-              <Input value={locality} onChange={(e) => setLocality(e.target.value)} />
+              <Input value={locality} onChange={(e: FormChangeEvent) => setLocality(e.target.value)} />
             </label>
           </div>
           <label className="block space-y-1.5 text-sm">
             <span className="font-medium">Artigo matricial</span>
-            <Input value={artigoMatricial} onChange={(e) => setArtigoMatricial(e.target.value)} />
+            <Input value={artigoMatricial} onChange={(e: FormChangeEvent) => setArtigoMatricial(e.target.value)} />
           </label>
           <label className="block space-y-1.5 text-sm">
             <span className="font-medium">Notas</span>
-            <Input value={notes} onChange={(e) => setNotes(e.target.value)} />
+            <Input value={notes} onChange={(e: FormChangeEvent) => setNotes(e.target.value)} />
           </label>
         </div>
 

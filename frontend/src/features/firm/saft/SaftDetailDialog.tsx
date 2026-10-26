@@ -55,7 +55,7 @@ export function SaftDetailDialog({ open, onOpenChange, item, onDeleted }: Props)
   return (
     <Dialog
       open={open}
-      onOpenChange={(o) => {
+      onOpenChange={(o: boolean) => {
         if (!o) setConfirmDelete(false)
         onOpenChange(o)
       }}

@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import { IrsServiceEditorDialog } from '@/features/firm/irs/IrsServiceEditorDialog'
 import { isModelo3Service } from '@/features/firm/services/IrsModelo3EditorSheet'
@@ -315,7 +316,7 @@ export function IrsWorkspace() {
             <Input
               className="pl-9"
               value={q}
-              onChange={(e) => setQ(e.target.value)}
+              onChange={(e: FormChangeEvent) => setQ(e.target.value)}
               placeholder="Procurar serviço, ano ou slug…"
               aria-label="Procurar serviços IRS"
             />
@@ -456,7 +457,7 @@ export function IrsWorkspace() {
                 <Input
                   className="h-9 pl-8 text-xs"
                   value={modelSearch}
-                  onChange={(e) => setModelSearch(e.target.value)}
+                  onChange={(e: FormChangeEvent) => setModelSearch(e.target.value)}
                   placeholder="Pesquisar Anexo A, Modelo 3…"
                   aria-label="Pesquisar modelos IRS"
                 />

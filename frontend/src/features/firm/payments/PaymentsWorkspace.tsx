@@ -12,6 +12,7 @@ import {
   Wallet,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { Button } from '@/shared/components/ui/button'
@@ -276,7 +277,7 @@ export function PaymentsWorkspace() {
               className="pl-9"
               placeholder="Pesquisar nome ou NIF"
               value={q}
-              onChange={(e) => setQ(e.target.value)}
+              onChange={(e: FormChangeEvent) => setQ(e.target.value)}
               aria-label="Pesquisar cliente"
             />
           </div>
@@ -474,7 +475,7 @@ export function PaymentsWorkspace() {
 
       <ClientPaymentsDialog
         open={Boolean(sheetRow)}
-        onOpenChange={(o) => {
+        onOpenChange={(o: boolean) => {
           if (!o) setSheetRow(null)
         }}
         row={sheetRow}
@@ -497,7 +498,7 @@ export function PaymentsWorkspace() {
 
       <ChargeEditDialog
         open={Boolean(edit)}
-        onOpenChange={(o) => {
+        onOpenChange={(o: boolean) => {
           if (!o) setEdit(null)
         }}
         charge={edit?.charge || null}

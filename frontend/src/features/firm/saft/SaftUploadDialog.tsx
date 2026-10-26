@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { FileArchive, Loader2, Upload } from 'lucide-react'
 import { toast } from 'sonner'
+import type { FormChangeEvent } from '@/shared/types/react-events'
+import type { ChangeEvent } from 'react'
 
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -107,7 +109,7 @@ export function SaftUploadDialog({
             <select
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
               value={clientId}
-              onChange={(e) => setClientId(e.target.value)}
+              onChange={(e: FormChangeEvent) => setClientId(e.target.value)}
               disabled={uploading}
             >
               <option value="">— Sem associação —</option>
@@ -131,7 +133,7 @@ export function SaftUploadDialog({
               type="file"
               accept=".xml,.zip,application/xml,text/xml,application/zip"
               className="hidden"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setFile(e.target.files?.[0] || null)}
             />
             <button
               type="button"

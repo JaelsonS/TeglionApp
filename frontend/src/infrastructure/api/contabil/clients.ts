@@ -6,15 +6,16 @@ export function createContabilClientsApi(api: AxiosInstance) {
   return {
     list: (params?: { page?: number; limit?: number; includeInactive?: string }) =>
       api.get('/contabil/clients', { params }).then((r) => {
-        const data = r.data as { items?: Array<Record<string, unknown>>; total?: number }
-        const items = (data.items || []).map((c) => ({
-          ...c,
+        const data = r.data as ClientsListResponse & { items?: Array<Record<string, unknown>> }
+        const items: ContabilClient[] = (data.items || []).map((c) => ({
+          ...(c as ContabilClient),
           _id: String(c._id || c.id || ''),
           id: String(c.id || c._id || ''),
           name: String(c.name || c.displayName || ''),
           fullName: (c.fullName as string) || (c.displayName as string) || undefined,
+          taxId: (c.taxId as string | null | undefined) ?? null,
         }))
-        return { ...data, items }
+        return { ...data, items } satisfies ClientsListResponse
       }),
 
     create: (payload: {

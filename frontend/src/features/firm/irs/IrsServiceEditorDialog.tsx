@@ -46,7 +46,8 @@ import type {
   IrsAnexoId,
   IrsAnexoLabel,
 } from '@/shared/types/contabil'
-import type { FormChangeEvent } from '@/shared/types/react-events'
+import type { ButtonClickEvent, FormChangeEvent } from '@/shared/types/react-events'
+import type { ChangeEvent } from 'react'
 
 type PaymentMethod = ServicePaymentMethodId
 type TabId = 'oferta' | 'anexos' | 'publicar'
@@ -377,7 +378,7 @@ export function IrsServiceEditorDialog({
                   <textarea
                     className="min-h-[4.5rem] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={(e: FormChangeEvent) => setDescription(e.target.value)}
                     placeholder="O que inclui este serviço para o cliente…"
                   />
                 </label>
@@ -506,7 +507,7 @@ export function IrsServiceEditorDialog({
                     type="checkbox"
                     className="h-4 w-4 rounded border-input"
                     checked={isActive}
-                    onChange={(e) => setIsActive(e.target.checked)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setIsActive(e.target.checked)}
                   />
                   <span className="font-medium">Activo no gabinete</span>
                 </label>
@@ -516,7 +517,7 @@ export function IrsServiceEditorDialog({
                     type="checkbox"
                     className="h-4 w-4 rounded border-input"
                     checked={isPubliclyListed}
-                    onChange={(e) => {
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
                       setIsPubliclyListed(e.target.checked)
                       if (e.target.checked && !slug.trim()) suggestSlug()
                     }}
@@ -616,7 +617,7 @@ export function IrsServiceEditorDialog({
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={deleting}
-              onClick={(e) => {
+              onClick={(e: ButtonClickEvent) => {
                 e.preventDefault()
                 void remove()
               }}

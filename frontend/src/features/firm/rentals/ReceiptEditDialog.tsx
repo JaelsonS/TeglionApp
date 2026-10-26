@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { CheckCircle2, FileText, Loader2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -196,7 +197,7 @@ export function ReceiptEditDialog({
               <select
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                 value={status}
-                onChange={(e) => setStatus(e.target.value as RentReceiptStatus)}
+                onChange={(e: FormChangeEvent) => setStatus(e.target.value as RentReceiptStatus)}
               >
                 {STATUSES.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -214,7 +215,7 @@ export function ReceiptEditDialog({
               <select
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                 value={method}
-                onChange={(e) => setMethod(e.target.value)}
+                onChange={(e: FormChangeEvent) => setMethod(e.target.value)}
               >
                 <option value="">—</option>
                 {paymentMethods.map((m) => (
@@ -226,7 +227,7 @@ export function ReceiptEditDialog({
             </label>
             <label className="block space-y-1.5 text-sm">
               <span className="font-medium">Vencimento</span>
-              <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              <Input type="date" value={dueDate} onChange={(e: FormChangeEvent) => setDueDate(e.target.value)} />
             </label>
           </div>
 
@@ -235,7 +236,7 @@ export function ReceiptEditDialog({
             <textarea
               className="min-h-[72px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(e: FormChangeEvent) => setNotes(e.target.value)}
               maxLength={2000}
               placeholder="Opcional"
             />

@@ -13,6 +13,7 @@ import {
   Wallet,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { Button } from '@/shared/components/ui/button'
@@ -239,7 +240,7 @@ export function RentalsWorkspace() {
             <Input
               className="pl-9"
               value={q}
-              onChange={(e) => setQ(e.target.value)}
+              onChange={(e: FormChangeEvent) => setQ(e.target.value)}
               placeholder="Procurar imóvel, senhorio ou inquilino…"
               aria-label="Procurar imóveis"
             />
@@ -435,7 +436,7 @@ export function RentalsWorkspace() {
 
       <PropertyDialog
         open={Boolean(propertyEdit)}
-        onOpenChange={(o) => {
+        onOpenChange={(o: boolean) => {
           if (!o) setPropertyEdit(null)
         }}
         initial={propertyEdit?.property}
@@ -445,7 +446,7 @@ export function RentalsWorkspace() {
 
       <LeaseDialog
         open={Boolean(leaseEdit)}
-        onOpenChange={(o) => {
+        onOpenChange={(o: boolean) => {
           if (!o) setLeaseEdit(null)
         }}
         propertyId={leaseEdit?.propertyId || ''}
@@ -456,7 +457,7 @@ export function RentalsWorkspace() {
 
       <ReceiptEditDialog
         open={Boolean(edit)}
-        onOpenChange={(o) => {
+        onOpenChange={(o: boolean) => {
           if (!o) setEdit(null)
         }}
         receipt={edit?.receipt || null}

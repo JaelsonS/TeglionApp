@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Building2, Search, User, X } from 'lucide-react'
+import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import { fetchClientHub } from '@/infrastructure/api/contabil/clientHub'
 import { Input } from '@/shared/components/ui/input'
@@ -115,7 +116,7 @@ export function CalculatorClientBar({ clientId, onClientIdChange, onHints, class
           <Input
             className="pl-9"
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={(e: FormChangeEvent) => setQ(e.target.value)}
             placeholder="Procurar por nome ou NIF…"
             aria-label="Procurar cliente"
           />
@@ -123,7 +124,7 @@ export function CalculatorClientBar({ clientId, onClientIdChange, onHints, class
         <select
           className="flex h-10 min-w-[14rem] rounded-md border border-input bg-background px-3 text-sm sm:max-w-sm"
           value={clientId}
-          onChange={(e) => onClientIdChange(e.target.value)}
+          onChange={(e: FormChangeEvent) => onClientIdChange(e.target.value)}
           aria-label="Seleccionar cliente"
         >
           <option value="">— Sem cliente —</option>

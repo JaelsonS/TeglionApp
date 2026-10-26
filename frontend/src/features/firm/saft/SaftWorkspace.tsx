@@ -11,6 +11,7 @@ import {
   Upload,
   Wallet,
 } from 'lucide-react'
+import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { Button } from '@/shared/components/ui/button'
@@ -193,7 +194,7 @@ export function SaftWorkspace() {
             <Input
               className="pl-9"
               value={q}
-              onChange={(e) => setQ(e.target.value)}
+              onChange={(e: FormChangeEvent) => setQ(e.target.value)}
               placeholder="Procurar empresa, NIF ou ficheiro…"
               aria-label="Procurar importações SAF-T"
             />
@@ -332,7 +333,7 @@ export function SaftWorkspace() {
 
       <SaftDetailDialog
         open={Boolean(detail)}
-        onOpenChange={(o) => {
+        onOpenChange={(o: boolean) => {
           if (!o) setDetail(null)
         }}
         item={detail}
