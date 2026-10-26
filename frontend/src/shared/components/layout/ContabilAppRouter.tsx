@@ -81,6 +81,11 @@ const PlatformOpsOverviewPage = lazy(() =>
 const PlatformOpsFirmsPage = lazy(() =>
   import('@/features/platform-ops/PlatformOpsFirmsPage').then((m) => ({ default: m.PlatformOpsFirmsPage })),
 )
+const PlatformOpsFirmDetailPage = lazy(() =>
+  import('@/features/platform-ops/PlatformOpsFirmDetailPage').then((m) => ({
+    default: m.PlatformOpsFirmDetailPage,
+  })),
+)
 const PlatformOpsAuditPage = lazy(() =>
   import('@/features/platform-ops/PlatformOpsAuditPage').then((m) => ({ default: m.PlatformOpsAuditPage })),
 )
@@ -320,6 +325,7 @@ export function ContabilAppRouter() {
             <Route element={<PlatformOpsShell />}>
               <Route index element={<PlatformOpsOverviewPage />} />
               <Route path="firms" element={<PlatformOpsFirmsPage />} />
+              <Route path="firms/:firmId" element={<PlatformOpsFirmDetailPage />} />
               <Route path="audit" element={<PlatformOpsAuditPage />} />
               <Route path="logins" element={<PlatformOpsLoginsPage />} />
             </Route>
