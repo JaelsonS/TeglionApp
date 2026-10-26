@@ -38,6 +38,28 @@ router.post(
   [param('firmId').isUUID()],
   platformOpsController.reactivateFirm,
 );
+router.post(
+  '/firms/:firmId/extend-trial',
+  [
+    param('firmId').isUUID(),
+    body('days').optional().isInt({ min: 1, max: 365 }),
+    body('trialEndsAt').optional().isISO8601(),
+  ],
+  platformOpsController.extendFirmTrial,
+);
+router.post(
+  '/firms/:firmId/cancel',
+  [
+    param('firmId').isUUID(),
+    body('confirmName').isString().trim().isLength({ min: 1, max: 200 }),
+  ],
+  platformOpsController.cancelFirm,
+);
+router.get(
+  '/sentry/issues',
+  [query('limit').optional().isInt({ min: 1, max: 50 })],
+  platformOpsController.sentryIssues,
+);
 router.get(
   '/audit-logs',
   [

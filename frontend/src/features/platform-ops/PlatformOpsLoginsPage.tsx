@@ -72,6 +72,7 @@ export function PlatformOpsLoginsPage() {
                 <th className="px-3 py-2 font-medium">Conta</th>
                 <th className="px-3 py-2 font-medium">Falhas</th>
                 <th className="px-3 py-2 font-medium">IP</th>
+                <th className="px-3 py-2 font-medium">País</th>
                 <th className="px-3 py-2 font-medium">Lock até</th>
                 <th className="px-3 py-2 font-medium">Última tentativa</th>
                 <th className="px-3 py-2 font-medium">Acção</th>
@@ -86,6 +87,11 @@ export function PlatformOpsLoginsPage() {
                     <td className="px-3 py-2 font-mono text-xs">{row.accountKey}</td>
                     <td className="px-3 py-2 tabular-nums">{row.failedCount}</td>
                     <td className="px-3 py-2 font-mono text-xs">{row.lastIp || '—'}</td>
+                    <td className="px-3 py-2 text-xs text-muted-foreground">
+                      {row.countryCode
+                        ? `${row.countryCode}${row.countryName ? ` · ${row.countryName}` : ''}`
+                        : '—'}
+                    </td>
                     <td className="px-3 py-2 text-muted-foreground">
                       {row.lockedUntil ? new Date(row.lockedUntil).toLocaleString('pt-PT') : '—'}
                     </td>

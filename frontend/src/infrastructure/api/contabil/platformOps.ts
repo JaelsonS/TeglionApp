@@ -7,6 +7,18 @@ export type PlatformOpsOverview = {
   lockedAccounts: number | null
   trialsExpiring7d?: number | null
   suspendedFirms?: number | null
+  firmsNew24h?: number | null
+  firmsNew7d?: number | null
+  authzFailures24h?: number | null
+  recentFirms?: Array<{
+    id: string
+    name: string
+    slug: string
+    createdAt: string
+    status: string | null
+    isNew24h: boolean
+    isNew7d: boolean
+  }>
   anomalies?: Array<{
     code: string
     severity: 'low' | 'medium' | 'high'
@@ -26,6 +38,8 @@ export type PlatformOpsFirm = {
   trialEndsAt: string | null
   hasPublicSite: boolean
   internalOps?: boolean
+  isNew24h?: boolean
+  isNew7d?: boolean
 }
 
 export type PlatformOpsFirmDetail = PlatformOpsFirm & {
@@ -57,7 +71,30 @@ export type PlatformOpsLoginAttempt = {
   lockedUntil: string | null
   lastAttemptAt: string | null
   lastIp: string | null
+  countryCode?: string | null
+  countryName?: string | null
   updatedAt: string | null
+}
+
+export type PlatformOpsSentrySummary = {
+  configured: boolean
+  dsnConfigured: boolean
+  org: string | null
+  project: string | null
+  projectUrl: string | null
+  issuesUrl: string | null
+  hint: string | null
+  items: Array<{
+    id: string
+    shortId: string | null
+    title: string
+    count: number
+    userCount: number
+    lastSeen: string | null
+    firstSeen: string | null
+    permalink: string | null
+    level: string | null
+  }>
 }
 
 export function createPlatformOpsApi(api: AxiosInstance) {
@@ -77,6 +114,16 @@ export function createPlatformOpsApi(api: AxiosInstance) {
       api
         .post(`/platform-ops/firms/${firmId}/reactivate`)
         .then((r) => r.data as { ok: boolean; status: string; already?: boolean }),
+    extendTrial: (firmId: string, body: { days?: number; trialEndsAt?: string }) =>
+      api
+        .post(`/platform-ops/firms/${firmId}/extend-trial`, body)
+        .then((r) => r.data as { ok: boolean; status: string; trialEndsAt: string | null }),
+    cancelFirm: (firmId: string, confirmName: string) =>
+      api
+        .post(`/platform-ops/firms/${firmId}/cancel`, { confirmName })
+        .then((r) => r.data as { ok: boolean; status: string; already?: boolean }),
+    sentryIssues: (params?: { limit?: number }) =>
+      api.get('/platform-ops/sentry/issues', { params }).then((r) => r.data as PlatformOpsSentrySummary),
     auditLogs: (params?: {
       limit?: number
       offset?: number

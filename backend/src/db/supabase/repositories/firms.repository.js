@@ -125,6 +125,17 @@ async function setFirmStatus(firmId, status) {
   return mapFirm(data);
 }
 
+/** Control Center — estender / definir trial_ends_at (e opcionalmente status). */
+async function setFirmTrial(firmId, { trialEndsAt, status } = {}) {
+  const row = { updated_at: new Date().toISOString() };
+  if (trialEndsAt !== undefined) row.trial_ends_at = trialEndsAt;
+  if (status !== undefined) row.status = status;
+  const sb = getSupabaseAdmin();
+  const { data, error } = await sb.from('firms').update(row).eq('id', firmId).select().single();
+  if (error) throw error;
+  return mapFirm(data);
+}
+
 async function findFirmByStripeCustomerId(stripeCustomerId) {
   const id = String(stripeCustomerId || '').trim();
   if (!id) return null;
@@ -225,6 +236,7 @@ module.exports = {
   mergeSettingsKey,
   updateFirm,
   setFirmStatus,
+  setFirmTrial,
   findFirmByStripeCustomerId,
   updateStripeIds,
   updateFirmBranding,

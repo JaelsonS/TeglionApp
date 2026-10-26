@@ -40,19 +40,44 @@ function toCsv(headers, rows) {
 function assertNotOpsHostFirm(firm) {
   const settings = firm?.settings || {};
   if (settings.internal_ops === true || String(firm?.slug || '') === 'afdigital-ops') {
-    throw new AppError('Não é possível suspender o gabinete anfitrião do Control Center', 400, {
+    throw new AppError('Não é possível alterar o gabinete anfitrião do Control Center', 400, {
       code: 'PLATFORM_OPS_HOST_FIRM',
     });
   }
 }
 
+function hoursAgoIso(hours) {
+  return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+}
+
+function isNewFirm(createdAt, withinHours) {
+  if (!createdAt) return false;
+  const t = new Date(createdAt).getTime();
+  if (Number.isNaN(t)) return false;
+  return t >= Date.now() - withinHours * 60 * 60 * 1000;
+}
+
 async function getOverview() {
   const sb = ensureSb();
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const since = hoursAgoIso(24);
+  const since7d = hoursAgoIso(24 * 7);
+  const since1h = hoursAgoIso(1);
   const trialHorizon = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
   const nowIso = new Date().toISOString();
 
-  const [firmsRes, usersRes, auditRes, lockedRes, trialsRes, suspendedRes] = await Promise.all([
+  const [
+    firmsRes,
+    usersRes,
+    auditRes,
+    lockedRes,
+    trialsRes,
+    suspendedRes,
+    new24Res,
+    new7dRes,
+    failSpikeRes,
+    authzFailRes,
+    recentFirmsRes,
+  ] = await Promise.all([
     sb.from('firms').select('id', { count: 'exact', head: true }),
     sb.from('firm_users').select('id', { count: 'exact', head: true }).eq('is_active', true),
     sb.from('audit_logs').select('id', { count: 'exact', head: true }).gte('created_at', since),
@@ -69,6 +94,25 @@ async function getOverview() {
       .lte('trial_ends_at', trialHorizon)
       .gte('trial_ends_at', nowIso),
     sb.from('firms').select('id', { count: 'exact', head: true }).eq('status', 'SUSPENDED'),
+    sb.from('firms').select('id', { count: 'exact', head: true }).gte('created_at', since),
+    sb.from('firms').select('id', { count: 'exact', head: true }).gte('created_at', since7d),
+    sb
+      .from('auth_login_attempts')
+      .select('account_key, failed_count, last_ip, locked_until')
+      .gte('updated_at', since1h)
+      .gte('failed_count', 5)
+      .limit(40),
+    sb
+      .from('audit_logs')
+      .select('id', { count: 'exact', head: true })
+      .gte('created_at', since)
+      .or('action.ilike.%forbidden%,action.ilike.%unauthorized%,action.eq.auth.login_failed'),
+    sb
+      .from('firms')
+      .select('id, name, slug, created_at, status')
+      .gte('created_at', since7d)
+      .order('created_at', { ascending: false })
+      .limit(15),
   ]);
 
   if (firmsRes.error) throw firmsRes.error;
@@ -78,7 +122,10 @@ async function getOverview() {
   const lockedCount = lockedRes.error ? null : lockedRes.count;
   const trialsExpiring7d = trialsRes.error ? null : trialsRes.count;
   const suspendedFirms = suspendedRes.error ? null : suspendedRes.count;
+  const firmsNew24h = new24Res.error ? null : new24Res.count;
+  const firmsNew7d = new7dRes.error ? null : new7dRes.count;
   const auditEventsLast24h = auditRes.count ?? 0;
+  const authzFailures24h = authzFailRes.error ? null : authzFailRes.count;
 
   const anomalies = [];
   if (lockedCount != null && lockedCount > 0) {
@@ -89,6 +136,26 @@ async function getOverview() {
       href: '/app/ops/logins',
     });
   }
+
+  const spikeRows = failSpikeRes.error ? [] : failSpikeRes.data || [];
+  if (spikeRows.length > 0) {
+    anomalies.push({
+      code: 'LOGIN_FAIL_SPIKE',
+      severity: 'high',
+      message: `${spikeRows.length} conta(s) com ≥5 falhas de login na última hora`,
+      href: '/app/ops/logins',
+    });
+  }
+
+  if (authzFailures24h != null && authzFailures24h >= 30) {
+    anomalies.push({
+      code: 'AUTHZ_SPIKE',
+      severity: 'medium',
+      message: `${authzFailures24h} eventos de authz/login falhado no audit (24h)`,
+      href: '/app/ops/audit',
+    });
+  }
+
   if (auditEventsLast24h >= 200) {
     anomalies.push({
       code: 'AUDIT_SPIKE',
@@ -97,6 +164,23 @@ async function getOverview() {
       href: '/app/ops/audit',
     });
   }
+
+  if (firmsNew24h != null && firmsNew24h >= 5) {
+    anomalies.push({
+      code: 'FIRM_REGISTER_BURST',
+      severity: 'high',
+      message: `${firmsNew24h} gabinete(s) registado(s) nas últimas 24h`,
+      href: '/app/ops/firms',
+    });
+  } else if (firmsNew24h != null && firmsNew24h > 0) {
+    anomalies.push({
+      code: 'FIRMS_NEW_24H',
+      severity: 'low',
+      message: `${firmsNew24h} gabinete(s) novo(s) nas últimas 24h`,
+      href: '/app/ops/firms',
+    });
+  }
+
   if (trialsExpiring7d != null && trialsExpiring7d > 0) {
     anomalies.push({
       code: 'TRIALS_EXPIRING',
@@ -114,6 +198,16 @@ async function getOverview() {
     });
   }
 
+  const recentFirms = (recentFirmsRes.error ? [] : recentFirmsRes.data || []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    createdAt: row.created_at,
+    status: row.status || null,
+    isNew24h: isNewFirm(row.created_at, 24),
+    isNew7d: isNewFirm(row.created_at, 24 * 7),
+  }));
+
   return {
     firmsTotal: firmsRes.count ?? 0,
     activeFirmUsers: usersRes.count ?? 0,
@@ -121,6 +215,10 @@ async function getOverview() {
     lockedAccounts: lockedCount,
     trialsExpiring7d,
     suspendedFirms,
+    firmsNew24h,
+    firmsNew7d,
+    authzFailures24h,
+    recentFirms,
     anomalies,
     generatedAt: new Date().toISOString(),
   };
@@ -162,6 +260,8 @@ async function listFirms({ limit = 50, offset = 0, q = '', status = '' } = {}) {
       trialEndsAt: row.trial_ends_at || null,
       hasPublicSite: Boolean(row.settings?.publicProfile || row.settings?.branding),
       internalOps: row.settings?.internal_ops === true,
+      isNew24h: isNewFirm(row.created_at, 24),
+      isNew7d: isNewFirm(row.created_at, 24 * 7),
     })),
     total: count ?? null,
   };
@@ -262,8 +362,118 @@ async function reactivateFirm(firmId, { actorId, ip } = {}) {
   return { id: updated.id, status: updated.status, already: false };
 }
 
+async function extendFirmTrial(firmId, { days, trialEndsAt, actorId, ip } = {}) {
+  const firm = await firmsRepository.findFirmById(firmId);
+  if (!firm) throw new AppError('Gabinete não encontrado', 404, { code: 'FIRM_NOT_FOUND' });
+  assertNotOpsHostFirm(firm);
+  if (firm.status === 'CANCELLED') {
+    throw new AppError('Gabinete cancelado — não é possível estender trial', 400, {
+      code: 'FIRM_CANCELLED',
+    });
+  }
+
+  let nextEndsAt = null;
+  if (trialEndsAt != null && String(trialEndsAt).trim()) {
+    const parsed = new Date(String(trialEndsAt).trim());
+    if (Number.isNaN(parsed.getTime())) {
+      throw new AppError('trialEndsAt inválido', 400, { code: 'VALIDATION_ERROR' });
+    }
+    nextEndsAt = parsed.toISOString();
+  } else {
+    const n = Number(days);
+    if (!Number.isFinite(n) || n < 1 || n > 365) {
+      throw new AppError('Indique days (1–365) ou trialEndsAt', 400, { code: 'VALIDATION_ERROR' });
+    }
+    const base =
+      firm.trialEndsAt && new Date(firm.trialEndsAt).getTime() > Date.now()
+        ? new Date(firm.trialEndsAt)
+        : new Date();
+    base.setUTCDate(base.getUTCDate() + Math.floor(n));
+    nextEndsAt = base.toISOString();
+  }
+
+  const previousTrialEndsAt = firm.trialEndsAt || null;
+  const previousStatus = firm.status;
+  const shouldSetTrial = firm.status === 'ACTIVE' || firm.status === 'TRIAL' || firm.status === 'SUSPENDED';
+  const updated = await firmsRepository.setFirmTrial(firmId, {
+    trialEndsAt: nextEndsAt,
+    status: shouldSetTrial && firm.status !== 'SUSPENDED' ? 'TRIAL' : undefined,
+  });
+
+  await auditRepository.writeAuditLog({
+    firmId: null,
+    actorRole: 'PLATFORM_OPS',
+    actorId: actorId || null,
+    action: 'platform_ops.firm.extend_trial',
+    entityType: 'firm',
+    entityId: firmId,
+    metadata: {
+      slug: firm.slug,
+      previousTrialEndsAt,
+      trialEndsAt: nextEndsAt,
+      previousStatus,
+      days: days != null ? Number(days) : null,
+    },
+    ipAddress: ip || null,
+  });
+
+  return {
+    id: updated.id,
+    status: updated.status,
+    trialEndsAt: updated.trialEndsAt,
+  };
+}
+
+async function cancelFirm(firmId, { confirmName, actorId, ip } = {}) {
+  const firm = await firmsRepository.findFirmById(firmId);
+  if (!firm) throw new AppError('Gabinete não encontrado', 404, { code: 'FIRM_NOT_FOUND' });
+  assertNotOpsHostFirm(firm);
+
+  if (firm.status === 'CANCELLED') {
+    return { id: firm.id, status: firm.status, already: true };
+  }
+
+  const expected = String(firm.name || '').trim();
+  const got = String(confirmName || '').trim();
+  if (!got || got !== expected) {
+    throw new AppError(`Escreva exactamente "${expected}" para confirmar o cancelamento.`, 400, {
+      code: 'CONFIRM_NAME_MISMATCH',
+    });
+  }
+
+  const firmUsersRepository = require('../../db/supabase/repositories/firm-users.repository');
+  const authRefreshSessionsRepository = require('../../db/supabase/repositories/auth-refresh-sessions.repository');
+
+  await firmsRepository.setFirmStatus(firmId, 'CANCELLED');
+  await firmUsersRepository.deactivateAllFirmUsers(firmId);
+
+  const team = await firmUsersRepository.listFirmUsers(firmId, { activeOnly: false });
+  await Promise.all(
+    (team || []).map((u) => authRefreshSessionsRepository.deleteAllForActor('firm_user', u.id)),
+  );
+
+  await auditRepository.writeAuditLog({
+    firmId: null,
+    actorRole: 'PLATFORM_OPS',
+    actorId: actorId || null,
+    action: 'platform_ops.firm.cancel',
+    entityType: 'firm',
+    entityId: firmId,
+    metadata: {
+      slug: firm.slug,
+      previousStatus: firm.status,
+      usersDeactivated: (team || []).length,
+      sessionsRevoked: true,
+    },
+    ipAddress: ip || null,
+  });
+
+  return { id: firmId, status: 'CANCELLED', already: false };
+}
+
 async function listLoginAttempts({ limit = 50, offset = 0, lockedOnly = false } = {}) {
   const sb = ensureSb();
+  const { resolveIpGeoMany, normalizeIp } = require('./ip-geo.service');
   const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 100);
   const safeOffset = Math.max(Number(offset) || 0, 0);
   let query = sb
@@ -279,15 +489,29 @@ async function listLoginAttempts({ limit = 50, offset = 0, lockedOnly = false } 
   const { data, error, count } = await query;
   if (error) throw error;
 
+  const rows = data || [];
+  let geoMap = new Map();
+  try {
+    geoMap = await resolveIpGeoMany(rows.map((r) => r.last_ip));
+  } catch {
+    geoMap = new Map();
+  }
+
   return {
-    items: (data || []).map((row) => ({
-      accountKey: row.account_key,
-      failedCount: row.failed_count,
-      lockedUntil: row.locked_until,
-      lastAttemptAt: row.last_attempt_at,
-      lastIp: row.last_ip || null,
-      updatedAt: row.updated_at,
-    })),
+    items: rows.map((row) => {
+      const key = normalizeIp(row.last_ip);
+      const geo = key ? geoMap.get(key) : null;
+      return {
+        accountKey: row.account_key,
+        failedCount: row.failed_count,
+        lockedUntil: row.locked_until,
+        lastAttemptAt: row.last_attempt_at,
+        lastIp: row.last_ip || null,
+        countryCode: geo?.countryCode || null,
+        countryName: geo?.countryName || null,
+        updatedAt: row.updated_at,
+      };
+    }),
     total: count ?? null,
   };
 }
@@ -391,11 +615,12 @@ async function exportCsv(kind, { q, status, action, firmId, since, lockedOnly } 
       filename: `ops-logins-${Date.now()}.csv`,
       contentType: 'text/csv; charset=utf-8',
       body: toCsv(
-        ['accountKey', 'failedCount', 'lastIp', 'lockedUntil', 'lastAttemptAt'],
+        ['accountKey', 'failedCount', 'lastIp', 'countryCode', 'lockedUntil', 'lastAttemptAt'],
         items.map((r) => ({
           accountKey: r.accountKey,
           failedCount: r.failedCount,
           lastIp: r.lastIp,
+          countryCode: r.countryCode,
           lockedUntil: r.lockedUntil,
           lastAttemptAt: r.lastAttemptAt,
         })),
@@ -412,6 +637,8 @@ module.exports = {
   getFirmDetail,
   suspendFirm,
   reactivateFirm,
+  extendFirmTrial,
+  cancelFirm,
   listAuditLogs,
   listLoginAttempts,
   clearLoginLockout,

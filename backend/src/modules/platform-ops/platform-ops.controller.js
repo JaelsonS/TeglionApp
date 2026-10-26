@@ -79,6 +79,44 @@ exports.reactivateFirm = async (req, res, next) => {
   }
 };
 
+exports.extendFirmTrial = async (req, res, next) => {
+  try {
+    const data = await platformOpsService.extendFirmTrial(req.params.firmId, {
+      days: req.body?.days,
+      trialEndsAt: req.body?.trialEndsAt,
+      actorId: req.platformOps?.userId,
+      ip: req.platformOps?.ip,
+    });
+    return res.json({ ok: true, ...data });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.cancelFirm = async (req, res, next) => {
+  try {
+    const data = await platformOpsService.cancelFirm(req.params.firmId, {
+      confirmName: req.body?.confirmName,
+      actorId: req.platformOps?.userId,
+      ip: req.platformOps?.ip,
+    });
+    return res.json({ ok: true, ...data });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.sentryIssues = async (req, res, next) => {
+  try {
+    const sentryOps = require('./sentry-ops.service');
+    const data = await sentryOps.listRecentIssues({ limit: req.query.limit });
+    await auditPlatformOpsView(req, 'platform_ops.sentry_view');
+    return res.json(data);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.auditLogs = async (req, res, next) => {
   try {
     const data = await platformOpsService.listAuditLogs({
