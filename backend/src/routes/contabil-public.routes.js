@@ -16,7 +16,7 @@ const pricingController = require('../modules/public/pricing.controller');
 const supportController = require('../modules/public/support.controller');
 const serviceIntakeController = require('../modules/public/service-intake-public.controller');
 const { createRateLimitStore } = require('../utils/rate-limit-store');
-const { uploadSingle } = require('../middlewares/upload.middleware');
+const { uploadPublicIntakeSingle } = require('../middlewares/upload.middleware');
 const { requireTurnstile } = require('../middlewares/turnstile.middleware');
 const { TURNSTILE_ACTIONS } = require('../services/turnstile/turnstile-actions');
 
@@ -215,7 +215,7 @@ router.post(
   intakeUploadLimiter,
   // Multer primeiro: FormData precisa de ser parseado para o Turnstile ler o token no body.
   // Autorização continua a ser o token opaco (handler) — Turnstile é camada anti-bot, não substituto.
-  uploadSingle('file'),
+  uploadPublicIntakeSingle('file'),
   requireTurnstile({ action: TURNSTILE_ACTIONS.PORTAL_UPLOAD }),
   serviceIntakeController.tokenValidators,
   serviceIntakeController.uploadByToken,

@@ -655,34 +655,15 @@ export function ServiceIntakePublicPage() {
         ) : null}
 
         {!calendarFirst && step === 2 && service.requiresBooking ? (
-          <label className="block space-y-1 text-sm">
-            <span className="font-medium">Horário *</span>
-            {slotsQuery.isLoading ? (
-              <p className="text-sm text-muted-foreground">A carregar horários disponíveis…</p>
-            ) : (slotsQuery.data?.slots.length ?? 0) === 0 ? (
-              <p className="text-sm text-muted-foreground">Sem horários disponíveis de momento.</p>
-            ) : (
-              <select
-                className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
-                value={scheduledAt}
-                onChange={(e) => setScheduledAt(e.target.value)}
-              >
-                <option value="">Escolha um horário…</option>
-                {slotsQuery.data?.slots.map((iso) => (
-                  <option key={iso} value={iso}>
-                    {new Date(iso).toLocaleString('pt-PT', {
-                      weekday: 'short',
-                      day: '2-digit',
-                      month: 'short',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      timeZone: 'Europe/Lisbon',
-                    })}
-                  </option>
-                ))}
-              </select>
-            )}
-          </label>
+          <div className="space-y-2">
+            <p className="text-sm font-medium">Escolha um horário *</p>
+            <PublicSlotCalendar
+              slots={slotsQuery.data?.slots ?? []}
+              loading={slotsQuery.isLoading}
+              value={scheduledAt}
+              onChange={setScheduledAt}
+            />
+          </div>
         ) : null}
 
         {step === questionsStep ? questionsFields : null}

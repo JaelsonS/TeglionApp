@@ -37,6 +37,22 @@ const ALLOWED_MIMES = {
   'application/x-zip-compressed': ['.zip'],
 };
 
+/**
+ * Upload público (token de solicitação): sem ZIP (pode esconder malware) e sem
+ * Office antigo (.doc/.xls — macros). PDF, imagens, DOCX/XLSX e CSV bastam.
+ */
+const PUBLIC_INTAKE_ALLOWED_MIMES = {
+  'image/jpeg': ['.jpg', '.jpeg'],
+  'image/png': ['.png'],
+  'image/webp': ['.webp'],
+  'image/gif': ['.gif'],
+  'application/pdf': ['.pdf'],
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+  'text/csv': ['.csv'],
+  'text/plain': ['.txt', '.csv'],
+};
+
 function isAllowedMime(mime) {
   if (!mime) return false;
   return mime.toLowerCase() in ALLOWED_MIMES;
@@ -262,7 +278,31 @@ function uploadSaftSingle(fieldName = 'file') {
   };
 }
 
+const uploadPublicIntake = multer({
+  storage: memoryStorage,
+  limits: {
+    fileSize: maxFileSizeBytes(),
+  },
+  fileFilter: (req, file, cb) => {
+    const mime = (file?.mimetype || '').toLowerCase();
+    const exts = PUBLIC_INTAKE_ALLOWED_MIMES[mime];
+    if (!exts) {
+      const err = `Tipo "${mime}" não permitido no portal. Use PDF, imagem, Word (.docx), Excel (.xlsx) ou CSV.`;
+      logger.warn(`[UPLOAD public-intake] Rejeitado: ${err}`);
+      return cb(new Error(err), false);
+    }
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    if (!exts.includes(ext)) {
+      const err = `Extensão "${ext}" não permitida para este tipo de ficheiro.`;
+      logger.warn(`[UPLOAD public-intake] Rejeitado: ${err}`);
+      return cb(new Error(err), false);
+    }
+    cb(null, true);
+  },
+});
+
 const uploadSingle = (fieldName = 'file') => wrapMulter(upload.single(fieldName));
+const uploadPublicIntakeSingle = (fieldName = 'file') => wrapMulter(uploadPublicIntake.single(fieldName));
 const uploadFields = (fields) => wrapMulter(upload.fields(fields));
 const uploadAvatarSingle = (fieldName = 'logo') => wrapMulter(uploadAvatar.single(fieldName));
 
@@ -272,6 +312,7 @@ module.exports = {
   sanitizeFilename,
   optionalSingle,
   uploadSingle,
+  uploadPublicIntakeSingle,
   uploadCsvSingle,
   uploadSaftSingle,
   uploadFields,
@@ -284,4 +325,5 @@ module.exports = {
   validateMimeAndExt,
   validateMagicBytes,
   ALLOWED_MIMES,
+  PUBLIC_INTAKE_ALLOWED_MIMES,
 };
