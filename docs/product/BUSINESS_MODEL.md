@@ -6,7 +6,19 @@
 
 Assinatura mensal ou anual paga pelo escritório de contabilidade — não pelo cliente final dele. É um modelo B2B simples: o escritório paga para usar a plataforma, e o portal do cliente final vem incluído nesse acesso, sem cobrança separada.
 
-Hoje tenho um único plano, dois ciclos de cobrança: 35€/mês no mensal, 359,88€/ano no anual (equivalente a 29,99€/mês), com 14 dias de teste grátis sem pedir cartão. Sem diferenciação de recurso — todo escritório com assinatura ativa tem acesso ao mesmo conjunto de funcionalidades. Já implementei e verifiquei na auditoria de 12/08/2026 o fluxo completo de checkout até assinatura ativa, o portal de autoatendimento para o escritório gerenciar a própria assinatura, o processamento de webhook com verificação de assinatura e proteção real contra reprocessamento duplicado — nada disso é maquete. Reavalio o acesso ao produto a cada renovação de sessão, então uma mudança de status de pagamento se reflete rápido. A calculadora de preço nunca fica fixa em código — vem de configuração central, o padrão que considero correto para evitar preço divergente entre o site, o app e o Stripe.
+### Preços promocionais de lançamento (actuais)
+
+| Ciclo | Valor | Nota |
+|-------|-------|------|
+| Trial | 14 dias · 0 € | Sem cartão · produto completo |
+| Mensal | **35,00 € / mês** | Por gabinete · IVA à parte se aplicável |
+| Anual | **359,88 € / ano** (equiv. **29,99 € / mês**) | ~2 meses grátis vs mensal |
+
+**Regra comercial de lançamento (copy pública):** estes valores são **promocionais de lançamento** e **vão subir**. Quem aderir neste preço **mantém esse valor enquanto a subscrição estiver activa** (grandfathering). Novos gabinetes, após o período promocional, entram na grelha sustentável.
+
+**Porquê sobem:** 35 €/mês não cobre de forma sustentável infraestrutura (Supabase Pro, Render, Stripe, Brevo, Vercel), suporte PT, evolução do produto e — no futuro — custos de software certificado AT (processo, manutenção, responsabilidade). O lançamento barato serve para **atrair e reter early adopters**; o preço de tabela tem de pagar o Teglion completo.
+
+Hoje tenho um único plano, dois ciclos de cobrança, com 14 dias de teste grátis sem pedir cartão. Sem diferenciação de recurso — todo escritório com assinatura ativa tem acesso ao mesmo conjunto de funcionalidades. Já implementei e verifiquei na auditoria de 12/08/2026 o fluxo completo de checkout até assinatura ativa, o portal de autoatendimento para o escritório gerenciar a própria assinatura, o processamento de webhook com verificação de assinatura e proteção real contra reprocessamento duplicado — nada disso é maquete. Reavalio o acesso ao produto a cada renovação de sessão, então uma mudança de status de pagamento se reflete rápido. A calculadora de preço nunca fica fixa em código — vem de configuração central, o padrão que considero correto para evitar preço divergente entre o site, o app e o Stripe.
 
 ### O que precisa de atenção antes de cobrar em escala
 
@@ -24,9 +36,36 @@ O código de billing está pronto para cobrar cliente real. O que falta não é 
 
 Diferenciar por tier (mais clientes, mais usuários, mais armazenamento, recursos avançados) só faz sentido, pra mim, quando existe uma base de clientes grande o bastante para a segmentação ser real, não hipotética. Lançar múltiplos planos cedo demais, sem entender o que cada perfil de escritório realmente valoriza, é mais chute que estratégia.
 
+## Forma de pagamento completa do Teglion (modelo alvo)
+
+Três motores de receita — já alinhados à arquitectura (ver também `V10_OPS_FISCAL_CHARTER.md`):
+
+| Motor | Quem paga | Quem recebe | Estado |
+|-------|-----------|-------------|--------|
+| **A. Plano SaaS** | Gabinete → AfDigital | Subscrição Stripe Billing | **Implementado** (preço lançamento) |
+| **B. Cliente → gabinete** | Cliente final | Conta Stripe Connect do gabinete | **Implementado** (opcional) |
+| **C. Taxa plataforma Connect** | Retida no pagamento B | AfDigital (~2% default) | **Implementado** (env) |
+
+**Não misturar na copy:** avenças/carteira ≠ Connect ≠ Plano Teglion.
+
+### Grelha sustentável recomendada (pós-lançamento — decisão comercial a confirmar)
+
+Valores **indicativos** (ordem de grandeza PT, gabinetes 1–15 pessoas). Confirmar com Liliane / margem real de infra antes de publicar:
+
+| Plano | Mensal | Anual (≈ /mês) | O que inclui | Não inclui |
+|-------|--------|----------------|--------------|------------|
+| **Gabinete** (tabela) | **79 €** | **790 €/ano (~66 €)** | Tudo o que o menu firm já tem hoje (painel, portal, página pública, docs, tarefas, agenda, IRS, serviços, calendário fiscal, calculadoras simulação, carteira, SAF-T consulta, mensagens, alertas, notícias) | Emissão certificada AT |
+| **Gabinete + volume** (opcional) | **119 €** | **1 190 €/ano (~99 €)** | Igual + limites altos (clientes/storage/equipa) + suporte prioritário | AT certificado |
+| **Add-on Fiscal certificado** *(só depois de processo oficial)* | **+150–250 €** | proporcional | Webservice AT / ATCUD / séries — **quando** existir investimento + jurídico + certificação | Não vender antes de existir |
+| **Enterprise** | sob consulta | — | SSO avançado, SLA, integrações, onboarding | — |
+
+**Early adopters (lançamento 35 € / 29,99 €):** ficam no preço de adesão (grandfather) no plano Gabinete funcional; upgrades futuros (ex. add-on AT) são opcionais e cobrados à parte.
+
+**Princípio:** o SaaS base deve pagar-se sozinho **sem** AT. A certificação AT é **camada premium de compliance** — nunca embutida “de borla” no preço de lançamento, nunca anunciada antes de existir.
+
 ## A estrutura de planos futuros — PLANEJADO, nada implementado
 
-Sem preço definido. O que documento aqui é a lógica de segmentação, não um valor em euros — os nomes abaixo são placeholders meus, o que importa é o conceito de cada degrau, não o rótulo.
+Sem preço de tabela sustentável ainda publicado no Stripe. O que documento aqui é a lógica de segmentação + a grelha indicativa acima — os nomes abaixo são placeholders; o que importa é o conceito de cada degrau.
 
 **FREE/TRIAL** — o que já tenho hoje: acesso completo por tempo limitado, sem cartão, para o escritório validar o produto antes de decidir.
 

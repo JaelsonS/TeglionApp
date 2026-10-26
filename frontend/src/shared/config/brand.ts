@@ -30,6 +30,8 @@ export const BRAND = {
   assets: {
     icon: '/icons/icon.svg',
     wordmark: '/icons/wordmark.svg',
+    /** Wordmark para fundos escuros (landing hero / header). */
+    wordmarkOnDark: '/icons/wordmark-on-dark.svg',
     ogImage: '/og/teglion-og.png',
   },
 } as const

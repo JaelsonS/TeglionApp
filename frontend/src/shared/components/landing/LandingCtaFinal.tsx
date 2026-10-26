@@ -5,23 +5,20 @@ import { FadeInView } from '@/shared/components/landing/FadeInView'
 
 export function LandingCtaFinal() {
   return (
-    <section className="landing-section !py-0">
+    <section className="landing-section !py-0 pb-12 sm:pb-16">
       <FadeInView className="landing-container">
-        <div className="landing-cta-panel rounded-[14px] bg-gradient-to-br from-[#0B3A6E] via-[#153552] to-[#1a3a5c] px-8 py-16 text-center sm:px-14 sm:py-20">
-          <h2 className="text-3xl font-semibold text-white sm:text-4xl">
-            Experimente o Teglion no seu gabinete esta semana
+        <div className="landing-cta-panel px-8 py-14 text-center sm:px-14 sm:py-16">
+          <h2 className="text-3xl leading-tight text-white sm:text-4xl md:text-[2.75rem]">
+            Põe o gabinete inteiro no mesmo sistema.
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-white/75">
-            Crie a conta, publique a página, configure serviços e convide um cliente. Documentos,
-            prazos e cobranças no mesmo fluxo — 14 dias, sem cartão.
+          <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-white/70 sm:text-base">
+            14 dias com o produto completo. Sem cartão, sem fidelização. Preços promocionais de
+            lançamento — quem aderir agora mantém o valor enquanto a conta estiver activa.
           </p>
-          <Link
-            to={authFirmRegisterUrl()}
-            className="landing-btn-primary mt-8 inline-flex bg-white px-10 py-3.5 text-[#0B3A6E] hover:bg-[#FAFAF7] hover:scale-[1.02]"
-          >
-            Começar o teste gratuito agora
+          <Link to={authFirmRegisterUrl()} className="landing-btn-primary mt-8 inline-flex px-10">
+            Começar o teste gratuito
           </Link>
-          <p className="mt-4 text-sm text-white/65">Sem compromisso. Sem fidelização.</p>
+          <p className="mt-4 text-sm text-white/50">Sem compromisso. Cancela quando quiser.</p>
         </div>
       </FadeInView>
     </section>
