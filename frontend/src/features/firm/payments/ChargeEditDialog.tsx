@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CheckCircle2, FileText, Loader2, Trash2 } from 'lucide-react'
+import { CheckCircle2, Copy, FileText, Loader2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 
@@ -62,6 +62,9 @@ export function ChargeEditDialog({
   const [notes, setNotes] = useState('')
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [replicateFrom, setReplicateFrom] = useState('')
+  const [replicateTo, setReplicateTo] = useState('')
+  const [replicating, setReplicating] = useState(false)
 
   useEffect(() => {
     if (!charge) return
@@ -71,7 +74,45 @@ export function ChargeEditDialog({
     setDueDate(charge.dueDate ? String(charge.dueDate).slice(0, 10) : '')
     setNotes(charge.notes || '')
     setConfirmDelete(false)
+    const ym = charge.yearMonth || ''
+    const year = ym.slice(0, 4) || String(new Date().getFullYear())
+    setReplicateFrom(`${year}-01`)
+    setReplicateTo(`${year}-12`)
   }, [charge])
+
+  async function replicateToMonths() {
+    if (!charge?.clientId) {
+      toast.error('Cliente em falta nesta avença')
+      return
+    }
+    if (!replicateFrom || !replicateTo) {
+      toast.error('Indique o intervalo De–Até')
+      return
+    }
+    setReplicating(true)
+    try {
+      const res = await contabilFeeChargesApi.replicate({
+        clientId: charge.clientId,
+        fromYearMonth: replicateFrom,
+        toYearMonth: replicateTo,
+        amountCents: Math.round(euros * 100),
+        status,
+        paymentMethod: method || null,
+        overwriteDrafts: true,
+      })
+      const parts = [
+        res.createdCount ? `${res.createdCount} criadas` : null,
+        res.updatedCount ? `${res.updatedCount} rascunhos actualizados` : null,
+        res.skippedCount ? `${res.skippedCount} ignoradas (já pagas/confirmadas)` : null,
+      ].filter(Boolean)
+      toast.success(parts.length ? parts.join(' · ') : 'Nada a alterar neste intervalo')
+      onSaved()
+    } catch (err) {
+      toast.error('Não foi possível replicar', { description: getErrorMessage(err) })
+    } finally {
+      setReplicating(false)
+    }
+  }
 
   async function persist(next: Record<string, unknown>, successMsg: string) {
     if (!charge) return
@@ -246,6 +287,50 @@ export function ChargeEditDialog({
               placeholder="Opcional"
             />
           </label>
+
+          <div className="space-y-3 rounded-xl border border-brand/25 bg-brand/5 px-3 py-3">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Replicar para outros meses</p>
+              <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                Copia o valor e o estado desta avença para o intervalo (ex. Jan–Dez). Cria meses em
+                falta e actualiza rascunhos — não altera meses já pagos ou confirmados.
+              </p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label className="block space-y-1 text-sm">
+                <span className="font-medium">De</span>
+                <Input
+                  type="month"
+                  value={replicateFrom}
+                  onChange={(e: FormChangeEvent) => setReplicateFrom(e.target.value)}
+                  disabled={replicating || saving}
+                />
+              </label>
+              <label className="block space-y-1 text-sm">
+                <span className="font-medium">Até</span>
+                <Input
+                  type="month"
+                  value={replicateTo}
+                  onChange={(e: FormChangeEvent) => setReplicateTo(e.target.value)}
+                  disabled={replicating || saving}
+                />
+              </label>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-brand/40"
+              onClick={() => void replicateToMonths()}
+              disabled={replicating || saving || !charge}
+            >
+              {replicating ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Copy className="mr-2 h-4 w-4" aria-hidden />
+              )}
+              Replicar para estes meses
+            </Button>
+          </div>
 
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-xs leading-relaxed text-slate-700">
             <p className="font-semibold text-slate-900">Recibo interno</p>

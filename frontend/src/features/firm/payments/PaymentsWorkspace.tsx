@@ -225,7 +225,7 @@ export function PaymentsWorkspace() {
     <FirmModuleShell
       className="cb-payments-shell cb-payments-page-scroll"
       title="Pagamentos (carteira)"
-      subtitle="Operação real do gabinete: quem pagou, quem deve, e acções em cada mês — sem sair da página."
+      subtitle="Defina a avença no cliente (valor + início/fim). Depois replique para todos os meses e clientes activos — sem preencher célula a célula."
       headerRight={
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => setYear((y) => y - 1)}>
@@ -236,7 +236,7 @@ export function PaymentsWorkspace() {
             <ChevronRight className="h-4 w-4" aria-hidden />
           </Button>
           <Button type="button" size="sm" onClick={() => setGenerateOpen(true)}>
-            Gerar mês
+            Replicar avenças
           </Button>
         </div>
       }
@@ -261,20 +261,19 @@ export function PaymentsWorkspace() {
         </div>
       ) : null}
 
-      {!mapQuery.isLoading && data && !hasAnyCharge ? (
-        <div className="cb-payments-empty-banner" data-testid="payments-empty-banner">
-          <div className="min-w-0 flex-1">
-            <p className="font-semibold text-foreground">Ainda sem avenças neste mapa</p>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              Abra um cliente, defina o valor mensal e active a avença — depois use «Gerar mês», ou
-              clique em «+» numa célula para criar só esse mês.
-            </p>
-          </div>
-          <Button type="button" onClick={() => setGenerateOpen(true)}>
-            Gerar mês
-          </Button>
+      <div className="cb-payments-empty-banner border-brand/20 bg-brand/5" data-testid="payments-bulk-hint">
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-foreground">Como evitar trabalho mês a mês</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            1) No cliente: valor + início/fim da avença. 2) Aqui: «Replicar avenças» cria Jan–Dez (ou o
+            intervalo) para <strong>todos</strong> os clientes com avença activa. 3) Numa célula
+            aberta: «Replicar para outros meses» copia aquele valor para o resto do ano.
+          </p>
         </div>
-      ) : null}
+        <Button type="button" onClick={() => setGenerateOpen(true)}>
+          Replicar avenças
+        </Button>
+      </div>
 
       <div className="cb-payments-section-host">
         <div className="cb-payments-toolbar">
@@ -419,7 +418,7 @@ export function PaymentsWorkspace() {
                                   className={cn(statusTone(cell.status, cell.overdue))}
                                   onClick={() =>
                                     setEdit({
-                                      charge: cell,
+                                      charge: { ...cell, clientId: cell.clientId || row.clientId },
                                       clientName: row.displayName,
                                       clientTaxId: row.taxId,
                                     })
