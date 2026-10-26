@@ -5182,23 +5182,86 @@
     @apply flex flex-col items-center justify-center p-12 text-center text-muted-foreground;
   }
 
-  /* Configurações — hub com nav lateral + um painel de cada vez */
-  /* Tablet/mobile: Definições também scrollam na página (nav horizontal + painel). */
-  @media (max-width: 1279px) {
-    .cb-settings-layout-page {
-      flex: none;
-      height: auto;
-      min-height: 0;
-    }
+  /* Definições — page-scroll + hub por separador */
+  .cb-settings-page-root,
+  .cb-settings-layout-page,
+  .cb-settings-layout-panel {
+    @apply flex w-full min-w-0 flex-col;
+    flex: none;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
+  }
 
-    .cb-settings-hub-main {
-      overflow: visible;
-      min-height: 0;
-    }
+  .cb-firm-workspace-page.cb-settings-layout-page > .cb-settings-layout-panel {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
+  }
+
+  .cb-settings-hub-main {
+    overflow: visible;
+    min-height: 0;
   }
 
   .cb-settings-page {
-    @apply w-full min-w-0 space-y-5 pb-12 sm:space-y-6;
+    @apply mx-auto w-full max-w-5xl space-y-5 px-4 pb-12 pt-4 sm:space-y-6 sm:px-5;
+  }
+
+  .cb-settings-page:has(.cb-settings-hub-main--public-site) {
+    @apply max-w-6xl;
+  }
+
+  .cb-settings-kpi-strip {
+    @apply grid grid-cols-2 gap-1.5 sm:grid-cols-4;
+  }
+
+  .cb-settings-kpi {
+    @apply flex items-center gap-2.5 rounded-xl border border-border/70 bg-card px-3 py-2.5 text-left shadow-sm transition;
+    @apply hover:border-brand/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30;
+  }
+
+  .cb-settings-kpi--active {
+    @apply border-brand/45 bg-brand/[0.05] ring-1 ring-brand/15;
+  }
+
+  .cb-settings-kpi-icon {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground;
+  }
+
+  .cb-settings-kpi--brand .cb-settings-kpi-icon {
+    @apply bg-brand/10 text-brand;
+  }
+
+  .cb-settings-kpi--emerald .cb-settings-kpi-icon {
+    @apply bg-emerald-100 text-emerald-800;
+  }
+
+  .cb-settings-kpi--amber .cb-settings-kpi-icon {
+    @apply bg-amber-100 text-amber-900;
+  }
+
+  .cb-settings-kpi--muted .cb-settings-kpi-icon {
+    @apply bg-slate-100 text-slate-700;
+  }
+
+  .cb-settings-kpi--emerald {
+    @apply border-emerald-200/70 bg-emerald-50/30;
+  }
+
+  .cb-settings-kpi--amber {
+    @apply border-amber-200/70 bg-amber-50/30;
+  }
+
+  .cb-settings-kpi-value {
+    @apply block truncate text-sm font-bold tracking-tight text-foreground sm:text-base;
+  }
+
+  .cb-settings-kpi-label {
+    @apply block text-xs text-muted-foreground;
   }
 
   .cb-settings-hub {
@@ -5209,8 +5272,20 @@
     @apply gap-5;
   }
 
+  .cb-settings-tabs-wrap {
+    @apply space-y-3 rounded-2xl border border-border/55 bg-card/80 p-3 shadow-sm sm:p-4;
+  }
+
+  .cb-settings-tab-group {
+    @apply space-y-1.5;
+  }
+
+  .cb-settings-tab-group-label {
+    @apply px-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground;
+  }
+
   .cb-settings-tabs {
-    @apply -mx-1 flex max-w-[100vw] flex-nowrap gap-1.5 overflow-x-auto overscroll-x-contain px-1 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0;
+    @apply -mx-0.5 flex max-w-[100vw] flex-nowrap gap-1.5 overflow-x-auto overscroll-x-contain px-0.5 pb-0.5 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
   }
@@ -5220,11 +5295,11 @@
   }
 
   .cb-settings-tab {
-    @apply inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border border-border/55 bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:bg-muted/40 hover:text-foreground sm:text-sm;
+    @apply inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-border/55 bg-background/80 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-border hover:bg-muted/40 hover:text-foreground sm:text-sm;
   }
 
   .cb-settings-tab--active {
-    @apply border-brand/35 bg-brand/[0.08] font-semibold text-brand;
+    @apply border-brand/35 bg-brand/[0.08] font-semibold text-brand shadow-sm;
   }
 
   .cb-settings-tab--danger {
@@ -5788,8 +5863,12 @@
       linear-gradient(180deg, color-mix(in oklab, var(--card) 100%, transparent), color-mix(in oklab, var(--muted) 16%, var(--card)));
   }
 
+  .cb-settings-hub-panel-kicker {
+    @apply text-[0.65rem] font-semibold uppercase tracking-wide text-brand;
+  }
+
   .cb-settings-hub-panel-title {
-    @apply text-lg font-semibold tracking-tight text-foreground;
+    @apply mt-0.5 text-lg font-semibold tracking-tight text-foreground;
   }
 
   .cb-settings-hub-panel-sub {

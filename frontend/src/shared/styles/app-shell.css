@@ -189,7 +189,7 @@
         :has(.cb-calc-layout-page)
       ):not(:has(.cb-billing-layout-page)):not(:has(.cb-alerts-layout-page)):not(
         :has(.cb-news-layout-page)
-      ) {
+      ):not(:has(.cb-settings-layout-page)) {
       overflow: hidden;
       padding-bottom: 0.75rem;
     }
@@ -205,7 +205,7 @@
         :has(.cb-calc-layout-page)
       ):not(:has(.cb-billing-layout-page)):not(:has(.cb-alerts-layout-page)):not(
         :has(.cb-news-layout-page)
-      )
+      ):not(:has(.cb-settings-layout-page))
       > .cb-firm-workspace-page {
       flex: 1 1 0%;
       min-height: 0;
@@ -219,7 +219,9 @@
         .cb-agenda-layout-page
       ):not(.cb-fiscal-cal-layout-page):not(.cb-irs-layout-page):not(.cb-services-layout-page):not(
         .cb-calc-layout-page
-      ):not(.cb-billing-layout-page):not(.cb-alerts-layout-page):not(.cb-news-layout-page)
+      ):not(.cb-billing-layout-page):not(.cb-alerts-layout-page):not(.cb-news-layout-page):not(
+        .cb-settings-layout-page
+      )
       > .cb-firm-operational-panel {
       flex: 1 1 0%;
       min-height: 0;
@@ -241,7 +243,8 @@
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-calc-layout-page),
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-billing-layout-page),
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-alerts-layout-page),
-    .cb-firm-shell .cb-firm-content-wrap:has(.cb-news-layout-page) {
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-news-layout-page),
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-settings-layout-page) {
       overflow-x: hidden;
       overflow-y: auto;
       overscroll-behavior-y: contain;
@@ -262,7 +265,8 @@
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-calc-layout-page) > .cb-calc-layout-page,
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-billing-layout-page) > .cb-billing-layout-page,
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-alerts-layout-page) > .cb-alerts-layout-page,
-    .cb-firm-shell .cb-firm-content-wrap:has(.cb-news-layout-page) > .cb-news-layout-page {
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-news-layout-page) > .cb-news-layout-page,
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-settings-layout-page) > .cb-settings-layout-page {
       flex: none;
       height: auto;
       min-height: 0;
