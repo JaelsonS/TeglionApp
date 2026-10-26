@@ -3,9 +3,12 @@ import { Loader2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 import { platformOpsApi } from '@/infrastructure/api'
+import { authOpsLoginUrl } from '@/shared/constants/authPaths'
+import { useAuth } from '@/shared/hooks/useAuth'
 import { getErrorMessage } from '@/shared/utils/errors'
 
 export function PlatformOpsOverviewPage() {
+  const { user, logout } = useAuth()
   const me = useQuery({ queryKey: ['platform-ops', 'me'], queryFn: () => platformOpsApi.me() })
   const overview = useQuery({
     queryKey: ['platform-ops', 'overview'],
@@ -18,6 +21,7 @@ export function PlatformOpsOverviewPage() {
     const code = String(
       (err as { response?: { data?: { code?: string } } })?.response?.data?.code || '',
     ).toUpperCase()
+    const sessionEmail = String(user?.email || '').trim()
     const hint =
       code === 'PLATFORM_OPS_MFA_REQUIRED'
         ? 'Active a autenticação de dois factores (Definições → Segurança) com a conta allowlist e volte a entrar.'
@@ -26,8 +30,8 @@ export function PlatformOpsOverviewPage() {
           : code === 'PLATFORM_OPS_ALLOWLIST_EMPTY' || code === 'PLATFORM_OPS_ALLOWLIST_INVALID'
             ? 'PLATFORM_OPS_EMAIL_ALLOWLIST deve ter exactamente 1 email (ex.: afdigitalweb.st@gmail.com).'
             : code === 'PLATFORM_OPS_FORBIDDEN'
-              ? 'A sessão actual não é o email da allowlist. Termine sessão e entre com o email autorizado no Control Center.'
-              : 'Confirme: (1) login com o email da allowlist, (2) MFA activo, (3) PLATFORM_OPS_ENABLED=true no Render.'
+              ? `A sessão${sessionEmail ? ` (${sessionEmail})` : ''} não está na allowlist do Render. Confirme PLATFORM_OPS_EMAIL_ALLOWLIST=afdigitalweb.st@gmail.com, saia e entre em /auth/ops/login.`
+              : 'Confirme: (1) login ops com o email allowlist, (2) MFA activo, (3) PLATFORM_OPS_ENABLED=true no Render.'
 
     return (
       <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm">
@@ -38,12 +42,22 @@ export function PlatformOpsOverviewPage() {
           <p className="mt-2 font-mono text-xs text-muted-foreground">código: {code}</p>
         ) : null}
         <div className="mt-3 flex flex-wrap gap-3">
-          <Link to="/app/firm/settings" className="text-brand underline-offset-2 hover:underline">
-            Abrir Definições / MFA
-          </Link>
-          <Link to="/auth/ops/login" className="text-brand underline-offset-2 hover:underline">
-            Login Control Center
-          </Link>
+          {code === 'PLATFORM_OPS_MFA_REQUIRED' ? (
+            <Link to="/app/firm/settings" className="text-brand underline-offset-2 hover:underline">
+              Abrir Definições / MFA
+            </Link>
+          ) : null}
+          <button
+            type="button"
+            className="text-brand underline-offset-2 hover:underline"
+            onClick={() => {
+              void logout().finally(() => {
+                window.location.assign(authOpsLoginUrl())
+              })
+            }}
+          >
+            Sair e entrar no Control Center
+          </button>
         </div>
       </div>
     )
