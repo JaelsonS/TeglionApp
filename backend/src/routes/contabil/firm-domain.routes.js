@@ -970,6 +970,16 @@ router.post(
   serviceInquiriesController.confirmConsultation,
 );
 router.post(
+  '/service-inquiries/:id/reschedule-consultation',
+  requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
+  [
+    body('scheduledAt').isISO8601(),
+    body('notifyChannels').optional().isArray({ max: 2 }),
+    body('notifyChannels.*').optional().isString().isIn(['email', 'sms']),
+  ],
+  serviceInquiriesController.rescheduleConsultation,
+);
+router.post(
   '/service-inquiries/:id/notify-client',
   requirePermission(PERMISSIONS.FIRM_SERVICE_INQUIRIES_MANAGE),
   [

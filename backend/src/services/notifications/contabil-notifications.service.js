@@ -556,6 +556,45 @@ async function notifyLeadConsultationConfirmed({
   });
 }
 
+/** Reagendamento pela equipa — novo horário para o cliente/lead. */
+async function notifyLeadConsultationRescheduled({
+  toEmail,
+  toName,
+  firmName,
+  serviceName,
+  when,
+  previousWhen,
+  accessToken,
+}) {
+  if (!toEmail) return { skipped: true, reason: 'no_email' };
+  const firm = firmName || 'o escritório';
+  const link = accessToken ? serviceIntakeAccessUrl(accessToken) : null;
+  return sendEmail({
+    to: toEmail,
+    subject: `Agendamento reagendado — ${serviceName || 'consulta'} (${firm})`,
+    tags: ['transactional', 'consultation', 'service-intake', 'reschedule'],
+    html: renderTransactionalEmail({
+      preheader: `Novo horário: ${when || 'a sua consulta'}`,
+      title: 'Agendamento reagendado',
+      greeting: `Olá${toName ? ` ${toName}` : ''},`,
+      bodyHtml: `<p style="margin:0 0 12px">O escritório <strong>${escapeHtml(firm)}</strong> reagendou o seu agendamento${serviceName ? ` de <strong>${escapeHtml(serviceName)}</strong>` : ''}.</p>${previousWhen ? `<p style="margin:0 0 8px"><strong>Anterior:</strong> ${escapeHtml(previousWhen)}</p>` : ''}<p style="margin:0"><strong>Novo horário:</strong> ${escapeHtml(when || '—')}</p>`,
+      ctaLabel: link ? 'Ver o meu pedido' : undefined,
+      ctaUrl: link || undefined,
+      footerNote: 'Se não puder neste horário, contacte o escritório.',
+    }),
+    text: [
+      `Olá${toName ? ` ${toName}` : ''},`,
+      '',
+      `O escritório ${firm} reagendou o seu agendamento${serviceName ? ` de ${serviceName}` : ''}.`,
+      previousWhen ? `Anterior: ${previousWhen}` : '',
+      `Novo horário: ${when || '—'}`,
+      link ? `Ver pedido: ${link}` : '',
+      '',
+      'Teglion',
+    ].filter(Boolean).join('\n'),
+  });
+}
+
 async function notifyFirmStaffWelcome({ staffEmail, staffName, firmName }) {
   if (!staffEmail) return { skipped: true };
   const appName = firmName || 'Teglion';
@@ -749,6 +788,7 @@ module.exports = {
   notifyFirmDocumentReceived,
   notifyFirmConsultationBooked,
   notifyLeadConsultationConfirmed,
+  notifyLeadConsultationRescheduled,
   notifyLeadIntakeChecklist,
   notifyLeadIntakeReceived,
   notifyFirmIntakeSubmitted,

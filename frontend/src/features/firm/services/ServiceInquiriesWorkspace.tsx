@@ -28,6 +28,7 @@ import {
   NotifyClientChannelsDialog,
   type NotifyChannel,
 } from '@/features/firm/services/NotifyClientChannelsDialog'
+import { RescheduleConsultationDialog } from '@/features/firm/services/RescheduleConsultationDialog'
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
@@ -57,6 +58,7 @@ const HISTORY_ACTION_LABELS: Record<string, string> = {
   'service_inquiry.document_delivered': 'Documento recebido',
   'service_inquiry.request_answered': 'Resposta recebida do cliente',
   'service_inquiry.consultation_confirmed': 'Agendamento confirmado e cliente notificado',
+  'service_inquiry.consultation_rescheduled': 'Agendamento reagendado',
   'service_inquiry.client_notified': 'Cliente notificado pela equipa',
   'service_inquiry.deleted': 'Solicitação apagada',
 }
@@ -127,6 +129,8 @@ export function ServiceInquiriesWorkspace({ embedded = false }: { embedded?: boo
   const [tagsOpen, setTagsOpen] = useState(false)
   const [savingInquiryTags, setSavingInquiryTags] = useState(false)
   const [confirmingBooking, setConfirmingBooking] = useState(false)
+  const [rescheduleOpen, setRescheduleOpen] = useState(false)
+  const [rescheduling, setRescheduling] = useState(false)
   const [notifyDialog, setNotifyDialog] = useState<null | 'received' | 'docs'>(null)
   const [notifyingClient, setNotifyingClient] = useState(false)
   const [confirmAction, setConfirmAction] = useState<null | 'revoke' | 'delete'>(null)
@@ -431,6 +435,28 @@ export function ServiceInquiriesWorkspace({ embedded = false }: { embedded?: boo
     }
   }
 
+  const rescheduleConsultation = async (payload: {
+    scheduledAt: string
+    notifyChannels: NotifyChannel[]
+  }) => {
+    if (!selectedId) return
+    setRescheduling(true)
+    try {
+      const result = await contabilServiceInquiriesApi.rescheduleConsultation(selectedId, payload)
+      setRescheduleOpen(false)
+      if (!payload.notifyChannels.length) {
+        toast.success('Agendamento reagendado (sem notificar o cliente)')
+      } else {
+        toast.success(`Agendamento reagendado — ${summarizeNotifyDelivery(payload.notifyChannels, result.delivery)}`)
+      }
+      await invalidateLists()
+    } catch (err) {
+      toast.error('Não foi possível reagendar', { description: getErrorMessage(err) })
+    } finally {
+      setRescheduling(false)
+    }
+  }
+
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = { NEW: 0, IN_PROGRESS: 0, COMPLETED: 0, all: items.length }
     for (const it of items) {
@@ -700,14 +726,25 @@ export function ServiceInquiriesWorkspace({ embedded = false }: { embedded?: boo
                   </div>
                   {!TERMINAL_STATUSES.has(detailQuery.data.inquiry.status) &&
                   detailQuery.data.inquiry.consultation.status !== 'CANCELLED' ? (
-                    <Button
-                      type="button"
-                      className="rounded-full"
-                      disabled={confirmingBooking}
-                      onClick={() => void confirmConsultation()}
-                    >
-                      {confirmingBooking ? 'A confirmar…' : 'Confirmar agendamento'}
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        className="rounded-full"
+                        disabled={confirmingBooking || rescheduling}
+                        onClick={() => void confirmConsultation()}
+                      >
+                        {confirmingBooking ? 'A confirmar…' : 'Confirmar agendamento'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="rounded-full"
+                        disabled={confirmingBooking || rescheduling}
+                        onClick={() => setRescheduleOpen(true)}
+                      >
+                        Reagendar
+                      </Button>
+                    </div>
                   ) : null}
                 </div>
               ) : null}
@@ -980,6 +1017,15 @@ export function ServiceInquiriesWorkspace({ embedded = false }: { embedded?: boo
         allowSaveWithoutNotify
         loading={sendingBatch}
         onConfirm={(channels) => void sendDraftBatch(channels)}
+      />
+      <RescheduleConsultationDialog
+        open={rescheduleOpen}
+        onOpenChange={setRescheduleOpen}
+        currentScheduledAt={detailQuery.data?.inquiry.consultation?.scheduledAt}
+        hasEmail={Boolean(contact?.email)}
+        hasPhone={Boolean(contact?.phone)}
+        loading={rescheduling}
+        onConfirm={(payload) => void rescheduleConsultation(payload)}
       />
 
       <ConfirmDialog
