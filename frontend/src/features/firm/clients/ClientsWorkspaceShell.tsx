@@ -8,7 +8,7 @@ import {
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 
 const PAGE_SUBTITLE =
-  'Carteira do gabinete — filtrar, convidar ao portal e abrir o hub de cada empresa.'
+  'Carteira do gabinete — filtrar, convidar ao portal e abrir o hub.'
 
 export function ClientsWorkspaceShell({
   headerRight,
@@ -32,12 +32,9 @@ export function ClientsWorkspaceShell({
       bodyClassName="gap-0 cb-clients-body"
     >
       <ClientsKpiStrip items={kpis} activeId={activeKpiId} onSelect={onKpiSelect} />
-      <p className="cb-clients-section-lead" data-testid="clients-section-lead">
-        <span className="cb-clients-section-lead-title">Carteira do gabinete</span>
-        Toque num KPI ou num chip para filtrar. Em cada cartão: convite ao portal, abrir hub ou
-        seleccionar vários para convite em lote.
-      </p>
-      <div className="cb-clients-section-host">{children}</div>
+      <div className="cb-clients-section-host" data-testid="clients-section-lead">
+        {children}
+      </div>
     </FirmModuleShell>
   )
 }

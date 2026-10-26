@@ -23,27 +23,18 @@ const TABS = [
     title: 'Serviços',
     subtitle:
       'Catálogo geral do gabinete (exclui IRS). Publique para a página pública; pedidos chegam em Solicitações.',
-    leadTitle: 'Catálogo do gabinete',
-    leadDetail:
-      'Activo = na equipa · Publicado = na página pública · IRS = Área IRS · Pedidos do site = Solicitações.',
   },
   {
     id: 'inquiries',
     label: 'Solicitações',
     title: 'Solicitações',
     subtitle: 'Pedidos da página pública — contacte, peça documentos e avance o estado.',
-    leadTitle: 'Captação pública',
-    leadDetail:
-      'Leads e formulários do site. Distinto da Central (clientes da app / carteira).',
   },
   {
     id: 'central',
     label: 'Central',
     title: 'Central de Serviços',
     subtitle: 'Pedidos de clientes da app Teglion (carteira). Captação pública fica em Solicitações.',
-    leadTitle: 'Pipeline interno',
-    leadDetail:
-      'Kanban de pedidos da carteira — orçamentos, PDF e estados. Solicitações são da página pública.',
   },
 ] as const
 
@@ -201,11 +192,6 @@ export function ServicesHubWorkspace() {
           <Inbox className="h-5 w-5 shrink-0 text-amber-800" aria-hidden />
         </div>
       ) : null}
-
-      <p className="cb-services-section-lead">
-        <span className="cb-services-section-lead-title">{activeMeta.leadTitle}</span>
-        {activeMeta.leadDetail}
-      </p>
 
       <div className="cb-services-section-host">
         {activeTab === 'catalog' ? (

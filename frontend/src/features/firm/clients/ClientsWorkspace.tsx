@@ -119,7 +119,11 @@ export function ClientsWorkspace() {
   const [estadoFilter, setEstadoFilter] = useState<EstadoFilter>('ativos')
   const [portalFilter, setPortalFilter] = useState<PortalFilter>('todos')
   const [tagFilter, setTagFilter] = useState('')
-  const [view, setView] = useState<'cards' | 'table'>('cards')
+  const [view, setView] = useState<'cards' | 'table'>(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
+      ? 'cards'
+      : 'table',
+  )
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [selectedMeta, setSelectedMeta] = useState<
@@ -142,6 +146,7 @@ export function ClientsWorkspace() {
     const sync = () => {
       setIsMobile(mq.matches)
       if (mq.matches) setView('cards')
+      else setView((v) => (v === 'cards' ? 'table' : v))
     }
     sync()
     mq.addEventListener('change', sync)
@@ -441,35 +446,15 @@ export function ClientsWorkspace() {
         onKpiSelect={applyKpiFilter}
       >
         <div className="cb-clients-toolbar">
-          <div className="cb-clients-toolbar-row">
-            <div className="cb-clients-search">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="h-9 rounded-lg border-border/80 bg-card pl-9 text-sm"
-                placeholder="Procurar por nome, NIF, email…"
-                value={search}
-                onChange={(e: FormChangeEvent) => setSearch(e.target.value)}
-                aria-label="Procurar clientes"
-              />
-            </div>
-            <div className={cn('cb-clients-view-toggle', isMobile && 'hidden')}>
-              <button
-                type="button"
-                className={cn('cb-clients-view-btn', view === 'cards' && 'cb-clients-view-btn-active')}
-                onClick={() => setView('cards')}
-                aria-label="Vista em cartões"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                className={cn('cb-clients-view-btn', view === 'table' && 'cb-clients-view-btn-active')}
-                onClick={() => setView('table')}
-                aria-label="Vista em tabela"
-              >
-                <List className="h-4 w-4" />
-              </button>
-            </div>
+          <div className="cb-clients-search">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="h-8 rounded-md border-border/80 bg-card pl-8 text-xs"
+              placeholder="Procurar por nome ou NIF…"
+              value={search}
+              onChange={(e: FormChangeEvent) => setSearch(e.target.value)}
+              aria-label="Procurar clientes"
+            />
           </div>
 
           <div className="cb-clients-health-filters" role="group" aria-label="Filtrar por estado">
@@ -487,7 +472,9 @@ export function ClientsWorkspace() {
                 className={cn(
                   'cb-clients-health-chip',
                   `cb-clients-health-chip--${chip.id}`,
-                  estadoFilter === chip.id && portalFilter === 'todos' && 'cb-clients-health-chip--active',
+                  estadoFilter === chip.id &&
+                    portalFilter === 'todos' &&
+                    'cb-clients-health-chip--active',
                 )}
                 onClick={() => {
                   setEstadoFilter(chip.id)
@@ -514,92 +501,77 @@ export function ClientsWorkspace() {
             </button>
           </div>
 
-          <div className="cb-clients-health-filters" role="group" aria-label="Filtrar por tipo">
-            {(
-              [
-                { id: 'todos' as const, label: 'Tipo', count: filterCounts.todos },
-                { id: 'Lda' as const, label: 'Lda', count: filterCounts.byType.Lda },
-                { id: 'SA' as const, label: 'SA', count: filterCounts.byType.SA },
-                { id: 'ENI' as const, label: 'ENI', count: filterCounts.byType.ENI },
-                { id: 'Outro' as const, label: 'Outro', count: filterCounts.byType.Outro },
-              ] as const
-            ).map((chip) => (
-              <button
-                key={chip.id}
-                type="button"
-                className={cn(
-                  'cb-clients-health-chip',
-                  typeFilter === chip.id && 'cb-clients-health-chip--active',
-                )}
-                onClick={() => setTypeFilter(chip.id)}
-              >
-                {chip.label}
-                <span className="cb-clients-health-chip-count">{chip.count}</span>
-              </button>
-            ))}
-          </div>
+          <select
+            className="cb-clients-filter"
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value as TypeFilter)}
+            aria-label="Filtrar por tipo"
+          >
+            <option value="todos">Tipo: Todos</option>
+            <option value="Lda">Lda ({filterCounts.byType.Lda})</option>
+            <option value="SA">SA ({filterCounts.byType.SA})</option>
+            <option value="ENI">ENI ({filterCounts.byType.ENI})</option>
+            <option value="Outro">Outro ({filterCounts.byType.Outro})</option>
+          </select>
 
-          {regimeOptions.length > 0 ? (
-            <div className="cb-clients-health-filters" role="group" aria-label="Filtrar por regime IVA">
-              <button
-                type="button"
-                className={cn(
-                  'cb-clients-health-chip',
-                  regimeFilter === 'todos' && 'cb-clients-health-chip--active',
-                )}
-                onClick={() => setRegimeFilter('todos')}
-              >
-                Regime
-              </button>
-              {regimeOptions.map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  className={cn(
-                    'cb-clients-health-chip',
-                    regimeFilter === r && 'cb-clients-health-chip--active',
-                  )}
-                  onClick={() => setRegimeFilter(r)}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
-          ) : null}
+          <select
+            className="cb-clients-filter"
+            value={regimeFilter}
+            onChange={(e) => setRegimeFilter(e.target.value)}
+            aria-label="Filtrar por regime IVA"
+          >
+            <option value="todos">Regime: Todos</option>
+            {regimeOptions.map((r) => (
+              <option key={r} value={r}>
+                Regime: {r}
+              </option>
+            ))}
+          </select>
 
           {firmTags.length > 0 ? (
-            <div className="cb-clients-health-filters" role="group" aria-label="Filtrar por etiqueta">
-              <button
-                type="button"
-                className={cn(
-                  'cb-clients-health-chip',
-                  !tagFilter && 'cb-clients-health-chip--active',
-                )}
-                onClick={() => setTagFilter('')}
-              >
-                Etiqueta
-              </button>
-              {firmTags.slice(0, 8).map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  className={cn(
-                    'cb-clients-health-chip',
-                    tagFilter === t.id && 'cb-clients-health-chip--active',
-                  )}
-                  onClick={() => setTagFilter(t.id)}
-                >
+            <select
+              className="cb-clients-filter"
+              value={tagFilter}
+              onChange={(e) => setTagFilter(e.target.value)}
+              aria-label="Filtrar por etiqueta"
+            >
+              <option value="">Etiqueta: Todas</option>
+              {firmTags.map((t) => (
+                <option key={t.id} value={t.id}>
                   {t.name}
-                </button>
+                </option>
               ))}
-            </div>
+            </select>
           ) : null}
 
           {hasActiveSecondaryFilters ? (
-            <Button type="button" size="sm" variant="ghost" className="h-8 text-xs" onClick={clearSecondaryFilters}>
-              Limpar tipo / regime / etiqueta
-            </Button>
+            <button
+              type="button"
+              className="cb-clients-clear-filters"
+              onClick={clearSecondaryFilters}
+            >
+              Limpar
+            </button>
           ) : null}
+
+          <div className={cn('cb-clients-view-toggle', isMobile && 'hidden')}>
+            <button
+              type="button"
+              className={cn('cb-clients-view-btn', view === 'table' && 'cb-clients-view-btn-active')}
+              onClick={() => setView('table')}
+              aria-label="Vista em tabela"
+            >
+              <List className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              className={cn('cb-clients-view-btn', view === 'cards' && 'cb-clients-view-btn-active')}
+              onClick={() => setView('cards')}
+              aria-label="Vista em cartões"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         {selected.size > 0 ? (
@@ -648,7 +620,7 @@ export function ClientsWorkspace() {
                 }
               />
             ) : (
-              <div className="space-y-3 pb-2">
+              <div className="space-y-2 pb-2">
                 <div className="cb-clients-select-all">
                   <Checkbox
                     checked={pageItems.length > 0 && pageItems.every((c) => selected.has(c._id))}
