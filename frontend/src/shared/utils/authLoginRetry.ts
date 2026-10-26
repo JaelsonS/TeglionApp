@@ -1,4 +1,5 @@
 import { prefetchAuthCsrf, warmupAuthApi } from '@/infrastructure/api'
+import { clearClientCsrfCache, clearDocumentCsrfCookies } from '@/infrastructure/http/csrf'
 import { AUTH_REQUEST_TIMEOUT_MS, isNoResponseError, withManualTimeout } from '@/shared/utils/requestTimeout'
 
 function sleep(ms: number): Promise<void> {
@@ -7,6 +8,9 @@ function sleep(ms: number): Promise<void> {
 
 /** Pré-aquece CSRF + health da API ao abrir páginas de login (cold start Render). */
 export async function warmupAuthLoginPage(): Promise<void> {
+  // Staging: limpar csrfToken herdado de produção (.teglion.com) antes do /csrf.
+  clearDocumentCsrfCookies()
+  clearClientCsrfCache()
   await Promise.allSettled([prefetchAuthCsrf(), warmupAuthApi()])
 }
 

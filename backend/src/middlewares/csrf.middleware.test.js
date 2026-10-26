@@ -144,7 +144,7 @@ test('CSRF staging: mismatch autenticado SPA → next() (bypass estreito)', () =
   }
 });
 
-test('CSRF staging: mismatch sem sessão → 403', () => {
+test('CSRF staging: mismatch sem sessão em rota autenticada → 403', () => {
   const snapshot = {
     frontend: env.FRONTEND_URL,
     isDevelopment: env.isDevelopment,
@@ -169,6 +169,39 @@ test('CSRF staging: mismatch sem sessão → 403', () => {
     });
     assert.equal(nextCalled, false);
     assert.equal(res.statusCode, 403);
+  } finally {
+    restoreEnv(snapshot);
+  }
+});
+
+test('CSRF staging: mismatch sem sessão em login-firm → next() (public auth)', () => {
+  const snapshot = {
+    frontend: env.FRONTEND_URL,
+    isDevelopment: env.isDevelopment,
+    isProduction: env.isProduction,
+  };
+  env.FRONTEND_URL = 'https://staging.teglion.com';
+  env.isProduction = true;
+  env.isDevelopment = false;
+  try {
+    const req = baseReq({
+      method: 'POST',
+      path: '/api/auth/login-firm',
+      originalUrl: '/api/auth/login-firm',
+      url: '/api/auth/login-firm',
+      cookies: { [CSRF_COOKIE_NAME]: 'b'.repeat(64) },
+      headers: {
+        origin: 'https://staging.teglion.com',
+        'x-requested-with': 'XMLHttpRequest',
+        [CSRF_HEADER_NAME]: 'd'.repeat(64),
+      },
+    });
+    const res = mockRes();
+    let nextCalled = false;
+    csrfProtection(req, res, () => {
+      nextCalled = true;
+    });
+    assert.equal(nextCalled, true);
   } finally {
     restoreEnv(snapshot);
   }
