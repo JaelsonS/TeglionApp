@@ -152,7 +152,7 @@ export function TasksByClientTableView({
         </select>
       </div>
 
-      <div className="cb-tasks-table-wrap cb-table-scroll flex-1">
+      <div className="cb-tasks-table-wrap">
         <table className="cb-tasks-table cb-table-mobile-cards">
           <thead className="cb-tasks-thead">
             <tr>

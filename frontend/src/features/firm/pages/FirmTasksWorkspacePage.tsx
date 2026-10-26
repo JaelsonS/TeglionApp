@@ -299,8 +299,8 @@ export function FirmTasksWorkspacePage() {
   )
 
   return (
-    <FirmWorkspacePage className="cb-tasks-page cb-tasks-layout-page xl:min-h-0 xl:flex-1">
-      <div className="cb-firm-operational-panel cb-tasks-layout-panel flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+    <FirmWorkspacePage className="cb-tasks-page cb-tasks-layout-page">
+      <div className="cb-firm-operational-panel cb-tasks-layout-panel flex w-full min-w-0 flex-col">
       <TasksWorkspaceShell
         activeTab={tab}
         headerAction={headerAction}
