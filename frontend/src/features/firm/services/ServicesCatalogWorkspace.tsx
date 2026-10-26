@@ -375,13 +375,20 @@ export function ServicesCatalogWorkspace({
     [services],
   )
 
-  const models = useMemo(() => {
+  /** Modelos ainda por activar (sem filtro de pesquisa) — decide se a coluna aparece. */
+  const remainingModels = useMemo(() => {
     let items = (catalogQuery.data?.items ?? []).filter((t) => !existingKeys.has(t.catalogKey))
     if (excludeIrs) items = items.filter((t) => !isIrsEntry(t))
-    const q = modelSearch.trim().toLowerCase()
-    if (q) items = items.filter((t) => t.name.toLowerCase().includes(q) || t.catalogKey.includes(q))
     return items
-  }, [catalogQuery.data, existingKeys, excludeIrs, modelSearch])
+  }, [catalogQuery.data, existingKeys, excludeIrs])
+
+  const models = useMemo(() => {
+    const q = modelSearch.trim().toLowerCase()
+    if (!q) return remainingModels
+    return remainingModels.filter((t) => t.name.toLowerCase().includes(q) || t.catalogKey.includes(q))
+  }, [remainingModels, modelSearch])
+
+  const showTemplatesColumn = catalogQuery.isLoading || remainingModels.length > 0
 
   const openEditor = (s: AccountingService | null, hint?: { name?: string; catalogKey?: string } | null) => {
     setEditingService(s)
@@ -468,12 +475,23 @@ export function ServicesCatalogWorkspace({
         <p className="text-sm text-muted-foreground">{description}</p>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
-        <section className="cb-services-panel flex flex-col">
-          <div className="cb-services-panel-hd shrink-0 space-y-2.5 px-4 py-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-sm font-semibold">{title}</h3>
-              <div className="flex items-center gap-1.5">
+      <div
+        className={cn(
+          'grid gap-4 lg:items-start',
+          showTemplatesColumn ? 'lg:grid-cols-2' : 'grid-cols-1',
+        )}
+      >
+        <section className="cb-services-panel cb-services-panel--catalog flex flex-col">
+          <div className="cb-services-panel-hd shrink-0 space-y-3 px-4 py-3.5">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h3 className="text-base font-semibold tracking-tight">{title}</h3>
+                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                  Arraste pela pega para reordenar na página pública. «º» = posição do cartão. Opções
+                  dentro de uma oferta não aparecem como cartão separado.
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-1.5">
                 <Button type="button" size="sm" variant="outline" onClick={() => setGroupsManagerOpen(true)}>
                   <FolderCog className="h-4 w-4" /> Grupos
                 </Button>
@@ -482,35 +500,32 @@ export function ServicesCatalogWorkspace({
                 </Button>
               </div>
             </div>
-            <p className="text-[11px] leading-relaxed text-muted-foreground">
-              Arraste pela pega para reordenar na página pública. «º» = posição do cartão. Opções dentro de uma oferta
-              não aparecem como cartão separado.
-            </p>
             <div className="flex flex-wrap items-center gap-2">
-              <div className="relative min-w-[10rem] flex-1">
+              <div className="relative min-w-[10rem] max-w-md flex-1">
                 <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  className="h-9 rounded-lg border-brand/20 pl-8 text-xs"
+                  className="h-9 rounded-lg border-border/80 bg-background pl-8 text-sm"
                   placeholder="Filtrar por nome…"
                   value={search}
                   onChange={(e: FormChangeEvent) => setSearch(e.target.value)}
+                  aria-label="Filtrar serviços por nome"
                 />
               </div>
-              {(['active', 'all', 'inactive'] as FilterMode[]).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setFilter(mode)}
-                  className={cn(
-                    'rounded-full px-2.5 py-1 text-xs font-semibold transition',
-                    filter === mode
-                      ? 'bg-brand text-white hover:bg-brand/90 hover:text-white'
-                      : 'bg-muted/40 text-muted-foreground hover:text-foreground',
-                  )}
-                >
-                  {mode === 'active' ? 'Activos' : mode === 'inactive' ? 'Inactivos' : 'Todos'}
-                </button>
-              ))}
+              <div className="cb-services-health-filters" role="group" aria-label="Filtrar por estado">
+                {(['active', 'all', 'inactive'] as FilterMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setFilter(mode)}
+                    className={cn(
+                      'cb-services-health-chip',
+                      filter === mode && 'cb-services-health-chip--active',
+                    )}
+                  >
+                    {mode === 'active' ? 'Activos' : mode === 'inactive' ? 'Inactivos' : 'Todos'}
+                  </button>
+                ))}
+              </div>
             </div>
             {search.trim() ? (
               <p className="text-[11px] text-amber-800">
@@ -586,71 +601,84 @@ export function ServicesCatalogWorkspace({
           </div>
         </section>
 
-        <section className="cb-services-panel flex flex-col">
-          <div className="shrink-0 space-y-2.5 border-b border-border/50 bg-gradient-to-r from-sky-500/[0.06] via-card to-card px-4 py-3">
-            <div>
-              <h3 className="text-sm font-semibold">Modelos Teglion</h3>
-              <p className="text-xs text-muted-foreground">
-                Active um modelo — abre de seguida o editor completo para personalizar.
-              </p>
-            </div>
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="h-9 rounded-lg border-brand/20 pl-8 text-xs"
-                placeholder="Pesquisar modelos…"
-                value={modelSearch}
-                onChange={(e: FormChangeEvent) => setModelSearch(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="cb-services-catalog-list min-h-0 overflow-y-auto overscroll-y-contain lg:max-h-[calc(100dvh-16rem)]">
-            {catalogQuery.isLoading ? (
-              <div className="flex h-40 items-center justify-center">
-                <Loader2 className="h-5 w-5 animate-spin text-brand" />
+        {showTemplatesColumn ? (
+          <section
+            className="cb-services-panel cb-services-panel--templates flex flex-col"
+            data-testid="services-catalog-templates-column"
+          >
+            <div className="cb-services-templates-hd shrink-0 space-y-2.5 px-4 py-3.5">
+              <div>
+                <h3 className="text-base font-semibold tracking-tight">Modelos Teglion</h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Active um modelo — abre de seguida o editor completo para personalizar.
+                </p>
               </div>
-            ) : models.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 px-4 py-12 text-center">
-                <CheckCircle2 className="h-7 w-7 text-emerald-600/60" />
-                <p className="text-sm text-muted-foreground">Já activou todos os modelos disponíveis neste filtro.</p>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="h-9 rounded-lg border-border/80 bg-background pl-8 text-sm"
+                  placeholder="Pesquisar modelos…"
+                  value={modelSearch}
+                  onChange={(e: FormChangeEvent) => setModelSearch(e.target.value)}
+                  aria-label="Pesquisar modelos Teglion"
+                />
               </div>
-            ) : (
-              <ul className="divide-y divide-border/40">
-                {models.map((t) => (
-                  <li key={t.catalogKey} className="flex items-center gap-3 px-4 py-3 hover:bg-sky-50/40">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="truncate text-sm font-medium">{t.name}</p>
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-caption font-bold uppercase text-amber-900">
-                          Sugestão
-                        </span>
-                        {t.category ? (
-                          <span className="text-caption text-muted-foreground">{t.category}</span>
-                        ) : null}
-                      </div>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {t.durationMinutes} min · {formatEur(t.priceCents)}
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      className="shrink-0 rounded-full bg-brand"
-                      disabled={busyKey === t.catalogKey}
-                      onClick={() => void activate(t)}
+            </div>
+            <div className="cb-services-catalog-list min-h-0 overflow-y-auto overscroll-y-contain lg:max-h-[calc(100dvh-16rem)]">
+              {catalogQuery.isLoading ? (
+                <div className="flex h-40 items-center justify-center">
+                  <Loader2 className="h-5 w-5 animate-spin text-brand" />
+                </div>
+              ) : models.length === 0 ? (
+                <div className="flex flex-col items-center gap-2 px-4 py-12 text-center">
+                  <CheckCircle2 className="h-7 w-7 text-emerald-600/60" aria-hidden />
+                  <p className="text-sm text-muted-foreground">
+                    {modelSearch.trim()
+                      ? 'Nenhum modelo corresponde à pesquisa.'
+                      : 'Já activou todos os modelos disponíveis.'}
+                  </p>
+                </div>
+              ) : (
+                <ul className="divide-y divide-border/40">
+                  {models.map((t) => (
+                    <li
+                      key={t.catalogKey}
+                      className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-sky-50/50"
                     >
-                      {busyKey === t.catalogKey ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        'Activar e editar'
-                      )}
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </section>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="truncate text-sm font-medium">{t.name}</p>
+                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-caption font-bold uppercase text-amber-900">
+                            Sugestão
+                          </span>
+                          {t.category ? (
+                            <span className="text-caption text-muted-foreground">{t.category}</span>
+                          ) : null}
+                        </div>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {t.durationMinutes} min · {formatEur(t.priceCents)}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="shrink-0"
+                        disabled={busyKey === t.catalogKey}
+                        onClick={() => void activate(t)}
+                      >
+                        {busyKey === t.catalogKey ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          'Activar e editar'
+                        )}
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
+        ) : null}
       </div>
 
       <ServiceFullEditorSheet
