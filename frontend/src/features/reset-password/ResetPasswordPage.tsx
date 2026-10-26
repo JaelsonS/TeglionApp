@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { api } from '@/infrastructure/api'
-import { authClientLoginUrl, authFirmLoginUrl } from '@/shared/constants/authPaths'
+import { authClientLoginUrl, authFirmLoginUrl, authOpsLoginUrl } from '@/shared/constants/authPaths'
 import { normalizeRecoveryProfile, readFirmSlugFromRecoveryContext } from '@/shared/utils/recoveryAuth'
 import { useApiToast } from '@/shared/hooks/useApiToast'
 import { usePasswordStrength } from '@/shared/hooks/usePasswordStrength'
@@ -59,17 +59,26 @@ export function ResetPasswordPage() {
   const token = searchParams.get('token') || ''
   const roleFromState = String((location.state as { role?: string } | null)?.role || '')
   const profile = normalizeRecoveryProfile(roleFromState || searchParams.get('role'))
+  const audienceFromState = String((location.state as { audience?: string } | null)?.audience || '')
+  const isOpsAudience = searchParams.get('audience') === 'ops' || audienceFromState === 'ops'
   const firmSlug = readFirmSlugFromRecoveryContext(
     searchParams,
     (location.state as { firmSlug?: string } | null) ?? null,
   )
-  const backToLogin = profile === 'client' ? authClientLoginUrl(firmSlug) : authFirmLoginUrl()
+  const backToLogin =
+    profile === 'client'
+      ? authClientLoginUrl(firmSlug)
+      : isOpsAudience
+        ? authOpsLoginUrl()
+        : authFirmLoginUrl()
   const recoverUrl =
     profile === 'client'
       ? firmSlug
         ? `/recover-password?role=client&firmSlug=${encodeURIComponent(firmSlug)}`
         : '/recover-password?role=client'
-      : '/recover-password?role=firm'
+      : isOpsAudience
+        ? '/recover-password?role=firm&audience=ops'
+        : '/recover-password?role=firm'
   const [step, setStep] = useState<ResetPasswordStep>({ type: 'initial' })
   const [isValidatingToken, setIsValidatingToken] = useState(true)
   const [turnstileToken, setTurnstileToken] = useState('')

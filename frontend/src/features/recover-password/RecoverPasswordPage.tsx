@@ -11,7 +11,7 @@ import { AuthHeader } from '@/shared/components/auth/AuthHeader'
 import { AuthLayout } from '@/shared/components/auth/AuthLayout'
 import { OfficeScreensCarousel } from '@/shared/components/auth/OfficeScreensCarousel'
 import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
-import { authClientLoginUrl, authFirmLoginUrl } from '@/shared/constants/authPaths'
+import { authClientLoginUrl, authFirmLoginUrl, authOpsLoginUrl } from '@/shared/constants/authPaths'
 import { readFirmSlugFromRecoveryContext } from '@/shared/utils/recoveryAuth'
 import { useApiToast } from '@/shared/hooks/useApiToast'
 import { useAuth } from '@/shared/hooks/useAuth'
@@ -59,6 +59,9 @@ export function RecoverPasswordPage() {
   const roleFromUrl = search.get('role')
   const roleFromState = String((location.state as { role?: string } | null)?.role || '')
   const profile = roleFromUrl === 'client' || roleFromState === 'client' ? 'client' : 'firm'
+  const audienceFromUrl = search.get('audience')
+  const audienceFromState = String((location.state as { audience?: string } | null)?.audience || '')
+  const isOpsAudience = audienceFromUrl === 'ops' || audienceFromState === 'ops'
   const firmSlug = readFirmSlugFromRecoveryContext(
     search,
     (location.state as { firmSlug?: string } | null) ?? null,
@@ -72,7 +75,11 @@ export function RecoverPasswordPage() {
 
   const isReset = Boolean(tokenFromUrl)
   const backToLoginHref =
-    profile === 'client' ? authClientLoginUrl(firmSlug) : authFirmLoginUrl()
+    profile === 'client'
+      ? authClientLoginUrl(firmSlug)
+      : isOpsAudience
+        ? authOpsLoginUrl()
+        : authFirmLoginUrl()
 
   const recoverForm = useForm<RecoverValues>({
     resolver: zodResolver(recoverSchema),

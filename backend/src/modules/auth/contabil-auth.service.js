@@ -712,10 +712,15 @@ function buildInviteUrl(token) {
 
 const RESET_TOKEN_TTL_MS = 15 * 60 * 1000;
 
-function buildPasswordResetUrl(rawToken, userType) {
+function buildPasswordResetUrl(rawToken, userType, { email } = {}) {
   const base = String(env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
   const role = userType === 'client' ? 'client' : 'firm';
-  return `${base}/reset-password?token=${encodeURIComponent(rawToken)}&role=${role}`;
+  let url = `${base}/reset-password?token=${encodeURIComponent(rawToken)}&role=${role}`;
+  // Operador Control Center: após redefinir, o link deve voltar ao login ops (não ao comercial).
+  if (role === 'firm' && isPlatformOpsAllowlistedEmail(email)) {
+    url += '&audience=ops';
+  }
+  return url;
 }
 
 /** Conta firm elegível a recovery: activa, ou já com password (ex.: aceitou convite, e-mail por confirmar). */
@@ -783,7 +788,7 @@ async function requestPasswordRecovery({ email, role }) {
     expiresAt,
   });
 
-  const resetUrl = buildPasswordResetUrl(rawToken, account.userType);
+  const resetUrl = buildPasswordResetUrl(rawToken, account.userType, { email: account.email });
   try {
     const delivery = await notifyPasswordReset({
       email: account.email,

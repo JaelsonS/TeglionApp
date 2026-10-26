@@ -22,6 +22,11 @@ export function authOpsMfaUrl(reason: 'challenge' | 'enroll' = 'challenge') {
   return `/auth/ops/mfa?reason=${encodeURIComponent(reason)}`
 }
 
+/** Pedido de redefinição — após o e-mail, volta ao login do Control Center. */
+export function authOpsRecoverPasswordUrl() {
+  return '/recover-password?role=firm&audience=ops'
+}
+
 export function authFirmRegisterUrl() {
   return '/auth/firm/register'
 }
