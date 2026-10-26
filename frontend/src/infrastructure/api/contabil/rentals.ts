@@ -72,7 +72,7 @@ export type RentalsOverviewResponse = {
 export function createContabilRentalsApi(api: AxiosInstance) {
   return {
     meta: () => api.get('/contabil/rentals/meta').then((r) => r.data),
-    overview: (params?: { year?: number; q?: string }) =>
+    overview: (params?: { year?: number; q?: string; scope?: 'office' | 'client' }) =>
       api.get('/contabil/rentals/overview', { params }).then((r) => r.data as RentalsOverviewResponse),
     createProperty: (payload: Record<string, unknown>) =>
       api.post('/contabil/rentals/properties', payload).then((r) => r.data),
@@ -84,8 +84,11 @@ export function createContabilRentalsApi(api: AxiosInstance) {
         .then((r) => r.data),
     patchLease: (id: string, payload: Record<string, unknown>) =>
       api.patch(`/contabil/rentals/leases/${encodeURIComponent(id)}`, payload).then((r) => r.data),
-    generateReceipts: (payload: { yearMonth: string; leaseIds?: string[] }) =>
-      api.post('/contabil/rentals/receipts/generate', payload).then((r) => r.data),
+    generateReceipts: (payload: {
+      yearMonth: string
+      leaseIds?: string[]
+      scope?: 'office' | 'client'
+    }) => api.post('/contabil/rentals/receipts/generate', payload).then((r) => r.data),
     createReceipt: (payload: {
       leaseId: string
       yearMonth: string

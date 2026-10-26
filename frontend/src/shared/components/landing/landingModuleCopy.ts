@@ -4,7 +4,9 @@ export const LANDING_MODULE_COPY: Record<string, string> = {
   '/app/firm/clients': 'Carteira com NIF, regime, convites ao portal e hub por cliente.',
   '/app/firm/payments':
     'Matriz de avenças ano×cliente — distinto do Stripe Connect (Definições) e do plano SaaS (Plano).',
-  '/app/firm/rentals': 'Imóveis, contratos de arrendamento e recibos de renda no mesmo módulo.',
+  '/app/firm/client-rentals':
+    'Imóveis e contratos de arrendamento dos clientes — mapa de rendas interno, separado dos custos do gabinete.',
+  '/app/firm/rentals': 'Custos e contratos do próprio gabinete (renda do escritório, luz, software…).',
   '/app/firm/saft': 'Importar e consultar SAF-T — leitura interna; não emite documentos na AT.',
   '/app/firm/tasks/obligations': 'Obrigações fiscais por cliente, com prazos e estado de execução.',
   '/app/firm/tasks': 'Tarefas internas — quadro, mês fiscal e calendário operativo da equipa.',

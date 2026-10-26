@@ -159,6 +159,11 @@ const FirmPaymentsPage = lazy(() =>
 const FirmRentalsPage = lazy(() =>
   import('@/features/firm/pages/FirmRentalsPage').then((m) => ({ default: m.FirmRentalsPage })),
 )
+const FirmClientRentalsPage = lazy(() =>
+  import('@/features/firm/pages/FirmClientRentalsPage').then((m) => ({
+    default: m.FirmClientRentalsPage,
+  })),
+)
 const FirmSaftPage = lazy(() =>
   import('@/features/firm/pages/FirmSaftPage').then((m) => ({ default: m.FirmSaftPage })),
 )
@@ -333,6 +338,7 @@ export function ContabilAppRouter() {
                 <Route path="clients/:clientId" element={<FirmClientHubPage />} />
                 <Route path="payments" element={<FirmPaymentsPage />} />
                 <Route path="rentals" element={<FirmRentalsPage />} />
+                <Route path="client-rentals" element={<FirmClientRentalsPage />} />
                 <Route path="saft" element={<FirmSaftPage />} />
                 <Route path="calculators" element={<FirmCalculatorsHubPage />} />
                 <Route path="calculators/iva" element={<Navigate to="/app/firm/calculators?open=iva" replace />} />

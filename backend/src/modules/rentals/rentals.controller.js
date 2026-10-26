@@ -16,6 +16,7 @@ exports.overview = async (req, res, next) => {
       firmId: String(req.user.firmId),
       year,
       search: req.query.q || req.query.search,
+      scope: req.query.scope,
     });
     return res.json(result);
   } catch (err) {
@@ -82,6 +83,7 @@ exports.generateReceipts = async (req, res, next) => {
       yearMonth: body.yearMonth || body.period,
       leaseIds: body.leaseIds,
       actorId: req.user.id,
+      scope: body.scope,
     });
     return res.status(201).json(result);
   } catch (err) {

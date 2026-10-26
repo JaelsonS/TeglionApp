@@ -22,6 +22,7 @@ const ALLOWED_EXACT = new Set([
   '/app/firm/clients',
   '/app/firm/payments',
   '/app/firm/rentals',
+  '/app/firm/client-rentals',
   '/app/firm/saft',
   '/app/firm/documents',
   '/app/firm/tasks',
