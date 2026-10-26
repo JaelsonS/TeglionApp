@@ -11,6 +11,7 @@ import { ProtectedRoute } from '@/shared/components/layout/ProtectedRoute'
 import { RequireFirmAccess } from '@/shared/components/layout/RequireFirmAccess'
 import { RequireRole } from '@/shared/components/layout/RequireRole'
 import { RequireClientFirmAccess } from '@/shared/components/layout/RequireClientFirmAccess'
+import { PlatformOpsFirmGuard } from '@/shared/components/layout/PlatformOpsFirmGuard'
 import { PageRouteFallback } from '@/shared/components/layout/PageRouteFallback'
 import { getPublicSubdomainSlug } from '@/shared/utils/publicHost'
 
@@ -324,6 +325,7 @@ export function ContabilAppRouter() {
               </RequireRole>
             }
           >
+            <Route element={<PlatformOpsFirmGuard />}>
             <Route element={<FirmLayout />}>
               <Route
                 element={
@@ -370,6 +372,7 @@ export function ContabilAppRouter() {
                 <Route path="sobre" element={<FirmAboutPage />} />
               </Route>
               <Route path="billing" element={<FirmBillingPage />} />
+            </Route>
             </Route>
           </Route>
 

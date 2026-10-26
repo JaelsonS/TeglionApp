@@ -48,6 +48,8 @@ export type AuthUser = {
   avatarUrl?: string | null
   onboardingCompleted: boolean
   isActive: boolean
+  /** Conta allowlist do Teglion Control Center — redireccionar para /app/ops, não para o gabinete. */
+  platformOps?: boolean
   createdAt?: string
   updatedAt?: string
 }

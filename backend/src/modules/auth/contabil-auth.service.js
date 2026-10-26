@@ -50,11 +50,20 @@ async function uniqueSlug(base) {
   return slug;
 }
 
+function isPlatformOpsAllowlistedEmail(email) {
+  const { env } = require('../../config/env');
+  if (!env.PLATFORM_OPS_ENABLED) return false;
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!normalized) return false;
+  return Array.isArray(env.PLATFORM_OPS_EMAIL_ALLOWLIST) && env.PLATFORM_OPS_EMAIL_ALLOWLIST.includes(normalized);
+}
+
 function sanitizeFirmUser(row) {
   const role = firmUsersRepository.jwtRoleFromFirmRole(row.role);
   const firmId = row.firm_id;
   const rolePermissions = ROLE_PERMISSIONS[normalizeSessionRole(role)] || [];
   const overridePermissions = Array.isArray(row.permissions_override) ? row.permissions_override : null;
+  const platformOps = isPlatformOpsAllowlistedEmail(row.email);
   return {
     _id: row.id,
     id: row.id,
@@ -67,6 +76,8 @@ function sanitizeFirmUser(row) {
     masterAccess: row.role === 'FIRM_OWNER',
     isActive: row.is_active !== false,
     onboardingCompleted: row.onboarding_completed === true,
+    /** Conta do Control Center AfDigital — não deve usar o produto firm como gabinete comercial. */
+    platformOps,
   };
 }
 

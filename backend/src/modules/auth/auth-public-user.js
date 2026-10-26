@@ -42,6 +42,7 @@ async function toPublicAuthUser(user) {
   if (user.consultantId) out.consultantId = user.consultantId;
   if (user.avatarUrl) out.avatarUrl = user.avatarUrl;
   if (user.onboardingCompleted != null) out.onboardingCompleted = Boolean(user.onboardingCompleted);
+  if (user.platformOps === true) out.platformOps = true;
   return out;
 }
 
