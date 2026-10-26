@@ -65,6 +65,15 @@ export function createContabilFeeChargesApi(api: AxiosInstance) {
       toYearMonth?: string
       clientIds?: string[]
     }) => api.post('/contabil/fee-charges/generate', payload).then((r) => r.data),
+    replicate: (payload: {
+      clientId: string
+      fromYearMonth: string
+      toYearMonth: string
+      amountCents: number
+      status?: FeeChargeStatus
+      paymentMethod?: string | null
+      overwriteDrafts?: boolean
+    }) => api.post('/contabil/fee-charges/replicate', payload).then((r) => r.data),
     create: (payload: {
       clientId: string
       yearMonth: string

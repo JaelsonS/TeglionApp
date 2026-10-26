@@ -57,6 +57,26 @@ exports.generate = async (req, res, next) => {
   }
 };
 
+exports.replicate = async (req, res, next) => {
+  try {
+    const body = req.body || {};
+    const result = await feeChargesService.replicateCharges({
+      firmId: String(req.user.firmId),
+      clientId: body.clientId,
+      fromYearMonth: body.fromYearMonth || body.from,
+      toYearMonth: body.toYearMonth || body.to,
+      amountCents: body.amountCents,
+      status: body.status,
+      paymentMethod: body.paymentMethod,
+      overwriteDrafts: body.overwriteDrafts !== false,
+      actorId: req.user.id,
+    });
+    return res.status(201).json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.create = async (req, res, next) => {
   try {
     const body = req.body || {};

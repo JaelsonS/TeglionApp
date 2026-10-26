@@ -323,6 +323,98 @@ async function createCharge({ firmId, clientId, yearMonth, amountCents, status, 
   return { charge: { ...charge, overdue: isOverdue(charge) }, created: true };
 }
 
+/**
+ * Replica valor (e opcionalmente estado) de uma avença para um intervalo de meses
+ * do mesmo cliente — cria em falta; actualiza rascunhos se overwriteDrafts.
+ */
+async function replicateCharges({
+  firmId,
+  clientId,
+  fromYearMonth,
+  toYearMonth,
+  amountCents,
+  status,
+  paymentMethod,
+  actorId,
+  overwriteDrafts = true,
+}) {
+  const id = String(clientId || '').trim();
+  if (!id) throw new AppError('Cliente obrigatório', 400, 'CLIENT_REQUIRED');
+  const client = await clientsRepository.findClientById(firmId, id);
+  if (!client) throw new AppError('Cliente não encontrado', 404, 'CLIENT_NOT_FOUND');
+
+  const months = listYearMonthsBetween(fromYearMonth, toYearMonth);
+  let cents = amountCents != null ? Math.round(Number(amountCents)) : null;
+  if (cents == null || !Number.isFinite(cents)) {
+    cents = client.retainerAmountCents != null ? Number(client.retainerAmountCents) : null;
+  }
+  if (!Number.isFinite(cents) || cents < 0) {
+    throw new AppError('Indique o valor a replicar', 400, 'INVALID_AMOUNT');
+  }
+
+  const st =
+    status && FEE_CHARGE_STATUSES.includes(String(status)) && String(status) !== 'cancelled'
+      ? String(status)
+      : 'draft';
+  let method = paymentMethod === null || paymentMethod === '' ? null : paymentMethod;
+  if (method !== undefined && method !== null) {
+    method = String(method);
+    if (!FEE_PAYMENT_METHODS.some((x) => x.id === method)) {
+      throw new AppError('Método de pagamento inválido', 400, 'INVALID_METHOD');
+    }
+  }
+
+  const created = [];
+  const updated = [];
+  const skipped = [];
+
+  for (const ym of months) {
+    const existing = await feeChargesRepository.findOpenCharge(firmId, id, ym);
+    if (existing) {
+      if (overwriteDrafts && existing.status === 'draft') {
+        const patched = await feeChargesRepository.updateCharge(existing.id, firmId, {
+          amountCents: cents,
+          status: st,
+          paymentMethod: method !== undefined ? method : existing.paymentMethod,
+          dueDate: dueDateForMonth(ym, client.retainerDueDay || 1),
+          paidAt: st === 'paid' ? new Date().toISOString() : null,
+        });
+        updated.push(patched);
+      } else {
+        skipped.push({ clientId: id, yearMonth: ym, reason: 'EXISTS', chargeId: existing.id });
+      }
+      continue;
+    }
+    const charge = await feeChargesRepository.insertCharge({
+      firmId,
+      clientId: id,
+      yearMonth: ym,
+      amountCents: cents,
+      currency: client.retainerCurrency || 'EUR',
+      status: st,
+      paymentMethod: method || null,
+      dueDate: dueDateForMonth(ym, client.retainerDueDay || 1),
+      paidAt: st === 'paid' ? new Date().toISOString() : null,
+      source: 'bulk',
+      createdBy: actorId || null,
+    });
+    created.push(charge);
+  }
+
+  return {
+    clientId: id,
+    fromYearMonth: months[0],
+    toYearMonth: months[months.length - 1],
+    months,
+    created,
+    updated,
+    skipped,
+    createdCount: created.length,
+    updatedCount: updated.length,
+    skippedCount: skipped.length,
+  };
+}
+
 async function patchCharge({ firmId, chargeId, patch }) {
   const existing = await feeChargesRepository.findChargeById(firmId, chargeId);
   if (!existing) throw new AppError('Pagamento não encontrado', 404, 'CHARGE_NOT_FOUND');
@@ -368,6 +460,7 @@ module.exports = {
   patchClientBilling,
   getYearMap,
   generateCharges,
+  replicateCharges,
   createCharge,
   patchCharge,
   isOverdue,

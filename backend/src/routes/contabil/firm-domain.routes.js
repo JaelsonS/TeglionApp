@@ -649,6 +649,7 @@ router.patch('/consultations/:id', requirePermission(PERMISSIONS.FIRM_CONSULTATI
 router.get('/fee-charges/meta', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.meta);
 router.get('/fee-charges/map', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.map);
 router.post('/fee-charges/generate', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.generate);
+router.post('/fee-charges/replicate', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.replicate);
 router.post('/fee-charges', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.create);
 router.patch('/fee-charges/:id', requirePermission(PERMISSIONS.FIRM_CLIENTS_MANAGE), feeChargesController.patch);
 
