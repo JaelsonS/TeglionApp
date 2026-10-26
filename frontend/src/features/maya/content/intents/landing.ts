@@ -9,7 +9,7 @@ export const LANDING_INTENTS = [
     shortDescription: 'a plataforma',
     surface: 'landing',
     answer:
-      'O Teglion é a plataforma de gestão para gabinetes de contabilidade em Portugal: portal do cliente, página pública, serviços, prazos, documentos, mensagens e captação de pedidos. Não substitui o software de contabilidade clássico — organiza a relação com o cliente e o trabalho do dia. É um produto da AfDigital — Soluções Tecnológicas, e evoluímos o sistema todos os dias com o que os gabinetes realmente usam.',
+      'O Teglion é software SaaS de gestão para gabinetes de contabilidade em Portugal: portal do cliente, página pública, serviços, prazos, documentos, mensagens e captação de pedidos. Não substitui o software de contabilidade clássico — organiza a relação com o cliente e o trabalho do dia. Evoluímos o sistema todos os dias com o que os gabinetes realmente usam.',
     steps: [
       'Veja o que o gabinete ganha: um sítio só para clientes, serviços e prazos',
       'A página pública capta pedidos sem WhatsApp perdido',
@@ -46,7 +46,7 @@ export const LANDING_INTENTS = [
     shortDescription: 'produto em evolução',
     surface: 'landing',
     answer:
-      'O Teglion não fica parado. A AfDigital — Soluções Tecnológicas lança melhorias contínuas: portal do cliente, página pública, agenda, avisos, pagamentos e a própria Maya. Quem entra hoje usa um produto vivo — e o trial serve precisamente para acompanhar essa evolução no seu gabinete, sem compromisso.',
+      'O Teglion não fica parado. Lançamos melhorias contínuas: portal do cliente, página pública, agenda, avisos, pagamentos e a própria Maya. Quem entra hoje usa um produto vivo — e o trial serve precisamente para acompanhar essa evolução no seu gabinete, sem compromisso.',
     steps: [
       'Abra o trial e explore o painel do gabinete',
       'Publique a página pública e um primeiro serviço',
@@ -132,10 +132,10 @@ export const LANDING_INTENTS = [
   defineIntent({
     id: 'landing-human',
     title: 'Falar com uma pessoa',
-    shortDescription: 'WhatsApp AfDigital',
+    shortDescription: 'WhatsApp Teglion',
     surface: 'landing',
     answer:
-      'Eu explico o Teglion aqui na página. Se preferir falar com uma pessoa da AfDigital — Soluções Tecnológicas, o WhatsApp é o caminho mais rápido: tiramos dúvidas de produto, trial e onboarding. Não vejo os seus documentos nem dados de clientes — esta conversa é só sobre o produto.',
+      'Eu explico o Teglion aqui na página. Se preferir falar com uma pessoa da equipa Teglion, o WhatsApp é o caminho mais rápido: tiramos dúvidas de produto, trial e onboarding. Não vejo os seus documentos nem dados de clientes — esta conversa é só sobre o produto.',
     steps: [
       'Abra o WhatsApp pelo botão abaixo',
       'Diga que veio da página do Teglion',
