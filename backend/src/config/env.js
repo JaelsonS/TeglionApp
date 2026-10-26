@@ -319,7 +319,7 @@ const env = {
    */
   PLATFORM_OPS_EMAIL_ALLOWLIST: String(process.env.PLATFORM_OPS_EMAIL_ALLOWLIST || '')
     .split(',')
-    .map((e) => e.trim().toLowerCase())
+    .map((e) => e.trim().toLowerCase().replace(/^["']+|["']+$/g, ''))
     .filter(Boolean),
 
   isProduction: process.env.NODE_ENV === 'production',
