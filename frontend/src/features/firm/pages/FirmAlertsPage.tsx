@@ -1,7 +1,7 @@
 import { AlertsWorkspace } from '@/features/firm/alerts/AlertsWorkspace'
 import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
 
-/** Alertas usa split lista+detalhe — scroll interno (não page-scroll). */
+/** Alertas: split lista + detalhe (scroll interno). */
 export function FirmAlertsPage() {
   return (
     <FirmWorkspacePage className="cb-alerts-layout-page xl:min-h-0 xl:flex-1">
