@@ -99,7 +99,8 @@ export function AgendaAvailabilityPanel(props: Props) {
     showSlotSettings = true,
     defaultInterval = DEFAULT_INTERVAL,
     weeklyTitle = 'Horário semanal',
-    weeklySubtitle = 'Dias e intervalos em que o gabinete atende.',
+    weeklySubtitle =
+      'Marque Aberto/Fechado e os intervalos. Este é o horário base que a página pública e o portal oferecem.',
     exceptionsTitle = 'Excepções do mês',
     exceptionsSubtitle,
     bookableServices,
@@ -434,7 +435,7 @@ export function AgendaAvailabilityPanel(props: Props) {
           </h4>
           <p className="cb-agenda-avail-card-sub">
             {exceptionsSubtitle ??
-              `Dias em que o horário normal não se aplica — feriados, férias ou datas especiais — em ${MONTH_NAMES_PT[calMonthIndex]} ${calYear}.`}
+              `Toque num dia de ${MONTH_NAMES_PT[calMonthIndex]} para feriado, férias ou horário especial. Sem excepção, usa o semanal.`}
           </p>
         </div>
       </div>
@@ -530,57 +531,59 @@ export function AgendaAvailabilityPanel(props: Props) {
         </li>
       </ul>
 
-      {selectedDate ? (
-        <div className="cb-agenda-month-selected">
-          <div className="cb-agenda-month-selected-daynum">
-            {Number(selectedDate.slice(8, 10))}
+      <div className="cb-agenda-exceptions-foot">
+        {selectedDate ? (
+          <div className="cb-agenda-month-selected">
+            <div className="cb-agenda-month-selected-daynum">
+              {Number(selectedDate.slice(8, 10))}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="cb-agenda-month-selected-title capitalize">
+                {(() => {
+                  const [y, m, d] = selectedDate.split('-').map(Number)
+                  return new Date(y, m - 1, d).toLocaleDateString('pt-PT', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  })
+                })()}
+              </p>
+              <p className="cb-agenda-month-selected-meta">
+                {selectedSummaryLabel}
+                {selectedSummaryTimes ? ` · ${selectedSummaryTimes}` : ''}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="cb-agenda-month-selected-edit"
+              onClick={() => {
+                if (selectedDate) setServiceDayDrafts(buildServiceDayDrafts(selectedDate))
+                setDayDialogOpen(true)
+              }}
+            >
+              Editar
+            </button>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="cb-agenda-month-selected-title capitalize">
-              {(() => {
-                const [y, m, d] = selectedDate.split('-').map(Number)
-                return new Date(y, m - 1, d).toLocaleDateString('pt-PT', {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })
-              })()}
-            </p>
-            <p className="cb-agenda-month-selected-meta">
-              {selectedSummaryLabel}
-              {selectedSummaryTimes ? ` · ${selectedSummaryTimes}` : ''}
-            </p>
-          </div>
-          <button
-            type="button"
-            className="cb-agenda-month-selected-edit"
-            onClick={() => {
-              if (selectedDate) setServiceDayDrafts(buildServiceDayDrafts(selectedDate))
-              setDayDialogOpen(true)
-            }}
-          >
-            Editar
-          </button>
-        </div>
-      ) : (
-        <p className="cb-agenda-month-selected-empty">
-          Clique num dia para fechar ou definir horário especial.
-        </p>
-      )}
+        ) : (
+          <p className="cb-agenda-month-selected-empty">
+            Toque num dia para fechar o gabinete ou marcar horário especial.
+          </p>
+        )}
 
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="cb-agenda-copy-month-btn mt-3 h-9 w-full gap-1.5 text-xs"
-        disabled={monthOverrideCount === 0}
-        onClick={handleCopyMonth}
-        data-testid="agenda-copy-month"
-      >
-        <Copy className="h-3.5 w-3.5" />
-        Copiar {fromMonthLabel} → {toMonthLabel}
-      </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="cb-agenda-copy-month-btn h-9 w-full gap-1.5 text-xs"
+          disabled={monthOverrideCount === 0}
+          onClick={handleCopyMonth}
+          data-testid="agenda-copy-month"
+        >
+          <Copy className="h-3.5 w-3.5" />
+          Copiar {fromMonthLabel} → {toMonthLabel}
+        </Button>
+      </div>
     </section>
   ) : null
 
@@ -594,7 +597,9 @@ export function AgendaAvailabilityPanel(props: Props) {
           <h4 id="agenda-opcoes-title" className="cb-agenda-avail-card-title">
             Opções de marcação
           </h4>
-          <p className="cb-agenda-avail-card-sub">Fuso horário, duração e antecedência dos agendamentos.</p>
+          <p className="cb-agenda-avail-card-sub">
+            Quanto tempo dura cada marca, até quando se pode marcar, e o fuso do gabinete.
+          </p>
         </div>
       </div>
 
@@ -666,7 +671,8 @@ export function AgendaAvailabilityPanel(props: Props) {
             ) : null}
           </select>
           <p className="cb-agenda-avail-option-hint">
-            Os clientes podem reservar até {horizon} dias no futuro.
+            Exemplo: com {horizon} dias, quem marca hoje só vê horários até daqui a {horizon} dias —
+            evita a agenda encher demasiado cedo.
           </p>
         </div>
       </div>

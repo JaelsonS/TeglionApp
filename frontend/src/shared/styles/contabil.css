@@ -3968,21 +3968,26 @@
   }
 
   .cb-agenda-availability-trio {
-    @apply grid gap-4 lg:grid-cols-[minmax(18rem,1.15fr)_minmax(17rem,1fr)_minmax(13.5rem,16rem)] lg:items-start;
+    @apply grid gap-3 lg:grid-cols-[minmax(17rem,1.2fr)_minmax(16rem,1fr)_minmax(13rem,15rem)] lg:items-start;
   }
 
-  /* Cards em grelha duo/trio precisam de min-w-0 para a coluna fr encolher sem clipar filhos. */
+  .cb-agenda-availability-duo {
+    @apply grid gap-3 lg:grid-cols-2 lg:items-start;
+  }
+
+  /* Cards em grelha duo/trio: altura ao conteúdo — sem esticar e criar «buracos» brancos. */
   .cb-agenda-availability-duo > .cb-agenda-avail-card,
   .cb-agenda-availability-trio > .cb-agenda-avail-card {
-    @apply min-w-0;
+    @apply min-w-0 self-start;
+    height: auto;
   }
 
   .cb-agenda-avail-card {
-    @apply rounded-2xl border border-border/50 bg-card p-4 shadow-[0_8px_24px_-12px_rgba(15,23,42,0.18)] sm:p-5;
+    @apply rounded-2xl border border-border/60 bg-card p-3.5 shadow-sm sm:p-4;
   }
 
   .cb-agenda-avail-card-hd-block {
-    @apply mb-4 flex items-start gap-3;
+    @apply mb-2.5 flex items-start gap-2.5;
   }
 
   .cb-agenda-avail-card-icon {
@@ -3998,11 +4003,11 @@
   }
 
   .cb-agenda-week-list {
-    @apply space-y-2;
+    @apply space-y-1.5;
   }
 
   .cb-agenda-week-row {
-    @apply grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 rounded-xl border border-border/40 bg-background/90 px-3 py-2.5 sm:grid-cols-[minmax(0,7.5rem)_auto_minmax(0,1fr)_1.5rem];
+    @apply grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 rounded-lg border border-border/40 bg-background/90 px-2.5 py-1.5 sm:grid-cols-[minmax(0,7.5rem)_auto_minmax(0,1fr)_1.5rem];
   }
 
   /*
@@ -4033,7 +4038,7 @@
   }
 
   .cb-agenda-week-row-closed {
-    @apply border-transparent bg-transparent px-3 py-1.5 opacity-80;
+    @apply border-transparent bg-transparent px-2.5 py-1 opacity-80;
   }
 
   .cb-agenda-week-row-closed.cb-agenda-week-row-focus {
@@ -4165,7 +4170,7 @@
   }
 
   .cb-agenda-month-selected-empty {
-    @apply mt-3 text-xs text-muted-foreground;
+    @apply text-xs text-muted-foreground;
   }
 
   .cb-agenda-avail-option-label {
@@ -4410,7 +4415,15 @@
   }
 
   .cb-agenda-avail-options {
-    @apply flex flex-col;
+    @apply flex flex-col gap-3;
+  }
+
+  .cb-agenda-avail-options .cb-agenda-avail-card-hd-block {
+    @apply mb-0;
+  }
+
+  .cb-agenda-exceptions-foot {
+    @apply mt-3 flex flex-col gap-2 border-t border-border/40 pt-3;
   }
 
   .cb-billing-card-cta {

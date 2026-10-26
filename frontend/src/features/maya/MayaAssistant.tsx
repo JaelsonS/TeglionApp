@@ -565,19 +565,25 @@ function MayaHome({
         ) : (
           <>
             <p>
-              Olá{firstName ? `, ${firstName}` : ''}! Eu sou a Maya.
+              Olá{firstName ? `, ${firstName}` : ''} — sou a Maya, a assistente do Teglion.
               {page ? (
                 <>
                   {' '}
-                  Está na <span className="font-medium text-foreground">{page.where}</span>.
+                  Está em <span className="font-medium text-foreground">{page.where}</span>. Vou
+                  explicar este ecrã como se estivéssemos lado a lado.
                 </>
               ) : (
-                <> Sou a assistente do Teglion.</>
+                <> Escolha um tema e eu guio-o passo a passo.</>
               )}
             </p>
             {page ? (
               <>
                 <p className="mt-2">{page.summary}</p>
+                {page.goal ? (
+                  <p className="mt-2 text-muted-foreground">
+                    Objectivo aqui: <span className="font-medium text-foreground">{page.goal}</span>
+                  </p>
+                ) : null}
                 {page.firstTimeHint ? (
                   <p className="mt-2 text-muted-foreground">{page.firstTimeHint}</p>
                 ) : null}
@@ -588,12 +594,13 @@ function MayaHome({
             ) : (
               <p className="mt-2 text-muted-foreground">
                 {isFirmSurface
-                  ? 'Comece pelo que importa neste ecrã — ou use a configuração rápida se for o responsável do gabinete.'
-                  : 'Escolha um tema abaixo — explico passo a passo e abro a página certa quando quiser.'}
+                  ? 'Comece pelo tema deste ecrã. Se for o responsável e ainda estiver a montar o gabinete, use a configuração rápida.'
+                  : 'Escolha um tema abaixo — explico com calma e abro a página certa quando quiser.'}
               </p>
             )}
             <p className="mt-2 text-caption text-muted-foreground">
-              Guia do produto — não vejo documentos, mensagens nem dados dos clientes.
+              Ensino a usar o produto. Não leio documentos, mensagens nem dados dos clientes — e não
+              invento regras fiscais.
             </p>
           </>
         )}
@@ -601,13 +608,13 @@ function MayaHome({
 
       {isFirmSurface && responsible && onQuickSetup ? (
         <Button type="button" variant="primary" fullWidth className="mt-4" onClick={onQuickSetup}>
-          Configuração rápida (rascunho com IA)
+          Configuração rápida do gabinete
         </Button>
       ) : null}
 
       <div className="mt-4 space-y-2">
         <p className="text-sm font-medium text-foreground">
-          {isFirmSurface ? 'O que fazer aqui' : 'Temas desta página'}
+          {isFirmSurface ? 'Aprenda neste ecrã' : 'Temas desta página'}
         </p>
         <div className="space-y-2">
           {intents.map((intent) => (

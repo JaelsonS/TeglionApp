@@ -114,19 +114,19 @@ export function AgendaSettingsView(props: Props) {
   return (
     <div className="cb-agenda-settings-view">
       <div className="cb-agenda-settings-intro">
-        <p className="cb-agenda-settings-intro-title">Como funciona a agenda pública</p>
+        <p className="cb-agenda-settings-intro-title">Como ensinar o site a aceitar marcações</p>
         <ol className="cb-agenda-settings-intro-list">
           <li>
             <Clock3 className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
-            Defina o <strong>horário geral</strong> do gabinete (dias, slots e horizonte).
+            Em baixo: <strong>horário semanal</strong>, excepções e duração do slot — depois Guarde.
           </li>
           <li>
             <CalendarClock className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
-            Ajuste <strong>por serviço</strong> só quando um serviço tiver horas diferentes.
+            Só use «por serviço» se uma oferta (ex. IRS) tiver horas diferentes do gabinete.
           </li>
           <li>
             <Layers className="h-3.5 w-3.5 shrink-0 text-brand" aria-hidden />
-            Crie e publique serviços em <strong>Serviços</strong> — aqui só liga a marcação.
+            Em <strong>Serviços</strong>, active «Exige agendamento» e publique — senão o visitante não vê slots.
           </li>
         </ol>
       </div>
