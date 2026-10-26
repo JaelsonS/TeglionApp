@@ -81,12 +81,12 @@ export function LandingPricing() {
     <section id="precos" className="landing-section scroll-mt-24">
       <div className="landing-container">
         <FadeInView className="mx-auto max-w-2xl text-center px-1">
-          <h2 className="text-[1.75rem] font-semibold leading-tight sm:text-3xl md:text-4xl">
+          <p className="landing-kicker">Preços</p>
+          <h2 className="mt-3 text-[1.85rem] leading-tight sm:text-4xl md:text-[2.5rem]">
             Comece grátis. Pague só se ficar.
           </h2>
-          <p className="mt-3 text-[15px] leading-relaxed text-[#4A5568] sm:mt-4 sm:text-base">
-            14 dias com operação, página pública, serviços e pagamentos — sem cartão. Depois mensal ou
-            anual, sem fidelização.
+          <p className="mt-4 text-[15px] leading-relaxed text-[var(--landing-muted)] sm:text-base">
+            14 dias com operação completa — sem cartão. Depois mensal ou anual, sem fidelização.
           </p>
         </FadeInView>
 
@@ -97,11 +97,11 @@ export function LandingPricing() {
                 className={cn(
                   'landing-card relative flex h-full flex-col p-5 sm:p-6',
                   plan.featured &&
-                    'ring-2 ring-[#0B3A6E]/20 bg-gradient-to-b from-white to-[#E3F0FF]/40 md:col-span-1 lg:scale-[1.02]',
+                    'ring-2 ring-[var(--landing-gold)]/40 bg-gradient-to-b from-white to-[#FFF8EB]/80 md:col-span-1 lg:scale-[1.02]',
                 )}
               >
                 {plan.featured ? (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[#0B3A6E] px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white sm:-top-3">
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[var(--landing-gold)] px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#061428] sm:-top-3">
                     Melhor valor
                   </span>
                 ) : null}
@@ -133,7 +133,7 @@ export function LandingPricing() {
                   className={cn(
                     'landing-btn-primary mt-6 w-full text-center',
                     !plan.primary &&
-                      '!bg-white !text-[#0B3A6E] ring-1 ring-[#0B3A6E]/20 hover:!bg-[#F7FAFC]',
+                      '!bg-white !text-[var(--landing-navy)] !shadow-none ring-1 ring-[var(--landing-navy)]/15 hover:!bg-[#F7FAFC]',
                   )}
                 >
                   {plan.cta}

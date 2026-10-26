@@ -80,8 +80,7 @@ function LandingExitIntent() {
         </div>
         <div className="px-5 pb-5 pt-3">
           <p className="text-sm leading-relaxed text-muted-foreground">
-            Explico o Teglion em um minuto — ou falo consigo no WhatsApp se preferir uma pessoa da
-            AfDigital.
+            Explico o Teglion em um minuto — ou falo consigo no WhatsApp com a equipa Teglion.
           </p>
           <div className="mt-4 flex flex-col gap-2">
             <Button

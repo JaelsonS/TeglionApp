@@ -2,9 +2,10 @@
 export const LANDING_ANCHORS = {
   produto: '/#produto',
   funcionalidades: '/#funcionalidades',
-  paginaPublica: '/#pagina-publica',
+  paginaPublica: '/#produto',
   comoFunciona: '/#como-funciona',
-  transparencia: '/#transparencia',
+  /** Mantido por links antigos — aponta para o produto (secção Trust AfDigital removida). */
+  transparencia: '/#produto',
   faq: '/#faq',
   precos: '/#precos',
 } as const
