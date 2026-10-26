@@ -232,7 +232,7 @@ function uploadCsvSingle(fieldName = 'file') {
   };
 }
 
-/** SAF-T PT: .xml ou .zip — validação de conteúdo no serviço (XXE / AuditFile). */
+/** SAF-T PT: .xml / .zip / .xlsx — validação profunda no serviço (XXE, zip-slip, macros). */
 const uploadSaft = multer({
   storage: memoryStorage,
   limits: {
@@ -241,8 +241,14 @@ const uploadSaft = multer({
   },
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname || '').toLowerCase();
-    if (ext !== '.xml' && ext !== '.zip') {
-      return cb(new Error('Só são aceites ficheiros .xml ou .zip (SAF-T PT).'), false);
+    if (ext === '.xls' || ext === '.xlsm' || ext === '.xltm') {
+      return cb(
+        new Error('Excel com macros ou .xls antigo não é aceite. Use .xlsx sem macros ou .xml/.zip.'),
+        false,
+      );
+    }
+    if (ext !== '.xml' && ext !== '.zip' && ext !== '.xlsx') {
+      return cb(new Error('Só são aceites .xml, .zip (SAF-T) ou .xlsx (folha sem macros).'), false);
     }
     const mime = (file.mimetype || '').toLowerCase();
     const allowed = new Set([
@@ -250,6 +256,7 @@ const uploadSaft = multer({
       'application/xml',
       'application/zip',
       'application/x-zip-compressed',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'application/octet-stream',
       'text/plain',
     ]);
@@ -266,10 +273,21 @@ function uploadSaftSingle(fieldName = 'file') {
       if (err) return next(err);
       if (!req.file?.buffer) return next();
       const ext = path.extname(req.file.originalname || '').toLowerCase();
-      if (ext === '.zip') {
-        const validation = validateMagicBytes(req.file.buffer, 'application/zip');
+      const buf = req.file.buffer;
+      // OLE Compound (.xls) — rejeitar mesmo se renomeado
+      if (
+        buf.length >= 4 &&
+        buf[0] === 0xd0 &&
+        buf[1] === 0xcf &&
+        buf[2] === 0x11 &&
+        buf[3] === 0xe0
+      ) {
+        return next(new Error('Ficheiro OLE/.xls rejeitado (risco de macros).'));
+      }
+      if (ext === '.zip' || ext === '.xlsx') {
+        const validation = validateMagicBytes(buf, 'application/zip');
         if (!validation.valid) {
-          logger.warn(`[UPLOAD SAF-T] ZIP magic inválido: ${validation.error}`);
+          logger.warn(`[UPLOAD SAF-T] ZIP/XLSX magic inválido: ${validation.error}`);
           return next(new Error(validation.error));
         }
       }

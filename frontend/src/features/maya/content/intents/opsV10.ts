@@ -29,19 +29,20 @@ export const OPS_V10_INTENTS = [
   }),
   defineIntent({
     id: 'rentals-guide',
-    title: 'Imóveis e rendas',
+    title: 'Arrendamentos dos clientes',
     shortDescription: 'recibos internos',
     surface: 'firm',
     answer:
-      'Em Imóveis e rendas regista contratos e recibos INTERNOS para o gabinete acompanhar. Não são recibos oficiais AT nem comunicação ao Portal das Finanças.',
+      'Em Arrendamentos (clientes) regista imóveis e contratos dos seus clientes (senhorio → inquilino) com recibos INTERNOS. É um módulo separado dos Custos do gabinete. Não são recibos oficiais AT nem comunicação ao Portal das Finanças.',
     steps: [
+      'Abra Arrendamentos (clientes) — não use Custos do gabinete',
       'Crie o imóvel associado ao cliente senhorio',
       'Adicione o contrato com o inquilino e a renda',
       'Gere recibos do mês e marque emitido/pago',
     ],
-    deepLink: '/app/firm/rentals',
+    deepLink: '/app/firm/client-rentals',
     relatedIntents: ['fee-charges', 'manual-guide'],
-    ctaLabel: 'Abrir Imóveis e rendas',
+    ctaLabel: 'Abrir Arrendamentos',
   }),
   defineIntent({
     id: 'saft-read',
@@ -49,9 +50,9 @@ export const OPS_V10_INTENTS = [
     shortDescription: 'XML → totais',
     surface: 'firm',
     answer:
-      'Carregue um SAF-T PT (.xml ou .zip) para ver cabeçalho e totais. O Teglion não envia o ficheiro à AT nem valida o XSD oficial completo — é leitura interna com protecção contra XML perigoso.',
+      'Carregue SAF-T PT (.xml/.zip) ou uma folha .xlsx sem macros. O ficheiro não é guardado, não há download de URLs, não se executam fórmulas/macros, e nada vai para a AT. .xls/.xlsm são rejeitados.',
     steps: [
-      'Exporte o SAF-T do software do cliente',
+      'Exporte o SAF-T XML do software do cliente (preferível) ou uma folha .xlsx sem macros',
       'Abra SAF-T (leitura) e carregue o ficheiro',
       'Confira NIF, período e totais de vendas',
     ],

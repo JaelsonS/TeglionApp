@@ -742,15 +742,26 @@ export const MAYA_PAGES: MayaPageGuide[] = [
     primaryIntentId: 'fee-charges',
   },
   {
-    id: 'firm-rentals',
-    pathPrefix: '/app/firm/rentals',
-    where: 'Imóveis e rendas',
+    id: 'firm-client-rentals',
+    pathPrefix: '/app/firm/client-rentals',
+    where: 'Arrendamentos dos clientes',
     summary:
-      'Contratos e recibos internos para o gabinete. Não são recibos oficiais AT.',
+      'Imóveis e contratos de arrendamento dos clientes (senhorio → inquilino). Recibos internos — não oficiais AT.',
     audience: 'Equipa que acompanha senhorios',
     goal: 'Registar imóveis, contratos e recibos do mês com honestidade legal.',
     topicIds: ['rentals-guide', 'manual-guide'],
     primaryIntentId: 'rentals-guide',
+  },
+  {
+    id: 'firm-rentals',
+    pathPrefix: '/app/firm/rentals',
+    where: 'Custos do gabinete',
+    summary:
+      'Custos e contratos do próprio escritório (renda, luz, software). Separado dos arrendamentos dos clientes.',
+    audience: 'Administração do gabinete',
+    goal: 'Controlar custos mensais do escritório.',
+    topicIds: ['manual-guide'],
+    primaryIntentId: 'manual-guide',
   },
   {
     id: 'firm-saft',

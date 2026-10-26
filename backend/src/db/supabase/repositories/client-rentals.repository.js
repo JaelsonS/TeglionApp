@@ -64,7 +64,7 @@ function mapReceipt(row) {
   };
 }
 
-async function listProperties(firmId, { clientId, status = 'active', limit = 200 } = {}) {
+async function listProperties(firmId, { clientId, scope, status = 'active', limit = 200 } = {}) {
   const sb = getSupabaseAdmin();
   let q = sb
     .from('client_properties')
@@ -73,6 +73,9 @@ async function listProperties(firmId, { clientId, status = 'active', limit = 200
     .order('label', { ascending: true })
     .limit(Math.min(Number(limit) || 200, 500));
   if (clientId) q = q.eq('client_id', clientId);
+  // office = custos do gabinete (sem cliente); client = imóveis/rendas do cliente senhorio
+  if (scope === 'office') q = q.is('client_id', null);
+  else if (scope === 'client') q = q.not('client_id', 'is', null);
   if (status) q = q.eq('status', status);
   const { data, error } = await q;
   if (error) throw error;

@@ -39,6 +39,9 @@ const RENT_PAYMENT_METHODS = [
 const INTERNAL_DISCLAIMER =
   'Registo interno de custos e contratos do gabinete (renda, luz, gás, software, etc.). Não substitui facturas oficiais nem o Portal das Finanças.';
 
+const CLIENT_RENTALS_DISCLAIMER =
+  'Registo interno de imóveis e rendas dos clientes (senhorio → inquilino). Não são recibos oficiais AT nem comunicação ao Portal das Finanças.';
+
 module.exports = {
   PROPERTY_STATUSES,
   COST_CATEGORIES,
@@ -48,4 +51,5 @@ module.exports = {
   RECEIPT_STATUS_LABELS,
   RENT_PAYMENT_METHODS,
   INTERNAL_DISCLAIMER,
+  CLIENT_RENTALS_DISCLAIMER,
 };

@@ -31,6 +31,7 @@ import { createContabilObligationsApi } from '@/infrastructure/api/contabil/obli
 import { createContabilPublicApi } from '@/infrastructure/api/contabil/public'
 import { createContabilServiceInquiriesApi } from '@/infrastructure/api/contabil/serviceInquiries'
 import { createContabilInquiryTagsApi } from '@/infrastructure/api/contabil/inquiryTags'
+import { createPlatformOpsApi } from '@/infrastructure/api/contabil/platformOps'
 import { api } from '@/infrastructure/http/apiClient'
 
 export const contabilFirmApi = createContabilFirmApi(api)
@@ -62,3 +63,4 @@ export const contabilFiscalWithholdingApi = createContabilFiscalWithholdingApi(a
 export const contabilFiscalImtApi = createContabilFiscalImtApi(api)
 export const contabilFiscalIrcApi = createContabilFiscalIrcApi(api)
 export const clientPortalContabilApi = createClientPortalContabilApi(api)
+export const platformOpsApi = createPlatformOpsApi(api)

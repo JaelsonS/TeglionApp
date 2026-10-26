@@ -241,7 +241,7 @@ export function SaftWorkspace() {
             <EmptyState
               icon={FileArchive}
               title="Ainda sem SAF-T lidos"
-              description="Exporte o SAF-T PT do software do cliente (.xml ou .zip) e carregue aqui para ver totais de vendas e estrutura."
+              description="Exporte o SAF-T PT (.xml/.zip) ou uma folha .xlsx sem macros. O ficheiro não é armazenado nem enviado à AT."
               action={
                 <Button type="button" onClick={() => setUploadOpen(true)}>
                   Carregar ficheiro

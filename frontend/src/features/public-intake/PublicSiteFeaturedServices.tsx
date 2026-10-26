@@ -7,6 +7,7 @@ import { SanitizedServiceHtml } from '@/shared/design-system/SanitizedServiceHtm
 import { servicePositionedImageStyle } from '@/shared/utils/servicePositionedImageStyle'
 import { formatEuro } from '@/shared/utils/contabilLocale'
 import { priceTaxModeCaption } from '@/shared/utils/priceTaxMode'
+import { publicSitePath } from '@/shared/utils/publicHost'
 
 function hubIcon(name: string): LucideIcon {
   const n = name.toLowerCase()
@@ -26,7 +27,7 @@ function FeaturedHubCard({
   showPrices: boolean
   openInNewTab: boolean
 }) {
-  const href = `/${encodeURIComponent(firmSlug)}/servicos/${encodeURIComponent(service.slug)}`
+  const href = publicSitePath(firmSlug, 'servicos', service.slug)
   const Icon = hubIcon(service.name)
   const ctaLabel = service.hasOptions ? 'Ver opções →' : 'Saber mais →'
 

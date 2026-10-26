@@ -24,14 +24,21 @@ function setRobotsMeta(content: string) {
  * Página pública: `?preview=<token>` mostra o rascunho ainda não publicado
  * (com aviso + noindex), qualquer outro visitante vê sempre `published`.
  */
-export function FirmPublicSitePage() {
-  const { firmSlug = '' } = useParams()
+type FirmPublicSitePageProps = {
+  /** Quando a página corre em `{slug}.staging.teglion.com` (sem `/:firmSlug` no path). */
+  forcedSlug?: string
+}
+
+export function FirmPublicSitePage({ forcedSlug }: FirmPublicSitePageProps = {}) {
+  const { firmSlug: paramSlug = '' } = useParams()
+  const firmSlug = forcedSlug || paramSlug
   const [searchParams] = useSearchParams()
   const previewToken = searchParams.get('preview') || undefined
 
   const query = useQuery({
     queryKey: ['public-firm-site', firmSlug, previewToken],
     queryFn: () => contabilPublicApi.getPublicFirmSite(firmSlug, previewToken),
+    enabled: Boolean(firmSlug),
     retry: false,
     // Página pública: cache curto no browser — evita refetch a cada navegação no site.
     staleTime: previewToken ? 0 : 60_000,
@@ -51,7 +58,7 @@ export function FirmPublicSitePage() {
     applyPageSeo({
       title: query.data.seo.title || query.data.firmName,
       description: query.data.seo.description || undefined,
-      path: `/${firmSlug}`,
+      path: forcedSlug ? '/' : `/${firmSlug}`,
       image: query.data.shareImageUrl ?? null,
       useDefaultOgImage: false,
     })
@@ -60,7 +67,7 @@ export function FirmPublicSitePage() {
       applyFirmBranding(null)
       setRobotsMeta('index, follow')
     }
-  }, [query.data, firmSlug])
+  }, [query.data, firmSlug, forcedSlug])
 
   if (query.isLoading) {
     return (

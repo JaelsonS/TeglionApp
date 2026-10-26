@@ -5,6 +5,7 @@ import type { FormChangeEvent } from '@/shared/types/react-events'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { cn } from '@/shared/lib/utils'
+import { buildFirmPublicUrl } from '@/shared/utils/publicHost'
 
 type Props = {
   publishedAt: string | null | undefined
@@ -57,7 +58,7 @@ export function PublicSiteLinkPublishPanel({
 }: Props) {
   const isPublished = Boolean(publishedAt)
   const slugDirty = slugDraft.trim() !== firmSlug
-  const publicUrl = firmSlug ? `https://teglion.com/${firmSlug}` : null
+  const publicUrl = firmSlug ? buildFirmPublicUrl(firmSlug) : null
 
   return (
     <div className="space-y-4">

@@ -192,10 +192,23 @@ describe('rentals generate + isolation', () => {
       return [{ id: 'c1', displayName: 'Senhorio A', taxId: '123' }];
     });
 
-    const overview = await listOverview({ firmId: 'firm-a', year: 2026 });
+    const overview = await listOverview({ firmId: 'firm-a', year: 2026, scope: 'client' });
     assert.equal(overview.rows.length, 1);
     assert.equal(overview.summary.paidCents, 80000);
-    assert.match(overview.disclaimer, /gabinete|interno/i);
+    assert.match(overview.disclaimer, /clientes|senhorio|interno/i);
+  });
+
+  it('listOverview scope=office não mistura imóveis de cliente', async () => {
+    mock.method(rentalsRepository, 'listProperties', async (_firmId, opts) => {
+      assert.equal(opts.scope, 'office');
+      return [];
+    });
+    mock.method(rentalsRepository, 'listLeasesForFirm', async () => []);
+    mock.method(rentalsRepository, 'listReceiptsForYear', async () => []);
+    mock.method(clientsRepository, 'listClients', async () => []);
+    const overview = await listOverview({ firmId: 'firm-a', year: 2026, scope: 'office' });
+    assert.equal(overview.rows.length, 0);
+    assert.match(overview.disclaimer, /gabinete/i);
   });
 
   it('listOverview: imóvel arquivado sai da lista e do KPI pago', async () => {

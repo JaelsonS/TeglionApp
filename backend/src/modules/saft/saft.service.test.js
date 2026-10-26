@@ -43,8 +43,9 @@ describe('saft.service helpers', () => {
   });
 
   it('disclaimer permanente', () => {
-    assert.match(INTERNAL_DISCLAIMER, /não envia/i);
+    assert.match(INTERNAL_DISCLAIMER, /enviado à AT|não envia/i);
     assert.match(INTERNAL_DISCLAIMER, /AT/i);
+    assert.match(INTERNAL_DISCLAIMER, /não é guardado|macros/i);
   });
 });
 

@@ -3,6 +3,8 @@
  * Sem arquitetura exagerada: só regras de produto claras e testáveis.
  */
 
+import { buildFirmPublicUrl } from '@/shared/utils/publicHost'
+
 export type FirmProgressStepId =
   | 'profile'
   | 'publicPage'
@@ -60,10 +62,7 @@ export type FirmProgressResult = {
 
 function buildPublicUrl(firmSlug: string | null): string | null {
   if (!firmSlug) return null
-  if (typeof window !== 'undefined') {
-    return `${window.location.origin}/${encodeURIComponent(firmSlug)}`
-  }
-  return `https://teglion.com/${encodeURIComponent(firmSlug)}`
+  return buildFirmPublicUrl(firmSlug)
 }
 
 export function computeFirmProgress(input: FirmProgressInput): FirmProgressResult {

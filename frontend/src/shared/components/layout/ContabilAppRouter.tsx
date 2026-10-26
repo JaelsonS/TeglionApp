@@ -12,6 +12,7 @@ import { RequireFirmAccess } from '@/shared/components/layout/RequireFirmAccess'
 import { RequireRole } from '@/shared/components/layout/RequireRole'
 import { RequireClientFirmAccess } from '@/shared/components/layout/RequireClientFirmAccess'
 import { PageRouteFallback } from '@/shared/components/layout/PageRouteFallback'
+import { getPublicSubdomainSlug } from '@/shared/utils/publicHost'
 
 const FirmLoginPage = lazy(() => import('@/features/auth/firm/FirmLoginPage').then((m) => ({ default: m.FirmLoginPage })))
 const FirmMfaChallengePage = lazy(() =>
@@ -63,6 +64,23 @@ const ServiceIntakePortalPage = lazy(() =>
 )
 const FirmPublicSitePage = lazy(() =>
   import('@/features/public-intake/FirmPublicSitePage').then((m) => ({ default: m.FirmPublicSitePage })),
+)
+const PlatformOpsShell = lazy(() =>
+  import('@/features/platform-ops/PlatformOpsShell').then((m) => ({ default: m.PlatformOpsShell })),
+)
+const PlatformOpsOverviewPage = lazy(() =>
+  import('@/features/platform-ops/PlatformOpsOverviewPage').then((m) => ({
+    default: m.PlatformOpsOverviewPage,
+  })),
+)
+const PlatformOpsFirmsPage = lazy(() =>
+  import('@/features/platform-ops/PlatformOpsFirmsPage').then((m) => ({ default: m.PlatformOpsFirmsPage })),
+)
+const PlatformOpsAuditPage = lazy(() =>
+  import('@/features/platform-ops/PlatformOpsAuditPage').then((m) => ({ default: m.PlatformOpsAuditPage })),
+)
+const PlatformOpsLoginsPage = lazy(() =>
+  import('@/features/platform-ops/PlatformOpsLoginsPage').then((m) => ({ default: m.PlatformOpsLoginsPage })),
 )
 
 const PricingPage = lazy(() =>
@@ -141,6 +159,11 @@ const FirmPaymentsPage = lazy(() =>
 const FirmRentalsPage = lazy(() =>
   import('@/features/firm/pages/FirmRentalsPage').then((m) => ({ default: m.FirmRentalsPage })),
 )
+const FirmClientRentalsPage = lazy(() =>
+  import('@/features/firm/pages/FirmClientRentalsPage').then((m) => ({
+    default: m.FirmClientRentalsPage,
+  })),
+)
 const FirmSaftPage = lazy(() =>
   import('@/features/firm/pages/FirmSaftPage').then((m) => ({ default: m.FirmSaftPage })),
 )
@@ -187,6 +210,30 @@ const ClientNoAccessPage = lazy(() =>
 )
 
 export function ContabilAppRouter() {
+  const publicSubdomainSlug =
+    typeof window !== 'undefined' ? getPublicSubdomainSlug(window.location.hostname) : null
+
+  // `{slug}.staging.teglion.com` — rotas sem prefixo /:firmSlug
+  if (publicSubdomainSlug) {
+    return (
+      <Suspense fallback={<PageRouteFallback />}>
+        <Routes>
+          <Route path="/" element={<FirmPublicSitePage forcedSlug={publicSubdomainSlug} />} />
+          <Route
+            path="/servicos/:serviceSlug"
+            element={<ServiceIntakePublicPage forcedFirmSlug={publicSubdomainSlug} />}
+          />
+          <Route
+            path="/booking/return"
+            element={<BookingPaymentReturnPage forcedFirmSlug={publicSubdomainSlug} />}
+          />
+          <Route path="/pedidos/:token" element={<ServiceIntakePortalPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    )
+  }
+
   return (
     <Suspense fallback={<PageRouteFallback />}>
       <Routes>
@@ -256,6 +303,20 @@ export function ContabilAppRouter() {
           <Route index element={<AppShell />} />
 
           <Route
+            path="ops"
+            element={
+              <RequireRole roles={[...FIRM_APP_ROLES]}>
+                <PlatformOpsShell />
+              </RequireRole>
+            }
+          >
+            <Route index element={<PlatformOpsOverviewPage />} />
+            <Route path="firms" element={<PlatformOpsFirmsPage />} />
+            <Route path="audit" element={<PlatformOpsAuditPage />} />
+            <Route path="logins" element={<PlatformOpsLoginsPage />} />
+          </Route>
+
+          <Route
             path="firm"
             element={
               <RequireRole roles={[...FIRM_APP_ROLES]}>
@@ -277,6 +338,7 @@ export function ContabilAppRouter() {
                 <Route path="clients/:clientId" element={<FirmClientHubPage />} />
                 <Route path="payments" element={<FirmPaymentsPage />} />
                 <Route path="rentals" element={<FirmRentalsPage />} />
+                <Route path="client-rentals" element={<FirmClientRentalsPage />} />
                 <Route path="saft" element={<FirmSaftPage />} />
                 <Route path="calculators" element={<FirmCalculatorsHubPage />} />
                 <Route path="calculators/iva" element={<Navigate to="/app/firm/calculators?open=iva" replace />} />

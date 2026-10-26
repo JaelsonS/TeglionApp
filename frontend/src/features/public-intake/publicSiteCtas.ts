@@ -1,4 +1,5 @@
 import type { PublicSiteCta, PublicSiteSocialLinks } from '@/shared/types/firmPublicSite'
+import { publicSitePath } from '@/shared/utils/publicHost'
 
 export type PublicCtaRenderContext = {
   firmSlug: string
@@ -52,7 +53,7 @@ export function resolvePublicCtaHref(
     case 'booking':
     case 'service-detail':
       return cta.target.serviceId
-        ? `/${encodeURIComponent(ctx.firmSlug)}/servicos/${encodeURIComponent(cta.target.serviceId)}`
+        ? publicSitePath(ctx.firmSlug, 'servicos', cta.target.serviceId)
         : '#servicos'
     case 'whatsapp': {
       const fromButton = ctaWhatsAppHref(cta.target.phone || '')

@@ -41,7 +41,7 @@ import { PropertyDialog } from '@/features/firm/rentals/PropertyDialog'
 import { LeaseDialog } from '@/features/firm/rentals/LeaseDialog'
 import { GenerateRentReceiptsDialog } from '@/features/firm/rentals/GenerateRentReceiptsDialog'
 
-const OVERVIEW_KEY = ['rentals-overview'] as const
+type RentalsVariant = 'office' | 'client'
 
 type ReceiptEditCtx = {
   receipt: RentReceipt
@@ -52,7 +52,14 @@ type ReceiptEditCtx = {
   tenantNif?: string | null
 }
 
-export function RentalsWorkspace() {
+type Props = {
+  /** office = custos do gabinete; client = imóveis/rendas dos clientes (módulo separado) */
+  variant?: RentalsVariant
+}
+
+export function RentalsWorkspace({ variant = 'office' }: Props) {
+  const isClient = variant === 'client'
+  const OVERVIEW_KEY = isClient ? (['client-rentals-overview'] as const) : (['rentals-overview'] as const)
   const qc = useQueryClient()
   const [year, setYear] = useState(() => new Date().getFullYear())
   const [q, setQ] = useState('')
@@ -84,8 +91,13 @@ export function RentalsWorkspace() {
   }, [q])
 
   const overviewQuery = useQuery({
-    queryKey: [...OVERVIEW_KEY, year, qDebounced],
-    queryFn: () => contabilRentalsApi.overview({ year, q: qDebounced || undefined }),
+    queryKey: [...OVERVIEW_KEY, year, qDebounced, variant],
+    queryFn: () =>
+      contabilRentalsApi.overview({
+        year,
+        q: qDebounced || undefined,
+        scope: variant,
+      }),
   })
 
   const data = overviewQuery.data
@@ -167,7 +179,7 @@ export function RentalsWorkspace() {
       let createdCount = 0
       let skippedCount = 0
       for (const yearMonth of months) {
-        const res = await contabilRentalsApi.generateReceipts({ yearMonth })
+        const res = await contabilRentalsApi.generateReceipts({ yearMonth, scope: variant })
         createdCount += res.createdCount || 0
         skippedCount += res.skippedCount || 0
       }
@@ -175,7 +187,9 @@ export function RentalsWorkspace() {
         toast.message('Nada aplicado', {
           description:
             activeLeaseCount === 0
-              ? 'Sem contratos activos. Crie um custo/contrato primeiro.'
+              ? isClient
+                ? 'Sem contratos activos. Crie um imóvel e um contrato de arrendamento primeiro.'
+                : 'Sem contratos activos. Crie um custo/contrato primeiro.'
               : 'Todos os contratos elegíveis já têm estes meses no mapa.',
         })
       } else {
@@ -216,8 +230,12 @@ export function RentalsWorkspace() {
   return (
     <FirmModuleShell
       className="cb-rentals-shell cb-rentals-page-scroll"
-      title="Custos e contratos"
-      subtitle="Renda do escritório, luz, gás, água, software e outros contratos do gabinete — mapa mensal de quem pagou e o que está em aberto."
+      title={isClient ? 'Arrendamentos dos clientes' : 'Custos do gabinete'}
+      subtitle={
+        isClient
+          ? 'Imóveis e contratos de arrendamento dos seus clientes (senhorio → inquilino) — mapa mensal de rendas interno.'
+          : 'Renda do escritório, luz, gás, água, software e outros contratos do gabinete — mapa mensal de quem pagou e o que está em aberto.'
+      }
       headerRight={
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => setYear((y) => y - 1)}>
@@ -229,10 +247,10 @@ export function RentalsWorkspace() {
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => setPropertyEdit({})}>
             <Plus className="mr-1 h-4 w-4" aria-hidden />
-            Contrato / custo
+            {isClient ? 'Imóvel' : 'Contrato / custo'}
           </Button>
           <Button type="button" size="sm" onClick={() => setGenerateOpen(true)}>
-            Configurar custos
+            {isClient ? 'Gerar recibos' : 'Configurar custos'}
           </Button>
         </div>
       }
@@ -258,9 +276,12 @@ export function RentalsWorkspace() {
       ) : null}
 
       <p className="cb-rentals-section-lead">
-        <span className="cb-rentals-section-lead-title">Mapa de custos do gabinete</span>
-        Controlo interno de arrendamento, utilities e licenças. Não substitui facturas oficiais nem o
-        Portal das Finanças. Clique numa célula para editar ou marcar como pago.
+        <span className="cb-rentals-section-lead-title">
+          {isClient ? 'Mapa de rendas dos clientes' : 'Mapa de custos do gabinete'}
+        </span>
+        {isClient
+          ? 'Recibos internos por cliente — não substituem o Portal das Finanças nem comunicação à AT. Clique numa célula para editar ou marcar como pago.'
+          : 'Controlo interno de arrendamento, utilities e licenças do escritório. Separado dos arrendamentos dos clientes. Clique numa célula para editar ou marcar como pago.'}
       </p>
 
       <div className="cb-rentals-section-host">
@@ -271,8 +292,12 @@ export function RentalsWorkspace() {
               className="pl-9"
               value={q}
               onChange={(e: FormChangeEvent) => setQ(e.target.value)}
-              placeholder="Procurar contrato, fornecedor ou categoria…"
-              aria-label="Procurar custos e contratos"
+              placeholder={
+                isClient
+                  ? 'Procurar imóvel, senhorio ou inquilino…'
+                  : 'Procurar contrato, fornecedor ou categoria…'
+              }
+              aria-label={isClient ? 'Procurar arrendamentos' : 'Procurar custos do gabinete'}
             />
           </div>
           <div className="cb-rentals-legend" aria-hidden>
@@ -290,15 +315,23 @@ export function RentalsWorkspace() {
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />A carregar…
             </div>
           ) : overviewQuery.isError ? (
-            <p className="py-8 text-sm text-destructive">Não foi possível carregar os contratos.</p>
+            <p className="py-8 text-sm text-destructive">
+              {isClient
+                ? 'Não foi possível carregar os imóveis.'
+                : 'Não foi possível carregar os contratos.'}
+            </p>
           ) : !data?.rows?.length ? (
             <EmptyState
               icon={Building2}
-              title="Ainda sem custos do gabinete"
-              description="Registe a renda do escritório, luz, gás, água, software ou outro contrato — depois gere os meses no mapa."
+              title={isClient ? 'Ainda sem imóveis de clientes' : 'Ainda sem custos do gabinete'}
+              description={
+                isClient
+                  ? 'Adicione um imóvel do cliente (senhorio), crie o contrato com o inquilino e gere os recibos do mês.'
+                  : 'Registe a renda do escritório, luz, gás, água, software ou outro contrato — depois gere os meses no mapa.'
+              }
               action={
                 <Button type="button" onClick={() => setPropertyEdit({})}>
-                  Novo contrato / custo
+                  {isClient ? 'Novo imóvel' : 'Novo contrato / custo'}
                 </Button>
               }
             />
@@ -310,8 +343,8 @@ export function RentalsWorkspace() {
                     <div className="min-w-0">
                       <h2 className="text-base font-semibold tracking-tight">{row.property.label}</h2>
                       <p className="text-sm text-muted-foreground">
-                        {row.client?.id
-                          ? `Cliente: ${row.client.displayName}`
+                        {isClient
+                          ? `Senhorio: ${row.client.displayName}`
                           : `Fornecedor / titular: ${row.client?.displayName || 'Gabinete'}`}
                         {row.client.taxId ? ` · NIF ${row.client.taxId}` : ''}
                       </p>
@@ -344,14 +377,16 @@ export function RentalsWorkspace() {
                         }
                       >
                         <Plus className="mr-1 h-3.5 w-3.5" aria-hidden />
-                        Plano mensal
+                        {isClient ? 'Contrato' : 'Plano mensal'}
                       </Button>
                     </div>
                   </div>
 
                   {!(row.leases || []).filter((l) => l.status !== 'cancelled').length ? (
                     <p className="mt-3 text-sm text-muted-foreground">
-                      Sem plano mensal. Defina valor e vencimento para controlar os meses no mapa.
+                      {isClient
+                        ? 'Sem contrato activo. Adicione o inquilino e a renda mensal.'
+                        : 'Sem plano mensal. Defina valor e vencimento para controlar os meses no mapa.'}
                     </p>
                   ) : (
                     <div className="mt-4 space-y-5">
@@ -451,8 +486,9 @@ export function RentalsWorkspace() {
         </div>
 
         <p className="cb-rentals-foot">
-          Controlo interno de custos e contratos do gabinete. Não substitui facturas oficiais nem
-          declarações à AT.
+          {isClient
+            ? 'Registo interno de arrendamentos dos clientes. Não substitui recibos oficiais AT nem o Portal das Finanças.'
+            : 'Controlo interno de custos do gabinete — separado dos arrendamentos dos clientes. Não substitui facturas oficiais nem declarações à AT.'}
         </p>
       </div>
 
@@ -474,8 +510,13 @@ export function RentalsWorkspace() {
         onOpenChange={(o: boolean) => {
           if (!o) setPropertyEdit(null)
         }}
+        mode={variant}
         initial={propertyEdit?.property}
-        initialClient={propertyEdit?.client}
+        initialClient={
+          propertyEdit?.client && propertyEdit.client.id !== 'office'
+            ? propertyEdit.client
+            : null
+        }
         onSaved={() => void refresh()}
       />
 
@@ -484,6 +525,7 @@ export function RentalsWorkspace() {
         onOpenChange={(o: boolean) => {
           if (!o) setLeaseEdit(null)
         }}
+        variant={variant}
         propertyId={leaseEdit?.propertyId || ''}
         propertyLabel={leaseEdit?.label || ''}
         initial={leaseEdit?.lease}

@@ -19,10 +19,14 @@ function map(row) {
   if (!row) return null;
   return {
     id: row.id,
+    firmId: row.firm_id || null,
     action: row.action,
     actorRole: row.actor_role,
     actorId: row.actor_id,
+    entityType: row.entity_type || null,
+    entityId: row.entity_id || null,
     metadata: row.metadata || {},
+    ipAddress: row.ip_address || null,
     createdAt: row.created_at,
   };
 }
@@ -47,4 +51,27 @@ async function listByEntity({ firmId, entityType, entityId, limit = 50 }) {
   return (data || []).map(map);
 }
 
-module.exports = { writeAuditLog, listByEntity };
+/**
+ * Leitura cross-tenant só para Control Center (caller deve autorizar PLATFORM_OPS).
+ */
+async function listPlatformAuditLogs({
+  limit = 50,
+  offset = 0,
+  action = null,
+  firmId = null,
+  sinceIso = null,
+} = {}) {
+  const sb = ensureClient();
+  const safeLimit = Math.min(Math.max(Number(limit) || 50, 1), 200);
+  const safeOffset = Math.max(Number(offset) || 0, 0);
+  let q = sb.from('audit_logs').select('*', { count: 'exact' }).order('created_at', { ascending: false });
+  if (firmId) q = q.eq('firm_id', firmId);
+  if (action) q = q.eq('action', String(action).trim());
+  if (sinceIso) q = q.gte('created_at', sinceIso);
+  q = q.range(safeOffset, safeOffset + safeLimit - 1);
+  const { data, error, count } = await q;
+  if (error) throw error;
+  return { items: (data || []).map(map), total: count ?? null };
+}
+
+module.exports = { writeAuditLog, listByEntity, listPlatformAuditLogs };
