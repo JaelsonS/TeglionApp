@@ -67,11 +67,14 @@ export function RentalsWorkspace() {
     label: string
     lease?: PropertyLease | null
   } | null>(null)
-  const [generateMonth, setGenerateMonth] = useState(() => {
-    const n = new Date()
-    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}`
-  })
+  const [fromYearMonth, setFromYearMonth] = useState(() => `${new Date().getFullYear()}-01`)
+  const [toYearMonth, setToYearMonth] = useState(() => `${new Date().getFullYear()}-12`)
   const [generating, setGenerating] = useState(false)
+
+  useEffect(() => {
+    setFromYearMonth(`${year}-01`)
+    setToYearMonth(`${year}-12`)
+  }, [year])
   const [creatingKey, setCreatingKey] = useState<string | null>(null)
   const [edit, setEdit] = useState<ReceiptEditCtx | null>(null)
 
@@ -137,27 +140,54 @@ export function RentalsWorkspace() {
     return qc.invalidateQueries({ queryKey: OVERVIEW_KEY })
   }
 
+  function eachYearMonth(from: string, to: string): string[] {
+    if (!/^\d{4}-\d{2}$/.test(from) || !/^\d{4}-\d{2}$/.test(to) || from > to) return []
+    const out: string[] = []
+    let [y, m] = from.split('-').map(Number)
+    const [ty, tm] = to.split('-').map(Number)
+    while (y < ty || (y === ty && m <= tm)) {
+      out.push(`${y}-${String(m).padStart(2, '0')}`)
+      m += 1
+      if (m > 12) {
+        m = 1
+        y += 1
+      }
+    }
+    return out
+  }
+
   async function runGenerate() {
+    const months = eachYearMonth(fromYearMonth, toYearMonth)
+    if (!months.length) {
+      toast.error('Intervalo inválido', { description: 'Verifique De / Até.' })
+      return
+    }
     setGenerating(true)
     try {
-      const res = await contabilRentalsApi.generateReceipts({ yearMonth: generateMonth })
-      if (!res.createdCount) {
-        toast.message('Nada gerado', {
+      let createdCount = 0
+      let skippedCount = 0
+      for (const yearMonth of months) {
+        const res = await contabilRentalsApi.generateReceipts({ yearMonth })
+        createdCount += res.createdCount || 0
+        skippedCount += res.skippedCount || 0
+      }
+      if (!createdCount) {
+        toast.message('Nada aplicado', {
           description:
             activeLeaseCount === 0
-              ? 'Sem contratos activos. Crie um imóvel e um contrato.'
-              : 'Todos os contratos elegíveis já têm este mês.',
+              ? 'Sem contratos activos. Crie um custo/contrato primeiro.'
+              : 'Todos os contratos elegíveis já têm estes meses no mapa.',
         })
       } else {
         toast.success(
-          `Gerados ${res.createdCount} recibo(s)` +
-            (res.skippedCount ? ` · ${res.skippedCount} ignorados` : ''),
+          `Aplicados ${createdCount} rascunho(s)` +
+            (skippedCount ? ` · ${skippedCount} já existentes/fora do contrato` : ''),
         )
       }
       setGenerateOpen(false)
       await refresh()
     } catch (err) {
-      toast.error('Não foi possível gerar', { description: getErrorMessage(err) })
+      toast.error('Não foi possível aplicar o mapa', { description: getErrorMessage(err) })
     } finally {
       setGenerating(false)
     }
@@ -202,7 +232,7 @@ export function RentalsWorkspace() {
             Contrato / custo
           </Button>
           <Button type="button" size="sm" onClick={() => setGenerateOpen(true)}>
-            Gerar meses
+            Configurar custos
           </Button>
         </div>
       }
@@ -429,8 +459,11 @@ export function RentalsWorkspace() {
       <GenerateRentReceiptsDialog
         open={generateOpen}
         onOpenChange={setGenerateOpen}
-        yearMonth={generateMonth}
-        onYearMonthChange={setGenerateMonth}
+        year={year}
+        fromYearMonth={fromYearMonth}
+        toYearMonth={toYearMonth}
+        onFromYearMonthChange={setFromYearMonth}
+        onToYearMonthChange={setToYearMonth}
         activeLeaseCount={activeLeaseCount}
         generating={generating}
         onGenerate={() => void runGenerate()}

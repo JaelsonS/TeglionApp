@@ -106,8 +106,8 @@ export function GenerateMonthDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg gap-0 overflow-hidden rounded-2xl p-0">
-        <DialogHeader className="space-y-2 border-b border-border/60 px-5 py-4 text-left">
+      <DialogContent className="flex max-h-[min(90dvh,calc(100dvh-2rem))] max-w-lg flex-col gap-0 overflow-hidden rounded-2xl p-0">
+        <DialogHeader className="shrink-0 space-y-2 border-b border-border/60 px-5 py-4 text-left pr-12">
           <div className="flex items-start gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
               <Settings2 className="h-5 w-5" aria-hidden />
@@ -115,15 +115,15 @@ export function GenerateMonthDialog({
             <div className="min-w-0">
               <DialogTitle>Configurar mapa de avenças</DialogTitle>
               <DialogDescription className="mt-1">
-                Aplica o valor mensal definido em cada cliente a todos os meses do intervalo — de uma
-                só vez, para toda a carteira activa. Não é fatura AT; é controlo interno do gabinete.
+                Aplica o valor mensal de cada cliente a todo o intervalo — de uma vez, para a
+                carteira activa. Controlo interno; não é fatura AT.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="space-y-4 px-5 py-4">
-          <ol className="space-y-2.5 text-sm">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-y-contain px-5 py-4">
+          <ol className="space-y-2 text-sm">
             <li className="flex gap-3">
               <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold">
                 1
@@ -131,8 +131,7 @@ export function GenerateMonthDialog({
               <div>
                 <p className="font-medium text-foreground">Pré-requisito no cliente</p>
                 <p className="text-xs leading-relaxed text-muted-foreground">
-                  Valor mensal, dia de vencimento, início/fim e avença activa — no hub do cliente ou
-                  no cartão do mapa.
+                  Valor mensal, dia de vencimento, início/fim e avença activa.
                 </p>
               </div>
             </li>
@@ -143,8 +142,8 @@ export function GenerateMonthDialog({
               <div>
                 <p className="font-medium text-foreground">Escolha o período</p>
                 <p className="text-xs leading-relaxed text-muted-foreground">
-                  Ano completo, trimestre, ou intervalo livre. Quem já tem o mês, ou está fora do
-                  início/fim da avença, fica de fora.
+                  Ano, trimestre ou intervalo livre. Quem já tem o mês (ou está fora do início/fim)
+                  fica de fora.
                 </p>
               </div>
             </li>
@@ -155,8 +154,7 @@ export function GenerateMonthDialog({
               <div>
                 <p className="font-medium text-foreground">Aplicar ao mapa</p>
                 <p className="text-xs leading-relaxed text-muted-foreground">
-                  Cria rascunhos editáveis. Depois marca pago, confirma ou gera recibo interno célula
-                  a célula só quando precisar.
+                  Cria rascunhos editáveis. Depois marca pago ou gera recibo só quando precisar.
                 </p>
               </div>
             </li>
@@ -179,16 +177,14 @@ export function GenerateMonthDialog({
                     activa
                   </p>
                   <p className="mt-0.5 text-xs opacity-90">
-                    Serão incluídos no intervalo {monthLabel(fromYearMonth)} →{' '}
-                    {monthLabel(toYearMonth)}.
+                    Incluídos: {monthLabel(fromYearMonth)} → {monthLabel(toYearMonth)}.
                   </p>
                 </>
               ) : (
                 <>
                   <p className="font-semibold">Nenhum cliente pronto</p>
                   <p className="mt-0.5 text-xs opacity-90">
-                    Abra um cliente, defina valor + início/fim, active a avença e guarde — depois
-                    volte aqui.
+                    Defina valor + início/fim, active a avença e guarde — depois volte aqui.
                   </p>
                 </>
               )}
@@ -241,13 +237,13 @@ export function GenerateMonthDialog({
           <div className="flex items-start gap-2 rounded-lg bg-muted/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
             <CalendarRange className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
             <p>
-              Meses já pagos ou confirmados não são alterados. Para copiar um valor específico de um
-              cliente para vários meses, abra a célula e use «Replicar para outros meses».
+              Meses já pagos ou confirmados não são alterados. Para copiar o valor de um cliente
+              concreto, abra a célula e use «Replicar para outros meses».
             </p>
           </div>
         </div>
 
-        <DialogFooter className="border-t border-border/60 bg-muted/20 px-5 py-3 sm:justify-between">
+        <DialogFooter className="shrink-0 border-t border-border/60 bg-muted/20 px-5 py-3 sm:justify-between">
           <Button
             type="button"
             variant="outline"
