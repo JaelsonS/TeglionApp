@@ -277,17 +277,6 @@ export function ChargeEditDialog({
             </label>
           </div>
 
-          <label className="block space-y-1.5 text-sm">
-            <span className="font-medium">Notas</span>
-            <textarea
-              className="min-h-[72px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              value={notes}
-              onChange={(e: FormChangeEvent) => setNotes(e.target.value)}
-              maxLength={2000}
-              placeholder="Opcional"
-            />
-          </label>
-
           <div className="space-y-3 rounded-xl border border-brand/25 bg-brand/5 px-3 py-3">
             <div>
               <p className="text-sm font-semibold text-foreground">Replicar para outros meses</p>
@@ -332,16 +321,19 @@ export function ChargeEditDialog({
             </Button>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-xs leading-relaxed text-slate-700">
-            <p className="font-semibold text-slate-900">Recibo interno</p>
-            <p className="mt-1">
-              Pode gerar um comprovativo com logo, marca d&apos;água e dados completos. Serve só
-              para o gabinete — <strong>não é fatura certificada da AT</strong>.
-            </p>
-          </div>
+          <label className="block space-y-1.5 text-sm">
+            <span className="font-medium">Notas</span>
+            <textarea
+              className="min-h-[64px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={notes}
+              onChange={(e: FormChangeEvent) => setNotes(e.target.value)}
+              maxLength={2000}
+              placeholder="Opcional"
+            />
+          </label>
         </div>
 
-        <DialogFooter className="flex-col gap-2 border-t border-border/60 bg-muted/15 px-5 py-3 sm:flex-col sm:space-x-0">
+        <DialogFooter className="shrink-0 flex-col gap-2 border-t border-border/60 bg-muted/15 px-5 py-3 sm:flex-col sm:space-x-0">
           {status !== 'paid' ? (
             <Button
               type="button"
