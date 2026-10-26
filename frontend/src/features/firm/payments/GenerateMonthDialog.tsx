@@ -1,4 +1,4 @@
-import { CalendarRange, CheckCircle2, Loader2, Settings2, Users } from 'lucide-react'
+import { CheckCircle2, Loader2, Settings2, Users } from 'lucide-react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import { Button } from '@/shared/components/ui/button'
@@ -49,20 +49,7 @@ function detectPreset(year: number, from: string, to: string): PresetId {
 function monthLabel(ym: string) {
   if (!/^\d{4}-\d{2}$/.test(ym)) return ym || '—'
   const [y, m] = ym.split('-')
-  const names = [
-    'Jan',
-    'Fev',
-    'Mar',
-    'Abr',
-    'Mai',
-    'Jun',
-    'Jul',
-    'Ago',
-    'Set',
-    'Out',
-    'Nov',
-    'Dez',
-  ]
+  const names = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
   return `${names[Number(m) - 1] || m} ${y}`
 }
 
@@ -106,60 +93,23 @@ export function GenerateMonthDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[min(90dvh,calc(100dvh-2rem))] max-w-lg flex-col gap-0 overflow-hidden rounded-2xl p-0">
-        <DialogHeader className="shrink-0 space-y-2 border-b border-border/60 px-5 py-4 text-left pr-12">
+      <DialogContent className="flex !max-h-[min(85dvh,calc(100dvh-2rem))] max-w-lg flex-col !gap-0 !overflow-hidden rounded-2xl !p-0">
+        <DialogHeader className="shrink-0 space-y-1.5 border-b border-border/60 px-5 py-3.5 text-left pr-12">
           <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
-              <Settings2 className="h-5 w-5" aria-hidden />
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+              <Settings2 className="h-4.5 w-4.5 h-4 w-4" aria-hidden />
             </span>
             <div className="min-w-0">
               <DialogTitle>Configurar mapa de avenças</DialogTitle>
-              <DialogDescription className="mt-1">
-                Aplica o valor mensal de cada cliente a todo o intervalo — de uma vez, para a
-                carteira activa. Controlo interno; não é fatura AT.
+              <DialogDescription className="mt-1 text-xs sm:text-sm">
+                Preenche o mapa com o valor mensal de cada cliente no período. Controlo interno — não
+                é fatura AT.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-y-contain px-5 py-4">
-          <ol className="space-y-2 text-sm">
-            <li className="flex gap-3">
-              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold">
-                1
-              </span>
-              <div>
-                <p className="font-medium text-foreground">Pré-requisito no cliente</p>
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                  Valor mensal, dia de vencimento, início/fim e avença activa.
-                </p>
-              </div>
-            </li>
-            <li className="flex gap-3">
-              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold">
-                2
-              </span>
-              <div>
-                <p className="font-medium text-foreground">Escolha o período</p>
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                  Ano, trimestre ou intervalo livre. Quem já tem o mês (ou está fora do início/fim)
-                  fica de fora.
-                </p>
-              </div>
-            </li>
-            <li className="flex gap-3">
-              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold">
-                3
-              </span>
-              <div>
-                <p className="font-medium text-foreground">Aplicar ao mapa</p>
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                  Cria rascunhos editáveis. Depois marca pago ou gera recibo só quando precisar.
-                </p>
-              </div>
-            </li>
-          </ol>
-
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-y-contain px-5 py-3.5">
           <div
             className={cn(
               'flex items-start gap-3 rounded-xl border px-3 py-2.5 text-sm',
@@ -177,14 +127,15 @@ export function GenerateMonthDialog({
                     activa
                   </p>
                   <p className="mt-0.5 text-xs opacity-90">
-                    Incluídos: {monthLabel(fromYearMonth)} → {monthLabel(toYearMonth)}.
+                    {monthLabel(fromYearMonth)} → {monthLabel(toYearMonth)}. Quem já tem o mês ou
+                    está fora do início/fim fica de fora.
                   </p>
                 </>
               ) : (
                 <>
                   <p className="font-semibold">Nenhum cliente pronto</p>
                   <p className="mt-0.5 text-xs opacity-90">
-                    Defina valor + início/fim, active a avença e guarde — depois volte aqui.
+                    No cliente: valor + início/fim + avença activa — depois volte aqui.
                   </p>
                 </>
               )}
@@ -192,7 +143,7 @@ export function GenerateMonthDialog({
           </div>
 
           <div className="space-y-2">
-            <p className="text-sm font-medium">Período rápido</p>
+            <p className="text-sm font-medium">Período</p>
             <div className="flex flex-wrap gap-2" role="group" aria-label="Atalhos de período">
               {presets.map((p) => (
                 <button
@@ -234,16 +185,13 @@ export function GenerateMonthDialog({
             </label>
           </div>
 
-          <div className="flex items-start gap-2 rounded-lg bg-muted/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
-            <CalendarRange className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-            <p>
-              Meses já pagos ou confirmados não são alterados. Para copiar o valor de um cliente
-              concreto, abra a célula e use «Replicar para outros meses».
-            </p>
-          </div>
+          <p className="text-xs leading-relaxed text-muted-foreground">
+            Meses pagos/confirmados não mudam. Para um cliente só, abra a célula → «Replicar para
+            outros meses».
+          </p>
         </div>
 
-        <DialogFooter className="shrink-0 border-t border-border/60 bg-muted/20 px-5 py-3 sm:justify-between">
+        <DialogFooter className="shrink-0 border-t border-border/60 bg-background px-5 py-3 sm:justify-between">
           <Button
             type="button"
             variant="outline"
@@ -252,7 +200,7 @@ export function GenerateMonthDialog({
           >
             Cancelar
           </Button>
-          <Button type="button" onClick={onGenerate} disabled={!canApply}>
+          <Button type="button" onClick={onGenerate} disabled={!canApply} className="min-w-[10rem]">
             {generating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />A aplicar…
