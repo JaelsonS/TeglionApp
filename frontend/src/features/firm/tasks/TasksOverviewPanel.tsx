@@ -58,7 +58,7 @@ export function TasksOverviewPanel({
       <div className="cb-tasks-overview-grid">
         <section className="min-w-0">
           <h2 className="cb-tasks-section-hd">Tarefas prioritárias</h2>
-          <div className="cb-tasks-table-wrap cb-table-scroll">
+          <div className="cb-tasks-table-wrap">
             <table className="cb-tasks-table cb-table-mobile-cards">
               <thead className="cb-tasks-thead">
                 <tr>

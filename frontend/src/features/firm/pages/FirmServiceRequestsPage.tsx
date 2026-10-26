@@ -74,9 +74,9 @@ export function FirmServiceRequestsPage() {
         : null
 
   return (
-    <FirmWorkspacePage className="cb-services-layout-page xl:min-h-0 xl:flex-1">
+    <FirmWorkspacePage className="cb-services-page cb-services-layout-page">
       <FirmModuleShell
-        className="cb-firm-operational-panel min-h-0 flex-1 overflow-hidden"
+        className="cb-firm-operational-panel cb-services-page-scroll"
         title={activeMeta.title}
         subtitle={activeMeta.subtitle}
         headerRight={
@@ -92,10 +92,7 @@ export function FirmServiceRequestsPage() {
             ) : null}
           </div>
         }
-        bodyClassName={cn(
-          'flex min-h-0 flex-1 flex-col',
-          activeTab === 'catalog' ? 'overflow-y-auto overscroll-y-contain' : 'overflow-hidden',
-        )}
+        bodyClassName="flex w-full min-w-0 flex-col overflow-visible"
       >
         <div className="shrink-0 border-b border-border/60 px-4 sm:px-5">
           <nav className="cb-tasks-tabs -mb-px overflow-x-auto" aria-label="Secções de serviços">
@@ -159,12 +156,7 @@ export function FirmServiceRequestsPage() {
           </div>
         ) : null}
 
-        <div
-          className={cn(
-            'flex flex-col gap-3 p-3 pb-8 sm:p-4 sm:pb-10',
-            activeTab !== 'catalog' && 'min-h-0 flex-1 overflow-y-auto',
-          )}
-        >
+        <div className="flex w-full min-w-0 flex-col gap-3 p-3 pb-8 sm:p-4 sm:pb-10">
           {activeTab === 'catalog' ? (
             <ServicesCatalogWorkspace
               services={allServices}

@@ -145,9 +145,9 @@ export function FirmIrsPage() {
   }
 
   return (
-    <FirmWorkspacePage className="cb-irs-layout-page xl:min-h-0 xl:flex-1">
+    <FirmWorkspacePage className="cb-irs-page cb-irs-layout-page">
       <FirmModuleShell
-        className="cb-firm-operational-panel min-h-0 flex-1 overflow-hidden"
+        className="cb-firm-operational-panel cb-irs-page-scroll"
         title="Campanha IRS"
         subtitle="Modelos e serviços IRS (Modelo 3, anexos…) — publicação e pedidos. O catálogo geral do gabinete fica em Serviços; aqui não calculamos imposto."
         headerRight={
@@ -179,7 +179,7 @@ export function FirmIrsPage() {
             </Button>
           </div>
         }
-        bodyClassName="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4"
+        bodyClassName="w-full min-w-0 overflow-visible p-3 sm:p-4"
       >
         <div
           className={cn(
@@ -239,8 +239,8 @@ export function FirmIrsPage() {
           ))}
         </div>
 
-        <div className="grid min-h-[28rem] gap-3 lg:grid-cols-2">
-          <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-brand/20 bg-card shadow-sm">
+        <div className="grid gap-3 lg:grid-cols-2">
+          <section className="flex flex-col overflow-hidden rounded-xl border border-brand/20 bg-card shadow-sm">
             <div className="shrink-0 border-b border-brand/10 bg-gradient-to-r from-brand/[0.07] to-transparent px-4 py-3">
               <div className="flex items-center gap-2">
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-primary-foreground">
@@ -261,7 +261,7 @@ export function FirmIrsPage() {
                 />
               </div>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="w-full">
               {catalogQuery.isLoading ? (
                 <div className="flex h-32 items-center justify-center">
                   <Loader2 className="h-5 w-5 animate-spin text-brand" />
@@ -302,7 +302,7 @@ export function FirmIrsPage() {
             </div>
           </section>
 
-          <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-brand/20 bg-card shadow-sm">
+          <section className="flex flex-col overflow-hidden rounded-xl border border-brand/20 bg-card shadow-sm">
             <div className="shrink-0 border-b border-brand/10 bg-gradient-to-r from-sky-500/[0.08] to-transparent px-4 py-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
@@ -323,7 +323,7 @@ export function FirmIrsPage() {
                 </Button>
               </div>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="w-full">
               {servicesQuery.isLoading ? (
                 <div className="flex h-32 items-center justify-center">
                   <Loader2 className="h-5 w-5 animate-spin text-brand" />

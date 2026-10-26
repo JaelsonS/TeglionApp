@@ -92,7 +92,7 @@ export function TasksManualView({
   }, [showForm])
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex w-full min-w-0 flex-col">
       {!embeddedInShell ? (
         <div className="flex flex-wrap items-center gap-2 border-b border-border/60 bg-muted/15 p-3">
           <div className="relative min-w-[200px] flex-1">

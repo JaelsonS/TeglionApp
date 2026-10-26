@@ -2019,26 +2019,41 @@
     @apply rounded-lg border border-border/70 bg-card p-3 transition-shadow hover:border-brand/20 hover:shadow-sm;
   }
 
-  /* Tarefas — workspace (padrão Documentos: shell + KPI + lead) */
-  .cb-tasks-page {
-    @apply flex min-h-0 w-full min-w-0 flex-1 flex-col;
-  }
-
+  /* Tarefas — page-scroll (padrão Pagamentos / SAF-T) */
+  .cb-tasks-page,
   .cb-tasks-layout-page,
-  .cb-tasks-layout-page .cb-firm-operational-panel {
-    @apply min-h-0 flex-1;
+  .cb-tasks-layout-panel {
+    @apply flex w-full min-w-0 flex-col;
+    flex: none;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
   }
 
-  .cb-tasks-layout-panel {
-    @apply min-h-0;
+  .cb-firm-workspace-page.cb-tasks-layout-page > .cb-tasks-layout-panel {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
   }
 
   .cb-tasks-panel {
-    @apply flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/70 bg-card;
+    @apply flex w-full flex-col rounded-lg border border-border/70 bg-card;
   }
 
   .cb-tasks-panel-v2 {
     @apply border-0 bg-transparent shadow-none;
+  }
+
+  .cb-tasks-page-scroll > div,
+  .cb-tasks-body {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
   }
 
   .cb-tasks-panel-hd {
@@ -2070,10 +2085,6 @@
     @apply absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-brand;
   }
 
-  .cb-tasks-body {
-    @apply flex min-h-0 flex-1 flex-col;
-  }
-
   .cb-tasks-section-lead {
     @apply shrink-0 px-4 pb-2 pt-3 text-sm leading-snug text-muted-foreground sm:px-5;
   }
@@ -2082,6 +2093,7 @@
     @apply mb-0.5 block text-xs font-semibold uppercase tracking-wide text-brand;
   }
 
+  .cb-tasks-section-host,
   .cb-tasks-section-host--flow {
     @apply flex w-full min-w-0 flex-col px-3 pb-4 sm:px-4;
     flex: none;
@@ -2090,7 +2102,10 @@
   }
 
   .cb-tasks-section-host--fill {
-    @apply flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 pb-3 sm:px-4;
+    @apply flex w-full min-w-0 flex-col px-3 pb-4 sm:px-4;
+    flex: none;
+    height: auto;
+    overflow: visible;
   }
 
   .cb-tasks-kpi-row {
@@ -2227,7 +2242,7 @@
   }
 
   .cb-tasks-kanban-wrap {
-    @apply min-h-0 flex-1 overflow-x-auto overflow-y-hidden p-3;
+    @apply w-full overflow-x-auto p-1 sm:p-0;
   }
 
   .cb-tasks-kanban-col {
@@ -3336,14 +3351,28 @@
     @apply shrink-0 text-xs leading-relaxed text-muted-foreground;
   }
 
-  /* Agenda consultorias (IMG-17) */
+  /* Agenda consultorias — page-scroll */
+  .cb-agenda-page,
   .cb-agenda-layout-page,
-  .cb-agenda-layout-page .cb-firm-operational-panel {
-    @apply min-h-0 flex-1;
+  .cb-agenda-layout-panel {
+    @apply flex w-full min-w-0 flex-col;
+    flex: none;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .cb-firm-workspace-page.cb-agenda-layout-page > .cb-agenda-layout-panel {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
   }
 
   .cb-agenda-page {
-    @apply flex min-h-0 flex-1 flex-col bg-card;
+    @apply flex w-full flex-col bg-card;
   }
 
   .cb-agenda-page-hd {
@@ -3375,11 +3404,15 @@
   }
 
   .cb-agenda-body {
-    @apply flex min-h-0 flex-1 flex-col overflow-hidden lg:flex-row;
+    @apply flex w-full min-w-0 flex-col lg:flex-row;
+    flex: none;
+    height: auto;
+    overflow: visible;
   }
 
   .cb-agenda-main {
-    @apply min-h-0 min-w-0 flex-1 overflow-auto;
+    @apply min-w-0 w-full flex-1;
+    overflow: visible;
   }
 
   .cb-agenda-settings {
@@ -4498,10 +4531,40 @@
     @apply flex items-center text-xs text-muted-foreground;
   }
 
-  /* Serviços */
+  /* Serviços — page-scroll */
   .cb-services-layout-page,
   .cb-services-page {
-    @apply flex min-h-0 flex-1 flex-col bg-card;
+    @apply flex w-full min-w-0 flex-col bg-card;
+    flex: none;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .cb-services-page-scroll > div {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  /* IRS — page-scroll */
+  .cb-irs-layout-page,
+  .cb-irs-page {
+    @apply flex w-full min-w-0 flex-col;
+    flex: none;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .cb-irs-page-scroll > div {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
   }
 
   .cb-services-catalog-list {
@@ -6130,9 +6193,15 @@
     }
   }
 
-  /* Calendário fiscal nacional — grelha colorida com scroll */
-  .cb-fiscal-cal-page {
-    @apply flex min-h-0 flex-1 flex-col gap-3;
+  /* Calendário fiscal nacional — page-scroll */
+  .cb-fiscal-cal-page,
+  .cb-fiscal-cal-layout-page {
+    @apply flex w-full min-w-0 flex-col gap-3;
+    flex: none;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
   }
 
   .cb-fiscal-cal-header {
@@ -6144,12 +6213,13 @@
   }
 
   .cb-fiscal-cal-body {
-    @apply min-h-0 flex-1 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[var(--cb-shadow-card)];
+    @apply w-full overflow-visible rounded-2xl border border-border/60 bg-card shadow-[var(--cb-shadow-card)];
+    flex: none;
+    height: auto;
   }
 
   .cb-fiscal-cal-grid-wrap {
-    @apply h-full min-h-0 overflow-y-auto overscroll-y-contain p-2 sm:p-3;
-    -webkit-overflow-scrolling: touch;
+    @apply overflow-visible p-2 sm:p-3;
   }
 
   .cb-fiscal-cal-grid {
@@ -6189,8 +6259,7 @@
   }
 
   .cb-fiscal-cal-list {
-    @apply flex h-full min-h-0 flex-col gap-2 overflow-y-auto overscroll-y-contain p-3;
-    -webkit-overflow-scrolling: touch;
+    @apply flex w-full flex-col gap-2 overflow-visible p-3;
   }
 
   .cb-fiscal-cal-list-row {

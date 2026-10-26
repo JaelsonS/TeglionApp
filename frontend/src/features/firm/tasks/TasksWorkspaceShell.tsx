@@ -4,7 +4,6 @@ import { TasksKpiStrip } from '@/features/firm/tasks/TasksKpiStrip'
 import { TasksOperationsTabBar } from '@/features/firm/tasks/TasksOperationsTabBar'
 import type { OverviewKpis, TasksOperationsTab } from '@/features/firm/tasks/tasksOperationsUtils'
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
-import { cn } from '@/shared/lib/utils'
 
 const SUBTITLES: Record<TasksOperationsTab, string> = {
   overview: 'Prioridades da equipa — o que está em atraso, em curso e concluído num só sítio.',
@@ -63,19 +62,11 @@ export function TasksWorkspaceShell({
   children: ReactNode
 }) {
   const lead = LEADS[activeTab]
-  const nestedScroll = activeTab === 'obligations' || activeTab === 'manual'
-  const pageScroll = !nestedScroll
 
   return (
     <FirmModuleShell
-      className={cn(
-        'cb-tasks-panel cb-tasks-panel-v2',
-        pageScroll && 'cb-tasks-page-scroll',
-      )}
-      bodyClassName={cn(
-        'cb-tasks-body flex min-h-0 flex-1 flex-col',
-        nestedScroll ? 'overflow-hidden' : 'overflow-visible',
-      )}
+      className="cb-tasks-panel cb-tasks-panel-v2 cb-tasks-page-scroll"
+      bodyClassName="cb-tasks-body"
       title={TITLES[activeTab]}
       subtitle={SUBTITLES[activeTab]}
       headerRight={headerAction}
@@ -88,14 +79,7 @@ export function TasksWorkspaceShell({
         <span className="cb-tasks-section-lead-title">{lead.title}</span>
         {lead.detail}
       </p>
-      <div
-        className={cn(
-          'cb-tasks-section-host',
-          nestedScroll ? 'cb-tasks-section-host--fill' : 'cb-tasks-section-host--flow',
-        )}
-      >
-        {children}
-      </div>
+      <div className="cb-tasks-section-host cb-tasks-section-host--flow">{children}</div>
     </FirmModuleShell>
   )
 }

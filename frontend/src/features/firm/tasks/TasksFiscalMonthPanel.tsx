@@ -70,7 +70,7 @@ export function TasksFiscalMonthPanel({
   const groups = useMemo(() => data?.groups || [], [data])
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-4 pb-6 pt-3 sm:px-5">
+    <div className="flex w-full min-w-0 flex-col gap-4 px-1 pb-2 pt-1 sm:px-0">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Button

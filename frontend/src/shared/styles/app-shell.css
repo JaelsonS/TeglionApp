@@ -174,7 +174,8 @@
 
   /*
    * Desktop workspace: content-wrap sem scroll (colunas internas), EXCEPTO módulos
-   * de scroll de página — Documentos, Clientes, Pagamentos.
+   * de scroll de página (listas/tabelas/calendários de conteúdo longo).
+   * Splits (chat, alertas) mantêm overflow:hidden no content-wrap.
    */
   @media (min-width: 1280px) {
     .cb-firm-shell
@@ -182,7 +183,9 @@
         :has(.cb-clients-layout-page)
       ):not(:has(.cb-payments-layout-page)):not(:has(.cb-rentals-layout-page)):not(
         :has(.cb-saft-layout-page)
-      ) {
+      ):not(:has(.cb-tasks-layout-page)):not(:has(.cb-agenda-layout-page)):not(
+        :has(.cb-fiscal-cal-layout-page)
+      ):not(:has(.cb-irs-layout-page)):not(:has(.cb-services-layout-page)) {
       overflow: hidden;
       padding-bottom: 0.75rem;
     }
@@ -192,7 +195,9 @@
         :has(.cb-clients-layout-page)
       ):not(:has(.cb-payments-layout-page)):not(:has(.cb-rentals-layout-page)):not(
         :has(.cb-saft-layout-page)
-      )
+      ):not(:has(.cb-tasks-layout-page)):not(:has(.cb-agenda-layout-page)):not(
+        :has(.cb-fiscal-cal-layout-page)
+      ):not(:has(.cb-irs-layout-page)):not(:has(.cb-services-layout-page))
       > .cb-firm-workspace-page {
       flex: 1 1 0%;
       min-height: 0;
@@ -202,7 +207,9 @@
     .cb-firm-shell
       .cb-firm-workspace-page:not(.cb-docs-layout-page):not(.cb-clients-layout-page):not(
         .cb-payments-layout-page
-      ):not(.cb-rentals-layout-page):not(.cb-saft-layout-page)
+      ):not(.cb-rentals-layout-page):not(.cb-saft-layout-page):not(.cb-tasks-layout-page):not(
+        .cb-agenda-layout-page
+      ):not(.cb-fiscal-cal-layout-page):not(.cb-irs-layout-page):not(.cb-services-layout-page)
       > .cb-firm-operational-panel {
       flex: 1 1 0%;
       min-height: 0;
@@ -215,7 +222,12 @@
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-clients-layout-page),
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-payments-layout-page),
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-rentals-layout-page),
-    .cb-firm-shell .cb-firm-content-wrap:has(.cb-saft-layout-page) {
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-saft-layout-page),
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-tasks-layout-page),
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-agenda-layout-page),
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-fiscal-cal-layout-page),
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-irs-layout-page),
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-services-layout-page) {
       overflow-x: hidden;
       overflow-y: auto;
       overscroll-behavior-y: contain;
@@ -227,7 +239,12 @@
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-clients-layout-page) > .cb-clients-layout-page,
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-payments-layout-page) > .cb-payments-layout-page,
     .cb-firm-shell .cb-firm-content-wrap:has(.cb-rentals-layout-page) > .cb-rentals-layout-page,
-    .cb-firm-shell .cb-firm-content-wrap:has(.cb-saft-layout-page) > .cb-saft-layout-page {
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-saft-layout-page) > .cb-saft-layout-page,
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-tasks-layout-page) > .cb-tasks-layout-page,
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-agenda-layout-page) > .cb-agenda-layout-page,
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-fiscal-cal-layout-page) > .cb-fiscal-cal-layout-page,
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-irs-layout-page) > .cb-irs-layout-page,
+    .cb-firm-shell .cb-firm-content-wrap:has(.cb-services-layout-page) > .cb-services-layout-page {
       flex: none;
       height: auto;
       min-height: 0;

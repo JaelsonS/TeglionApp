@@ -35,13 +35,9 @@ export function FirmModuleShell({
   tabsClassName,
   embedded = false,
 }: FirmModuleShellProps) {
-  /** Documentos / Tarefas / Painel / Clientes / Pagamentos usam scroll de página; splits prendem altura. */
+  /** Módulos com `*-page-scroll` / docs usam scroll de página; splits prendem altura. */
   const pageScroll = Boolean(
-    className?.includes('cb-docs-page') ||
-      className?.includes('cb-tasks-page-scroll') ||
-      className?.includes('cb-dash-page-scroll') ||
-      className?.includes('cb-clients-page-scroll') ||
-      className?.includes('cb-payments-page-scroll'),
+    className?.includes('cb-docs-page') || className?.includes('page-scroll'),
   )
 
   return (
