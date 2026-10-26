@@ -67,6 +67,25 @@ function mfaRequiredForRole(role) {
   return isOwnerRole(role);
 }
 
+/**
+ * Email do Control Center (PLATFORM_OPS_EMAIL_ALLOWLIST) — MFA sempre obrigatória,
+ * independentemente do papel no gabinete.
+ */
+function isPlatformOpsAllowlistedEmail(email) {
+  const { env } = require('../../config/env');
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!normalized) return false;
+  const list = env.PLATFORM_OPS_EMAIL_ALLOWLIST;
+  return Array.isArray(list) && list.includes(normalized);
+}
+
+/** Owner OU operador AfDigital na allowlist do Control Center. */
+function mfaRequiredForUser(row) {
+  if (!row) return false;
+  if (mfaRequiredForRole(row.role)) return true;
+  return isPlatformOpsAllowlistedEmail(row.email);
+}
+
 function invalidMfaCodeError() {
   return new AppError('Código MFA inválido.', 401, { code: 'MFA_INVALID_CODE' });
 }
@@ -117,7 +136,7 @@ function resolvePostCredentialGate(row) {
       user: partialMfaUser(row),
     };
   }
-  if (mfaRequiredForRole(row.role)) {
+  if (mfaRequiredForUser(row)) {
     const challenge = issueChallengeForUser(row, MFA_PURPOSES.ENROLL);
     return {
       status: STATUS.MFA_ENROLLMENT_REQUIRED,
@@ -258,7 +277,7 @@ async function getStatusForSessionUser({ userId, firmId }) {
     recoveryCodesRemaining: Array.isArray(row.mfa_recovery_codes_hash)
       ? row.mfa_recovery_codes_hash.length
       : 0,
-    required: mfaRequiredForRole(row.role),
+    required: mfaRequiredForUser(row),
     user: partialMfaUser(row),
   };
 }
@@ -289,7 +308,7 @@ async function beginEnrollment({ challengeToken, sessionUser = null }) {
         code: 'MFA_ALREADY_ENABLED',
       });
     }
-    if (mfaRequiredForRole(row.role) && !challengeToken) {
+    if (mfaRequiredForUser(row) && !challengeToken) {
       throw new AppError('É necessário o token de enrollment MFA.', 401, {
         code: 'MFA_ENROLLMENT_REQUIRED',
       });
@@ -337,7 +356,7 @@ async function confirmEnrollment({ challengeToken, sessionUser = null, code, req
     row = await firmUsersRepository.findFirmUserById(sessionUser.id, sessionUser.firmId);
     assertSameTenant(row, sessionUser.firmId);
     firmId = sessionUser.firmId;
-    if (mfaRequiredForRole(row.role) && !row.mfa_enabled) {
+    if (mfaRequiredForUser(row) && !row.mfa_enabled) {
       throw new AppError('É necessário o token de enrollment MFA.', 401, {
         code: 'MFA_ENROLLMENT_REQUIRED',
       });
@@ -504,6 +523,11 @@ async function disableMfa({ userId, firmId, code, recoveryCode, req = null }) {
   if (mfaRequiredForRole(row.role)) {
     throw new AppError('O proprietário do escritório não pode desactivar o MFA.', 403, {
       code: 'MFA_REQUIRED_FOR_OWNER',
+    });
+  }
+  if (isPlatformOpsAllowlistedEmail(row.email)) {
+    throw new AppError('A conta do Control Center não pode desactivar o MFA.', 403, {
+      code: 'MFA_REQUIRED_FOR_ACCOUNT',
     });
   }
 
@@ -764,6 +788,8 @@ module.exports = {
   STATUS,
   MFA_PURPOSES,
   mfaRequiredForRole,
+  mfaRequiredForUser,
+  isPlatformOpsAllowlistedEmail,
   resolvePostCredentialGate,
   issueChallengeForUser,
   getStatusFromChallenge,

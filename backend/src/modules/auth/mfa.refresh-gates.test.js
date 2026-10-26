@@ -145,6 +145,61 @@ describe('MFA refresh gates', () => {
     const result = await contabilAuth.refreshSession({ refreshToken: raw });
     assert.ok(result.tokens?.accessToken);
   });
+
+  test('staff PLATFORM_OPS allowlist sem MFA: refresh → MFA_ENROLLMENT_REQUIRED', async () => {
+    resetMocks();
+    const { env } = require('../../config/env');
+    const originalList = [...(env.PLATFORM_OPS_EMAIL_ALLOWLIST || [])];
+    env.PLATFORM_OPS_EMAIL_ALLOWLIST.length = 0;
+    env.PLATFORM_OPS_EMAIL_ALLOWLIST.push('ops@afdigital.example');
+
+    const raw = 'rt-ops-no-mfa';
+    const expectedHash = crypto.createHash('sha256').update(raw).digest('hex');
+
+    mock.method(jwtConfig, 'verifyRefreshToken', () => ({
+      id: 'ops-1',
+      role: 'FIRM_STAFF',
+      jti: 'jti-ops',
+      actorType: 'firm',
+    }));
+    mock.method(authRefreshSessionsRepository, 'claimByJti', async () => ({
+      token_hash: expectedHash,
+      expires_at: new Date(Date.now() + 60_000).toISOString(),
+    }));
+    mock.method(authRefreshSessionsRepository, 'deleteByJti', async () => {});
+    let revoked = null;
+    mock.method(authRefreshSessionsRepository, 'deleteAllForActor', async (type, id) => {
+      revoked = { type, id };
+    });
+    mock.method(firmUsersRepository, 'findFirmUserById', async () => ({
+      id: 'ops-1',
+      firm_id: 'firm-1',
+      email: 'ops@afdigital.example',
+      full_name: 'Ops',
+      role: 'FIRM_STAFF',
+      is_active: true,
+      mfa_enabled: false,
+      refresh_token_hash: null,
+    }));
+    mock.method(firmsRepository, 'findFirmById', async () => ({
+      id: 'firm-1',
+      status: 'ACTIVE',
+      trial_ends_at: null,
+    }));
+
+    try {
+      await assert.rejects(
+        () => contabilAuth.refreshSession({ refreshToken: raw }),
+        (err) =>
+          err?.statusCode === 401 &&
+          (err?.details?.code === 'MFA_ENROLLMENT_REQUIRED' || err?.code === 'MFA_ENROLLMENT_REQUIRED'),
+      );
+      assert.deepEqual(revoked, { type: 'firm_user', id: 'ops-1' });
+    } finally {
+      env.PLATFORM_OPS_EMAIL_ALLOWLIST.length = 0;
+      for (const e of originalList) env.PLATFORM_OPS_EMAIL_ALLOWLIST.push(e);
+    }
+  });
 });
 
 describe('MFA challenge token cannot escalate', () => {

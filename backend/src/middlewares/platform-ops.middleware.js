@@ -21,10 +21,20 @@ async function requirePlatformOps(req, res, next) {
         code: 'PLATFORM_OPS_DISABLED',
       });
     }
-    if (!env.PLATFORM_OPS_EMAIL_ALLOWLIST.length) {
-      throw new AppError('Allowlist de operadores não configurada', 503, {
-        code: 'PLATFORM_OPS_ALLOWLIST_EMPTY',
-      });
+    // Exactamente 1 email — sem equipa alargada nesta fase.
+    if (env.PLATFORM_OPS_EMAIL_ALLOWLIST.length !== 1) {
+      throw new AppError(
+        env.PLATFORM_OPS_EMAIL_ALLOWLIST.length === 0
+          ? 'Allowlist de operadores não configurada'
+          : 'Control Center exige exactamente 1 email na allowlist',
+        503,
+        {
+          code:
+            env.PLATFORM_OPS_EMAIL_ALLOWLIST.length === 0
+              ? 'PLATFORM_OPS_ALLOWLIST_EMPTY'
+              : 'PLATFORM_OPS_ALLOWLIST_INVALID',
+        },
+      );
     }
 
     const userId = req.user?.id || req.user?.userId;
