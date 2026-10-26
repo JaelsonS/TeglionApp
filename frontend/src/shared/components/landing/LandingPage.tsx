@@ -13,8 +13,8 @@ import { LandingProof } from '@/shared/components/landing/LandingProof'
 import { LandingSalesMaya } from '@/shared/components/landing/LandingSalesMaya'
 import { applyPageSeo } from '@/shared/utils/seo'
 
-const FRAUNCES_HREF =
-  'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,650&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap'
+const JAKARTA_HREF =
+  'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap'
 
 function ensureLandingFonts() {
   if (typeof document === 'undefined') return
@@ -32,7 +32,7 @@ function ensureLandingFonts() {
   const link = document.createElement('link')
   link.id = id
   link.rel = 'stylesheet'
-  link.href = FRAUNCES_HREF
+  link.href = JAKARTA_HREF
   document.head.appendChild(link)
 }
 
@@ -40,7 +40,7 @@ export function LandingPage() {
   useLayoutEffect(() => {
     ensureLandingFonts()
     applyPageSeo({
-      title: 'Teglion | Software SaaS para gabinetes de contabilidade',
+      title: 'Teglion | Software para gabinetes de contabilidade',
       description:
         'Teglion — painel do gabinete, portal do cliente e página pública no mesmo sistema. Documentos, prazos, serviços e pagamentos. 14 dias grátis, sem cartão.',
       path: '/',

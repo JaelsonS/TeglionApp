@@ -34,7 +34,8 @@ export function LandingHeader() {
     }
   }, [menuOpen])
 
-  const onDark = !scrolled && !menuOpen
+  /* Hero escuro = logo clara; ao scroll o header fica branco = logo navy */
+  const onDark = !scrolled
 
   return (
     <header
@@ -44,7 +45,7 @@ export function LandingHeader() {
       )}
     >
       <div className="landing-container flex h-16 items-center justify-between gap-4 px-5 sm:px-8">
-        <LandingBrandMark onDark={onDark || menuOpen} />
+        <LandingBrandMark onDark={onDark} />
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Principal">
           {NAV.map((item) =>
@@ -100,7 +101,12 @@ export function LandingHeader() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-t border-white/10 bg-[#061428] lg:hidden"
+            className={cn(
+              'border-t lg:hidden',
+              scrolled
+                ? 'border-[var(--landing-navy)]/10 bg-white'
+                : 'border-white/10 bg-[#061428]',
+            )}
           >
             <nav className="flex flex-col gap-1 px-5 py-4">
               {NAV.map((item) =>
@@ -108,7 +114,10 @@ export function LandingHeader() {
                   <Link
                     key={item.href}
                     to={item.href}
-                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-white"
+                    className={cn(
+                      'rounded-lg px-3 py-2.5 text-sm font-medium',
+                      scrolled ? 'text-[var(--landing-navy)]' : 'text-white',
+                    )}
                     onClick={() => setMenuOpen(false)}
                   >
                     {item.label}
@@ -117,7 +126,10 @@ export function LandingHeader() {
                   <a
                     key={item.href}
                     href={item.href}
-                    className="rounded-lg px-3 py-2.5 text-sm font-medium text-white"
+                    className={cn(
+                      'rounded-lg px-3 py-2.5 text-sm font-medium',
+                      scrolled ? 'text-[var(--landing-navy)]' : 'text-white',
+                    )}
                     onClick={() => setMenuOpen(false)}
                   >
                     {item.label}
@@ -126,7 +138,10 @@ export function LandingHeader() {
               )}
               <Link
                 to={authProfileChoiceUrl('login')}
-                className="rounded-lg px-3 py-2.5 text-sm text-white/70"
+                className={cn(
+                  'rounded-lg px-3 py-2.5 text-sm',
+                  scrolled ? 'text-[var(--landing-muted)]' : 'text-white/70',
+                )}
                 onClick={() => setMenuOpen(false)}
               >
                 Entrar

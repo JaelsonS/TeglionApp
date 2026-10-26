@@ -97,11 +97,11 @@ export function LandingPricing() {
                 className={cn(
                   'landing-card relative flex h-full flex-col p-5 sm:p-6',
                   plan.featured &&
-                    'ring-2 ring-[var(--landing-gold)]/40 bg-gradient-to-b from-white to-[#FFF8EB]/80 md:col-span-1 lg:scale-[1.02]',
+                    'ring-2 ring-[var(--landing-navy)]/25 bg-gradient-to-b from-white to-[var(--landing-ice)]/50 md:col-span-1 lg:scale-[1.02]',
                 )}
               >
                 {plan.featured ? (
-                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[var(--landing-gold)] px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#061428] sm:-top-3">
+                  <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 rounded-full bg-[var(--landing-navy)] px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white sm:-top-3">
                     Melhor valor
                   </span>
                 ) : null}

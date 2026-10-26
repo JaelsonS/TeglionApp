@@ -1,16 +1,13 @@
-/* Landing SaaS — identidade Teglion (navy + gold). Tipografia Fraunces só nesta página. */
+/* Landing SaaS — Teglion navy + gold. Tipografia só sans (Plus Jakarta). */
 .landing-page {
-  --landing-bg: #071a33;
-  --landing-surface: #f3f6fa;
+  --landing-surface: #f4f7fb;
   --landing-navy: #0b3a6e;
   --landing-navy-deep: #061428;
   --landing-navy-hover: #0e4a8a;
-  --landing-body: #3d4f63;
-  --landing-muted: #5a6b7d;
+  --landing-body: #334155;
+  --landing-muted: #64748b;
   --landing-gold: #c9932e;
-  --landing-ice: #dce8f4;
-  --landing-mint: #b8dcc4;
-  --landing-font-display: 'Fraunces', 'Literata', Georgia, serif;
+  --landing-ice: #e8f0f7;
   --landing-font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
 
   background: var(--landing-surface);
@@ -31,25 +28,25 @@
 .landing-page h2,
 .landing-page h3,
 .landing-page .landing-display {
-  font-family: var(--landing-font-display);
+  font-family: var(--landing-font-sans);
   color: var(--landing-navy);
   letter-spacing: -0.03em;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .landing-btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
-  background: var(--landing-gold);
-  color: #071a33;
+  border-radius: 12px;
+  background: var(--landing-navy);
+  color: #fff;
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: 650;
   padding: 0.85rem 1.5rem;
   min-height: 48px;
   transition: transform 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
-  box-shadow: 0 8px 24px rgba(201, 147, 46, 0.28);
+  box-shadow: 0 8px 22px rgba(11, 58, 110, 0.22);
 }
 
 @media (min-width: 640px) {
@@ -59,15 +56,25 @@
 }
 
 .landing-btn-primary:hover {
+  background: var(--landing-navy-hover);
+  transform: translateY(-1px);
+}
+
+.landing-hero .landing-btn-primary {
+  background: var(--landing-gold);
+  color: #061428;
+  box-shadow: 0 8px 24px rgba(201, 147, 46, 0.3);
+}
+
+.landing-hero .landing-btn-primary:hover {
   background: #d9a53a;
-  transform: translateY(-1px) scale(1.01);
 }
 
 .landing-btn-ghost {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: 10px;
   padding: 0.5rem 1rem;
   min-height: 40px;
   font-size: 0.875rem;
@@ -137,11 +144,24 @@
 }
 
 .landing-screenshot-wrap {
-  border-radius: 16px;
-  border: 1px solid rgba(220, 232, 244, 0.5);
+  border-radius: 14px;
+  border: 1px solid rgba(11, 58, 110, 0.1);
+  background: #f0f4f8;
+  box-shadow: 0 12px 36px rgba(7, 26, 51, 0.12);
+  overflow: hidden;
+}
+
+.landing-hero-visual .landing-screenshot-wrap {
+  border-color: rgba(220, 232, 244, 0.35);
   background: #0a2748;
   box-shadow: 0 24px 60px rgba(7, 26, 51, 0.35);
-  overflow: hidden;
+}
+
+.landing-card .landing-screenshot-wrap {
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid rgba(11, 58, 110, 0.08);
+  box-shadow: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -155,18 +175,20 @@
   background: transparent;
 }
 
+/* Ao scroll: header claro sobre secções claras — logo navy legível */
 .landing-header-scrolled {
-  background: rgba(7, 26, 51, 0.88);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(11, 58, 110, 0.08);
+  box-shadow: 0 1px 0 rgba(11, 58, 110, 0.04);
 }
 
 .landing-header-scrolled .landing-btn-ghost {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--landing-navy);
 }
 
 .landing-header-scrolled .landing-btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(11, 58, 110, 0.06);
 }
 
 /* —— Hero full-bleed —— */
@@ -255,7 +277,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: 12px;
   min-height: 48px;
   padding: 0.85rem 1.35rem;
   font-size: 0.9375rem;
@@ -339,7 +361,7 @@
 
 .landing-cta-panel h2 {
   color: #fff;
-  font-family: var(--landing-font-display);
+  font-family: var(--landing-font-sans);
 }
 
 .landing-cta-panel {
