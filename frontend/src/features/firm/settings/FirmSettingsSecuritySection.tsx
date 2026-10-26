@@ -35,6 +35,9 @@ function mfaUserFacingError(err: unknown): string {
     if (code === 'MFA_REQUIRED_FOR_OWNER') {
       return 'Como é a dona do gabinete, a autenticação de dois factores não pode ser desligada — só trocada por outra aplicação.'
     }
+    if (code === 'MFA_REQUIRED_FOR_ACCOUNT') {
+      return 'Esta conta (Control Center) não pode desligar a autenticação de dois factores — só trocá-la por outra aplicação.'
+    }
   }
   const raw = getErrorMessage(err)
   if (/inválido|invalid|mfa/i.test(raw)) return MFA_INVALID_GENERIC
