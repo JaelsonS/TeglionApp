@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Loader2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { FormChangeEvent } from '@/shared/types/react-events'
@@ -13,7 +14,7 @@ import {
   DialogTitle,
 } from '@/shared/components/ui/dialog'
 import { Input } from '@/shared/components/ui/input'
-import { contabilRentalsApi } from '@/infrastructure/api'
+import { contabilClientsApi, contabilRentalsApi } from '@/infrastructure/api'
 import type { ClientProperty } from '@/infrastructure/api/contabil/rentals'
 import { getErrorMessage } from '@/shared/utils/errors'
 
@@ -28,63 +29,97 @@ const COST_CATEGORIES = [
   { id: 'outro', label: 'Outro' },
 ]
 
+export type PropertyDialogMode = 'office' | 'client'
+
 type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
+  mode?: PropertyDialogMode
   initial?: ClientProperty | null
   initialClient?: { id: string; displayName: string; taxId?: string | null } | null
   onSaved: () => void
 }
 
-export function PropertyDialog({ open, onOpenChange, initial, onSaved }: Props) {
+export function PropertyDialog({
+  open,
+  onOpenChange,
+  mode = 'office',
+  initial,
+  initialClient,
+  onSaved,
+}: Props) {
+  const isClient = mode === 'client'
   const isEdit = Boolean(initial?.id)
 
+  const clientsQuery = useQuery({
+    queryKey: ['clients-for-rentals'],
+    queryFn: () => contabilClientsApi.list({ limit: 200 }),
+    enabled: open && isClient && !isEdit,
+  })
+  const clients = useMemo(() => clientsQuery.data?.items || [], [clientsQuery.data])
+
+  const [clientId, setClientId] = useState(initial?.clientId || initialClient?.id || '')
   const [label, setLabel] = useState(initial?.label || '')
   const [costCategory, setCostCategory] = useState(initial?.costCategory || 'arrendamento')
   const [supplierName, setSupplierName] = useState(initial?.supplierName || '')
   const [addressLine, setAddressLine] = useState(initial?.addressLine || '')
   const [postalCode, setPostalCode] = useState(initial?.postalCode || '')
   const [locality, setLocality] = useState(initial?.locality || '')
+  const [artigoMatricial, setArtigoMatricial] = useState(initial?.artigoMatricial || '')
   const [notes, setNotes] = useState(initial?.notes || '')
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   useEffect(() => {
     if (!open) return
+    setClientId(initial?.clientId || initialClient?.id || '')
     setLabel(initial?.label || '')
     setCostCategory(initial?.costCategory || 'arrendamento')
     setSupplierName(initial?.supplierName || '')
     setAddressLine(initial?.addressLine || '')
     setPostalCode(initial?.postalCode || '')
     setLocality(initial?.locality || '')
+    setArtigoMatricial(initial?.artigoMatricial || '')
     setNotes(initial?.notes || '')
     setConfirmDelete(false)
-  }, [open, initial?.id])
+  }, [open, initial?.id, initialClient?.id])
 
   async function save() {
+    if (isClient && !isEdit && !clientId) {
+      toast.error('Escolha o cliente senhorio')
+      return
+    }
     if (!label.trim()) {
-      toast.error('Identifique o contrato ou custo')
+      toast.error(isClient ? 'Identifique o imóvel' : 'Identifique o contrato ou custo')
       return
     }
     setSaving(true)
     try {
-      const payload = {
+      const payload: Record<string, unknown> = {
         label: label.trim(),
-        costCategory,
-        supplierName: supplierName.trim() || null,
         addressLine: addressLine.trim() || null,
         postalCode: postalCode.trim() || null,
         locality: locality.trim() || null,
         notes: notes.trim() || null,
         status: 'active',
-        clientId: null,
+        scope: isClient ? 'client' : 'office',
       }
+      if (isClient) {
+        payload.artigoMatricial = artigoMatricial.trim() || null
+        payload.costCategory = 'arrendamento'
+        if (!isEdit) payload.clientId = clientId
+      } else {
+        payload.costCategory = costCategory
+        payload.supplierName = supplierName.trim() || null
+        payload.clientId = null
+      }
+
       if (isEdit && initial) {
         await contabilRentalsApi.patchProperty(initial.id, payload)
-        toast.success('Contrato actualizado')
+        toast.success(isClient ? 'Imóvel actualizado' : 'Contrato actualizado')
       } else {
         await contabilRentalsApi.createProperty(payload)
-        toast.success('Contrato criado')
+        toast.success(isClient ? 'Imóvel criado' : 'Contrato criado')
       }
       onSaved()
       onOpenChange(false)
@@ -102,7 +137,7 @@ export function PropertyDialog({ open, onOpenChange, initial, onSaved }: Props) 
     setSaving(true)
     try {
       await contabilRentalsApi.patchProperty(initial.id, { status: 'archived' })
-      toast.success('Contrato removido da lista')
+      toast.success(isClient ? 'Imóvel apagado da lista' : 'Contrato apagado da lista')
       onSaved()
       onOpenChange(false)
     } catch (err) {
@@ -117,49 +152,95 @@ export function PropertyDialog({ open, onOpenChange, initial, onSaved }: Props) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90vh] max-w-lg flex-col gap-0 overflow-hidden rounded-2xl p-0">
         <DialogHeader className="shrink-0 space-y-1 border-b border-border/60 px-5 py-4 text-left">
-          <DialogTitle>{isEdit ? 'Editar contrato / custo' : 'Novo contrato / custo'}</DialogTitle>
+          <DialogTitle>
+            {isClient
+              ? isEdit
+                ? 'Editar imóvel do cliente'
+                : 'Novo imóvel do cliente'
+              : isEdit
+                ? 'Editar custo / contrato'
+                : 'Novo custo / contrato do gabinete'}
+          </DialogTitle>
           <DialogDescription>
-            Renda do escritório, luz, gás, água, software e outros custos do gabinete. Depois defina o
-            valor mensal e gere o mapa do ano.
+            {isClient
+              ? 'Imóvel do cliente senhorio — registo interno do gabinete (não comunica à AT).'
+              : 'Custo interno do escritório (renda, luz, software…). Separado dos arrendamentos dos clientes.'}
           </DialogDescription>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
-          <label className="block space-y-1.5 text-sm">
-            <span className="font-medium">Categoria</span>
-            <select
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-              value={costCategory}
-              onChange={(e: FormChangeEvent) => setCostCategory(e.target.value)}
-            >
-              {COST_CATEGORIES.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          {isClient && !isEdit ? (
+            <label className="block space-y-1.5 text-sm">
+              <span className="font-medium">Cliente senhorio</span>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={clientId}
+                onChange={(e: FormChangeEvent) => setClientId(e.target.value)}
+                disabled={clientsQuery.isLoading}
+              >
+                <option value="">Seleccione o cliente…</option>
+                {clients.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.fullName || c.name || c._id}
+                    {c.taxId ? ` · ${c.taxId}` : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+          {isClient && isEdit && initialClient ? (
+            <p className="rounded-md border border-border/60 bg-muted/30 px-3 py-2 text-sm">
+              Senhorio: <strong>{initialClient.displayName}</strong>
+              {initialClient.taxId ? ` · NIF ${initialClient.taxId}` : ''}
+            </p>
+          ) : null}
 
           <label className="block space-y-1.5 text-sm">
-            <span className="font-medium">Identificação</span>
+            <span className="font-medium">{isClient ? 'Identificação do imóvel' : 'Identificação'}</span>
             <Input
               value={label}
               onChange={(e: FormChangeEvent) => setLabel(e.target.value)}
-              placeholder="Ex.: Renda Rua X · Escritório"
+              placeholder={isClient ? 'Ex.: T2 Rua das Flores' : 'Ex.: Renda escritório, EDP, Conta X…'}
             />
           </label>
 
-          <label className="block space-y-1.5 text-sm">
-            <span className="font-medium">Fornecedor</span>
-            <Input
-              value={supplierName}
-              onChange={(e: FormChangeEvent) => setSupplierName(e.target.value)}
-              placeholder="Ex.: EDP, Vodafone, senhorio…"
-            />
-          </label>
+          {!isClient ? (
+            <>
+              <label className="block space-y-1.5 text-sm">
+                <span className="font-medium">Categoria</span>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  value={costCategory}
+                  onChange={(e: FormChangeEvent) => setCostCategory(e.target.value)}
+                >
+                  {COST_CATEGORIES.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block space-y-1.5 text-sm">
+                <span className="font-medium">Fornecedor</span>
+                <Input
+                  value={supplierName}
+                  onChange={(e: FormChangeEvent) => setSupplierName(e.target.value)}
+                  placeholder="Ex.: EDP, Vodafone, senhorio…"
+                />
+              </label>
+            </>
+          ) : (
+            <label className="block space-y-1.5 text-sm">
+              <span className="font-medium">Artigo matricial (opcional)</span>
+              <Input
+                value={artigoMatricial}
+                onChange={(e: FormChangeEvent) => setArtigoMatricial(e.target.value)}
+              />
+            </label>
+          )}
 
           <label className="block space-y-1.5 text-sm">
-            <span className="font-medium">Morada / referência (opcional)</span>
+            <span className="font-medium">Morada</span>
             <Input value={addressLine} onChange={(e: FormChangeEvent) => setAddressLine(e.target.value)} />
           </label>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -178,45 +259,40 @@ export function PropertyDialog({ open, onOpenChange, initial, onSaved }: Props) 
           </label>
         </div>
 
-        <DialogFooter className="shrink-0 flex-col gap-2 border-t border-border/60 bg-muted/20 px-5 py-3 sm:flex-row sm:justify-between">
+        <DialogFooter className="flex-col gap-2 border-t border-border/60 bg-muted/15 px-5 py-3 sm:flex-col sm:space-x-0">
           {isEdit ? (
             confirmDelete ? (
-              <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-                <span className="text-xs text-rose-700">Remover da lista activa?</span>
-                <Button type="button" variant="destructive" size="sm" disabled={saving} onClick={() => void archiveProperty()}>
-                  Confirmar
-                </Button>
-                <Button type="button" variant="ghost" size="sm" onClick={() => setConfirmDelete(false)}>
-                  Cancelar
-                </Button>
+              <div className="flex w-full flex-col gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3">
+                <p className="text-sm text-rose-950">
+                  {isClient ? 'Apagar este imóvel da lista activa?' : 'Apagar este contrato da lista activa?'}
+                </p>
+                <div className="flex gap-2">
+                  <Button type="button" variant="destructive" size="sm" disabled={saving} onClick={() => void archiveProperty()}>
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirmar'}
+                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => setConfirmDelete(false)}>
+                    Cancelar
+                  </Button>
+                </div>
               </div>
             ) : (
               <Button
                 type="button"
                 variant="ghost"
-                size="sm"
-                className="text-rose-700"
+                className="w-full justify-start text-rose-700"
                 onClick={() => setConfirmDelete(true)}
               >
-                <Trash2 className="mr-1 h-3.5 w-3.5" aria-hidden />
-                Apagar
+                <Trash2 className="mr-2 h-4 w-4" aria-hidden />
+                Apagar da lista
               </Button>
             )
-          ) : (
-            <span />
-          )}
-          <div className="flex w-full justify-end gap-2 sm:w-auto">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+          ) : null}
+          <div className="flex w-full gap-2">
+            <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
               Fechar
             </Button>
-            <Button type="button" onClick={() => void save()} disabled={saving}>
-              {saving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />A guardar…
-                </>
-              ) : (
-                'Guardar'
-              )}
+            <Button type="button" className="flex-1" disabled={saving} onClick={() => void save()}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Aplicar'}
             </Button>
           </div>
         </DialogFooter>

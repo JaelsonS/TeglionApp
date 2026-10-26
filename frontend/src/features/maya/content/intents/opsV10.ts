@@ -29,19 +29,20 @@ export const OPS_V10_INTENTS = [
   }),
   defineIntent({
     id: 'rentals-guide',
-    title: 'Imóveis e rendas',
+    title: 'Arrendamentos dos clientes',
     shortDescription: 'recibos internos',
     surface: 'firm',
     answer:
-      'Em Imóveis e rendas regista contratos e recibos INTERNOS para o gabinete acompanhar. Não são recibos oficiais AT nem comunicação ao Portal das Finanças.',
+      'Em Arrendamentos (clientes) regista imóveis e contratos dos seus clientes (senhorio → inquilino) com recibos INTERNOS. É um módulo separado dos Custos do gabinete. Não são recibos oficiais AT nem comunicação ao Portal das Finanças.',
     steps: [
+      'Abra Arrendamentos (clientes) — não use Custos do gabinete',
       'Crie o imóvel associado ao cliente senhorio',
       'Adicione o contrato com o inquilino e a renda',
       'Gere recibos do mês e marque emitido/pago',
     ],
-    deepLink: '/app/firm/rentals',
+    deepLink: '/app/firm/client-rentals',
     relatedIntents: ['fee-charges', 'manual-guide'],
-    ctaLabel: 'Abrir Imóveis e rendas',
+    ctaLabel: 'Abrir Arrendamentos',
   }),
   defineIntent({
     id: 'saft-read',

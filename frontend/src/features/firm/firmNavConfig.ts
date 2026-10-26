@@ -6,6 +6,7 @@ import {
   ClipboardCheck,
   ClipboardList,
   FileArchive,
+  Home,
   Inbox,
   Landmark,
   LayoutGrid,
@@ -69,9 +70,15 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
         icon: Wallet,
       },
       {
+        to: '/app/firm/client-rentals',
+        labelKey: 'contabil.firm.nav.clientRentals',
+        labelDefault: 'Arrendamentos (clientes)',
+        icon: Home,
+      },
+      {
         to: '/app/firm/rentals',
         labelKey: 'contabil.firm.nav.rentals',
-        labelDefault: 'Custos e contratos',
+        labelDefault: 'Custos do gabinete',
         icon: Building2,
       },
       {
@@ -260,9 +267,15 @@ export const FIRM_NAV_RAIL_MAIN: FirmNavItemConfig[] = [
     icon: Wallet,
   },
   {
+    to: '/app/firm/client-rentals',
+    labelKey: 'contabil.firm.nav.clientRentals',
+    labelDefault: 'Arrendamentos (clientes)',
+    icon: Home,
+  },
+  {
     to: '/app/firm/rentals',
     labelKey: 'contabil.firm.nav.rentals',
-    labelDefault: 'Custos e contratos',
+    labelDefault: 'Custos do gabinete',
     icon: Building2,
   },
   {

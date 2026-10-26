@@ -10,7 +10,18 @@ const {
   RECEIPT_STATUS_LABELS,
   RENT_PAYMENT_METHODS,
   INTERNAL_DISCLAIMER,
+  CLIENT_RENTALS_DISCLAIMER,
 } = require('./rentals.constants');
+
+function normalizeScope(scope) {
+  const s = String(scope || '').trim().toLowerCase();
+  if (s === 'office' || s === 'client') return s;
+  return null;
+}
+
+function disclaimerForScope(scope) {
+  return scope === 'client' ? CLIENT_RENTALS_DISCLAIMER : INTERNAL_DISCLAIMER;
+}
 
 function assertYear(year) {
   const y = Number(year);
@@ -82,14 +93,17 @@ async function getMeta() {
   };
 }
 
-async function listOverview({ firmId, year, search }) {
+async function listOverview({ firmId, year, search, scope }) {
   const y = assertYear(year || new Date().getFullYear());
-  const properties = await rentalsRepository.listProperties(firmId, { status: 'active' });
+  const normalizedScope = normalizeScope(scope);
+  const properties = await rentalsRepository.listProperties(firmId, {
+    status: 'active',
+    scope: normalizedScope || undefined,
+  });
   const leases = await rentalsRepository.listLeasesForFirm(firmId);
   const receipts = await rentalsRepository.listReceiptsForYear(firmId, y);
   const today = todayISODate();
 
-  const clientIds = [...new Set(properties.map((p) => p.clientId).filter(Boolean))];
   const clients = await clientsRepository.listClients(firmId, { limit: 500, includeInactive: true });
   const clientById = new Map(clients.map((c) => [c.id, c]));
 
@@ -159,27 +173,45 @@ async function listOverview({ firmId, year, search }) {
 
   return {
     year: y,
+    scope: normalizedScope,
     months: Array.from({ length: 12 }, (_, i) => `${y}-${String(i + 1).padStart(2, '0')}`),
     statusLabels: RECEIPT_STATUS_LABELS,
     paymentMethods: RENT_PAYMENT_METHODS,
-    disclaimer: INTERNAL_DISCLAIMER,
+    disclaimer: disclaimerForScope(normalizedScope),
     rows,
     summary: summarizeReceipts(visibleReceipts, today),
   };
 }
 
 async function createProperty({ firmId, payload }) {
-  const rawClientId = payload.clientId != null && payload.clientId !== '' ? String(payload.clientId) : null;
+  const scope = normalizeScope(payload.scope);
+  let rawClientId =
+    payload.clientId != null && payload.clientId !== '' ? String(payload.clientId) : null;
+
+  if (scope === 'office') {
+    rawClientId = null;
+  } else if (scope === 'client' || payload.requireClient) {
+    if (!rawClientId) {
+      throw new AppError('Escolha o cliente senhorio', 400, 'CLIENT_REQUIRED');
+    }
+  }
+
   if (rawClientId) {
     const client = await clientsRepository.findClientById(firmId, rawClientId);
     if (!client) throw new AppError('Cliente não encontrado', 404, 'CLIENT_NOT_FOUND');
   }
 
   const label = trimOrNull(payload.label, 200);
-  if (!label) throw new AppError('Identificação do contrato/custo obrigatória', 400, 'LABEL_REQUIRED');
+  if (!label) {
+    throw new AppError(
+      rawClientId ? 'Identificação do imóvel obrigatória' : 'Identificação do contrato/custo obrigatória',
+      400,
+      'LABEL_REQUIRED',
+    );
+  }
 
   const allowedCats = new Set(COST_CATEGORIES.map((c) => c.id));
-  const costCategory = String(payload.costCategory || 'outro');
+  const costCategory = String(payload.costCategory || (rawClientId ? 'arrendamento' : 'outro'));
   if (!allowedCats.has(costCategory)) {
     throw new AppError('Categoria inválida', 400, 'INVALID_CATEGORY');
   }
@@ -340,12 +372,22 @@ async function patchLease({ firmId, leaseId, patch }) {
   return { lease };
 }
 
-async function generateReceipts({ firmId, yearMonth, leaseIds, actorId }) {
+async function generateReceipts({ firmId, yearMonth, leaseIds, actorId, scope }) {
   const ym = assertYearMonth(yearMonth);
+  const normalizedScope = normalizeScope(scope);
   let leases = await rentalsRepository.listActiveLeases(firmId);
   if (Array.isArray(leaseIds) && leaseIds.length) {
     const set = new Set(leaseIds.map(String));
     leases = leases.filter((l) => set.has(String(l.id)));
+  }
+  if (normalizedScope) {
+    const properties = await rentalsRepository.listProperties(firmId, {
+      status: 'active',
+      scope: normalizedScope,
+      limit: 500,
+    });
+    const allowed = new Set(properties.map((p) => String(p.id)));
+    leases = leases.filter((l) => allowed.has(String(l.propertyId)));
   }
   leases = leases.filter((l) => l.monthlyRentCents != null && l.monthlyRentCents >= 0);
 
@@ -389,7 +431,7 @@ async function generateReceipts({ firmId, yearMonth, leaseIds, actorId }) {
     skipped,
     createdCount: created.length,
     skippedCount: skipped.length,
-    disclaimer: INTERNAL_DISCLAIMER,
+    disclaimer: disclaimerForScope(normalizedScope),
   };
 }
 
