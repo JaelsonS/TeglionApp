@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ClipboardList, FileText, Plus, Search, X } from 'lucide-react'
+import { CheckCircle2, ClipboardList, FileText, Plus, Search, Wallet, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { useSearchParams } from 'react-router-dom'
@@ -20,7 +20,7 @@ import {
 import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
-import { EmptyState, PageHeader } from '@/shared/design-system'
+import { EmptyState } from '@/shared/design-system'
 import { api } from '@/infrastructure/api'
 import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -63,7 +63,7 @@ function useServicesDetailSheet() {
   return useSheet
 }
 
-export function ServicesWorkspace() {
+export function ServicesWorkspace({ embedded = false }: { embedded?: boolean }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedId = searchParams.get('request') || ''
   const qc = useQueryClient()
@@ -223,57 +223,46 @@ export function ServicesWorkspace() {
     />
   )
 
+  const centralKpis = [
+    { id: 'total', label: 'Total', value: String(kpi.total), tone: 'brand' as const, icon: ClipboardList },
+    { id: 'active', label: 'Activos', value: String(kpi.active), tone: 'brand' as const, icon: FileText },
+    { id: 'quoted', label: 'Orçamentados', value: String(kpi.quoted), tone: 'amber' as const, icon: Wallet },
+    { id: 'done', label: 'Concluídos', value: String(kpi.done), tone: 'emerald' as const, icon: CheckCircle2 },
+  ]
+
   return (
-    <div className="cb-services-page">
-      <div className="cb-services-page-hd shrink-0 space-y-4">
-        <PageHeader
-          title="Central de Serviços"
-          subtitle="Catálogo e pedidos de serviço do gabinete. Pedidos novos da página pública aparecem em Solicitações."
-          testId="firm-services-central-header"
-          right={
-            <>
-              <Button type="button" variant="outline" size="sm" onClick={() => setPdfSettingsOpen(true)}>
-                <FileText className="h-4 w-4" />
-                Personalizar PDF
-              </Button>
-              <Button type="button" variant="primary" size="sm" onClick={() => setShowForm((v) => !v)}>
-                {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                {showForm ? 'Fechar' : 'Novo pedido'}
-              </Button>
-            </>
-          }
-        />
+    <div className={cn('cb-services-central', embedded && 'cb-services-central--embedded')}>
+      <div
+        className={cn('cb-services-kpi-strip', embedded && 'mb-3 px-0')}
+        data-testid="firm-services-central-kpis"
+      >
+        {centralKpis.map((item) => {
+          const Icon = item.icon
+          return (
+            <div key={item.id} className={cn('cb-services-kpi', `cb-services-kpi--${item.tone}`)}>
+              <span className="cb-services-kpi-icon" aria-hidden>
+                <Icon className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="cb-services-kpi-value">{item.value}</p>
+                <p className="cb-services-kpi-label">{item.label}</p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
 
-        <div className="cb-services-toolbar">
-          <div className="cb-services-kpi-row">
-            <div className="cb-services-kpi">
-              <span className="cb-services-kpi-label">Total</span>
-              <span className="cb-services-kpi-value">{kpi.total}</span>
-            </div>
-            <div className="cb-services-kpi">
-              <span className="cb-services-kpi-label">Activos</span>
-              <span className="cb-services-kpi-value">{kpi.active}</span>
-            </div>
-            <div className="cb-services-kpi">
-              <span className="cb-services-kpi-label">Orçamentados</span>
-              <span className="cb-services-kpi-value">{kpi.quoted}</span>
-            </div>
-            <div className="cb-services-kpi">
-              <span className="cb-services-kpi-label">Concluídos</span>
-              <span className="cb-services-kpi-value">{kpi.done}</span>
-            </div>
-          </div>
-          <div className="cb-docs-search min-w-0 flex-1 sm:max-w-xs">
-            <Search className="cb-docs-search-icon" aria-hidden />
-            <Input
-              value={search}
-              onChange={(e: FormChangeEvent) => setSearch(e.target.value)}
-              placeholder="Pesquisar pedidos ou clientes…"
-              className="cb-docs-search-input"
-            />
-          </div>
+      <div className="cb-services-toolbar mb-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="relative min-w-[200px] max-w-sm flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="pl-9"
+            value={search}
+            onChange={(e: FormChangeEvent) => setSearch(e.target.value)}
+            placeholder="Pesquisar pedidos ou clientes…"
+            aria-label="Pesquisar pedidos"
+          />
         </div>
-
         <div className="cb-services-status-chips">
           <button
             type="button"
@@ -292,6 +281,16 @@ export function ServicesWorkspace() {
               {col.label}
             </button>
           ))}
+        </div>
+        <div className="ml-auto flex flex-wrap gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={() => setPdfSettingsOpen(true)}>
+            <FileText className="mr-1 h-4 w-4" aria-hidden />
+            PDF
+          </Button>
+          <Button type="button" size="sm" onClick={() => setShowForm((v) => !v)}>
+            {showForm ? <X className="mr-1 h-4 w-4" aria-hidden /> : <Plus className="mr-1 h-4 w-4" aria-hidden />}
+            {showForm ? 'Fechar' : 'Novo pedido'}
+          </Button>
         </div>
       </div>
 
@@ -477,7 +476,9 @@ export function ServicesWorkspace() {
 
       <QuotePdfSettingsSheet open={pdfSettingsOpen} onOpenChange={setPdfSettingsOpen} />
 
-      <p className="cb-services-foot shrink-0">Teglion — Serviços</p>
+      <p className="cb-services-foot shrink-0">
+        Pipeline de pedidos da carteira. Captação da página pública fica em Solicitações.
+      </p>
     </div>
   )
 }

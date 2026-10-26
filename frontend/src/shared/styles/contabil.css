@@ -4531,10 +4531,11 @@
     @apply flex items-center text-xs text-muted-foreground;
   }
 
-  /* Serviços — page-scroll */
+  /* Serviços hub — page-scroll (padrão IRS / SAF-T) */
+  .cb-services-page,
   .cb-services-layout-page,
-  .cb-services-page {
-    @apply flex w-full min-w-0 flex-col bg-card;
+  .cb-services-layout-panel {
+    @apply flex w-full min-w-0 flex-col;
     flex: none;
     height: auto;
     max-height: none;
@@ -4542,11 +4543,116 @@
     overflow: visible;
   }
 
-  .cb-services-page-scroll > div {
+  .cb-firm-workspace-page.cb-services-layout-page > .cb-services-layout-panel {
     flex: none !important;
     height: auto !important;
     max-height: none !important;
+    min-height: 0;
     overflow: visible !important;
+  }
+
+  .cb-services-shell {
+    @apply border-0 bg-transparent shadow-none;
+    flex: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .cb-services-page-scroll > div,
+  .cb-services-body-hub {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
+  }
+
+  .cb-services-tabs {
+    @apply mt-1 flex flex-wrap gap-0 border-b border-border/60 -mb-px;
+  }
+
+  .cb-services-tab {
+    @apply relative px-3 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground;
+  }
+
+  .cb-services-tab-active {
+    @apply font-semibold text-foreground;
+  }
+
+  .cb-services-tab-active::after {
+    content: '';
+    @apply absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-brand;
+  }
+
+  .cb-services-kpi-strip {
+    @apply mb-0 grid shrink-0 grid-cols-2 gap-1.5 px-4 pt-3 sm:grid-cols-4 sm:px-5;
+  }
+
+  .cb-services-kpi {
+    @apply flex items-center gap-2.5 rounded-xl border border-border/70 bg-card px-3 py-2 text-left shadow-sm;
+  }
+
+  .cb-services-kpi-icon {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground;
+  }
+
+  .cb-services-kpi--brand .cb-services-kpi-icon { @apply bg-brand/10 text-brand; }
+  .cb-services-kpi--emerald .cb-services-kpi-icon { @apply bg-emerald-100 text-emerald-800; }
+  .cb-services-kpi--amber .cb-services-kpi-icon { @apply bg-amber-100 text-amber-900; }
+  .cb-services-kpi--rose .cb-services-kpi-icon { @apply bg-rose-100 text-rose-800; }
+  .cb-services-kpi--muted .cb-services-kpi-icon { @apply bg-slate-100 text-slate-700; }
+  .cb-services-kpi--emerald { @apply border-emerald-200/70 bg-emerald-50/40; }
+  .cb-services-kpi--amber { @apply border-amber-200/70 bg-amber-50/40; }
+  .cb-services-kpi--rose { @apply border-rose-200/80 bg-rose-50/50; }
+  .cb-services-kpi--clickable { @apply cursor-pointer transition hover:border-brand/40; }
+
+  .cb-services-kpi-value {
+    @apply text-sm font-bold tabular-nums tracking-tight text-foreground sm:text-base;
+  }
+
+  .cb-services-kpi-label { @apply text-xs text-muted-foreground; }
+
+  .cb-services-campaign {
+    @apply mx-4 mt-3 flex flex-col gap-3 rounded-xl border px-4 py-3 sm:mx-5 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .cb-services-campaign--pending {
+    @apply border-amber-200 bg-amber-50/40;
+  }
+
+  .cb-services-campaign-title {
+    @apply text-sm font-semibold text-foreground;
+  }
+
+  .cb-services-campaign-detail {
+    @apply mt-0.5 text-xs leading-relaxed text-muted-foreground;
+  }
+
+  .cb-services-section-lead {
+    @apply shrink-0 px-4 pb-2 pt-3 text-sm leading-snug text-muted-foreground sm:px-5;
+  }
+
+  .cb-services-section-lead-title {
+    @apply mb-0.5 block text-xs font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-services-section-host {
+    @apply flex w-full min-w-0 flex-col gap-3 px-3 pb-4 sm:px-4;
+    flex: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .cb-services-panel {
+    @apply overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm;
+  }
+
+  .cb-services-panel-hd {
+    @apply border-b border-border/50 bg-gradient-to-r from-brand/[0.05] via-card to-card;
+  }
+
+  .cb-services-central--embedded {
+    @apply w-full min-w-0;
   }
 
   /* IRS — page-scroll (padrão Pagamentos / SAF-T) */
@@ -4785,11 +4891,11 @@
   }
 
   .cb-services-board-wrap {
-    @apply min-h-0 flex-1 overflow-auto;
+    @apply w-full overflow-x-auto overflow-y-visible;
   }
 
   .cb-services-board {
-    @apply flex gap-3 p-4 sm:p-5;
+    @apply flex min-w-min gap-3 py-1;
   }
 
   @media (max-width: 767px) {
@@ -4858,24 +4964,10 @@
     @apply shrink-0 border-t border-border/40 px-4 py-2 text-right cb-text-caption text-muted-foreground/80;
   }
 
-  .cb-services-kpi-row {
-    @apply grid grid-cols-2 gap-2 sm:grid-cols-4;
-  }
-
-  .cb-services-kpi {
-    @apply rounded-lg border border-border/50 bg-muted/15 px-3 py-2;
-  }
-
-  .cb-services-kpi-label {
-    @apply block cb-text-label;
-  }
-
-  .cb-services-kpi-value {
-    @apply mt-0.5 block text-lg font-bold tabular-nums text-foreground;
-  }
+  /* KPIs do hub definidos acima (.cb-services-kpi-strip / --tone); legacy row removida */
 
   .cb-services-status-chips {
-    @apply flex flex-wrap gap-1 border-t border-border/40 px-4 py-2.5 sm:px-5;
+    @apply flex flex-wrap gap-1.5;
   }
 
   .cb-services-chip {
@@ -4889,7 +4981,7 @@
   }
 
   .cb-services-body {
-    @apply flex min-h-0 flex-1 overflow-hidden;
+    @apply flex w-full min-w-0 flex-col gap-3 overflow-visible xl:flex-row;
   }
 
   .cb-services-body-with-detail .cb-services-board-wrap {
