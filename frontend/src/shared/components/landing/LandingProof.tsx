@@ -24,10 +24,10 @@ const PILLARS = [
   {
     id: 'publico',
     title: 'Página pública',
-    body: 'Site do gabinete com a sua marca: catálogo, marcações e captação — ligado à mesma carteira.',
+    body: 'Site do gabinete com a sua marca: serviços, marcação e contactos — ligado à mesma carteira e ao portal.',
     icon: Globe2,
-    src: LANDING_SCREENS.empresas,
-    alt: 'Carteira de clientes no Teglion',
+    src: LANDING_SCREENS.paginaPublica,
+    alt: 'Página pública de exemplo — Maya Contabilidade, gerada no Teglion',
   },
 ] as const
 

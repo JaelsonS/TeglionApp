@@ -2,6 +2,8 @@ const BASE = '/landing/screens'
 export const LANDING_SCREENS = {
   dashboard: `${BASE}/dashboard.png`,
   portalCliente: `${BASE}/portal-cliente.png`,
+  /** Site público de escritório fictício (Maya Contabilidade) — captura real do produto. */
+  paginaPublica: `${BASE}/pagina-publica.jpg`,
   empresas: `${BASE}/empresas.png`,
   documentosFicheiros: `${BASE}/documentos-ficheiros.png`,
   documentosArquivos: `${BASE}/documentos-arquivos.png`,
@@ -73,6 +75,12 @@ export const LANDING_CAROUSEL_SLIDES: {
     copy: 'O cliente entrega documentos, vê mensagens e serviços — no browser, sem instalar app.',
     src: LANDING_SCREENS.portalCliente,
     alt: 'Portal do cliente Teglion no browser',
+  },
+  {
+    title: 'Página pública',
+    copy: 'Site do gabinete com marca, serviços e marcação — o mesmo sistema, à vista do cliente final.',
+    src: LANDING_SCREENS.paginaPublica,
+    alt: 'Página pública de exemplo (Maya Contabilidade) no Teglion',
   },
   {
     title: 'Novo cliente',
