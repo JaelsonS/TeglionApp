@@ -480,7 +480,7 @@ async function getPublicSlots(req, res, next) {
     const fromIso = req.query.from ? String(req.query.from) : now.toISOString();
     const toIso = req.query.to
       ? String(req.query.to)
-      : new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString();
+      : new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000).toISOString();
 
     const { slots } = await bookingService.listSlotsForBooking({
       firmId: firm.id,

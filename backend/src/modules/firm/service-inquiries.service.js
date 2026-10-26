@@ -1184,6 +1184,109 @@ async function confirmConsultation({ firmId, inquiryId, actor }) {
 }
 
 /**
+ * A equipa reagenda a consulta ligada à solicitação.
+ * notifyChannels vazio = só altera o horário (sem avisar o cliente).
+ */
+async function rescheduleConsultation({ firmId, inquiryId, actor, payload }) {
+  const inquiry = await serviceInquiriesRepository.findByIdForFirm(inquiryId, firmId);
+  if (!inquiry) throw new AppError('Solicitação não encontrada', 404);
+  if (!inquiry.consultationId) throw new AppError('Esta solicitação não tem agendamento', 400);
+  if (TERMINAL_STATUSES.has(inquiry.status)) {
+    throw new AppError('Solicitação encerrada — não é possível reagendar', 409);
+  }
+
+  const scheduledAtRaw = payload?.scheduledAt;
+  const startMs = new Date(scheduledAtRaw).getTime();
+  if (!Number.isFinite(startMs)) throw new AppError('Data/hora inválida', 400);
+
+  const existing = await consultationsRepository.findByIdForFirm(inquiry.consultationId, firmId);
+  if (!existing) throw new AppError('Agendamento não encontrado', 404);
+  if (existing.status === 'CANCELLED') {
+    throw new AppError('Este agendamento foi cancelado', 409);
+  }
+  if (existing.status === 'PENDING_PAYMENT') {
+    throw new AppError('Não é possível reagendar enquanto o pagamento está pendente', 409);
+  }
+
+  const previousWhen = existing.scheduledAt
+    ? new Date(existing.scheduledAt).toLocaleString('pt-PT', {
+        dateStyle: 'full',
+        timeStyle: 'short',
+        timeZone: 'Europe/Lisbon',
+      })
+    : null;
+
+  const { consultation } = await consultationsService.updateConsultation({
+    firmId,
+    id: inquiry.consultationId,
+    patch: { scheduledAt: new Date(startMs).toISOString() },
+  });
+
+  const channels = parseNotifyChannels(payload?.notifyChannels);
+  const [service, firm] = await Promise.all([
+    accountingServicesRepository.findByIdForFirm(inquiry.serviceId, firmId),
+    firmsRepository.findFirmById(firmId).catch(() => null),
+  ]);
+  const contact = await requesterContactForInquiry(inquiry);
+  const when = consultation.scheduledAt
+    ? new Date(consultation.scheduledAt).toLocaleString('pt-PT', {
+        dateStyle: 'full',
+        timeStyle: 'short',
+        timeZone: 'Europe/Lisbon',
+      })
+    : null;
+
+  const delivery = { email: null, sms: null, channels };
+
+  if (channels.includes('email') && contact.email) {
+    delivery.email = await contabilNotifications.notifyLeadConsultationRescheduled({
+      toEmail: contact.email,
+      toName: contact.name,
+      firmName: firm?.name,
+      serviceName: interpolateServiceTemplate(service?.name),
+      when,
+      previousWhen,
+      accessToken: inquiry.accessToken,
+    });
+  }
+
+  if (channels.includes('sms') && contact.phone) {
+    const firmLabel = firm?.name || 'o escritório';
+    const smsText = `${firmLabel} reagendou: ${when || 'novo horário'}. Teglion`;
+    delivery.sms = await contabilNotifications.notifyClientSms({
+      phone: contact.phone,
+      message: smsText,
+    });
+  }
+
+  await auditRepository.writeAuditLog({
+    firmId,
+    actorRole: 'FIRM',
+    actorId: actor?.id,
+    action: 'service_inquiry.consultation_rescheduled',
+    entityType: 'service_inquiry',
+    entityId: inquiry.id,
+    metadata: {
+      consultationId: consultation.id,
+      previousScheduledAt: existing.scheduledAt,
+      scheduledAt: consultation.scheduledAt,
+      channels,
+    },
+  });
+
+  return {
+    ok: true,
+    consultation: {
+      id: consultation.id,
+      scheduledAt: consultation.scheduledAt,
+      status: consultation.status,
+    },
+    delivery,
+    notified: channels.length > 0,
+  };
+}
+
+/**
  * Contadora confirma recepção (ou reenvia checklist) e escolhe canais.
  * purpose: 'received' | 'checklist'
  */
@@ -1259,6 +1362,7 @@ module.exports = {
   addServiceInquiryRequest,
   addServiceInquiryRequestsBatch,
   confirmConsultation,
+  rescheduleConsultation,
   notifyClient,
   capturePublicLead,
   submitPublicIntake,
