@@ -197,4 +197,39 @@ describe('rentals generate + isolation', () => {
     assert.equal(overview.summary.paidCents, 80000);
     assert.match(overview.disclaimer, /INTERNOS/i);
   });
+
+  it('listOverview: imóvel arquivado sai da lista e do KPI pago', async () => {
+    mock.method(rentalsRepository, 'listProperties', async () => []);
+    mock.method(rentalsRepository, 'listLeasesForFirm', async () => [
+      {
+        id: 'l1',
+        firmId: 'firm-a',
+        propertyId: 'p-archived',
+        tenantDisplayName: 'João',
+        monthlyRentCents: 80000,
+        rentDueDay: 1,
+        status: 'active',
+        startDate: '2026-01-01',
+      },
+    ]);
+    mock.method(rentalsRepository, 'listReceiptsForYear', async () => [
+      {
+        id: 'r1',
+        firmId: 'firm-a',
+        leaseId: 'l1',
+        yearMonth: '2026-01',
+        amountCents: 80000,
+        status: 'paid',
+        dueDate: '2026-01-01',
+      },
+    ]);
+    mock.method(clientsRepository, 'listClients', async () => [
+      { id: 'c1', displayName: 'Senhorio A', taxId: '123' },
+    ]);
+
+    const overview = await listOverview({ firmId: 'firm-a', year: 2026 });
+    assert.equal(overview.rows.length, 0);
+    assert.equal(overview.summary.paidCents, 0);
+    assert.equal(overview.summary.openCents, 0);
+  });
 });
