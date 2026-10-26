@@ -15,7 +15,8 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { IrsModelo3EditorSheet, isModelo3Service } from '@/features/firm/services/IrsModelo3EditorSheet'
+import { IrsServiceEditorDialog } from '@/features/firm/irs/IrsServiceEditorDialog'
+import { isModelo3Service } from '@/features/firm/services/IrsModelo3EditorSheet'
 import { ServiceFullEditorSheet } from '@/features/firm/services/ServiceFullEditorSheet'
 import { getServicePublishPresentation } from '@/features/firm/services/servicePublishState'
 import {
@@ -50,11 +51,12 @@ export function IrsWorkspace() {
   const [modelSearch, setModelSearch] = useState('')
   const [busyKey, setBusyKey] = useState<string | null>(null)
 
-  const [fullOpen, setFullOpen] = useState(false)
-  const [fullService, setFullService] = useState<AccountingService | null>(null)
-  const [fullHint, setFullHint] = useState<{ name?: string; catalogKey?: string } | null>(null)
-  const [modelo3Open, setModelo3Open] = useState(false)
-  const [modelo3Service, setModelo3Service] = useState<AccountingService | null>(null)
+  const [editorOpen, setEditorOpen] = useState(false)
+  const [editorService, setEditorService] = useState<AccountingService | null>(null)
+  const [editorPreferModelo3, setEditorPreferModelo3] = useState(false)
+  const [editorInitialTabPublish, setEditorInitialTabPublish] = useState(false)
+  const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [advancedService, setAdvancedService] = useState<AccountingService | null>(null)
 
   useEffect(() => {
     const t = setTimeout(() => setQDebounced(q.trim()), 300)
@@ -159,15 +161,19 @@ export function IrsWorkspace() {
     return qc.invalidateQueries({ queryKey: ['contabil-accounting-services'] })
   }
 
-  function openFull(s: AccountingService | null, hint?: { name?: string; catalogKey?: string } | null) {
-    setFullService(s)
-    setFullHint(hint ?? null)
-    setFullOpen(true)
+  function openEditor(
+    s: AccountingService | null,
+    opts?: { preferModelo3?: boolean; focusPublish?: boolean },
+  ) {
+    setEditorService(s)
+    setEditorPreferModelo3(Boolean(opts?.preferModelo3))
+    setEditorInitialTabPublish(Boolean(opts?.focusPublish))
+    setEditorOpen(true)
   }
 
-  function openModelo3(s: AccountingService | null) {
-    setModelo3Service(s)
-    setModelo3Open(true)
+  function openAdvanced(s: AccountingService) {
+    setAdvancedService(s)
+    setAdvancedOpen(true)
   }
 
   async function activate(entry: ConsultingCatalogEntry) {
@@ -180,8 +186,9 @@ export function IrsWorkspace() {
         (res as { items?: AccountingService[] })?.items?.[0] ||
         (await contabilAccountingServicesApi.list())?.items?.find((s) => s.catalogKey === entry.catalogKey)
       if (!created) return
-      if (isModelo3Service(created) || isModelo3Service(entry)) openModelo3(created)
-      else openFull(created)
+      openEditor(created, {
+        preferModelo3: isModelo3Service(created) || isModelo3Service(entry),
+      })
     } catch (err) {
       toast.error('Erro ao activar', { description: getErrorMessage(err) })
     } finally {
@@ -212,12 +219,12 @@ export function IrsWorkspace() {
             type="button"
             size="sm"
             variant="outline"
-            onClick={() => openFull(null, { name: 'Serviço IRS' })}
+            onClick={() => openEditor(null)}
           >
             <Plus className="mr-1 h-4 w-4" aria-hidden />
             Serviço
           </Button>
-          <Button type="button" size="sm" onClick={() => openModelo3(null)}>
+          <Button type="button" size="sm" onClick={() => openEditor(null, { preferModelo3: true })}>
             <Plus className="mr-1 h-4 w-4" aria-hidden />
             Modelo 3
           </Button>
@@ -267,16 +274,20 @@ export function IrsWorkspace() {
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
-          {!campaignReady && nextUnpublished ? (
-            <Button type="button" size="sm" onClick={() => openFull(nextUnpublished)}>
-              Publicar «{nextUnpublished.name}»
-            </Button>
-          ) : null}
-          {!campaignReady && firmIrs.length === 0 ? (
-            <Button type="button" size="sm" onClick={() => openModelo3(null)}>
-              Começar com Modelo 3
-            </Button>
-          ) : null}
+            {!campaignReady && nextUnpublished ? (
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => openEditor(nextUnpublished, { focusPublish: true })}
+              >
+                Publicar «{nextUnpublished.name}»
+              </Button>
+            ) : null}
+            {!campaignReady && firmIrs.length === 0 ? (
+              <Button type="button" size="sm" onClick={() => openEditor(null, { preferModelo3: true })}>
+                Começar com Modelo 3
+              </Button>
+            ) : null}
           {campaignReady ? (
             <Button type="button" size="sm" variant="outline" asChild>
               <Link to="/app/firm/services?tab=inquiries">Ver Solicitações</Link>
@@ -287,7 +298,8 @@ export function IrsWorkspace() {
 
       <p className="cb-irs-section-lead">
         <span className="cb-irs-section-lead-title">Serviços IRS do gabinete</span>
-        Publique para captar pedidos. Modelo 3 tem assistente de anexos; os outros usam o editor completo.
+        Clique em Editar para oferta, anexos e publicação no mesmo cartão. Banner/formulário avançado fica
+        dentro do editor.
       </p>
 
       <div className="cb-irs-section-host">
@@ -341,13 +353,13 @@ export function IrsWorkspace() {
               title="Ainda sem serviços IRS"
               description="Active um modelo Teglion ou crie um serviço e publique-o na página pública para receber pedidos."
               action={
-                <Button type="button" onClick={() => openModelo3(null)}>
+                <Button type="button" onClick={() => openEditor(null, { preferModelo3: true })}>
                   <Plus className="mr-1 h-4 w-4" aria-hidden />
                   Criar Modelo 3
                 </Button>
               }
               secondaryAction={
-                <Button type="button" variant="outline" onClick={() => openFull(null, { name: 'Serviço IRS' })}>
+                <Button type="button" variant="outline" onClick={() => openEditor(null)}>
                   Criar serviço IRS
                 </Button>
               }
@@ -402,13 +414,18 @@ export function IrsWorkspace() {
                             Ver
                           </Button>
                         ) : null}
-                        {isModelo3Service(s) ? (
-                          <Button type="button" size="sm" variant="outline" onClick={() => openModelo3(s)}>
-                            Anexos
-                          </Button>
-                        ) : null}
-                        <Button type="button" size="sm" onClick={() => openFull(s)}>
-                          {publish.id === 'published' ? 'Editar' : 'Publicar'}
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            openEditor(s, {
+                              preferModelo3: isModelo3Service(s),
+                              focusPublish: publish.id !== 'published',
+                            })
+                          }
+                        >
+                          {publish.id === 'published' ? 'Editar' : 'Editar / publicar'}
                         </Button>
                       </div>
                     </div>
@@ -484,26 +501,29 @@ export function IrsWorkspace() {
         </p>
       </div>
 
-      <ServiceFullEditorSheet
-        service={fullService}
-        open={fullOpen}
-        initialCatalogHint={fullHint}
+      <IrsServiceEditorDialog
+        service={editorService}
+        open={editorOpen}
+        preferModelo3={editorPreferModelo3}
+        initialTab={editorInitialTabPublish ? 'publicar' : 'oferta'}
         onOpenChange={(open) => {
-          setFullOpen(open)
+          setEditorOpen(open)
           if (!open) {
-            setFullService(null)
-            setFullHint(null)
+            setEditorService(null)
+            setEditorPreferModelo3(false)
+            setEditorInitialTabPublish(false)
           }
         }}
         onSaved={() => void reload()}
+        onOpenAdvanced={(s) => openAdvanced(s)}
       />
 
-      <IrsModelo3EditorSheet
-        service={modelo3Service}
-        open={modelo3Open}
+      <ServiceFullEditorSheet
+        service={advancedService}
+        open={advancedOpen}
         onOpenChange={(open) => {
-          setModelo3Open(open)
-          if (!open) setModelo3Service(null)
+          setAdvancedOpen(open)
+          if (!open) setAdvancedService(null)
         }}
         onSaved={() => void reload()}
       />
