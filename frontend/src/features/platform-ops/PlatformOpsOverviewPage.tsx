@@ -14,16 +14,40 @@ export function PlatformOpsOverviewPage() {
   })
 
   if (me.isError || overview.isError) {
+    const err = me.error || overview.error
+    const code = String(
+      (err as { response?: { data?: { code?: string } } })?.response?.data?.code || '',
+    ).toUpperCase()
+    const hint =
+      code === 'PLATFORM_OPS_MFA_REQUIRED'
+        ? 'Active a autenticação de dois factores (Definições → Segurança) com a conta allowlist e volte a entrar.'
+        : code === 'PLATFORM_OPS_DISABLED'
+          ? 'No Render staging defina PLATFORM_OPS_ENABLED=true e faça redeploy.'
+          : code === 'PLATFORM_OPS_ALLOWLIST_EMPTY' || code === 'PLATFORM_OPS_ALLOWLIST_INVALID'
+            ? 'PLATFORM_OPS_EMAIL_ALLOWLIST deve ter exactamente 1 email (ex.: afdigitalweb.st@gmail.com).'
+            : code === 'PLATFORM_OPS_FORBIDDEN'
+              ? 'A sessão actual não é o email da allowlist. Termine sessão e entre com o email autorizado no Control Center.'
+              : 'Confirme: (1) login com o email da allowlist, (2) MFA activo, (3) PLATFORM_OPS_ENABLED=true no Render.'
+
     return (
       <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm">
         <p className="font-medium text-destructive">Sem acesso ao Control Center</p>
-        <p className="mt-1 text-muted-foreground">
-          {getErrorMessage(me.error || overview.error)} — confirme MFA, allowlist e{' '}
-          <code className="text-xs">PLATFORM_OPS_ENABLED</code> no ambiente.
-        </p>
-        <Link to="/app/firm" className="mt-3 inline-block text-brand underline-offset-2 hover:underline">
-          Voltar ao gabinete
-        </Link>
+        <p className="mt-1 text-muted-foreground">{getErrorMessage(err)}</p>
+        <p className="mt-2 text-muted-foreground">{hint}</p>
+        {code ? (
+          <p className="mt-2 font-mono text-xs text-muted-foreground">código: {code}</p>
+        ) : null}
+        <div className="mt-3 flex flex-wrap gap-3">
+          <Link to="/app/firm/settings" className="text-brand underline-offset-2 hover:underline">
+            Abrir Definições / MFA
+          </Link>
+          <Link to="/auth/firm/login" className="text-brand underline-offset-2 hover:underline">
+            Trocar de conta
+          </Link>
+          <Link to="/app/firm" className="text-brand underline-offset-2 hover:underline">
+            Voltar ao gabinete
+          </Link>
+        </div>
       </div>
     )
   }
