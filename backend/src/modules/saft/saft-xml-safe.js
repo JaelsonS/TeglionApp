@@ -1,13 +1,12 @@
 /**
  * Leitura segura de XML SAF-T PT — sem DOM/XXE.
  * Não resolve entidades externas; rejeita DOCTYPE/ENTITY.
+ * ZIP: ver saft-zip-safe (path traversal, bombas, macros).
  */
 
-const { inflateRawSync } = require('zlib');
+const { listSafeZipEntries, isZipBuffer, isOleCompoundBuffer } = require('./saft-zip-safe');
 
 const MAX_XML_CHARS = 40 * 1024 * 1024; // 40 MB texto
-const MAX_ZIP_ENTRIES = 40;
-const MAX_UNCOMPRESSED_ENTRY = 40 * 1024 * 1024;
 
 function stripBom(text) {
   if (text.charCodeAt(0) === 0xfeff) return text.slice(1);
@@ -27,19 +26,29 @@ function bufferToXmlText(buffer) {
 }
 
 function assertSafeXml(text) {
-  const head = text.slice(0, 4000);
-  if (/<!DOCTYPE/i.test(head) || /<!ENTITY/i.test(head)) {
+  // Varre o documento inteiro (não só o cabeçalho) — XXE / XInclude / DTD.
+  if (/<!DOCTYPE/i.test(text) || /<!ENTITY/i.test(text)) {
     throw Object.assign(new Error('XML com DOCTYPE/ENTITY não é aceite (protecção XXE)'), {
       code: 'UNSAFE_XML',
     });
   }
-  if (!/<AuditFile[\s>]/i.test(text) && !/<AuditFile\b/i.test(text)) {
-    // namespaces: <ns:AuditFile
-    if (!/<(?:\w+:)?AuditFile\b/i.test(text)) {
-      throw Object.assign(new Error('Não parece um ficheiro SAF-T (falta AuditFile)'), {
-        code: 'NOT_SAFT',
-      });
-    }
+  if (/SYSTEM\s+["']/i.test(text) || /PUBLIC\s+["']/i.test(text)) {
+    throw Object.assign(new Error('XML com referências externas SYSTEM/PUBLIC rejeitado'), {
+      code: 'UNSAFE_XML',
+    });
+  }
+  if (/<\s*(?:\w+:)?include\b/i.test(text) || /xi:include/i.test(text)) {
+    throw Object.assign(new Error('XML com XInclude rejeitado'), { code: 'UNSAFE_XML' });
+  }
+  // Não há fetch HTTP a partir deste parser — bloqueamos também URLs embutidas suspeitas em DTD-like.
+  if (/https?:\/\//i.test(text.slice(0, 8000)) && /<!DOCTYPE|ENTITY|SYSTEM/i.test(text.slice(0, 8000))) {
+    throw Object.assign(new Error('XML com URL externa rejeitado'), { code: 'UNSAFE_XML' });
+  }
+
+  if (!/<(?:\w+:)?AuditFile\b/i.test(text)) {
+    throw Object.assign(new Error('Não parece um ficheiro SAF-T (falta AuditFile)'), {
+      code: 'NOT_SAFT',
+    });
   }
 }
 
@@ -184,93 +193,33 @@ function summarizeSaftXml(xmlText) {
         hasGeneralLedger: Boolean(ledger),
       },
       disclaimer:
-        'Leitura interna Teglion. Não valida XSD oficial AT nem substitui software certificado. Sem envio à AT.',
+        'Leitura interna Teglion. Não valida XSD oficial AT nem substitui software certificado. Sem envio à AT. Ficheiro não é armazenado.',
     },
   };
 }
 
-function isZipBuffer(buf) {
-  return buf.length >= 4 && buf[0] === 0x50 && buf[1] === 0x4b && (buf[2] === 0x03 || buf[2] === 0x05 || buf[2] === 0x07);
-}
-
 /**
- * Extrai o primeiro .xml de um ZIP (deflate/stored). Protecção zip-bomb básica.
+ * Extrai o primeiro .xml SAF-T de um ZIP (deflate/stored) com hardening.
  */
 function extractXmlFromZip(buffer) {
-  if (!isZipBuffer(buffer)) {
-    throw Object.assign(new Error('ZIP inválido'), { code: 'INVALID_ZIP' });
+  if (isOleCompoundBuffer(buffer)) {
+    throw Object.assign(new Error('Ficheiro OLE/.xls não é um ZIP SAF-T'), {
+      code: 'XLS_OLE_REJECTED',
+    });
   }
-
-  let offset = 0;
-  let entries = 0;
-  const xmlCandidates = [];
-
-  while (offset + 30 <= buffer.length && entries < MAX_ZIP_ENTRIES) {
-    if (buffer[offset] !== 0x50 || buffer[offset + 1] !== 0x4b) break;
-    // Local file header
-    if (buffer[offset + 2] !== 0x03 || buffer[offset + 3] !== 0x04) break;
-
-    const compression = buffer.readUInt16LE(offset + 8);
-    const compSize = buffer.readUInt32LE(offset + 18);
-    const uncompSize = buffer.readUInt32LE(offset + 22);
-    const nameLen = buffer.readUInt16LE(offset + 26);
-    const extraLen = buffer.readUInt16LE(offset + 28);
-    const nameStart = offset + 30;
-    const nameEnd = nameStart + nameLen;
-    if (nameEnd + extraLen > buffer.length) break;
-
-    const name = buffer.slice(nameStart, nameEnd).toString('utf8');
-    const dataStart = nameEnd + extraLen;
-    const dataEnd = dataStart + compSize;
-    if (dataEnd > buffer.length) break;
-
-    entries += 1;
-    const lower = name.toLowerCase();
-    const isDir = name.endsWith('/');
-    const isMac = lower.includes('__macosx') || lower.startsWith('.');
-    if (!isDir && !isMac && lower.endsWith('.xml')) {
-      if (uncompSize > MAX_UNCOMPRESSED_ENTRY) {
-        throw Object.assign(new Error('XML dentro do ZIP demasiado grande'), {
-          code: 'ZIP_ENTRY_TOO_LARGE',
-        });
-      }
-      const compressed = buffer.slice(dataStart, dataEnd);
-      let xmlBuf;
-      if (compression === 0) {
-        xmlBuf = compressed;
-      } else if (compression === 8) {
-        try {
-          xmlBuf = inflateRawSync(compressed, { maxOutputLength: MAX_UNCOMPRESSED_ENTRY });
-        } catch {
-          throw Object.assign(new Error('Falha ao descomprimir XML no ZIP'), {
-            code: 'ZIP_INFLATE_FAILED',
-          });
-        }
-      } else {
-        throw Object.assign(new Error('Compressão ZIP não suportada (só stored/deflate)'), {
-          code: 'ZIP_COMPRESSION',
-        });
-      }
-      xmlCandidates.push({ name, buffer: xmlBuf });
-    }
-
-    offset = dataEnd;
-  }
-
+  const entries = listSafeZipEntries(buffer, { allowXml: true, allowXlsxParts: false });
+  const xmlCandidates = entries.filter((e) => e.name.toLowerCase().endsWith('.xml'));
   if (!xmlCandidates.length) {
     throw Object.assign(new Error('ZIP sem ficheiro .xml SAF-T'), { code: 'ZIP_NO_XML' });
   }
-
-  // Preferir nome com saft / AuditFile
   xmlCandidates.sort((a, b) => {
     const score = (n) => (/saft/i.test(n) ? 0 : 1);
     return score(a.name) - score(b.name);
   });
-
   return {
     xmlBuffer: xmlCandidates[0].buffer,
     entryName: xmlCandidates[0].name,
-    entryCountScanned: entries,
+    entryCountScanned: entries.length,
   };
 }
 
@@ -280,6 +229,7 @@ module.exports = {
   summarizeSaftXml,
   extractXmlFromZip,
   isZipBuffer,
+  isOleCompoundBuffer,
   firstTagText,
   MAX_XML_CHARS,
 };

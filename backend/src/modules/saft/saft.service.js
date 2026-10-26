@@ -8,7 +8,9 @@ const {
   summarizeSaftXml,
   extractXmlFromZip,
   isZipBuffer,
+  isOleCompoundBuffer,
 } = require('./saft-xml-safe');
+const { summarizeXlsxBuffer } = require('./saft-xlsx-safe');
 const { INTERNAL_DISCLAIMER, MAX_SAFT_UPLOAD_BYTES } = require('./saft.constants');
 
 function sha256Hex(buffer) {
@@ -17,16 +19,58 @@ function sha256Hex(buffer) {
 
 function detectSourceKind(filename, buffer) {
   const ext = path.extname(filename || '').toLowerCase();
-  if (ext === '.zip' || isZipBuffer(buffer)) return 'zip';
+
+  // Excel legado / OLE — nunca
+  if (ext === '.xls' || isOleCompoundBuffer(buffer)) {
+    throw new AppError(
+      'Excel .xls (formato antigo) não é aceite — pode conter macros. Use .xlsx sem macros, ou o SAF-T oficial em .xml/.zip.',
+      400,
+      'XLS_OLE_REJECTED',
+    );
+  }
+  if (ext === '.xlsm' || ext === '.xltm') {
+    throw new AppError('Excel com macros (.xlsm) não é aceite.', 400, 'XLS_MACROS_REJECTED');
+  }
+
+  if (ext === '.xlsx') return 'xlsx';
   if (ext === '.xml') return 'xml';
-  // MIME octet-stream: sniff
-  if (isZipBuffer(buffer)) return 'zip';
-  const head = buffer.slice(0, 200).toString('utf8').trimStart();
-  if (head.startsWith('<?xml') || /<(?:\w+:)?AuditFile\b/i.test(head)) return 'xml';
-  throw new AppError('Só são aceites ficheiros .xml ou .zip com SAF-T', 400, 'INVALID_SAFT_TYPE');
+  if (ext === '.zip') return 'zip';
+
+  // Sniff: OOXML xlsx is also ZIP — prefer filename; se for ZIP sem extensão clara → zip
+  if (isZipBuffer(buffer)) {
+    // Distinguir xlsx pelo Content_Types / xl/
+    const head = buffer.slice(0, Math.min(buffer.length, 2000)).toString('utf8');
+    if (/Content_Types|xl\/workbook/i.test(head) || buffer.includes(Buffer.from('xl/'))) {
+      return 'xlsx';
+    }
+    return 'zip';
+  }
+
+  const textHead = buffer.slice(0, 200).toString('utf8').trimStart();
+  if (textHead.startsWith('<?xml') || /<(?:\w+:)?AuditFile\b/i.test(textHead)) return 'xml';
+
+  throw new AppError(
+    'Só são aceites .xml, .zip (SAF-T) ou .xlsx (folha de consulta sem macros)',
+    400,
+    'INVALID_SAFT_TYPE',
+  );
 }
 
 function parseBufferToSummary(buffer, sourceKind) {
+  if (sourceKind === 'xlsx') {
+    const x = summarizeXlsxBuffer(buffer);
+    if (x.embeddedSaftXml) {
+      const xmlText = bufferToXmlText(x.embeddedSaftXml);
+      const parsed = summarizeSaftXml(xmlText);
+      return {
+        ...parsed,
+        zipEntryName: x.entryName || null,
+        sourceKindResolved: 'xlsx_embedded_xml',
+      };
+    }
+    return { ...x, zipEntryName: null, sourceKindResolved: 'xlsx' };
+  }
+
   let xmlBuffer = buffer;
   let zipEntryName = null;
   if (sourceKind === 'zip') {
@@ -36,16 +80,26 @@ function parseBufferToSummary(buffer, sourceKind) {
   }
   const xmlText = bufferToXmlText(xmlBuffer);
   const parsed = summarizeSaftXml(xmlText);
-  return { ...parsed, zipEntryName };
+  return { ...parsed, zipEntryName, sourceKindResolved: sourceKind };
 }
 
 async function getMeta() {
   return {
     disclaimer: INTERNAL_DISCLAIMER,
-    accepted: ['.xml', '.zip'],
+    accepted: ['.xml', '.zip', '.xlsx'],
+    rejected: ['.xls', '.xlsm', '.xltm'],
     maxBytes: MAX_SAFT_UPLOAD_BYTES,
     storesFileContent: false,
     sendsToAt: false,
+    executesFormulas: false,
+    allowsMacros: false,
+    downloadsRemoteUrls: false,
+    securityNotes: [
+      'O conteúdo do ficheiro não é guardado — só metadados e resumo.',
+      'XML: sem DOCTYPE/ENTITY (anti-XXE); sem fetch de URLs.',
+      'ZIP: anti path-traversal, anti zip-bomb, sem executáveis/macros embutidos.',
+      'Excel: só .xlsx sem VBA; fórmulas não são executadas; .xls/.xlsm rejeitados.',
+    ],
   };
 }
 
@@ -76,7 +130,14 @@ async function importSaft({ firmId, clientId, actorId, file }) {
   }
 
   const originalFilename = String(file.originalname || 'saft.xml').slice(0, 200);
-  const sourceKind = detectSourceKind(originalFilename, file.buffer);
+  let sourceKind;
+  try {
+    sourceKind = detectSourceKind(originalFilename, file.buffer);
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    throw new AppError(err.message || 'Tipo de ficheiro inválido', 400, err.code || 'INVALID_SAFT_TYPE');
+  }
+
   const contentSha256 = sha256Hex(file.buffer);
 
   const existing = await saftImportsRepository.findByHash(firmId, contentSha256);
@@ -93,8 +154,7 @@ async function importSaft({ firmId, clientId, actorId, file }) {
     parsed = parseBufferToSummary(file.buffer, sourceKind);
   } catch (err) {
     const code = err.code || 'SAFT_PARSE_FAILED';
-    const status = code === 'UNSAFE_XML' ? 400 : 400;
-    throw new AppError(err.message || 'Falha ao ler SAF-T', status, code);
+    throw new AppError(err.message || 'Falha ao ler SAF-T', 400, code);
   }
 
   if (parsed.validationStatus === 'invalid') {
@@ -104,6 +164,8 @@ async function importSaft({ firmId, clientId, actorId, file }) {
       'SAFT_INVALID',
     );
   }
+
+  const storedKind = parsed.sourceKindResolved === 'xlsx_embedded_xml' ? 'xlsx' : sourceKind;
 
   const summary = {
     ...parsed.summary,
@@ -116,7 +178,7 @@ async function importSaft({ firmId, clientId, actorId, file }) {
     originalFilename,
     contentSha256,
     fileBytes: file.buffer.length,
-    sourceKind,
+    sourceKind: storedKind,
     auditFileVersion: parsed.auditFileVersion,
     companyId: parsed.companyId,
     taxRegistrationNumber: parsed.taxRegistrationNumber,
