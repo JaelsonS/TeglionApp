@@ -5,6 +5,7 @@ import { Mail, Phone } from 'lucide-react'
 import { AgencyNameLink } from '@/shared/components/agency/AgencyNameLink'
 import { ExternalLink } from '@/shared/components/agency/ExternalLink'
 import { IconWhatsApp } from '@/shared/components/brand/BrandChannelIcons'
+import { LandingBrandMark } from '@/shared/components/landing/LandingBrandMark'
 import { authFirmRegisterUrl, authProfileChoiceUrl } from '@/shared/constants/authPaths'
 import { LANDING_ANCHORS } from '@/shared/constants/landingAnchors'
 import { BRAND } from '@/shared/config/brand'
@@ -49,19 +50,9 @@ export function LandingFooter() {
       <div className="landing-container px-5 sm:px-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="flex items-center gap-2.5">
-              <span
-                className="flex h-9 w-9 items-center justify-center rounded-xl text-[11px] font-bold text-[#061428]"
-                style={{ backgroundColor: BRAND.colors.gold }}
-              >
-                {BRAND.initials}
-              </span>
-              <span className="landing-display text-xl font-semibold tracking-tight text-white">
-                {BRAND.name}
-              </span>
-            </div>
+            <LandingBrandMark onDark />
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/55">
-              Software SaaS para gabinetes de contabilidade em Portugal — gabinete, portal e página
+              Software para gabinetes de contabilidade em Portugal — gabinete, portal e página
               pública no mesmo sistema.
             </p>
           </div>

@@ -4,7 +4,6 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { LandingScreenshot } from '@/shared/components/landing/LandingScreenshot'
 import { LANDING_SCREENS } from '@/shared/components/landing/landingScreens'
 import { authFirmRegisterUrl } from '@/shared/constants/authPaths'
-import { BRAND } from '@/shared/config/brand'
 
 export function LandingHero() {
   const reduce = useReducedMotion()
@@ -14,41 +13,39 @@ export function LandingHero() {
   }
 
   return (
-    <section className="landing-hero" aria-labelledby="landing-hero-brand">
+    <section className="landing-hero" aria-labelledby="landing-hero-title">
       <div className="landing-hero-inner">
-        <div className="landing-hero-animate max-w-2xl pt-6 sm:pt-10 lg:pt-14">
-          <p id="landing-hero-brand" className="landing-hero-brand">
-            {BRAND.name}
-          </p>
-          <h1 className="landing-hero-headline mt-5 sm:mt-6">
-            Software SaaS para o seu gabinete de contabilidade.
+        <div className="landing-hero-animate max-w-xl pt-8 sm:max-w-2xl sm:pt-12 lg:pt-16">
+          <p className="landing-hero-kicker">Para gabinetes de contabilidade em Portugal</p>
+          <h1 id="landing-hero-title" className="landing-hero-headline mt-4 sm:mt-5">
+            Gabinete, portal e página pública — a mesma operação.
           </h1>
           <p className="landing-hero-support mt-4 sm:mt-5">
-            Painel da equipa, portal do cliente e página pública no mesmo sistema — documentos,
-            prazos, serviços e pagamentos sem saltar de ferramenta.
+            Documentos, prazos, serviços e pagamentos no mesmo sistema. A equipa trabalha no painel;
+            o cliente entrega no portal; a oferta vive no site.
           </p>
-          <div className="mt-7 flex w-full flex-col items-stretch gap-3 sm:mt-8 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
+          <div className="mt-7 flex w-full flex-col items-stretch gap-3 sm:mt-8 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
             <Link to={authFirmRegisterUrl()} className="landing-btn-primary w-full sm:w-auto">
               Testar 14 dias grátis
             </Link>
             <button
               type="button"
               onClick={scrollToProof}
-              className="landing-btn-ghost landing-btn-ghost-light py-2 text-center sm:text-left"
+              className="landing-btn-secondary-light w-full sm:w-auto"
             >
               Ver o produto
             </button>
           </div>
-          <p className="mt-4 text-[13px] text-white/55 sm:text-sm">
+          <p className="landing-hero-trust mt-5">
             Sem cartão · Sem fidelização · Cancela quando quiser
           </p>
         </div>
 
         <motion.div
           className="landing-hero-visual"
-          initial={reduce ? undefined : { opacity: 0, y: 32 }}
+          initial={reduce ? undefined : { opacity: 0, y: 28 }}
           animate={reduce ? undefined : { opacity: 1, y: 0 }}
-          transition={{ duration: 0.85, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.75, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
         >
           <LandingScreenshot
             src={LANDING_SCREENS.dashboard}
