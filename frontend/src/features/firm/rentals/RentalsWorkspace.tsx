@@ -67,11 +67,14 @@ export function RentalsWorkspace() {
     label: string
     lease?: PropertyLease | null
   } | null>(null)
-  const [generateMonth, setGenerateMonth] = useState(() => {
-    const n = new Date()
-    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}`
-  })
+  const [fromYearMonth, setFromYearMonth] = useState(() => `${new Date().getFullYear()}-01`)
+  const [toYearMonth, setToYearMonth] = useState(() => `${new Date().getFullYear()}-12`)
   const [generating, setGenerating] = useState(false)
+
+  useEffect(() => {
+    setFromYearMonth(`${year}-01`)
+    setToYearMonth(`${year}-12`)
+  }, [year])
   const [creatingKey, setCreatingKey] = useState<string | null>(null)
   const [edit, setEdit] = useState<ReceiptEditCtx | null>(null)
 
@@ -137,27 +140,54 @@ export function RentalsWorkspace() {
     return qc.invalidateQueries({ queryKey: OVERVIEW_KEY })
   }
 
+  function eachYearMonth(from: string, to: string): string[] {
+    if (!/^\d{4}-\d{2}$/.test(from) || !/^\d{4}-\d{2}$/.test(to) || from > to) return []
+    const out: string[] = []
+    let [y, m] = from.split('-').map(Number)
+    const [ty, tm] = to.split('-').map(Number)
+    while (y < ty || (y === ty && m <= tm)) {
+      out.push(`${y}-${String(m).padStart(2, '0')}`)
+      m += 1
+      if (m > 12) {
+        m = 1
+        y += 1
+      }
+    }
+    return out
+  }
+
   async function runGenerate() {
+    const months = eachYearMonth(fromYearMonth, toYearMonth)
+    if (!months.length) {
+      toast.error('Intervalo inválido', { description: 'Verifique De / Até.' })
+      return
+    }
     setGenerating(true)
     try {
-      const res = await contabilRentalsApi.generateReceipts({ yearMonth: generateMonth })
-      if (!res.createdCount) {
-        toast.message('Nada gerado', {
+      let createdCount = 0
+      let skippedCount = 0
+      for (const yearMonth of months) {
+        const res = await contabilRentalsApi.generateReceipts({ yearMonth })
+        createdCount += res.createdCount || 0
+        skippedCount += res.skippedCount || 0
+      }
+      if (!createdCount) {
+        toast.message('Nada aplicado', {
           description:
             activeLeaseCount === 0
-              ? 'Sem contratos activos. Crie um imóvel e um contrato.'
-              : 'Todos os contratos elegíveis já têm este mês.',
+              ? 'Sem contratos activos. Crie um custo/contrato primeiro.'
+              : 'Todos os contratos elegíveis já têm estes meses no mapa.',
         })
       } else {
         toast.success(
-          `Gerados ${res.createdCount} recibo(s)` +
-            (res.skippedCount ? ` · ${res.skippedCount} ignorados` : ''),
+          `Aplicados ${createdCount} rascunho(s)` +
+            (skippedCount ? ` · ${skippedCount} já existentes/fora do contrato` : ''),
         )
       }
       setGenerateOpen(false)
       await refresh()
     } catch (err) {
-      toast.error('Não foi possível gerar', { description: getErrorMessage(err) })
+      toast.error('Não foi possível aplicar o mapa', { description: getErrorMessage(err) })
     } finally {
       setGenerating(false)
     }
@@ -186,8 +216,8 @@ export function RentalsWorkspace() {
   return (
     <FirmModuleShell
       className="cb-rentals-shell cb-rentals-page-scroll"
-      title="Imóveis e rendas"
-      subtitle="Contratos e recibos internos de renda — quem pagou, quem deve, edição e recibo sem sair da página."
+      title="Custos e contratos"
+      subtitle="Renda do escritório, luz, gás, água, software e outros contratos do gabinete — mapa mensal de quem pagou e o que está em aberto."
       headerRight={
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => setYear((y) => y - 1)}>
@@ -199,10 +229,10 @@ export function RentalsWorkspace() {
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => setPropertyEdit({})}>
             <Plus className="mr-1 h-4 w-4" aria-hidden />
-            Imóvel
+            Contrato / custo
           </Button>
           <Button type="button" size="sm" onClick={() => setGenerateOpen(true)}>
-            Gerar recibos
+            Configurar custos
           </Button>
         </div>
       }
@@ -228,9 +258,9 @@ export function RentalsWorkspace() {
       ) : null}
 
       <p className="cb-rentals-section-lead">
-        <span className="cb-rentals-section-lead-title">Mapa de rendas</span>
-        Recibos internos do gabinete — não substituem o Portal das Finanças nem comunicação à AT.
-        Clique numa célula para editar, apagar ou gerar recibo interno.
+        <span className="cb-rentals-section-lead-title">Mapa de custos do gabinete</span>
+        Controlo interno de arrendamento, utilities e licenças. Não substitui facturas oficiais nem o
+        Portal das Finanças. Clique numa célula para editar ou marcar como pago.
       </p>
 
       <div className="cb-rentals-section-host">
@@ -241,8 +271,8 @@ export function RentalsWorkspace() {
               className="pl-9"
               value={q}
               onChange={(e: FormChangeEvent) => setQ(e.target.value)}
-              placeholder="Procurar imóvel, senhorio ou inquilino…"
-              aria-label="Procurar imóveis"
+              placeholder="Procurar contrato, fornecedor ou categoria…"
+              aria-label="Procurar custos e contratos"
             />
           </div>
           <div className="cb-rentals-legend" aria-hidden>
@@ -260,15 +290,15 @@ export function RentalsWorkspace() {
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />A carregar…
             </div>
           ) : overviewQuery.isError ? (
-            <p className="py-8 text-sm text-destructive">Não foi possível carregar os imóveis.</p>
+            <p className="py-8 text-sm text-destructive">Não foi possível carregar os contratos.</p>
           ) : !data?.rows?.length ? (
             <EmptyState
               icon={Building2}
-              title="Ainda sem imóveis"
-              description="Adicione um imóvel do cliente (senhorio), crie o contrato com o inquilino e gere os recibos do mês."
+              title="Ainda sem custos do gabinete"
+              description="Registe a renda do escritório, luz, gás, água, software ou outro contrato — depois gere os meses no mapa."
               action={
                 <Button type="button" onClick={() => setPropertyEdit({})}>
-                  Novo imóvel
+                  Novo contrato / custo
                 </Button>
               }
             />
@@ -280,7 +310,9 @@ export function RentalsWorkspace() {
                     <div className="min-w-0">
                       <h2 className="text-base font-semibold tracking-tight">{row.property.label}</h2>
                       <p className="text-sm text-muted-foreground">
-                        Senhorio: {row.client.displayName}
+                        {row.client?.id
+                          ? `Cliente: ${row.client.displayName}`
+                          : `Fornecedor / titular: ${row.client?.displayName || 'Gabinete'}`}
                         {row.client.taxId ? ` · NIF ${row.client.taxId}` : ''}
                       </p>
                       {(row.property.addressLine || row.property.locality) && (
@@ -312,14 +344,14 @@ export function RentalsWorkspace() {
                         }
                       >
                         <Plus className="mr-1 h-3.5 w-3.5" aria-hidden />
-                        Contrato
+                        Plano mensal
                       </Button>
                     </div>
                   </div>
 
                   {!(row.leases || []).filter((l) => l.status !== 'cancelled').length ? (
                     <p className="mt-3 text-sm text-muted-foreground">
-                      Sem contratos. Crie um para gerar recibos.
+                      Sem plano mensal. Defina valor e vencimento para controlar os meses no mapa.
                     </p>
                   ) : (
                     <div className="mt-4 space-y-5">
@@ -419,16 +451,19 @@ export function RentalsWorkspace() {
         </div>
 
         <p className="cb-rentals-foot">
-          Controlo interno de rendas. Não substitui recibos do Portal das Finanças nem declarações à
-          AT.
+          Controlo interno de custos e contratos do gabinete. Não substitui facturas oficiais nem
+          declarações à AT.
         </p>
       </div>
 
       <GenerateRentReceiptsDialog
         open={generateOpen}
         onOpenChange={setGenerateOpen}
-        yearMonth={generateMonth}
-        onYearMonthChange={setGenerateMonth}
+        year={year}
+        fromYearMonth={fromYearMonth}
+        toYearMonth={toYearMonth}
+        onFromYearMonthChange={setFromYearMonth}
+        onToYearMonthChange={setToYearMonth}
         activeLeaseCount={activeLeaseCount}
         generating={generating}
         onGenerate={() => void runGenerate()}

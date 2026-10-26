@@ -50,9 +50,13 @@ export function PaymentsWorkspace() {
   const [qDebounced, setQDebounced] = useState('')
   const [healthFilter, setHealthFilter] = useState<HealthFilter>('todos')
   const [generateOpen, setGenerateOpen] = useState(false)
-  const [generateMonth, setGenerateMonth] = useState(() => {
+  const [generateFrom, setGenerateFrom] = useState(() => {
     const n = new Date()
-    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}`
+    return `${n.getFullYear()}-01`
+  })
+  const [generateTo, setGenerateTo] = useState(() => {
+    const n = new Date()
+    return `${n.getFullYear()}-12`
   })
   const [generating, setGenerating] = useState(false)
   const [creatingKey, setCreatingKey] = useState<string | null>(null)
@@ -163,24 +167,27 @@ export function PaymentsWorkspace() {
   async function runGenerate() {
     setGenerating(true)
     try {
-      const res = await contabilFeeChargesApi.generate({ yearMonth: generateMonth })
+      const res = await contabilFeeChargesApi.generate({
+        fromYearMonth: generateFrom,
+        toYearMonth: generateTo,
+      })
       if (!res.createdCount) {
         toast.message('Nada gerado', {
           description:
             activeRetainerCount === 0
               ? 'Nenhum cliente tem avença activa. Abra o cliente, defina o valor e active a avença.'
-              : 'Todos os clientes com avença já têm este mês.',
+              : 'Todos os meses do intervalo já existiam ou estavam fora do período da avença.',
         })
       } else {
         toast.success(
-          `Geradas ${res.createdCount} avença(s)` +
+          `Mapa actualizado · ${res.createdCount} avença(s)` +
             (res.skippedCount ? ` · ${res.skippedCount} já existiam` : ''),
         )
       }
       setGenerateOpen(false)
       await refreshMap()
     } catch (err) {
-      toast.error('Não foi possível gerar', { description: getErrorMessage(err) })
+      toast.error('Não foi possível aplicar ao mapa', { description: getErrorMessage(err) })
     } finally {
       setGenerating(false)
     }
@@ -218,7 +225,7 @@ export function PaymentsWorkspace() {
     <FirmModuleShell
       className="cb-payments-shell cb-payments-page-scroll"
       title="Pagamentos (carteira)"
-      subtitle="Operação real do gabinete: quem pagou, quem deve, e acções em cada mês — sem sair da página."
+      subtitle="Defina a avença no cliente (valor + início/fim). Depois replique para todos os meses e clientes activos — sem preencher célula a célula."
       headerRight={
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => setYear((y) => y - 1)}>
@@ -229,7 +236,7 @@ export function PaymentsWorkspace() {
             <ChevronRight className="h-4 w-4" aria-hidden />
           </Button>
           <Button type="button" size="sm" onClick={() => setGenerateOpen(true)}>
-            Gerar mês
+            Configurar avenças
           </Button>
         </div>
       }
@@ -254,20 +261,19 @@ export function PaymentsWorkspace() {
         </div>
       ) : null}
 
-      {!mapQuery.isLoading && data && !hasAnyCharge ? (
-        <div className="cb-payments-empty-banner" data-testid="payments-empty-banner">
-          <div className="min-w-0 flex-1">
-            <p className="font-semibold text-foreground">Ainda sem avenças neste mapa</p>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              Abra um cliente, defina o valor mensal e active a avença — depois use «Gerar mês», ou
-              clique em «+» numa célula para criar só esse mês.
-            </p>
-          </div>
-          <Button type="button" onClick={() => setGenerateOpen(true)}>
-            Gerar mês
-          </Button>
+      <div className="cb-payments-empty-banner border-brand/20 bg-brand/5" data-testid="payments-bulk-hint">
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-foreground">Carteira em massa — não célula a célula</p>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            1) No cliente: valor + início/fim. 2) «Configurar avenças» aplica o período a{' '}
+            <strong>toda</strong> a carteira activa. 3) Numa célula: «Replicar para outros meses»
+            copia aquele valor só para esse cliente.
+          </p>
         </div>
-      ) : null}
+        <Button type="button" onClick={() => setGenerateOpen(true)}>
+          Configurar avenças
+        </Button>
+      </div>
 
       <div className="cb-payments-section-host">
         <div className="cb-payments-toolbar">
@@ -412,7 +418,7 @@ export function PaymentsWorkspace() {
                                   className={cn(statusTone(cell.status, cell.overdue))}
                                   onClick={() =>
                                     setEdit({
-                                      charge: cell,
+                                      charge: { ...cell, clientId: cell.clientId || row.clientId },
                                       clientName: row.displayName,
                                       clientTaxId: row.taxId,
                                     })
@@ -511,8 +517,11 @@ export function PaymentsWorkspace() {
       <GenerateMonthDialog
         open={generateOpen}
         onOpenChange={setGenerateOpen}
-        yearMonth={generateMonth}
-        onYearMonthChange={setGenerateMonth}
+        year={year}
+        fromYearMonth={generateFrom}
+        toYearMonth={generateTo}
+        onFromYearMonthChange={setGenerateFrom}
+        onToYearMonthChange={setGenerateTo}
         activeRetainerCount={activeRetainerCount}
         generating={generating}
         onGenerate={() => void runGenerate()}

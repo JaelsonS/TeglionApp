@@ -33,6 +33,8 @@ export function ClientHubBillingPanel({ clientId, displayName }: Props) {
   const [euros, setEuros] = useState(0)
   const [active, setActive] = useState(false)
   const [dueDay, setDueDay] = useState(1)
+  const [startMonth, setStartMonth] = useState('')
+  const [endMonth, setEndMonth] = useState('')
   const [saving, setSaving] = useState(false)
   const [edit, setEdit] = useState<FeeCharge | null>(null)
 
@@ -42,6 +44,8 @@ export function ClientHubBillingPanel({ clientId, displayName }: Props) {
     setEuros((b.retainerAmountCents || 0) / 100)
     setActive(Boolean(b.retainerActive))
     setDueDay(b.retainerDueDay || 1)
+    setStartMonth(b.retainerStartMonth || '')
+    setEndMonth(b.retainerEndMonth || '')
   }, [query.data])
 
   const charges = (query.data?.charges || []) as FeeCharge[]
@@ -60,6 +64,8 @@ export function ClientHubBillingPanel({ clientId, displayName }: Props) {
         retainerAmountCents: Math.round(euros * 100),
         retainerActive: active,
         retainerDueDay: dueDay,
+        retainerStartMonth: startMonth || null,
+        retainerEndMonth: endMonth || null,
       })
       toast.success('Avença guardada')
       await qc.invalidateQueries({ queryKey: ['client-billing', clientId] })
@@ -106,7 +112,8 @@ export function ClientHubBillingPanel({ clientId, displayName }: Props) {
             <div>
               <h2 className="text-base font-semibold tracking-tight">Avença mensal</h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
-                Honorários de {displayName}. Pode registar tudo à mão — Stripe Connect é opcional.
+                Defina valor, dia e início/fim. Depois em Pagamentos use «Configurar avenças» para
+                aplicar o período a toda a carteira activa — Stripe Connect é opcional.
               </p>
             </div>
           </div>
@@ -147,6 +154,29 @@ export function ClientHubBillingPanel({ clientId, displayName }: Props) {
               onChange={(e) => setActive(e.target.checked)}
             />
             <span>Incluir em «Gerar pagamentos»</span>
+          </label>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="space-y-1.5 text-sm">
+            <span className="font-medium">Início da avença</span>
+            <input
+              type="month"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={startMonth}
+              onChange={(e) => setStartMonth(e.target.value)}
+            />
+            <span className="text-xs text-muted-foreground">Opcional — vazio = sem limite</span>
+          </label>
+          <label className="space-y-1.5 text-sm">
+            <span className="font-medium">Fim da avença</span>
+            <input
+              type="month"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={endMonth}
+              onChange={(e) => setEndMonth(e.target.value)}
+            />
+            <span className="text-xs text-muted-foreground">Opcional — vazio = continua</span>
           </label>
         </div>
 

@@ -51,7 +51,41 @@ function mapBillingFromClient(client) {
     retainerCurrency: client.retainerCurrency || 'EUR',
     retainerActive: Boolean(client.retainerActive),
     retainerDueDay: client.retainerDueDay || 1,
+    retainerStartMonth: client.retainerStartMonth || null,
+    retainerEndMonth: client.retainerEndMonth || null,
   };
+}
+
+function monthInRetainerRange(yearMonth, client) {
+  const start = client.retainerStartMonth || null;
+  const end = client.retainerEndMonth || null;
+  if (start && yearMonth < start) return false;
+  if (end && yearMonth > end) return false;
+  return true;
+}
+
+/** Lista AAAA-MM inclusiva entre from e to (ordem cronológica). */
+function listYearMonthsBetween(fromYm, toYm) {
+  const from = assertYearMonth(fromYm);
+  const to = assertYearMonth(toYm);
+  if (from > to) {
+    throw new AppError('O mês inicial não pode ser depois do mês final', 400, 'INVALID_MONTH_RANGE');
+  }
+  const out = [];
+  let [y, m] = from.split('-').map(Number);
+  const [ty, tm] = to.split('-').map(Number);
+  while (y < ty || (y === ty && m <= tm)) {
+    out.push(`${y}-${String(m).padStart(2, '0')}`);
+    m += 1;
+    if (m > 12) {
+      m = 1;
+      y += 1;
+    }
+    if (out.length > 120) {
+      throw new AppError('Intervalo demasiado longo (máx. 120 meses)', 400, 'RANGE_TOO_LONG');
+    }
+  }
+  return out;
 }
 
 async function getClientBilling({ firmId, clientId }) {
@@ -98,6 +132,25 @@ async function patchClientBilling({ firmId, clientId, patch }) {
   }
   if (patch.retainerCurrency !== undefined) {
     next.retainerCurrency = String(patch.retainerCurrency || 'EUR').slice(0, 3).toUpperCase();
+  }
+  if (patch.retainerStartMonth !== undefined) {
+    if (patch.retainerStartMonth === null || patch.retainerStartMonth === '') {
+      next.retainerStartMonth = null;
+    } else {
+      next.retainerStartMonth = assertYearMonth(patch.retainerStartMonth);
+    }
+  }
+  if (patch.retainerEndMonth !== undefined) {
+    if (patch.retainerEndMonth === null || patch.retainerEndMonth === '') {
+      next.retainerEndMonth = null;
+    } else {
+      next.retainerEndMonth = assertYearMonth(patch.retainerEndMonth);
+    }
+  }
+  const start = next.retainerStartMonth !== undefined ? next.retainerStartMonth : client.retainerStartMonth;
+  const end = next.retainerEndMonth !== undefined ? next.retainerEndMonth : client.retainerEndMonth;
+  if (start && end && start > end) {
+    throw new AppError('O início da avença não pode ser depois do fim', 400, 'INVALID_RETAINER_PERIOD');
   }
 
   const updated = await clientsRepository.updateClient(clientId, firmId, next);
@@ -171,8 +224,12 @@ async function getYearMap({ firmId, year, search, connectStatus }) {
   };
 }
 
-async function generateCharges({ firmId, yearMonth, clientIds, actorId }) {
-  const ym = assertYearMonth(yearMonth);
+async function generateCharges({ firmId, yearMonth, fromYearMonth, toYearMonth, clientIds, actorId }) {
+  const months =
+    fromYearMonth || toYearMonth
+      ? listYearMonthsBetween(fromYearMonth || yearMonth, toYearMonth || yearMonth || fromYearMonth)
+      : [assertYearMonth(yearMonth)];
+
   let clients = await clientsRepository.listClients(firmId, { limit: 500, includeInactive: false });
   if (Array.isArray(clientIds) && clientIds.length) {
     const set = new Set(clientIds.map(String));
@@ -185,28 +242,43 @@ async function generateCharges({ firmId, yearMonth, clientIds, actorId }) {
   const created = [];
   const skipped = [];
 
-  for (const client of clients) {
-    const existing = await feeChargesRepository.findOpenCharge(firmId, client.id, ym);
-    if (existing) {
-      skipped.push({ clientId: client.id, reason: 'EXISTS', chargeId: existing.id });
-      continue;
+  for (const ym of months) {
+    for (const client of clients) {
+      if (!monthInRetainerRange(ym, client)) {
+        skipped.push({ clientId: client.id, yearMonth: ym, reason: 'OUT_OF_RANGE' });
+        continue;
+      }
+      const existing = await feeChargesRepository.findOpenCharge(firmId, client.id, ym);
+      if (existing) {
+        skipped.push({ clientId: client.id, yearMonth: ym, reason: 'EXISTS', chargeId: existing.id });
+        continue;
+      }
+      const dueDate = dueDateForMonth(ym, client.retainerDueDay);
+      const charge = await feeChargesRepository.insertCharge({
+        firmId,
+        clientId: client.id,
+        yearMonth: ym,
+        amountCents: client.retainerAmountCents,
+        currency: client.retainerCurrency || 'EUR',
+        status: 'draft',
+        dueDate,
+        source: 'bulk',
+        createdBy: actorId || null,
+      });
+      created.push(charge);
     }
-    const dueDate = dueDateForMonth(ym, client.retainerDueDay);
-    const charge = await feeChargesRepository.insertCharge({
-      firmId,
-      clientId: client.id,
-      yearMonth: ym,
-      amountCents: client.retainerAmountCents,
-      currency: client.retainerCurrency || 'EUR',
-      status: 'draft',
-      dueDate,
-      source: 'bulk',
-      createdBy: actorId || null,
-    });
-    created.push(charge);
   }
 
-  return { yearMonth: ym, created, skipped, createdCount: created.length, skippedCount: skipped.length };
+  return {
+    yearMonth: months.length === 1 ? months[0] : undefined,
+    fromYearMonth: months[0],
+    toYearMonth: months[months.length - 1],
+    months,
+    created,
+    skipped,
+    createdCount: created.length,
+    skippedCount: skipped.length,
+  };
 }
 
 /**
@@ -249,6 +321,98 @@ async function createCharge({ firmId, clientId, yearMonth, amountCents, status, 
   });
 
   return { charge: { ...charge, overdue: isOverdue(charge) }, created: true };
+}
+
+/**
+ * Replica valor (e opcionalmente estado) de uma avença para um intervalo de meses
+ * do mesmo cliente — cria em falta; actualiza rascunhos se overwriteDrafts.
+ */
+async function replicateCharges({
+  firmId,
+  clientId,
+  fromYearMonth,
+  toYearMonth,
+  amountCents,
+  status,
+  paymentMethod,
+  actorId,
+  overwriteDrafts = true,
+}) {
+  const id = String(clientId || '').trim();
+  if (!id) throw new AppError('Cliente obrigatório', 400, 'CLIENT_REQUIRED');
+  const client = await clientsRepository.findClientById(firmId, id);
+  if (!client) throw new AppError('Cliente não encontrado', 404, 'CLIENT_NOT_FOUND');
+
+  const months = listYearMonthsBetween(fromYearMonth, toYearMonth);
+  let cents = amountCents != null ? Math.round(Number(amountCents)) : null;
+  if (cents == null || !Number.isFinite(cents)) {
+    cents = client.retainerAmountCents != null ? Number(client.retainerAmountCents) : null;
+  }
+  if (!Number.isFinite(cents) || cents < 0) {
+    throw new AppError('Indique o valor a replicar', 400, 'INVALID_AMOUNT');
+  }
+
+  const st =
+    status && FEE_CHARGE_STATUSES.includes(String(status)) && String(status) !== 'cancelled'
+      ? String(status)
+      : 'draft';
+  let method = paymentMethod === null || paymentMethod === '' ? null : paymentMethod;
+  if (method !== undefined && method !== null) {
+    method = String(method);
+    if (!FEE_PAYMENT_METHODS.some((x) => x.id === method)) {
+      throw new AppError('Método de pagamento inválido', 400, 'INVALID_METHOD');
+    }
+  }
+
+  const created = [];
+  const updated = [];
+  const skipped = [];
+
+  for (const ym of months) {
+    const existing = await feeChargesRepository.findOpenCharge(firmId, id, ym);
+    if (existing) {
+      if (overwriteDrafts && existing.status === 'draft') {
+        const patched = await feeChargesRepository.updateCharge(existing.id, firmId, {
+          amountCents: cents,
+          status: st,
+          paymentMethod: method !== undefined ? method : existing.paymentMethod,
+          dueDate: dueDateForMonth(ym, client.retainerDueDay || 1),
+          paidAt: st === 'paid' ? new Date().toISOString() : null,
+        });
+        updated.push(patched);
+      } else {
+        skipped.push({ clientId: id, yearMonth: ym, reason: 'EXISTS', chargeId: existing.id });
+      }
+      continue;
+    }
+    const charge = await feeChargesRepository.insertCharge({
+      firmId,
+      clientId: id,
+      yearMonth: ym,
+      amountCents: cents,
+      currency: client.retainerCurrency || 'EUR',
+      status: st,
+      paymentMethod: method || null,
+      dueDate: dueDateForMonth(ym, client.retainerDueDay || 1),
+      paidAt: st === 'paid' ? new Date().toISOString() : null,
+      source: 'bulk',
+      createdBy: actorId || null,
+    });
+    created.push(charge);
+  }
+
+  return {
+    clientId: id,
+    fromYearMonth: months[0],
+    toYearMonth: months[months.length - 1],
+    months,
+    created,
+    updated,
+    skipped,
+    createdCount: created.length,
+    updatedCount: updated.length,
+    skippedCount: skipped.length,
+  };
 }
 
 async function patchCharge({ firmId, chargeId, patch }) {
@@ -296,6 +460,7 @@ module.exports = {
   patchClientBilling,
   getYearMap,
   generateCharges,
+  replicateCharges,
   createCharge,
   patchCharge,
   isOverdue,

@@ -3,6 +3,7 @@ const clientsRepository = require('../../db/supabase/repositories/clients.reposi
 const rentalsRepository = require('../../db/supabase/repositories/client-rentals.repository');
 const {
   PROPERTY_STATUSES,
+  COST_CATEGORIES,
   LEASE_STATUSES,
   LEASE_TYPES,
   RECEIPT_STATUSES,
@@ -73,6 +74,7 @@ async function getMeta() {
   return {
     disclaimer: INTERNAL_DISCLAIMER,
     propertyStatuses: PROPERTY_STATUSES,
+    costCategories: COST_CATEGORIES,
     leaseStatuses: LEASE_STATUSES,
     leaseTypes: LEASE_TYPES,
     receiptStatuses: RECEIPT_STATUS_LABELS,
@@ -87,7 +89,7 @@ async function listOverview({ firmId, year, search }) {
   const receipts = await rentalsRepository.listReceiptsForYear(firmId, y);
   const today = todayISODate();
 
-  const clientIds = [...new Set(properties.map((p) => p.clientId))];
+  const clientIds = [...new Set(properties.map((p) => p.clientId).filter(Boolean))];
   const clients = await clientsRepository.listClients(firmId, { limit: 500, includeInactive: true });
   const clientById = new Map(clients.map((c) => [c.id, c]));
 
@@ -117,7 +119,7 @@ async function listOverview({ firmId, year, search }) {
   const q = String(search || '').trim().toLowerCase();
   const rows = properties
     .map((p) => {
-      const client = clientById.get(p.clientId);
+      const client = p.clientId ? clientById.get(p.clientId) : null;
       const propLeases = (leasesByProperty.get(p.id) || []).map((l) => ({
         ...l,
         months: receiptsByLease.get(l.id) || {},
@@ -126,7 +128,11 @@ async function listOverview({ firmId, year, search }) {
         property: p,
         client: client
           ? { id: client.id, displayName: client.displayName, taxId: client.taxId }
-          : { id: p.clientId, displayName: 'Cliente', taxId: null },
+          : {
+              id: 'office',
+              displayName: p.supplierName || 'Gabinete',
+              taxId: null,
+            },
         leases: propLeases,
       };
     })
@@ -136,6 +142,8 @@ async function listOverview({ firmId, year, search }) {
         row.property.label,
         row.property.addressLine,
         row.property.locality,
+        row.property.costCategory,
+        row.property.supplierName,
         row.client.displayName,
         row.client.taxId,
         ...row.leases.map((l) => l.tenantDisplayName),
@@ -145,7 +153,6 @@ async function listOverview({ firmId, year, search }) {
         .toLowerCase();
       return blob.includes(q);
     })
-    .filter((row) => clientIds.includes(row.property.clientId) || !clientIds.length)
     .sort((a, b) =>
       String(a.property.label || '').localeCompare(String(b.property.label || ''), 'pt'),
     );
@@ -162,23 +169,32 @@ async function listOverview({ firmId, year, search }) {
 }
 
 async function createProperty({ firmId, payload }) {
-  const clientId = String(payload.clientId || '');
-  if (!clientId) throw new AppError('Cliente obrigatório', 400, 'CLIENT_REQUIRED');
-  const client = await clientsRepository.findClientById(firmId, clientId);
-  if (!client) throw new AppError('Cliente não encontrado', 404, 'CLIENT_NOT_FOUND');
+  const rawClientId = payload.clientId != null && payload.clientId !== '' ? String(payload.clientId) : null;
+  if (rawClientId) {
+    const client = await clientsRepository.findClientById(firmId, rawClientId);
+    if (!client) throw new AppError('Cliente não encontrado', 404, 'CLIENT_NOT_FOUND');
+  }
 
   const label = trimOrNull(payload.label, 200);
-  if (!label) throw new AppError('Identificação do imóvel obrigatória', 400, 'LABEL_REQUIRED');
+  if (!label) throw new AppError('Identificação do contrato/custo obrigatória', 400, 'LABEL_REQUIRED');
+
+  const allowedCats = new Set(COST_CATEGORIES.map((c) => c.id));
+  const costCategory = String(payload.costCategory || 'outro');
+  if (!allowedCats.has(costCategory)) {
+    throw new AppError('Categoria inválida', 400, 'INVALID_CATEGORY');
+  }
 
   const property = await rentalsRepository.insertProperty({
     firmId,
-    clientId,
+    clientId: rawClientId,
     label,
     addressLine: trimOrNull(payload.addressLine, 300),
     postalCode: trimOrNull(payload.postalCode, 20),
     locality: trimOrNull(payload.locality, 120),
     artigoMatricial: trimOrNull(payload.artigoMatricial, 80),
     notes: trimOrNull(payload.notes, 2000),
+    costCategory,
+    supplierName: trimOrNull(payload.supplierName, 200),
     status: 'active',
   });
   return { property };
@@ -191,7 +207,7 @@ async function patchProperty({ firmId, propertyId, patch }) {
   const next = {};
   if (patch.label !== undefined) {
     const label = trimOrNull(patch.label, 200);
-    if (!label) throw new AppError('Identificação do imóvel obrigatória', 400, 'LABEL_REQUIRED');
+    if (!label) throw new AppError('Identificação do contrato/custo obrigatória', 400, 'LABEL_REQUIRED');
     next.label = label;
   }
   if (patch.addressLine !== undefined) next.addressLine = trimOrNull(patch.addressLine, 300);
@@ -199,6 +215,15 @@ async function patchProperty({ firmId, propertyId, patch }) {
   if (patch.locality !== undefined) next.locality = trimOrNull(patch.locality, 120);
   if (patch.artigoMatricial !== undefined) next.artigoMatricial = trimOrNull(patch.artigoMatricial, 80);
   if (patch.notes !== undefined) next.notes = trimOrNull(patch.notes, 2000);
+  if (patch.supplierName !== undefined) next.supplierName = trimOrNull(patch.supplierName, 200);
+  if (patch.costCategory !== undefined) {
+    const allowedCats = new Set(COST_CATEGORIES.map((c) => c.id));
+    const costCategory = String(patch.costCategory);
+    if (!allowedCats.has(costCategory)) {
+      throw new AppError('Categoria inválida', 400, 'INVALID_CATEGORY');
+    }
+    next.costCategory = costCategory;
+  }
   if (patch.status !== undefined) {
     const st = String(patch.status);
     if (!PROPERTY_STATUSES.includes(st)) throw new AppError('Estado inválido', 400, 'INVALID_STATUS');
