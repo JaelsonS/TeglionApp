@@ -236,11 +236,13 @@ export function AlertsWorkspace() {
 
       <div className="cb-alerts-purpose" data-testid="firm-alerts-purpose">
         <div className="min-w-0 flex-1">
-          <p className="cb-alerts-purpose-title">Comunicados ao portal</p>
+          <p className="cb-alerts-purpose-title">Isto é um alerta — não um artigo</p>
           <p className="cb-alerts-purpose-detail">
-            Curtos, prioritários e com confirmação de leitura. Para artigos editoriais com capa e destaque, use{' '}
+            Use para avisos urgentes: prazo a vencer, documento em falta, alteração crítica. Curtos, com
+            prioridade e confirmação de leitura. Para textos informativos (escritório fechado, lei que mudou,
+            novidades do gabinete), publique no{' '}
             <Link to="/app/firm/news" className="font-medium text-brand hover:underline">
-              Notícias
+              blog de Notícias
             </Link>
             .
           </p>
@@ -322,17 +324,17 @@ export function AlertsWorkspace() {
         <EmptyState
           className="m-3"
           icon={Megaphone}
-          title={overview.length === 0 ? 'Ainda sem comunicados' : 'Nenhum resultado'}
+          title={overview.length === 0 ? 'Ainda sem alertas' : 'Nenhum resultado'}
           description={
             overview.length === 0
-              ? 'Avise a carteira de prazos, mudanças fiscais ou urgências. Os clientes vêem os comunicados no portal.'
+              ? 'Crie alertas para prazos, documentos em falta ou avisos urgentes. Os clientes vêem-nos no portal — com prioridade e, se quiser, confirmação de leitura.'
               : 'Ajuste pesquisa, tipo, estado ou prioridade.'
           }
           action={
             overview.length === 0 ? (
               <Button type="button" size="sm" variant="primary" onClick={startCreate}>
                 <Plus className="h-4 w-4" />
-                Criar primeiro comunicado
+                Criar primeiro alerta
               </Button>
             ) : undefined
           }
@@ -409,21 +411,21 @@ export function AlertsWorkspace() {
   return (
     <>
       <FirmModuleShell
-        className="cb-alerts-shell"
+        className="cb-alerts-shell cb-alerts-page-scroll"
         title="Central de alertas"
-        subtitle="Comunicados curtos e prioritários para o portal — prazos, urgências e confirmação de leitura."
+        subtitle="Avisos urgentes ao portal — prazos, faltas e confirmação de leitura. Não é o blog do escritório (isso fica em Notícias)."
         headerRight={
           <div className="flex flex-wrap items-center gap-2">
             <AskMayaButton intentId="alerts" />
             <Button type="button" size="sm" variant="outline" asChild>
               <Link to="/app/firm/news">
                 <Newspaper className="mr-1.5 h-4 w-4" aria-hidden />
-                Notícias
+                Blog / Notícias
               </Link>
             </Button>
             <Button type="button" className="cb-alerts-btn-primary shrink-0" onClick={startCreate}>
               <Plus className="mr-1.5 h-4 w-4" />
-              Novo comunicado
+              Novo alerta
             </Button>
           </div>
         }
