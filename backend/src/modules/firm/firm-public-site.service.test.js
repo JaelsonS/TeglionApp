@@ -740,6 +740,27 @@ test('getSite: resolve URLs assinadas para cada imagem do draft e do published',
   assert.equal(result.published.images.institutional[0].url, 'https://signed/firm/firm-1/public-site/institutional/b.jpg');
 });
 
+test('getSite: imageMode none não assina URLs (página pública assina só o config servido)', async () => {
+  resetMocks();
+  let signCalls = 0;
+  const stored = {
+    firmId: 'firm-1',
+    draft: { images: { hero: [{ id: 'img_1', storageKey: 'firm/firm-1/public-site/hero/a.jpg', alt: '' }], institutional: [] } },
+    published: { images: { hero: [], institutional: [{ id: 'img_2', storageKey: 'firm/firm-1/public-site/institutional/b.jpg', alt: '' }] } },
+  };
+  mock.method(firmPublicSitesRepository, 'findByFirmId', async () => stored);
+  mock.method(contabilStorage, 'createSignedDownloadUrl', async (path) => {
+    signCalls += 1;
+    return `https://signed/${path}`;
+  });
+
+  const result = await firmPublicSiteService.getSite('firm-1', { imageMode: 'none' });
+
+  assert.equal(signCalls, 0);
+  assert.equal(result.draft.images.hero[0].url, undefined);
+  assert.equal(result.published.images.institutional[0].storageKey, 'firm/firm-1/public-site/institutional/b.jpg');
+});
+
 test('getSite: uma imagem cujo ficheiro já não existe no storage não rebenta a leitura — só essa fica com url null', async () => {
   resetMocks();
   const stored = {

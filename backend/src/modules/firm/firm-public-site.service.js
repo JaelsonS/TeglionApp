@@ -726,11 +726,17 @@ async function resolveConfigImages(config) {
       }),
     );
   const bySectionRaw = config.images?.bySection && typeof config.images.bySection === 'object' ? config.images.bySection : {};
+  const bySectionEntries = Object.entries(bySectionRaw);
+  const [hero, institutional, logoPreviews, ...sectionLists] = await Promise.all([
+    resolveList(config.images?.hero),
+    resolveList(config.images?.institutional),
+    resolveThemeLogoPreviewUrls(config.theme),
+    ...bySectionEntries.map(([, list]) => resolveList(list)),
+  ]);
   const bySection = {};
-  for (const [sectionKey, list] of Object.entries(bySectionRaw)) {
-    bySection[sectionKey] = await resolveList(list);
-  }
-  const logoPreviews = await resolveThemeLogoPreviewUrls(config.theme);
+  bySectionEntries.forEach(([sectionKey], i) => {
+    bySection[sectionKey] = sectionLists[i];
+  });
   return {
     ...config,
     theme: {
@@ -739,20 +745,34 @@ async function resolveConfigImages(config) {
       ...logoPreviews,
     },
     images: {
-      hero: await resolveList(config.images?.hero),
-      institutional: await resolveList(config.images?.institutional),
+      hero,
+      institutional,
       bySection,
     },
   };
 }
 
-async function getSite(firmId) {
+/**
+ * @param {string} firmId
+ * @param {{ imageMode?: 'both' | 'none' }} [options]
+ *   - `both` (default): assina URLs do draft e do published (editor).
+ *   - `none`: devolve o JSON cru — a página pública assina só o config que vai servir.
+ */
+async function getSite(firmId, options = {}) {
+  const imageMode = options.imageMode === 'none' ? 'none' : 'both';
   const existing = await firmPublicSitesRepository.findByFirmId(firmId);
   if (existing) {
+    if (imageMode === 'none') {
+      return { ...existing };
+    }
+    const [draft, published] = await Promise.all([
+      resolveConfigImages(existing.draft),
+      existing.published ? resolveConfigImages(existing.published) : Promise.resolve(null),
+    ]);
     return {
       ...existing,
-      draft: await resolveConfigImages(existing.draft),
-      published: existing.published ? await resolveConfigImages(existing.published) : null,
+      draft,
+      published,
     };
   }
   const firm = await firmsRepository.findFirmById(firmId);
