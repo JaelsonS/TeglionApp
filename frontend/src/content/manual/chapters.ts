@@ -85,26 +85,45 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     slug: 'gerir-clientes',
     number: 3,
     title: 'Gerir clientes',
-    subtitle: 'Carteira, hub e importação CSV',
+    subtitle: 'Carteira, hub, portal e importação CSV',
     audience: 'firm',
     status: 'available',
-    seoDescription: 'Como a Maya orienta a gestão de clientes no Teglion: hub, CSV e isolamento por gabinete.',
+    seoDescription: 'Como gerir a carteira no Teglion: lista, hub, convite ao portal e CSV.',
     blocks: [
       {
         type: 'maya',
-        text: 'Cada gabinete só vê os seus clientes. Eu nunca misturo dados entre firmas — o isolamento por gabinete é uma regra de ouro do Teglion.',
+        text: 'A carteira é o ponto de partida de quase tudo: documentos, avenças, portal e hub. Cada gabinete só vê os seus clientes — isso não é um detalhe, é a regra de ouro.',
       },
+      { type: 'h2', text: 'Lista de Clientes' },
       {
         type: 'p',
-        text: 'Na lista de Clientes cria, pesquisa e abre o hub de cada um: documentos, faturação, acessos oficiais e o que a equipa precisa no dia a dia.',
+        text: 'Em Clientes vê a carteira em cartões (no telemóvel) ou tabela (no computador). Use os chips Activos / Atenção / Sem portal e a pesquisa por nome ou NIF. Os KPIs no topo também filtram: toque em «sem portal» para ver quem ainda não tem acesso.',
       },
       {
-        type: 'ul',
+        type: 'ol',
         items: [
-          'Importe em CSV quando trouxer uma carteira grande (use o modelo oficial).',
-          'Não cole passwords de AT/SS no CSV sem necessidade — o cofre existe para credenciais sensíveis.',
-          'Convide o cliente ao portal só quando estiver pronto a entregar documentos.',
+          'Crie o cliente (Novo cliente) ou importe CSV com o modelo oficial.',
+          'Abra o hub — é a ficha completa da empresa.',
+          'Convide ao portal só quando quiser que o cliente envie documentos ou veja pedidos.',
+          'Use etiquetas se a equipa organizar a carteira por tipo de trabalho.',
         ],
+      },
+      { type: 'h2', text: 'Hub do cliente' },
+      {
+        type: 'p',
+        text: 'No hub encontra resumo, perfil, faturação (avenças), acessos oficiais (cofre), documentos, tarefas e mensagens. Mude de secção pelos separadores — o endereço fica com ?section= para poder partilhar o link interno.',
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        title: 'Convite em lote',
+        text: 'Na lista, seleccione vários clientes e use «Gerar e enviar convite». No telemóvel a selecção também funciona nos cartões.',
+      },
+      {
+        type: 'callout',
+        variant: 'security',
+        title: 'CSV e passwords',
+        text: 'Não cole passwords de AT/SS no CSV. Credenciais oficiais vão para o cofre, com controlo de quem pode ver.',
       },
       { type: 'appLink', label: 'Abrir Clientes', href: '/app/firm/clients' },
     ],
@@ -120,11 +139,30 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     blocks: [
       {
         type: 'maya',
-        text: 'Documentos são o coração do gabinete digital. Eu ajudo a pedir, receber e validar — sem viver de PDFs no WhatsApp.',
+        text: 'Documentos são o coração do gabinete digital. O objectivo é simples: pedir com rasto, receber no sítio certo, e deixar de viver de PDFs no WhatsApp.',
       },
+      { type: 'h2', text: 'Três secções no gabinete' },
+      {
+        type: 'ul',
+        items: [
+          'Pedidos — cria um pedido formal para um cliente da carteira; ele vê no portal.',
+          'Ficheiros — o que já chegou, por cliente e período.',
+          'Histórico — o rasto do que foi pedido e entregue ao longo do tempo.',
+        ],
+      },
+      { type: 'h2', text: 'Do lado do cliente' },
       {
         type: 'p',
-        text: 'Do lado do gabinete: pedidos formais, ficheiros e histórico. Do lado do cliente: o portal mostra o que falta e permite enviar com sessão autenticada.',
+        text: 'No portal, o cliente autentica-se, vê o que falta e envia o ficheiro. Isso é diferente de Mensagens (conversa) e diferente dos formulários da página pública (leads).',
+      },
+      {
+        type: 'ol',
+        items: [
+          'Convide o cliente ao portal (lista de Clientes ou hub).',
+          'Crie o pedido em Documentos → Pedidos.',
+          'Espere a entrega em Ficheiros.',
+          'Use Histórico se precisar de conferir o passado.',
+        ],
       },
       {
         type: 'callout',
@@ -191,21 +229,43 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
   {
     slug: 'tarefas',
     number: 7,
-    title: 'Tarefas',
-    subtitle: 'Gestor de operações do gabinete',
+    title: 'Tarefas e operações',
+    subtitle: 'Obrigações dos clientes vs trabalho interno',
     audience: 'firm',
     status: 'available',
-    seoDescription: 'Gestor de tarefas e operações no Teglion.',
+    seoDescription: 'Como usar Tarefas, Obrigações e o Calendário fiscal no Teglion sem misturar conceitos.',
     blocks: [
       {
         type: 'maya',
-        text: 'As tarefas organizam o trabalho da equipa: o que está em curso, o que está atrasado e o que depende do cliente.',
+        text: 'No Gestor de Operações há três ideias que a equipa mistura com frequência — e eu quero que fiquem claras de uma vez.',
       },
       {
-        type: 'p',
-        text: 'Use filtros com parcimónia — uma vista clara vale mais do que dez dashboards. Atribua responsáveis e feche o ciclo no mesmo sítio.',
+        type: 'ul',
+        items: [
+          'Obrigações dos clientes: prazos e entregas (IVA, IRS, SS…) ligados à carteira.',
+          'Tarefas: trabalho interno da equipa (pedir um documento, rever um processo, follow-up).',
+          'Calendário fiscal: prazos nacionais de referência — alimenta o contexto, não substitui a AT.',
+        ],
+      },
+      { type: 'h2', text: 'Fluxo do dia' },
+      {
+        type: 'ol',
+        items: [
+          'Comece pelo Resumo ou Obrigações — o que está em atraso na carteira.',
+          'Crie tarefas internas só para o que a equipa tem de fazer (não para inventar obrigações fiscais).',
+          'Associe cliente e responsável quando já souber.',
+          'Feche a tarefa no mesmo sítio; não deixe «fantasmas» no quadro.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        title: 'Agendamentos é outra coisa',
+        text: 'Reuniões com clientes ficam em Agendamentos. Tarefas → Calendário é operação interna. Calendário fiscal são prazos AT. Três calendários, três propósitos.',
       },
       { type: 'appLink', label: 'Abrir Tarefas', href: '/app/firm/tasks' },
+      { type: 'appLink', label: 'Agendamentos', href: '/app/firm/agenda' },
+      { type: 'appLink', label: 'Calendário fiscal', href: '/app/firm/fiscal-calendar' },
     ],
   },
   {
@@ -311,30 +371,56 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     slug: 'assistente-maya',
     number: 13,
     title: 'Assistente (Maya)',
-    subtitle: 'O que eu faço — e o que não faço',
+    subtitle: 'Como me usar para aprender o Teglion de verdade',
     audience: 'both',
     status: 'available',
-    seoDescription: 'Limites da Maya no Teglion: guia do produto, sem inventar regras fiscais.',
+    seoDescription: 'Maya no Teglion: guia do produto por ecrã, limites honestos, sem inventar regras fiscais.',
     blocks: [
       {
         type: 'maya',
-        text: 'Eu sou a Maya: guio no produto, explico ecrãs e aponto o próximo passo. Não sou contabilista automática nem substituo a AT.',
+        text: 'Eu sou a Maya. O meu trabalho é ensinar o Teglion com calma: o que é este ecrã, qual o próximo passo, e o que não misturar. Não sou contabilista automática nem substituo a AT.',
       },
+      { type: 'h2', text: 'Como me abrir' },
       {
         type: 'ul',
         items: [
-          'No site público ajudo quem ainda não é cliente a perceber o Teglion e a começar o trial.',
-          'No gabinete explico módulos, MFA, portal e configuração.',
-          'No portal do cliente ajudo a encontrar documentos e pedidos.',
-          'A Maya Setup (IA opcional) só gera rascunhos de página/serviços com consentimento — nunca inventa declarações fiscais.',
+          'Botão Maya / «Perguntar à Maya» nos ecrãs do gabinete.',
+          'Bolha de ajuda flutuante (pode escondê-la nas preferências).',
+          'No site comercial e no portal do cliente também apareço — com temas diferentes.',
         ],
+      },
+      { type: 'h2', text: 'O que faço bem' },
+      {
+        type: 'ol',
+        items: [
+          'Reconheço a página onde está e explico o objectivo.',
+          'Mostro temas curtos («Aprenda neste ecrã») e um mapa completo se precisar.',
+          'Abro o link certo na app quando pedir.',
+          'Aviso limites: o que é interno vs oficial AT, o que é SaaS vs avença do cliente.',
+        ],
+      },
+      { type: 'h2', text: 'O que não faço' },
+      {
+        type: 'ul',
+        items: [
+          'Não leio documentos, mensagens nem dados da carteira na ajuda estática.',
+          'Não invento prazos fiscais nem «atalhos» à AT.',
+          'Não substituo uma pessoa: em Suporte há WhatsApp e contacto humano.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'info',
+        title: 'Configuração rápida',
+        text: 'Se for o responsável do gabinete, a configuração rápida pode gerar um rascunho de página/serviços com IA — só com consentimento. É rascunho para editar, não publicação automática.',
       },
       {
         type: 'callout',
         variant: 'security',
         title: 'Privacidade',
-        text: 'A Maya de ajuda estática não lê a sua carteira de clientes. Se usar funções de IA de setup, o conteúdo segue as regras de consentimento e isolamento do gabinete.',
+        text: 'A ajuda estática não vê a sua carteira. Funções de setup com IA seguem consentimento e isolamento por gabinete.',
       },
+      { type: 'appLink', label: 'Manual completo', href: '/manual' },
       { type: 'appLink', label: 'Falar com suporte humano', href: '/suporte' },
     ],
   },
@@ -393,15 +479,48 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
   {
     slug: 'definicoes-e-integracoes',
     number: 17,
-    title: 'Definições e integrações',
-    subtitle: 'Identidade, Google, Connect e página pública',
+    title: 'Definições, serviços e agenda',
+    subtitle: 'Identidade, página pública, Serviços e Agendamentos',
     audience: 'firm',
     status: 'available',
-    seoDescription: 'Definições do gabinete no Teglion: identidade, Google e Connect.',
+    seoDescription: 'Definições, Serviços e Agendamentos no Teglion — como configurar o gabinete de ponta a ponta.',
     blocks: [
       {
         type: 'maya',
-        text: 'Em Definições configura identidade, página pública, agenda, pagamentos online e a equipa. Ligue Google só se precisar — e desligue o que não usa.',
+        text: 'Há três sítios que o responsável configura uma vez e a equipa usa todos os dias: Definições (identidade e página), Serviços (o que oferece) e Agendamentos (quando atende).',
+      },
+      { type: 'h2', text: 'Definições do gabinete' },
+      {
+        type: 'p',
+        text: 'Em Definições trata identidade, página pública, equipa, segurança e integrações (Google, Stripe Connect). Ligue só o que usa — menos integrações = menos superfície de risco.',
+      },
+      { type: 'h2', text: 'Serviços (catálogo)' },
+      {
+        type: 'ol',
+        items: [
+          'Em Serviços → Catálogo crie ou active um modelo Teglion.',
+          'Edite preço, duração, texto e se exige marcação.',
+          'Publique na página pública quando estiver pronto.',
+          'Pedidos do site entram em Solicitações; pedidos da carteira na Central.',
+        ],
+      },
+      { type: 'h2', text: 'Agendamentos (marcações)' },
+      {
+        type: 'ol',
+        items: [
+          'Abra Agendamentos → Definições.',
+          'Defina o horário semanal (dias Abertos e intervalos).',
+          'Marque feriados nas excepções do mês.',
+          'Escolha duração do slot e horizonte (até quando se pode marcar).',
+          'Guarde a disponibilidade.',
+          'No serviço, active «Exige agendamento» e publique — senão o site não mostra horários.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        title: 'Teste como cliente',
+        text: 'Depois de gravar e publicar, abra a página pública do gabinete e tente marcar um horário. Se falhar, volte a estes três passos: horário gravado, serviço com marcação, página publicada.',
       },
       {
         type: 'callout',
@@ -410,6 +529,8 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
         text: 'OAuth e Connect pedem confirmação consciente. Não autorize apps de terceiros fora dos fluxos oficiais do Teglion.',
       },
       { type: 'appLink', label: 'Abrir Definições', href: '/app/firm/settings' },
+      { type: 'appLink', label: 'Serviços', href: '/app/firm/services' },
+      { type: 'appLink', label: 'Agendamentos', href: '/app/firm/agenda' },
     ],
   },
   {
@@ -439,6 +560,16 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
       {
         type: 'p',
         text: 'Não. A leitura de SAF-T extrai totais e cabeçalho para o gabinete. Sem envio automático.',
+      },
+      { type: 'h2', text: 'Porque o site não mostra horários para marcar?' },
+      {
+        type: 'p',
+        text: 'Faltam um ou mais destes: (1) horário gravado em Agendamentos → Definições; (2) serviço com «Exige agendamento» publicado; (3) página pública publicada. Teste sempre como se fosse o cliente.',
+      },
+      { type: 'h2', text: 'Qual a diferença entre Solicitações e Central de Serviços?' },
+      {
+        type: 'p',
+        text: 'Solicitações = pedidos da página pública (leads). Central = pedidos de clientes já na carteira da app. São pipelines diferentes de propósito.',
       },
       { type: 'h2', text: 'Como falo com uma pessoa?' },
       {
