@@ -8,10 +8,10 @@ const PILLARS = [
   {
     id: 'gabinete',
     title: 'Painel do gabinete',
-    body: 'Carteira, documentos, prazos, IRS, serviços e pagamentos — a operação diária num só sítio.',
+    body: 'Clientes, documentos, prazos, IRS, serviços e pagamentos — a operação diária num só sítio.',
     icon: Building2,
-    src: LANDING_SCREENS.empresas,
-    alt: 'Lista de clientes no Teglion',
+    src: LANDING_SCREENS.dashboard,
+    alt: 'Painel operacional do Teglion',
   },
   {
     id: 'portal',
@@ -26,8 +26,8 @@ const PILLARS = [
     title: 'Página pública',
     body: 'Site do gabinete com a sua marca: catálogo, marcações e captação — ligado à mesma carteira.',
     icon: Globe2,
-    src: LANDING_SCREENS.documentosFicheiros,
-    alt: 'Documentos e ficheiros no Teglion',
+    src: LANDING_SCREENS.empresas,
+    alt: 'Carteira de clientes no Teglion',
   },
 ] as const
 
@@ -42,33 +42,36 @@ const HIGHLIGHTS = [
 
 export function LandingProof() {
   return (
-    <section id="produto" className="landing-section scroll-mt-24 -mt-6 sm:-mt-10">
+    <section id="produto" className="landing-section scroll-mt-24 -mt-4 sm:-mt-8">
       <div className="landing-container">
         <FadeInView className="mx-auto max-w-2xl text-center">
           <p className="landing-kicker">O produto</p>
-          <h2 className="mt-3 text-[1.85rem] leading-tight sm:text-4xl md:text-[2.5rem]">
+          <h2 className="mt-3 text-[1.75rem] leading-tight tracking-tight sm:text-4xl">
             Três espaços. Um sistema.
           </h2>
           <p className="mt-4 text-[15px] leading-relaxed text-[var(--landing-muted)] sm:text-base">
-            O Teglion vende operação completa para gabinetes em Portugal — não mais uma ferramenta
-            por canal.
+            Operação completa para o gabinete — sem uma ferramenta por canal.
           </p>
         </FadeInView>
 
-        <FadeInStagger className="mt-12 grid gap-10 lg:mt-16 lg:grid-cols-3 lg:gap-8">
+        <FadeInStagger className="mt-12 grid gap-8 lg:mt-14 lg:grid-cols-3 lg:gap-6">
           {PILLARS.map((p) => {
             const Icon = p.icon
             return (
               <FadeInStaggerItem key={p.id}>
-                <article className="landing-proof-pillar">
-                  <LandingScreenshot src={p.src} alt={p.alt} />
-                  <div className="flex items-start gap-3 px-1">
-                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--landing-navy)]/8 text-[var(--landing-navy)]">
+                <article className="landing-card flex h-full flex-col overflow-hidden p-0">
+                  <LandingScreenshot
+                    src={p.src}
+                    alt={p.alt}
+                    className="rounded-none border-0 shadow-none"
+                  />
+                  <div className="flex flex-1 items-start gap-3 p-4 sm:p-5">
+                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--landing-navy)]/8 text-[var(--landing-navy)]">
                       <Icon className="h-4 w-4" aria-hidden />
                     </span>
                     <div className="min-w-0">
-                      <h3>{p.title}</h3>
-                      <p className="mt-1.5 text-[14px] leading-relaxed text-[var(--landing-muted)] sm:text-[15px]">
+                      <h3 className="text-base font-bold tracking-tight sm:text-lg">{p.title}</h3>
+                      <p className="mt-1.5 text-[14px] leading-relaxed text-[var(--landing-muted)]">
                         {p.body}
                       </p>
                     </div>
@@ -79,11 +82,11 @@ export function LandingProof() {
           })}
         </FadeInStagger>
 
-        <FadeInView className="mx-auto mt-14 max-w-3xl sm:mt-16">
+        <FadeInView className="mx-auto mt-12 max-w-3xl sm:mt-14">
           <p className="text-center text-sm font-semibold text-[var(--landing-navy)]">
             Incluído no mesmo plano
           </p>
-          <ul className="mt-5 grid gap-2.5 sm:grid-cols-2">
+          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
             {HIGHLIGHTS.map((item) => (
               <li
                 key={item}
