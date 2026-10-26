@@ -19,6 +19,9 @@ const FirmLoginPage = lazy(() => import('@/features/auth/firm/FirmLoginPage').th
 const FirmMfaChallengePage = lazy(() =>
   import('@/features/auth/firm/FirmMfaChallengePage').then((m) => ({ default: m.FirmMfaChallengePage })),
 )
+const PlatformOpsLoginPage = lazy(() =>
+  import('@/features/auth/ops/PlatformOpsLoginPage').then((m) => ({ default: m.PlatformOpsLoginPage })),
+)
 const ClientLoginPage = lazy(() => import('@/features/auth/client/ClientLoginPage').then((m) => ({ default: m.ClientLoginPage })))
 const FirmRegisterPage = lazy(() =>
   import('@/features/auth/firm/FirmRegisterPage').then((m) => ({ default: m.FirmRegisterPage })),
@@ -255,6 +258,8 @@ export function ContabilAppRouter() {
         <Route path="/auth" element={<AuthProfileChoicePage />} />
         <Route path="/auth/firm/login" element={<FirmLoginPage />} />
         <Route path="/auth/firm/mfa" element={<FirmMfaChallengePage />} />
+        <Route path="/auth/ops/login" element={<PlatformOpsLoginPage />} />
+        <Route path="/auth/ops/mfa" element={<FirmMfaChallengePage />} />
         <Route path="/auth/firm/register" element={<FirmRegisterPage />} />
         <Route path="/auth/firm/register/google" element={<FirmRegisterGooglePage />} />
         <Route path="/auth/firm/convite/:token" element={<FirmInviteRegisterPage />} />

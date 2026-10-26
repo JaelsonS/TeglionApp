@@ -12,6 +12,7 @@ import { authApi } from '@/infrastructure/authApi'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { useApiToast } from '@/shared/hooks/useApiToast'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { authFirmLoginUrl, authOpsLoginUrl } from '@/shared/constants/authPaths'
 import {
   clearMfaChallengeToken,
   getMfaChallengeToken,
@@ -69,6 +70,11 @@ export function FirmMfaChallengePage() {
 
   const reason = params.get('reason') === 'enroll' ? 'enroll' : 'challenge'
   const fromRegistration = params.get('flow') === 'register'
+  const isOpsAudience =
+    location.pathname.startsWith('/auth/ops') || params.get('audience') === 'ops'
+  const loginBackUrl = isOpsAudience ? authOpsLoginUrl() : authFirmLoginUrl()
+  const afterAuthHome = (platformOps?: boolean) =>
+    isOpsAudience || platformOps ? '/app/ops' : '/app'
   const [step, setStep] = useState<Step>(reason === 'enroll' ? 'enroll-qr' : 'challenge')
   const [ownerEnrollment, setOwnerEnrollment] = useState(reason === 'enroll')
   const [code, setCode] = useState('')
@@ -170,7 +176,12 @@ export function FirmMfaChallengePage() {
       if (!setSession(res.user)) throw new Error('Sessão inválida após autenticação.')
       toast.success('Identidade confirmada.')
       void prefetchAuthCsrf()
-      navigate(res.user?.platformOps ? '/app/ops' : '/app', { replace: true })
+      if (isOpsAudience && !res.user?.platformOps) {
+        toast.error('Esta conta não tem acesso ao Control Center.')
+        navigate(authOpsLoginUrl(), { replace: true })
+        return
+      }
+      navigate(afterAuthHome(Boolean(res.user?.platformOps)), { replace: true })
     } catch (err) {
       const message = mfaUserFacingError(err)
       setFieldError(message)
@@ -435,7 +446,7 @@ export function FirmMfaChallengePage() {
               onClick={() => {
                 void prefetchAuthCsrf()
                 // user já está em sessão após enroll — preferir Control Center se for ops.
-                navigate(user?.platformOps ? '/app/ops' : '/app', { replace: true })
+                navigate(afterAuthHome(Boolean(user?.platformOps)), { replace: true })
               }}
             >
               Concluir
@@ -445,7 +456,7 @@ export function FirmMfaChallengePage() {
 
         {step !== 'recovery' ? (
           <p className="mt-6 text-center text-sm text-slate-500">
-            <Link to="/auth/firm/login" className="underline underline-offset-2">
+            <Link to={loginBackUrl} className="underline underline-offset-2">
               Voltar ao login
             </Link>
           </p>

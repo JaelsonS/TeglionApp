@@ -17,25 +17,31 @@ Painel interno onde o operador AfDigital (blue + red team):
 
 1. **Gate de ambiente:** `PLATFORM_OPS_ENABLED=true` (só com literal `true`).
 2. **Allowlist de um único email:** `PLATFORM_OPS_EMAIL_ALLOWLIST` (exactamente 1). 0 ou >1 → 503.
-3. **Sessão existente:** cookie HttpOnly da app firm (sem Bearer em prod).
+3. **Sessão existente:** cookie HttpOnly da app firm (sem Bearer em prod). A conta ops é um `firm_user` anfitrião **só para auth** — não é um gabinete comercial.
 4. **MFA TOTP obrigatória** na conta do operador:
    - após criar/definir a password → `MFA_ENROLLMENT_REQUIRED` no próximo login;
    - com MFA activo → `MFA_CHALLENGE_REQUIRED` em **cada** login;
    - não pode desactivar MFA enquanto o email estiver na allowlist.
-5. **Clientes do portal** nunca acedem.
-6. **Todas as leituras/ações** do Center geram `audit_logs` com `firm_id` null e `actor_role=PLATFORM_OPS`.
-7. **Sem** service role no browser; **sem** SIEM pago nesta fase (Sentry + Postgres).
-8. Bloqueio de IP global: só quando existir middleware na edge/Render — não basta tabela órfã.
+5. **Isolamento de UI:** contas `platformOps` aterraram em `/app/ops` e **não** usam `/app/firm/*` (excepto Definições/MFA).
+6. **Clientes do portal** nunca acedem.
+7. **Todas as leituras/ações** do Center geram `audit_logs` com `firm_id` null e `actor_role=PLATFORM_OPS`.
+8. **Sem** service role no browser; **sem** SIEM pago nesta fase (Sentry + Postgres).
+9. Bloqueio de IP global: só quando existir middleware na edge/Render — não basta tabela órfã.
 
 ## Rotas
 
 | UI | API |
 |----|-----|
+| `/auth/ops/login` | login firm (mesmo endpoint) + UI dedicada Control Center |
+| `/auth/ops/mfa` | desafio / enrollment MFA do operador |
 | `/app/ops` | `GET /api/platform-ops/me` |
-| `/app/ops/overview` | `GET /api/platform-ops/overview` |
+| `/app/ops` (overview) | `GET /api/platform-ops/overview` |
 | `/app/ops/firms` | `GET /api/platform-ops/firms` |
 | `/app/ops/audit` | `GET /api/platform-ops/audit-logs` |
 | `/app/ops/logins` | `GET /api/platform-ops/login-attempts` |
+
+**Entrada:** `/app/ops` sem sessão → `/auth/ops/login` (não o login comercial dos gabinetes).  
+Stack de segurança: HTTPS + cookie HttpOnly + Turnstile + MFA TOTP + allowlist de 1 email (sem segundo stack de auth).
 
 ## Ondas
 
@@ -56,11 +62,11 @@ PLATFORM_OPS_EMAIL_ALLOWLIST=afdigitalweb.st@gmail.com
 
 Operador (primeiro acesso):
 
-1. Conta firm com esse email (já existente ou convite).
-2. Definir password («Esqueci a password» / reset se ainda não tiver).
-3. Login → ecrã de enrollment MFA (obrigatório).
-4. Logins seguintes → desafio MFA (TOTP) sempre.
-5. Abrir `/app/ops`.
+1. Conta firm anfitriã com esse email (já existente).
+2. Definir password (se ainda não tiver).
+3. Abrir https://staging.teglion.com/auth/ops/login
+4. Enrollment MFA (obrigatório) em `/auth/ops/mfa`.
+5. Logins seguintes → desafio MFA (TOTP) sempre → `/app/ops`.
 
 ## Fora de âmbito (onda 0)
 

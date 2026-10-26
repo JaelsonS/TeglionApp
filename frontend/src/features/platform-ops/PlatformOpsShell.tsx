@@ -1,7 +1,8 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { Activity, Building2, KeyRound, LayoutDashboard, Shield } from 'lucide-react'
+import { Activity, Building2, KeyRound, LayoutDashboard, LogOut, Shield } from 'lucide-react'
 
 import { cn } from '@/shared/lib/utils'
+import { useAuth } from '@/shared/hooks/useAuth'
 
 const NAV = [
   { to: '/app/ops', end: true, label: 'Overview', icon: LayoutDashboard },
@@ -11,6 +12,8 @@ const NAV = [
 ] as const
 
 export function PlatformOpsShell() {
+  const { logout } = useAuth()
+
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
       <header className="border-b border-border/70 bg-card/80">
@@ -22,26 +25,38 @@ export function PlatformOpsShell() {
               <p className="text-xs text-muted-foreground">AfDigital · operações internas</p>
             </div>
           </div>
-          <nav className="flex flex-wrap gap-1" aria-label="Control Center">
-            {NAV.map(({ to, end, label, icon: Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                className={({ isActive }: { isActive: boolean }) =>
-                  cn(
-                    'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition',
-                    isActive
-                      ? 'bg-brand text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                  )
-                }
-              >
-                <Icon className="h-3.5 w-3.5" aria-hidden />
-                {label}
-              </NavLink>
-            ))}
-          </nav>
+          <div className="flex flex-wrap items-center gap-2">
+            <nav className="flex flex-wrap gap-1" aria-label="Control Center">
+              {NAV.map(({ to, end, label, icon: Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={end}
+                  className={({ isActive }: { isActive: boolean }) =>
+                    cn(
+                      'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition',
+                      isActive
+                        ? 'bg-brand text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                    )
+                  }
+                >
+                  <Icon className="h-3.5 w-3.5" aria-hidden />
+                  {label}
+                </NavLink>
+              ))}
+            </nav>
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              onClick={() => {
+                void logout()
+              }}
+            >
+              <LogOut className="h-3.5 w-3.5" aria-hidden />
+              Sair
+            </button>
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-4 py-6">
