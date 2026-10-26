@@ -41,11 +41,8 @@ export function PlatformOpsOverviewPage() {
           <Link to="/app/firm/settings" className="text-brand underline-offset-2 hover:underline">
             Abrir Definições / MFA
           </Link>
-          <Link to="/auth/firm/login" className="text-brand underline-offset-2 hover:underline">
-            Trocar de conta
-          </Link>
-          <Link to="/app/firm" className="text-brand underline-offset-2 hover:underline">
-            Voltar ao gabinete
+          <Link to="/auth/ops/login" className="text-brand underline-offset-2 hover:underline">
+            Login Control Center
           </Link>
         </div>
       </div>

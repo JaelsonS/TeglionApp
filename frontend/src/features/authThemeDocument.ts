@@ -2,6 +2,8 @@ export const AUTH_THEME_PATH_PREFIXES = [
   '/auth/firm/login',
   '/auth/firm/register',
   '/auth/firm/register/google',
+  '/auth/ops/login',
+  '/auth/ops/mfa',
   '/auth/client/login',
   '/auth/client/register',
   '/login-firm',

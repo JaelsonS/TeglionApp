@@ -105,6 +105,7 @@ function partialMfaUser(row) {
     firmRole: row.role,
     firmId: row.firm_id,
     mfaEnabled: row.mfa_enabled === true,
+    platformOps: isPlatformOpsAllowlistedEmail(row.email),
   };
 }
 

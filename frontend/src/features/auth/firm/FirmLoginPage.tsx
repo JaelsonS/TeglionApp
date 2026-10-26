@@ -15,7 +15,7 @@ import { OfficeScreensCarousel } from '@/shared/components/auth/OfficeScreensCar
 import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
 import { AuthAgencyIdentity } from '@/shared/components/auth/AuthAgencyIdentity'
 import { contabilPt as t } from '@/shared/i18n/contabilPt'
-import { authFirmRegisterUrl, authProfileChoiceUrl } from '@/shared/constants/authPaths'
+import { authFirmRegisterUrl, authOpsMfaUrl, authProfileChoiceUrl } from '@/shared/constants/authPaths'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { clearMfaChallengeToken } from '@/shared/security/mfaChallengeStore'
 import { useApiToast } from '@/shared/hooks/useApiToast'
@@ -104,24 +104,30 @@ export function FirmLoginPage() {
         const res = await loginFirm(payload)
         if (res.status === 'MFA_CHALLENGE_REQUIRED') {
           clearClientCsrfCache()
-          navigate('/auth/firm/mfa?reason=challenge', {
-            replace: true,
-            state: {
-              mfaChallengeToken: res.mfa?.challengeToken ?? null,
-              mfaExpiresAt: res.mfa?.expiresAt ?? null,
+          navigate(
+            res.user?.platformOps ? authOpsMfaUrl('challenge') : '/auth/firm/mfa?reason=challenge',
+            {
+              replace: true,
+              state: {
+                mfaChallengeToken: res.mfa?.challengeToken ?? null,
+                mfaExpiresAt: res.mfa?.expiresAt ?? null,
+              },
             },
-          })
+          )
           return
         }
         if (res.status === 'MFA_ENROLLMENT_REQUIRED') {
           clearClientCsrfCache()
-          navigate('/auth/firm/mfa?reason=enroll', {
-            replace: true,
-            state: {
-              mfaChallengeToken: res.mfa?.challengeToken ?? null,
-              mfaExpiresAt: res.mfa?.expiresAt ?? null,
+          navigate(
+            res.user?.platformOps ? authOpsMfaUrl('enroll') : '/auth/firm/mfa?reason=enroll',
+            {
+              replace: true,
+              state: {
+                mfaChallengeToken: res.mfa?.challengeToken ?? null,
+                mfaExpiresAt: res.mfa?.expiresAt ?? null,
+              },
             },
-          })
+          )
           return
         }
         if (res.firmAccess?.hasAccess === false && res.firmAccess.reason === 'TRIAL_EXPIRED') {
