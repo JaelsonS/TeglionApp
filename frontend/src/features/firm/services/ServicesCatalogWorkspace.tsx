@@ -37,6 +37,7 @@ import { toast } from 'sonner'
 import { ServiceFullEditorSheet } from '@/features/firm/services/ServiceFullEditorSheet'
 import { ServiceGroupsManager } from '@/features/firm/services/ServiceGroupsManager'
 import { getServicePublishPresentation } from '@/features/firm/services/servicePublishState'
+import { isIrsService as isIrsEntry } from '@/features/firm/services/servicesFormat'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { EmptyState } from '@/shared/design-system'
@@ -51,12 +52,6 @@ type FilterMode = 'all' | 'active' | 'inactive'
 
 function formatEur(cents: number) {
   return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format((cents || 0) / 100)
-}
-
-function isIrsEntry(s: { name: string; catalogKey?: string | null; category?: string }) {
-  if (s.category === 'IRS') return true
-  const blob = `${s.name} ${s.catalogKey || ''}`
-  return /\birs\b/i.test(blob) || /e-?fatura/i.test(blob) || /^irs-/.test(s.catalogKey || '')
 }
 
 function optionIdsOf(s: AccountingService): string[] {
@@ -468,14 +463,14 @@ export function ServicesCatalogWorkspace({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex w-full min-w-0 flex-col gap-4">
       {description ? (
         <p className="text-sm text-muted-foreground">{description}</p>
       ) : null}
 
       <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
-        <section className="flex flex-col rounded-xl border border-border/60 bg-card shadow-sm">
-          <div className="shrink-0 space-y-2.5 border-b border-border/50 bg-gradient-to-r from-brand/[0.05] via-card to-card px-4 py-3">
+        <section className="cb-services-panel flex flex-col">
+          <div className="cb-services-panel-hd shrink-0 space-y-2.5 px-4 py-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="text-sm font-semibold">{title}</h3>
               <div className="flex items-center gap-1.5">
@@ -591,7 +586,7 @@ export function ServicesCatalogWorkspace({
           </div>
         </section>
 
-        <section className="flex flex-col rounded-xl border border-border/60 bg-card shadow-sm lg:sticky lg:top-0 lg:max-h-[calc(100dvh-11rem)] lg:self-start">
+        <section className="cb-services-panel flex flex-col">
           <div className="shrink-0 space-y-2.5 border-b border-border/50 bg-gradient-to-r from-sky-500/[0.06] via-card to-card px-4 py-3">
             <div>
               <h3 className="text-sm font-semibold">Modelos Teglion</h3>
