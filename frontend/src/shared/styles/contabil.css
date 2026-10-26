@@ -6048,57 +6048,149 @@
     @apply border-0 bg-transparent p-0 shadow-none;
   }
 
-  /* Plano / billing — mesma largura útil que o resto do escritório */
-  .cb-billing-layout-page {
-    @apply w-full min-w-0 max-w-full;
+  /* Plano Teglion — page-scroll */
+  .cb-billing-page-root,
+  .cb-billing-layout-page,
+  .cb-billing-layout-panel {
+    @apply flex w-full min-w-0 flex-col;
+    flex: none;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .cb-firm-workspace-page.cb-billing-layout-page > .cb-billing-layout-panel {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
   }
 
   .cb-billing-page {
-    @apply space-y-6 pb-10;
+    @apply mx-auto w-full max-w-5xl space-y-6 px-4 pb-12 pt-4 sm:px-5;
   }
 
-  .cb-billing-disambiguation {
-    @apply rounded-2xl border border-brand/15 bg-brand/[0.03] px-4 py-3 text-sm;
+  .cb-billing-kpi-strip {
+    @apply grid grid-cols-2 gap-1.5 sm:grid-cols-4;
   }
 
-  .cb-billing-disambiguation-title {
-    @apply font-semibold text-foreground;
+  .cb-billing-kpi {
+    @apply flex items-center gap-2.5 rounded-xl border border-border/70 bg-card px-3 py-2.5 shadow-sm;
   }
 
-  .cb-billing-disambiguation-list {
-    @apply mt-2 list-disc space-y-1.5 pl-5 text-muted-foreground;
+  .cb-billing-kpi-icon {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground;
   }
 
-  .cb-billing-disambiguation-list strong {
-    @apply font-medium text-foreground;
+  .cb-billing-kpi--brand .cb-billing-kpi-icon {
+    @apply bg-brand/10 text-brand;
   }
 
-  .cb-billing-page-hd {
-    @apply border-b border-border/60 pb-4;
+  .cb-billing-kpi--emerald .cb-billing-kpi-icon {
+    @apply bg-emerald-100 text-emerald-800;
   }
 
-  .cb-billing-page-title {
-    @apply font-display text-xl font-bold tracking-tight sm:text-2xl;
+  .cb-billing-kpi--amber .cb-billing-kpi-icon {
+    @apply bg-amber-100 text-amber-900;
   }
 
-  .cb-billing-page-sub {
-    @apply mt-1 text-sm text-muted-foreground;
+  .cb-billing-kpi--rose .cb-billing-kpi-icon {
+    @apply bg-rose-100 text-rose-800;
   }
 
-  .cb-billing-status-grid {
-    @apply mb-6 grid gap-3 sm:grid-cols-3;
+  .cb-billing-kpi--muted .cb-billing-kpi-icon {
+    @apply bg-slate-100 text-slate-700;
+  }
+
+  .cb-billing-kpi--emerald {
+    @apply border-emerald-200/70 bg-emerald-50/30;
+  }
+
+  .cb-billing-kpi--rose {
+    @apply border-rose-200/80 bg-rose-50/40;
+  }
+
+  .cb-billing-kpi-value {
+    @apply truncate text-sm font-bold tracking-tight text-foreground sm:text-base;
+  }
+
+  .cb-billing-kpi-label {
+    @apply text-xs text-muted-foreground;
   }
 
   .cb-billing-hero {
-    @apply mb-6 flex items-start gap-3 rounded-2xl border px-4 py-4 text-sm;
+    @apply flex flex-col gap-3 rounded-2xl border px-4 py-3.5 sm:flex-row sm:items-center;
+  }
+
+  .cb-billing-hero-icon {
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/60;
+  }
+
+  .cb-billing-hero-title {
+    @apply text-sm font-semibold;
+  }
+
+  .cb-billing-hero-detail {
+    @apply mt-0.5 text-sm leading-snug opacity-90;
   }
 
   .cb-billing-hero--ok {
-    @apply border-emerald-200 bg-emerald-50 text-emerald-950;
+    @apply border-emerald-200/80 bg-gradient-to-br from-emerald-50 to-card text-emerald-950;
+  }
+
+  .cb-billing-hero--amber {
+    @apply border-amber-200/80 bg-gradient-to-br from-amber-50 to-card text-amber-950;
   }
 
   .cb-billing-hero--warn {
-    @apply border-amber-200 bg-amber-50 text-amber-950;
+    @apply border-rose-200/80 bg-gradient-to-br from-rose-50 to-card text-rose-950;
+  }
+
+  .cb-billing-hero--muted {
+    @apply border-border/60 bg-muted/20 text-foreground;
+  }
+
+  .cb-billing-flows {
+    @apply space-y-2;
+  }
+
+  .cb-billing-flows-title {
+    @apply text-xs font-semibold uppercase tracking-wide text-muted-foreground;
+  }
+
+  .cb-billing-flows-grid {
+    @apply m-0 grid list-none gap-2 p-0 sm:grid-cols-3;
+  }
+
+  .cb-billing-flow-card {
+    @apply flex w-full items-center gap-2.5 rounded-xl border border-border/60 bg-card px-3 py-2.5 text-left text-sm shadow-sm transition;
+    @apply hover:border-brand/35 hover:bg-brand/[0.03];
+  }
+
+  .cb-billing-flow-card--current {
+    @apply border-brand/35 bg-brand/[0.04] ring-1 ring-brand/10;
+  }
+
+  .cb-billing-flow-label {
+    @apply block font-medium text-foreground;
+  }
+
+  .cb-billing-flow-desc {
+    @apply mt-0.5 block text-xs leading-snug text-muted-foreground;
+  }
+
+  .cb-billing-section-lead {
+    @apply space-y-0.5;
+  }
+
+  .cb-billing-section-lead-title {
+    @apply text-xs font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-billing-section-lead-detail {
+    @apply text-sm text-muted-foreground;
   }
 
   .cb-billing-cards {
@@ -6106,19 +6198,23 @@
   }
 
   .cb-billing-card {
-    @apply flex flex-col space-y-3 rounded-2xl border border-border/70 bg-card p-5 shadow-sm;
+    @apply relative flex flex-col space-y-3 rounded-2xl border border-border/70 bg-card p-5 shadow-sm;
+  }
+
+  .cb-billing-card--current {
+    @apply border-border/80 bg-muted/15;
   }
 
   .cb-billing-card-featured {
-    @apply border-brand/40 ring-2 ring-brand/15;
+    @apply border-brand/40 bg-gradient-to-b from-brand/[0.04] to-card ring-2 ring-brand/15;
   }
 
   .cb-billing-card-badge {
-    @apply mb-1 inline-flex w-fit rounded-full bg-brand/10 px-2.5 py-0.5 text-[11px] font-semibold text-brand;
+    @apply inline-flex w-fit rounded-md bg-brand/10 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-brand;
   }
 
   .cb-billing-card-using {
-    @apply mb-1 inline-flex w-fit rounded-full bg-muted px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground;
+    @apply inline-flex w-fit rounded-md bg-muted px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground;
   }
 
   .cb-billing-card-features {
@@ -6138,27 +6234,88 @@
   }
 
   .cb-billing-card-price {
-    @apply text-3xl font-semibold text-foreground;
+    @apply text-3xl font-semibold tracking-tight text-foreground;
   }
 
   .cb-billing-card-period {
     @apply text-base font-medium text-muted-foreground;
   }
 
-  .cb-billing-card-vat {
-    @apply text-xs text-muted-foreground;
-  }
-
   .cb-billing-card-desc {
     @apply text-sm text-muted-foreground;
   }
 
-  .cb-billing-features {
-    @apply list-inside list-disc space-y-1 text-sm text-muted-foreground;
+  .cb-billing-card-cta {
+    @apply pt-1;
+  }
+
+  .cb-billing-manage {
+    @apply flex flex-col gap-3 rounded-2xl border border-border/60 bg-muted/20 px-4 py-4 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .cb-billing-manage-title {
+    @apply text-sm font-semibold text-foreground;
+  }
+
+  .cb-billing-manage-detail {
+    @apply mt-0.5 text-sm text-muted-foreground;
+  }
+
+  .cb-billing-vat {
+    @apply text-xs text-muted-foreground;
+  }
+
+  .cb-billing-vat-hint {
+    @apply text-[0.7rem] text-muted-foreground/80;
+  }
+
+  .cb-billing-config-warn {
+    @apply text-sm text-muted-foreground;
+  }
+
+  .cb-billing-faq {
+    @apply space-y-3 rounded-2xl border border-border/55 bg-card p-4 shadow-sm sm:p-5;
+  }
+
+  .cb-billing-faq-title {
+    @apply text-sm font-semibold text-foreground;
+  }
+
+  .cb-billing-faq-list {
+    @apply m-0 grid list-none gap-3 p-0 sm:grid-cols-2;
+  }
+
+  .cb-billing-faq-item {
+    @apply rounded-xl border border-border/50 bg-muted/15 px-3.5 py-3;
+  }
+
+  .cb-billing-faq-q {
+    @apply text-sm font-medium text-foreground;
+  }
+
+  .cb-billing-faq-a {
+    @apply mt-1 text-xs leading-relaxed text-muted-foreground;
   }
 
   .cb-billing-notice {
     @apply rounded-xl border border-dashed border-border bg-muted/30 p-5 text-sm text-muted-foreground;
+  }
+
+  /* Legacy aliases (disambiguation antiga) */
+  .cb-billing-disambiguation {
+    @apply rounded-2xl border border-brand/15 bg-brand/[0.03] px-4 py-3 text-sm;
+  }
+
+  .cb-billing-disambiguation-title {
+    @apply font-semibold text-foreground;
+  }
+
+  .cb-billing-disambiguation-list {
+    @apply mt-2 list-disc space-y-1.5 pl-5 text-muted-foreground;
+  }
+
+  .cb-billing-disambiguation-list strong {
+    @apply font-medium text-foreground;
   }
 
   /* Alertas + Notícias — split lista/detalhe profissional */
