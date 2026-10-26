@@ -42,7 +42,9 @@ async function requirePlatformOps(req, res, next) {
     if (!userId) {
       throw new AppError('Não autenticado', 401, { code: 'UNAUTHORIZED' });
     }
-    if (role === 'CLIENT' || req.user?.clientId) {
+    // Só bloquear papel CLIENT. NÃO usar req.user.clientId — readActorClientId
+    // fazia fallback para actor.id e marcava firm users como "clientes".
+    if (role === 'CLIENT') {
       throw new AppError('Acesso negado', 403, { code: 'PLATFORM_OPS_FORBIDDEN' });
     }
 

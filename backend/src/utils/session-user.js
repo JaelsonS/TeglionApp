@@ -31,7 +31,13 @@ function readActorFirmId(actor) {
 /** Lê clientId de sessão (compatibilidade com JWT legado). */
 function readActorClientId(actor) {
   const legacyClientIdKey = ['p', 'a', 't', 'i', 'e', 'n', 't', 'I', 'd'].join('');
-  return actor?.clientId || actor?.[legacyClientIdKey] || actor?.id || null;
+  if (actor?.clientId) return actor.clientId;
+  if (actor?.[legacyClientIdKey]) return actor[legacyClientIdKey];
+  // Fallback para id só em sessões CLIENT — em firm users id é firm_user.id
+  // e não pode ser tratado como clientId (quebrava PLATFORM_OPS).
+  const role = String(actor?.role || '').toUpperCase();
+  if (role === 'CLIENT' || isClientRole(role)) return actor?.id || null;
+  return null;
 }
 
 module.exports = {
