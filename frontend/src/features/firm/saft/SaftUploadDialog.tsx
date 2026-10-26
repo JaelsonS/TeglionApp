@@ -54,7 +54,7 @@ export function SaftUploadDialog({
 
   async function submit() {
     if (!file) {
-      toast.error('Escolha um ficheiro .xml ou .zip')
+      toast.error('Escolha um ficheiro .xml, .zip ou .xlsx')
       return
     }
     if (file.size > maxBytes) {
@@ -93,7 +93,8 @@ export function SaftUploadDialog({
             <div>
               <DialogTitle>Carregar SAF-T</DialogTitle>
               <DialogDescription className="mt-1">
-                Exporte o SAF-T PT no software certificado do cliente e carregue .xml ou .zip.
+                Preferível: SAF-T oficial (.xml ou .zip). Também aceita .xlsx sem macros (consulta
+                tabular — não substitui o XML da AT). .xls / .xlsm são rejeitados.
               </DialogDescription>
             </div>
           </div>
@@ -131,7 +132,7 @@ export function SaftUploadDialog({
             <input
               ref={inputRef}
               type="file"
-              accept=".xml,.zip,application/xml,text/xml,application/zip"
+              accept=".xml,.zip,.xlsx,application/xml,text/xml,application/zip,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               className="hidden"
               onChange={(e: ChangeEvent<HTMLInputElement>) => setFile(e.target.files?.[0] || null)}
             />
@@ -149,8 +150,10 @@ export function SaftUploadDialog({
                 </>
               ) : (
                 <>
-                  <span className="font-medium text-brand">Escolher .xml ou .zip</span>
-                  <span className="text-xs text-muted-foreground">Máx. {formatBytes(maxBytes)}</span>
+                  <span className="font-medium text-brand">Escolher .xml, .zip ou .xlsx</span>
+                  <span className="text-xs text-muted-foreground">
+                    Sem macros · ficheiro não é guardado · máx. {formatBytes(maxBytes)}
+                  </span>
                 </>
               )}
             </button>
