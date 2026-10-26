@@ -1,4 +1,5 @@
 import { Building2, Loader2 } from 'lucide-react'
+import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -74,7 +75,7 @@ export function GenerateRentReceiptsDialog({
             <Input
               type="month"
               value={yearMonth}
-              onChange={(e) => onYearMonthChange(e.target.value)}
+              onChange={(e: FormChangeEvent) => onYearMonthChange(e.target.value)}
               disabled={generating}
             />
           </label>

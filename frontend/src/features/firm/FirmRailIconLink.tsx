@@ -1,4 +1,4 @@
-import { useCallback, useId, useState, type ReactNode } from 'react'
+import { useCallback, useId, useState, type FocusEvent, type MouseEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { NavLink, useLocation } from 'react-router-dom'
 
@@ -82,9 +82,9 @@ export function FirmRailIconLink({
           'cb-firm-icon-nav',
           isActive ? 'cb-firm-icon-nav-active' : 'cb-firm-icon-nav-inactive',
         )}
-        onMouseEnter={(e) => show(e.currentTarget)}
+        onMouseEnter={(e: MouseEvent<HTMLAnchorElement>) => show(e.currentTarget)}
         onMouseLeave={hide}
-        onFocus={(e) => show(e.currentTarget)}
+        onFocus={(e: FocusEvent<HTMLAnchorElement>) => show(e.currentTarget)}
         onBlur={hide}
       >
         <span className="cb-firm-icon-nav-wrap">
@@ -127,9 +127,9 @@ export function FirmRailIconButton({
         aria-describedby={pos ? tooltipId : undefined}
         data-testid={testId}
         onClick={onClick}
-        onMouseEnter={(e) => show(e.currentTarget)}
+        onMouseEnter={(e: MouseEvent<HTMLButtonElement>) => show(e.currentTarget)}
         onMouseLeave={hide}
-        onFocus={(e) => show(e.currentTarget)}
+        onFocus={(e: FocusEvent<HTMLButtonElement>) => show(e.currentTarget)}
         onBlur={hide}
       >
         {children}

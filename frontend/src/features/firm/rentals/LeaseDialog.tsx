@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Loader2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -135,40 +136,40 @@ export function LeaseDialog({
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
           <label className="block space-y-1.5 text-sm">
             <span className="font-medium">Inquilino</span>
-            <Input value={tenantDisplayName} onChange={(e) => setTenantDisplayName(e.target.value)} />
+            <Input value={tenantDisplayName} onChange={(e: FormChangeEvent) => setTenantDisplayName(e.target.value)} />
           </label>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block space-y-1.5 text-sm">
               <span className="font-medium">NIF</span>
-              <Input value={tenantNif} onChange={(e) => setTenantNif(e.target.value)} />
+              <Input value={tenantNif} onChange={(e: FormChangeEvent) => setTenantNif(e.target.value)} />
             </label>
             <label className="block space-y-1.5 text-sm">
               <span className="font-medium">Telefone</span>
-              <Input value={tenantPhone} onChange={(e) => setTenantPhone(e.target.value)} />
+              <Input value={tenantPhone} onChange={(e: FormChangeEvent) => setTenantPhone(e.target.value)} />
             </label>
           </div>
           <label className="block space-y-1.5 text-sm">
             <span className="font-medium">Email</span>
-            <Input type="email" value={tenantEmail} onChange={(e) => setTenantEmail(e.target.value)} />
+            <Input type="email" value={tenantEmail} onChange={(e: FormChangeEvent) => setTenantEmail(e.target.value)} />
           </label>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block space-y-1.5 text-sm">
               <span className="font-medium">Início</span>
-              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              <Input type="date" value={startDate} onChange={(e: FormChangeEvent) => setStartDate(e.target.value)} />
             </label>
             <label className="block space-y-1.5 text-sm">
               <span className="font-medium">Fim</span>
-              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+              <Input type="date" value={endDate} onChange={(e: FormChangeEvent) => setEndDate(e.target.value)} />
             </label>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block space-y-1.5 text-sm">
               <span className="font-medium">Renda mensal (€)</span>
-              <Input value={rentEuro} onChange={(e) => setRentEuro(e.target.value)} inputMode="decimal" />
+              <Input value={rentEuro} onChange={(e: FormChangeEvent) => setRentEuro(e.target.value)} inputMode="decimal" />
             </label>
             <label className="block space-y-1.5 text-sm">
               <span className="font-medium">Dia vencimento</span>
-              <Input value={rentDueDay} onChange={(e) => setRentDueDay(e.target.value)} inputMode="numeric" />
+              <Input value={rentDueDay} onChange={(e: FormChangeEvent) => setRentDueDay(e.target.value)} inputMode="numeric" />
             </label>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -177,7 +178,7 @@ export function LeaseDialog({
               <select
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                 value={leaseType}
-                onChange={(e) => setLeaseType(e.target.value)}
+                onChange={(e: FormChangeEvent) => setLeaseType(e.target.value)}
               >
                 <option value="habitacao">Habitação</option>
                 <option value="comercio">Comércio</option>
@@ -189,7 +190,7 @@ export function LeaseDialog({
               <select
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                 value={status}
-                onChange={(e) => setStatus(e.target.value)}
+                onChange={(e: FormChangeEvent) => setStatus(e.target.value)}
               >
                 <option value="active">Activo</option>
                 <option value="ended">Terminado</option>
@@ -199,7 +200,7 @@ export function LeaseDialog({
           </div>
           <label className="block space-y-1.5 text-sm">
             <span className="font-medium">Notas</span>
-            <Input value={notes} onChange={(e) => setNotes(e.target.value)} />
+            <Input value={notes} onChange={(e: FormChangeEvent) => setNotes(e.target.value)} />
           </label>
         </div>
 

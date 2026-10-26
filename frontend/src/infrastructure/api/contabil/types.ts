@@ -18,6 +18,8 @@ export type ContabilClient = {
   email?: string | null
   phone?: string | null
   taxId?: string | null
+  /** Presente em alguns payloads de lista/hub; detalhe fiscal completo em fiscalProfile. */
+  clientType?: 'COMPANY' | 'SELF_EMPLOYED' | 'INDIVIDUAL' | 'OTHER' | string | null
   status?: string
   portalAccessStatus?: 'NO_ACCESS' | 'PENDING_INVITE' | 'ACTIVE' | 'REVOKED'
   metadata?: Record<string, unknown>
