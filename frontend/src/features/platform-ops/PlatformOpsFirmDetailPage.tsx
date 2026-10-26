@@ -191,7 +191,9 @@ export function PlatformOpsFirmDetailPage() {
         description={`Isto bloqueia o acesso diário de «${f.name}». Confirma?`}
         confirmLabel={suspend.isPending ? 'A suspender…' : 'Suspender'}
         variant="destructive"
-        onConfirm={() => suspend.mutateAsync()}
+        onConfirm={async () => {
+          await suspend.mutateAsync()
+        }}
       />
       <ConfirmDialog
         open={confirm === 'reactivate'}
@@ -199,7 +201,9 @@ export function PlatformOpsFirmDetailPage() {
         title="Reactivar gabinete"
         description={`Repor acesso de «${f.name}» (ACTIVE ou TRIAL conforme datas).`}
         confirmLabel={reactivate.isPending ? 'A reactivar…' : 'Reactivar'}
-        onConfirm={() => reactivate.mutateAsync()}
+        onConfirm={async () => {
+          await reactivate.mutateAsync()
+        }}
       />
 
       <Dialog open={trialOpen} onOpenChange={setTrialOpen}>
@@ -238,7 +242,7 @@ export function PlatformOpsFirmDetailPage() {
 
       <Dialog
         open={cancelOpen}
-        onOpenChange={(open) => {
+        onOpenChange={(open: boolean) => {
           setCancelOpen(open)
           if (!open) setCancelName('')
         }}
