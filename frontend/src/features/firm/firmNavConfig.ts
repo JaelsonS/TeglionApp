@@ -167,7 +167,7 @@ export const FIRM_NAV_GROUPS: FirmNavGroupConfig[] = [
       {
         to: '/app/firm/news',
         labelKey: 'contabil.firm.nav.news',
-        labelDefault: 'Notícias',
+        labelDefault: 'Blog / Notícias',
         icon: Newspaper,
       },
     ],

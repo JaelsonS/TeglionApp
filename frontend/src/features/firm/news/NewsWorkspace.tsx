@@ -261,11 +261,13 @@ export function NewsWorkspace() {
 
       <div className="cb-news-purpose" data-testid="firm-news-purpose">
         <div className="min-w-0 flex-1">
-          <p className="cb-news-purpose-title">Editorial do gabinete</p>
+          <p className="cb-news-purpose-title">Blog do escritório — informativo, não alerta</p>
           <p className="cb-news-purpose-detail">
-            Artigos com capa e destaque para portal e página pública. Para prazos ou urgências,{' '}
+            Artigos para clientes e página pública: escritório fechado em feriado, lei que mudou, dicas fiscais,
+            novidades do gabinete. Leitura calma, com capa e destaque. Se precisar de urgência ou confirmação de
+            leitura, use a{' '}
             <Link to="/app/firm/alerts" className="font-medium text-brand hover:underline">
-              publique um alerta
+              Central de alertas
             </Link>
             .
           </p>
@@ -311,17 +313,17 @@ export function NewsWorkspace() {
         <EmptyState
           className="m-3"
           icon={Newspaper}
-          title={items.length === 0 ? 'Ainda sem notícias' : 'Nenhuma notícia neste filtro'}
+          title={items.length === 0 ? 'Ainda sem artigos no blog' : 'Nenhum artigo neste filtro'}
           description={
             items.length === 0
-              ? 'Publique actualizações fiscais ou do gabinete na página pública e no portal dos clientes.'
+              ? 'Publique o blog do escritório: feriados, leis que mudaram, dicas fiscais ou novidades do gabinete. Aparece no portal e na página pública.'
               : 'Altere o filtro de estado, destaque ou limpe a pesquisa.'
           }
           action={
             items.length === 0 ? (
               <Button type="button" size="sm" variant="primary" onClick={startCreate}>
                 <Plus className="h-4 w-4" />
-                Publicar primeira notícia
+                Publicar primeiro artigo
               </Button>
             ) : undefined
           }
@@ -403,16 +405,16 @@ export function NewsWorkspace() {
   return (
     <>
       <FirmModuleShell
-        className="cb-news-shell"
-        title="Notícias"
-        subtitle="Conteúdo editorial para portal e página pública — artigos com capa, categoria e destaque."
+        className="cb-news-shell cb-news-page-scroll"
+        title="Notícias · Blog do gabinete"
+        subtitle="Canal informativo para clientes — como um blog do escritório (feriados, leis, dicas). Alertas urgentes ficam na Central de alertas."
         headerRight={
           <div className="flex flex-wrap items-center gap-2">
             <AskMayaButton intentId="news" />
             <Button type="button" size="sm" variant="outline" asChild>
               <Link to="/app/firm/alerts">
                 <Megaphone className="mr-1.5 h-4 w-4" aria-hidden />
-                Alertas
+                Central de alertas
               </Link>
             </Button>
             {publicUrl ? (
@@ -425,7 +427,7 @@ export function NewsWorkspace() {
             ) : null}
             <Button type="button" className="cb-alerts-btn-primary shrink-0" onClick={startCreate}>
               <Plus className="mr-1.5 h-4 w-4" />
-              Nova notícia
+              Novo artigo
             </Button>
           </div>
         }

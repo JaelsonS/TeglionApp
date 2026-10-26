@@ -1,11 +1,11 @@
 import { NewsWorkspace } from '@/features/firm/news/NewsWorkspace'
 import { FirmWorkspacePage } from '@/features/firm/FirmPageLayout'
 
-/** Notícias: split lista + detalhe editorial (scroll interno). */
+/** Blog / Notícias do gabinete — page-scroll (lista + detalhe em fluxo de página). */
 export function FirmNewsPage() {
   return (
-    <FirmWorkspacePage className="cb-alerts-layout-page xl:min-h-0 xl:flex-1">
-      <div className="cb-firm-operational-panel flex min-h-0 flex-1 flex-col overflow-hidden">
+    <FirmWorkspacePage className="cb-news-page cb-news-layout-page">
+      <div className="cb-firm-operational-panel cb-news-layout-panel flex w-full min-w-0 flex-col">
         <NewsWorkspace />
       </div>
     </FirmWorkspacePage>

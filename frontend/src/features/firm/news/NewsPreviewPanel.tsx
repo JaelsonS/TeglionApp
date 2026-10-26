@@ -40,8 +40,8 @@ export function NewsPreviewPanel({
         )}
       >
         <EmptyState
-          title="Seleccione uma notícia"
-          description="Escolha um artigo na lista para pré-visualizar capa, texto e metadados editoriais."
+          title="Seleccione um artigo"
+          description="Escolha na lista para pré-visualizar o post do blog (capa, texto e metadados). Urgências vão para a Central de alertas."
         />
       </div>
     )

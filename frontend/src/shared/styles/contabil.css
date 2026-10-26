@@ -6318,19 +6318,132 @@
     @apply font-medium text-foreground;
   }
 
-  /* Alertas + Notícias — split lista/detalhe profissional */
-  .cb-alerts-layout-page {
-    @apply gap-0;
+  /* Alertas + Notícias — page-scroll (como Documentos / Plano) */
+  .cb-alerts-page,
+  .cb-alerts-layout-page,
+  .cb-alerts-layout-panel,
+  .cb-news-page,
+  .cb-news-layout-page,
+  .cb-news-layout-panel {
+    @apply flex w-full min-w-0 flex-col;
+    flex: none;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .cb-firm-workspace-page.cb-alerts-layout-page > .cb-alerts-layout-panel,
+  .cb-firm-workspace-page.cb-news-layout-page > .cb-news-layout-panel {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
   }
 
   .cb-alerts-shell,
   .cb-news-shell {
-    @apply min-h-0 flex-1;
+    @apply w-full min-w-0;
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
   }
 
   .cb-alerts-body,
   .cb-news-body {
-    @apply min-h-0 flex-1 overflow-hidden px-0 pb-0 pt-2;
+    @apply w-full min-w-0 px-0 pb-6 pt-2;
+    flex: none !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Split em fluxo de página — sem scroll fragmentado nas colunas */
+  .cb-alerts-layout-page .cb-firm-split-view,
+  .cb-news-layout-page .cb-firm-split-view {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
+  }
+
+  .cb-alerts-layout-page .cb-firm-split-toolbar,
+  .cb-news-layout-page .cb-firm-split-toolbar {
+    overflow: visible;
+  }
+
+  .cb-alerts-layout-page .cb-firm-split-desktop,
+  .cb-news-layout-page .cb-firm-split-desktop {
+    flex: none !important;
+    height: auto !important;
+    min-height: 24rem;
+    max-height: none !important;
+    overflow: visible !important;
+    align-items: stretch;
+  }
+
+  .cb-alerts-layout-page .cb-firm-split-list,
+  .cb-alerts-layout-page .cb-firm-split-detail,
+  .cb-alerts-layout-page .cb-firm-split-list > *,
+  .cb-alerts-layout-page .cb-firm-split-detail > *,
+  .cb-news-layout-page .cb-firm-split-list,
+  .cb-news-layout-page .cb-firm-split-detail,
+  .cb-news-layout-page .cb-firm-split-list > *,
+  .cb-news-layout-page .cb-firm-split-detail > * {
+    flex: unset !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
+  }
+
+  .cb-alerts-layout-page .cb-firm-split-list,
+  .cb-news-layout-page .cb-firm-split-list {
+    width: min(380px, 36%);
+    flex: 0 0 auto !important;
+  }
+
+  .cb-alerts-layout-page .cb-firm-split-detail,
+  .cb-news-layout-page .cb-firm-split-detail {
+    flex: 1 1 auto !important;
+    min-width: 0;
+    background: transparent;
+  }
+
+  .cb-alerts-layout-page .cb-firm-split-mobile,
+  .cb-alerts-layout-page .cb-firm-split-mobile-list,
+  .cb-alerts-layout-page .cb-firm-split-tablet,
+  .cb-alerts-layout-page .cb-firm-split-tablet-list,
+  .cb-news-layout-page .cb-firm-split-mobile,
+  .cb-news-layout-page .cb-firm-split-mobile-list,
+  .cb-news-layout-page .cb-firm-split-tablet,
+  .cb-news-layout-page .cb-firm-split-tablet-list {
+    flex: none !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .cb-alerts-layout-page .cb-firm-split-mobile-detail-body,
+  .cb-news-layout-page .cb-firm-split-mobile-detail-body {
+    overflow: visible !important;
+    height: auto !important;
+    flex: none !important;
+  }
+
+  .cb-alerts-layout-page .cb-alerts-list-wrap,
+  .cb-news-layout-page .cb-news-list-wrap {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    flex: none !important;
+  }
+
+  /* Preview panels: altura natural no page-scroll */
+  .cb-alerts-layout-page .cb-firm-split-detail > *,
+  .cb-news-layout-page .cb-firm-split-detail > * {
+    min-height: 22rem;
   }
 
   .cb-alerts-btn-primary {
