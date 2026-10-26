@@ -1324,19 +1324,19 @@
   }
 
   .cb-client-hub-header {
-    @apply border-b border-border/60 bg-card/95 bg-gradient-to-b from-brand/[0.04] to-card shadow-[var(--cb-shadow-card)];
+    @apply overflow-hidden rounded-2xl border border-border/70 bg-card/95 bg-gradient-to-b from-brand/[0.04] to-card shadow-[var(--cb-shadow-card)];
   }
 
   .cb-client-hub-back-row {
-    @apply border-b border-border/60 px-4 py-2;
+    @apply border-b border-border/60 px-3 py-2.5 sm:px-4;
   }
 
   .cb-client-hub-back {
-    @apply inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground;
+    @apply inline-flex min-h-9 items-center gap-1.5 rounded-md px-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground;
   }
 
   .cb-client-hub-hero {
-    @apply flex flex-col gap-4 px-4 py-4 lg:flex-row lg:items-start lg:justify-between;
+    @apply flex flex-col gap-4 px-3 py-4 sm:px-4 lg:flex-row lg:items-start lg:justify-between;
   }
 
   .cb-client-hub-title {
@@ -1348,11 +1348,11 @@
   }
 
   .cb-client-hub-actions {
-    @apply flex shrink-0 flex-wrap items-center gap-2;
+    @apply flex w-full shrink-0 flex-wrap items-center gap-2 lg:w-auto lg:justify-end;
   }
 
   .cb-client-hub-kpis {
-    @apply grid grid-cols-2 gap-2 border-t border-border/60 px-4 py-3 sm:grid-cols-4;
+    @apply grid grid-cols-2 gap-2 border-t border-border/60 px-3 py-3 sm:grid-cols-4 sm:px-4;
   }
 
   .cb-client-hub-kpi {
@@ -1992,11 +1992,51 @@
   }
 
   .cb-clients-toolbar {
-    @apply flex flex-wrap items-center gap-2 border-b border-border/60 bg-muted/15 px-3 py-2.5;
+    @apply flex flex-col gap-2.5 border-b border-border/50 pb-3 pt-1;
+  }
+
+  .cb-clients-toolbar-row {
+    @apply flex w-full flex-wrap items-center gap-2;
   }
 
   .cb-clients-search {
-    @apply relative min-w-[200px] flex-1;
+    @apply relative min-w-[200px] w-full max-w-md flex-1;
+  }
+
+  .cb-clients-health-filters {
+    @apply flex flex-wrap items-center gap-1.5;
+  }
+
+  .cb-clients-health-chip {
+    @apply inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-card px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted/40;
+  }
+
+  .cb-clients-health-chip--active {
+    @apply border-brand/40 bg-brand/10 text-brand;
+  }
+
+  .cb-clients-health-chip--ativos.cb-clients-health-chip--active {
+    @apply border-emerald-300 bg-emerald-50 text-emerald-900;
+  }
+
+  .cb-clients-health-chip--atencao.cb-clients-health-chip--active {
+    @apply border-amber-300 bg-amber-50 text-amber-950;
+  }
+
+  .cb-clients-health-chip--inativos.cb-clients-health-chip--active {
+    @apply border-slate-300 bg-slate-50 text-slate-800;
+  }
+
+  .cb-clients-health-chip--portal.cb-clients-health-chip--active {
+    @apply border-rose-300 bg-rose-50 text-rose-900;
+  }
+
+  .cb-clients-health-chip-count {
+    @apply rounded-md bg-muted/70 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground;
+  }
+
+  .cb-clients-health-chip--active .cb-clients-health-chip-count {
+    @apply bg-white/70 text-inherit;
   }
 
   .cb-clients-filter {
@@ -2013,6 +2053,48 @@
 
   .cb-clients-view-btn-active {
     @apply bg-brand/10 text-brand;
+  }
+
+  .cb-clients-bulk-bar {
+    @apply mb-3 flex flex-wrap items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2.5;
+  }
+
+  .cb-clients-select-all {
+    @apply mb-1 flex items-center gap-2 px-0.5;
+  }
+
+  .cb-clients-list {
+    flex: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .cb-clients-card {
+    @apply rounded-2xl border border-border/70 bg-card p-3.5 shadow-sm sm:p-4;
+  }
+
+  .cb-clients-card--selected {
+    @apply border-brand/40 bg-brand/[0.03] ring-1 ring-brand/15;
+  }
+
+  .cb-clients-card-main {
+    @apply flex items-start gap-2.5;
+  }
+
+  .cb-clients-card-check {
+    @apply pt-1;
+  }
+
+  .cb-clients-card-open {
+    @apply flex min-w-0 flex-1 items-start gap-3 text-left transition-colors;
+  }
+
+  .cb-clients-card-menu {
+    @apply shrink-0;
+  }
+
+  .cb-clients-card-actions {
+    @apply mt-3 flex flex-wrap items-center gap-2 border-t border-border/50 pt-3;
   }
 
   .cb-clients-table-wrap {
