@@ -307,7 +307,8 @@ const env = {
   LEGAL_OPERATOR_LOCATION: process.env.LEGAL_OPERATOR_LOCATION || null,
   LEGAL_OPERATOR_CAE: process.env.LEGAL_OPERATOR_CAE || null,
 
-  SMS_ENABLED: Boolean(process.env.SMS_ENABLED),
+  // Exige literal "true" — Boolean("false") seria true em JS e activaria SMS por engano.
+  SMS_ENABLED: String(process.env.SMS_ENABLED || '').toLowerCase() === 'true',
 
   isProduction: process.env.NODE_ENV === 'production',
   isDevelopment: process.env.NODE_ENV === 'development',

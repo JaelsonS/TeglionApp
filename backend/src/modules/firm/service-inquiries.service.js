@@ -1198,7 +1198,7 @@ async function notifyClient({ firmId, inquiryId, actor, payload }) {
 
   const channels = parseNotifyChannels(payload?.notifyChannels);
   if (!channels.length) {
-    throw new AppError('Escolha pelo menos um canal (email, sms ou whatsapp)', 400);
+    throw new AppError('Escolha pelo menos um canal (email ou sms)', 400);
   }
 
   const contact = await requesterContactForInquiry(inquiry);
