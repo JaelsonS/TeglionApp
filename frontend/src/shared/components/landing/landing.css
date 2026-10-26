@@ -228,6 +228,97 @@
   padding: 0 1.25rem 2rem;
 }
 
+.landing-hero--centered {
+  min-height: auto;
+  padding-top: 5.75rem;
+  text-align: center;
+}
+
+.landing-hero-inner--centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 0;
+}
+
+.landing-hero-copy {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding-top: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .landing-hero-copy {
+    padding-top: 2.25rem;
+  }
+}
+
+.landing-hero-brand {
+  font-family: var(--landing-font-sans);
+  font-size: clamp(2.5rem, 8vw, 4.25rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: #fff;
+}
+
+.landing-hero-brand-dot {
+  display: inline-block;
+  width: 0.55em;
+  height: 0.55em;
+  margin-left: 0.12em;
+  border-radius: 4px;
+  background: var(--landing-gold);
+  vertical-align: 0.12em;
+}
+
+.landing-hero-headline--centered {
+  margin-top: 1.25rem;
+  max-width: none;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.landing-hero-support--centered {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 1.15rem;
+}
+
+.landing-hero-trust--centered {
+  margin-top: 1.25rem;
+}
+
+.landing-btn-primary--arrow {
+  gap: 0;
+}
+
+.landing-hero-visual--lifestyle {
+  margin-top: 2.75rem;
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
+  max-width: 64rem;
+}
+
+.landing-hero-lifestyle-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.35);
+}
+
+.landing-pillar-card .landing-screenshot-wrap {
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+.landing-pain-card {
+  border-top: 3px solid var(--landing-gold);
+}
+
 @media (min-width: 640px) {
   .landing-hero-inner {
     padding: 0 1.5rem 2.5rem;

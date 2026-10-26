@@ -92,7 +92,13 @@ Usa estes módulos como verdade de produto. Agrupa visualmente se quiseres, mas 
 - Equipa / utilizadores: ilimitados no modelo actual de venda
 - Um plano = todo o sistema (não vender “Basic / Pro / Enterprise” inventados)
 
-**Argumento de preço:** um só SaaS em vez de site + portal + pastas + calendários + cobranças + chat espalhados.
+**OBRIGATÓRIO na secção Preços + FAQ:**
+
+> Estes são **preços promocionais de lançamento**. Quem aderir agora neste valor **mantém esse preço enquanto a subscrição estiver activa**. O preço de tabela vai subir — o Teglion completo não se sustenta nestes valores de lançamento. Novos gabinetes, após o período promocional, entram na grelha actualizada.
+
+**Não dizer** que a emissão certificada AT está incluída. Se mencionar o futuro fiscal certificado: “camada futura, à parte, só quando existir processo oficial”.
+
+**Argumento de preço:** um só SaaS em vez de site + portal + pastas + calendários + cobranças + chat espalhados + **vantagem early adopter** (lock do preço de lançamento).
 
 ---
 

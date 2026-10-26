@@ -7,35 +7,34 @@ const STEPS = [
   {
     n: '01',
     title: 'Cria o gabinete',
-    body: 'Conta em minutos — equipa, clientes e operação prontos a usar.',
+    body: 'Regista-te em minutos, sem cartão. Convida a equipa.',
   },
   {
     n: '02',
-    title: 'Configura a oferta',
-    body: 'Página pública, catálogo, IRS e pagamentos no mesmo sítio.',
+    title: 'Configura a oferta e o site',
+    body: 'Serviços, catálogo IRS e página pública com a tua marca.',
   },
   {
     n: '03',
     title: 'Opera e cobra',
-    body: 'Documentos, prazos, mensagens e cobranças no mesmo fluxo.',
+    body: 'Clientes no portal, documentos com rasto, avenças em dia.',
   },
 ] as const
 
 export function LandingHowItWorks() {
   return (
-    <section id="como-funciona" className="landing-section scroll-mt-24">
+    <section id="como-funciona" className="landing-section scroll-mt-24 bg-white">
       <div className="landing-container">
-        <FadeInView className="mx-auto max-w-2xl text-center">
+        <FadeInView className="max-w-2xl">
           <p className="landing-kicker">Como funciona</p>
-          <h2 className="mt-3 text-[1.85rem] leading-tight sm:text-4xl">Do registo à operação</h2>
-          <p className="mt-4 text-[15px] text-[var(--landing-muted)] sm:text-base">
-            Sem montar cinco ferramentas. Em três passos está a vender e a servir clientes no Teglion.
-          </p>
+          <h2 className="mt-3 text-[1.85rem] leading-tight sm:text-4xl">
+            Três passos até ao gabinete organizado.
+          </h2>
         </FadeInView>
         <FadeInStagger className="mt-12 grid gap-8 md:grid-cols-3 md:gap-6">
           {STEPS.map((s) => (
             <FadeInStaggerItem key={s.n}>
-              <div className="relative pl-1">
+              <div className="relative">
                 <span className="landing-display text-5xl font-semibold leading-none text-[var(--landing-navy)]/12">
                   {s.n}
                 </span>
@@ -45,7 +44,7 @@ export function LandingHowItWorks() {
             </FadeInStaggerItem>
           ))}
         </FadeInStagger>
-        <FadeInView className="mt-12 text-center">
+        <FadeInView className="mt-12">
           <Link to={authFirmRegisterUrl()} className="landing-btn-primary px-8">
             Começar 14 dias grátis
           </Link>

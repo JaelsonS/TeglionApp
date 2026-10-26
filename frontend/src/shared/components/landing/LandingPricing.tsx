@@ -135,6 +135,29 @@ export function LandingPricing() {
           </p>
         </FadeInView>
 
+        <FadeInView className="mx-auto mt-8 max-w-3xl">
+          <aside
+            className="rounded-2xl border border-[var(--landing-gold)]/35 bg-gradient-to-br from-[#FFF8EB] to-white px-4 py-4 text-left sm:px-5 sm:py-5"
+            role="note"
+            data-testid="landing-launch-pricing-note"
+          >
+            <p className="text-xs font-bold uppercase tracking-wide text-[var(--landing-gold)]">
+              Preços promocionais de lançamento
+            </p>
+            <p className="mt-2 text-[14px] leading-relaxed text-[var(--landing-body)] sm:text-[15px]">
+              Os valores abaixo são de{' '}
+              <strong className="text-[var(--landing-navy)]">lançamento</strong> — abaixo do preço
+              sustentável do produto. Quem aderir agora neste preço{' '}
+              <strong className="text-[var(--landing-navy)]">
+                mantém esse valor enquanto a subscrição estiver activa
+              </strong>{' '}
+              (sem interrupção). Novos gabinetes, depois do período promocional, passam para a
+              grelha actualizada. O preço de tabela vai subir: o Teglion completo (infraestrutura,
+              suporte e evolução) não se sustenta nestes valores de lançamento.
+            </p>
+          </aside>
+        </FadeInView>
+
         <FadeInView className="mx-auto mt-10 max-w-5xl sm:mt-12">
           <div className="landing-pricing-value rounded-2xl border border-[var(--landing-navy)]/10 bg-white p-5 sm:p-7">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -241,9 +264,10 @@ export function LandingPricing() {
         </FadeInStagger>
 
         <p className="mt-6 px-2 text-center text-[13px] leading-relaxed text-[var(--landing-muted)] sm:text-sm">
-          O teste de {trialDays} dias é o produto completo — não um «modo limitado». Sem letras
-          pequenas. Funciona como app (PWA) no telemóvel. Pagamentos do cliente final ≠ plano SaaS
-          do gabinete.
+          O teste de {trialDays} dias é o produto completo — não um «modo limitado». Sem fidelização.
+          Funciona como app (PWA) no telemóvel. Pagamentos do cliente final (carteira / Connect) ≠
+          plano SaaS do gabinete. Valores promocionais de lançamento — quem aderir agora mantém o
+          preço enquanto a conta estiver activa.
         </p>
       </div>
     </section>

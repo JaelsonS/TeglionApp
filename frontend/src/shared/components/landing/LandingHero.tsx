@@ -1,56 +1,59 @@
 import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 import { motion, useReducedMotion } from 'framer-motion'
 
-import { LandingScreenshot } from '@/shared/components/landing/LandingScreenshot'
-import { LANDING_SCREENS } from '@/shared/components/landing/landingScreens'
 import { authFirmRegisterUrl } from '@/shared/constants/authPaths'
+import { LANDING_ANCHORS } from '@/shared/constants/landingAnchors'
 
 export function LandingHero() {
   const reduce = useReducedMotion()
 
-  const scrollToProof = () => {
-    document.getElementById('produto')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
   return (
-    <section className="landing-hero" aria-labelledby="landing-hero-title">
-      <div className="landing-hero-inner">
-        <div className="landing-hero-animate max-w-xl pt-8 sm:max-w-2xl sm:pt-12 lg:pt-16">
-          <p className="landing-hero-kicker">Para gabinetes de contabilidade em Portugal</p>
-          <h1 id="landing-hero-title" className="landing-hero-headline mt-4 sm:mt-5">
-            Gabinete, portal e página pública — a mesma operação.
-          </h1>
-          <p className="landing-hero-support mt-4 sm:mt-5">
-            Documentos, prazos, serviços e pagamentos no mesmo sistema. A equipa trabalha no painel;
-            o cliente entrega no portal; a oferta vive no site.
+    <section className="landing-hero landing-hero--centered" aria-labelledby="landing-hero-title">
+      <div className="landing-hero-inner landing-hero-inner--centered">
+        <motion.div
+          className="landing-hero-copy"
+          initial={reduce ? undefined : { opacity: 0, y: 18 }}
+          animate={reduce ? undefined : { opacity: 1, y: 0 }}
+          transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <p className="landing-hero-brand">
+            Teglion<span className="landing-hero-brand-dot" aria-hidden />
           </p>
-          <div className="mt-7 flex w-full flex-col items-stretch gap-3 sm:mt-8 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
-            <Link to={authFirmRegisterUrl()} className="landing-btn-primary w-full sm:w-auto">
+          <h1 id="landing-hero-title" className="landing-hero-headline landing-hero-headline--centered">
+            Gabinete, portal do cliente e página pública — a mesma operação.
+          </h1>
+          <p className="landing-hero-support landing-hero-support--centered">
+            Documentos, prazos, serviços, IRS, agenda, carteira e comunicação no mesmo sistema. A
+            equipa trabalha no painel; o cliente entrega no portal; a oferta vive no site.
+          </p>
+          <div className="mt-8 flex w-full flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+            <Link to={authFirmRegisterUrl()} className="landing-btn-primary landing-btn-primary--arrow">
               Testar 14 dias grátis
+              <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </Link>
-            <button
-              type="button"
-              onClick={scrollToProof}
-              className="landing-btn-secondary-light w-full sm:w-auto"
-            >
+            <a href={LANDING_ANCHORS.produto} className="landing-btn-secondary-light">
               Ver o produto
-            </button>
+            </a>
           </div>
-          <p className="landing-hero-trust mt-5">
+          <p className="landing-hero-trust landing-hero-trust--centered">
             Sem cartão · Sem fidelização · Cancela quando quiser
           </p>
-        </div>
+        </motion.div>
 
         <motion.div
-          className="landing-hero-visual"
-          initial={reduce ? undefined : { opacity: 0, y: 28 }}
+          className="landing-hero-visual landing-hero-visual--lifestyle"
+          initial={reduce ? undefined : { opacity: 0, y: 32 }}
           animate={reduce ? undefined : { opacity: 1, y: 0 }}
-          transition={{ duration: 0.75, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
         >
-          <LandingScreenshot
-            src={LANDING_SCREENS.dashboard}
-            alt="Painel Teglion do gabinete de contabilidade"
-            priority
+          <img
+            src="/landing/screens/hero-lifestyle.jpg"
+            alt="Teglion no desktop, tablet e telemóvel — painel, portal e página pública"
+            className="landing-hero-lifestyle-img"
+            width={1920}
+            height={1088}
+            fetchPriority="high"
           />
           <div className="landing-hero-fade" aria-hidden />
         </motion.div>
