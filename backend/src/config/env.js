@@ -310,6 +310,17 @@ const env = {
   // Exige literal "true" — Boolean("false") seria true em JS e activaria SMS por engano.
   SMS_ENABLED: String(process.env.SMS_ENABLED || '').toLowerCase() === 'true',
 
+  /** Control Center AfDigital — off por omissão; activar só com true literal. */
+  PLATFORM_OPS_ENABLED: String(process.env.PLATFORM_OPS_ENABLED || '').toLowerCase() === 'true',
+  /**
+   * Emails (CSV) autorizados no Control Center. Comparação case-insensitive.
+   * Ex.: PLATFORM_OPS_EMAIL_ALLOWLIST=afdigitalweb.st@gmail.com
+   */
+  PLATFORM_OPS_EMAIL_ALLOWLIST: String(process.env.PLATFORM_OPS_EMAIL_ALLOWLIST || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean),
+
   isProduction: process.env.NODE_ENV === 'production',
   isDevelopment: process.env.NODE_ENV === 'development',
 
