@@ -183,7 +183,10 @@ if (typeof window !== 'undefined') {
   }
 }
 
-if (typeof window !== 'undefined' && !isLightweightPublicRoute(window.location.pathname)) {
+if (
+  typeof window !== 'undefined' &&
+  !isLightweightPublicRoute(window.location.pathname, window.location.hostname)
+) {
   // Prefer ensureContabilStyles (catch + stale-asset recovery) over a bare import.
   void import('@/shared/styles/loadContabilStyles').then((m) => m.ensureContabilStyles())
 }

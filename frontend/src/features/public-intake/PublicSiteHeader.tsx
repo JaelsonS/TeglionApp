@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronDown, Menu } from 'lucide-react'
 
+import { publicSitePath } from '@/shared/utils/publicHost'
+
 import type { PublicSiteChromeContent, PublicSiteNavLink } from '@/shared/types/firmPublicSite'
 import {
   contentAlignFlexClass,
@@ -62,7 +64,7 @@ function HeaderNavItem({
                 {group.items.slice(0, 16).map((service) => (
                   <li key={service.slug}>
                     <Link
-                      to={`/${encodeURIComponent(ctx.firmSlug)}/servicos/${encodeURIComponent(service.slug)}`}
+                      to={publicSitePath(ctx.firmSlug, 'servicos', service.slug)}
                       className="block rounded-md px-2 py-1.5 text-sm text-foreground/90 hover:bg-muted hover:text-foreground"
                       onClick={onNavigate}
                     >
@@ -94,7 +96,7 @@ function HeaderNavItem({
   }
 
   if (link.kind === 'service' && link.serviceId) {
-    const href = `/${encodeURIComponent(ctx.firmSlug)}/servicos/${encodeURIComponent(link.serviceId)}`
+    const href = publicSitePath(ctx.firmSlug, 'servicos', link.serviceId)
     return (
       <Link
         to={href}
@@ -159,7 +161,7 @@ function MobileNavLink({
                 {group.items.slice(0, 16).map((service) => (
                   <li key={service.slug}>
                     <Link
-                      to={`/${encodeURIComponent(ctx.firmSlug)}/servicos/${encodeURIComponent(service.slug)}`}
+                      to={publicSitePath(ctx.firmSlug, 'servicos', service.slug)}
                       className="block rounded-md px-2 py-2 text-sm text-foreground/90 hover:bg-muted"
                       onClick={onNavigate}
                     >
@@ -208,7 +210,7 @@ export function HeaderSection({
     ? 'text-sm font-medium opacity-90 hover:opacity-100'
     : 'text-sm font-medium text-[hsl(var(--brand-text,var(--muted-foreground)))] hover:text-[hsl(var(--brand-text,var(--foreground)))]'
   const groups = uniquePublicServiceGroups(ctx.services)
-  const homeHref = `/${encodeURIComponent(ctx.firmSlug)}`
+  const homeHref = publicSitePath(ctx.firmSlug)
   const showNav = content?.showNav !== false
   const headerLogo = ctx.headerLogoUrl ?? ctx.logoUrl
   const showLogo = Boolean(headerLogo) && content?.showLogo !== false

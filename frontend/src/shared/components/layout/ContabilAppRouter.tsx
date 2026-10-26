@@ -12,6 +12,7 @@ import { RequireFirmAccess } from '@/shared/components/layout/RequireFirmAccess'
 import { RequireRole } from '@/shared/components/layout/RequireRole'
 import { RequireClientFirmAccess } from '@/shared/components/layout/RequireClientFirmAccess'
 import { PageRouteFallback } from '@/shared/components/layout/PageRouteFallback'
+import { getPublicSubdomainSlug } from '@/shared/utils/publicHost'
 
 const FirmLoginPage = lazy(() => import('@/features/auth/firm/FirmLoginPage').then((m) => ({ default: m.FirmLoginPage })))
 const FirmMfaChallengePage = lazy(() =>
@@ -187,6 +188,30 @@ const ClientNoAccessPage = lazy(() =>
 )
 
 export function ContabilAppRouter() {
+  const publicSubdomainSlug =
+    typeof window !== 'undefined' ? getPublicSubdomainSlug(window.location.hostname) : null
+
+  // `{slug}.staging.teglion.com` — rotas sem prefixo /:firmSlug
+  if (publicSubdomainSlug) {
+    return (
+      <Suspense fallback={<PageRouteFallback />}>
+        <Routes>
+          <Route path="/" element={<FirmPublicSitePage forcedSlug={publicSubdomainSlug} />} />
+          <Route
+            path="/servicos/:serviceSlug"
+            element={<ServiceIntakePublicPage forcedFirmSlug={publicSubdomainSlug} />}
+          />
+          <Route
+            path="/booking/return"
+            element={<BookingPaymentReturnPage forcedFirmSlug={publicSubdomainSlug} />}
+          />
+          <Route path="/pedidos/:token" element={<ServiceIntakePortalPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    )
+  }
+
   return (
     <Suspense fallback={<PageRouteFallback />}>
       <Routes>
