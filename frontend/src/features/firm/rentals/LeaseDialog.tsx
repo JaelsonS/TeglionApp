@@ -57,9 +57,9 @@ export function LeaseDialog({
     setTenantPhone(initial?.tenantPhone || '')
     setStartDate(initial?.startDate?.slice(0, 10) || new Date().toISOString().slice(0, 10))
     setEndDate(initial?.endDate?.slice(0, 10) || '')
-    setRentEuro(initial ? String((initial.monthlyRentCents / 100).toFixed(2)) : '800')
+    setRentEuro(initial ? String((initial.monthlyRentCents / 100).toFixed(2)) : '100')
     setRentDueDay(String(initial?.rentDueDay ?? 1))
-    setLeaseType(initial?.leaseType || 'habitacao')
+    setLeaseType(initial?.leaseType || 'outro')
     setStatus(initial?.status || 'active')
     setNotes(initial?.notes || '')
     setConfirmDelete(false)
@@ -69,7 +69,7 @@ export function LeaseDialog({
     const euros = Number(String(rentEuro).replace(',', '.'))
     const due = Math.round(Number(rentDueDay))
     if (!tenantDisplayName.trim() || !Number.isFinite(euros) || euros < 0) {
-      toast.error('Preencha inquilino e renda')
+      toast.error('Preencha a descrição e o valor mensal')
       return
     }
     if (!Number.isFinite(due) || due < 1 || due > 28) {
@@ -129,18 +129,24 @@ export function LeaseDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90vh] max-w-lg flex-col gap-0 overflow-hidden rounded-2xl p-0">
         <DialogHeader className="shrink-0 space-y-1 border-b border-border/60 px-5 py-4 text-left">
-          <DialogTitle>{isEdit ? 'Editar contrato' : 'Novo contrato'}</DialogTitle>
-          <DialogDescription>{propertyLabel}</DialogDescription>
+          <DialogTitle>{isEdit ? 'Editar plano mensal' : 'Plano de pagamento mensal'}</DialogTitle>
+          <DialogDescription>
+            {propertyLabel} — valor e vencimento deste custo do gabinete (controlo interno).
+          </DialogDescription>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4">
           <label className="block space-y-1.5 text-sm">
-            <span className="font-medium">Inquilino</span>
-            <Input value={tenantDisplayName} onChange={(e: FormChangeEvent) => setTenantDisplayName(e.target.value)} />
+            <span className="font-medium">Descrição / fornecedor</span>
+            <Input
+              value={tenantDisplayName}
+              onChange={(e: FormChangeEvent) => setTenantDisplayName(e.target.value)}
+              placeholder="Ex.: EDP, arrendamento, Conta X…"
+            />
           </label>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block space-y-1.5 text-sm">
-              <span className="font-medium">NIF</span>
+              <span className="font-medium">NIF (opcional)</span>
               <Input value={tenantNif} onChange={(e: FormChangeEvent) => setTenantNif(e.target.value)} />
             </label>
             <label className="block space-y-1.5 text-sm">
@@ -164,7 +170,7 @@ export function LeaseDialog({
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block space-y-1.5 text-sm">
-              <span className="font-medium">Renda mensal (€)</span>
+              <span className="font-medium">Valor mensal (€)</span>
               <Input value={rentEuro} onChange={(e: FormChangeEvent) => setRentEuro(e.target.value)} inputMode="decimal" />
             </label>
             <label className="block space-y-1.5 text-sm">
@@ -180,9 +186,9 @@ export function LeaseDialog({
                 value={leaseType}
                 onChange={(e: FormChangeEvent) => setLeaseType(e.target.value)}
               >
-                <option value="habitacao">Habitação</option>
-                <option value="comercio">Comércio</option>
-                <option value="outro">Outro</option>
+                <option value="outro">Custo / contrato gabinete</option>
+                <option value="comercio">Comércio / escritório</option>
+                <option value="habitacao">Habitação (legado)</option>
               </select>
             </label>
             <label className="block space-y-1.5 text-sm">
