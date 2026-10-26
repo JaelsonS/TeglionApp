@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Loader2, Plus, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
+import type { FormChangeEvent } from '@/shared/types/react-events'
 
 import { Button } from '@/shared/components/ui/button'
 import {
@@ -11,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/ui/dialog'
+import { Input } from '@/shared/components/ui/input'
 import { EuroInput } from '@/shared/design-system'
 import { contabilFeeChargesApi } from '@/infrastructure/api'
 import type { ClientBilling, FeeCharge } from '@/infrastructure/api/contabil/feeCharges'
@@ -62,6 +64,8 @@ export function ClientPaymentsDialog({
   const [euros, setEuros] = useState(0)
   const [active, setActive] = useState(false)
   const [dueDay, setDueDay] = useState(1)
+  const [startMonth, setStartMonth] = useState('')
+  const [endMonth, setEndMonth] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -69,6 +73,8 @@ export function ClientPaymentsDialog({
     setEuros((row.billing.retainerAmountCents || 0) / 100)
     setActive(Boolean(row.billing.retainerActive))
     setDueDay(row.billing.retainerDueDay || 1)
+    setStartMonth(row.billing.retainerStartMonth || '')
+    setEndMonth(row.billing.retainerEndMonth || '')
   }, [row])
 
   const health = useMemo(() => (row ? rowPaymentHealth(row.months) : 'empty'), [row])
@@ -82,6 +88,8 @@ export function ClientPaymentsDialog({
         retainerAmountCents: Math.round(euros * 100),
         retainerActive: active,
         retainerDueDay: dueDay,
+        retainerStartMonth: startMonth || null,
+        retainerEndMonth: endMonth || null,
       })
       toast.success('Avença actualizada')
       onBillingSaved()
@@ -123,7 +131,8 @@ export function ClientPaymentsDialog({
                 <div>
                   <h3 className="text-sm font-semibold">Avença mensal</h3>
                   <p className="text-xs text-muted-foreground">
-                    Valor e dia de vencimento. Inclua em «Gerar avenças» para o mapa.
+                    Valor, dia e período. Depois use «Configurar avenças» no mapa para aplicar a
+                    toda a carteira.
                   </p>
                 </div>
               </div>
@@ -148,6 +157,24 @@ export function ClientPaymentsDialog({
                     ))}
                   </select>
                 </label>
+
+                <label className="block space-y-1.5 text-sm">
+                  <span className="font-medium">Início</span>
+                  <Input
+                    type="month"
+                    value={startMonth}
+                    onChange={(e: FormChangeEvent) => setStartMonth(e.target.value)}
+                  />
+                </label>
+
+                <label className="block space-y-1.5 text-sm">
+                  <span className="font-medium">Fim (opcional)</span>
+                  <Input
+                    type="month"
+                    value={endMonth}
+                    onChange={(e: FormChangeEvent) => setEndMonth(e.target.value)}
+                  />
+                </label>
               </div>
 
               <label className="flex items-center gap-2 text-sm">
@@ -157,7 +184,7 @@ export function ClientPaymentsDialog({
                   checked={active}
                   onChange={(e) => setActive(e.target.checked)}
                 />
-                <span>Avença activa (entra no gerar)</span>
+                <span>Avença activa (entra em «Configurar avenças»)</span>
               </label>
 
               <Button type="button" onClick={() => void saveBilling()} disabled={saving}>

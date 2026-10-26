@@ -112,9 +112,8 @@ export function ClientHubBillingPanel({ clientId, displayName }: Props) {
             <div>
               <h2 className="text-base font-semibold tracking-tight">Avença mensal</h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
-                Defina valor, dia e início/fim. Depois em Pagamentos use «Replicar avenças» para
-                criar todos os meses de uma vez (e de todos os clientes activos) — Stripe Connect é
-                opcional.
+                Defina valor, dia e início/fim. Depois em Pagamentos use «Configurar avenças» para
+                aplicar o período a toda a carteira activa — Stripe Connect é opcional.
               </p>
             </div>
           </div>

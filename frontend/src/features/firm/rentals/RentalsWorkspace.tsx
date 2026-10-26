@@ -241,8 +241,8 @@ export function RentalsWorkspace() {
               className="pl-9"
               value={q}
               onChange={(e: FormChangeEvent) => setQ(e.target.value)}
-              placeholder="Procurar imóvel, senhorio ou inquilino…"
-              aria-label="Procurar imóveis"
+              placeholder="Procurar contrato, fornecedor ou categoria…"
+              aria-label="Procurar custos e contratos"
             />
           </div>
           <div className="cb-rentals-legend" aria-hidden>
@@ -260,15 +260,15 @@ export function RentalsWorkspace() {
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />A carregar…
             </div>
           ) : overviewQuery.isError ? (
-            <p className="py-8 text-sm text-destructive">Não foi possível carregar os imóveis.</p>
+            <p className="py-8 text-sm text-destructive">Não foi possível carregar os contratos.</p>
           ) : !data?.rows?.length ? (
             <EmptyState
               icon={Building2}
-              title="Ainda sem imóveis"
-              description="Adicione um imóvel do cliente (senhorio), crie o contrato com o inquilino e gere os recibos do mês."
+              title="Ainda sem custos do gabinete"
+              description="Registe a renda do escritório, luz, gás, água, software ou outro contrato — depois gere os meses no mapa."
               action={
                 <Button type="button" onClick={() => setPropertyEdit({})}>
-                  Novo imóvel
+                  Novo contrato / custo
                 </Button>
               }
             />
@@ -280,7 +280,9 @@ export function RentalsWorkspace() {
                     <div className="min-w-0">
                       <h2 className="text-base font-semibold tracking-tight">{row.property.label}</h2>
                       <p className="text-sm text-muted-foreground">
-                        Senhorio: {row.client.displayName}
+                        {row.client?.id
+                          ? `Cliente: ${row.client.displayName}`
+                          : `Fornecedor / titular: ${row.client?.displayName || 'Gabinete'}`}
                         {row.client.taxId ? ` · NIF ${row.client.taxId}` : ''}
                       </p>
                       {(row.property.addressLine || row.property.locality) && (
@@ -312,14 +314,14 @@ export function RentalsWorkspace() {
                         }
                       >
                         <Plus className="mr-1 h-3.5 w-3.5" aria-hidden />
-                        Contrato
+                        Plano mensal
                       </Button>
                     </div>
                   </div>
 
                   {!(row.leases || []).filter((l) => l.status !== 'cancelled').length ? (
                     <p className="mt-3 text-sm text-muted-foreground">
-                      Sem contratos. Crie um para gerar recibos.
+                      Sem plano mensal. Defina valor e vencimento para controlar os meses no mapa.
                     </p>
                   ) : (
                     <div className="mt-4 space-y-5">
@@ -419,8 +421,8 @@ export function RentalsWorkspace() {
         </div>
 
         <p className="cb-rentals-foot">
-          Controlo interno de rendas. Não substitui recibos do Portal das Finanças nem declarações à
-          AT.
+          Controlo interno de custos e contratos do gabinete. Não substitui facturas oficiais nem
+          declarações à AT.
         </p>
       </div>
 

@@ -180,14 +180,14 @@ export function PaymentsWorkspace() {
         })
       } else {
         toast.success(
-          `Geradas ${res.createdCount} avença(s)` +
-            (res.skippedCount ? ` · ${res.skippedCount} ignoradas` : ''),
+          `Mapa actualizado · ${res.createdCount} avença(s)` +
+            (res.skippedCount ? ` · ${res.skippedCount} já existiam` : ''),
         )
       }
       setGenerateOpen(false)
       await refreshMap()
     } catch (err) {
-      toast.error('Não foi possível gerar', { description: getErrorMessage(err) })
+      toast.error('Não foi possível aplicar ao mapa', { description: getErrorMessage(err) })
     } finally {
       setGenerating(false)
     }
@@ -236,7 +236,7 @@ export function PaymentsWorkspace() {
             <ChevronRight className="h-4 w-4" aria-hidden />
           </Button>
           <Button type="button" size="sm" onClick={() => setGenerateOpen(true)}>
-            Replicar avenças
+            Configurar avenças
           </Button>
         </div>
       }
@@ -263,15 +263,15 @@ export function PaymentsWorkspace() {
 
       <div className="cb-payments-empty-banner border-brand/20 bg-brand/5" data-testid="payments-bulk-hint">
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-foreground">Como evitar trabalho mês a mês</p>
+          <p className="font-semibold text-foreground">Carteira em massa — não célula a célula</p>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            1) No cliente: valor + início/fim da avença. 2) Aqui: «Replicar avenças» cria Jan–Dez (ou o
-            intervalo) para <strong>todos</strong> os clientes com avença activa. 3) Numa célula
-            aberta: «Replicar para outros meses» copia aquele valor para o resto do ano.
+            1) No cliente: valor + início/fim. 2) «Configurar avenças» aplica o período a{' '}
+            <strong>toda</strong> a carteira activa. 3) Numa célula: «Replicar para outros meses»
+            copia aquele valor só para esse cliente.
           </p>
         </div>
         <Button type="button" onClick={() => setGenerateOpen(true)}>
-          Replicar avenças
+          Configurar avenças
         </Button>
       </div>
 
@@ -517,6 +517,7 @@ export function PaymentsWorkspace() {
       <GenerateMonthDialog
         open={generateOpen}
         onOpenChange={setGenerateOpen}
+        year={year}
         fromYearMonth={generateFrom}
         toYearMonth={generateTo}
         onFromYearMonthChange={setGenerateFrom}
