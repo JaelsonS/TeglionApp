@@ -91,14 +91,25 @@ async function listOverview({ firmId, year, search }) {
   const clients = await clientsRepository.listClients(firmId, { limit: 500, includeInactive: true });
   const clientById = new Map(clients.map((c) => [c.id, c]));
 
+  /** Só imóveis activos entram na lista — KPIs devem seguir a mesma regra (apagar = arquivar). */
+  const activePropertyIds = new Set(properties.map((p) => p.id));
+  const visibleLeaseIds = new Set(
+    leases
+      .filter((l) => activePropertyIds.has(l.propertyId) && l.status !== 'cancelled')
+      .map((l) => l.id),
+  );
+  const visibleReceipts = receipts.filter((r) => visibleLeaseIds.has(r.leaseId));
+
   const leasesByProperty = new Map();
   for (const l of leases) {
+    if (!activePropertyIds.has(l.propertyId)) continue;
+    if (l.status === 'cancelled') continue;
     if (!leasesByProperty.has(l.propertyId)) leasesByProperty.set(l.propertyId, []);
     leasesByProperty.get(l.propertyId).push(l);
   }
 
   const receiptsByLease = new Map();
-  for (const r of receipts) {
+  for (const r of visibleReceipts) {
     if (!receiptsByLease.has(r.leaseId)) receiptsByLease.set(r.leaseId, {});
     receiptsByLease.get(r.leaseId)[r.yearMonth] = { ...r, overdue: isOverdue(r, today) };
   }
@@ -146,7 +157,7 @@ async function listOverview({ firmId, year, search }) {
     paymentMethods: RENT_PAYMENT_METHODS,
     disclaimer: INTERNAL_DISCLAIMER,
     rows,
-    summary: summarizeReceipts(receipts, today),
+    summary: summarizeReceipts(visibleReceipts, today),
   };
 }
 
