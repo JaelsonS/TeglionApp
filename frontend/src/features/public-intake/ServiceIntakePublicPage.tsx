@@ -238,14 +238,33 @@ export function ServiceIntakePublicPage() {
     }
   }
 
+  const identityCfg = {
+    name: query.data?.intakeForm?.identityFields?.name || 'required',
+    email: query.data?.intakeForm?.identityFields?.email || 'required',
+    phone: query.data?.intakeForm?.identityFields?.phone || 'optional',
+    taxId: query.data?.intakeForm?.identityFields?.taxId || 'optional',
+  } as const
+
   async function onCaptureLead(e: FormSubmitEvent) {
     e.preventDefault()
-    if (!name.trim()) {
+    if (identityCfg.name === 'required' && !name.trim()) {
       toast.error('Indique o seu nome')
       return
     }
-    if (!email.trim()) {
+    if (identityCfg.email === 'required' && !email.trim()) {
       toast.error('Indique o seu email')
+      return
+    }
+    if (identityCfg.phone === 'required' && !phone.trim()) {
+      toast.error('Indique o seu telefone')
+      return
+    }
+    if (identityCfg.taxId === 'required' && !taxId.trim()) {
+      toast.error('Indique o seu NIF')
+      return
+    }
+    if (identityCfg.name === 'hidden' && identityCfg.email === 'hidden') {
+      toast.error('Contacto incompleto — contacte o gabinete')
       return
     }
     if (needsLegal && !acceptedTerms) {
@@ -281,8 +300,29 @@ export function ServiceIntakePublicPage() {
 
   async function onSubmit(e: FormSubmitEvent) {
     e.preventDefault()
-    if (!name.trim() || !email.trim()) {
-      toast.error('Nome e email são obrigatórios')
+    if (identityCfg.name === 'required' && !name.trim()) {
+      toast.error('Indique o seu nome')
+      return
+    }
+    if (identityCfg.email === 'required' && !email.trim()) {
+      toast.error('Indique o seu email')
+      return
+    }
+    if (identityCfg.phone === 'required' && !phone.trim()) {
+      toast.error('Indique o seu telefone')
+      return
+    }
+    if (identityCfg.taxId === 'required' && !taxId.trim()) {
+      toast.error('Indique o seu NIF')
+      return
+    }
+    if (
+      identityCfg.name !== 'hidden' &&
+      identityCfg.email !== 'hidden' &&
+      !name.trim() &&
+      !email.trim()
+    ) {
+      toast.error('Indique o nome ou o email')
       return
     }
     if (query.data?.requiresBooking && !scheduledAt) {
@@ -459,34 +499,50 @@ export function ServiceIntakePublicPage() {
   const identityFields = (
     <>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1 text-sm">
-          <span className="font-medium">Nome *</span>
-          <Input className="h-10 rounded-lg" value={name} onChange={(e: FormChangeEvent) => setName(e.target.value)} />
-        </label>
-        <label className="space-y-1 text-sm">
-          <span className="font-medium">NIF</span>
-          <Input className="h-10 rounded-lg" value={taxId} onChange={(e: FormChangeEvent) => setTaxId(e.target.value)} />
-        </label>
-        <label className="space-y-1 text-sm">
-          <span className="font-medium">Email *</span>
-          <Input
-            type="email"
-            className="h-10 rounded-lg"
-            value={email}
-            onChange={(e: FormChangeEvent) => setEmail(e.target.value)}
-          />
-        </label>
-        <label className="space-y-1 text-sm">
-          <span className="font-medium">Telefone</span>
-          <PhoneNumberInput
-            defaultCountry="PT"
-            value={phone || undefined}
-            onChange={(v) => setPhone(v || '')}
-            placeholder="+351 …"
-            className="h-10 rounded-lg"
-            inputClassName="h-10 rounded-lg"
-          />
-        </label>
+        {identityCfg.name !== 'hidden' ? (
+          <label className="space-y-1 text-sm">
+            <span className="font-medium">
+              Nome{identityCfg.name === 'required' ? ' *' : ''}
+            </span>
+            <Input className="h-10 rounded-lg" value={name} onChange={(e: FormChangeEvent) => setName(e.target.value)} />
+          </label>
+        ) : null}
+        {identityCfg.taxId !== 'hidden' ? (
+          <label className="space-y-1 text-sm">
+            <span className="font-medium">
+              NIF{identityCfg.taxId === 'required' ? ' *' : ''}
+            </span>
+            <Input className="h-10 rounded-lg" value={taxId} onChange={(e: FormChangeEvent) => setTaxId(e.target.value)} />
+          </label>
+        ) : null}
+        {identityCfg.email !== 'hidden' ? (
+          <label className="space-y-1 text-sm">
+            <span className="font-medium">
+              Email{identityCfg.email === 'required' ? ' *' : ''}
+            </span>
+            <Input
+              type="email"
+              className="h-10 rounded-lg"
+              value={email}
+              onChange={(e: FormChangeEvent) => setEmail(e.target.value)}
+            />
+          </label>
+        ) : null}
+        {identityCfg.phone !== 'hidden' ? (
+          <label className="space-y-1 text-sm">
+            <span className="font-medium">
+              Telefone{identityCfg.phone === 'required' ? ' *' : ''}
+            </span>
+            <PhoneNumberInput
+              defaultCountry="PT"
+              value={phone || undefined}
+              onChange={(v) => setPhone(v || '')}
+              placeholder="+351 …"
+              className="h-10 rounded-lg"
+              inputClassName="h-10 rounded-lg"
+            />
+          </label>
+        ) : null}
       </div>
 
       {needsLegal ? (

@@ -1,6 +1,23 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
@@ -8,6 +25,7 @@ import {
   ExternalLink,
   FileQuestion,
   Globe,
+  GripVertical,
   ImageIcon,
   Info,
   Loader2,
@@ -63,6 +81,8 @@ import type {
   DocumentTiming,
   FirmBookingSettings,
   IntakeForm,
+  IntakeIdentityFieldMode,
+  IntakeIdentityFields,
   IntakeQuestion,
   IntakeQuestionOption,
   IntakeQuestionType,
@@ -86,6 +106,26 @@ const QUESTION_TYPE_LABELS: Record<IntakeQuestionType, string> = {
 }
 
 const CHOICE_TYPES: IntakeQuestionType[] = ['single_choice', 'multiple_choice', 'yes_no']
+
+const DEFAULT_IDENTITY_FIELDS: Required<IntakeIdentityFields> = {
+  name: 'required',
+  email: 'required',
+  phone: 'optional',
+  taxId: 'optional',
+}
+
+const IDENTITY_FIELD_LABELS: { key: keyof IntakeIdentityFields; label: string }[] = [
+  { key: 'name', label: 'Nome' },
+  { key: 'email', label: 'Email' },
+  { key: 'phone', label: 'Telefone' },
+  { key: 'taxId', label: 'NIF' },
+]
+
+const IDENTITY_MODE_OPTIONS: { value: IntakeIdentityFieldMode; label: string }[] = [
+  { value: 'required', label: 'Obrigatório' },
+  { value: 'optional', label: 'Opcional' },
+  { value: 'hidden', label: 'Não pedir' },
+]
 
 const TABS = [
   { id: 'geral', label: '1. O que oferece', short: 'Oferta' },
@@ -136,6 +176,34 @@ function normalizeLabelForComparison(label: string) {
 
 function isReservedQuestionLabel(label: string) {
   return RESERVED_QUESTION_LABELS.has(normalizeLabelForComparison(label))
+}
+
+function SortableQuestionBlock({ id, children }: { id: string; children: ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+      className={cn(isDragging && 'z-10 opacity-95')}
+    >
+      <div className="relative">
+        <button
+          type="button"
+          className="absolute -left-1 top-3 z-10 cursor-grab touch-none rounded p-1 text-muted-foreground hover:bg-muted active:cursor-grabbing"
+          aria-label="Arrastar para reordenar"
+          title="Arrastar para reordenar"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <div className="pl-5">{children}</div>
+      </div>
+    </div>
+  )
 }
 
 function slugifyTag(title: string, index: number) {
@@ -246,7 +314,13 @@ export function ServiceFullEditorSheet({
   const [documentRequirements, setDocumentRequirements] = useState<DocumentRequirement[]>([])
   const [questions, setQuestions] = useState<IntakeQuestion[]>([])
   const [formEnabled, setFormEnabled] = useState(false)
+  const [identityFields, setIdentityFields] =
+    useState<Required<IntakeIdentityFields>>(DEFAULT_IDENTITY_FIELDS)
   const [showFirmLogo, setShowFirmLogo] = useState(true)
+  const questionSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
   const [newDocDraft, setNewDocDraft] = useState<Record<string, string>>({})
   const [irsConfig, setIrsConfig] = useState<IrsServiceConfig | undefined>(undefined)
 
@@ -294,6 +368,12 @@ export function ServiceFullEditorSheet({
       setDocumentRequirements(service.documentRequirements ?? [])
       setQuestions(serviceQuestions)
       setFormEnabled(serviceQuestions.length > 0)
+      setIdentityFields({
+        name: form?.identityFields?.name || DEFAULT_IDENTITY_FIELDS.name,
+        email: form?.identityFields?.email || DEFAULT_IDENTITY_FIELDS.email,
+        phone: form?.identityFields?.phone || DEFAULT_IDENTITY_FIELDS.phone,
+        taxId: form?.identityFields?.taxId || DEFAULT_IDENTITY_FIELDS.taxId,
+      })
       setShowFirmLogo(form?.pageOptions?.showFirmLogo !== false)
       setIrsConfig(form?.irsConfig)
     } else {
@@ -321,6 +401,7 @@ export function ServiceFullEditorSheet({
       setDocumentRequirements([])
       setQuestions([])
       setFormEnabled(false)
+      setIdentityFields(DEFAULT_IDENTITY_FIELDS)
       setShowFirmLogo(true)
       setIrsConfig(undefined)
     }
@@ -335,10 +416,22 @@ export function ServiceFullEditorSheet({
     () => ({
       questions: effectiveQuestions,
       pageOptions: { showFirmLogo },
+      identityFields,
       ...(irsConfig ? { irsConfig } : {}),
     }),
-    [effectiveQuestions, showFirmLogo, irsConfig],
+    [effectiveQuestions, showFirmLogo, identityFields, irsConfig],
   )
+
+  function onQuestionsDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    setQuestions((prev) => {
+      const oldIndex = prev.findIndex((q, i) => (q.id || `q-${i}`) === active.id)
+      const newIndex = prev.findIndex((q, i) => (q.id || `q-${i}`) === over.id)
+      if (oldIndex < 0 || newIndex < 0) return prev
+      return arrayMove(prev, oldIndex, newIndex)
+    })
+  }
 
   const publicUrl =
     firmSlug && slug.trim()
@@ -1024,8 +1117,44 @@ export function ServiceFullEditorSheet({
 
                 <SectionCard
                   title="Formulário de perguntas"
-                  description="Nome, email, telefone e NIF já são pedidos automaticamente. Use perguntas próprias deste serviço — por exemplo «É casado(a)?» ou, em escolha múltipla, «Quais serviços pretende solicitar?»."
+                  description="Configure os dados de contacto (nome, email, telefone, NIF) e as perguntas próprias deste serviço. Arraste para mudar a ordem."
                 >
+                  <div className="space-y-3 rounded-xl border border-border/50 bg-muted/20 p-3">
+                    <p className="text-sm font-medium">Dados de contacto na página pública</p>
+                    <p className="text-xs text-muted-foreground">
+                      Defina se cada campo é obrigatório, opcional ou não aparece. Precisa de pelo menos nome ou
+                      email.
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {IDENTITY_FIELD_LABELS.map(({ key, label }) => (
+                        <label key={key} className="flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-background px-3 py-2 text-sm">
+                          <span className="font-medium">{label}</span>
+                          <select
+                            className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+                            value={identityFields[key]}
+                            onChange={(e) => {
+                              const mode = e.target.value as IntakeIdentityFieldMode
+                              setIdentityFields((prev) => {
+                                const next = { ...prev, [key]: mode }
+                                if (next.name === 'hidden' && next.email === 'hidden') {
+                                  toast.error('Mantenha pelo menos o nome ou o email')
+                                  return prev
+                                }
+                                return next
+                              })
+                            }}
+                          >
+                            {IDENTITY_MODE_OPTIONS.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
                   <label className="flex items-start gap-2 text-sm">
                     <Checkbox
                       className="mt-0.5"
@@ -1033,9 +1162,9 @@ export function ServiceFullEditorSheet({
                       onCheckedChange={(checked: boolean | 'indeterminate') => setFormEnabled(Boolean(checked))}
                     />
                     <span>
-                      Incluir formulário de perguntas
+                      Incluir perguntas adicionais
                       <span className="block text-xs text-muted-foreground">
-                        Se desligar, o serviço é guardado sem perguntas — a página pede apenas nome e contacto.
+                        Se desligar, a página pede apenas os dados de contacto configurados acima.
                       </span>
                     </span>
                   </label>
@@ -1052,9 +1181,18 @@ export function ServiceFullEditorSheet({
                         </Button>
                       </div>
                     ) : (
+                      <DndContext sensors={questionSensors} collisionDetection={closestCenter} onDragEnd={onQuestionsDragEnd}>
+                        <SortableContext
+                          items={questions.map((q, i) => q.id || `q-${i}`)}
+                          strategy={verticalListSortingStrategy}
+                        >
                       <div className="space-y-3">
                         {questions.map((q, qIndex) => (
-                          <div key={q.id ?? qIndex} className="space-y-2 rounded-xl border border-border/50 p-3">
+                          <SortableQuestionBlock
+                            key={q.id ?? qIndex}
+                            id={q.id || `q-${qIndex}`}
+                          >
+                          <div className="space-y-2 rounded-xl border border-border/50 p-3">
                             <div className="flex flex-wrap items-center gap-2">
                               <Input
                                 placeholder="Pergunta"
@@ -1098,8 +1236,8 @@ export function ServiceFullEditorSheet({
 
                             {isReservedQuestionLabel(q.label) ? (
                               <p className="rounded-lg bg-amber-50 px-2.5 py-1.5 text-[11px] font-medium text-amber-800">
-                                “{q.label}” já é pedido automaticamente no topo da página — vai aparecer duplicado ao
-                                cliente. Apague esta pergunta ou mude o nome.
+                                “{q.label}” coincide com um dado de contacto. Prefira configurar obrigatório/opcional
+                                em «Dados de contacto» acima, em vez de duplicar a pergunta.
                               </p>
                             ) : null}
 
@@ -1181,6 +1319,7 @@ export function ServiceFullEditorSheet({
                               </div>
                             ) : null}
                           </div>
+                          </SortableQuestionBlock>
                         ))}
                         <div className="flex justify-end">
                           <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={addQuestion}>
@@ -1188,6 +1327,8 @@ export function ServiceFullEditorSheet({
                           </Button>
                         </div>
                       </div>
+                        </SortableContext>
+                      </DndContext>
                     )
                   ) : null}
                 </SectionCard>

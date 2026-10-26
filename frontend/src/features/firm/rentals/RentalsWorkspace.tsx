@@ -186,8 +186,8 @@ export function RentalsWorkspace() {
   return (
     <FirmModuleShell
       className="cb-rentals-shell cb-rentals-page-scroll"
-      title="Imóveis e rendas"
-      subtitle="Contratos e recibos internos de renda — quem pagou, quem deve, edição e recibo sem sair da página."
+      title="Custos e contratos"
+      subtitle="Renda do escritório, luz, gás, água, software e outros contratos do gabinete — mapa mensal de quem pagou e o que está em aberto."
       headerRight={
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="outline" size="sm" onClick={() => setYear((y) => y - 1)}>
@@ -199,10 +199,10 @@ export function RentalsWorkspace() {
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => setPropertyEdit({})}>
             <Plus className="mr-1 h-4 w-4" aria-hidden />
-            Imóvel
+            Contrato / custo
           </Button>
           <Button type="button" size="sm" onClick={() => setGenerateOpen(true)}>
-            Gerar recibos
+            Gerar meses
           </Button>
         </div>
       }
@@ -228,9 +228,9 @@ export function RentalsWorkspace() {
       ) : null}
 
       <p className="cb-rentals-section-lead">
-        <span className="cb-rentals-section-lead-title">Mapa de rendas</span>
-        Recibos internos do gabinete — não substituem o Portal das Finanças nem comunicação à AT.
-        Clique numa célula para editar, apagar ou gerar recibo interno.
+        <span className="cb-rentals-section-lead-title">Mapa de custos do gabinete</span>
+        Controlo interno de arrendamento, utilities e licenças. Não substitui facturas oficiais nem o
+        Portal das Finanças. Clique numa célula para editar ou marcar como pago.
       </p>
 
       <div className="cb-rentals-section-host">

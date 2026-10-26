@@ -335,10 +335,33 @@ function normalizeIntakeForm(value) {
     pageOptions = { showFirmLogo: value.pageOptions.showFirmLogo !== false };
   }
 
+  const IDENTITY_MODES = new Set(['required', 'optional', 'hidden']);
+  let identityFields;
+  if (value.identityFields && typeof value.identityFields === 'object') {
+    const pick = (key, fallback) => {
+      const raw = String(value.identityFields[key] || fallback).toLowerCase();
+      return IDENTITY_MODES.has(raw) ? raw : fallback;
+    };
+    identityFields = {
+      name: pick('name', 'required'),
+      email: pick('email', 'required'),
+      phone: pick('phone', 'optional'),
+      taxId: pick('taxId', 'optional'),
+    };
+    if (identityFields.name === 'hidden' && identityFields.email === 'hidden') {
+      throw new AppError(
+        'O formulário precisa de pedir pelo menos o nome ou o e-mail',
+        400,
+        { code: 'IDENTITY_CONTACT_REQUIRED' },
+      );
+    }
+  }
+
   return {
     questions,
     ...(irsConfig ? { irsConfig } : {}),
     ...(pageOptions ? { pageOptions } : {}),
+    ...(identityFields ? { identityFields } : {}),
   };
 }
 

@@ -345,6 +345,16 @@ export type IrsServiceConfig = {
   anexoLabels?: Partial<Record<IrsAnexoId, IrsAnexoLabel>>
 }
 
+/** Controlo dos campos de identidade na página pública do serviço. */
+export type IntakeIdentityFieldMode = 'required' | 'optional' | 'hidden'
+
+export type IntakeIdentityFields = {
+  name?: IntakeIdentityFieldMode
+  email?: IntakeIdentityFieldMode
+  phone?: IntakeIdentityFieldMode
+  taxId?: IntakeIdentityFieldMode
+}
+
 export type IntakeForm = {
   questions: IntakeQuestion[]
   /** Metadados IRS (Modelo 3 / anexos) — opcional. */
@@ -354,6 +364,11 @@ export type IntakeForm = {
     /** Omissão: true. */
     showFirmLogo?: boolean
   }
+  /**
+   * Nome / email / telefone / NIF na página pública.
+   * Omissão = name+email required, phone+taxId optional (comportamento histórico).
+   */
+  identityFields?: IntakeIdentityFields
 }
 
 export type AccountingService = {

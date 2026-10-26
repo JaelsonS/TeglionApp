@@ -15,8 +15,10 @@ import { Input } from '@/shared/components/ui/input'
 type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  yearMonth: string
-  onYearMonthChange: (value: string) => void
+  fromYearMonth: string
+  toYearMonth: string
+  onFromYearMonthChange: (value: string) => void
+  onToYearMonthChange: (value: string) => void
   activeRetainerCount: number
   generating: boolean
   onGenerate: () => void
@@ -25,13 +27,15 @@ type Props = {
 export function GenerateMonthDialog({
   open,
   onOpenChange,
-  yearMonth,
-  onYearMonthChange,
+  fromYearMonth,
+  toYearMonth,
+  onFromYearMonthChange,
+  onToYearMonthChange,
   activeRetainerCount,
   generating,
   onGenerate,
 }: Props) {
-  const canGenerate = activeRetainerCount > 0 && !generating
+  const canGenerate = activeRetainerCount > 0 && !generating && Boolean(fromYearMonth) && Boolean(toYearMonth)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -42,9 +46,10 @@ export function GenerateMonthDialog({
               <Wallet className="h-5 w-5" aria-hidden />
             </span>
             <div className="min-w-0">
-              <DialogTitle>Gerar avenças do mês</DialogTitle>
+              <DialogTitle>Gerar / replicar avenças</DialogTitle>
               <DialogDescription className="mt-1">
-                Cria um rascunho por cada cliente com avença activa. Quem já tem o mês fica de fora.
+                Cria rascunhos para todos os clientes com avença activa no intervalo escolhido (ex.
+                Jan–Dez). Quem já tem o mês, ou está fora do início/fim da avença, fica de fora.
               </DialogDescription>
             </div>
           </div>
@@ -72,19 +77,30 @@ export function GenerateMonthDialog({
             )}
           </div>
 
-          <label className="block space-y-1.5 text-sm">
-            <span className="font-medium">Mês a gerar</span>
-            <Input
-              type="month"
-              value={yearMonth}
-              onChange={(e: FormChangeEvent) => onYearMonthChange(e.target.value)}
-              disabled={generating}
-            />
-          </label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block space-y-1.5 text-sm">
+              <span className="font-medium">De</span>
+              <Input
+                type="month"
+                value={fromYearMonth}
+                onChange={(e: FormChangeEvent) => onFromYearMonthChange(e.target.value)}
+                disabled={generating}
+              />
+            </label>
+            <label className="block space-y-1.5 text-sm">
+              <span className="font-medium">Até</span>
+              <Input
+                type="month"
+                value={toYearMonth}
+                onChange={(e: FormChangeEvent) => onToYearMonthChange(e.target.value)}
+                disabled={generating}
+              />
+            </label>
+          </div>
 
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Os rascunhos ficam editáveis no mapa: pode marcar como pago, apagar ou gerar recibo
-            interno.
+            Para um só mês, escolha o mesmo valor em «De» e «Até». Os rascunhos ficam editáveis no
+            mapa.
           </p>
         </div>
 
@@ -103,7 +119,7 @@ export function GenerateMonthDialog({
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />A gerar…
               </>
             ) : (
-              'Gerar rascunhos'
+              'Gerar / replicar'
             )}
           </Button>
         </DialogFooter>

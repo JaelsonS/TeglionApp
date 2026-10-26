@@ -50,9 +50,13 @@ export function PaymentsWorkspace() {
   const [qDebounced, setQDebounced] = useState('')
   const [healthFilter, setHealthFilter] = useState<HealthFilter>('todos')
   const [generateOpen, setGenerateOpen] = useState(false)
-  const [generateMonth, setGenerateMonth] = useState(() => {
+  const [generateFrom, setGenerateFrom] = useState(() => {
     const n = new Date()
-    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}`
+    return `${n.getFullYear()}-01`
+  })
+  const [generateTo, setGenerateTo] = useState(() => {
+    const n = new Date()
+    return `${n.getFullYear()}-12`
   })
   const [generating, setGenerating] = useState(false)
   const [creatingKey, setCreatingKey] = useState<string | null>(null)
@@ -163,18 +167,21 @@ export function PaymentsWorkspace() {
   async function runGenerate() {
     setGenerating(true)
     try {
-      const res = await contabilFeeChargesApi.generate({ yearMonth: generateMonth })
+      const res = await contabilFeeChargesApi.generate({
+        fromYearMonth: generateFrom,
+        toYearMonth: generateTo,
+      })
       if (!res.createdCount) {
         toast.message('Nada gerado', {
           description:
             activeRetainerCount === 0
               ? 'Nenhum cliente tem avença activa. Abra o cliente, defina o valor e active a avença.'
-              : 'Todos os clientes com avença já têm este mês.',
+              : 'Todos os meses do intervalo já existiam ou estavam fora do período da avença.',
         })
       } else {
         toast.success(
           `Geradas ${res.createdCount} avença(s)` +
-            (res.skippedCount ? ` · ${res.skippedCount} já existiam` : ''),
+            (res.skippedCount ? ` · ${res.skippedCount} ignoradas` : ''),
         )
       }
       setGenerateOpen(false)
@@ -511,8 +518,10 @@ export function PaymentsWorkspace() {
       <GenerateMonthDialog
         open={generateOpen}
         onOpenChange={setGenerateOpen}
-        yearMonth={generateMonth}
-        onYearMonthChange={setGenerateMonth}
+        fromYearMonth={generateFrom}
+        toYearMonth={generateTo}
+        onFromYearMonthChange={setGenerateFrom}
+        onToYearMonthChange={setGenerateTo}
         activeRetainerCount={activeRetainerCount}
         generating={generating}
         onGenerate={() => void runGenerate()}
