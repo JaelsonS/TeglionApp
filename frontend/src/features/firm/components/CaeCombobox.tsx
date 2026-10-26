@@ -185,7 +185,7 @@ export function CaeCombobox({
             </CommandEmpty>
 
             {filteredHistory.length > 0 ? (
-              <CommandGroup heading="Usados no escritório" className="overflow-visible">
+              <CommandGroup heading="Usados no gabinete" className="overflow-visible">
                 {filteredHistory.map((item) => (
                   <CommandItem
                     key={`hist-${item}`}

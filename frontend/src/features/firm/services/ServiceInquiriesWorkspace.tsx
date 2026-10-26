@@ -89,7 +89,7 @@ function formatSubmittedAt(iso: string | null | undefined) {
   })
 }
 
-export function ServiceInquiriesWorkspace() {
+export function ServiceInquiriesWorkspace({ embedded = false }: { embedded?: boolean }) {
   const qc = useQueryClient()
   const [serviceFilter, setServiceFilter] = useState('')
   const [tagFilter, setTagFilter] = useState('')
@@ -406,19 +406,46 @@ export function ServiceInquiriesWorkspace() {
     }
   }
 
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = { NEW: 0, IN_PROGRESS: 0, COMPLETED: 0, all: items.length }
+    for (const it of items) {
+      const st = String((it as { status?: string }).status || '')
+      if (st === 'NEW' || st === 'LEAD_CAPTURED') counts.NEW += 1
+      else if (st === 'IN_PROGRESS' || st === 'CONTACTED' || st === 'DOCS_REQUESTED') counts.IN_PROGRESS += 1
+      else if (st === 'COMPLETED') counts.COMPLETED += 1
+    }
+    return counts
+  }, [items])
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
+    <div className={cn('flex w-full min-w-0 flex-col gap-3', !embedded && 'min-h-0 flex-1')}>
+      <div className="cb-services-kpi-strip px-0" data-testid="services-inquiries-kpis">
+        {[
+          { id: 'all', label: 'Total', value: String(statusCounts.all), tone: 'brand' as const },
+          { id: 'new', label: 'Novos', value: String(statusCounts.NEW), tone: 'amber' as const },
+          { id: 'progress', label: 'Em curso', value: String(statusCounts.IN_PROGRESS), tone: 'brand' as const },
+          { id: 'done', label: 'Concluídos', value: String(statusCounts.COMPLETED), tone: 'emerald' as const },
+        ].map((kpi) => (
+          <div key={kpi.id} className={cn('cb-services-kpi', `cb-services-kpi--${kpi.tone}`)}>
+            <div className="min-w-0">
+              <p className="cb-services-kpi-value">{kpi.value}</p>
+              <p className="cb-services-kpi-label">{kpi.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
-          Captação da página pública. Categorize com as suas etiquetas e peça o que faltar ao cliente.
+          Captação da página pública. Categorize com etiquetas e peça o que faltar ao cliente.
         </p>
-        <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={() => setTagsOpen(true)}>
-          <Settings2 className="mr-1.5 h-3.5 w-3.5" />
-          Etiquetas do escritório
+        <Button type="button" size="sm" variant="outline" onClick={() => setTagsOpen(true)}>
+          <Settings2 className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+          Etiquetas
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="cb-services-status-chips flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={() => {
@@ -426,8 +453,8 @@ export function ServiceInquiriesWorkspace() {
             setTagFilter('')
           }}
           className={cn(
-            'rounded-full px-3 py-1.5 text-xs font-semibold transition',
-            !serviceFilter && !tagFilter ? 'bg-brand text-primary-foreground shadow-sm' : 'bg-muted/40 text-muted-foreground',
+            'cb-services-chip',
+            !serviceFilter && !tagFilter && 'cb-services-chip-active',
           )}
         >
           Todas
@@ -458,10 +485,7 @@ export function ServiceInquiriesWorkspace() {
               setServiceFilter(s.id)
               setTagFilter('')
             }}
-            className={cn(
-              'rounded-full px-3 py-1.5 text-xs font-semibold transition',
-              serviceFilter === s.id ? 'bg-brand text-primary-foreground shadow-sm' : 'bg-muted/40 text-muted-foreground',
-            )}
+            className={cn('cb-services-chip', serviceFilter === s.id && 'cb-services-chip-active')}
           >
             {s.name}
           </button>
@@ -564,7 +588,7 @@ export function ServiceInquiriesWorkspace() {
       <FirmWorkspaceFocusDialog
         open={tagsOpen}
         onOpenChange={setTagsOpen}
-        title="Etiquetas do escritório"
+        title="Etiquetas do gabinete"
         description="Use as mesmas etiquetas em clientes, leads, solicitações e equipa."
         className="w-[min(96vw,560px)] max-w-[min(96vw,560px)]"
       >

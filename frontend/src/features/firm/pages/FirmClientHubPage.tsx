@@ -27,6 +27,7 @@ import { ClientHubActivityHistoryPanel } from '@/features/firm/client-hub/Client
 import { ClientHubHistory } from '@/features/firm/client-hub/ClientHubHistory'
 import { deriveRiskReason } from '@/features/firm/client-hub/clientHubUtils'
 import { ClientHubOverviewMetrics } from '@/features/firm/client-hub/ClientHubOverviewMetrics'
+import { ClientHubBillingPanel } from '@/features/firm/payments/ClientHubBillingPanel'
 import {
   CLIENT_HUB_SECTIONS,
   isClientHubSection,
@@ -111,6 +112,8 @@ export function FirmClientHubPage() {
     { id: 'profile' as const, label: 'Perfil', icon: Building2 },
   ]
 
+  const activeSectionMeta = CLIENT_HUB_SECTIONS.find((s) => s.id === section)
+
   return (
     <FirmScrollPage className="cb-client-hub-page">
       {isFetching && !isLoading ? (
@@ -136,6 +139,11 @@ export function FirmClientHubPage() {
             className="inline-flex w-max min-w-full flex-nowrap border-0 bg-transparent p-0 shadow-none"
           />
         </div>
+        {activeSectionMeta ? (
+          <p className="cb-client-hub-section-purpose px-4 pb-3" data-testid="client-hub-section-purpose">
+            {activeSectionMeta.purpose}
+          </p>
+        ) : null}
       </div>
 
       <div className="cb-client-hub-body min-w-0 w-full max-w-full pt-4">
@@ -284,6 +292,10 @@ export function FirmClientHubPage() {
               </section>
             ) : null}
           </div>
+        ) : null}
+
+        {section === 'billing' ? (
+          <ClientHubBillingPanel clientId={cid} displayName={displayName} />
         ) : null}
 
         {section === 'timeline' ? (

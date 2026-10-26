@@ -15,16 +15,16 @@ type Copy = {
 const COPY: Record<AuthProfileLocale, Copy> = {
   'pt-PT': {
     brand: 'Teglion',
-    title: 'Como pretende aceder?',
-    subtitle: 'Escolha o seu perfil para continuar para o login ou registo.',
+    title: 'Quem está a entrar?',
+    subtitle: 'Gabinete e cliente têm áreas diferentes — escolha o perfil certo para não misturar acessos.',
     firm: {
-      title: 'Sou um escritório de contabilidade',
-      description: 'Gerir clientes, obrigações, documentos e equipa.',
-      cta: 'Continuar como escritório',
+      title: 'Sou um gabinete de contabilidade',
+      description: 'Painel da equipa: clientes, obrigações, documentos e mensagens.',
+      cta: 'Continuar como gabinete',
     },
     client: {
-      title: 'Sou cliente de um escritório',
-      description: 'Ver obrigações, enviar documentos e responder a pedidos.',
+      title: 'Sou cliente de um gabinete',
+      description: 'Portal: enviar documentos, ver pedidos e falar com o gabinete.',
       cta: 'Continuar como cliente',
     },
     back: 'Voltar ao início',
@@ -35,12 +35,12 @@ const COPY: Record<AuthProfileLocale, Copy> = {
     title: 'Como você quer acessar?',
     subtitle: 'Escolha seu perfil para continuar para login ou cadastro.',
     firm: {
-      title: 'Sou um escritório de contabilidade',
+      title: 'Sou um gabinete de contabilidade',
       description: 'Gerenciar clientes, obrigações, documentos e equipe.',
-      cta: 'Continuar como escritório',
+      cta: 'Continuar como gabinete',
     },
     client: {
-      title: 'Sou cliente de um escritório',
+      title: 'Sou cliente de um gabinete',
       description: 'Ver obrigações, enviar documentos e responder pedidos.',
       cta: 'Continuar como cliente',
     },

@@ -164,15 +164,15 @@ export function ClientLoginPage() {
 
   return (
     <AuthLayout
-      title="Entrar no Teglion"
+      title="Portal do cliente"
       subtitle={subtitle}
       leftPanelSlot={<OfficeScreensCarousel />}
     >
       <div className="mx-auto max-w-md">
         <AuthCard>
           <AuthHeader
-            title="Aceder ao portal"
-            subtitle="Use as credenciais que o seu escritório lhe forneceu."
+            title="Entrar no portal"
+            subtitle="Documentos, pedidos e mensagens com o seu gabinete — use o e-mail do convite."
           />
 
           {serverWaking ? <ServerWakingBanner startedAt={serverWakingSince} className="mt-6" /> : null}
@@ -181,12 +181,12 @@ export function ClientLoginPage() {
             <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
               <p className="font-semibold">Ainda não há palavra-passe nesta conta</p>
               <ol className="mt-2 list-decimal space-y-1 pl-4 text-caption leading-relaxed text-amber-900/90">
-                <li>Abra o email «Acesso ao portal» enviado pelo escritório.</li>
+                <li>Abra o email «Acesso ao portal» enviado pelo gabinete.</li>
                 <li>Clique no link do convite e defina a palavra-passe.</li>
                 <li>Volte aqui e entre com o mesmo e-mail e a senha criada.</li>
               </ol>
               <p className="mt-2 text-caption text-amber-900/80">
-                Se não encontrar o email, peça ao escritório um novo convite (ou que defina uma palavra-passe
+                Se não encontrar o email, peça ao gabinete um novo convite (ou que defina uma palavra-passe
                 inicial).
               </p>
             </div>
@@ -230,7 +230,7 @@ export function ClientLoginPage() {
                 />
                 Lembrar-me
               </label>
-              <Link to="/recover-password" state={{ role: 'client' }} className="text-sm font-medium text-[#0f2942] hover:underline">
+              <Link to="/recover-password" state={{ role: 'client' }} className="text-sm font-medium text-[#0B3A6E] hover:underline">
                 Esqueci a palavra-passe
               </Link>
             </div>

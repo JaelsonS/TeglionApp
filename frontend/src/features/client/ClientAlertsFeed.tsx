@@ -226,8 +226,8 @@ export function ClientAlertsFeed() {
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           className="rounded-full pl-9"
-          placeholder="Pesquisar alertas do escritório…"
-          aria-label="Pesquisar alertas do escritório"
+          placeholder="Pesquisar alertas do gabinete…"
+          aria-label="Pesquisar alertas do gabinete"
           value={search}
           onChange={(e: FormChangeEvent) => setSearch(e.target.value)}
         />
@@ -254,7 +254,7 @@ export function ClientAlertsFeed() {
           {items.length === 0 && pinned.length === 0 ? (
             <div className="cb-empty-state text-sm text-muted-foreground">
               <Megaphone className="mx-auto mb-2 h-8 w-8 opacity-30" />
-              Sem alertas do escritório neste momento.
+              Sem alertas do gabinete neste momento.
             </div>
           ) : (
             <ul className="space-y-2">

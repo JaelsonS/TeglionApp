@@ -11,8 +11,8 @@ const FIRM_BULLETS = [
 
 const CLIENT_BULLETS = [
   'Portal para enviar documentos e ver o que falta',
-  'Mensagens com o escritório sem WhatsApp perdido',
-  'Marcar e pagar serviços no site do escritório',
+  'Mensagens com o gabinete sem WhatsApp perdido',
+  'Marcar e pagar serviços no site do gabinete',
   'Lembretes e estado sem ligar outra vez',
 ]
 
@@ -21,15 +21,16 @@ export function LandingSolution() {
     <section className="landing-section">
       <div className="landing-container">
         <FadeInView className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-semibold sm:text-4xl">Uma plataforma. Três espaços ligados.</h2>
+          <h2 className="text-3xl font-semibold sm:text-4xl">A diferença Teglion: três espaços, um produto</h2>
           <p className="mt-4 text-[#4A5568]">
-            Escritório, portal do cliente e página pública — a mesma operação, sem links soltos.
+            Painel da equipa, portal do cliente e site público partilham a mesma carteira, os mesmos
+            serviços e o mesmo rasto — sem links soltos nem “já enviei?”.
           </p>
         </FadeInView>
 
         <div className="mt-14 grid gap-10 lg:grid-cols-2 lg:gap-12">
           <FadeInView>
-            <h3 className="text-xl font-semibold text-[#0F2942]">Para o escritório</h3>
+            <h3 className="text-xl font-semibold text-[#0B3A6E]">Para o gabinete</h3>
             <ul className="mt-4 space-y-2.5">
               {FIRM_BULLETS.map((b) => (
                 <li key={b} className="flex gap-2 text-[15px] text-[#4A5568]">
@@ -44,12 +45,12 @@ export function LandingSolution() {
           </FadeInView>
 
           <FadeInView delay={0.08}>
-            <h3 className="text-xl font-semibold text-[#0F2942]">Para o cliente</h3>
+            <h3 className="text-xl font-semibold text-[#0B3A6E]">Para o cliente</h3>
             <ul className="mt-4 space-y-2.5">
               {CLIENT_BULLETS.map((b) => (
                 <li key={b} className="flex gap-2 text-[15px] text-[#4A5568]">
                   <span
-                    className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#E3F0FF] ring-1 ring-[#0F2942]/20"
+                    className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#E3F0FF] ring-1 ring-[#0B3A6E]/20"
                     aria-hidden
                   />
                   {b}

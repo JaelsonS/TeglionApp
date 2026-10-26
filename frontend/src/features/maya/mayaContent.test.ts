@@ -124,11 +124,16 @@ describe('mayaContent', () => {
             intent.deepLink.startsWith('/app/client') ||
             intent.deepLink.startsWith('http') ||
             intent.deepLink.startsWith('/auth') ||
-            intent.deepLink.startsWith('/#'),
+            intent.deepLink.startsWith('/manual') ||
+            intent.deepLink.startsWith('/#') ||
+            intent.deepLink === '/manual',
           intent.id,
         ).toBe(true)
       } else {
-        expect(intent.deepLink.startsWith('/app/firm/'), intent.id).toBe(true)
+        expect(
+          intent.deepLink.startsWith('/app/firm/') || intent.deepLink.startsWith('/manual'),
+          intent.id,
+        ).toBe(true)
       }
     }
   })

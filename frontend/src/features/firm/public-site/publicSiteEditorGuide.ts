@@ -21,11 +21,11 @@ const BY_ZONE: Record<string, PublicSiteEditorGuideEntry> = {
   },
   about: {
     intentId: 'public-page-media',
-    mayaTip: 'Use «Sobre o escritório» para contar quem são e gerar confiança.',
+    mayaTip: 'Use «Sobre o gabinete» para contar quem são e gerar confiança.',
   },
   services: {
     intentId: 'public-page-featured',
-    mayaTip: 'Serviços com marcação online aparecem aqui — alinhe com o catálogo do escritório.',
+    mayaTip: 'Serviços com marcação online aparecem aqui — alinhe com o catálogo do gabinete.',
   },
   bookingServices: {
     intentId: 'public-page-featured',
@@ -33,7 +33,7 @@ const BY_ZONE: Record<string, PublicSiteEditorGuideEntry> = {
   },
   features: {
     intentId: 'public-page-sections',
-    mayaTip: 'Diferenciais em bullets: o que torna o escritório único para quem visita.',
+    mayaTip: 'Diferenciais em bullets: o que torna o gabinete único para quem visita.',
   },
   process: {
     intentId: 'public-page-sections',

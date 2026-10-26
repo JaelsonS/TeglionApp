@@ -6,11 +6,11 @@ import { FadeInStagger, FadeInStaggerItem, FadeInView } from '@/shared/component
 const TRUST_STATS = [
   {
     title: 'Sem risco',
-    text: '14 dias para usar o escritório completo. Não pedimos cartão.',
+    text: '14 dias para usar o gabinete completo. Não pedimos cartão.',
   },
   {
-    title: 'Escritório no controlo total',
-    text: 'Total organização e controlo do seu escritório.',
+    title: 'Gabinete no controlo total',
+    text: 'Total organização e controlo do seu gabinete.',
   },
   {
     title: 'Rasto claro',
@@ -54,9 +54,9 @@ export function LandingSocialProof({ className, showStats = true }: LandingSocia
             {TRUST_STATS.map((stat) => (
               <div
                 key={stat.title}
-                className="rounded-xl border border-[#0F2942]/10 bg-[#FAFAF7] px-5 py-5 text-left"
+                className="rounded-xl border border-[#0B3A6E]/10 bg-[#FAFAF7] px-5 py-5 text-left"
               >
-                <p className="text-sm font-semibold text-[#0F2942]">{stat.title}</p>
+                <p className="text-sm font-semibold text-[#0B3A6E]">{stat.title}</p>
                 <p className="mt-2 text-[13px] leading-relaxed text-[#4A5568]">{stat.text}</p>
               </div>
             ))}
@@ -65,14 +65,14 @@ export function LandingSocialProof({ className, showStats = true }: LandingSocia
 
         <FadeInView className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wide text-[#C9932E]">
-            Feito para escritórios de contabilidade
+            Identidade Teglion
           </p>
-          <h2 className="mt-2 text-3xl font-semibold text-[#0F2942] sm:text-4xl">
-            Menos caos. Mais fechos a tempo.
+          <h2 className="mt-2 text-3xl font-semibold text-[#0B3A6E] sm:text-4xl">
+            Método no gabinete. Clareza no cliente.
           </h2>
           <p className="mt-4 text-[17px] leading-relaxed text-[#4A5568]">
-            Clientes, documentos, prazos, página pública e pagamentos no mesmo sistema — para a equipa
-            trabalhar com método e o cliente deixar de perguntar “já enviei?”.
+            Pedidos com rasto, prazos no painel e portal aberto — a equipa sabe o próximo passo e o
+            cliente deixa de perguntar “já enviei?” sem saber aonde.
           </p>
         </FadeInView>
 
@@ -82,10 +82,10 @@ export function LandingSocialProof({ className, showStats = true }: LandingSocia
             return (
               <FadeInStaggerItem key={item.title}>
                 <article className="landing-card flex h-full flex-col p-6">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0F2942]/5 text-[#0F2942]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B3A6E]/5 text-[#0B3A6E]">
                     <Icon className="h-5 w-5" aria-hidden />
                   </div>
-                  <h3 className="mt-4 text-lg font-semibold text-[#0F2942]">{item.title}</h3>
+                  <h3 className="mt-4 text-lg font-semibold text-[#0B3A6E]">{item.title}</h3>
                   <p className="mt-2 flex-1 text-[15px] leading-relaxed text-[#4A5568]">{item.text}</p>
                 </article>
               </FadeInStaggerItem>

@@ -174,7 +174,7 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
             <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
               <span className="rounded-full border border-border/60 px-2 py-1">
                 Cargo:{' '}
-                {bundle.actor.jobTitle || (bundle.actor.isOwner ? 'Dono do escritório' : 'Colaborador')}
+                {bundle.actor.jobTitle || (bundle.actor.isOwner ? 'Dono do gabinete' : 'Colaborador')}
               </span>
               <span className="rounded-full border border-border/60 px-2 py-1">
                 Departamento: {bundle.actor.departmentName || 'Sem departamento'}
@@ -192,7 +192,7 @@ export function FirmSettingsProfileSection({ bundle, onUpdated }: Props) {
           </span>
           <div>
             <h3 className="cb-settings-panel-title">Dados de acesso</h3>
-            <p className="cb-settings-panel-sub">Nome e e-mail de acesso ao painel do escritório.</p>
+            <p className="cb-settings-panel-sub">Nome e e-mail de acesso ao painel do gabinete.</p>
           </div>
         </div>
 

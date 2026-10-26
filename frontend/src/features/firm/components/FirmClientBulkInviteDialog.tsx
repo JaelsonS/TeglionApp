@@ -91,7 +91,7 @@ export function FirmClientBulkInviteDialog({
         setBodyText(preview.bodyText || '')
       })
       .catch(() => {
-        /* preview soft-fail — o escritório ainda pode escrever o texto */
+        /* preview soft-fail — o gabinete ainda pode escrever o texto */
       })
       .finally(() => setLoadingPreview(false))
   }, [open])

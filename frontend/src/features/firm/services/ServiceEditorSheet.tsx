@@ -116,7 +116,7 @@ export function ServiceEditorSheet({ service, open, onOpenChange, onSaved }: Pro
             </div>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
-              Serviço activo no escritório
+              Serviço activo no gabinete
             </label>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={requiresBooking} onChange={(e) => setRequiresBooking(e.target.checked)} />
@@ -133,7 +133,7 @@ export function ServiceEditorSheet({ service, open, onOpenChange, onSaved }: Pro
                 checked={isPubliclyListed}
                 onChange={(e) => setIsPubliclyListed(e.target.checked)}
               />
-              Público na página do escritório
+              Público na página do gabinete
             </label>
             {isPubliclyListed ? (
               <label className="block space-y-1 text-sm">

@@ -34,7 +34,7 @@ async function invalidateServiceCatalogQueries(queryClient: ReturnType<typeof us
 function catalogImageErrorMessage(err: unknown): string {
   const msg = getErrorMessage(err)
   if (/403|negado|permissão|dono|responsável/i.test(msg)) {
-    return `${msg} — só o dono do escritório pode alterar imagens aqui (Definições → Página pública).`
+    return `${msg} — só o dono do gabinete pode alterar imagens aqui (Definições → Página pública).`
   }
   return msg
 }

@@ -25,7 +25,7 @@ export function FirmTopbar({ compact = false }: { compact?: boolean }) {
         <nav className="cb-firm-topbar-crumb min-w-0 flex-1" aria-label="Contexto">
           <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" aria-hidden />
           <span className="truncate text-sm font-semibold text-foreground">{firmName}</span>
-          {pageLabel && compact && location.pathname !== '/app/firm/dashboard' ? (
+          {pageLabel && location.pathname !== '/app/firm/dashboard' ? (
             <>
               <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50" aria-hidden />
               <span className="truncate text-sm text-muted-foreground">{pageLabel}</span>

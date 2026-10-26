@@ -6,11 +6,11 @@ export const SETTINGS_INTENTS = [
     title: 'O que configuro em Definições?',
     shortDescription: 'hub de Definições',
     answer:
-      'Definições é o centro de configuração: identidade, site público, dados do escritório, equipa, pagamentos (só o responsável) e o seu perfil. Para captar clientes na internet, o passo decisivo é Página pública — publique o site e ligue serviços do catálogo.',
+      'Definições é o centro de configuração: identidade, site público, dados do gabinete, equipa, pagamentos (só o responsável) e o seu perfil. Para captar clientes na internet, o passo decisivo é Página pública — publique o site e ligue serviços do catálogo.',
     steps: [
       'Identidade — logótipo',
       'Página pública — conteúdo e publicar',
-      'Escritório — dados da firma',
+      'Gabinete — dados da firma',
       'Pagamentos — se quiser receber online',
       'Equipa e perfil — acessos',
     ],
@@ -26,12 +26,12 @@ export const SETTINGS_INTENTS = [
     title: 'Como configurar o logótipo?',
     shortDescription: 'identidade',
     answer:
-      'Em Identidade carrega o logótipo do portal: menu lateral do escritório e área dos clientes. Não configura sozinho o site público (teglion.com/…). Para a vitrine na internet use Definições → Página pública → «Logótipos (só site público)», onde pode usar este logótipo, outro diferente ou nenhum — barra e destaque são independentes. Na página de cada serviço, a opção «Mostrar logótipo do escritório» usa o logótipo de Identidade.',
+      'Em Identidade carrega o logótipo do portal: menu lateral do gabinete e área dos clientes. Não configura sozinho o site público (teglion.com/…). Para a vitrine na internet use Definições → Página pública → «Logótipos (só site público)», onde pode usar este logótipo, outro diferente ou nenhum — barra e destaque são independentes. Na página de cada serviço, a opção «Mostrar logótipo do gabinete» usa o logótipo de Identidade.',
     steps: [
       'Abra Definições → Identidade',
       'Carregue a imagem do logótipo',
       'Guarde',
-      'Confirme no menu do escritório',
+      'Confirme no menu do gabinete',
       'Se quiser outro logótipo só no site, vá a Página pública (não é obrigatório)',
     ],
     deepLink: '/app/firm/settings?tab=identidade',
@@ -40,10 +40,10 @@ export const SETTINGS_INTENTS = [
   }),
   defineIntent({
     id: 'settings-firm',
-    title: 'Dados do escritório',
-    shortDescription: 'dados do escritório',
+    title: 'Dados do gabinete',
+    shortDescription: 'dados do gabinete',
     answer:
-      'Em Escritório estão o nome, contactos e dados fiscais da firma. Só quem pode editar a firma altera estes campos; os restantes vêem em leitura. Estes dados alimentam a identidade do produto e, em parte, a página pública.',
+      'Em Gabinete estão o nome, contactos e dados fiscais da firma. Só quem pode editar a firma altera estes campos; os restantes vêem em leitura. Estes dados alimentam a identidade do produto e, em parte, a página pública.',
     steps: [
       'Abra Definições → Escritório',
       'Confirme nome e contactos',
@@ -111,17 +111,17 @@ export const SETTINGS_INTENTS = [
     shortDescription: 'etiquetas',
     answer:
       'As etiquetas classificam clientes (e outros registos) para filtrar a carteira. Crie-as aqui e aplique-as na ficha ou na lista de clientes. Não substituem o tipo de cliente nem o regime de IVA.',
-    steps: ['Abra Definições → Etiquetas', 'Crie as etiquetas do escritório', 'Aplique-as nos clientes'],
+    steps: ['Abra Definições → Etiquetas', 'Crie as etiquetas do gabinete', 'Aplique-as nos clientes'],
     deepLink: '/app/firm/settings?tab=etiquetas',
     relatedIntents: ['clients', 'settings'],
     ctaLabel: 'Abrir Etiquetas',
   }),
   defineIntent({
     id: 'settings-notifications',
-    title: 'Notificações do escritório',
+    title: 'Notificações do gabinete',
     shortDescription: 'notificações',
     answer:
-      'Em Notificações escolhe que avisos o escritório quer receber sobre a operação no Teglion. Não é a Central de Alertas (essa envia comunicados aos clientes).',
+      'Em Notificações escolhe que avisos o gabinete quer receber sobre a operação no Teglion. Não é a Central de Alertas (essa envia comunicados aos clientes).',
     steps: ['Abra Definições → Notificações', 'Ligue só o que a equipa precisa', 'Guarde'],
     deepLink: '/app/firm/settings?tab=notificacoes',
     relatedIntents: ['alerts', 'settings'],
@@ -129,12 +129,12 @@ export const SETTINGS_INTENTS = [
   }),
   defineIntent({
     id: 'settings-close',
-    title: 'Encerrar a conta do escritório',
+    title: 'Encerrar a conta do gabinete',
     shortDescription: 'encerrar conta',
     answer:
       'Encerrar conta só aparece ao responsável com permissão para tal. É irreversível. Não serve para sair da sessão nem para remover um colaborador — isso faz-se em Equipa. Se só quer cancelar a mensalidade, comece por Plano e subscrição.',
     steps: [
-      'Confirme que é mesmo para encerrar o escritório no Teglion',
+      'Confirme que é mesmo para encerrar o gabinete no Teglion',
       'Se for só a mensalidade, use Plano e subscrição',
       'Se precisar de ajuda, fale com o suporte humano',
     ],
@@ -146,9 +146,9 @@ export const SETTINGS_INTENTS = [
   defineIntent({
     id: 'public-page',
     title: 'Como configurar a página pública?',
-    shortDescription: 'página pública do escritório',
+    shortDescription: 'página pública do gabinete',
     answer:
-      'A página pública é o site do escritório (teglion.com/o-seu-slug). À esquerda edita secções; à direita vê telemóvel/tablet. Bloco A: link e nome. Bloco B: secções (destaque, serviços, contactos…). Bloco C: cores e SEO. Guardar rascunho não publica — use Publicar quando estiver pronto. Os serviços listados vêm do Catálogo ou IRS já marcados para o site.',
+      'A página pública é o site do gabinete (teglion.com/o-seu-slug). À esquerda edita secções; à direita vê telemóvel/tablet. Bloco A: link e nome. Bloco B: secções (destaque, serviços, contactos…). Bloco C: cores e SEO. Guardar rascunho não publica — use Publicar quando estiver pronto. Os serviços listados vêm do Catálogo ou IRS já marcados para o site.',
     steps: [
       'Abrir Definições → Página pública',
       'Definir link (slug) e nome na barra',
@@ -172,7 +172,7 @@ export const SETTINGS_INTENTS = [
     title: 'Destaques e catálogo na página pública',
     shortDescription: 'cartões de destaque e grelha',
     answer:
-      'Em Definições → Página pública, nas secções «Consultorias com agendamento» e «Outros serviços» (ou listas extra que criar): 1) Título opcional — se deixar vazio, o visitante não vê título de secção. 2) Bloco «Destaques (cartões grandes)»: marque até 12 ofertas (hubs com modalidades); aparecem cartões com opções e «Ver opções». 3) Quando há destaques, pode editar o subtítulo «Catálogo de serviços» (campo catalogHeading) para a grelha abaixo. 4) Serviços vêm do Catálogo ou IRS com «Aparece na página pública». 5) Contactos: secção Contactos ou, se a desactivar, email/telefone/morada no Rodapé (herdam Definições → Escritório quando vazios). 6) Use «Pronto para publicar?» abaixo de Identidade → Guardar rascunho → Pré-visualizar → Publicar.',
+      'Em Definições → Página pública, nas secções «Consultorias com agendamento» e «Outros serviços» (ou listas extra que criar): 1) Título opcional — se deixar vazio, o visitante não vê título de secção. 2) Bloco «Destaques (cartões grandes)»: marque até 12 ofertas (hubs com modalidades); aparecem cartões com opções e «Ver opções». 3) Quando há destaques, pode editar o subtítulo «Catálogo de serviços» (campo catalogHeading) para a grelha abaixo. 4) Serviços vêm do Catálogo ou IRS com «Aparece na página pública». 5) Contactos: secção Contactos ou, se a desactivar, email/telefone/morada no Rodapé (herdam Definições → Gabinete quando vazios). 6) Use «Pronto para publicar?» abaixo de Identidade → Guardar rascunho → Pré-visualizar → Publicar.',
     steps: [
       'Abrir a secção de serviços na lista (consultorias ou outros)',
       'Opcional: marcar até 12 destaques e ajustar o título do catálogo',
@@ -211,9 +211,9 @@ export const SETTINGS_INTENTS = [
     title: 'Imagens nas secções da página pública',
     shortDescription: 'fotos, posição e fundo',
     answer:
-      'Em Sobre o escritório, Diferenciais, Como funciona, Perguntas frequentes, Contactos (e outras secções com o bloco «Imagens») pode carregar uma foto de conteúdo, escolher posição (acima, esquerda ou direita do texto), tamanho (pequeno a largura total) e, opcionalmente, imagem de fundo suave por baixo do texto. No Destaque principal a imagem é de fundo atrás do título e da frase (não uma faixa gigante acima): use o painel de foco 3×3, «Preencher» ou «Mostrar inteira» e o slider para escurecer o fundo e ler o texto. Isto não altera Definições → Identidade nem Escritório — só o site teglion.com/…. Desmarque «Mostrar imagem de conteúdo» para esconder a foto mantendo o texto.',
+      'Em Sobre o gabinete, Diferenciais, Como funciona, Perguntas frequentes, Contactos (e outras secções com o bloco «Imagens») pode carregar uma foto de conteúdo, escolher posição (acima, esquerda ou direita do texto), tamanho (pequeno a largura total) e, opcionalmente, imagem de fundo suave por baixo do texto. No Destaque principal a imagem é de fundo atrás do título e da frase (não uma faixa gigante acima): use o painel de foco 3×3, «Preencher» ou «Mostrar inteira» e o slider para escurecer o fundo e ler o texto. Isto não altera Definições → Identidade nem Gabinete — só o site teglion.com/…. Desmarque «Mostrar imagem de conteúdo» para esconder a foto mantendo o texto.',
     steps: [
-      'Abra a secção na lista (ex.: Sobre o escritório)',
+      'Abra a secção na lista (ex.: Sobre o gabinete)',
       'Use «Imagens (só página pública)»',
       'Carregue a foto e escolha posição e tamanho',
       'Opcional: active imagem de fundo',
@@ -253,7 +253,7 @@ export const SETTINGS_INTENTS = [
       },
       {
         id: 'about',
-        name: 'Sobre o escritório',
+        name: 'Sobre o gabinete',
         meaning: 'Texto, bloco Imagens (foto, posição, tamanho, fundo opcional).',
       },
       {
@@ -298,7 +298,7 @@ export const SETTINGS_INTENTS = [
     title: 'Publicar a página pública',
     shortDescription: 'publicar o site',
     answer:
-      'Guardar rascunho não torna o site visível. Depois de pré-visualizar, use Publicar. O link fica teglion.com/o-seu-slug. Sem publicar, potenciais clientes não vêem o escritório — mesmo que os serviços já estejam marcados para o site. Alterar o slug é acção do responsável.',
+      'Guardar rascunho não torna o site visível. Depois de pré-visualizar, use Publicar. O link fica teglion.com/o-seu-slug. Sem publicar, potenciais clientes não vêem o gabinete — mesmo que os serviços já estejam marcados para o site. Alterar o slug é acção do responsável.',
     steps: [
       'Guarde o rascunho',
       'Pré-visualize',
@@ -316,9 +316,9 @@ export const SETTINGS_INTENTS = [
     title: 'Como receber pagamentos dos clientes?',
     shortDescription: 'Stripe Connect',
     answer:
-      'Em Definições → Pagamentos o responsável liga a conta Stripe do escritório. Os clientes pagam no Checkout; o dinheiro vai para a conta do escritório — o Teglion só faz a ponte técnica. É preciso ler e aceitar a política registada e concluir o onboarding Stripe até o estado ficar Pronto. Só depois Cartões e MB WAY ficam utilizáveis nos serviços. A mensalidade Teglion é outro fluxo (Plano e subscrição). Quem não é responsável vê a área mas não liga a conta.',
+      'Em Definições → Pagamentos o responsável liga a conta Stripe do gabinete. Os clientes pagam no Checkout; o dinheiro vai para a conta do gabinete — o Teglion só faz a ponte técnica. É preciso ler e aceitar a política registada e concluir o onboarding Stripe até o estado ficar Pronto. Só depois Cartões e MB WAY ficam utilizáveis nos serviços. A mensalidade Teglion é outro fluxo (Plano e subscrição). Quem não é responsável vê a área mas não liga a conta.',
     steps: [
-      'Abrir Definições → Pagamentos (responsável do escritório)',
+      'Abrir Definições → Pagamentos (responsável do gabinete)',
       'Ler e aceitar a política',
       'Concluir o onboarding Stripe',
       'Esperar o estado Pronto',
@@ -342,7 +342,7 @@ export const SETTINGS_INTENTS = [
     title: 'Como funciona o plano Teglion?',
     shortDescription: 'plano e subscrição',
     answer:
-      'Em Plano e subscrição gere o acesso do escritório ao Teglion: teste gratuito, depois mensal ou anual. O checkout e o portal de pagamento abrem na Stripe. Isto não cobra os seus clientes finais — esses pagamentos configuram-se em Pagamentos e em cada serviço. O estado no topo diz se o acesso está activo ou em pausa.',
+      'Em Plano e subscrição gere o acesso do gabinete ao Teglion: teste gratuito, depois mensal ou anual. O checkout e o portal de pagamento abrem na Stripe. Isto não cobra os seus clientes finais — esses pagamentos configuram-se em Pagamentos e em cada serviço. O estado no topo diz se o acesso está activo ou em pausa.',
     steps: [
       'Abra Plano e subscrição',
       'Veja se está em teste ou já subscrito',

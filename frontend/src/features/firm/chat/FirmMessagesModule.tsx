@@ -9,6 +9,7 @@ import { FirmChatConversationRow } from '@/features/firm/chat/FirmChatConversati
 import { FirmChatMessageBubble } from '@/features/firm/chat/FirmChatMessageBubble'
 import {
   type ChatListFilter,
+  CHAT_PINS_CHANGED_EVENT,
   getPinnedClientIds,
   isClientOnline,
   previewLastMessage,
@@ -60,7 +61,7 @@ export function FirmMessagesModule({ embeddedClientId }: { embeddedClientId?: st
   const [searchParams, setSearchParams] = useSearchParams()
   const qc = useQueryClient()
   const { user } = useAuth()
-  const tenantSlug = user?.tenant.slug ?? ''
+  const tenantSlug = user?.tenant?.slug ?? ''
   const selectedClientId = embeddedClientId || searchParams.get('client')
 
   const [listQuery, setListQuery] = useState('')
@@ -99,6 +100,13 @@ export function FirmMessagesModule({ embeddedClientId }: { embeddedClientId?: st
 
   useEffect(() => {
     setPinnedIds(getPinnedClientIds(tenantSlug))
+    const onPinsChanged = () => setPinnedIds(getPinnedClientIds(tenantSlug))
+    window.addEventListener(CHAT_PINS_CHANGED_EVENT, onPinsChanged)
+    window.addEventListener('storage', onPinsChanged)
+    return () => {
+      window.removeEventListener(CHAT_PINS_CHANGED_EVENT, onPinsChanged)
+      window.removeEventListener('storage', onPinsChanged)
+    }
   }, [tenantSlug])
 
   useEffect(() => {
@@ -371,7 +379,7 @@ export function FirmMessagesModule({ embeddedClientId }: { embeddedClientId?: st
       className="h-full min-h-[16rem] rounded-none border-0 bg-transparent"
       icon={MessageSquare}
       title="Escolha uma conversa"
-      description="Seleccione um cliente à esquerda para ver mensagens e anexos. As conversas ficam privadas ao seu escritório."
+      description="Seleccione um cliente à esquerda para ver mensagens e anexos. As conversas ficam privadas ao seu gabinete."
     />
   ) : (
     <div className="cb-chat-main">

@@ -1,4 +1,4 @@
-import { BarChart3, Calendar, CheckCircle2, ChevronLeft, ChevronRight, Clock } from 'lucide-react'
+import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import type { WorkspaceTask } from '@/infrastructure/api/contabil/tasks'
@@ -10,13 +10,11 @@ import {
   statusPillClass,
   upcomingDeadlines,
 } from '@/features/firm/tasks/tasksWorkspaceUi'
-import type { OverviewKpis } from '@/features/firm/tasks/tasksOperationsUtils'
 import { cn } from '@/shared/lib/utils'
 
 const PAGE_SIZE = 10
 
 export function TasksOverviewPanel({
-  kpis,
   obligations,
   manualTasks,
   teamNames,
@@ -24,7 +22,6 @@ export function TasksOverviewPanel({
   onSelectTask,
   onNavigateCalendar,
 }: {
-  kpis: OverviewKpis
   obligations: ObligationRow[]
   manualTasks: WorkspaceTask[]
   teamNames: Map<string, string>
@@ -58,18 +55,10 @@ export function TasksOverviewPanel({
   const taskById = useMemo(() => new Map(manualTasks.map((t) => [t.id, t])), [manualTasks])
 
   return (
-    <>
-      <div className="cb-tasks-kpi-row">
-        <KpiCard label="Em atraso" value={kpis.overdue} tone="red" icon={Clock} />
-        <KpiCard label="Para hoje" value={kpis.dueToday} tone="orange" icon={Calendar} />
-        <KpiCard label="Esta semana" value={kpis.dueThisWeek} tone="blue" icon={BarChart3} />
-        <KpiCard label="Concluídas (mês)" value={kpis.completedMonth} tone="green" icon={CheckCircle2} />
-      </div>
-
       <div className="cb-tasks-overview-grid">
         <section className="min-w-0">
           <h2 className="cb-tasks-section-hd">Tarefas prioritárias</h2>
-          <div className="cb-tasks-table-wrap cb-table-scroll">
+          <div className="cb-tasks-table-wrap">
             <table className="cb-tasks-table cb-table-mobile-cards">
               <thead className="cb-tasks-thead">
                 <tr>
@@ -219,47 +208,5 @@ export function TasksOverviewPanel({
           </div>
         </aside>
       </div>
-    </>
-  )
-}
-
-function KpiCard({
-  label,
-  value,
-  tone,
-  icon: Icon,
-}: {
-  label: string
-  value: number
-  tone: 'red' | 'orange' | 'blue' | 'green'
-  icon: typeof Clock
-}) {
-  const ico =
-    tone === 'red'
-      ? 'cb-tasks-kpi-ico-red'
-      : tone === 'orange'
-        ? 'cb-tasks-kpi-ico-orange'
-        : tone === 'blue'
-          ? 'cb-tasks-kpi-ico-blue'
-          : 'cb-tasks-kpi-ico-green'
-  const val =
-    tone === 'red'
-      ? 'cb-tasks-kpi-val-red'
-      : tone === 'orange'
-        ? 'cb-tasks-kpi-val-orange'
-        : tone === 'blue'
-          ? 'cb-tasks-kpi-val-blue'
-          : 'cb-tasks-kpi-val-green'
-
-  return (
-    <div className="cb-tasks-kpi">
-      <span className={cn('cb-tasks-kpi-ico', ico)}>
-        <Icon className="h-4 w-4" />
-      </span>
-      <div>
-        <p className="cb-tasks-kpi-label">{label}</p>
-        <p className={cn('cb-tasks-kpi-val', val)}>{value}</p>
-      </div>
-    </div>
   )
 }

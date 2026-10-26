@@ -72,10 +72,10 @@ export function ClientSendThisMonth({ requests, tasks, obligations, className }:
         title: displayDocumentRequestTitle(r),
         hint:
           st === 'pending'
-            ? 'Pedido do escritório — ainda por enviar'
+            ? 'Pedido do gabinete — ainda por enviar'
             : st === 'seen'
               ? 'Em revisão — pode completar o envio'
-              : 'Aguarda resposta do escritório',
+              : 'Aguarda resposta do gabinete',
         urgent: st === 'pending',
         href: `/app/client/requests?request=${encodeURIComponent(r.id)}`,
       })
@@ -91,8 +91,8 @@ export function ClientSendThisMonth({ requests, tasks, obligations, className }:
         kind: 'task',
         title: t.title,
         hint: t.dueDate
-          ? `Tarefa do escritório · prazo ${formatPtDate(t.dueDate, 'date')}`
-          : 'Tarefa do escritório',
+          ? `Tarefa do gabinete · prazo ${formatPtDate(t.dueDate, 'date')}`
+          : 'Tarefa do gabinete',
         urgent: overdue || t.priority === 'URGENT' || t.priority === 'HIGH',
         href: '/app/client/documents',
       })
@@ -125,7 +125,7 @@ export function ClientSendThisMonth({ requests, tasks, obligations, className }:
           <p className="cb-text-label text-brand">O que enviar este mês</p>
           <h3 className="mt-1 font-display text-lg font-semibold capitalize text-foreground">{monthLabel}</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            Pedidos do escritório, tarefas e prazos que precisam da sua acção.
+            Pedidos do gabinete, tarefas e prazos que precisam da sua acção.
           </p>
         </div>
         {items.length > 0 ? (
@@ -141,7 +141,7 @@ export function ClientSendThisMonth({ requests, tasks, obligations, className }:
           <div>
             <p className="font-medium">Nada urgente para enviar neste momento.</p>
             <p className="mt-0.5 text-xs text-emerald-800/80">
-              Quando o escritório pedir documentos, aparece aqui.
+              Quando o gabinete pedir documentos, aparece aqui.
             </p>
             <Button
               type="button"

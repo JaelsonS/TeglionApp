@@ -1,18 +1,30 @@
 import { useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
-import { useSearchParams } from 'react-router-dom'
-import { Loader2, Megaphone, Pin, Plus, Search } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router-dom'
+import {
+  AlertTriangle,
+  CheckCircle2,
+  FileEdit,
+  Loader2,
+  Megaphone,
+  Newspaper,
+  Pin,
+  Plus,
+  Search,
+  Send,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 import { AlertAnalyticsPanel, AlertPreviewPanel } from '@/features/firm/alerts/AlertPreviewPanel'
 import { AlertComposer, type AlertDraft } from '@/features/firm/alerts/AlertComposer'
 import { PriorityBadge } from '@/features/firm/alerts/broadcast-ui'
-import { categoryLabel, PRIORITY_FILTER_OPTIONS } from '@/features/firm/alerts/alertLabels'
+import { categoryLabel, PRIORITY_FILTER_OPTIONS, STATUS_LABELS } from '@/features/firm/alerts/alertLabels'
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { AskMayaButton } from '@/features/maya'
 import { EmptyState, FirmSplitView } from '@/shared/design-system'
+import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import {
   Dialog,
   DialogContent,
@@ -46,6 +58,7 @@ export function AlertsWorkspace() {
   const [loadingAnalytics, setLoadingAnalytics] = useState(false)
 
   const { data: meta } = useBroadcastsMeta()
+  const overviewQuery = useFirmBroadcasts({})
   const filters = useMemo(
     () => ({
       search: debouncedSearch || undefined,
@@ -59,10 +72,13 @@ export function AlertsWorkspace() {
   const { create, update, remove } = useBroadcastMutations()
 
   const items = data?.items || []
-  const selected = items.find((i) => i.id === selectedId) || null
-  const urgentCount = items.filter((i) => i.priority === 'URGENT').length
-  const publishedCount = items.filter((i) => i.status === 'PUBLISHED').length
-  const draftCount = items.filter((i) => i.status === 'DRAFT').length
+  const overview = overviewQuery.data?.items || []
+  const selected = items.find((i) => i.id === selectedId) || overview.find((i) => i.id === selectedId) || null
+
+  const publishedCount = overview.filter((i) => i.status === 'PUBLISHED').length
+  const urgentCount = overview.filter((i) => i.priority === 'URGENT' && i.status !== 'ARCHIVED').length
+  const draftCount = overview.filter((i) => i.status === 'DRAFT').length
+  const scheduledCount = overview.filter((i) => i.status === 'SCHEDULED').length
 
   function selectAlert(id: string) {
     const next = new URLSearchParams(searchParams)
@@ -81,6 +97,10 @@ export function AlertsWorkspace() {
     if (p) next.set('priority', p)
     else next.delete('priority')
     setSearchParams(next, { replace: true })
+  }
+
+  function applyStatusFilter(nextStatus: string) {
+    setStatus((prev) => (prev === nextStatus ? '' : nextStatus))
   }
 
   async function openAnalytics(id: string) {
@@ -146,21 +166,88 @@ export function AlertsWorkspace() {
 
   const saving = create.isPending || update.isPending
 
+  const kpis = [
+    {
+      id: 'published',
+      label: 'Publicados',
+      value: publishedCount,
+      tone: 'emerald' as const,
+      icon: Send,
+      active: status === 'PUBLISHED',
+      onClick: () => applyStatusFilter('PUBLISHED'),
+    },
+    {
+      id: 'urgent',
+      label: 'Urgentes',
+      value: urgentCount,
+      tone: urgentCount > 0 ? ('rose' as const) : ('muted' as const),
+      icon: AlertTriangle,
+      active: priorityFilter === 'URGENT',
+      onClick: () => setPriorityFilter(priorityFilter === 'URGENT' ? '' : 'URGENT'),
+    },
+    {
+      id: 'drafts',
+      label: 'Rascunhos',
+      value: draftCount,
+      tone: 'amber' as const,
+      icon: FileEdit,
+      active: status === 'DRAFT',
+      onClick: () => applyStatusFilter('DRAFT'),
+    },
+    {
+      id: 'scheduled',
+      label: 'Agendados',
+      value: scheduledCount,
+      tone: 'brand' as const,
+      icon: CheckCircle2,
+      active: status === 'SCHEDULED',
+      onClick: () => applyStatusFilter('SCHEDULED'),
+    },
+  ]
+
   const toolbar = (
     <div className="cb-alerts-toolbar">
-      <div className="cb-alerts-kpi-row">
-        <div className="cb-alerts-kpi">
-          <span className="cb-alerts-kpi-label">Publicados</span>
-          <span className="cb-alerts-kpi-value">{publishedCount}</span>
+      <div className="cb-alerts-kpi-strip" data-testid="firm-alerts-kpis">
+        {kpis.map((kpi) => {
+          const Icon = kpi.icon
+          return (
+            <button
+              key={kpi.id}
+              type="button"
+              className={cn(
+                'cb-alerts-kpi',
+                `cb-alerts-kpi--${kpi.tone}`,
+                kpi.active && 'cb-alerts-kpi--active',
+              )}
+              onClick={kpi.onClick}
+              aria-pressed={kpi.active}
+            >
+              <span className="cb-alerts-kpi-icon" aria-hidden>
+                <Icon className="h-4 w-4" />
+              </span>
+              <span className="min-w-0 text-left">
+                <span className="cb-alerts-kpi-value">{kpi.value}</span>
+                <span className="cb-alerts-kpi-label">{kpi.label}</span>
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="cb-alerts-purpose" data-testid="firm-alerts-purpose">
+        <div className="min-w-0 flex-1">
+          <p className="cb-alerts-purpose-title">Isto é um alerta — não um artigo</p>
+          <p className="cb-alerts-purpose-detail">
+            Use para avisos urgentes: prazo a vencer, documento em falta, alteração crítica. Curtos, com
+            prioridade e confirmação de leitura. Para textos informativos (escritório fechado, lei que mudou,
+            novidades do gabinete), publique no{' '}
+            <Link to="/app/firm/news" className="font-medium text-brand hover:underline">
+              blog de Notícias
+            </Link>
+            .
+          </p>
         </div>
-        <div className={cn('cb-alerts-kpi', urgentCount > 0 && 'cb-alerts-kpi-alert')}>
-          <span className="cb-alerts-kpi-label">Urgentes</span>
-          <span className="cb-alerts-kpi-value">{urgentCount}</span>
-        </div>
-        <div className="cb-alerts-kpi">
-          <span className="cb-alerts-kpi-label">Rascunhos</span>
-          <span className="cb-alerts-kpi-value">{draftCount}</span>
-        </div>
+        <Megaphone className="cb-alerts-purpose-icon h-5 w-5 shrink-0" aria-hidden />
       </div>
 
       <div className="cb-docs-toolbar !mb-0">
@@ -168,7 +255,7 @@ export function AlertsWorkspace() {
           <Search className="cb-docs-search-icon" aria-hidden />
           <Input
             className="cb-docs-search-input"
-            placeholder="Pesquisar comunicados…"
+            placeholder="Pesquisar por título ou excerto…"
             value={search}
             onChange={(e: FormChangeEvent) => setSearch(e.target.value)}
           />
@@ -196,10 +283,11 @@ export function AlertsWorkspace() {
           <option value="DRAFT">Rascunho</option>
           <option value="SCHEDULED">Agendado</option>
           <option value="PUBLISHED">Publicado</option>
+          <option value="ARCHIVED">Arquivado</option>
         </select>
       </div>
 
-      <div className="cb-alerts-priority-chips">
+      <div className="cb-alerts-priority-chips" role="group" aria-label="Prioridade">
         <button
           type="button"
           className={cn('cb-alerts-chip', !priorityFilter && 'cb-alerts-chip-active')}
@@ -228,25 +316,31 @@ export function AlertsWorkspace() {
     <div className="cb-alerts-list-wrap">
       {isLoading ? (
         <div className="space-y-2 p-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-16 animate-pulse rounded-lg bg-muted/40" />
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-[4.5rem] animate-pulse rounded-xl bg-muted/40" />
           ))}
         </div>
       ) : items.length === 0 ? (
         <EmptyState
           className="m-3"
           icon={Megaphone}
-          title="Ainda sem comunicados"
-          description="Use alertas para avisar a carteira de prazos, mudanças fiscais ou avisos urgentes. Os clientes vêem-nos no portal."
+          title={overview.length === 0 ? 'Ainda sem alertas' : 'Nenhum resultado'}
+          description={
+            overview.length === 0
+              ? 'Crie alertas para prazos, documentos em falta ou avisos urgentes. Os clientes vêem-nos no portal — com prioridade e, se quiser, confirmação de leitura.'
+              : 'Ajuste pesquisa, tipo, estado ou prioridade.'
+          }
           action={
-            <Button type="button" size="sm" variant="primary" onClick={startCreate}>
-              <Plus className="h-4 w-4" />
-              Criar primeiro comunicado
-            </Button>
+            overview.length === 0 ? (
+              <Button type="button" size="sm" variant="primary" onClick={startCreate}>
+                <Plus className="h-4 w-4" />
+                Criar primeiro alerta
+              </Button>
+            ) : undefined
           }
         />
       ) : (
-        <ul className="space-y-1 p-2">
+        <ul className="space-y-1.5 p-2">
           {items.map((item) => {
             const active = item.id === selectedId
             return (
@@ -259,21 +353,29 @@ export function AlertsWorkspace() {
                     active && 'cb-alerts-list-item-active',
                     item.priority === 'URGENT' && !active && 'cb-alerts-list-item-urgent',
                   )}
+                  data-testid={`firm-alert-row-${item.id}`}
                 >
                   <div className="flex flex-wrap items-center gap-1.5">
-                    {item.pinned ? <Pin className="h-3 w-3 shrink-0 text-brand" /> : null}
+                    {item.pinned ? <Pin className="h-3 w-3 shrink-0 text-brand" aria-label="Fixado" /> : null}
                     <PriorityBadge priority={item.priority} />
                     <span className="cb-alerts-list-cat">{categoryLabel(item.category)}</span>
+                    <span className="cb-alerts-list-status">
+                      {STATUS_LABELS[item.status] || item.status}
+                    </span>
+                    {item.readConfirmationRequired ? (
+                      <span className="cb-alerts-list-ack">Confirmação</span>
+                    ) : null}
                   </div>
                   <p className="cb-alerts-list-title">{item.title}</p>
-                  {item.excerpt ? (
-                    <p className="cb-alerts-list-excerpt">{item.excerpt}</p>
-                  ) : null}
+                  {item.excerpt ? <p className="cb-alerts-list-excerpt">{item.excerpt}</p> : null}
                   <p className="cb-alerts-list-meta">
-                    {item.publishedAt ? formatDateTime(item.publishedAt) : 'Rascunho'}
-                    {item.readCount != null && item.status === 'PUBLISHED'
-                      ? ` · ${item.readCount} leituras`
+                    {item.publishedAt ? formatDateTime(item.publishedAt) : 'Por publicar'}
+                    {item.status === 'PUBLISHED' && item.readCount != null
+                      ? ` · ${item.readCount}/${item.deliveryCount ?? '—'} leituras`
                       : ''}
+                    {item.targetType === 'SELECTED'
+                      ? ` · ${item.targetClientIds?.length || 0} clientes`
+                      : ' · Toda a carteira'}
                   </p>
                 </button>
               </li>
@@ -308,25 +410,27 @@ export function AlertsWorkspace() {
 
   return (
     <>
-      <header className="cb-alerts-page-hd shrink-0" data-testid="firm-alerts-header">
-        <div className="cb-alerts-page-hd-row">
-          <div>
-            <h1 className="cb-alerts-page-title">Central de comunicação</h1>
-            <p className="cb-alerts-page-sub">
-              Comunicados fiscais para a carteira — profissional e rastreável
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
+      <FirmModuleShell
+        className="cb-alerts-shell cb-alerts-page-scroll"
+        title="Central de alertas"
+        subtitle="Avisos urgentes ao portal — prazos, faltas e confirmação de leitura. Não é o blog do escritório (isso fica em Notícias)."
+        headerRight={
+          <div className="flex flex-wrap items-center gap-2">
             <AskMayaButton intentId="alerts" />
+            <Button type="button" size="sm" variant="outline" asChild>
+              <Link to="/app/firm/news">
+                <Newspaper className="mr-1.5 h-4 w-4" aria-hidden />
+                Blog / Notícias
+              </Link>
+            </Button>
             <Button type="button" className="cb-alerts-btn-primary shrink-0" onClick={startCreate}>
-              <Plus className="mr-2 h-4 w-4" />
-              Novo comunicado
+              <Plus className="mr-1.5 h-4 w-4" />
+              Novo alerta
             </Button>
           </div>
-        </div>
-      </header>
-
-      <div className="cb-firm-operational-panel flex min-h-0 flex-1 flex-col overflow-hidden">
+        }
+        bodyClassName="cb-alerts-body"
+      >
         <FirmSplitView
           hasSelection={Boolean(selectedId)}
           onClearSelection={clearAlert}
@@ -335,7 +439,7 @@ export function AlertsWorkspace() {
           list={list}
           detail={detail}
         />
-      </div>
+      </FirmModuleShell>
 
       <Dialog open={Boolean(editing)} onOpenChange={(open: boolean) => !open && setEditing(null)}>
         <DialogContent className="sm:max-w-2xl" aria-describedby={undefined}>

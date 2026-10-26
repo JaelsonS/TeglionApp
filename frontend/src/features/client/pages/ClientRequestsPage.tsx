@@ -6,7 +6,7 @@ export function ClientRequestsPage() {
     <div className="space-y-6" data-testid="client-requests-page">
       <PageHeader
         title="Pedidos"
-        subtitle="Documentos e informações que o escritório lhe pediu. Entregue aqui — fica registado."
+        subtitle="Documentos e informações que o gabinete lhe pediu. Entregue aqui — fica registado."
       />
       <ClientDocumentRequestsPanel />
     </div>

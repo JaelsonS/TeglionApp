@@ -10,7 +10,7 @@ export function FirmSettingsTagsSection() {
           <Tag className="h-4 w-4" aria-hidden />
         </span>
         <div>
-          <h3 className="cb-settings-panel-title">Etiquetas do escritório</h3>
+          <h3 className="cb-settings-panel-title">Etiquetas do gabinete</h3>
           <p className="cb-settings-panel-sub">
             Biblioteca única — use em clientes, leads, solicitações e equipa
           </p>

@@ -93,7 +93,7 @@ export function MayaSetupBrandLegalStep({
       <div className="space-y-2 rounded-lg border border-dashed border-border/60 p-3">
         <Label>Redes sociais (opcional)</Label>
         <p className="text-caption text-muted-foreground">
-          Telefone do escritório: {bundle.contact?.phone || '—'} (editável na secção Contactos).
+          Telefone do gabinete: {bundle.contact?.phone || '—'} (editável na secção Contactos).
         </p>
         <Input
           placeholder="Instagram (utilizador ou URL)"

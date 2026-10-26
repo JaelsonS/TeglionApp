@@ -123,7 +123,7 @@ export function ClientNewsFeed({ previewMode }: Props) {
             ) : null}
             <h2 className="font-display text-2xl font-semibold tracking-tight text-foreground">{article.title}</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              {article.authorName || 'Escritório'}
+              {article.authorName || 'Gabinete'}
               {article.publishedAt ? ` · ${formatPtDate(article.publishedAt)}` : ''}
               {article.readingTimeMinutes ? ` · ${article.readingTimeMinutes} min de leitura` : ''}
             </p>
@@ -154,7 +154,7 @@ export function ClientNewsFeed({ previewMode }: Props) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Atualizações e comunicados do seu escritório de contabilidade.
+        Atualizações e comunicados do seu gabinete de contabilidade.
       </p>
 
       <div className="relative">
@@ -176,7 +176,7 @@ export function ClientNewsFeed({ previewMode }: Props) {
         <div className="cb-empty-state">
           <Newspaper className="h-10 w-10 text-muted-foreground/40" />
           <p className="mt-3 text-sm text-muted-foreground">
-            Ainda não há notícias publicadas pelo escritório.
+            Ainda não há notícias publicadas pelo gabinete.
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
             <Button asChild variant="outline" className="rounded-full">

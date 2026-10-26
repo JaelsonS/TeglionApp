@@ -138,7 +138,7 @@ export function InlineColorField({
 
 const CTA_TARGET_OPTIONS: { value: PublicSiteCta['target']['type']; label: string }[] = [
   { value: 'service-detail', label: 'Abrir serviço' },
-  { value: 'phone', label: 'Ligar para o escritório' },
+  { value: 'phone', label: 'Ligar para o gabinete' },
   { value: 'booking', label: 'Ver serviços' },
   { value: 'contact-form', label: 'Secção de contactos' },
   { value: 'whatsapp', label: 'WhatsApp' },
@@ -294,7 +294,7 @@ export function SectionCtasEditor({
                     placeholder={officePhone || '+351 …'}
                   />
                   <p className="text-[11px] text-muted-foreground">
-                    Vazio = usa o telefone do escritório. No telemóvel abre a chamada.
+                    Vazio = usa o telefone do gabinete. No telemóvel abre a chamada.
                   </p>
                 </div>
               ) : null}
@@ -2027,7 +2027,7 @@ export function PublicSiteContactDetailsFields({
       <div>
         <Label className="text-sm font-semibold">Email, telefone e morada</Label>
         <p className="mt-1 text-[11px] text-muted-foreground">
-          Aparecem na secção Contactos e redes. Campo em branco → usa Definições → Escritório. Desactive «Mostrar» para
+          Aparecem na secção Contactos e redes. Campo em branco → usa Definições → Gabinete. Desactive «Mostrar» para
           ocultar na página (o rodapé legal mantém só políticas e links institucionais).
         </p>
       </div>

@@ -130,7 +130,7 @@ export function PublicSiteLinkPublishPanel({
                         onChange={(e: FormChangeEvent) =>
                           onSlugDraftChange(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))
                         }
-                        placeholder="o-seu-escritorio"
+                        placeholder="o-seu-gabinete"
                         maxLength={60}
                       />
                     </div>
@@ -161,7 +161,7 @@ export function PublicSiteLinkPublishPanel({
                 <p className="text-sm font-semibold text-foreground">Nome na barra do topo</p>
                 <FieldHelp>
                   É o texto ao lado do logótipo no site público — pode ser o nome comercial, não precisa de ser igual
-                  ao nome legal do escritório no Teglion.
+                  ao nome legal do gabinete no Teglion.
                 </FieldHelp>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                   <Input

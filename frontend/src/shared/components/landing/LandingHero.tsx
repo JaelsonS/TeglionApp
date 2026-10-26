@@ -20,14 +20,18 @@ export function LandingHero() {
         <div className="grid items-center gap-8 sm:gap-12 lg:grid-cols-2 lg:gap-16">
           <FadeInView>
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#C9932E]">
-              <AgencyProductLine linkClassName="text-[#C9932E] hover:text-[#0F2942] normal-case tracking-normal" />
+              <AgencyProductLine linkClassName="text-[#C9932E] hover:text-[#0B3A6E] normal-case tracking-normal" />
             </p>
-            <h1 className="mt-3 max-w-xl text-[1.85rem] font-semibold leading-[1.12] text-[#0F2942] sm:text-[2.35rem] md:text-5xl lg:text-[3.25rem]">
-              Um sistema. Zero saltos entre WhatsApp, email e links.
+            <p className="mt-3 font-sans text-4xl font-semibold tracking-tight text-[#0B3A6E] sm:text-5xl lg:text-6xl">
+              Teglion
+            </p>
+            <h1 className="mt-3 max-w-xl text-[1.45rem] font-semibold leading-[1.2] text-[#0B3A6E]/90 sm:text-[1.85rem] md:text-3xl lg:text-[2.15rem]">
+              Gabinete, portal e página pública — a mesma operação.
             </h1>
             <p className="mt-4 max-w-lg text-[15px] leading-relaxed text-[#4A5568] sm:mt-5 sm:text-[17px]">
-              Plataforma de gestão para escritórios de contabilidade: documentos, prazos, portal do
-              cliente, página pública, serviços, IRS e pagamentos — no mesmo sítio.
+              Software para gabinetes de contabilidade em Portugal: a equipa trabalha no painel, o
+              cliente entrega no portal e a oferta vive no site público — documentos, prazos, serviços
+              e pagamentos sem saltar de ferramenta.
             </p>
             <div className="mt-6 flex w-full flex-col items-stretch gap-3 sm:mt-8 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
               <Link to={authFirmRegisterUrl()} className="landing-btn-primary w-full px-6 py-3.5 sm:w-auto sm:px-8">
@@ -36,13 +40,13 @@ export function LandingHero() {
               <button
                 type="button"
                 onClick={scrollToFeatures}
-                className="py-2 text-center text-sm font-medium text-[#0F2942]/75 underline-offset-4 hover:text-[#0F2942] hover:underline sm:text-left"
+                className="py-2 text-center text-sm font-medium text-[#0B3A6E]/75 underline-offset-4 hover:text-[#0B3A6E] hover:underline sm:text-left"
               >
                 Ver o que inclui
               </button>
             </div>
             <p className="mt-4 text-[13px] text-[#4A5568] sm:text-sm">
-              Sem cartão. Escritório completo desde o primeiro dia.
+              Sem cartão · Sem fidelização · Produto da AfDigital — Soluções Tecnológicas
             </p>
           </FadeInView>
 
@@ -59,9 +63,9 @@ export function LandingHero() {
             >
               <LandingScreenshot
                 src={LANDING_SCREENS.dashboard}
-                alt="Painel do escritório no Teglion"
+                alt="Painel Teglion do gabinete de contabilidade"
                 priority
-                className="shadow-[0_20px_50px_rgba(15,41,66,0.12)]"
+                className="shadow-[0_20px_50px_rgba(11,58,110,0.12)]"
               />
             </div>
           </motion.div>

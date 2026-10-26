@@ -61,19 +61,22 @@ export function FirmPublicSitePage() {
 
   if (query.isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      <div className="flex min-h-screen items-center justify-center bg-background font-sans">
+        <Loader2 className="h-6 w-6 animate-spin text-brand" aria-label="A carregar página do escritório" />
       </div>
     )
   }
 
   if (query.isError || !query.data) {
     return (
-      <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-4 text-center">
-        <h1 className="text-lg font-semibold">Página não encontrada</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+      <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center bg-background px-4 text-center font-sans">
+        <h1 className="text-title font-semibold text-foreground">Página não encontrada</h1>
+        <p className="mt-2 text-body text-muted-foreground">
           Verifique o link recebido — pode estar incompleto ou já não existir.
         </p>
+        <a href="https://www.teglion.com" className="mt-6 text-sm font-semibold text-brand hover:underline">
+          Ir para o Teglion
+        </a>
       </div>
     )
   }

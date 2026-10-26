@@ -1,10 +1,16 @@
 import type { AxiosInstance } from 'axios'
-import type { AccountingServiceGroup, ConsultingCatalogEntry } from '@/shared/types/contabil'
+import type {
+  AccountingService,
+  AccountingServiceGroup,
+  ConsultingCatalogEntry,
+} from '@/shared/types/contabil'
 
 export function createContabilAccountingServicesApi(api: AxiosInstance) {
   return {
     list: (params?: { activeOnly?: boolean }) =>
-      api.get('/contabil/accounting-services', { params }).then((r) => r.data),
+      api
+        .get('/contabil/accounting-services', { params })
+        .then((r) => r.data as { items: AccountingService[] }),
 
     getCatalogTemplate: () =>
       api

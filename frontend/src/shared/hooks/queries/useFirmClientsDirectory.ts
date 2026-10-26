@@ -18,7 +18,7 @@ export type FirmClientsDirectoryParams = {
  */
 export function useFirmClientsDirectory(params: FirmClientsDirectoryParams = {}) {
   const { user } = useAuth()
-  const tenantSlug = user?.tenant.slug ?? ''
+  const tenantSlug = user?.tenant?.slug ?? ''
   const limit = params.limit ?? 500
   const includeInactive = Boolean(params.includeInactive)
 

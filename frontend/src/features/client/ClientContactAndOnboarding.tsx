@@ -10,7 +10,7 @@ type Props = {
   className?: string
 }
 
-/** Contacto do escritório — mensagens e consultoria. */
+/** Contacto do gabinete — mensagens e consultoria. */
 export function ClientContactFirmCta({ firmName, onGoMessages, onGoBooking, className }: Props) {
   return (
     <section
@@ -28,7 +28,7 @@ export function ClientContactFirmCta({ firmName, onGoMessages, onGoBooking, clas
           type="button"
           className="inline-flex items-center gap-1.5 rounded-full bg-brand px-3.5 py-2 text-xs font-semibold text-primary-foreground transition hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={onGoMessages}
-          aria-label="Abrir mensagens com o escritório"
+          aria-label="Abrir mensagens com o gabinete"
         >
           <MessageSquare className="h-3.5 w-3.5" aria-hidden />
           Enviar mensagem
@@ -37,7 +37,7 @@ export function ClientContactFirmCta({ firmName, onGoMessages, onGoBooking, clas
           type="button"
           className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={onGoBooking}
-          aria-label="Ver serviços do escritório"
+          aria-label="Ver serviços do gabinete"
         >
           <CalendarCheck className="h-3.5 w-3.5" aria-hidden />
           Ver serviços
@@ -95,7 +95,7 @@ export function ClientFirstVisitOnboarding({
         {[
           { label: 'Enviar documentos', onClick: onGoDocuments },
           { label: 'Ver prazos', onClick: onGoObligations },
-          { label: 'Mensagem ao escritório', onClick: onGoMessages },
+          { label: 'Mensagem ao gabinete', onClick: onGoMessages },
           ...(onInstallHint ? [{ label: 'Instalar a app', onClick: onInstallHint }] : []),
         ].map((step) => (
           <button

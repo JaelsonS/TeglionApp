@@ -193,7 +193,7 @@ export function TaskEditDialog({
               <Label>Clientes relacionados</Label>
               <ClientMultiSelect clients={clients} value={values.clientIds} onChange={(ids) => setField('clientIds', ids)} />
               {values.clientIds.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Sem cliente — fica como tarefa do escritório.</p>
+                <p className="text-xs text-muted-foreground">Sem cliente — fica como tarefa do gabinete.</p>
               ) : null}
             </section>
 

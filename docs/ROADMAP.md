@@ -2,7 +2,9 @@
 
 **Esse é o único roadmap que eu uso.** Se eu esbarrar em qualquer outro documento com lista de tarefas, sprints ou "próximos passos" que não seja esse arquivo, já sei que ele está desatualizado — corrijo ou arquivo. Nenhuma outra lista de prioridades no repositório tem autoridade sobre essa aqui.
 
-Última vez que eu atualizei: **28 de setembro de 2026** (5 escritórios em produção; releases #99–#102; snapshot em [`docs/production/CURRENT_STATE.md`](./production/CURRENT_STATE.md)). Antes: 21/08/2026 (Agenda UAT; MFA). Onde uma afirmação vem de auditoria antiga, eu marco a data. Onde ainda não comprovei, uso `A VALIDAR`.
+Última vez que eu atualizei: **25 de outubro de 2026** (diagnóstico Master Prompt V10 / Fase 0; V10 Ops+Fiscal em **staging** via PR #192). Antes: 28/09/2026 (5 escritórios; releases #99–#102). Onde uma afirmação vem de auditoria antiga, eu marco a data. Onde ainda não comprovei, uso `A VALIDAR`.
+
+**Diagnóstico Fase 0 (Master Prompt V10) — 25/10/2026:** inventário, riscos, gaps UX e roadmap remapeado em [`docs/product/FASE0_DIAGNOSTICO_MASTER_V10_2026-10-25.md`](./product/FASE0_DIAGNOSTICO_MASTER_V10_2026-10-25.md). Snapshot de produção Set/2026 continua em [`docs/production/CURRENT_STATE.md`](./production/CURRENT_STATE.md) (`A VALIDAR` face aos SHAs actuais). **Fase 1 (especificação) e implementação 2a/2b** só com aprovação explícita — não estão autorizadas só por este update.
 
 ---
 
@@ -38,14 +40,15 @@ Minha visão de dez anos é uma plataforma que um escritório de qualquer tamanh
 
 Isso não é uma promessa de que eu já cheguei lá. É a régua contra a qual eu meço cada decisão de arquitetura desse roadmap.
 
-## Onde eu estou (setembro de 2026)
+## Onde eu estou (outubro de 2026)
 
 - **5 escritórios** cadastrados e a utilizar o sistema em **produção** (`www.teglion.com`); meta comercial imediata ~**10 escritórios**.
-- **Main** inclui: alertas cliente + validade documentos + lembretes (#99–#100), banner trial para `FIRM_OWNER` (#101–#102), dependências auditadas (#97–#98).
+- **Main** (`826c868`, Out/2026): núcleo operacional (clientes, documentos, tarefas, MFA, Connect, Maya, etc.) — **sem** menu V10 Pagamentos / Rendas / SAF-T / Calculadoras.
+- **Staging** (`26116d5`, PR #192): frente V10 Ops+Fiscal ondas 1–7 (avenças, 6 calculadoras, mês fiscal, rendas internas, SAF-T leitura, Manual `/manual`) em UAT. Carta: [`docs/product/V10_OPS_FISCAL_CHARTER.md`](./product/V10_OPS_FISCAL_CHARTER.md). Diagnóstico: [`docs/product/FASE0_DIAGNOSTICO_MASTER_V10_2026-10-25.md`](./product/FASE0_DIAGNOSTICO_MASTER_V10_2026-10-25.md).
 - Monólito modular: backend Node/Express, frontend React/Vite, Postgres via Supabase (Storage + RLS defesa), Stripe billing, Google Calendar/Drive, Brevo.
-- Isolamento multi-tenant por `firm_id` nos repositórios; teste `tenant-isolation-test.js` no CI **quando** staging Supabase + GitHub Actions estão activos (localmente falhou Set/2026 com `ENOTFOUND` — projecto staging pausado, não regressão de código).
-- **Ops crítico aprendido:** Supabase prod **INACTIVE** (faturação) derruba login (`ENOTFOUND` → 500); runbook em [`docs/operations/INCIDENTS.md`](./operations/INCIDENTS.md).
-- Testes: **652** backend + **224** frontend (28/09/2026).
+- Isolamento multi-tenant por `firm_id` nos repositórios; teste `tenant-isolation-test.js` no CI **quando** staging Supabase + GitHub Actions estão activos.
+- **Ops crítico aprendido:** Supabase prod **INACTIVE** (faturação) derruba login (`ENOTFOUND` → 500); runbook em [`docs/operations/INCIDENTS.md`](./operations/INCIDENTS.md). Preview Vercel sem host `staging` pode cair no fallback `/api` → prod — ver diagnóstico Fase 0 §4–5.
+- Testes: **652** backend + **224** frontend (28/09/2026) — contagem pós-V10 `A VALIDAR`.
 
 ---
 
@@ -177,6 +180,25 @@ Minha prioridade absoluta. Nada do resto importa se a base não é sólida.
 Portugal é o único mercado onde eu tenho uso real hoje (5 escritórios em produção) e continua sendo minha prioridade de estabilidade de produto. Itens específicos de produto (não arquitetura) eu guardo em `docs/product/` e adiciono aqui conforme eu for decidindo — não quero listar aqui funcionalidade que eu ainda nem desenhei, pra não inventar prioridade que não existe.
 
 - **Regra que eu sigo nessa fase:** nenhuma mudança que eu fizer nas Fases 3-5 (arquitetura multi-país, Brasil) pode alterar o comportamento que um escritório português vê hoje. Ver Fase 3 pros testes de regressão que eu preciso rodar.
+
+### Frente V10 Ops + Fiscal (branch `feature/fase-v10-ops-fiscal`) — iniciada 25/10/2026
+
+Carta canónica: [`docs/product/V10_OPS_FISCAL_CHARTER.md`](./product/V10_OPS_FISCAL_CHARTER.md).  
+Diagnóstico Master Prompt (Fase 0): [`docs/product/FASE0_DIAGNOSTICO_MASTER_V10_2026-10-25.md`](./product/FASE0_DIAGNOSTICO_MASTER_V10_2026-10-25.md).
+
+| Onda | Estado | Notas |
+|---|---|---|
+| **1 — Avenças / mapa Pagamentos** | `CONCLUÍDO` (código) + em **staging** | PR #192; Connect opcional. UX Pagamentos a melhorar (Fase 1→2b). |
+| **2 — Motor IVA** | `CONCLUÍDO` + **staging** | Simulação + `fiscal_calculations`; UI `/app/firm/calculators/iva` |
+| **3 — Mês fiscal N/M** | `CONCLUÍDO` + **staging** | Tab `/app/firm/tasks/month` |
+| **4 — Simuladores** | `CONCLUÍDO` parcial + **staging** | IVA→IRC; menu com 6 itens — consolidar hub (Fase 2b). TA/pensões diferidos. |
+| **5 — Rendas internas** | `CONCLUÍDO` + **staging** | Sem comunicação AT |
+| **6 — SAF-T leitura** | `CONCLUÍDO` + **staging** | XML/ZIP; XXE-safe; sem envio AT |
+| **7 — Manual Maya** | `CONCLUÍDO` + **staging** | `/manual` |
+| **8 — Landing** | `PLANEJADO` | Depois de UAT + UX fino |
+| **9 — Certificação AT** | `PLANEJADO` | Investimento + jurídico |
+
+**Não em `main` até UAT + PR staging→main autorizado.** Próximo trabalho de produto/segurança do Master Prompt: Fase 1 (spec) — `BLOQUEADO` até aprovação explícita.
 
 ### Frente de evolução de produto/segurança (iniciada 20/08/2026)
 

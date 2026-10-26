@@ -116,7 +116,7 @@ export function ClientMessagesPanel({ t }: { t: Copy }) {
       <aside className="pc-chat-list hidden sm:flex">
         <div className="border-b border-border p-4">
           <p className="text-sm font-semibold text-foreground">Conversas</p>
-          <p className="text-xs text-muted-foreground">Escritório de contabilidade</p>
+          <p className="text-xs text-muted-foreground">Gabinete de contabilidade</p>
         </div>
         <div className="p-2">
           <button
@@ -153,8 +153,8 @@ export function ClientMessagesPanel({ t }: { t: Copy }) {
           ) : messages.length === 0 ? (
             <EmptyState
               icon={MessageSquare}
-              title="Inicia conversa com o teu contabilista"
-              description="Perguntas rápidas, esclarecimentos ou envio de contexto — tudo num só sítio."
+              title="Comece a conversa com o gabinete"
+              description="Perguntas rápidas, esclarecimentos ou contexto — tudo fica registado aqui."
             />
           ) : (
             <ul className="space-y-4">

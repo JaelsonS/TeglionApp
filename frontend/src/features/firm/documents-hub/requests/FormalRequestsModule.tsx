@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
 import { useSearchParams } from 'react-router-dom'
-import { Inbox, Plus, Search } from 'lucide-react'
+import { CheckCircle2, Clock3, FileText, Inbox, Plus, Search } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { DocumentsKpiStrip } from '@/features/firm/documents-hub/DocumentsKpiStrip'
 import { NewRequestDialog } from '@/features/firm/documents-hub/requests/NewRequestDialog'
 import { RequestRow } from '@/features/firm/documents-hub/requests/RequestRow'
 import { DocumentRequestDetailPanel } from '@/features/firm/documents/DocumentRequestDetailPanel'
@@ -27,6 +28,15 @@ const STATUS_FILTERS = [
   { value: 'answered', label: 'Respondidos' },
   { value: 'completed', label: 'Concluídos' },
 ] as const
+
+function startOfWeekMs(d = new Date()) {
+  const x = new Date(d)
+  const day = x.getDay()
+  const diff = day === 0 ? -6 : 1 - day
+  x.setHours(0, 0, 0, 0)
+  x.setDate(x.getDate() + diff)
+  return x.getTime()
+}
 
 export function FormalRequestsModule() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -91,6 +101,40 @@ export function FormalRequestsModule() {
     return list
   }, [requests, statusFilter, search])
 
+  const kpis = useMemo(() => {
+    const open = requests.filter((r) => {
+      const s = normalizeRequestStatus(r.status)
+      return s === 'pending' || s === 'seen' || s === 'answered'
+    }).length
+    const awaitingValidation = requests.filter((r) => {
+      const s = normalizeRequestStatus(r.status)
+      return s === 'answered' || Boolean(r.documentId && s !== 'completed')
+    }).length
+    const weekStart = startOfWeekMs()
+    const completedWeek = requests.filter((r) => {
+      if (normalizeRequestStatus(r.status) !== 'completed') return false
+      const at = r.completedAt || r.answeredAt || r.createdAt
+      return at ? new Date(at).getTime() >= weekStart : false
+    }).length
+    return [
+      { id: 'open', value: open, label: 'pedidos em aberto', tone: 'brand' as const, icon: FileText },
+      {
+        id: 'wait',
+        value: awaitingValidation,
+        label: 'à espera de validação',
+        tone: 'amber' as const,
+        icon: Clock3,
+      },
+      {
+        id: 'done',
+        value: completedWeek,
+        label: 'concluído esta semana',
+        tone: 'emerald' as const,
+        icon: CheckCircle2,
+      },
+    ]
+  }, [requests])
+
   const selectedRequest = useMemo(
     () => filteredRequests.find((r) => r.id === selectedRequestId) || null,
     [filteredRequests, selectedRequestId],
@@ -107,6 +151,16 @@ export function FormalRequestsModule() {
       return next
     })
   }
+
+  // Auto-seleccionar o primeiro pedido no desktop (lista + detalhe como no mockup).
+  useEffect(() => {
+    if (loading || loadingRequests || composeOpen) return
+    if (selectedRequestId || searchParams.get('compose') === '1') return
+    if (filteredRequests.length === 0) return
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 1279px)').matches) return
+    updateParams({ request: filteredRequests[0].id })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só na carga / mudança de lista filtrada
+  }, [loading, loadingRequests, filteredRequests, selectedRequestId, composeOpen])
 
   const submitNewRequest = async (payload: {
     clientId: string
@@ -133,12 +187,20 @@ export function FormalRequestsModule() {
 
   const toolbar = (
     <div className="cb-docs-requests-toolbar">
+      <DocumentsKpiStrip items={kpis} className="mb-1" />
       <div className="cb-docs-requests-toolbar-hd">
-        <p className="cb-docs-requests-toolbar-title">Pedidos formais</p>
+        <div className="min-w-0">
+          <p className="cb-docs-requests-toolbar-title">Pedidos formais ao cliente</p>
+          <p className="cb-docs-requests-toolbar-sub">
+            Crie pedidos com prazo e instruções — o cliente responde no portal; os ficheiros seguem para
+            validação em Ficheiros.
+          </p>
+        </div>
         <Button
           type="button"
           size="sm"
-          className="cb-docs-requests-btn h-8 shrink-0 rounded-lg px-3"
+          variant="primary"
+          className="cb-docs-requests-btn h-9 shrink-0 rounded-lg px-3"
           onClick={() => {
             setComposeOpen(true)
             updateParams({ compose: '1' })
@@ -191,11 +253,11 @@ export function FormalRequestsModule() {
   )
 
   const listBody = (
-    <div className="min-h-0 flex-1 overflow-y-auto">
+    <div className="cb-docs-req-list">
       {loading || loadingRequests ? (
-        <div className="divide-y divide-border/40">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-16 animate-pulse bg-muted/20" />
+        <div className="space-y-2 p-2">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-[4.5rem] animate-pulse rounded-xl bg-muted/30" />
           ))}
         </div>
       ) : filteredRequests.length === 0 ? (
@@ -216,7 +278,7 @@ export function FormalRequestsModule() {
           }
         />
       ) : (
-        <div className="divide-y divide-border/50">
+        <div className="cb-docs-req-list-inner">
           {filteredRequests.map((r) => (
             <RequestRow
               key={r.id}
@@ -250,17 +312,17 @@ export function FormalRequestsModule() {
       }}
     />
   ) : (
-    <div className="flex flex-1 flex-col items-center justify-center gap-1.5 p-6 text-center text-muted-foreground">
+    <div className="cb-docs-req-empty-detail">
       <Inbox className="h-10 w-10 opacity-25" />
       <p className="text-sm font-medium text-foreground">Selecione um pedido</p>
-      <p className="max-w-xs text-xs">
+      <p className="max-w-xs text-xs text-muted-foreground">
         Abra o detalhe para ver instruções, histórico e validar documentos enviados.
       </p>
     </div>
   )
 
   return (
-    <>
+    <div className="flex w-full min-w-0 flex-col">
       <FirmSplitView
         hasSelection={Boolean(selectedRequestId)}
         onClearSelection={() => updateParams({ request: null })}
@@ -281,6 +343,6 @@ export function FormalRequestsModule() {
         sending={sending}
         onSubmit={submitNewRequest}
       />
-    </>
+    </div>
   )
 }

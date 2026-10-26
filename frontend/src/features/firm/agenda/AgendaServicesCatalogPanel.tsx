@@ -82,8 +82,8 @@ function generateStableId(prefix: string): string {
 
 const CHOICE_TYPES: IntakeQuestionType[] = ['single_choice', 'multiple_choice', 'yes_no']
 
-/** Valores iniciais quando o escritório liga "Personalizar horários deste serviço" pela
- * primeira vez — independentes das regras gerais (o painel não recebe a config do escritório). */
+/** Valores iniciais quando o gabinete liga "Personalizar horários deste serviço" pela
+ * primeira vez — independentes das regras gerais (o painel não recebe a config do gabinete). */
 const DEFAULT_BOOKING_OVERRIDE: FirmBookingSettings = {
   slotMinutes: 30,
   horizonDays: 14,
@@ -264,9 +264,9 @@ export function AgendaServicesCatalogPanel({
     staleTime: 10 * 60_000,
   })
 
-  /** Templates do catálogo nacional que o escritório ainda não tem (activo ou
+  /** Templates do catálogo nacional que o gabinete ainda não tem (activo ou
    * inactivo). Vem sempre da lista estática — nunca de linhas pré-seedadas —
-   * para nunca reaparecer sozinho depois de o escritório apagar um serviço
+   * para nunca reaparecer sozinho depois de o gabinete apagar um serviço
    * de propósito (ver `activateFromCatalog` no backend). */
   const existingCatalogKeys = useMemo(
     () => new Set(services.map((s) => s.catalogKey).filter((k): k is string => Boolean(k))),
@@ -1208,7 +1208,7 @@ export function AgendaServicesCatalogPanel({
                               onSaveAvailability={() => {}}
                             />
                           ) : (
-                            <p className="cb-text-caption">Usa os horários gerais do escritório (Definições da agenda).</p>
+                            <p className="cb-text-caption">Usa os horários gerais do gabinete (Definições da agenda).</p>
                           )}
                         </div>
                       ) : null}

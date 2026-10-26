@@ -54,7 +54,7 @@ export function ServiceBookingAvailabilitySection({
     } catch (err) {
       const message = getErrorMessage(err)
       setFirmError(message)
-      toast.error('Não foi possível carregar o horário geral do escritório', { description: message })
+      toast.error('Não foi possível carregar o horário geral do gabinete', { description: message })
       return null
     } finally {
       setLoadingFirm(false)
@@ -78,7 +78,7 @@ export function ServiceBookingAvailabilitySection({
     }
     const seed = (await loadFirmSchedule()) ?? firmSchedule
     if (!seed || Object.keys(seed).length === 0) {
-      if (!firmError) setFirmError('O escritório ainda não tem horário geral configurado.')
+      if (!firmError) setFirmError('O gabinete ainda não tem horário geral configurado.')
       return
     }
     onChange(patchServiceBookingOverrides(value, { schedule: cloneBookingSchedule(seed) }, seed))
@@ -123,7 +123,7 @@ export function ServiceBookingAvailabilitySection({
             [
               {
                 mode: 'inherit' as const,
-                title: 'Usar horário do escritório',
+                title: 'Usar horário do gabinete',
                 description: 'Este serviço seguirá os horários definidos na Agenda.',
               },
               {
@@ -164,7 +164,7 @@ export function ServiceBookingAvailabilitySection({
       {loadingFirm ? (
         <p className="flex items-center gap-2 text-xs text-muted-foreground" data-testid="service-booking-availability-loading">
           <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-          A carregar o horário geral do escritório…
+          A carregar o horário geral do gabinete…
         </p>
       ) : null}
 
@@ -176,7 +176,7 @@ export function ServiceBookingAvailabilitySection({
 
       {!enabled ? (
         <p className="rounded-lg border border-dashed border-border/60 bg-card/50 px-3 py-2 text-xs text-muted-foreground">
-          O horário do escritório é o padrão definido em Agenda → Definições. Use «Personalizar» apenas se este
+          O horário do gabinete é o padrão definido em Agenda → Definições. Use «Personalizar» apenas se este
           serviço precisar de dias ou horas diferentes.
         </p>
       ) : null}

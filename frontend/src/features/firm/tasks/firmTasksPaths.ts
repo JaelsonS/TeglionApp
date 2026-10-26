@@ -5,6 +5,7 @@ export const FIRM_TASKS_BASE = '/app/firm/tasks' as const
 const TAB_PATHS: Record<TasksOperationsTab, string> = {
   overview: `${FIRM_TASKS_BASE}/overview`,
   obligations: `${FIRM_TASKS_BASE}/obligations`,
+  month: `${FIRM_TASKS_BASE}/month`,
   manual: `${FIRM_TASKS_BASE}/manual`,
   calendar: `${FIRM_TASKS_BASE}/calendar`,
   clients: `${FIRM_TASKS_BASE}/clients`,
@@ -19,6 +20,7 @@ export function parseTasksTabFromPathname(pathname: string): TasksOperationsTab 
   if (
     segment === 'overview' ||
     segment === 'obligations' ||
+    segment === 'month' ||
     segment === 'manual' ||
     segment === 'calendar' ||
     segment === 'clients'

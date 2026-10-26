@@ -51,7 +51,7 @@ function countPublicListedServices(services: PublicFirmServiceSummary[]): number
   return services.filter((s) => String(s.slug || '').trim()).length
 }
 
-/** Espelha o que o visitante vê em Contactos ou no Rodapé (herdando Escritório). */
+/** Espelha o que o visitante vê em Contactos ou no Rodapé (herdando Gabinete). */
 export function isPublicSiteContactVisible(
   config: PublicSiteConfig,
   firmContact: PublicSiteContactFields,

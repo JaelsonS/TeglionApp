@@ -38,7 +38,7 @@ export function LandingProductCarousel() {
         <FadeInView className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold sm:text-4xl">Vê o Teglion por dentro</h2>
           <p className="mt-4 text-[#4A5568]">
-            Capturas reais — painel, clientes, documentos e prazos no mesmo produto.
+            Capturas reais do gabinete e do portal — moldura uniforme; copy alinhada ao menu (sem emissão AT).
           </p>
         </FadeInView>
 
@@ -60,7 +60,7 @@ export function LandingProductCarousel() {
                   >
                     <LandingScreenshot src={slide.src} alt={slide.alt} />
                     <div className="mt-5 text-center">
-                      <p className="text-lg font-semibold text-[#0F2942]">{slide.title}</p>
+                      <p className="text-lg font-semibold text-[#0B3A6E]">{slide.title}</p>
                       <p className="mt-1 text-[15px] text-[#4A5568]">{slide.copy}</p>
                     </div>
                   </motion.div>
@@ -75,7 +75,7 @@ export function LandingProductCarousel() {
             aria-label="Slide anterior"
             onClick={scrollPrev}
           >
-            <ChevronLeft className="h-5 w-5 text-[#0F2942]" />
+            <ChevronLeft className="h-5 w-5 text-[#0B3A6E]" />
           </button>
           <button
             type="button"
@@ -83,7 +83,7 @@ export function LandingProductCarousel() {
             aria-label="Slide seguinte"
             onClick={scrollNext}
           >
-            <ChevronRight className="h-5 w-5 text-[#0F2942]" />
+            <ChevronRight className="h-5 w-5 text-[#0B3A6E]" />
           </button>
 
           <div className="mt-8 flex flex-wrap justify-center gap-2">
@@ -94,7 +94,7 @@ export function LandingProductCarousel() {
                 aria-label={`Ir para slide ${i + 1}`}
                 className={cn(
                   'h-2 rounded-full transition-all',
-                  selected === i ? 'w-6 bg-[#0F2942]' : 'w-2 bg-[#0F2942]/25',
+                  selected === i ? 'w-6 bg-[#0B3A6E]' : 'w-2 bg-[#0B3A6E]/25',
                 )}
                 onClick={() => scrollTo(i)}
               />

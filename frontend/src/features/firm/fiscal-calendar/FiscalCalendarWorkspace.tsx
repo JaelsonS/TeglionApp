@@ -216,7 +216,7 @@ export function FiscalCalendarWorkspace() {
   }
 
   return (
-    <FirmWorkspacePage className="cb-fiscal-cal-page min-h-0 flex-1">
+    <FirmWorkspacePage className="cb-fiscal-cal-page cb-fiscal-cal-layout-page">
       <header className="cb-fiscal-cal-header shrink-0">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
@@ -225,12 +225,12 @@ export function FiscalCalendarWorkspace() {
                 <CalendarDays className="h-5 w-5" aria-hidden />
               </div>
               <div className="min-w-0">
-                <h1 className="cb-operational-page-title font-display sm:text-2xl">
-                  {calendar?.name || 'Calendário Fiscal'}
+                <h1 className="cb-operational-page-title font-sans sm:text-2xl">
+                  {calendar?.name || 'Calendário fiscal'}
                 </h1>
                 <p className="cb-operational-page-sub text-sm">
                   {calendar?.description ||
-                    'Organize e acompanhe os principais prazos e obrigações fiscais do seu escritório.'}
+                    'Prazos e eventos fiscais do gabinete (IVA, IES…). Distinto de Tarefas → Obrigações (por cliente), Tarefas → Calendário (ops) e Agendamentos (consultas).'}
                 </p>
               </div>
             </div>
@@ -454,7 +454,7 @@ export function FiscalCalendarWorkspace() {
         </select>
       </div>
 
-      <div className={cn('cb-fiscal-cal-body min-h-0 flex-1', view === 'month' && 'hidden md:block')}>
+      <div className={cn('cb-fiscal-cal-body', view === 'month' && 'hidden md:block')}>
         {workspaceQuery.isError ? (
           <div className="flex h-full min-h-[16rem] flex-col items-center justify-center gap-2 px-4 text-center">
             <p className="font-medium text-foreground">Não foi possível carregar o calendário.</p>
@@ -629,7 +629,7 @@ export function FiscalCalendarWorkspace() {
       </div>
 
       {/* Mobile: always prioritize list */}
-      <div className="cb-fiscal-cal-body min-h-0 flex-1 md:hidden">
+      <div className="cb-fiscal-cal-body md:hidden">
         {workspaceQuery.isLoading ? (
           <div className="h-40 animate-pulse rounded-xl bg-muted/40" />
         ) : (

@@ -5,13 +5,13 @@ import { FadeInStagger, FadeInStaggerItem, FadeInView } from '@/shared/component
 const OFFERS = [
   {
     icon: Globe2,
-    title: 'Página pública do escritório',
+    title: 'Página pública do gabinete',
     text: 'O teu site no Teglion: marca, serviços e marcação — sem montar landing à parte nem gerir links soltos.',
   },
   {
     icon: Package,
     title: 'Serviços à tua medida',
-    text: 'Cria e personaliza o catálogo: consultorias, pacotes e o que o escritório vende no dia a dia.',
+    text: 'Cria e personaliza o catálogo: consultorias, pacotes e o que o gabinete vende no dia a dia.',
   },
   {
     icon: FileSpreadsheet,
@@ -21,7 +21,7 @@ const OFFERS = [
   {
     icon: CreditCard,
     title: 'Pagamentos na plataforma',
-    text: 'O cliente final paga o escritório no fluxo de marcação. Cobrança ligada à operação, não a outro sistema.',
+    text: 'O cliente final paga o gabinete no fluxo de marcação. Cobrança ligada à operação, não a outro sistema.',
   },
 ] as const
 
@@ -48,11 +48,11 @@ export function LandingPublicOffer() {
             return (
               <FadeInStaggerItem key={item.title}>
                 <article className="landing-card flex h-full gap-4 p-6">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0F2942] text-white">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0B3A6E] text-white">
                     <Icon className="h-5 w-5" aria-hidden />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-lg font-semibold text-[#0F2942]">{item.title}</h3>
+                    <h3 className="text-lg font-semibold text-[#0B3A6E]">{item.title}</h3>
                     <p className="mt-2 text-[15px] leading-relaxed text-[#4A5568]">{item.text}</p>
                   </div>
                 </article>

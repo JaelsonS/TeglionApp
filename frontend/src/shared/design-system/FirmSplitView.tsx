@@ -20,7 +20,7 @@ export type FirmSplitViewProps = {
 }
 
 /**
- * Lista → detalhe responsivo (escritório):
+ * Lista → detalhe responsivo (gabinete):
  * - desktop (≥1280px): duas colunas fixas
  * - tablet (768–1279px): lista + sheet
  * - mobile (&lt;768px): stack com voltar

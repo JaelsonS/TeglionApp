@@ -26,13 +26,13 @@ import { emitAppDataChanged } from '@/shared/utils/appEvents'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { formatPtDate } from '@/shared/utils/contabilLocale'
 import type { DocumentDetailResponse, FirmDocumentRow } from './documentTypes'
+import { describeDocumentHistoryEvent } from '@/features/firm/documents-hub/documentsHistoryLabels'
 import {
   displayClientName,
   displayDocumentName,
   formatFileSize,
   mimeKind,
   mimeLabel,
-  relativeTimePt,
   validationBadgeVariant,
   validationLabel,
 } from './documentDisplay'
@@ -225,7 +225,7 @@ export function DocumentPreviewPanel({
 
   if (!doc) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 p-10 text-center text-muted-foreground">
+      <div className="flex min-h-[16rem] flex-col items-center justify-center gap-3 p-10 text-center text-muted-foreground">
         <FileStack className="h-12 w-12 opacity-30" />
         <p className="max-w-xs text-sm">Selecione um documento na lista para pré-visualizar e validar.</p>
       </div>
@@ -238,12 +238,35 @@ export function DocumentPreviewPanel({
 
   const actionButtons = (
     <>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="h-9 rounded-lg"
+        onClick={() => void handleDownload()}
+      >
+        <Download className="mr-1.5 h-4 w-4" />
+        Descarregar
+      </Button>
+      {!readOnly ? (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-9 rounded-lg"
+          disabled={actionLoading}
+          onClick={() => void handleResend()}
+        >
+          <RotateCcw className="mr-1.5 h-4 w-4" />
+          Solicitar reenvio
+        </Button>
+      ) : null}
       {!readOnly && doc.validationStatus === 'PENDING' ? (
         <>
           <Button
             type="button"
             size="sm"
-            className="rounded-full"
+            className="h-9 rounded-lg border-transparent bg-emerald-600 text-white hover:bg-emerald-700"
             disabled={actionLoading}
             onClick={() => void handleValidate('APPROVED')}
           >
@@ -254,7 +277,7 @@ export function DocumentPreviewPanel({
             type="button"
             size="sm"
             variant="outline"
-            className="rounded-full"
+            className="h-9 rounded-lg border-red-300 text-red-700 hover:bg-red-50"
             disabled={actionLoading}
             onClick={() => void handleValidate('REJECTED')}
           >
@@ -263,28 +286,40 @@ export function DocumentPreviewPanel({
           </Button>
         </>
       ) : null}
-      <Button type="button" size="sm" variant="outline" className="rounded-full" onClick={() => void handleDownload()}>
-        <Download className="mr-1.5 h-4 w-4" />
-        Descarregar
-      </Button>
-      {!readOnly ? (
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          className="rounded-full"
-          disabled={actionLoading}
-          onClick={() => void handleResend()}
-        >
-          <RotateCcw className="mr-1.5 h-4 w-4" />
-          Solicitar reenvio
-        </Button>
+      {!readOnly && doc.validationStatus === 'APPROVED' ? (
+        <>
+          <Button
+            type="button"
+            size="sm"
+            className="h-9 rounded-lg border-transparent bg-emerald-600 text-white hover:bg-emerald-700"
+            disabled
+          >
+            <Check className="mr-1.5 h-4 w-4" />
+            Aprovado
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-9 rounded-lg border-red-300 text-red-700 hover:bg-red-50"
+            disabled={actionLoading}
+            onClick={() => void handleValidate('REJECTED')}
+          >
+            <X className="mr-1.5 h-4 w-4" />
+            Rejeitar
+          </Button>
+        </>
       ) : null}
     </>
   )
 
   return (
-    <div className={cn('cb-firm-detail-embed cb-docs-preview-panel flex h-full min-h-0 flex-col', expanded && 'cb-docs-preview-panel-expanded')}>
+    <div
+      className={cn(
+        'cb-firm-detail-embed cb-docs-preview-panel flex w-full min-w-0 flex-col',
+        expanded && 'cb-docs-preview-panel-expanded',
+      )}
+    >
       <header className="flex shrink-0 flex-col gap-3 border-b border-border/60 px-4 py-3 sm:px-5 sm:py-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -305,40 +340,47 @@ export function DocumentPreviewPanel({
             </Button>
           ) : null}
         </div>
-        <div className="hidden flex-wrap gap-2 xl:flex">{actionButtons}</div>
+        <div className="flex flex-wrap gap-2">{actionButtons}</div>
       </header>
 
       <div
         className={cn(
-          'grid min-h-0 flex-1',
-          expanded ? 'xl:grid-cols-[minmax(0,1fr)_280px]' : 'xl:grid-cols-[minmax(0,1fr)_260px]',
+          'grid',
+          expanded ? 'xl:grid-cols-[minmax(0,1fr)_280px]' : 'sm:grid-cols-[minmax(0,1fr)_260px]',
         )}
       >
-        <div className="flex min-h-0 flex-col border-b border-border/60 xl:border-b-0 xl:border-r">
+        <div className="flex flex-col border-b border-border/60 sm:border-b-0 sm:border-r">
           <div
             className={cn(
-              'relative min-h-[240px] flex-1 bg-muted/30',
-              expanded ? 'min-h-[min(52vh,520px)] xl:min-h-[min(60vh,640px)]' : 'xl:min-h-[320px]',
+              'relative bg-muted/20',
+              previewUrl || previewLoading
+                ? expanded
+                  ? 'min-h-[min(40vh,420px)]'
+                  : 'min-h-[min(32vh,280px)]'
+                : 'min-h-0',
             )}
           >
             {previewLoading ? (
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="flex min-h-[180px] items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
               </div>
             ) : previewUrl && kind === 'image' ? (
-              <img src={previewUrl} alt={displayDocumentName(doc)} className="h-full w-full object-contain" />
+              <img src={previewUrl} alt={displayDocumentName(doc)} className="max-h-[420px] w-full object-contain" />
             ) : previewUrl ? (
-              <iframe title={displayDocumentName(doc)} src={previewUrl} className="h-full min-h-[280px] w-full" />
+              <iframe title={displayDocumentName(doc)} src={previewUrl} className="h-[min(40vh,420px)] w-full" />
             ) : (
-              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                Pré-visualização indisponível para este tipo de ficheiro.
+              <div className="cb-docs-preview-unavailable">
+                <FileStack className="h-5 w-5 opacity-40" aria-hidden />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Pré-visualização indisponível</p>
+                  <p className="text-xs text-muted-foreground">Descarregue o ficheiro para o abrir no dispositivo.</p>
+                </div>
               </div>
             )}
           </div>
-          <div className="flex flex-wrap gap-2 border-t border-border/60 p-3 xl:hidden">{actionButtons}</div>
         </div>
 
-        <aside className="flex min-h-0 flex-col overflow-y-auto">
+        <aside className="flex flex-col">
           <section className="border-b border-border/60 p-4">
             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Detalhes</h3>
             <dl className="mt-3 space-y-2 text-sm">
@@ -487,7 +529,7 @@ export function DocumentPreviewPanel({
           <section className="p-4">
             <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               <History className="h-3.5 w-3.5" />
-              Histórico
+              Actividade recente
             </h3>
             {detailLoading ? (
               <div className="mt-3 space-y-2">
@@ -497,17 +539,18 @@ export function DocumentPreviewPanel({
               <p className="mt-3 text-sm text-muted-foreground">Sem eventos registados.</p>
             ) : (
               <ul className="mt-3 space-y-3">
-                {history.slice(0, 12).map((h) => (
-                  <li key={h.id} className="relative border-l-2 border-brand/20 pl-3">
-                    <p className="text-sm font-medium">{h.title || 'Evento'}</p>
-                    {h.description ? (
-                      <p className="text-xs text-muted-foreground">{h.description}</p>
-                    ) : null}
-                    <p className="mt-0.5 cb-text-caption">
-                      {h.createdAt ? relativeTimePt(h.createdAt) : ''}
-                    </p>
-                  </li>
-                ))}
+                {history.slice(0, 8).map((h) => {
+                  const ev = describeDocumentHistoryEvent(h)
+                  return (
+                    <li key={h.id} className="relative border-l-2 border-brand/20 pl-3">
+                      <p className="text-sm font-medium">{ev.title}</p>
+                      {ev.detail ? <p className="text-xs text-muted-foreground">{ev.detail}</p> : null}
+                      <p className="mt-0.5 cb-text-caption" title={ev.absoluteWhen || undefined}>
+                        {ev.whenLabel || ev.absoluteWhen || ''}
+                      </p>
+                    </li>
+                  )
+                })}
               </ul>
             )}
           </section>

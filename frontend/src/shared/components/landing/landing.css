@@ -1,12 +1,14 @@
 .landing-page {
-  --landing-bg: #fafaf7;
-  --landing-navy: #0f2942;
-  --landing-navy-hover: #1a3a5c;
-  --landing-body: #4a5568;
+  /* Alinhado ao DS Teglion (navy #0B3A6E + Plus Jakarta Sans) */
+  --landing-bg: #f5f7fa;
+  --landing-navy: #0b3a6e;
+  --landing-navy-hover: #0e4a8a;
+  --landing-body: #4a5b70;
   --landing-mint: #c8e6d0;
-  --landing-ice: #e3f0ff;
+  --landing-ice: #e8f0f7;
   background: var(--landing-bg);
   color: var(--landing-body);
+  font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.6;
   overflow-x: hidden;
@@ -65,7 +67,7 @@
 }
 
 .landing-btn-ghost:hover {
-  background: rgba(15, 41, 66, 0.06);
+  background: rgba(11, 58, 110, 0.06);
 }
 
 .landing-section {
@@ -94,24 +96,38 @@
 
 .landing-card {
   border-radius: 14px;
-  border: 1px solid rgba(15, 41, 66, 0.08);
+  border: 1px solid rgba(11, 58, 110, 0.08);
   background: #fff;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   min-width: 0;
 }
 
+.landing-screenshot-frame {
+  aspect-ratio: 16 / 10;
+  width: 100%;
+  overflow: hidden;
+}
+
+.landing-screenshot-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .landing-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(15, 41, 66, 0.06);
+    box-shadow: 0 10px 30px rgba(11, 58, 110, 0.06);
   }
 }
 
 .landing-header-scrolled {
   background: rgba(250, 250, 247, 0.92);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(15, 41, 66, 0.08);
+  border-bottom: 1px solid rgba(11, 58, 110, 0.08);
 }
 
 /* CTA final — fundo escuro; título fora da cor navy global dos h2 */

@@ -92,7 +92,7 @@ export function TasksManualView({
   }, [showForm])
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex w-full min-w-0 flex-col">
       {!embeddedInShell ? (
         <div className="flex flex-wrap items-center gap-2 border-b border-border/60 bg-muted/15 p-3">
           <div className="relative min-w-[200px] flex-1">
@@ -302,7 +302,7 @@ export function TasksManualView({
                     <Building2 className="h-4 w-4" aria-hidden />
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground">Escritório</p>
+                    <p className="text-sm font-medium text-foreground">Gabinete</p>
                     <p className="text-xs text-muted-foreground">Não está ligada a nenhum cliente</p>
                   </div>
                 </div>

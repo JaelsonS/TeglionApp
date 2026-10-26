@@ -176,7 +176,7 @@ function KanbanColumn({
           <MoreHorizontal className="h-4 w-4" />
         </button>
       </div>
-      <div className="flex max-h-[calc(100vh-16rem)] flex-col gap-0 overflow-y-auto pb-2">
+      <div className="flex flex-col gap-0 pb-2">
         {tasks.map((t) => (
           <TaskCard
             key={t.id}

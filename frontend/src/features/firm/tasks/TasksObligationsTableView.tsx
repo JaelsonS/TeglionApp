@@ -122,7 +122,7 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
   }, [page, pageCount])
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden">
+    <div className="flex w-full min-w-0 flex-col gap-2">
       {hub.filters.showCreate ? (
         <ObligationCreatePanel
           open
@@ -208,8 +208,8 @@ export function TasksObligationsTableView({ hub }: { hub: Hub }) {
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col">
-          <div className="cb-tasks-table-wrap cb-table-scroll min-h-0 flex-1">
+      <div className="flex w-full min-w-0 flex-col">
+          <div className="cb-tasks-table-wrap">
             <table className="cb-tasks-table cb-table-mobile-cards">
               <thead className="cb-tasks-thead">
                 <tr>

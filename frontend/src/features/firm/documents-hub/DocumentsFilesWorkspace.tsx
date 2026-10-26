@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
-import { FileText, Search } from 'lucide-react'
+import { CheckCircle2, ChevronRight, FileText, Search, ShieldAlert, ShieldX } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
+import { DocumentsKpiStrip } from '@/features/firm/documents-hub/DocumentsKpiStrip'
 import { DocumentPreviewPanel } from '@/features/firm/documents/DocumentPreviewPanel'
 import { useDocumentsHub } from '@/features/firm/documents/useDocumentsHub'
 import type { FirmDocumentRow } from '@/features/firm/documents/documentTypes'
@@ -13,12 +14,12 @@ import {
   mimeIcon,
   validationLabel,
 } from '@/features/firm/documents/documentDisplay'
-import { formatDateTime } from '@/shared/utils/date'
 import { cn } from '@/shared/lib/utils'
 import { Input } from '@/shared/components/ui/input'
 import { Button } from '@/shared/components/ui/button'
 import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
 import { EmptyState } from '@/shared/design-system'
+import { formatDateTime } from '@/shared/utils/date'
 
 function statusPillClass(status?: string | null) {
   if (status === 'APPROVED') return 'cb-docs-pill-approved'
@@ -27,45 +28,40 @@ function statusPillClass(status?: string | null) {
   return 'cb-docs-pill-muted'
 }
 
-/** Preview fixo só em ≥1280px; abaixo disso usa o diálogo centrado. */
-function useDocsPreviewSheet() {
-  const query = '(max-width: 1279px)'
-  const [useSheet, setUseSheet] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia(query).matches,
-  )
-
-  useEffect(() => {
-    const mq = window.matchMedia(query)
-    const onChange = () => setUseSheet(mq.matches)
-    onChange()
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
-
-  return useSheet
-}
-
 export function DocumentsFilesWorkspace() {
   const hub = useDocumentsHub()
-  const previewAsSheet = useDocsPreviewSheet()
-  const sheetOpen = Boolean(hub.selectedId) && previewAsSheet
-  const hasDesktopPreview = Boolean(hub.selectedId) && !previewAsSheet
-  const [previewFocus, setPreviewFocus] = useState(false)
+  const dialogOpen = Boolean(hub.selectedId)
 
   const selectedDoc = useMemo(
     () => hub.items.find((d) => d._id === hub.selectedId) || hub.detail?.document || null,
     [hub.items, hub.selectedId, hub.detail?.document],
   )
 
+  const kpis = useMemo(() => {
+    const pending = hub.items.filter((d) => d.validationStatus === 'PENDING').length
+    const approved = hub.items.filter((d) => d.validationStatus === 'APPROVED').length
+    const rejected = hub.items.filter((d) => d.validationStatus === 'REJECTED').length
+    return [
+      { id: 'pending', value: pending, label: 'por validar', tone: 'amber' as const, icon: ShieldAlert },
+      { id: 'ok', value: approved, label: 'aprovados', tone: 'emerald' as const, icon: CheckCircle2 },
+      { id: 'rej', value: rejected, label: 'rejeitados', tone: 'rose' as const, icon: ShieldX },
+    ]
+  }, [hub.items])
+
   return (
     <div className="cb-docs-workspace">
+      <DocumentsKpiStrip items={kpis} />
+      <p className="cb-docs-section-lead">
+        <span className="cb-docs-section-lead-title">Validar e organizar ficheiros</span>
+        Clique num ficheiro para abrir o cartão completo no centro — pré-visualizar, validar, validade e
+        histórico.
+      </p>
+
       <div className="cb-docs-toolbar">
         <select
           className="cb-docs-filter"
           value={hub.filters.clientId || ''}
-          onChange={(e) =>
-            hub.updateParams({ clientId: e.target.value || null })
-          }
+          onChange={(e) => hub.updateParams({ clientId: e.target.value || null })}
           aria-label="Filtrar cliente"
         >
           <option value="">Cliente: Todos</option>
@@ -108,140 +104,80 @@ export function DocumentsFilesWorkspace() {
             className="cb-docs-search-input"
           />
         </div>
+        <Button type="button" size="sm" variant="primary" className="h-9 shrink-0 rounded-lg" asChild>
+          <Link to="/app/firm/documents/requests?compose=1">Pedir documentos</Link>
+        </Button>
       </div>
 
-      <div
-        className={cn(
-          'cb-docs-split',
-          hasDesktopPreview && 'cb-docs-split-selected',
-          hasDesktopPreview && previewFocus && 'cb-docs-split-focus',
+      <div className="cb-docs-files-panel">
+        {hub.loading ? (
+          <div className="space-y-2 p-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-14 animate-pulse rounded-xl bg-muted/30" />
+            ))}
+          </div>
+        ) : hub.items.length === 0 ? (
+          <EmptyState
+            className="m-4 border-0 bg-transparent"
+            icon={FileText}
+            title="Ainda sem ficheiros nesta vista"
+            description="Documentos enviados pelos clientes ou pedidos formais aparecem aqui para consulta e validação."
+            action={
+              <Button type="button" size="sm" variant="outline" asChild>
+                <Link to="/app/firm/documents/requests">Pedir documentos</Link>
+              </Button>
+            }
+          />
+        ) : (
+          <ul className="cb-docs-file-cards cb-docs-file-cards--full">
+            {hub.items.map((doc) => (
+              <FileCard
+                key={doc._id}
+                doc={doc}
+                selected={hub.selectedId === doc._id}
+                onSelect={() => hub.selectDocument(doc._id)}
+              />
+            ))}
+          </ul>
         )}
-      >
-        <div className="cb-docs-table-wrap">
-          <table className="cb-docs-table cb-table-mobile-cards">
-            <thead>
-              <tr>
-                <th>Nome ficheiro</th>
-                <th>Cliente</th>
-                <th>Tipo</th>
-                <th>Tamanho</th>
-                <th>Data</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {hub.loading ? (
-                <tr>
-                  <td colSpan={6} className="cb-docs-empty">
-                    A carregar…
-                  </td>
-                </tr>
-              ) : hub.items.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-0">
-                    <EmptyState
-                      className="m-4 border-0 bg-transparent"
-                      icon={FileText}
-                      title="Ainda sem ficheiros nesta vista"
-                      description="Documentos enviados pelos clientes ou pedidos formais aparecem aqui para consulta e validação."
-                      action={
-                        <Button type="button" size="sm" variant="outline" asChild>
-                          <Link to="/app/firm/documents/requests">Pedir documentos</Link>
-                        </Button>
-                      }
-                    />
-                  </td>
-                </tr>
-              ) : (
-                hub.items.map((doc) => (
-                  <FileRow
-                    key={doc._id}
-                    doc={doc}
-                    selected={hub.selectedId === doc._id}
-                    onSelect={() => {
-                      setPreviewFocus(true)
-                      hub.selectDocument(doc._id)
-                    }}
-                  />
-                ))
-              )}
-            </tbody>
-          </table>
-          {hub.hasMore ? (
-            <div className="border-t border-border/60 p-2 text-center">
-              <button
-                type="button"
-                className="text-xs font-medium text-brand hover:underline"
-                onClick={() => void hub.loadMore()}
-                disabled={hub.loadingMore}
-              >
-                {hub.loadingMore ? 'A carregar…' : 'Carregar mais'}
-              </button>
-            </div>
-          ) : null}
-        </div>
-
-        <aside
-          className="cb-docs-preview hidden xl:flex"
-          onClick={() => hasDesktopPreview && setPreviewFocus(true)}
-          onKeyDown={() => {}}
-          role={hasDesktopPreview ? 'region' : undefined}
-          aria-label={hasDesktopPreview ? 'Pré-visualização do documento' : undefined}
-        >
-          {hasDesktopPreview ? (
+        {hub.hasMore ? (
+          <div className="border-t border-border/60 p-2 text-center">
             <button
               type="button"
-              className="cb-docs-preview-focus-toggle"
-              onClick={(e) => {
-                e.stopPropagation()
-                setPreviewFocus((v) => !v)
-              }}
+              className="text-xs font-medium text-brand hover:underline"
+              onClick={() => void hub.loadMore()}
+              disabled={hub.loadingMore}
             >
-              {previewFocus ? 'Mostrar lista' : 'Expandir pré-visualização'}
+              {hub.loadingMore ? 'A carregar…' : 'Carregar mais'}
             </button>
-          ) : null}
-          <DocumentPreviewPanel
-            doc={selectedDoc}
-            detail={hub.detail}
-            detailLoading={hub.detailLoading}
-            getPreviewUrl={hub.getPreviewUrl}
-            onRefresh={hub.refresh}
-            onClose={() => {
-              setPreviewFocus(false)
-              hub.selectDocument(null)
-            }}
-            layout={hasDesktopPreview ? 'expanded' : 'default'}
-          />
-        </aside>
+          </div>
+        ) : null}
       </div>
 
-      {previewAsSheet ? (
-        <FirmWorkspaceFocusDialog
-          open={sheetOpen}
-          onOpenChange={(open) => !open && hub.selectDocument(null)}
-          title={selectedDoc ? displayDocumentName(selectedDoc) : 'Pré-visualização do documento'}
-          description="Documento no centro do ecrã — valide, descarregue ou feche sem perder a lista."
-          className="w-[min(96vw,760px)] max-w-[min(96vw,760px)]"
-        >
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <DocumentPreviewPanel
-              doc={selectedDoc}
-              detail={hub.detail}
-              detailLoading={hub.detailLoading}
-              getPreviewUrl={hub.getPreviewUrl}
-              onRefresh={hub.refresh}
-              onClose={() => hub.selectDocument(null)}
-            />
-          </div>
-        </FirmWorkspaceFocusDialog>
-      ) : null}
-
-      <p className="cb-docs-foot">Teglion — Documentos / Ficheiros</p>
+      <FirmWorkspaceFocusDialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          if (!open) hub.selectDocument(null)
+        }}
+        title={selectedDoc ? displayDocumentName(selectedDoc) : 'Documento'}
+        description="Valide, descarregue, registe validade ou envie mensagem — sem sair da lista."
+        className="w-[min(96vw,920px)] max-w-[min(96vw,920px)]"
+      >
+        <DocumentPreviewPanel
+          doc={selectedDoc}
+          detail={hub.detail}
+          detailLoading={hub.detailLoading}
+          getPreviewUrl={hub.getPreviewUrl}
+          onRefresh={hub.refresh}
+          onClose={() => hub.selectDocument(null)}
+          layout="default"
+        />
+      </FirmWorkspaceFocusDialog>
     </div>
   )
 }
 
-function FileRow({
+function FileCard({
   doc,
   selected,
   onSelect,
@@ -252,41 +188,35 @@ function FileRow({
 }) {
   const Icon = mimeIcon(doc.mimeType, displayDocumentName(doc))
   const name = displayDocumentName(doc)
-  const typeLabel = doc.obligationTitle || doc.documentType || 'Ficheiro'
+  const period = doc.period || doc.obligationPeriod || null
 
   return (
-    <tr
-      className={cn('cb-docs-row', selected && 'cb-docs-row-selected')}
-      onClick={() => {
-        if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
-        onSelect()
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
+    <li>
+      <button
+        type="button"
+        className={cn('cb-docs-file-card cb-docs-file-card--row', selected && 'cb-docs-file-card-selected')}
+        onClick={() => {
+          if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
           onSelect()
-        }
-      }}
-    >
-      <td data-label="Nome ficheiro">
-        <span className="cb-docs-file-cell">
-          <span className="cb-docs-file-icon">
-            <Icon className="h-4 w-4" />
-          </span>
-          <span className="truncate font-medium">{name}</span>
+        }}
+      >
+        <span className="cb-docs-file-card-icon">
+          <Icon className="h-5 w-5" />
         </span>
-      </td>
-      <td className="truncate text-muted-foreground" data-label="Cliente">{displayClientName(doc)}</td>
-      <td className="truncate text-muted-foreground" data-label="Tipo">{typeLabel}</td>
-      <td className="tabular-nums text-muted-foreground" data-label="Tamanho">{formatFileSize(doc.sizeBytes)}</td>
-      <td className="tabular-nums text-muted-foreground whitespace-nowrap" data-label="Data">
-        {doc.createdAt ? formatDateTime(doc.createdAt) : '—'}
-      </td>
-      <td data-label="Estado">
+        <span className="cb-docs-file-card-body">
+          <span className="cb-docs-file-card-name">{name}</span>
+          <span className="cb-docs-file-card-sub">
+            {displayClientName(doc)}
+            {period ? ` · ${period}` : ''}
+            {doc.sizeBytes != null ? ` · ${formatFileSize(doc.sizeBytes)}` : ''}
+            {doc.createdAt ? ` · ${formatDateTime(doc.createdAt)}` : ''}
+          </span>
+        </span>
         <span className={cn('cb-docs-pill', statusPillClass(doc.validationStatus))}>
           {validationLabel(doc.validationStatus)}
         </span>
-      </td>
-    </tr>
+        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/50" aria-hidden />
+      </button>
+    </li>
   )
 }

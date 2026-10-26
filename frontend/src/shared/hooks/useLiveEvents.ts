@@ -41,7 +41,7 @@ function setAppBadge(count: number) {
 export function useLiveEvents(scope: 'firm' | 'client', enabled = true) {
   const qc = useQueryClient()
   const { user } = useAuth()
-  const tenantKey = scope === 'firm' ? user?.tenant.slug ?? '' : user?.clientId || user?.id || ''
+  const tenantKey = scope === 'firm' ? user?.tenant?.slug ?? '' : user?.clientId || user?.id || ''
   const cursorRef = useRef<string | undefined>(undefined)
 
   const query = useQuery({

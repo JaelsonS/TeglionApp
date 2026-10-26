@@ -33,7 +33,7 @@ function mfaUserFacingError(err: unknown): string {
       return 'A troca ainda não foi iniciada. Comece de novo a partir do passo anterior.'
     }
     if (code === 'MFA_REQUIRED_FOR_OWNER') {
-      return 'Como é a dona do escritório, a autenticação de dois factores não pode ser desligada — só trocada por outra aplicação.'
+      return 'Como é a dona do gabinete, a autenticação de dois factores não pode ser desligada — só trocada por outra aplicação.'
     }
   }
   const raw = getErrorMessage(err)
@@ -169,7 +169,7 @@ export function FirmSettingsSecuritySection() {
   async function disable() {
     if (status?.required) {
       toast.error(
-        'Como é a dona do escritório, não dá para desligar isto — só trocar a aplicação.',
+        'Como é a dona do gabinete, não dá para desligar isto — só trocar a aplicação.',
       )
       return
     }
@@ -295,7 +295,7 @@ export function FirmSettingsSecuritySection() {
         <h2 className="text-lg font-semibold">Autenticação de dois factores</h2>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
           {status?.required
-            ? 'É obrigatória para quem gere o escritório. Os códigos vêm da aplicação no telemóvel — o Teglion não os envia por e-mail nem por SMS.'
+            ? 'É obrigatória para quem gere o gabinete. Os códigos vêm da aplicação no telemóvel — o Teglion não os envia por e-mail nem por SMS.'
             : 'Opcional para a sua função. Os códigos vêm da aplicação no telemóvel — o Teglion não os envia por e-mail nem por SMS.'}
         </p>
         <p className="mt-2 text-sm">

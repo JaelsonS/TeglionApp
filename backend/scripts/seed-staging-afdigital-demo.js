@@ -272,11 +272,19 @@ function readPng(filename) {
   };
 }
 
+const { buildDemoPdf } = require('./lib/demo-pdf');
+
 function fakePdf(title) {
-  const body = `${title}\nDocumento de demonstração ${FIRM_NAME}.\n${MARKER}`;
-  return Buffer.from(
-    `%PDF-1.1\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]>>endobj\n4 0 obj<</Length ${body.length}>>stream\n${body}\nendstream\nendobj\ntrailer<</Root 1 0 R>>\n%%EOF\n`,
-  );
+  return buildDemoPdf({
+    title,
+    subtitle: `Documento de demonstração — ${FIRM_NAME}`,
+    lines: [
+      'Este PDF e valido e abre no browser.',
+      'Serve para UAT de Documentos (preview, download e validacao).',
+      MARKER,
+    ],
+    footer: `${FIRM_NAME} · staging demo`,
+  });
 }
 
 function isoDaysFromNow(days, hour = 10) {
@@ -730,41 +738,50 @@ async function main() {
       limit: 20,
     });
     if ((existingDocs.items || []).length < 4) {
-      const docTitles = [
-        'Mapa de IVA — Junho',
-        'Recibos de vencimento — 2.º trimestre',
-        'Certidão permanente',
-        'Procuração AT assinada',
+      console.log(
+        'Documentos demo em falta — preferir: node backend/scripts/seed-staging-demo-documents.js',
+      );
+      const docSpecs = [
+        { title: 'Mapa de IVA — junho', validation: 'APPROVED' },
+        { title: 'Recibos de vencimento — 2.º trimestre', validation: 'APPROVED' },
+        { title: 'Certidão permanente', validation: 'APPROVED' },
+        { title: 'Procuração AT assinada', validation: 'REJECTED' },
       ];
-      for (const title of docTitles) {
+      for (const spec of docSpecs) {
+        const buffer = fakePdf(spec.title);
         const uploaded = await contabilStorage.uploadClientDocument({
           firmId,
           clientId: portalClient.id,
           file: {
-            buffer: fakePdf(title),
-            originalname: `${slugify(title)}.pdf`,
+            buffer,
+            originalname: `${slugify(spec.title)}.pdf`,
             mimetype: 'application/pdf',
-            size: 512,
+            size: buffer.length,
           },
         });
-        await documentsRepository.createDocument({
+        const row = {
           firm_id: firmId,
           client_id: portalClient.id,
           period: periodFor(0),
-          title,
-          description: `Documento de demonstração — ${title}.`,
+          title: spec.title,
+          description: `Documento de demonstração — ${spec.title}. ${MARKER}`,
           category: 'Fiscal',
-          tags: ['demo'],
+          tags: ['demo', 'uat-openable'],
           workflow_status: 'SENT',
           storage_provider: uploaded.provider,
           storage_key: uploaded.path,
           mime_type: 'application/pdf',
-          size_bytes: uploaded.size || 512,
+          size_bytes: buffer.length,
           uploaded_by_role: 'FIRM',
           uploaded_by_id: owner.id,
           uploaded_by_name: OWNER_NAME,
-          validation_status: 'APPROVED',
-        });
+          validation_status: spec.validation,
+        };
+        if (spec.validation === 'APPROVED' || spec.validation === 'REJECTED') {
+          row.validated_at = new Date().toISOString();
+          row.validated_by = owner.id;
+        }
+        await documentsRepository.createDocument(row);
       }
     }
 

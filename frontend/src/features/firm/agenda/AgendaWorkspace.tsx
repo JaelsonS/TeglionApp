@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Plus, Settings2 } from 'lucide-react'
+import {
+  CalendarCheck2,
+  CalendarClock,
+  ChevronLeft,
+  ChevronRight,
+  CreditCard,
+  Loader2,
+  Plus,
+  Settings2,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 import { AgendaCalendarGrid } from '@/features/firm/agenda/AgendaCalendarGrid'
@@ -30,7 +39,7 @@ import {
 } from '@/shared/components/ui/dialog'
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { AskMayaButton } from '@/features/maya'
-import { PageHeader } from '@/shared/design-system'
+import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { cn } from '@/shared/lib/utils'
 import { contabilConsultationsApi, contabilFirmApi } from '@/infrastructure/api'
 import { useFirmClientsDirectory } from '@/shared/hooks/queries/useFirmClientsDirectory'
@@ -265,169 +274,264 @@ export function AgendaWorkspace() {
 
   const staffForSidebar = staff.map((u) => ({ ...u, role: 'Equipa' }))
   const dayAnchor = normalizeAnchor('day', anchor)
+  const upcomingVisible = useMemo(() => visibleAgendaItems(upcomingItems), [upcomingItems])
+
+  const kpis = useMemo(() => {
+    const todayStart = startOfDay(new Date()).getTime()
+    const tomorrow = todayStart + 24 * 60 * 60 * 1000
+    let todayCount = 0
+    for (const ev of calendarItems) {
+      const t = new Date(ev.scheduledAt).getTime()
+      if (t >= todayStart && t < tomorrow && ev.status !== 'CANCELLED') todayCount += 1
+    }
+    const upcomingCount = upcomingVisible.filter((e) => e.status !== 'CANCELLED').length
+    const pendingUnique = new Set(
+      [...calendarItems, ...upcomingVisible]
+        .filter((e) => e.status === 'PENDING_PAYMENT')
+        .map((e) => e._id),
+    ).size
+
+    return [
+      {
+        id: 'today',
+        label: 'hoje',
+        value: String(todayCount),
+        tone: 'brand' as const,
+        icon: CalendarCheck2,
+      },
+      {
+        id: 'upcoming',
+        label: 'próx. 14 dias',
+        value: String(upcomingCount),
+        tone: 'emerald' as const,
+        icon: CalendarClock,
+      },
+      {
+        id: 'pending',
+        label: 'à espera de pagamento',
+        value: String(pendingUnique),
+        tone: pendingUnique > 0 ? ('amber' as const) : ('muted' as const),
+        icon: CreditCard,
+      },
+      {
+        id: 'period',
+        label: view === 'day' ? 'neste dia' : view === 'week' ? 'nesta semana' : 'neste mês',
+        value: String(calendarItems.filter((e) => e.status !== 'CANCELLED').length),
+        tone: 'muted' as const,
+        icon: CalendarClock,
+      },
+    ]
+  }, [calendarItems, upcomingVisible, view])
 
   return (
-    <div className="cb-agenda-page">
-      <div className="cb-agenda-page-hd space-y-0">
-        <div className="px-4 pt-4 sm:px-5">
-          <PageHeader
-            title="Agenda"
-            subtitle={
-              tab === 'settings'
-                ? 'Defina a sua disponibilidade para receber agendamentos.'
-                : 'Marque reuniões, configure disponibilidade e a disponibilidade na página pública.'
-            }
-            testId="firm-agenda-header"
-            secondary={
-              <AskMayaButton intentId="agenda" />
-            }
-            right={
-              <>
+    <FirmModuleShell
+      className="cb-agenda-shell cb-agenda-page-scroll"
+      title="Agendamentos"
+      subtitle={
+        tab === 'settings'
+          ? 'Defina quando o gabinete aceita marcações na página pública e no portal do cliente.'
+          : 'Consultas e reuniões com clientes — distinto do Calendário fiscal e de Tarefas.'
+      }
+      headerRight={
+        <div className="flex flex-wrap items-center gap-2" data-testid="firm-agenda-header">
+          <AskMayaButton intentId="agenda" />
+          <div className="cb-agenda-tab-toggle" role="group" aria-label="Vista Agendamentos">
+            <button
+              type="button"
+              className={cn('cb-agenda-tab-btn', tab === 'calendar' && 'cb-agenda-tab-btn--active')}
+              onClick={() => setTab('calendar')}
+            >
+              Calendário
+            </button>
+            <button
+              type="button"
+              className={cn('cb-agenda-tab-btn', tab === 'settings' && 'cb-agenda-tab-btn--active')}
+              onClick={() => setTab('settings')}
+            >
+              <Settings2 className="mr-1 h-3.5 w-3.5" aria-hidden />
+              Definições
+            </button>
+          </div>
+          {tab === 'calendar' ? (
+            <Button type="button" size="sm" variant="primary" onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4" />
+              Novo evento
+            </Button>
+          ) : null}
+        </div>
+      }
+      bodyClassName="gap-0 cb-agenda-body-shell"
+    >
+      {tab === 'calendar' ? (
+        <div className="cb-agenda-kpi-strip" data-testid="agenda-kpi-strip">
+          {kpis.map((item) => {
+            const Icon = item.icon
+            return (
+              <div key={item.id} className={cn('cb-agenda-kpi', `cb-agenda-kpi--${item.tone}`)}>
+                <span className="cb-agenda-kpi-icon" aria-hidden>
+                  <Icon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="cb-agenda-kpi-value">{item.value}</p>
+                  <p className="cb-agenda-kpi-label">{item.label}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : null}
+
+      <p className="cb-agenda-section-lead" data-testid="agenda-section-lead">
+        <span className="cb-agenda-section-lead-title">
+          {tab === 'settings' ? 'Definições de agenda' : 'Calendário de marcações'}
+        </span>
+        {tab === 'settings'
+          ? 'Siga os passos: horário geral → excepções por serviço → catálogo em Serviços → Google (opcional).'
+          : 'Clique num evento para ver detalhe ou cancelar. Use Dia / Semana / Mês e a barra lateral para próximos.'}
+      </p>
+
+      <div className="cb-agenda-section-host">
+        {tab === 'settings' ? (
+          <AgendaSettingsView
+            services={services}
+            servicesLoading={loading}
+            booking={booking}
+            schedule={schedule}
+            dateOverrides={dateOverrides || {}}
+            slotMin={slotMin}
+            horizon={horizon}
+            bookingTz={bookingTz}
+            onScheduleChange={setSchedule}
+            onDateOverridesChange={setDateOverrides}
+            onSlotMin={setSlotMin}
+            onHorizon={setHorizon}
+            onBookingTz={setBookingTz}
+            onSaveAvailability={() => void saveAvailability()}
+            onReload={load}
+          />
+        ) : (
+          <>
+            <div className="cb-agenda-toolbar">
+              <div className="flex items-center gap-1">
                 <Button
                   type="button"
-                  variant={tab === 'settings' ? 'primary' : 'outline'}
-                  size="sm"
-                  onClick={() => setTab(tab === 'settings' ? 'calendar' : 'settings')}
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  aria-label="Período anterior"
+                  onClick={() => shift(-1)}
                 >
-                  <Settings2 className="h-4 w-4" />
-                  {tab === 'settings' ? 'Calendário' : 'Definições'}
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
-                {tab === 'calendar' ? (
-                  <Button type="button" size="sm" variant="primary" onClick={() => setShowForm(true)}>
-                    <Plus className="h-4 w-4" />
-                    Novo evento
-                  </Button>
-                ) : null}
-              </>
-            }
-          />
-        </div>
-
-        {tab === 'calendar' ? (
-          <div className="cb-agenda-toolbar">
-            <div className="flex items-center gap-1">
-              <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="Período anterior" onClick={() => shift(-1)}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="min-w-[10rem] max-w-[18rem] truncate text-center text-xs font-medium capitalize text-foreground sm:min-w-[12rem] sm:text-sm">
-                {formatNavLabel(view, normalizeAnchor(view, anchor))}
-              </span>
-              <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="Período seguinte" onClick={() => shift(1)}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <Button type="button" variant="outline" size="sm" className="ml-1 h-8" onClick={goToday}>
-                Hoje
-              </Button>
-            </div>
-
-            <div className="cb-agenda-view-toggle" role="group" aria-label="Vista do calendário">
-              {(['day', 'week', 'month'] as AgendaViewMode[]).map((v) => (
-                <button
-                  key={v}
+                <span className="min-w-[10rem] max-w-[18rem] truncate text-center text-xs font-medium capitalize text-foreground sm:min-w-[12rem] sm:text-sm">
+                  {formatNavLabel(view, normalizeAnchor(view, anchor))}
+                </span>
+                <Button
                   type="button"
-                  className={cn('cb-agenda-view-btn', view === v && 'cb-agenda-view-btn-active')}
-                  onClick={() => onChangeView(v)}
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  aria-label="Período seguinte"
+                  onClick={() => shift(1)}
                 >
-                  {v === 'day' ? 'Dia' : v === 'week' ? 'Semana' : 'Mês'}
-                </button>
-              ))}
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button type="button" variant="outline" size="sm" className="ml-1 h-8" onClick={goToday}>
+                  Hoje
+                </Button>
+              </div>
+
+              <div className="cb-agenda-view-toggle" role="group" aria-label="Vista do calendário">
+                {(['day', 'week', 'month'] as AgendaViewMode[]).map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    className={cn('cb-agenda-view-btn', view === v && 'cb-agenda-view-btn-active')}
+                    onClick={() => onChangeView(v)}
+                  >
+                    {v === 'day' ? 'Dia' : v === 'week' ? 'Semana' : 'Mês'}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        ) : null}
+
+            <div className="cb-agenda-body">
+              {showForm ? (
+                <div className="border-b border-border/60 p-4 sm:px-5">
+                  <AgendaCreatePanel
+                    clients={clients}
+                    services={services}
+                    clientId={clientId}
+                    onClientId={setClientId}
+                    selectedServiceId={selectedServiceId}
+                    onServiceId={setSelectedServiceId}
+                    title={title}
+                    onTitle={setTitle}
+                    scheduledAt={scheduledAt}
+                    onScheduledAt={setScheduledAt}
+                    notes={notes}
+                    onNotes={setNotes}
+                    submitting={creating}
+                    onSubmit={() => void create()}
+                    onClose={() => setShowForm(false)}
+                  />
+                </div>
+              ) : null}
+
+              <div className="cb-agenda-main">
+                {loading ? (
+                  <div className="flex items-center gap-2 p-8 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />A carregar agendamentos…
+                  </div>
+                ) : view === 'week' ? (
+                  <AgendaWeekGrid
+                    anchor={anchor}
+                    items={calendarItems}
+                    staffName={staffName}
+                    clientName={clientName}
+                    onSelectEvent={openEvent}
+                  />
+                ) : view === 'day' ? (
+                  <AgendaCalendarGrid
+                    days={[dayAnchor]}
+                    items={calendarItems}
+                    staffName={staffName}
+                    clientName={clientName}
+                    onSelectEvent={openEvent}
+                  />
+                ) : (
+                  <AgendaMonthGrid
+                    anchor={anchor}
+                    items={calendarItems}
+                    onSelectDay={pickDayFromMonth}
+                    onSelectEvent={openEvent}
+                  />
+                )}
+              </div>
+
+              {view !== 'month' ? (
+                <AgendaSidebar
+                  anchor={anchor}
+                  items={calendarItems}
+                  upcomingItems={upcomingVisible}
+                  staff={staffForSidebar}
+                  clientName={clientName}
+                  onPickDay={(d) => {
+                    setView('day')
+                    setAnchor(startOfDay(d))
+                  }}
+                  onSelectEvent={openEvent}
+                  onViewAllUpcoming={() => {
+                    setView('week')
+                    setAnchor(normalizeAnchor('week', new Date()))
+                  }}
+                  onViewAllTeam={() => setTab('settings')}
+                />
+              ) : null}
+            </div>
+          </>
+        )}
       </div>
-
-      {tab === 'settings' ? (
-        <AgendaSettingsView
-          services={services}
-          servicesLoading={loading}
-          booking={booking}
-          schedule={schedule}
-          dateOverrides={dateOverrides || {}}
-          slotMin={slotMin}
-          horizon={horizon}
-          bookingTz={bookingTz}
-          onScheduleChange={setSchedule}
-          onDateOverridesChange={setDateOverrides}
-          onSlotMin={setSlotMin}
-          onHorizon={setHorizon}
-          onBookingTz={setBookingTz}
-          onSaveAvailability={() => void saveAvailability()}
-          onReload={load}
-        />
-      ) : (
-        <div className="cb-agenda-body">
-          {showForm ? (
-            <div className="border-b border-border/60 p-4 sm:px-5">
-              <AgendaCreatePanel
-                clients={clients}
-                services={services}
-                clientId={clientId}
-                onClientId={setClientId}
-                selectedServiceId={selectedServiceId}
-                onServiceId={setSelectedServiceId}
-                title={title}
-                onTitle={setTitle}
-                scheduledAt={scheduledAt}
-                onScheduledAt={setScheduledAt}
-                notes={notes}
-                onNotes={setNotes}
-                submitting={creating}
-                onSubmit={() => void create()}
-                onClose={() => setShowForm(false)}
-              />
-            </div>
-          ) : null}
-
-          <div className="cb-agenda-main">
-            {loading ? (
-              <p className="p-8 text-sm text-muted-foreground">A carregar agenda…</p>
-            ) : view === 'week' ? (
-              <AgendaWeekGrid
-                anchor={anchor}
-                items={calendarItems}
-                staffName={staffName}
-                clientName={clientName}
-                onSelectEvent={openEvent}
-              />
-            ) : view === 'day' ? (
-              <AgendaCalendarGrid
-                days={[dayAnchor]}
-                items={calendarItems}
-                staffName={staffName}
-                clientName={clientName}
-                onSelectEvent={openEvent}
-              />
-            ) : (
-              <AgendaMonthGrid
-                anchor={anchor}
-                items={calendarItems}
-                onSelectDay={pickDayFromMonth}
-                onSelectEvent={openEvent}
-              />
-            )}
-          </div>
-
-          {view !== 'month' ? (
-            <AgendaSidebar
-              anchor={anchor}
-              items={calendarItems}
-              upcomingItems={visibleAgendaItems(upcomingItems)}
-              staff={staffForSidebar}
-              clientName={clientName}
-              onPickDay={(d) => {
-                setView('day')
-                setAnchor(startOfDay(d))
-              }}
-              onSelectEvent={openEvent}
-              onViewAllUpcoming={() => {
-                setView('week')
-                setAnchor(normalizeAnchor('week', new Date()))
-              }}
-              onViewAllTeam={() => setTab('settings')}
-            />
-          ) : null}
-        </div>
-      )}
 
       <Dialog open={Boolean(selectedEvent)} onOpenChange={(open: boolean) => !open && setSelectedEvent(null)}>
         <DialogContent className="sm:max-w-md" aria-describedby={undefined}>
@@ -481,7 +585,7 @@ export function AgendaWorkspace() {
               selectedEvent.priceCents != null &&
               selectedEvent.priceCents > 0 ? (
                 <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-950">
-                  Pagamento confirmado via Stripe (o dinheiro foi para a conta Connect do escritório).
+                  Pagamento confirmado via Stripe (o dinheiro foi para a conta Connect do gabinete).
                 </p>
               ) : null}
               {selectedEvent.status === 'PENDING_PAYMENT' || selectedEvent.status === 'SCHEDULED' ? (
@@ -489,7 +593,7 @@ export function AgendaWorkspace() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full rounded-full border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    className="w-full border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
                     disabled={cancellingEvent}
                     onClick={() => setConfirmCancelEvent(true)}
                   >
@@ -513,7 +617,7 @@ export function AgendaWorkspace() {
         onConfirm={cancelSelectedEvent}
       />
 
-      <p className="cb-agenda-foot">Teglion — Consultorias / Agenda</p>
-    </div>
+      <p className="cb-agenda-foot">Marcações com clientes · Não substitui o Calendário fiscal nem Tarefas.</p>
+    </FirmModuleShell>
   )
 }

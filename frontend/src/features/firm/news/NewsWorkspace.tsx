@@ -1,37 +1,61 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { FormChangeEvent } from '@/shared/types/react-events'
-import { Newspaper, Plus, Search, Trash2 } from 'lucide-react'
+import { Link, useSearchParams } from 'react-router-dom'
+import {
+  FileEdit,
+  Globe,
+  Megaphone,
+  Newspaper,
+  Plus,
+  Search,
+  Star,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 import { NewsComposer, type NewsDraft } from '@/features/firm/news/NewsComposer'
+import { NewsPreviewPanel } from '@/features/firm/news/NewsPreviewPanel'
 import { ConfirmDialog } from '@/shared/components/modals/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { AskMayaButton } from '@/features/maya'
 import { FirmWorkspaceFocusDialog } from '@/features/firm/FirmWorkspaceFocusDialog'
-import { SkeletonCard } from '@/shared/design-system/Skeleton'
-import { EmptyState } from '@/shared/design-system'
+import { EmptyState, FirmSplitView } from '@/shared/design-system'
+import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { contabilNewsApi } from '@/infrastructure/api'
 import type { NewsArticle } from '@/shared/types/contabil'
+import { useAuth } from '@/shared/hooks/useAuth'
 import { formatPtDate } from '@/shared/utils/contabilLocale'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 
 export function NewsWorkspace() {
+  const { user } = useAuth()
+  const firmSlug = user?.tenant?.slug
+  const [searchParams, setSearchParams] = useSearchParams()
+  const selectedId = searchParams.get('news') || ''
+
   const [items, setItems] = useState<NewsArticle[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [featuredOnly, setFeaturedOnly] = useState(false)
   const [editing, setEditing] = useState<NewsDraft | null>(null)
   const [saving, setSaving] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<NewsArticle | null>(null)
 
+  const publicUrl =
+    typeof window !== 'undefined' && firmSlug
+      ? `${window.location.origin}/${encodeURIComponent(firmSlug)}`
+      : firmSlug
+        ? `/${firmSlug}`
+        : null
+
   const refresh = useCallback(async () => {
     setLoading(true)
     try {
-      const res = (await contabilNewsApi.list(statusFilter ? { status: statusFilter } : undefined)) as {
-        items?: NewsArticle[]
-      } | NewsArticle[]
+      const res = (await contabilNewsApi.list(
+        statusFilter ? { status: statusFilter } : undefined,
+      )) as { items?: NewsArticle[] } | NewsArticle[]
       const list = Array.isArray(res) ? res : res.items || []
       setItems(list)
     } catch (err) {
@@ -46,13 +70,44 @@ export function NewsWorkspace() {
     void refresh()
   }, [refresh])
 
-  const filtered = search.trim()
-    ? items.filter(
-        (a) =>
-          a.title.toLowerCase().includes(search.toLowerCase()) ||
-          (a.excerpt || '').toLowerCase().includes(search.toLowerCase()),
-      )
-    : items
+  const filtered = useMemo(() => {
+    let list = items
+    if (featuredOnly) list = list.filter((a) => a.isFeatured)
+    const term = search.trim().toLowerCase()
+    if (!term) return list
+    return list.filter(
+      (a) =>
+        a.title.toLowerCase().includes(term) ||
+        (a.excerpt || '').toLowerCase().includes(term) ||
+        (a.category || '').toLowerCase().includes(term),
+    )
+  }, [items, search, featuredOnly])
+
+  const selected =
+    filtered.find((a) => (a.id || a._id) === selectedId) ||
+    items.find((a) => (a.id || a._id) === selectedId) ||
+    null
+
+  const publishedCount = items.filter((a) => a.status === 'PUBLISHED').length
+  const draftCount = items.filter((a) => a.status === 'DRAFT').length
+  const featuredCount = items.filter((a) => a.isFeatured).length
+  const archivedCount = items.filter((a) => a.status === 'ARCHIVED').length
+
+  function selectNews(id: string) {
+    const next = new URLSearchParams(searchParams)
+    next.set('news', id)
+    setSearchParams(next, { replace: true })
+  }
+
+  function clearNews() {
+    const next = new URLSearchParams(searchParams)
+    next.delete('news')
+    setSearchParams(next, { replace: true })
+  }
+
+  function applyStatus(next: string) {
+    setStatusFilter((prev) => (prev === next ? '' : next))
+  }
 
   async function save(publish: boolean) {
     if (!editing?.title?.trim() || !editing?.body?.trim()) {
@@ -86,6 +141,32 @@ export function NewsWorkspace() {
     }
   }
 
+  async function publishSelected() {
+    if (!selected) return
+    const id = selected.id || selected._id
+    if (!id) return
+    try {
+      await contabilNewsApi.update(id, { status: 'PUBLISHED' })
+      toast.success('Notícia publicada')
+      await refresh()
+    } catch (err) {
+      toast.error('Não foi possível publicar', { description: getErrorMessage(err) })
+    }
+  }
+
+  async function archiveSelected() {
+    if (!selected) return
+    const id = selected.id || selected._id
+    if (!id) return
+    try {
+      await contabilNewsApi.update(id, { status: 'ARCHIVED' })
+      toast.success('Notícia arquivada')
+      await refresh()
+    } catch (err) {
+      toast.error('Não foi possível arquivar', { description: getErrorMessage(err) })
+    }
+  }
+
   async function confirmDelete() {
     if (!deleteTarget) return
     const id = deleteTarget.id || deleteTarget._id
@@ -93,6 +174,7 @@ export function NewsWorkspace() {
     try {
       await contabilNewsApi.remove(id)
       toast.success('Notícia eliminada')
+      if (selectedId === id) clearNews()
       setDeleteTarget(null)
       await refresh()
     } catch (err) {
@@ -100,147 +182,266 @@ export function NewsWorkspace() {
     }
   }
 
-  return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4 p-4 sm:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="font-display text-xl font-semibold text-foreground">Notícias do portal</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Artigos longos que os clientes lêem em «Notícias» no portal.
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <AskMayaButton intentId="news" />
-          <Button
-            type="button"
-            className="rounded-full"
-            onClick={() =>
-              setEditing({
-                title: '',
-                body: '',
-                excerpt: '',
-                status: 'DRAFT',
-                isFeatured: false,
-              })
-            }
-          >
-            <Plus className="mr-1.5 h-4 w-4" />
-            Nova notícia
-          </Button>
-        </div>
+  const startCreate = () =>
+    setEditing({
+      title: '',
+      body: '',
+      excerpt: '',
+      status: 'DRAFT',
+      isFeatured: false,
+    })
+
+  const kpis = [
+    {
+      id: 'published',
+      label: 'Publicadas',
+      value: publishedCount,
+      tone: 'emerald' as const,
+      icon: Globe,
+      active: statusFilter === 'PUBLISHED',
+      onClick: () => applyStatus('PUBLISHED'),
+    },
+    {
+      id: 'drafts',
+      label: 'Rascunhos',
+      value: draftCount,
+      tone: 'amber' as const,
+      icon: FileEdit,
+      active: statusFilter === 'DRAFT',
+      onClick: () => applyStatus('DRAFT'),
+    },
+    {
+      id: 'featured',
+      label: 'Em destaque',
+      value: featuredCount,
+      tone: 'brand' as const,
+      icon: Star,
+      active: featuredOnly,
+      onClick: () => setFeaturedOnly((v) => !v),
+    },
+    {
+      id: 'archived',
+      label: 'Arquivadas',
+      value: archivedCount,
+      tone: 'muted' as const,
+      icon: Newspaper,
+      active: statusFilter === 'ARCHIVED',
+      onClick: () => applyStatus('ARCHIVED'),
+    },
+  ]
+
+  const toolbar = (
+    <div className="cb-news-toolbar-stack">
+      <div className="cb-news-kpi-strip" data-testid="firm-news-kpis">
+        {kpis.map((kpi) => {
+          const Icon = kpi.icon
+          return (
+            <button
+              key={kpi.id}
+              type="button"
+              className={cn(
+                'cb-news-kpi',
+                `cb-news-kpi--${kpi.tone}`,
+                kpi.active && 'cb-news-kpi--active',
+              )}
+              onClick={kpi.onClick}
+              aria-pressed={kpi.active}
+            >
+              <span className="cb-news-kpi-icon" aria-hidden>
+                <Icon className="h-4 w-4" />
+              </span>
+              <span className="min-w-0 text-left">
+                <span className="cb-news-kpi-value">{kpi.value}</span>
+                <span className="cb-news-kpi-label">{kpi.label}</span>
+              </span>
+            </button>
+          )
+        })}
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <div className="relative min-w-[200px] flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <div className="cb-news-purpose" data-testid="firm-news-purpose">
+        <div className="min-w-0 flex-1">
+          <p className="cb-news-purpose-title">Blog do escritório — informativo, não alerta</p>
+          <p className="cb-news-purpose-detail">
+            Artigos para clientes e página pública: escritório fechado em feriado, lei que mudou, dicas fiscais,
+            novidades do gabinete. Leitura calma, com capa e destaque. Se precisar de urgência ou confirmação de
+            leitura, use a{' '}
+            <Link to="/app/firm/alerts" className="font-medium text-brand hover:underline">
+              Central de alertas
+            </Link>
+            .
+          </p>
+        </div>
+        <Newspaper className="cb-news-purpose-icon h-5 w-5 shrink-0" aria-hidden />
+      </div>
+
+      <div className="cb-docs-toolbar !mb-0">
+        <div className="cb-docs-search min-w-0 flex-1">
+          <Search className="cb-docs-search-icon" aria-hidden />
           <Input
-            className="rounded-full pl-9"
-            placeholder="Pesquisar…"
+            className="cb-docs-search-input"
+            placeholder="Pesquisar título, excerto ou categoria…"
             value={search}
             onChange={(e: FormChangeEvent) => setSearch(e.target.value)}
           />
         </div>
         <select
-          className="cb-field-control rounded-full px-3 text-sm"
+          className="cb-docs-filter"
           value={statusFilter}
           onChange={(e: FormChangeEvent) => setStatusFilter(e.target.value)}
+          aria-label="Filtrar estado"
         >
-          <option value="">Todos os estados</option>
+          <option value="">Estado: Todos</option>
           <option value="PUBLISHED">Publicadas</option>
           <option value="DRAFT">Rascunhos</option>
+          <option value="SCHEDULED">Agendadas</option>
           <option value="ARCHIVED">Arquivadas</option>
         </select>
       </div>
+    </div>
+  )
 
+  const list = (
+    <div className="cb-news-list-wrap">
       {loading ? (
-        <div className="space-y-3">
-          <SkeletonCard />
-          <SkeletonCard />
+        <div className="space-y-2 p-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-[4.75rem] animate-pulse rounded-xl bg-muted/40" />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <EmptyState
+          className="m-3"
           icon={Newspaper}
-          title={items.length === 0 ? 'Ainda sem notícias' : 'Nenhuma notícia neste filtro'}
+          title={items.length === 0 ? 'Ainda sem artigos no blog' : 'Nenhum artigo neste filtro'}
           description={
             items.length === 0
-              ? 'Publique actualizações fiscais ou do escritório na página pública e no portal dos clientes.'
-              : 'Altere o filtro de estado ou limpe a pesquisa.'
+              ? 'Publique o blog do escritório: feriados, leis que mudaram, dicas fiscais ou novidades do gabinete. Aparece no portal e na página pública.'
+              : 'Altere o filtro de estado, destaque ou limpe a pesquisa.'
           }
           action={
             items.length === 0 ? (
-              <Button
-                type="button"
-                size="sm"
-                variant="primary"
-                onClick={() =>
-                  setEditing({
-                    title: '',
-                    body: '',
-                    excerpt: '',
-                    status: 'DRAFT',
-                    isFeatured: false,
-                  })
-                }
-              >
+              <Button type="button" size="sm" variant="primary" onClick={startCreate}>
                 <Plus className="h-4 w-4" />
-                Publicar primeira notícia
+                Publicar primeiro artigo
               </Button>
             ) : undefined
           }
         />
       ) : (
-        <ul className="space-y-2 overflow-y-auto">
+        <ul className="space-y-1.5 p-2">
           {filtered.map((a) => {
             const id = a.id || a._id || a.slug
+            const active = (a.id || a._id) === selectedId
             return (
               <li key={id}>
-                <div
-                  className={cn(
-                    'flex items-start gap-3 rounded-xl border border-border bg-card p-3 transition hover:border-brand/25',
-                  )}
+                <button
+                  type="button"
+                  className={cn('cb-news-list-item', active && 'cb-news-list-item--active')}
+                  onClick={() => selectNews(String(a.id || a._id))}
+                  data-testid={`firm-news-row-${id}`}
                 >
-                  <button
-                    type="button"
-                    className="min-w-0 flex-1 text-left"
-                    onClick={() => setEditing({ ...a })}
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
+                  {a.coverUrl ? (
+                    <span className="cb-news-list-thumb" aria-hidden>
+                      <img src={a.coverUrl} alt="" />
+                    </span>
+                  ) : (
+                    <span className="cb-news-list-thumb cb-news-list-thumb--empty" aria-hidden>
+                      <Newspaper className="h-4 w-4" />
+                    </span>
+                  )}
+                  <span className="min-w-0 flex-1 text-left">
+                    <span className="flex flex-wrap items-center gap-1.5">
                       <span
                         className={cn(
-                          'rounded-full px-2 py-0.5 text-caption font-semibold uppercase',
-                          a.status === 'PUBLISHED'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-muted text-muted-foreground',
+                          'cb-news-status-pill',
+                          a.status === 'PUBLISHED' && 'cb-news-status-pill--live',
+                          a.status === 'DRAFT' && 'cb-news-status-pill--draft',
+                          a.status === 'ARCHIVED' && 'cb-news-status-pill--archived',
                         )}
                       >
-                        {a.status === 'PUBLISHED' ? 'Publicada' : a.status === 'DRAFT' ? 'Rascunho' : a.status}
+                        {a.status === 'PUBLISHED'
+                          ? 'Publicada'
+                          : a.status === 'DRAFT'
+                            ? 'Rascunho'
+                            : a.status === 'ARCHIVED'
+                              ? 'Arquivada'
+                              : a.status}
                       </span>
                       {a.isFeatured ? (
-                        <span className="text-caption font-medium text-brand">Destaque</span>
+                        <span className="cb-news-featured-pill">
+                          <Star className="h-3 w-3" aria-hidden />
+                          Destaque
+                        </span>
                       ) : null}
-                    </div>
-                    <p className="mt-1 font-semibold text-foreground">{a.title}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {a.category ? <span className="cb-news-cat-pill">{a.category}</span> : null}
+                    </span>
+                    <span className="cb-news-list-title">{a.title}</span>
+                    <span className="cb-news-list-meta">
                       {a.publishedAt ? formatPtDate(a.publishedAt) : 'Sem data de publicação'}
                       {a.readingTimeMinutes ? ` · ${a.readingTimeMinutes} min` : ''}
-                    </p>
-                  </button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="shrink-0 rounded-lg text-destructive"
-                    aria-label="Eliminar notícia"
-                    onClick={() => setDeleteTarget(a)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                    </span>
+                  </span>
+                </button>
               </li>
             )
           })}
         </ul>
       )}
+    </div>
+  )
+
+  const detail = (
+    <NewsPreviewPanel
+      item={selected}
+      embedded
+      onEdit={() => selected && setEditing({ ...selected })}
+      onDelete={() => selected && setDeleteTarget(selected)}
+      onPublish={selected?.status === 'DRAFT' ? () => void publishSelected() : undefined}
+      onArchive={selected?.status === 'PUBLISHED' ? () => void archiveSelected() : undefined}
+    />
+  )
+
+  return (
+    <>
+      <FirmModuleShell
+        className="cb-news-shell cb-news-page-scroll"
+        title="Notícias · Blog do gabinete"
+        subtitle="Canal informativo para clientes — como um blog do escritório (feriados, leis, dicas). Alertas urgentes ficam na Central de alertas."
+        headerRight={
+          <div className="flex flex-wrap items-center gap-2">
+            <AskMayaButton intentId="news" />
+            <Button type="button" size="sm" variant="outline" asChild>
+              <Link to="/app/firm/alerts">
+                <Megaphone className="mr-1.5 h-4 w-4" aria-hidden />
+                Central de alertas
+              </Link>
+            </Button>
+            {publicUrl ? (
+              <Button type="button" size="sm" variant="outline" asChild>
+                <a href={publicUrl} target="_blank" rel="noopener noreferrer">
+                  <Globe className="mr-1.5 h-4 w-4" aria-hidden />
+                  Página pública
+                </a>
+              </Button>
+            ) : null}
+            <Button type="button" className="cb-alerts-btn-primary shrink-0" onClick={startCreate}>
+              <Plus className="mr-1.5 h-4 w-4" />
+              Novo artigo
+            </Button>
+          </div>
+        }
+        bodyClassName="cb-news-body"
+      >
+        <FirmSplitView
+          hasSelection={Boolean(selectedId)}
+          onClearSelection={clearNews}
+          sheetTitle={selected?.title || 'Notícia'}
+          toolbar={toolbar}
+          list={list}
+          detail={detail}
+        />
+      </FirmModuleShell>
 
       <FirmWorkspaceFocusDialog
         open={Boolean(editing)}
@@ -274,6 +475,6 @@ export function NewsWorkspace() {
           await confirmDelete()
         }}
       />
-    </div>
+    </>
   )
 }

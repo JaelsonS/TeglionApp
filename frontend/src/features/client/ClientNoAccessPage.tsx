@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { authClientLoginUrl } from '@/shared/constants/authPaths'
 import { useAuth } from '@/shared/hooks/useAuth'
 
-/** Cliente sem vínculo activo com o escritório. */
+/** Cliente sem vínculo activo com o gabinete. */
 export function ClientNoAccessPage() {
   const { user } = useAuth()
 
@@ -20,14 +20,14 @@ export function ClientNoAccessPage() {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-destructive">
             <ShieldAlert className="h-6 w-6" />
           </div>
-          <CardTitle className="text-2xl">Acesso ainda não autorizado</CardTitle>
+          <CardTitle className="text-2xl">Portal ainda sem acesso</CardTitle>
           <CardDescription className="text-base">
-            O portal do cliente só está disponível depois do escritório confirmar o seu vínculo. Peça ao seu
-            contabilista para validar o convite ou aguarde a aprovação.
+            O gabinete ainda não confirmou o seu vínculo. Peça validação do convite ou aguarde a aprovação —
+            depois o portal Teglion fica disponível.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 text-center text-sm text-muted-foreground">
-          <p>Se recebeu um link de convite, utilize-o para criar a conta. Caso contrário, contacte o escritório.</p>
+          <p>Se recebeu um link de convite, utilize-o para criar a conta. Caso contrário, contacte o gabinete.</p>
           <Link to={authClientLoginUrl()} className="font-medium text-primary hover:underline">
             Voltar ao login do cliente
           </Link>

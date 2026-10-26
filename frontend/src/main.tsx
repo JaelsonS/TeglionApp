@@ -15,82 +15,96 @@ import { STALE_ASSET_EVENT } from '@/shared/styles/loadContabilStyles'
 
 const CHUNK_RECOVERY_KEY = 'teglion.chunk-recovery'
 
+function isChunkLoadFailure(value: unknown): boolean {
+  const text = String(value || '')
+  // Não usar `/assets/*.js` no stack — qualquer erro de runtime nos bundles
+  // casava e mascarava o crash real (ex.: tenant null) como «cache desactualizada».
+  return (
+    text.includes('Unable to preload CSS') ||
+    text.includes('Failed to fetch dynamically imported module') ||
+    text.includes('Importing a module script failed') ||
+    text.includes('Loading chunk') ||
+    text.includes('error loading dynamically imported module')
+  )
+}
+
+async function clearRuntimeCaches(): Promise<void> {
+  try {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations()
+      await Promise.all(registrations.map((registration) => registration.unregister()))
+    }
+  } catch {
+    // noop
+  }
+
+  try {
+    if ('caches' in window) {
+      const keys = await caches.keys()
+      await Promise.all(keys.map((key) => caches.delete(key)))
+    }
+  } catch {
+    // noop
+  }
+}
+
+function hasChunkRecoveredOnce(): boolean {
+  try {
+    return window.sessionStorage.getItem(CHUNK_RECOVERY_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function markChunkRecovered(): void {
+  try {
+    window.sessionStorage.setItem(CHUNK_RECOVERY_KEY, '1')
+  } catch {
+    // noop
+  }
+}
+
+/** Só limpar após boot com sucesso — limpar no reload com `__chunk_recover` causava loop. */
+function clearChunkRecoveryFlag(): void {
+  try {
+    window.sessionStorage.removeItem(CHUNK_RECOVERY_KEY)
+  } catch {
+    // noop
+  }
+}
+
+function hardReloadWithChunkBust(): void {
+  const next = new URL(window.location.href)
+  next.searchParams.set('__chunk_recover', String(Date.now()))
+  window.location.replace(next.toString())
+}
+
 function installChunkLoadRecovery(): void {
   if (typeof window === 'undefined') return
 
-  const shouldRecover = (value: unknown): boolean => {
-    const text = String(value || '')
-    return (
-      text.includes('Unable to preload CSS') ||
-      text.includes('Failed to fetch dynamically imported module') ||
-      text.includes('Importing a module script failed') ||
-      text.includes('Loading chunk') ||
-      // Stale hashed JS after deploy (avoid matching unrelated /assets/ noise)
-      (text.includes('/assets/') && /\.m?js(\?|$)/.test(text))
-    )
-  }
-
-  const clearRuntimeCaches = async () => {
-    try {
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations()
-        await Promise.all(registrations.map((registration) => registration.unregister()))
-      }
-    } catch {
-      // noop
-    }
-
-    try {
-      if ('caches' in window) {
-        const keys = await caches.keys()
-        await Promise.all(keys.map((key) => caches.delete(key)))
-      }
-    } catch {
-      // noop
-    }
-  }
-
-  const hardReloadWithBust = () => {
-    const next = new URL(window.location.href)
-    next.searchParams.set('__chunk_recover', String(Date.now()))
-    window.location.replace(next.toString())
-  }
-
   const recoverOnce = () => {
-    try {
-      if (window.sessionStorage.getItem(CHUNK_RECOVERY_KEY) === '1') return
-      window.sessionStorage.setItem(CHUNK_RECOVERY_KEY, '1')
-    } catch {
-      // noop
-    }
+    if (hasChunkRecoveredOnce()) return
+    markChunkRecovered()
     void clearRuntimeCaches().finally(() => {
-      hardReloadWithBust()
+      hardReloadWithChunkBust()
     })
   }
 
   window.addEventListener('unhandledrejection', (event) => {
     const reason = (event as PromiseRejectionEvent).reason
     const message = reason?.message || reason
-    if (shouldRecover(message)) recoverOnce()
+    if (isChunkLoadFailure(message)) recoverOnce()
   })
 
   window.addEventListener('error', (event) => {
     const err = event as ErrorEvent
     const message = err.message || ''
     const source = err.filename || ''
-    if (shouldRecover(message) || shouldRecover(source)) recoverOnce()
+    if (isChunkLoadFailure(message) || isChunkLoadFailure(source)) recoverOnce()
   })
 
   // ensureContabilStyles catches Vite CSS preload errors — still recover once.
   window.addEventListener(STALE_ASSET_EVENT, () => recoverOnce())
-
-  try {
-    if (new URL(window.location.href).searchParams.has('__chunk_recover')) {
-      window.sessionStorage.removeItem(CHUNK_RECOVERY_KEY)
-    }
-  } catch {
-    // noop
-  }
 }
 
 function isPwaEnabled(): boolean {
@@ -233,30 +247,53 @@ const app = (
   <Sentry.ErrorBoundary
       fallback={({ error, resetError }) => {
         const message = error instanceof Error ? error.message : String(error || '')
-        const isChunk =
-          message.includes('Unable to preload CSS') ||
-          message.includes('Failed to fetch dynamically imported module') ||
-          message.includes('Importing a module script failed') ||
-          message.includes('Loading chunk')
-        if (isChunk && typeof window !== 'undefined') {
-          try {
-            if (window.sessionStorage.getItem(CHUNK_RECOVERY_KEY) !== '1') {
-              window.sessionStorage.setItem(CHUNK_RECOVERY_KEY, '1')
-              const next = new URL(window.location.href)
-              next.searchParams.set('__chunk_recover', String(Date.now()))
-              window.location.replace(next.toString())
-              return <div>A actualizar a aplicação…</div>
-            }
-          } catch {
-            // fall through
-          }
+        const isChunk = isChunkLoadFailure(message)
+        if (isChunk && typeof window !== 'undefined' && !hasChunkRecoveredOnce()) {
+          markChunkRecovered()
+          void clearRuntimeCaches().finally(() => {
+            hardReloadWithChunkBust()
+          })
+          return <div>A actualizar a aplicação…</div>
         }
         return (
-          <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
-            <p>Ocorreu um erro inesperado. Recarregue a página.</p>
-            <button type="button" onClick={resetError}>
-              Tentar novamente
+          <div style={{ padding: 24, fontFamily: 'system-ui, sans-serif', maxWidth: 480 }}>
+            <p style={{ marginTop: 0 }}>
+              {isChunk
+                ? 'A versão em cache ficou desactualizada após um deploy. Limpe a cache e recarregue.'
+                : 'Ocorreu um erro inesperado. Recarregue a página.'}
+            </p>
+            {!isChunk && message ? (
+              <pre
+                style={{
+                  fontSize: 12,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  background: '#f4f4f5',
+                  padding: 12,
+                  borderRadius: 8,
+                }}
+              >
+                {message.slice(0, 500)}
+              </pre>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => {
+                void clearRuntimeCaches().finally(() => {
+                  clearChunkRecoveryFlag()
+                  const next = new URL(window.location.href)
+                  next.searchParams.delete('__chunk_recover')
+                  window.location.replace(`${next.pathname}${next.search}${next.hash}` || '/')
+                })
+              }}
+            >
+              Limpar cache e recarregar
             </button>
+            {!isChunk ? (
+              <button type="button" style={{ marginLeft: 8 }} onClick={resetError}>
+                Tentar novamente
+              </button>
+            ) : null}
           </div>
         )
       }}
@@ -270,3 +307,10 @@ const app = (
 ReactDOM.createRoot(document.getElementById('root')!).render(
   import.meta.env.DEV ? <React.StrictMode>{app}</React.StrictMode> : app,
 )
+
+/** Boot OK → libertar a flag para um próximo deploy poder recuperar uma vez. */
+if (typeof window !== 'undefined') {
+  window.setTimeout(() => {
+    clearChunkRecoveryFlag()
+  }, 8_000)
+}

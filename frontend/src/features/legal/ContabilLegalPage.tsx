@@ -19,10 +19,10 @@ export function ContabilLegalPage({ page }: { page: ContabilLegalPageKey }) {
   const op = CONTABIL_LEGAL_OPERATOR
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-5 py-4">
-          <Link to="/" className="font-semibold text-[#0f2942]">
+          <Link to="/" className="font-semibold text-[#0B3A6E]">
             {op.brand}
           </Link>
           <nav className="flex flex-wrap gap-3 text-xs text-slate-600">
@@ -30,7 +30,7 @@ export function ContabilLegalPage({ page }: { page: ContabilLegalPageKey }) {
               <Link
                 key={l.key}
                 to={l.href}
-                className={l.key === page ? 'font-semibold text-[#0f2942]' : 'hover:text-slate-900'}
+                className={l.key === page ? 'font-semibold text-[#0B3A6E]' : 'hover:text-slate-900'}
               >
                 {l.label}
               </Link>
@@ -40,9 +40,9 @@ export function ContabilLegalPage({ page }: { page: ContabilLegalPageKey }) {
       </header>
       <main className="mx-auto max-w-3xl px-5 py-10">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{doc.subtitle}</p>
-        <h1 className="mt-1 text-3xl font-semibold text-[#0f2942]">{doc.title}</h1>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-[#0B3A6E]">{doc.title}</h1>
         <p className="mt-2 text-sm text-slate-500">
-          {doc.updatedAtLabel}: {doc.updatedAtValue} · Ref. {doc.version}
+          Documento legal do produto Teglion · {doc.updatedAtLabel}: {doc.updatedAtValue} · Ref. {doc.version}
         </p>
         <div className="prose prose-slate mt-8 max-w-none space-y-6 text-sm leading-relaxed text-slate-700">
           {doc.intro.map((p) => (
@@ -69,7 +69,7 @@ export function ContabilLegalPage({ page }: { page: ContabilLegalPageKey }) {
         <footer className="mt-12 border-t border-slate-200 pt-6 text-xs text-slate-500">
           <p>
             {op.tradingName} · {op.legalName} · NIF {op.nif} · {op.address} ·{' '}
-            <a href={`mailto:${op.email}`} className="text-[#0f2942] hover:underline">
+            <a href={`mailto:${op.email}`} className="text-[#0B3A6E] hover:underline">
               {op.email}
             </a>
           </p>

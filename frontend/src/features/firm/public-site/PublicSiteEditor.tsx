@@ -109,7 +109,7 @@ import { evaluatePublicSiteLegalGaps, publicSiteLegalFieldsDomId } from './publi
 const SECTION_LABELS: Record<PublicSiteSection['type'], string> = {
   header: 'Barra do topo',
   hero: 'Destaque principal',
-  about: 'Sobre o escritório',
+  about: 'Sobre o gabinete',
   services: 'Serviços com marcação online',
   bookingServices: 'Serviços por formulário (sem horário)',
   features: 'Diferenciais',
@@ -988,6 +988,18 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
     >
       <PublicSiteEditorModeBar mode={uiMode} onModeChange={handleUiModeChange} />
 
+      <div
+        className="cb-public-site-purpose rounded-xl border border-brand/20 bg-gradient-to-br from-brand/[0.05] via-card to-card px-4 py-3 text-sm leading-snug text-muted-foreground"
+        data-testid="public-site-purpose"
+      >
+        <p className="font-medium text-foreground">Página pública do gabinete</p>
+        <p className="mt-1">
+          O endereço partilhável onde clientes veem serviços, marcam consultas e entregam contactos — a
+          mesma identidade do portal, editável aqui. Publique quando o link, secções e contactos estiverem
+          correctos; não substitui declarações oficiais à AT.
+        </p>
+      </div>
+
       {simpleMode ? (
         <>
           <PublicSiteCoachBroadcast
@@ -1058,7 +1070,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                       ))}
                     </ul>
                     <p className="mt-2 text-[12px] leading-relaxed">
-                      Pode publicar na mesma, mas deve assumir a responsabilidade legal do escritório. A{' '}
+                      Pode publicar na mesma, mas deve assumir a responsabilidade legal do gabinete. A{' '}
                       <span className="font-medium">Teglion</span> (produto da{' '}
                       <span className="font-medium">AfDigital — Soluções Tecnológicas</span>) não presta aconselhamento
                       jurídico nem responde pela ausência de Livro de Reclamações, Termos ou Política de Privacidade
@@ -1072,7 +1084,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                         onChange={(e) => setLegalPublishAckChecked(e.target.checked)}
                       />
                       <span>
-                        Declaro, em nome do escritório, que assumo a responsabilidade pelo conteúdo legal desta página
+                        Declaro, em nome do gabinete, que assumo a responsabilidade pelo conteúdo legal desta página
                         pública e autorizo a publicação mesmo com os itens acima por completar. Registo esta aceitação
                         nos logs do Teglion.
                       </span>
@@ -1080,7 +1092,7 @@ export function PublicSiteEditor({ bundle, onFirmUpdated }: Props) {
                   </div>
                 ) : (
                   <p className="text-[12px]">
-                    Livro de Reclamações e políticas do escritório estão indicados no rascunho. Ao partilhar o link, a
+                    Livro de Reclamações e políticas do gabinete estão indicados no rascunho. Ao partilhar o link, a
                     miniatura usa o destaque ou o logótipo do site — não a imagem comercial do Teglion.
                   </p>
                 )}
@@ -1440,7 +1452,7 @@ function ThemeEditor({
             onChange={(handle) =>
               setSocial('instagram', handle ? `https://instagram.com/${handle.replace(/^@/, '')}` : null)
             }
-            placeholder="nome_do_escritorio"
+            placeholder="nome_do_gabinete"
           />
           <SocialHandleField
             label="Facebook"
@@ -1454,7 +1466,7 @@ function ThemeEditor({
             onChange={(handle) =>
               setSocial('facebook', handle ? `https://facebook.com/${handle.replace(/^@/, '')}` : null)
             }
-            placeholder="pagina-do-escritorio"
+            placeholder="pagina-do-gabinete"
           />
           <SocialHandleField
             label="LinkedIn"
@@ -1498,7 +1510,7 @@ function ThemeEditor({
             prefix="https://"
             value={stripSocialPrefix(draft.socialLinks.website, ['https://', 'http://'])}
             onChange={(handle) => setSocial('website', handle ? `https://${handle}` : null)}
-            placeholder="www.meuescritorio.pt"
+            placeholder="www.meugabinete.pt"
           />
         </div>
   )

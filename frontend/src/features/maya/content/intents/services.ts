@@ -6,7 +6,7 @@ export const SERVICE_INTENTS = [
     title: 'Como criar um serviço?',
     shortDescription: 'catálogo de serviços',
     answer:
-      'Um serviço é o que o escritório oferece (consultoria, IRS, etc.). Em Serviços → Catálogo active um modelo ou adicione um serviço. O editor tem 5 passos: 1. O que oferece · 2. Imagem · 3. Como solicita · 4. Publicação · 5. Pré-visualização. Guardar serviço grava; não publica. Publicado = visível na página pública (slug + opção marcada + Guardar). Pedidos do site vão para Solicitações. IRS tem área própria em IRS. A Central é só para clientes já na app.',
+      'Um serviço é o que o gabinete oferece (consultoria, IRS, etc.). Em Serviços → Catálogo active um modelo ou adicione um serviço. O editor tem 5 passos: 1. O que oferece · 2. Imagem · 3. Como solicita · 4. Publicação · 5. Pré-visualização. Guardar serviço grava; não publica. Publicado = visível na página pública (slug + opção marcada + Guardar). Pedidos do site vão para Solicitações. IRS tem área própria em IRS. A Central é só para clientes já na app.',
     steps: [
       'Abra Serviços → Catálogo',
       'Adicione ou active um serviço',
@@ -97,7 +97,7 @@ export const SERVICE_INTENTS = [
       },
       {
         id: 'logo',
-        name: 'Mostrar logótipo do escritório na página deste serviço',
+        name: 'Mostrar logótipo do gabinete na página deste serviço',
         meaning: 'Usa o logótipo de Definições → Identidade no topo da página deste serviço.',
       },
     ],
@@ -115,7 +115,7 @@ export const SERVICE_INTENTS = [
       'No passo 3 — Como solicita: Documentos necessários (nome, instruções, Pedir logo ou Só sugerir depois) e Formulário de perguntas. Nome, e-mail, telefone e NIF já são pedidos no topo da página pública — não os repita. Se desligar «Incluir formulário de perguntas», a página pede só identificação. Tipos de pergunta: Texto, Texto longo, Número, Data, Escolha única, Escolha múltipla, Sim/Não. Em escolhas, cada opção pode pedir um documento se o cliente a seleccionar. Perguntas de escolha sem opções bloqueiam a publicação.',
     steps: [
       'Adicione documentos se este serviço precisar de comprovativos',
-      'Pedir logo = o cliente envia ao submeter; Só sugerir depois = o escritório pede mais tarde na solicitação',
+      'Pedir logo = o cliente envia ao submeter; Só sugerir depois = o gabinete pede mais tarde na solicitação',
       'Ligue o formulário só se precisar de perguntas extra',
       'Não use rótulos Nome, Email, Telefone, Telemóvel, Contacto, NIF ou Contribuinte',
       'Nas escolhas, preencha as opções',
@@ -138,7 +138,7 @@ export const SERVICE_INTENTS = [
         id: 'doc-timing',
         name: 'Pedir logo / Só sugerir depois',
         meaning:
-          'Pedir logo: pedido automático na submissão. Só sugerir depois: aparece na solicitação para o escritório decidir.',
+          'Pedir logo: pedido automático na submissão. Só sugerir depois: aparece na solicitação para o gabinete decidir.',
       },
       {
         id: 'form-enabled',
@@ -181,7 +181,7 @@ export const SERVICE_INTENTS = [
     title: 'Pagamento do serviço',
     shortDescription: 'pagamento no serviço',
     answer:
-      'No passo 1, Pagamento: Cartões e MB WAY usam o Checkout Stripe — o valor fica na conta do escritório. Só ficam prontos quando o responsável liga a Stripe em Definições → Pagamentos. «Pedir pagamento ao marcar o horário» exige «Exige agendamento» e Stripe pronta; o horário só confirma depois do pagamento. Transferência bancária e Referência Multibanco são indicações fora do Checkout (orçamento/PDF). Isto não é a mensalidade Teglion (essa está em Plano).',
+      'No passo 1, Pagamento: Cartões e MB WAY usam o Checkout Stripe — o valor fica na conta do gabinete. Só ficam prontos quando o responsável liga a Stripe em Definições → Pagamentos. «Pedir pagamento ao marcar o horário» exige «Exige agendamento» e Stripe pronta; o horário só confirma depois do pagamento. Transferência bancária e Referência Multibanco são indicações fora do Checkout (orçamento/PDF). Isto não é a mensalidade Teglion (essa está em Plano).',
     steps: [
       'Se quiser online: o responsável conclui Pagamentos',
       'Volte ao serviço e escolha Cartões ou MB WAY',
@@ -198,7 +198,7 @@ export const SERVICE_INTENTS = [
         id: 'cards',
         name: 'Cartões',
         meaning: 'Checkout Stripe com cartão (e carteiras digitais quando a Stripe as mostrar).',
-        dependsOn: 'Conta Stripe do escritório no estado Pronto.',
+        dependsOn: 'Conta Stripe do gabinete no estado Pronto.',
       },
       {
         id: 'mbway',
@@ -229,11 +229,11 @@ export const SERVICE_INTENTS = [
     title: 'Publicar um serviço',
     shortDescription: 'publicar serviço',
     answer:
-      'No passo 4 — Publicação: o serviço só aparece no site com a opção marcada, um slug válido e depois de Guardar. Estados: Inactivo (desactivado), Só interno (ainda não no site), Quase publicado (marcou mas falta slug), Publicado (site). Pré-visualização é local — o link real só existe após guardar com publicação. A página pública do escritório também tem de estar publicada.',
+      'No passo 4 — Publicação: o serviço só aparece no site com a opção marcada, um slug válido e depois de Guardar. Estados: Inactivo (desactivado), Só interno (ainda não no site), Quase publicado (marcou mas falta slug), Publicado (site). Pré-visualização é local — o link real só existe após guardar com publicação. A página pública do gabinete também tem de estar publicada.',
     steps: [
       'Passo 4 — Publicação',
       'Slug (ex.: consultoria-fiscal)',
-      'Marcar «Publicar na página pública do escritório»',
+      'Marcar «Publicar na página pública do gabinete»',
       'Guardar serviço',
       'Copiar o link ou abrir a página pública',
     ],
@@ -251,7 +251,7 @@ export const SERVICE_INTENTS = [
       },
       {
         id: 'listed',
-        name: 'Publicar na página pública do escritório',
+        name: 'Publicar na página pública do gabinete',
         meaning: 'Inclui este serviço no site, depois de Guardar com slug.',
         emptyConsequence: 'Fica só interno — a equipa vê, o visitante não.',
       },

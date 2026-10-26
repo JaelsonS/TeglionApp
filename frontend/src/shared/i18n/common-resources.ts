@@ -103,8 +103,8 @@ function baseExtra(locale: 'pt-PT' | 'pt-BR' | 'en' | 'es-ES') {
           : 'Email not registered. Check the address or create an account.',
       accountInactive: isPt
         ? isBr
-          ? 'Conta desativada. Contacte o escritório.'
-          : 'Conta desativada. Contacte o escritório.'
+          ? 'Conta desativada. Contacte o gabinete.'
+          : 'Conta desativada. Contacte o gabinete.'
         : locale === 'es-ES'
           ? 'Cuenta desactivada. Contacte con la oficina.'
           : 'Account deactivated. Contact your firm.',
@@ -409,7 +409,7 @@ function baseExtra(locale: 'pt-PT' | 'pt-BR' | 'en' | 'es-ES') {
         owners: {
           title: isPt ? 'Responsaveis' : locale === 'es-ES' ? 'Responsables' : 'Owners',
           subtitle: isPt
-            ? 'Equipa do escritorio e contacto principal no cliente.'
+            ? 'Equipa do gabinete e contacto principal no cliente.'
             : locale === 'es-ES'
               ? 'Equipo del despacho y contacto principal del cliente.'
               : 'Firm team and primary contact for the client.',
@@ -418,7 +418,7 @@ function baseExtra(locale: 'pt-PT' | 'pt-BR' | 'en' | 'es-ES') {
         services: {
           title: isPt ? 'Servicos contratados' : locale === 'es-ES' ? 'Servicios contratados' : 'Subscribed services',
           subtitle: isPt
-            ? 'Selecione os servicos que o escritorio presta a este cliente.'
+            ? 'Selecione os servicos que o gabinete presta a este cliente.'
             : locale === 'es-ES'
               ? 'Seleccione los servicios que el despacho presta a este cliente.'
               : 'Select services provided by the firm for this client.',
@@ -457,7 +457,7 @@ function baseExtra(locale: 'pt-PT' | 'pt-BR' | 'en' | 'es-ES') {
           : locale === 'es-ES'
             ? 'Comunicar unidad familiar'
             : 'Communicate household',
-        assignedStaff: isPt ? 'Responsavel no escritorio' : locale === 'es-ES' ? 'Responsable del despacho' : 'Assigned staff',
+        assignedStaff: isPt ? 'Responsavel no gabinete' : locale === 'es-ES' ? 'Responsable del despacho' : 'Assigned staff',
         name: isPt ? 'Nome' : locale === 'es-ES' ? 'Nombre' : 'Name',
         role: isPt ? 'Funcao' : locale === 'es-ES' ? 'Funcion' : 'Role',
         notes: isPt ? 'Notas internas' : locale === 'es-ES' ? 'Notas internas' : 'Internal notes',
@@ -474,7 +474,7 @@ function baseExtra(locale: 'pt-PT' | 'pt-BR' | 'en' | 'es-ES') {
             ? 'Nombre por el que el cliente es conocido en el mercado.'
             : 'Market-facing trade name.',
         legalForm: isPt
-          ? 'Disponivel conforme o pais configurado no escritorio.'
+          ? 'Disponivel conforme o pais configurado no gabinete.'
           : locale === 'es-ES'
             ? 'Disponible segun el pais configurado en el despacho.'
             : 'Available according to the firm country configuration.',
@@ -501,7 +501,7 @@ function baseExtra(locale: 'pt-PT' | 'pt-BR' | 'en' | 'es-ES') {
         socialSecurityArea: isPt ? 'Ex.: Centro Distrital do Porto' : locale === 'es-ES' ? 'Ej.: Centro provincial' : 'Ex.: District center',
         assignedStaff: isPt ? 'Nome do responsavel' : locale === 'es-ES' ? 'Nombre del responsable' : 'Owner name',
         role: isPt ? 'Ex.: Gerente' : locale === 'es-ES' ? 'Ej.: Gerente' : 'Ex.: Manager',
-        notes: isPt ? 'Observacoes visiveis apenas no escritorio' : locale === 'es-ES' ? 'Observaciones visibles solo para el despacho' : 'Notes visible only to the firm',
+        notes: isPt ? 'Observacoes visiveis apenas no gabinete' : locale === 'es-ES' ? 'Observaciones visibles solo para el despacho' : 'Notes visible only to the firm',
       },
       options: {
         select: isPt ? 'Selecionar...' : locale === 'es-ES' ? 'Seleccionar...' : 'Select...',
@@ -536,7 +536,7 @@ function baseExtra(locale: 'pt-PT' | 'pt-BR' | 'en' | 'es-ES') {
         localityRequired: isPt ? 'Indique a localidade' : locale === 'es-ES' ? 'Indique la localidad' : 'Provide locality',
         fiscalFrameworkRequired: isPt ? 'Preencha o enquadramento fiscal' : locale === 'es-ES' ? 'Complete el marco fiscal' : 'Fill fiscal framework',
         vatExemptionReasonRequired: isPt ? 'Selecione o motivo da isencao' : locale === 'es-ES' ? 'Seleccione el motivo de exencion' : 'Select exemption reason',
-        assignedStaffRequired: isPt ? 'Indique o responsavel no escritorio' : locale === 'es-ES' ? 'Indique el responsable del despacho' : 'Provide assigned staff member',
+        assignedStaffRequired: isPt ? 'Indique o responsavel no gabinete' : locale === 'es-ES' ? 'Indique el responsable del despacho' : 'Provide assigned staff member',
       },
       actions: {
         close: isPt ? 'Fechar' : locale === 'es-ES' ? 'Cerrar' : 'Close',

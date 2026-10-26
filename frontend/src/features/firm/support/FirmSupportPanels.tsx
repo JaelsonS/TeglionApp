@@ -110,9 +110,16 @@ export function FirmHelpSupportPanel({ className }: { className?: string }) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
+          <AskMayaButton intentId="manual-guide" />
           <AskMayaButton intentId="human-support" />
+          <Button type="button" variant="outline" size="sm" asChild>
+            <Link to="/manual" target="_blank" rel="noopener noreferrer">
+              Abrir Manual completo (Maya)
+            </Link>
+          </Button>
           <p className="text-xs text-muted-foreground">
-            A Maya é a assistente guiada do {BRAND.name} — não substitui o suporte humano.
+            A Maya é a assistente guiada do {BRAND.name} — não substitui o suporte humano. O Manual
+            público explica cada módulo na voz dela.
           </p>
         </CardContent>
       </Card>
@@ -206,12 +213,12 @@ export function FirmAboutPanel({ className }: { className?: string }) {
         </CardHeader>
         <CardContent className="space-y-3 text-sm leading-relaxed text-foreground">
           <p>
-            O {BRAND.name} é uma plataforma de gestão para escritórios de contabilidade, desenvolvida e
+            O {BRAND.name} é uma plataforma de gestão para gabinetes de contabilidade, desenvolvida e
             operada pela <AgencyNameLink />. {BRAND.name} é o nome do produto — não uma empresa
             independente.
           </p>
           <p className="text-muted-foreground">
-            Foi criado para ajudar escritórios a centralizar operação, clientes, serviços, agenda,
+            Foi criado para ajudar gabinetes a centralizar operação, clientes, serviços, agenda,
             documentos, comunicações e presença digital num único sistema.
           </p>
           <p className="text-xs text-muted-foreground">

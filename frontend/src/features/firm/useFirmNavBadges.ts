@@ -1,5 +1,5 @@
 /**
- * Contadores do nav do escritório — UMA query agregada (`/contabil/nav-badges`).
+ * Contadores do nav do gabinete — UMA query agregada (`/contabil/nav-badges`).
  * Polling lento (3 min) + invalidação via live events. Não montar hooks por badge
  * em cada nav (sidebar/tablet/mobile): usar `useFirmNavBadgeCounts` (RQ dedupe).
  */

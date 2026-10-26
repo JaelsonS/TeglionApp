@@ -28,4 +28,9 @@ describe('firmShellChrome', () => {
     expect(FIRM_SHELL_CHROME_CLASSES.mobileNavHost).toBe('md:hidden')
     expect(FIRM_SHELL_CHROME_CLASSES.desktopSidebarAside).toContain('xl:flex')
   })
+
+  it('keeps desktop sidebar visible from xl while collapse is a width modifier only', () => {
+    expect(FIRM_SHELL_CHROME_CLASSES.desktopSidebarAside).toContain('cb-firm-sidebar-aside')
+    expect(FIRM_SHELL_CHROME_CLASSES.desktopSidebarAside).not.toContain('cb-firm-sidebar-aside--collapsed')
+  })
 })

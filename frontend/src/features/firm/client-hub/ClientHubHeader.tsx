@@ -84,6 +84,9 @@ export function ClientHubHeader({
               )}
               {client.phone ? ` · ${client.phone}` : ''}
             </p>
+            <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+              Hub deste cliente — documentos, prazos, portal, avenças e mensagens num só sítio.
+            </p>
             {hub.client.fiscalProfile?.legalForm ? (
               <p className="mt-0.5 text-xs text-muted-foreground">{hub.client.fiscalProfile.legalForm}</p>
             ) : null}

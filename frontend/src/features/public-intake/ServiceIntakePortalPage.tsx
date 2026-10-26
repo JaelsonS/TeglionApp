@@ -236,12 +236,15 @@ export function ServiceIntakePortalPage() {
   const pendingQuestions = checklist.some((c) => c.kind === 'question' && !c.received)
 
   return (
-    <div className="mx-auto min-h-screen max-w-xl px-4 py-10">
-      <header className="mb-6 space-y-1">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+    <div className="mx-auto min-h-screen max-w-xl bg-background px-4 py-10 font-sans">
+      <header className="mb-6 space-y-1.5">
+        <p className="text-caption font-semibold uppercase tracking-wide text-muted-foreground">
           {serviceName || 'O seu pedido'}
         </p>
-        <h1 className="text-2xl font-bold">Documentos necessários</h1>
+        <h1 className="text-title font-semibold text-foreground sm:text-display">Documentos necessários</h1>
+        <p className="text-body text-muted-foreground">
+          Envie o que o escritório pediu — fica registado neste link, sem precisar de login.
+        </p>
       </header>
 
       <div className="rounded-2xl border border-border/50 bg-card p-6 shadow-sm">

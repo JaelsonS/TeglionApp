@@ -34,7 +34,7 @@ export const ACTIVATION_PHASE_ORDER: ActivationPhaseId[] = [
 
 const PHASE_COPY: Record<Exclude<ActivationPhaseId, 'complete'>, Omit<ActivationPhase, 'id'>> = {
   profile: {
-    title: 'Perfil do escritório',
+    title: 'Perfil do gabinete',
     description:
       'Carregue o logótipo e confirme nome e contactos. Sem isto a página pública não fica credível para quem chega pelo link.',
     validationHint: 'Logótipo carregado nas Definições → Identidade.',
@@ -101,7 +101,7 @@ export type ResolveActivationPhaseInput = FirmProgressInput & {
 }
 
 export function resolveActivationPhase(input: ResolveActivationPhaseInput): ActivationPhase {
-  const hasSlug = Boolean(input.firmSlug && input.firmSlug !== 'escritorio')
+  const hasSlug = Boolean(input.firmSlug && input.firmSlug !== 'gabinete')
   const hasPublicService = input.publicServiceCount > 0
   const hasClient = input.clientCount > 0
 
@@ -130,7 +130,7 @@ export function resolveActivationPhase(input: ResolveActivationPhaseInput): Acti
 
   return {
     id: 'complete',
-    title: 'Escritório pronto no Teglion',
+    title: 'Gabinete pronto no Teglion',
     description:
       'Perfil, página, serviço público e primeira empresa — pode focar-se na carteira, pedidos e agenda. A Maya continua disponível para dúvidas.',
     validationHint: 'Todos os passos essenciais concluídos.',

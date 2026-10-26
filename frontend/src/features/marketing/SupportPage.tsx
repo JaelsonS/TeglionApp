@@ -95,10 +95,11 @@ export function SupportPage() {
       <section className="landing-section pb-0">
         <div className="landing-container">
           <FadeInView className="mx-auto max-w-2xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#C9932E]">Atendimento ao cliente</p>
-            <h1 className="mt-2 text-3xl font-semibold text-[#0F2942] sm:text-4xl md:text-5xl">Como podemos ajudar?</h1>
+            <p className="text-xs font-semibold uppercase tracking-wide text-[#C9932E]">Suporte Teglion</p>
+            <h1 className="mt-2 text-3xl font-semibold text-[#0B3A6E] sm:text-4xl md:text-5xl">Como podemos ajudar?</h1>
             <p className="mt-3 text-base text-[#4A5568] sm:mt-4 sm:text-lg">
-              Fale connosco directamente ou envie os detalhes do seu problema — respondemos o mais rápido possível.
+              Dúvidas de conta, trial ou utilização do produto — telefone, WhatsApp, e-mail ou formulário.
+              Questões fiscais dos seus clientes tratam-se no gabinete, não aqui.
             </p>
           </FadeInView>
         </div>
@@ -117,18 +118,18 @@ export function SupportPage() {
                   rel={channel.href.startsWith('http') ? 'noreferrer' : undefined}
                   className="landing-card flex flex-col items-center gap-2 p-6 text-center transition hover:-translate-y-0.5"
                 >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0F2942]/5 text-[#0F2942]">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0B3A6E]/5 text-[#0B3A6E]">
                     <Icon className="h-5 w-5" aria-hidden />
                   </span>
-                  <span className="text-sm font-semibold text-[#0F2942]">{channel.label}</span>
+                  <span className="text-sm font-semibold text-[#0B3A6E]">{channel.label}</span>
                   <span className="text-sm text-[#4A5568]">{channel.value}</span>
                 </a>
               )
             })}
           </FadeInView>
 
-          <FadeInView className="mx-auto mt-12 max-w-2xl rounded-2xl border border-[#0F2942]/10 bg-white p-6 sm:p-8">
-            <h2 className="text-xl font-semibold text-[#0F2942]">Enviar um pedido de suporte</h2>
+          <FadeInView className="mx-auto mt-12 max-w-2xl rounded-2xl border border-[#0B3A6E]/10 bg-white p-6 sm:p-8">
+            <h2 className="text-xl font-semibold text-[#0B3A6E]">Enviar um pedido de suporte</h2>
             <p className="mt-2 text-sm text-[#4A5568]">
               Descreva o problema com o máximo de detalhe possível. Respondemos por e-mail.
             </p>
@@ -136,7 +137,7 @@ export function SupportPage() {
             <form className="mt-6 space-y-4" onSubmit={onSubmit} noValidate>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="text-sm font-medium text-[#0F2942]" htmlFor="support-name">
+                  <label className="text-sm font-medium text-[#0B3A6E]" htmlFor="support-name">
                     Nome
                   </label>
                   <input
@@ -147,12 +148,12 @@ export function SupportPage() {
                     value={form.name}
                     onChange={(e) => update('name', e.target.value)}
                     disabled={loading}
-                    className="mt-1.5 w-full rounded-lg border border-[#0F2942]/15 px-3 py-2 text-sm outline-none focus:border-[#0F2942]/40"
+                    className="mt-1.5 w-full rounded-lg border border-[#0B3A6E]/15 px-3 py-2 text-sm outline-none focus:border-[#0B3A6E]/40"
                     placeholder="O seu nome"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-[#0F2942]" htmlFor="support-email">
+                  <label className="text-sm font-medium text-[#0B3A6E]" htmlFor="support-email">
                     E-mail
                   </label>
                   <input
@@ -163,7 +164,7 @@ export function SupportPage() {
                     value={form.email}
                     onChange={(e) => update('email', e.target.value)}
                     disabled={loading}
-                    className="mt-1.5 w-full rounded-lg border border-[#0F2942]/15 px-3 py-2 text-sm outline-none focus:border-[#0F2942]/40"
+                    className="mt-1.5 w-full rounded-lg border border-[#0B3A6E]/15 px-3 py-2 text-sm outline-none focus:border-[#0B3A6E]/40"
                     placeholder="seu@email.com"
                   />
                 </div>
@@ -171,7 +172,7 @@ export function SupportPage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="text-sm font-medium text-[#0F2942]" htmlFor="support-phone">
+                  <label className="text-sm font-medium text-[#0B3A6E]" htmlFor="support-phone">
                     Telefone <span className="text-[#4A5568]">(opcional)</span>
                   </label>
                   <input
@@ -181,12 +182,12 @@ export function SupportPage() {
                     value={form.phone}
                     onChange={(e) => update('phone', e.target.value)}
                     disabled={loading}
-                    className="mt-1.5 w-full rounded-lg border border-[#0F2942]/15 px-3 py-2 text-sm outline-none focus:border-[#0F2942]/40"
+                    className="mt-1.5 w-full rounded-lg border border-[#0B3A6E]/15 px-3 py-2 text-sm outline-none focus:border-[#0B3A6E]/40"
                     placeholder="+351 9XX XXX XXX"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-[#0F2942]" htmlFor="support-subject">
+                  <label className="text-sm font-medium text-[#0B3A6E]" htmlFor="support-subject">
                     Assunto <span className="text-[#4A5568]">(opcional)</span>
                   </label>
                   <input
@@ -195,14 +196,14 @@ export function SupportPage() {
                     value={form.subject}
                     onChange={(e) => update('subject', e.target.value)}
                     disabled={loading}
-                    className="mt-1.5 w-full rounded-lg border border-[#0F2942]/15 px-3 py-2 text-sm outline-none focus:border-[#0F2942]/40"
+                    className="mt-1.5 w-full rounded-lg border border-[#0B3A6E]/15 px-3 py-2 text-sm outline-none focus:border-[#0B3A6E]/40"
                     placeholder="Ex.: Problema ao criar tarefa"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-sm font-medium text-[#0F2942]" htmlFor="support-message">
+                <label className="text-sm font-medium text-[#0B3A6E]" htmlFor="support-message">
                   Descreva o problema
                 </label>
                 <textarea
@@ -213,7 +214,7 @@ export function SupportPage() {
                   value={form.message}
                   onChange={(e) => update('message', e.target.value)}
                   disabled={loading}
-                  className="mt-1.5 w-full rounded-lg border border-[#0F2942]/15 px-3 py-2 text-sm outline-none focus:border-[#0F2942]/40"
+                  className="mt-1.5 w-full rounded-lg border border-[#0B3A6E]/15 px-3 py-2 text-sm outline-none focus:border-[#0B3A6E]/40"
                   placeholder="O que aconteceu, quando, e o que esperava que acontecesse..."
                 />
               </div>

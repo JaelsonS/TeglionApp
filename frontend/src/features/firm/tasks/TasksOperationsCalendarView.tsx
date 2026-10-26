@@ -174,7 +174,7 @@ export function TasksOperationsCalendarView({
   const dayItems = itemsByDate.get(dateKey(focusDate)) ?? []
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex w-full min-w-0 flex-col">
       <div className="cb-tasks-cal-toolbar">
         <div className="flex items-center gap-2">
           <button
@@ -232,7 +232,7 @@ export function TasksOperationsCalendarView({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto p-3">
+      <div className="w-full min-w-0 p-1 sm:p-0">
         <div className="overflow-hidden rounded-lg border border-border/60 bg-card">
           {view === 'month' ? (
             <div className="cb-tasks-cal-grid">

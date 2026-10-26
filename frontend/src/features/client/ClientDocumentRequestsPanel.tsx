@@ -284,7 +284,7 @@ function ClientRequestDetail({
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4">
         <section className="rounded-xl border border-border/60 bg-muted/20 p-4">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Instruções do escritório
+            Instruções do gabinete
           </p>
           <p className="whitespace-pre-wrap text-sm leading-relaxed">{request.instructions?.trim() || '—'}</p>
         </section>
@@ -319,7 +319,7 @@ function ClientRequestDetail({
           </section>
         ) : status === 'answered' ? (
           <p className="rounded-[10px] border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-900">
-            Ficheiro enviado. O escritório está a rever — quando validar, o pedido passa a concluído.
+            Ficheiro enviado. O gabinete está a rever — quando validar, o pedido passa a concluído.
           </p>
         ) : (
           <p className="rounded-[10px] border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">

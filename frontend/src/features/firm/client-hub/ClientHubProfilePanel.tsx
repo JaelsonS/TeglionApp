@@ -421,7 +421,7 @@ export function ClientHubProfilePanel({ hub, onPatch, isSaving }: Props) {
           />
         </ProfileSectionCard>
 
-        <ProfileSectionCard title="Responsável no escritório" description="Passo 3 do registo">
+        <ProfileSectionCard title="Responsável no gabinete" description="Passo 3 do registo">
           <InlineEditSelect
             label="Membro da equipa"
             value={(client as { assignedStaffId?: string }).assignedStaffId || ''}
@@ -445,7 +445,7 @@ export function ClientHubProfilePanel({ hub, onPatch, isSaving }: Props) {
           />
         </ProfileSectionCard>
 
-        <ProfileSectionCard title="Notas internas" description="Só visível ao escritório" className="xl:col-span-2">
+        <ProfileSectionCard title="Notas internas" description="Só visível ao gabinete" className="xl:col-span-2">
           <InlineEditField
             label="Observações"
             value={fp.notes || ''}

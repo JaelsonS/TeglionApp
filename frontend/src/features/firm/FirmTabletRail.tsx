@@ -1,15 +1,13 @@
 import { useState } from 'react'
 import { Menu } from 'lucide-react'
-import { NavLink, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
 import {
-  FIRM_NAV_DRAWER_ITEMS,
   FIRM_NAV_RAIL_BOTTOM,
   FIRM_NAV_RAIL_MAIN,
-  isFirmNavItemActive,
   type FirmNavItemConfig,
 } from '@/features/firm/firmNavConfig'
+import { FirmRailIconButton, FirmRailIconLink } from '@/features/firm/FirmRailIconLink'
 import { FirmSidebar } from '@/features/firm/FirmSidebar'
 import { resolveFirmNavBadge, useFirmNavBadgeCounts } from '@/features/firm/useFirmNavBadges'
 import { FirmSidebarHeader } from '@/shared/components/layout/FirmSidebarHeader'
@@ -17,48 +15,6 @@ import { Sheet, SheetContent } from '@/shared/components/ui/sheet'
 import { SheetHiddenTitle } from '@/shared/components/ui/sheet-hidden-title'
 import { useFirmBranding } from '@/shared/hooks/useFirmBranding'
 import { toPublicAssetUrl } from '@/infrastructure/api'
-import { cn } from '@/shared/lib/utils'
-
-function railTestId(to: string) {
-  return `firm-tablet-rail-${to.replace(/\//g, '-')}`
-}
-
-function RailIconLink({
-  item,
-  label,
-  badge,
-}: {
-  item: FirmNavItemConfig
-  label: string
-  badge?: number
-}) {
-  const Icon = item.icon
-  const location = useLocation()
-  const isActive = isFirmNavItemActive(item, location.pathname, location.search, FIRM_NAV_DRAWER_ITEMS)
-
-  return (
-    <NavLink
-      to={item.to}
-      end={item.end}
-      data-testid={railTestId(item.to)}
-      aria-label={label}
-      title={label}
-      className={cn(
-        'cb-firm-icon-nav',
-        isActive ? 'cb-firm-icon-nav-active' : 'cb-firm-icon-nav-inactive',
-      )}
-    >
-      <span className="cb-firm-icon-nav-wrap">
-        <Icon className="cb-firm-rail-icon" strokeWidth={1.75} aria-hidden />
-        {badge && badge > 0 ? (
-          <span className="cb-firm-rail-badge" aria-label={`${badge} não lidas`}>
-            {badge > 99 ? '99+' : badge}
-          </span>
-        ) : null}
-      </span>
-    </NavLink>
-  )
-}
 
 /**
  * Rail de ícones para tablet (768–1279).
@@ -71,14 +27,13 @@ export function FirmTabletRail() {
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const fullLogoUrl = firmLogoUrl || toPublicAssetUrl(firm?.branding?.logoUrl)
-  const subtitle = t('contabil.firm.subtitle', { defaultValue: 'Escritório' })
+  const subtitle = t('contabil.firm.subtitle', { defaultValue: 'Gabinete' })
   const fallbackName = t('contabil.firm.fallback', { defaultValue: 'Teglion' })
   const menuLabel = t('nav.menu', { defaultValue: 'Menu' })
 
   const labelFor = (item: FirmNavItemConfig) =>
     t(item.labelKey, { defaultValue: item.labelDefault })
 
-  const badgeFor = (item: FirmNavItemConfig) => resolveFirmNavBadge(item, counts)
   return (
     <>
       <div className="cb-firm-icon-rail" data-testid="firm-tablet-rail">
@@ -107,31 +62,34 @@ export function FirmTabletRail() {
           aria-label={t('nav.main', { defaultValue: 'Menu principal' })}
         >
           {FIRM_NAV_RAIL_MAIN.map((item) => (
-            <RailIconLink
+            <FirmRailIconLink
               key={item.to}
               item={item}
               label={labelFor(item)}
-              badge={badgeFor(item)}
+              badge={resolveFirmNavBadge(item, counts)}
+              testIdPrefix="firm-tablet-rail"
             />
           ))}
         </nav>
 
         <div className="cb-firm-icon-rail-bottom">
           {FIRM_NAV_RAIL_BOTTOM.map((item) => (
-            <RailIconLink key={item.to} item={item} label={labelFor(item)} badge={badgeFor(item)} />
+            <FirmRailIconLink
+              key={item.to}
+              item={item}
+              label={labelFor(item)}
+              badge={resolveFirmNavBadge(item, counts)}
+              testIdPrefix="firm-tablet-rail"
+            />
           ))}
-          <button
-            type="button"
-            className="cb-firm-icon-nav cb-firm-icon-nav-inactive"
-            aria-label={menuLabel}
+          <FirmRailIconButton
+            label={menuLabel}
+            testId="firm-tablet-rail-menu"
             aria-expanded={drawerOpen}
-            aria-controls="firm-tablet-nav-drawer"
-            title={menuLabel}
-            data-testid="firm-tablet-rail-menu"
             onClick={() => setDrawerOpen(true)}
           >
             <Menu className="cb-firm-rail-icon" strokeWidth={1.75} aria-hidden />
-          </button>
+          </FirmRailIconButton>
         </div>
       </div>
 

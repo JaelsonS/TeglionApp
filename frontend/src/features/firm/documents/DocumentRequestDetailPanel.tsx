@@ -1,5 +1,13 @@
 import { useState } from 'react'
-import { ArrowLeft, Bell, Check, CheckCircle2, FileCheck, FileUp, MessageSquarePlus, X } from 'lucide-react'
+import {
+  ArrowLeft,
+  Bell,
+  CheckCircle2,
+  FileCheck,
+  FileUp,
+  MessageSquarePlus,
+  X,
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -7,7 +15,6 @@ import { DocumentRequestBadge } from '@/features/firm/documents/DocumentRequestB
 import { displayDocumentRequestTitle } from '@/features/firm/documents/documentRequestDisplay'
 import {
   documentRequestProgressHint,
-  documentRequestStepIndex,
   normalizeRequestStatus,
 } from '@/features/firm/documents/documentRequestStatus'
 import { formatPeriodLabel } from '@/features/firm/tasks/tasksOperationsUtils'
@@ -18,13 +25,34 @@ import { formatDateTime } from '@/shared/utils/date'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
 
-const STEPS = [
-  { id: 'created', label: 'Criado' },
-  { id: 'sent', label: 'Enviado' },
-  { id: 'waiting', label: 'Aguarda resp.' },
-  { id: 'review', label: 'Em revisão' },
-  { id: 'done', label: 'Concluído' },
-] as const
+type TimelineStep = { id: string; label: string; done: boolean; current: boolean }
+
+function buildTimeline(status: ReturnType<typeof normalizeRequestStatus>): TimelineStep[] {
+  const steps: TimelineStep[] = [
+    { id: 'created', label: 'Criado', done: false, current: false },
+    { id: 'seen', label: 'Visto', done: false, current: false },
+    { id: 'waiting', label: 'Aguarda resposta', done: false, current: false },
+  ]
+  if (status === 'completed' || status === 'answered') {
+    steps[0].done = true
+    steps[1].done = true
+    steps[2].done = true
+    if (status === 'answered') steps[2].current = true
+    return steps
+  }
+  if (status === 'seen') {
+    steps[0].done = true
+    steps[1].done = true
+    steps[1].current = true
+    steps[2].current = true
+    return steps
+  }
+  // pending
+  steps[0].done = true
+  steps[0].current = false
+  steps[2].current = true
+  return steps
+}
 
 export function DocumentRequestDetailPanel({
   request,
@@ -41,10 +69,10 @@ export function DocumentRequestDetailPanel({
 }) {
   const status = normalizeRequestStatus(request.status)
   const title = displayDocumentRequestTitle(request, clientName)
-  const current = documentRequestStepIndex(status)
   const hasDocument = Boolean(request.documentId)
   const canComplete = status !== 'completed' && (status === 'answered' || hasDocument)
   const [completing, setCompleting] = useState(false)
+  const timeline = buildTimeline(status)
 
   const handleComplete = async () => {
     setCompleting(true)
@@ -60,167 +88,148 @@ export function DocumentRequestDetailPanel({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-muted/15">
-      <div className="shrink-0 border-b border-border/60 bg-card px-4 py-3">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-start gap-2">
+    <div className="cb-docs-req-detail">
+      <div className="cb-docs-req-detail-hd">
+        <div className="flex min-w-0 flex-1 items-start gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="shrink-0 rounded-md xl:hidden"
+            onClick={onClose}
+            aria-label="Fechar"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="truncate text-base font-semibold text-foreground">{title}</h2>
+              <DocumentRequestBadge status={request.status} clientViewedAt={request.seenAt} />
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {clientName}
+              <span className="mx-1.5 text-border">·</span>
+              Criado {formatDateTime(request.createdAt)}
+            </p>
+          </div>
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-9 rounded-lg text-xs"
+            disabled={status === 'completed'}
+            onClick={() =>
+              toast.message('Lembrete', {
+                description:
+                  'O cliente vê o pedido no portal. Em breve poderá reenviar aviso por e-mail daqui.',
+              })
+            }
+          >
+            <Bell className="mr-1.5 h-3.5 w-3.5" />
+            Reenviar lembrete
+          </Button>
+          {canComplete || status !== 'completed' ? (
             <Button
               type="button"
-              variant="ghost"
-              size="icon"
-              className="shrink-0 rounded-md xl:hidden"
-              onClick={onClose}
-              aria-label="Fechar"
+              size="sm"
+              variant="primary"
+              className="h-9 rounded-lg text-xs"
+              disabled={completing || (!canComplete && status !== 'pending' && status !== 'seen')}
+              onClick={() => {
+                if (canComplete) void handleComplete()
+                else
+                  toast.message('Ainda sem ficheiro', {
+                    description: 'Quando o cliente responder no portal, poderá marcar como concluído.',
+                  })
+              }}
             >
-              <ArrowLeft className="h-5 w-5" />
+              <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+              {completing ? 'A concluir…' : 'Marcar concluído'}
             </Button>
-            <div className="min-w-0">
-              <h2 className="truncate text-sm font-semibold">{title}</h2>
-              <p className="mt-1 flex flex-wrap items-center gap-2 cb-text-caption">
-                <span>{clientName}</span>
-                <span>·</span>
-                <span>Criado {formatDateTime(request.createdAt)}</span>
-              </p>
-            </div>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <DocumentRequestBadge status={request.status} clientViewedAt={request.seenAt} />
-            <Button type="button" variant="ghost" size="icon" className="hidden h-8 w-8 rounded-md xl:flex" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="hidden h-8 w-8 rounded-md xl:flex"
+            onClick={onClose}
+            aria-label="Fechar detalhe"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
-      <div className="cb-firm-split-body space-y-3 p-4">
-        <section className="cb-surface">
-          <div className="cb-surface-header">
-            <h3 className="cb-section-title text-xs">Progresso do pedido</h3>
-          </div>
-          <div className="cb-surface-body">
-            <div className="cb-request-stepper" role="list" aria-label="Progresso do pedido">
-              {STEPS.map((step, i) => {
-                const done = i < current
-                const active = i === current && status !== 'completed'
-                return (
-                  <div key={step.id} className="cb-request-step" role="listitem">
-                    <div
-                      className={cn(
-                        'cb-request-step-circle',
-                        done && 'cb-request-step-done',
-                        active && 'cb-request-step-current',
-                      )}
-                      aria-current={active ? 'step' : undefined}
-                    >
-                      {done ? <Check className="h-3 w-3" /> : i + 1}
-                    </div>
-                    <span className="cb-request-step-label">{step.label}</span>
-                    {i < STEPS.length - 1 ? (
-                      <div className={cn('cb-request-step-line', done && 'cb-request-step-line-done')} />
-                    ) : null}
-                  </div>
-                )
-              })}
-            </div>
-            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-              {documentRequestProgressHint(status, hasDocument)}
+      <div className="cb-docs-req-detail-body">
+        <section className="cb-docs-req-section">
+          <h3 className="cb-docs-req-section-title">Instruções</h3>
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+            {request.instructions?.trim() || '—'}
+          </p>
+          {request.periodMonth ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Período:{' '}
+              <span className="font-medium text-foreground">{formatPeriodLabel(request.periodMonth)}</span>
             </p>
-          </div>
+          ) : null}
         </section>
 
-        <section className="cb-surface">
-          <div className="cb-surface-header">
-            <h3 className="cb-section-title text-xs">Instruções</h3>
-          </div>
-          <div className="cb-surface-body">
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-              {request.instructions?.trim() || '—'}
-            </p>
-            {request.periodMonth ? (
-              <p className="mt-2 text-xs text-muted-foreground">
-                Período: <span className="font-medium">{formatPeriodLabel(request.periodMonth)}</span>
-              </p>
-            ) : null}
-          </div>
-        </section>
-
-        {hasDocument ? (
-          <section className="cb-surface">
-            <div className="cb-surface-header">
-              <h3 className="cb-section-title text-xs">Documento recebido</h3>
-            </div>
-            <div className="cb-surface-body flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" className="h-8 rounded-md text-xs" asChild>
+        <section className="cb-docs-req-section">
+          <h3 className="cb-docs-req-section-title">Ficheiros recebidos</h3>
+          {hasDocument ? (
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" className="h-9 rounded-lg text-xs" asChild>
                 <Link to={`/app/firm/documents/files?doc=${request.documentId}`}>
                   <FileCheck className="mr-1.5 h-3.5 w-3.5" />
                   Validar ficheiro
                 </Link>
               </Button>
-              {canComplete ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  className="h-8 rounded-md text-xs"
-                  disabled={completing}
-                  onClick={() => void handleComplete()}
-                >
-                  <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
-                  {completing ? 'A concluir...' : 'Marcar concluído'}
-                </Button>
-              ) : null}
             </div>
-          </section>
-        ) : (
-          <p className="text-center text-xs text-muted-foreground">
-            {documentRequestProgressHint(status, false)}
+          ) : (
+            <div className="cb-docs-req-files-empty">
+              <FileUp className="h-5 w-5 opacity-40" aria-hidden />
+              <p className="text-sm font-medium text-foreground">Ainda sem ficheiros</p>
+              <p className="text-xs text-muted-foreground">O cliente responde no portal.</p>
+            </div>
+          )}
+        </section>
+
+        <section className="cb-docs-req-section">
+          <h3 className="cb-docs-req-section-title">Linha do tempo</h3>
+          <ol className="cb-docs-timeline" aria-label="Progresso do pedido">
+            {timeline.map((step) => (
+              <li
+                key={step.id}
+                className={cn(
+                  'cb-docs-timeline-item',
+                  step.done && 'cb-docs-timeline-item--done',
+                  step.current && 'cb-docs-timeline-item--current',
+                )}
+              >
+                <span className="cb-docs-timeline-dot" aria-hidden />
+                <span className="cb-docs-timeline-label">{step.label}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+            {documentRequestProgressHint(status, hasDocument)}
           </p>
-        )}
+        </section>
       </div>
 
-      <div className="shrink-0 flex flex-wrap gap-2 border-t border-border/60 bg-card p-3">
-        {canComplete ? (
-          <Button
-            type="button"
-            size="sm"
-            className="h-8 rounded-md text-xs"
-            disabled={completing}
-            onClick={() => void handleComplete()}
-          >
-            <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
-            {completing ? 'A concluir...' : 'Marcar concluído'}
-          </Button>
-        ) : null}
+      <div className="cb-docs-req-detail-ft">
         <Button
           type="button"
           variant="outline"
           size="sm"
-          className="h-8 rounded-md text-xs"
-          disabled={status === 'completed'}
-          onClick={() =>
-            toast.message('Lembrete', {
-              description: 'O cliente vê o pedido no portal. Em breve poderá reenviar aviso por e-mail daqui.',
-            })
-          }
-        >
-          <Bell className="mr-1.5 h-3.5 w-3.5" />
-          Notificar cliente
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-8 rounded-md text-xs"
+          className="h-9 rounded-lg text-xs"
           disabled={status === 'completed'}
           onClick={onNewFollowUp}
         >
           <MessageSquarePlus className="mr-1.5 h-3.5 w-3.5" />
           Novo pedido
-        </Button>
-        <Button type="button" variant="outline" size="sm" className="ml-auto h-8 rounded-md text-xs" asChild>
-          <a href="/app/client" target="_blank" rel="noreferrer">
-            <FileUp className="mr-1.5 h-3.5 w-3.5" />
-            Portal
-          </a>
         </Button>
       </div>
     </div>

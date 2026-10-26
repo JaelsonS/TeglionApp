@@ -134,7 +134,7 @@ export const OPS_INTENTS = [
     title: 'Como usar o calendário fiscal?',
     shortDescription: 'calendário fiscal',
     answer:
-      'O Calendário Fiscal guarda prazos do escritório: importe o modelo Portugal, crie eventos e categorias, defina recorrência (mensal, trimestral, anual). Pode editar só uma ocorrência quando precisar. Alimenta a disciplina de prazos — as obrigações da carteira acompanham-se em Obrigações dos Clientes.',
+      'O Calendário Fiscal guarda prazos do gabinete: importe o modelo Portugal, crie eventos e categorias, defina recorrência (mensal, trimestral, anual). Pode editar só uma ocorrência quando precisar. Alimenta a disciplina de prazos — as obrigações da carteira acompanham-se em Obrigações dos Clientes.',
     steps: [
       'Importe o modelo Portugal ou crie eventos',
       'Configure categorias e cores',
@@ -147,15 +147,15 @@ export const OPS_INTENTS = [
   }),
   defineIntent({
     id: 'agenda',
-    title: 'Como usar a agenda?',
-    shortDescription: 'agenda e reuniões',
+    title: 'Como usar Agendamentos?',
+    shortDescription: 'reuniões com clientes',
     answer:
-      'Na Agenda marca eventos com clientes da carteira (título, data, notas, serviço, responsável). Vistas de semana e mês. O botão Definições abre disponibilidade para a página pública e o Google Calendar. Criar um evento interno não chega para o site oferecer horários — isso é disponibilidade + serviço com «Exige agendamento» publicado.',
+      'Agendamentos é o calendário de consultas e reuniões com clientes da carteira — não é o Calendário fiscal (prazos AT) nem o calendário de Tarefas. Crie um evento com cliente e data, ou abra Definições para o site poder oferecer horários. Um evento interno sozinho não abre marcações no site: precisa de horário gravado + serviço com «Exige agendamento» publicado.',
     steps: [
-      'Abra Agenda',
-      'Crie um evento ou abra Definições',
-      'Para o site: grave disponibilidade e publique um serviço com agendamento',
-      'Opcional: ligar Google Calendar',
+      'Abra Agendamentos (menu Gestor de Operações)',
+      'Use Dia / Semana / Mês e «Novo evento» para marcar à mão',
+      'Em Definições: horário semanal → Guardar → excepções se precisar',
+      'Em Serviços: active «Exige agendamento» e publique a oferta',
     ],
     deepLink: '/app/firm/agenda',
     relatedIntents: ['booking', 'agenda-google', 'service'],
@@ -197,25 +197,24 @@ export const OPS_INTENTS = [
   }),
   defineIntent({
     id: 'booking',
-    title: 'Como configurar o agendamento público?',
+    title: 'Como o cliente marca horário no site?',
     shortDescription: 'marcação na página pública',
     answer:
-      'O visitante só marca horário se: (1) em Agenda → Definições a disponibilidade estiver gravada (dias, intervalos, fuso, duração do slot, horizonte em dias); (2) o serviço tiver «Exige agendamento» e estiver publicado; (3) a página pública estiver publicada. Definições da agenda também lista os serviços e liga o Google Calendar. «Guardar disponibilidade» grava os horários — não publica o site.',
+      'Pense em três portas que têm de estar abertas ao mesmo tempo. 1) Em Agendamentos → Definições, grave o horário semanal (e excepções se precisar). 2) Em Serviços, o serviço tem de ter «Exige agendamento» e estar Publicado. 3) A página pública do gabinete tem de estar publicada. «Guardar disponibilidade» só grava horários — não publica o site sozinho. Google Calendar é opcional.',
     steps: [
-      'Agenda → Definições',
-      'Defina dias, horas, fuso, minutos por slot e horizonte',
+      'Agendamentos → Definições → horário semanal e opções de slot',
       'Clique em Guardar disponibilidade',
-      'No serviço, ligue Exige agendamento e publique',
-      'Teste o horário na página pública',
+      'Serviços → edite a oferta → Exige agendamento → Publique',
+      'Abra a página pública e teste uma marcação como se fosse cliente',
     ],
     deepLink: '/app/firm/agenda?panel=settings',
     relatedIntents: ['agenda', 'agenda-google', 'service', 'public-page'],
-    ctaLabel: 'Abrir Definições da agenda',
+    ctaLabel: 'Abrir Definições de Agendamentos',
     fields: [
       {
         id: 'schedule',
         name: 'Dias e horário',
-        meaning: 'Intervalos em que o escritório aceita marcações (ex.: segunda a sexta, 09:00–17:00).',
+        meaning: 'Intervalos em que o gabinete aceita marcações (ex.: segunda a sexta, 09:00–17:00).',
         usedWhere: 'Horários oferecidos na página pública.',
       },
       {

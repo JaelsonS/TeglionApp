@@ -34,7 +34,7 @@ export function FirmClientInviteButton({
   clientId: string
   email?: string | null
   size?: 'sm' | 'default'
-  /** Abre a ficha do cliente para o escritório completar o e-mail. */
+  /** Abre a ficha do cliente para o gabinete completar o e-mail. */
   onEditClient?: () => void
   /** Chamado após convite/acesso criado com sucesso. */
   onDone?: () => void

@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { PanelLeftClose } from 'lucide-react'
 
 import {
   FIRM_NAV_FLAT,
@@ -95,21 +96,27 @@ function NavGroup({
   )
 }
 
-/** Menu escritório — sidebar com labels (desktop) ou drawer (mobile). */
+/** Menu gabinete — sidebar com labels (desktop) ou drawer (mobile). */
 export function FirmSidebar({
   onItemClick,
   variant = 'drawer',
+  onCollapse,
 }: {
   onItemClick?: () => void
   variant?: 'drawer' | 'desktop'
+  /** Só desktop: recolhe para rail de ícones. */
+  onCollapse?: () => void
 }) {
   const { t } = useTranslation('common')
   const { firm, firmLogoUrl } = useFirmBranding()
   const counts = useFirmNavBadgeCounts()
 
   const fullLogoUrl = firmLogoUrl || toPublicAssetUrl(firm?.branding?.logoUrl)
-  const subtitle = t('contabil.firm.subtitle', { defaultValue: 'Escritório' })
+  const subtitle = t('contabil.firm.subtitle', { defaultValue: 'Gabinete' })
   const fallbackName = t('contabil.firm.fallback', { defaultValue: 'Teglion' })
+  const collapseLabel = t('contabil.firm.nav.collapseSidebar', {
+    defaultValue: 'Recolher menu',
+  })
 
   const labelFor = (item: FirmNavItemConfig) => t(item.labelKey, { defaultValue: item.labelDefault })
 
@@ -150,15 +157,46 @@ export function FirmSidebar({
   return (
     <div className="cb-firm-sidebar">
       <div className="cb-firm-sidebar-header">
-        <FirmSidebarHeader
-          name={firm?.name}
-          logoUrl={fullLogoUrl}
-          subtitle={subtitle}
-          fallbackName={fallbackName}
-          size="panel"
-        />
+        <div className="cb-firm-sidebar-header-row">
+          <FirmSidebarHeader
+            name={firm?.name}
+            logoUrl={fullLogoUrl}
+            subtitle={subtitle}
+            fallbackName={fallbackName}
+            size="panel"
+          />
+          {onCollapse ? (
+            <button
+              type="button"
+              className="cb-firm-sidebar-collapse-icon"
+              aria-expanded={true}
+              aria-label={collapseLabel}
+              title={collapseLabel}
+              data-testid="firm-desktop-sidebar-collapse"
+              onClick={onCollapse}
+            >
+              <PanelLeftClose className="h-4 w-4" aria-hidden />
+            </button>
+          ) : null}
+        </div>
       </div>
       {nav}
+      {onCollapse ? (
+        <div className="cb-firm-sidebar-collapse">
+          <button
+            type="button"
+            className="cb-firm-sidebar-collapse-btn"
+            aria-expanded={true}
+            aria-label={collapseLabel}
+            title={collapseLabel}
+            data-testid="firm-desktop-sidebar-collapse-footer"
+            onClick={onCollapse}
+          >
+            <PanelLeftClose className="h-4 w-4 shrink-0" aria-hidden />
+            <span>{collapseLabel}</span>
+          </button>
+        </div>
+      ) : null}
     </div>
   )
 }

@@ -28,10 +28,6 @@ export default {
       },
     },
     extend: {
-      fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Inter', 'system-ui', 'sans-serif'],
-      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
@@ -95,6 +91,10 @@ export default {
         info: {
           DEFAULT: 'hsl(var(--cb-info))',
         },
+      },
+      fontFamily: {
+        sans: ['var(--font-sans)'],
+        display: ['var(--font-display)'],
       },
       fontSize: {
         display: ['var(--text-display)', { lineHeight: '1.2', fontWeight: '600' }],
