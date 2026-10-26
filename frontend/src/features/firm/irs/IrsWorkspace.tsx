@@ -103,18 +103,24 @@ export function IrsWorkspace() {
     [all],
   )
 
+  /** Modelos IRS ainda por activar (sem pesquisa) — decide se o bloco aparece. */
+  const remainingModels = useMemo(
+    () =>
+      (catalogQuery.data?.items ?? []).filter(
+        (t: ConsultingCatalogEntry) => isIrsService(t) && !existingKeys.has(t.catalogKey),
+      ),
+    [catalogQuery.data, existingKeys],
+  )
+
   const models = useMemo(() => {
-    let items = (catalogQuery.data?.items ?? []).filter(
-      (t: ConsultingCatalogEntry) => isIrsService(t) && !existingKeys.has(t.catalogKey),
-    )
     const mq = modelSearch.trim().toLowerCase()
-    if (mq) {
-      items = items.filter(
-        (t) => t.name.toLowerCase().includes(mq) || t.catalogKey.toLowerCase().includes(mq),
-      )
-    }
-    return items
-  }, [catalogQuery.data, existingKeys, modelSearch])
+    if (!mq) return remainingModels
+    return remainingModels.filter(
+      (t) => t.name.toLowerCase().includes(mq) || t.catalogKey.toLowerCase().includes(mq),
+    )
+  }, [remainingModels, modelSearch])
+
+  const showTemplatesSection = catalogQuery.isLoading || remainingModels.length > 0
 
   const publicUrl =
     typeof window !== 'undefined' && firmSlug
@@ -436,65 +442,67 @@ export function IrsWorkspace() {
           )}
         </div>
 
-        <section className="cb-irs-templates">
-          <div className="cb-irs-templates-hd">
-            <div className="min-w-0">
-              <h3 className="text-sm font-semibold">Modelos prontos Teglion</h3>
-              <p className="text-xs text-muted-foreground">
-                Active e personalize — Modelo 3 abre o assistente de anexos.
-              </p>
+        {showTemplatesSection ? (
+          <section className="cb-irs-templates" data-testid="irs-templates-section">
+            <div className="cb-irs-templates-hd">
+              <div className="min-w-0">
+                <h3 className="text-sm font-semibold">Modelos Teglion</h3>
+                <p className="text-xs text-muted-foreground">
+                  Active e personalize — Modelo 3 abre o assistente de anexos.
+                </p>
+              </div>
+              <div className="relative min-w-[180px] max-w-xs flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="h-9 pl-8 text-xs"
+                  value={modelSearch}
+                  onChange={(e) => setModelSearch(e.target.value)}
+                  placeholder="Pesquisar Anexo A, Modelo 3…"
+                  aria-label="Pesquisar modelos IRS"
+                />
+              </div>
             </div>
-            <div className="relative min-w-[180px] max-w-xs flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="h-9 pl-8 text-xs"
-                value={modelSearch}
-                onChange={(e) => setModelSearch(e.target.value)}
-                placeholder="Pesquisar Anexo A, Modelo 3…"
-                aria-label="Pesquisar modelos IRS"
-              />
-            </div>
-          </div>
 
-          {catalogQuery.isLoading ? (
-            <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />A carregar modelos…
-            </div>
-          ) : models.length === 0 ? (
-            <div className="flex items-center gap-2 rounded-xl border border-emerald-200/70 bg-emerald-50/40 px-4 py-3 text-sm text-emerald-950">
-              <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden />
-              Todos os modelos IRS já estão no gabinete.
-            </div>
-          ) : (
-            <ul className="space-y-2">
-              {models.map((t) => (
-                <li key={t.catalogKey} className="cb-irs-template-row">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {t.durationMinutes} min · {formatEurFromCents(t.priceCents)}
-                      {t.category ? ` · ${t.category}` : ''}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={busyKey === t.catalogKey}
-                    onClick={() => void activate(t)}
-                  >
-                    {busyKey === t.catalogKey ? (
-                      <>
-                        <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" aria-hidden />A activar…
-                      </>
-                    ) : (
-                      'Activar e editar'
-                    )}
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+            {catalogQuery.isLoading ? (
+              <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />A carregar modelos…
+              </div>
+            ) : models.length === 0 ? (
+              <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-muted/20 px-4 py-3 text-sm text-muted-foreground">
+                <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden />
+                Nenhum modelo corresponde à pesquisa.
+              </div>
+            ) : (
+              <ul className="space-y-2">
+                {models.map((t) => (
+                  <li key={t.catalogKey} className="cb-irs-template-row">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{t.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t.durationMinutes} min · {formatEurFromCents(t.priceCents)}
+                        {t.category ? ` · ${t.category}` : ''}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={busyKey === t.catalogKey}
+                      onClick={() => void activate(t)}
+                    >
+                      {busyKey === t.catalogKey ? (
+                        <>
+                          <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" aria-hidden />A activar…
+                        </>
+                      ) : (
+                        'Activar e editar'
+                      )}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : null}
 
         <p className="cb-irs-foot">
           Captação de pedidos IRS no Teglion. Não substitui software certificado nem comunicação à AT.
