@@ -40,6 +40,9 @@ export function FirmPublicSitePage({ forcedSlug }: FirmPublicSitePageProps = {})
     queryFn: () => contabilPublicApi.getPublicFirmSite(firmSlug, previewToken),
     enabled: Boolean(firmSlug),
     retry: false,
+    // Página pública: cache curto no browser — evita refetch a cada navegação no site.
+    staleTime: previewToken ? 0 : 60_000,
+    gcTime: 5 * 60_000,
   })
 
   useEffect(() => {
