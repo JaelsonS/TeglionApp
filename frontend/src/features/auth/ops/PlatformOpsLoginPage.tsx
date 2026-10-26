@@ -21,7 +21,7 @@ import { ServerWakingBanner } from '@/shared/components/feedback/ServerWakingUp'
 import { Input } from '@/shared/components/ui/input'
 import { PasswordInput } from '@/shared/components/ui/password-input'
 import { Label } from '@/shared/components/ui/label'
-import { authOpsMfaUrl } from '@/shared/constants/authPaths'
+import { authOpsMfaUrl, authOpsRecoverPasswordUrl } from '@/shared/constants/authPaths'
 import { useAuth } from '@/shared/hooks/useAuth'
 import { useApiToast } from '@/shared/hooks/useApiToast'
 import { clearMfaChallengeToken } from '@/shared/security/mfaChallengeStore'
@@ -220,6 +220,16 @@ export function PlatformOpsLoginPage() {
             >
               {isSubmitting ? 'A verificar…' : 'Continuar com MFA'}
             </button>
+
+            <div className="text-center">
+              <Link
+                to={authOpsRecoverPasswordUrl()}
+                state={{ role: 'firm', audience: 'ops' }}
+                className="text-sm font-medium text-slate-900 underline-offset-2 hover:underline"
+              >
+                Redefinir palavra-passe
+              </Link>
+            </div>
 
             <p className="text-center text-xs leading-relaxed text-slate-500">
               Ligação HTTPS · cookie de sessão HttpOnly · desafio MFA em cada login · allowlist de 1 email.
