@@ -89,6 +89,29 @@ function formatSubmittedAt(iso: string | null | undefined) {
   })
 }
 
+type NotifyDeliveryResult = {
+  email?: { sent?: boolean; skipped?: boolean; reason?: string } | null
+  sms?: { sent?: boolean; skipped?: boolean; reason?: string } | null
+  channels?: string[]
+}
+
+function summarizeNotifyDelivery(channels: NotifyChannel[], delivery: NotifyDeliveryResult | undefined) {
+  if (!channels.length) return 'sem notificação'
+  const parts: string[] = []
+  if (channels.includes('email')) {
+    if (delivery?.email?.sent) parts.push('email enviado')
+    else if (delivery?.email?.skipped) parts.push('email não enviado')
+    else parts.push(delivery?.email ? 'email enviado' : 'email não enviado')
+  }
+  if (channels.includes('sms')) {
+    if (delivery?.sms?.sent) parts.push('SMS enviado')
+    else if (delivery?.sms?.reason === 'brevo_error') parts.push('SMS falhou (Brevo)')
+    else if (delivery?.sms?.skipped) parts.push('SMS desactivado neste ambiente')
+    else parts.push(delivery?.sms ? 'SMS enviado' : 'SMS não enviado')
+  }
+  return parts.join(' · ') || 'cliente notificado'
+}
+
 export function ServiceInquiriesWorkspace({ embedded = false }: { embedded?: boolean }) {
   const qc = useQueryClient()
   const [serviceFilter, setServiceFilter] = useState('')
@@ -320,18 +343,18 @@ export function ServiceInquiriesWorkspace({ embedded = false }: { embedded?: boo
       })
       setDraftItems([])
       setNotifyDialog(null)
-      const wa = (result.delivery as { whatsappUrl?: string | null } | undefined)?.whatsappUrl
-      if (wa && channels.includes('whatsapp')) {
-        window.open(wa, '_blank', 'noopener,noreferrer')
-      }
+      const delivery = result.delivery as
+        | { email?: { sent?: boolean; skipped?: boolean } | null; sms?: { sent?: boolean; skipped?: boolean } | null }
+        | undefined
+      const notifySummary = summarizeNotifyDelivery(channels, delivery)
       toast.success(
         channels.length === 0
           ? uniqueItems.length > 1
             ? `${uniqueItems.length} pedidos guardados (sem notificar)`
             : 'Pedido guardado (sem notificar)'
           : uniqueItems.length > 1
-            ? `${uniqueItems.length} pedidos guardados e cliente notificado`
-            : 'Pedido guardado e cliente notificado',
+            ? `${uniqueItems.length} pedidos guardados — ${notifySummary}`
+            : `Pedido guardado — ${notifySummary}`,
       )
       await invalidateLists()
     } catch (err) {
@@ -350,10 +373,12 @@ export function ServiceInquiriesWorkspace({ embedded = false }: { embedded?: boo
         notifyChannels: channels,
       })
       setNotifyDialog(null)
-      if (result.delivery?.whatsappUrl && channels.includes('whatsapp')) {
-        window.open(result.delivery.whatsappUrl, '_blank', 'noopener,noreferrer')
-      }
-      toast.success(purpose === 'received' ? 'Cliente notificado da recepção' : 'Cliente notificado dos documentos')
+      const notifySummary = summarizeNotifyDelivery(channels, result.delivery)
+      toast.success(
+        purpose === 'received'
+          ? `Recepção confirmada — ${notifySummary}`
+          : `Cliente notificado — ${notifySummary}`,
+      )
       await invalidateLists()
     } catch (err) {
       toast.error('Erro ao notificar', { description: getErrorMessage(err) })
@@ -948,7 +973,7 @@ export function ServiceInquiriesWorkspace({ embedded = false }: { embedded?: boo
         open={notifyDialog === 'docs'}
         onOpenChange={(open) => !open && setNotifyDialog(null)}
         title="Como notificar o cliente?"
-        description="Os pedidos ficam guardados na solicitação. Escolha email, SMS e/ou WhatsApp para avisar o cliente — ou só guarde sem enviar."
+        description="Os pedidos ficam guardados na solicitação. Escolha email e/ou SMS para avisar o cliente — ou só guarde sem enviar."
         hasEmail={Boolean(contact?.email)}
         hasPhone={Boolean(contact?.phone)}
         confirmLabel="Guardar e notificar"
