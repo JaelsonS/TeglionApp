@@ -4549,9 +4549,10 @@
     overflow: visible !important;
   }
 
-  /* IRS — page-scroll */
+  /* IRS — page-scroll (padrão Pagamentos / SAF-T) */
+  .cb-irs-page,
   .cb-irs-layout-page,
-  .cb-irs-page {
+  .cb-irs-layout-panel {
     @apply flex w-full min-w-0 flex-col;
     flex: none;
     height: auto;
@@ -4560,11 +4561,178 @@
     overflow: visible;
   }
 
-  .cb-irs-page-scroll > div {
+  .cb-firm-workspace-page.cb-irs-layout-page > .cb-irs-layout-panel {
     flex: none !important;
     height: auto !important;
     max-height: none !important;
+    min-height: 0;
     overflow: visible !important;
+  }
+
+  .cb-irs-shell {
+    @apply border-0 bg-transparent shadow-none;
+    flex: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .cb-irs-page-scroll > div,
+  .cb-irs-body {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
+  }
+
+  .cb-irs-kpi-strip {
+    @apply mb-0 grid shrink-0 grid-cols-2 gap-1.5 px-4 pt-3 sm:grid-cols-4 sm:px-5;
+  }
+
+  .cb-irs-kpi {
+    @apply flex items-center gap-2.5 rounded-xl border border-border/70 bg-card px-3 py-2 shadow-sm;
+  }
+
+  .cb-irs-kpi-icon {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground;
+  }
+
+  .cb-irs-kpi--brand .cb-irs-kpi-icon { @apply bg-brand/10 text-brand; }
+  .cb-irs-kpi--emerald .cb-irs-kpi-icon { @apply bg-emerald-100 text-emerald-800; }
+  .cb-irs-kpi--amber .cb-irs-kpi-icon { @apply bg-amber-100 text-amber-900; }
+  .cb-irs-kpi--muted .cb-irs-kpi-icon { @apply bg-slate-100 text-slate-700; }
+  .cb-irs-kpi--emerald { @apply border-emerald-200/70 bg-emerald-50/40; }
+  .cb-irs-kpi--amber { @apply border-amber-200/70 bg-amber-50/40; }
+
+  .cb-irs-kpi-value {
+    @apply truncate text-sm font-bold tabular-nums tracking-tight text-foreground sm:text-base;
+  }
+
+  .cb-irs-kpi-label { @apply text-xs text-muted-foreground; }
+
+  .cb-irs-campaign {
+    @apply mx-4 mt-3 flex flex-col gap-3 rounded-xl border px-4 py-3 sm:mx-5 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .cb-irs-campaign--ready {
+    @apply border-emerald-200 bg-emerald-50/50;
+  }
+
+  .cb-irs-campaign--pending {
+    @apply border-amber-200 bg-amber-50/40;
+  }
+
+  .cb-irs-campaign-title {
+    @apply text-sm font-semibold text-foreground;
+  }
+
+  .cb-irs-campaign-detail {
+    @apply mt-0.5 text-xs leading-relaxed text-muted-foreground;
+  }
+
+  .cb-irs-section-lead {
+    @apply shrink-0 px-4 pb-2 pt-3 text-sm leading-snug text-muted-foreground sm:px-5;
+  }
+
+  .cb-irs-section-lead-title {
+    @apply mb-0.5 block text-xs font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-irs-section-host {
+    @apply flex w-full min-w-0 flex-col gap-3 px-3 pb-4 sm:px-4;
+    flex: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .cb-irs-toolbar {
+    @apply flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center;
+  }
+
+  .cb-irs-health-filters {
+    @apply flex flex-wrap gap-1.5;
+  }
+
+  .cb-irs-health-chip {
+    @apply inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:bg-muted/40;
+  }
+
+  .cb-irs-health-chip--active {
+    @apply border-brand/40 bg-brand/10 text-brand;
+  }
+
+  .cb-irs-health-chip--published.cb-irs-health-chip--active {
+    @apply border-emerald-300 bg-emerald-50 text-emerald-900;
+  }
+
+  .cb-irs-health-chip--internal.cb-irs-health-chip--active {
+    @apply border-amber-300 bg-amber-50 text-amber-950;
+  }
+
+  .cb-irs-health-chip--inactive.cb-irs-health-chip--active {
+    @apply border-slate-300 bg-slate-100 text-slate-800;
+  }
+
+  .cb-irs-health-chip-count {
+    @apply rounded-md bg-muted/70 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground;
+  }
+
+  .cb-irs-health-chip--active .cb-irs-health-chip-count {
+    @apply bg-white/70 text-inherit;
+  }
+
+  .cb-irs-list {
+    flex: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .cb-irs-card {
+    @apply rounded-2xl border border-border/70 bg-card p-4 shadow-sm;
+  }
+
+  .cb-irs-badge {
+    @apply inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide;
+  }
+
+  .cb-irs-badge--published {
+    @apply border-sky-200 bg-sky-50 text-sky-900;
+  }
+
+  .cb-irs-badge--draft {
+    @apply border-amber-200 bg-amber-50 text-amber-950;
+  }
+
+  .cb-irs-badge--ready {
+    @apply border-violet-200 bg-violet-50 text-violet-950;
+  }
+
+  .cb-irs-badge--inactive {
+    @apply border-border bg-muted text-muted-foreground;
+  }
+
+  .cb-irs-badge--modelo {
+    @apply border-brand/30 bg-brand/10 text-brand;
+  }
+
+  .cb-irs-year-chip {
+    @apply rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand;
+  }
+
+  .cb-irs-templates {
+    @apply rounded-2xl border border-border/70 bg-card p-4 shadow-sm;
+  }
+
+  .cb-irs-templates-hd {
+    @apply mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .cb-irs-template-row {
+    @apply flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-muted/10 px-3 py-2.5;
+  }
+
+  .cb-irs-foot {
+    @apply shrink-0 text-xs leading-relaxed text-muted-foreground;
   }
 
   .cb-services-catalog-list {
