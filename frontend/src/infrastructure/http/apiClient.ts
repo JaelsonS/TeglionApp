@@ -15,7 +15,12 @@ import {
   getApiBaseUrlCandidates,
   normalizeApiBase,
 } from './apiBase'
-import { CSRF_HEADER_NAME, clearClientCsrfCache, ensureCsrfToken } from './csrf'
+import {
+  CSRF_HEADER_NAME,
+  clearClientCsrfCache,
+  clearDocumentCsrfCookies,
+  ensureCsrfToken,
+} from './csrf'
 
 export const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -292,6 +297,7 @@ api.interceptors.response.use(
       !originalRequest._csrfRetry
     ) {
       originalRequest._csrfRetry = true
+      clearDocumentCsrfCookies()
       clearClientCsrfCache()
       const csrfToken = await ensureCsrfToken(refreshApi, { force: true })
       originalRequest.headers = originalRequest.headers ?? {}

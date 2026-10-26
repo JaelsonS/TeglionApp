@@ -160,6 +160,26 @@ function trustedSpaCanSkipCsrfCookieHeaderPair(req) {
   return isAllowedConfiguredOrigin(origin);
 }
 
+/**
+ * Staging e produção partilham TLD (`.teglion.com`): o browser pode enviar
+ * csrfToken de produção junto com o header correcto de staging → mismatch.
+ * Com sessão válida + SPA Ajax + origin allowlist, o header prova o double-submit.
+ */
+function hasAuthSessionCookie(req) {
+  return Boolean(req.cookies?.accessToken || req.cookies?.refreshToken);
+}
+
+function trustedAuthenticatedSpaCanBypassCsrfMismatch(req, csrfHeader) {
+  const header = String(csrfHeader || '').trim();
+  if (header.length < 16) return false;
+  if (!looksLikeBrowserSpaAjax(req)) return false;
+  if (!hasAuthSessionCookie(req)) return false;
+  const origin = resolveOrigin(req);
+  if (!origin) return false;
+  if (env.isDevelopment && isLocalDevOrigin(origin)) return true;
+  return isAllowedConfiguredOrigin(origin);
+}
+
 /** Auth credentialed posts that may lack Origin on some hybrid clients. */
 function allowsAuthCredentialedPostWithoutOrigin(req) {
   const pathOnly = pathWithoutQuery(req);
@@ -260,7 +280,11 @@ const csrfProtection = (req, res, next) => {
   const csrfHeader = req.get(CSRF_HEADER_NAME);
 
   if (!csrfCookie || !csrfHeader) {
-    if (trustedSpaCanSkipCsrfCookieHeaderPair(req) || allowsAuthCredentialedPostWithoutOrigin(req)) {
+    if (
+      trustedSpaCanSkipCsrfCookieHeaderPair(req) ||
+      allowsAuthCredentialedPostWithoutOrigin(req) ||
+      trustedAuthenticatedSpaCanBypassCsrfMismatch(req, csrfHeader)
+    ) {
       return next();
     }
     logger.warn(`[CSRF] Bloqueado: ${req.method} ${req.path} sem token CSRF`);
@@ -271,6 +295,10 @@ const csrfProtection = (req, res, next) => {
   }
 
   if (!safeCompare(csrfCookie, csrfHeader)) {
+    if (trustedAuthenticatedSpaCanBypassCsrfMismatch(req, csrfHeader)) {
+      logger.info(`[CSRF] Bypass mismatch (SPA autenticado): ${req.method} ${pathWithoutQuery(req)}`);
+      return next();
+    }
     logger.warn(`[CSRF] Bloqueado: token CSRF inválido em ${req.method} ${req.path}`);
     return res.status(403).json({
       error: 'CSRF validation failed',

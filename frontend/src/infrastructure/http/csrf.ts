@@ -11,6 +11,20 @@ export function clearClientCsrfCache(): void {
   csrfRefreshPromise = null
 }
 
+/**
+ * Staging partilha TLD com produção: limpar cookies csrfToken herdados de
+ * Domain=.teglion.com para o próximo /csrf gravar o token correcto.
+ */
+export function clearDocumentCsrfCookies(): void {
+  if (typeof document === 'undefined') return
+  const expire = 'Max-Age=0; Path=/; Secure; SameSite=None'
+  document.cookie = `${CSRF_COOKIE_NAME}=; ${expire}`
+  document.cookie = `${CSRF_COOKIE_NAME}=; Domain=.teglion.com; ${expire}`
+  document.cookie = `${CSRF_COOKIE_NAME}=; Domain=teglion.com; ${expire}`
+  document.cookie = `${CSRF_COOKIE_NAME}=; Domain=staging.teglion.com; ${expire}`
+  document.cookie = `${CSRF_COOKIE_NAME}=; Domain=.staging.teglion.com; ${expire}`
+}
+
 function readCookie(name: string): string | null {
   if (typeof document === 'undefined') return null
   const match = document.cookie.match(new RegExp(`(^|;\\s*)${name}=([^;]+)`))
