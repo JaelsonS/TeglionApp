@@ -10,6 +10,9 @@ import { api } from '@/infrastructure/api'
 import { authClientLoginUrl, authFirmLoginUrl, authOpsLoginUrl } from '@/shared/constants/authPaths'
 import { normalizeRecoveryProfile, readFirmSlugFromRecoveryContext } from '@/shared/utils/recoveryAuth'
 import { useApiToast } from '@/shared/hooks/useApiToast'
+import { clearClientCsrfCache } from '@/infrastructure/api'
+import { authApi } from '@/infrastructure/authApi'
+import { authStorage } from '@/shared/utils/authStorage'
 import { usePasswordStrength } from '@/shared/hooks/usePasswordStrength'
 import { PasswordStrengthIndicator } from '@/shared/components/PasswordStrengthIndicator'
 import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
@@ -173,11 +176,20 @@ export function ResetPasswordPage() {
       setStep({ type: 'success' })
       toast.success(t('resetPassword.successRedirect3s', { defaultValue: 'Palavra-passe redefinida. Vai ser redireccionado para o login em 3 segundos.' }))
 
-      // Redirecionar após 3 segundos
+      // Limpar cookie/sessão antiga (outro gabinete) sem navegar ainda.
+      try {
+        await authApi.logout()
+      } catch {
+        /* ignore */
+      } finally {
+        clearClientCsrfCache()
+        authStorage.clear()
+      }
+
       setTimeout(() => {
         navigate(backToLogin, {
           replace: true,
-          state: profile === 'client' ? { firmSlug } : undefined,
+          state: profile === 'client' ? { firmSlug } : isOpsAudience ? { audience: 'ops' } : undefined,
         })
       }, 3000)
     } catch (err: any) {

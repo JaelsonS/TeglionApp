@@ -12,6 +12,7 @@ import { RequireFirmAccess } from '@/shared/components/layout/RequireFirmAccess'
 import { RequireRole } from '@/shared/components/layout/RequireRole'
 import { RequireClientFirmAccess } from '@/shared/components/layout/RequireClientFirmAccess'
 import { PlatformOpsFirmGuard } from '@/shared/components/layout/PlatformOpsFirmGuard'
+import { PlatformOpsAccessGate } from '@/shared/components/layout/PlatformOpsAccessGate'
 import { PageRouteFallback } from '@/shared/components/layout/PageRouteFallback'
 import { getPublicSubdomainSlug } from '@/shared/utils/publicHost'
 
@@ -312,14 +313,16 @@ export function ContabilAppRouter() {
             path="ops"
             element={
               <RequireRole roles={[...FIRM_APP_ROLES]}>
-                <PlatformOpsShell />
+                <PlatformOpsAccessGate />
               </RequireRole>
             }
           >
-            <Route index element={<PlatformOpsOverviewPage />} />
-            <Route path="firms" element={<PlatformOpsFirmsPage />} />
-            <Route path="audit" element={<PlatformOpsAuditPage />} />
-            <Route path="logins" element={<PlatformOpsLoginsPage />} />
+            <Route element={<PlatformOpsShell />}>
+              <Route index element={<PlatformOpsOverviewPage />} />
+              <Route path="firms" element={<PlatformOpsFirmsPage />} />
+              <Route path="audit" element={<PlatformOpsAuditPage />} />
+              <Route path="logins" element={<PlatformOpsLoginsPage />} />
+            </Route>
           </Route>
 
           <Route
