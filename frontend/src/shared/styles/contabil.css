@@ -1892,11 +1892,11 @@
   }
 
   .cb-clients-kpi-strip {
-    @apply mb-0 grid shrink-0 grid-cols-2 gap-1.5 px-4 pt-3 sm:grid-cols-4 sm:px-5;
+    @apply mb-0 grid shrink-0 grid-cols-2 gap-1.5 px-3 pt-2 sm:grid-cols-4 sm:px-4;
   }
 
   .cb-clients-kpi {
-    @apply flex items-center gap-2.5 rounded-xl border border-border/70 bg-card px-3 py-2 shadow-sm;
+    @apply flex items-center gap-2 rounded-lg border border-border/70 bg-card px-2.5 py-1.5 shadow-sm;
   }
 
   .cb-clients-kpi--clickable {
@@ -1908,7 +1908,7 @@
   }
 
   .cb-clients-kpi-icon {
-    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground;
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted/60 text-muted-foreground;
   }
 
   .cb-clients-kpi--brand .cb-clients-kpi-icon {
@@ -1928,15 +1928,15 @@
   }
 
   .cb-clients-kpi-value {
-    @apply text-lg font-bold tabular-nums tracking-tight text-foreground;
+    @apply text-base font-bold tabular-nums tracking-tight text-foreground sm:text-lg;
   }
 
   .cb-clients-kpi-label {
-    @apply text-xs text-muted-foreground;
+    @apply text-[11px] text-muted-foreground sm:text-xs;
   }
 
   .cb-clients-section-lead {
-    @apply shrink-0 px-4 pb-2 pt-3 text-sm leading-snug text-muted-foreground sm:px-5;
+    @apply shrink-0 px-4 pb-1 pt-2 text-sm leading-snug text-muted-foreground sm:px-5;
   }
 
   .cb-clients-section-lead-title {
@@ -1944,7 +1944,7 @@
   }
 
   .cb-clients-section-host {
-    @apply flex w-full min-w-0 flex-col px-3 pb-4 sm:px-4;
+    @apply flex w-full min-w-0 flex-col gap-2 px-3 pb-3 pt-2 sm:px-4;
     flex: none;
     height: auto;
     overflow: visible;
@@ -1992,7 +1992,7 @@
   }
 
   .cb-clients-toolbar {
-    @apply flex flex-col gap-2.5 border-b border-border/50 pb-3 pt-1;
+    @apply flex flex-col gap-2 border-b border-border/50 bg-muted/15 px-2.5 py-2 sm:flex-row sm:flex-wrap sm:items-center;
   }
 
   .cb-clients-toolbar-row {
@@ -2000,15 +2000,19 @@
   }
 
   .cb-clients-search {
-    @apply relative min-w-[200px] w-full max-w-md flex-1;
+    @apply relative min-w-[180px] w-full max-w-xs flex-1;
   }
 
   .cb-clients-health-filters {
-    @apply flex flex-wrap items-center gap-1.5;
+    @apply flex flex-wrap items-center gap-1;
   }
 
   .cb-clients-health-chip {
-    @apply inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-card px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted/40;
+    @apply inline-flex items-center gap-1 rounded-md border border-border/70 bg-card px-2 py-1 text-[11px] font-medium text-muted-foreground transition hover:bg-muted/40;
+  }
+
+  .cb-clients-clear-filters {
+    @apply text-[11px] font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline;
   }
 
   .cb-clients-health-chip--active {
@@ -2044,7 +2048,7 @@
   }
 
   .cb-clients-view-toggle {
-    @apply flex shrink-0 overflow-hidden rounded-md border border-border/80;
+    @apply ml-auto flex shrink-0 overflow-hidden rounded-md border border-border/80;
   }
 
   .cb-clients-view-btn {
@@ -2070,7 +2074,7 @@
   }
 
   .cb-clients-card {
-    @apply rounded-2xl border border-border/70 bg-card p-3.5 shadow-sm sm:p-4;
+    @apply rounded-xl border border-border/70 bg-card p-3 shadow-sm;
   }
 
   .cb-clients-card--selected {
@@ -2078,15 +2082,15 @@
   }
 
   .cb-clients-card-main {
-    @apply flex items-start gap-2.5;
+    @apply flex items-start gap-2;
   }
 
   .cb-clients-card-check {
-    @apply pt-1;
+    @apply pt-0.5;
   }
 
   .cb-clients-card-open {
-    @apply flex min-w-0 flex-1 items-start gap-3 text-left transition-colors;
+    @apply flex min-w-0 flex-1 items-start gap-2.5 text-left transition-colors;
   }
 
   .cb-clients-card-menu {
@@ -2094,7 +2098,7 @@
   }
 
   .cb-clients-card-actions {
-    @apply mt-3 flex flex-wrap items-center gap-2 border-t border-border/50 pt-3;
+    @apply mt-2 flex flex-wrap items-center gap-2 border-t border-border/40 pt-2;
   }
 
   .cb-clients-table-wrap {
@@ -2260,7 +2264,7 @@
   }
 
   .cb-tasks-section-lead {
-    @apply shrink-0 px-4 pb-2 pt-3 text-sm leading-snug text-muted-foreground sm:px-5;
+    @apply shrink-0 px-3 pb-1 pt-2 text-sm leading-snug text-muted-foreground sm:px-4;
   }
 
   .cb-tasks-section-lead-title {
@@ -3454,7 +3458,7 @@
   .cb-saft-kpi-label { @apply text-xs text-muted-foreground; }
 
   .cb-saft-section-lead {
-    @apply shrink-0 px-4 pb-2 pt-3 text-sm leading-snug text-muted-foreground sm:px-5;
+    @apply shrink-0 px-3 pb-1 pt-2 text-sm leading-snug text-muted-foreground sm:px-4;
   }
 
   .cb-saft-section-lead-title {
@@ -3462,7 +3466,7 @@
   }
 
   .cb-saft-section-host {
-    @apply flex w-full min-w-0 flex-col gap-3 px-3 pb-4 sm:px-4;
+    @apply flex w-full min-w-0 flex-col gap-2 px-3 pb-3 sm:px-4;
     flex: none;
     height: auto;
     overflow: visible;
@@ -3586,15 +3590,15 @@
   }
 
   .cb-agenda-kpi-strip {
-    @apply mb-0 grid shrink-0 grid-cols-2 gap-1.5 px-4 pt-3 sm:grid-cols-4 sm:px-5;
+    @apply mb-0 grid shrink-0 grid-cols-2 gap-1.5 px-3 pt-2 sm:grid-cols-4 sm:px-4;
   }
 
   .cb-agenda-kpi {
-    @apply flex items-center gap-2.5 rounded-xl border border-border/70 bg-card px-3 py-2 shadow-sm;
+    @apply flex items-center gap-2 rounded-lg border border-border/70 bg-card px-2.5 py-1.5 shadow-sm;
   }
 
   .cb-agenda-kpi-icon {
-    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground;
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted/60 text-muted-foreground;
   }
 
   .cb-agenda-kpi--brand .cb-agenda-kpi-icon { @apply bg-brand/10 text-brand; }
@@ -3605,15 +3609,15 @@
   .cb-agenda-kpi--amber { @apply border-amber-200/70 bg-amber-50/40; }
 
   .cb-agenda-kpi-value {
-    @apply text-lg font-bold tabular-nums tracking-tight text-foreground;
+    @apply text-base font-bold tabular-nums tracking-tight text-foreground sm:text-lg;
   }
 
   .cb-agenda-kpi-label {
-    @apply text-xs text-muted-foreground;
+    @apply text-[11px] text-muted-foreground sm:text-xs;
   }
 
   .cb-agenda-section-lead {
-    @apply shrink-0 px-4 pb-2 pt-3 text-sm leading-snug text-muted-foreground sm:px-5;
+    @apply shrink-0 px-3 pb-1 pt-2 text-sm leading-snug text-muted-foreground sm:px-4;
   }
 
   .cb-agenda-section-lead-title {
@@ -3621,7 +3625,7 @@
   }
 
   .cb-agenda-section-host {
-    @apply flex w-full min-w-0 flex-col px-0 pb-4;
+    @apply flex w-full min-w-0 flex-col gap-2 px-0 pb-3;
     flex: none;
     height: auto;
     overflow: visible;
@@ -3652,7 +3656,7 @@
   }
 
   .cb-agenda-toolbar {
-    @apply mx-3 mb-2 flex flex-col gap-3 rounded-xl border border-border/60 bg-card px-3 py-3 shadow-sm sm:mx-4 sm:flex-row sm:items-center sm:justify-between sm:px-4;
+    @apply mx-3 mb-2 flex flex-col gap-2 rounded-lg border border-border/60 bg-card px-2.5 py-2 shadow-sm sm:mx-4 sm:flex-row sm:items-center sm:justify-between sm:px-3;
   }
 
   .cb-agenda-view-toggle {
@@ -3668,9 +3672,13 @@
   }
 
   .cb-agenda-body {
-    @apply mx-3 mb-2 flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm sm:mx-4 lg:flex-row;
+    @apply mx-3 mb-2 flex w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm sm:mx-4 lg:flex-row lg:items-start;
     flex: none;
     height: auto;
+  }
+
+  .cb-agenda-sidebar {
+    @apply self-start;
   }
 
   .cb-agenda-main {
@@ -4892,15 +4900,15 @@
   }
 
   .cb-services-kpi-strip {
-    @apply mb-0 grid shrink-0 grid-cols-2 gap-1.5 px-4 pt-3 sm:grid-cols-4 sm:px-5;
+    @apply mb-0 grid shrink-0 grid-cols-2 gap-1.5 px-3 pt-2 sm:grid-cols-4 sm:px-4;
   }
 
   .cb-services-kpi {
-    @apply flex items-center gap-2.5 rounded-xl border border-border/70 bg-card px-3 py-2 text-left shadow-sm;
+    @apply flex items-center gap-2 rounded-lg border border-border/70 bg-card px-2.5 py-1.5 text-left shadow-sm;
   }
 
   .cb-services-kpi-icon {
-    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground;
+    @apply flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted/60 text-muted-foreground;
   }
 
   .cb-services-kpi--brand .cb-services-kpi-icon { @apply bg-brand/10 text-brand; }
@@ -4936,7 +4944,7 @@
   }
 
   .cb-services-section-lead {
-    @apply shrink-0 px-4 pb-2 pt-3 text-sm leading-snug text-muted-foreground sm:px-5;
+    @apply shrink-0 px-3 pb-1 pt-2 text-sm leading-snug text-muted-foreground sm:px-4;
   }
 
   .cb-services-section-lead-title {
@@ -4944,7 +4952,7 @@
   }
 
   .cb-services-section-host {
-    @apply flex w-full min-w-0 flex-col gap-3 px-3 pb-4 sm:px-4;
+    @apply flex w-full min-w-0 flex-col gap-2 px-3 pb-3 pt-2 sm:px-4;
     flex: none;
     height: auto;
     overflow: visible;
@@ -5064,7 +5072,7 @@
   }
 
   .cb-irs-section-lead {
-    @apply shrink-0 px-4 pb-2 pt-3 text-sm leading-snug text-muted-foreground sm:px-5;
+    @apply shrink-0 px-3 pb-1 pt-2 text-sm leading-snug text-muted-foreground sm:px-4;
   }
 
   .cb-irs-section-lead-title {
@@ -5072,7 +5080,7 @@
   }
 
   .cb-irs-section-host {
-    @apply flex w-full min-w-0 flex-col gap-3 px-3 pb-4 sm:px-4;
+    @apply flex w-full min-w-0 flex-col gap-2 px-3 pb-3 sm:px-4;
     flex: none;
     height: auto;
     overflow: visible;
@@ -6672,10 +6680,10 @@
   .cb-news-layout-page .cb-firm-split-desktop {
     flex: none !important;
     height: auto !important;
-    min-height: 24rem;
+    min-height: 0;
     max-height: none !important;
     overflow: visible !important;
-    align-items: stretch;
+    align-items: flex-start;
   }
 
   .cb-alerts-layout-page .cb-firm-split-list,
