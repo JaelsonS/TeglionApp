@@ -1,217 +1,361 @@
-import { useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { FileArchive, Loader2, Trash2, Upload } from 'lucide-react'
-import { toast } from 'sonner'
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  FileArchive,
+  Loader2,
+  Search,
+  Upload,
+  Wallet,
+} from 'lucide-react'
 
 import { FirmModuleShell } from '@/shared/design-system/FirmModuleShell'
 import { Button } from '@/shared/components/ui/button'
+import { Input } from '@/shared/components/ui/input'
 import { EmptyState } from '@/shared/design-system'
 import { contabilSaftApi } from '@/infrastructure/api'
 import type { SaftImport } from '@/infrastructure/api/contabil/saft'
-import { getErrorMessage } from '@/shared/utils/errors'
 import { cn } from '@/shared/lib/utils'
+import {
+  formatBytes,
+  formatEuroFromCents,
+  formatPeriod,
+  matchesSaftQuery,
+  salesCreditCents,
+  summarizeImports,
+  validationBadgeClass,
+  validationLabel,
+} from '@/features/firm/saft/saftFormat'
+import { SaftUploadDialog } from '@/features/firm/saft/SaftUploadDialog'
+import { SaftDetailDialog } from '@/features/firm/saft/SaftDetailDialog'
 
 const LIST_KEY = ['saft-imports'] as const
 
-function formatEuro(cents: number | null | undefined) {
-  if (cents == null) return '—'
-  return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(cents / 100)
-}
-
-function formatBytes(n: number) {
-  if (n < 1024) return `${n} B`
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`
-  return `${(n / (1024 * 1024)).toFixed(1)} MB`
-}
+type HealthFilter = 'all' | 'ok' | 'warning' | 'invalid'
 
 export function SaftWorkspace() {
   const qc = useQueryClient()
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [uploading, setUploading] = useState(false)
+  const [year, setYear] = useState(() => new Date().getFullYear())
+  const [q, setQ] = useState('')
+  const [qDebounced, setQDebounced] = useState('')
+  const [health, setHealth] = useState<HealthFilter>('all')
+  const [uploadOpen, setUploadOpen] = useState(false)
+  const [detail, setDetail] = useState<SaftImport | null>(null)
+
+  useEffect(() => {
+    const t = setTimeout(() => setQDebounced(q.trim()), 300)
+    return () => clearTimeout(t)
+  }, [q])
 
   const listQuery = useQuery({
     queryKey: LIST_KEY,
-    queryFn: () => contabilSaftApi.list({ limit: 50 }),
+    queryFn: () => contabilSaftApi.list({ limit: 200 }),
   })
 
-  async function onPick(file: File | null) {
-    if (!file) return
-    setUploading(true)
-    try {
-      const res = await contabilSaftApi.importFile(file)
-      if (res.duplicate) {
-        toast.message('Este ficheiro já tinha sido importado', {
-          description: res.item.companyName || res.item.originalFilename,
-        })
-      } else {
-        toast.success('SAF-T lido', {
-          description: `${res.item.companyName || 'Empresa'} · ${res.item.fiscalYear || '—'}`,
-        })
-      }
-      await qc.invalidateQueries({ queryKey: LIST_KEY })
-    } catch (err) {
-      toast.error('Não foi possível ler o SAF-T', { description: getErrorMessage(err) })
-    } finally {
-      setUploading(false)
-      if (inputRef.current) inputRef.current.value = ''
-    }
-  }
+  const metaQuery = useQuery({
+    queryKey: ['saft-meta'],
+    queryFn: () => contabilSaftApi.meta(),
+    staleTime: 60_000,
+  })
 
-  async function remove(item: SaftImport) {
-    try {
-      await contabilSaftApi.remove(item.id)
-      toast.success('Importação removida')
-      await qc.invalidateQueries({ queryKey: LIST_KEY })
-    } catch (err) {
-      toast.error('Não foi possível remover', { description: getErrorMessage(err) })
-    }
-  }
-
-  const items = listQuery.data?.items || []
+  const allItems = listQuery.data?.items || []
   const disclaimer =
     listQuery.data?.disclaimer ||
+    metaQuery.data?.disclaimer ||
     'Leitura interna. Não envia ficheiros à AT nem substitui software certificado.'
+  const maxBytes = metaQuery.data?.maxBytes || 25 * 1024 * 1024
+
+  const yearItems = useMemo(() => {
+    return allItems.filter((item) => {
+      if (item.fiscalYear == null) return true
+      return item.fiscalYear === year
+    })
+  }, [allItems, year])
+
+  const filtered = useMemo(() => {
+    return yearItems.filter((item) => {
+      if (!matchesSaftQuery(item, qDebounced)) return false
+      if (health !== 'all' && item.validationStatus !== health) return false
+      return true
+    })
+  }, [yearItems, qDebounced, health])
+
+  const yearSummary = useMemo(() => summarizeImports(yearItems), [yearItems])
+  const healthCounts = useMemo(() => {
+    const s = summarizeImports(yearItems.filter((i) => matchesSaftQuery(i, qDebounced)))
+    return s
+  }, [yearItems, qDebounced])
+
+  const kpis = useMemo(() => {
+    return [
+      {
+        id: 'total',
+        label: 'Importações',
+        value: String(yearSummary.total),
+        tone: 'brand' as const,
+        icon: FileArchive,
+      },
+      {
+        id: 'ok',
+        label: 'OK',
+        value: String(yearSummary.ok),
+        tone: 'emerald' as const,
+        icon: CheckCircle2,
+      },
+      {
+        id: 'warning',
+        label: 'Com avisos',
+        value: String(yearSummary.warning),
+        tone: 'amber' as const,
+        icon: AlertTriangle,
+      },
+      {
+        id: 'sales',
+        label: 'Vendas (crédito)',
+        value: formatEuroFromCents(yearSummary.salesCents),
+        tone: 'muted' as const,
+        icon: Wallet,
+      },
+    ]
+  }, [yearSummary])
+
+  function refresh() {
+    return qc.invalidateQueries({ queryKey: LIST_KEY })
+  }
+
+  const yearsWithData = useMemo(() => {
+    const set = new Set<number>()
+    for (const item of allItems) {
+      if (item.fiscalYear != null) set.add(item.fiscalYear)
+    }
+    return set
+  }, [allItems])
 
   return (
     <FirmModuleShell
+      className="cb-saft-shell cb-saft-page-scroll"
       title="SAF-T (consulta)"
-      subtitle="Importação e leitura interna do ficheiro — veja NIF, período e totais. O Teglion não emite SAF-T nem comunica à AT."
-      bodyClassName="min-h-0 flex-1 overflow-auto px-4 pb-6 sm:px-5"
+      subtitle="Importação e leitura interna — NIF, período e totais. O Teglion não emite SAF-T nem comunica à AT."
       headerRight={
-        <>
-          <input
-            ref={inputRef}
-            type="file"
-            accept=".xml,.zip,application/xml,text/xml,application/zip"
-            className="hidden"
-            onChange={(e) => onPick(e.target.files?.[0] || null)}
-          />
-          <Button type="button" size="sm" disabled={uploading} onClick={() => inputRef.current?.click()}>
-            {uploading ? (
-              <Loader2 className="mr-1 h-4 w-4 animate-spin" aria-hidden />
-            ) : (
-              <Upload className="mr-1 h-4 w-4" aria-hidden />
-            )}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={() => setYear((y) => y - 1)}>
+            <ChevronLeft className="h-4 w-4" aria-hidden />
+          </Button>
+          <span
+            className="min-w-[4rem] text-center text-sm font-semibold tabular-nums"
+            title={yearsWithData.has(year) ? undefined : 'Sem importações neste ano'}
+          >
+            {year}
+          </span>
+          <Button type="button" variant="outline" size="sm" onClick={() => setYear((y) => y + 1)}>
+            <ChevronRight className="h-4 w-4" aria-hidden />
+          </Button>
+          <Button type="button" size="sm" onClick={() => setUploadOpen(true)}>
+            <Upload className="mr-1 h-4 w-4" aria-hidden />
             Carregar SAF-T
           </Button>
-        </>
+        </div>
       }
+      bodyClassName="gap-0 cb-saft-body"
     >
-      <div className="mb-4 shrink-0 rounded-xl border border-amber-200/80 bg-amber-50/70 px-4 py-3 text-sm text-amber-950">
-        <p className="font-medium">Só consulta e importação — não é emissão oficial</p>
-        <p className="mt-1 text-amber-950/90">{disclaimer}</p>
-        <p className="mt-2 text-xs text-amber-900/80">
-          Fluxo: exporte o SAF-T PT no software certificado do cliente → carregue aqui → consulte totais.
-          O Teglion guarda o resumo (NIF, período, totais) e um hash — não arquiva o XML completo nesta
-          versão.
-        </p>
+      {kpis.length > 0 ? (
+        <div className="cb-saft-kpi-strip" data-testid="saft-kpi-strip">
+          {kpis.map((item) => {
+            const Icon = item.icon
+            return (
+              <div key={item.id} className={cn('cb-saft-kpi', `cb-saft-kpi--${item.tone}`)}>
+                <span className="cb-saft-kpi-icon" aria-hidden>
+                  <Icon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="cb-saft-kpi-value">{item.value}</p>
+                  <p className="cb-saft-kpi-label">{item.label}</p>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ) : null}
+
+      <p className="cb-saft-section-lead">
+        <span className="cb-saft-section-lead-title">Importações SAF-T PT</span>
+        Guarda o resumo (NIF, período, totais) e um hash — não arquiva o XML completo. Clique num
+        registo para ver detalhe ou apagar.
+      </p>
+
+      <div className="cb-saft-section-host">
+        <div className="cb-saft-toolbar">
+          <div className="relative min-w-[200px] max-w-sm flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="pl-9"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Procurar empresa, NIF ou ficheiro…"
+              aria-label="Procurar importações SAF-T"
+            />
+          </div>
+          <div className="cb-saft-health-filters" role="group" aria-label="Filtrar por validação">
+            {(
+              [
+                { id: 'all', label: 'Todos', count: healthCounts.total },
+                { id: 'ok', label: 'OK', count: healthCounts.ok },
+                { id: 'warning', label: 'Avisos', count: healthCounts.warning },
+                { id: 'invalid', label: 'Inválido', count: healthCounts.invalid },
+              ] as const
+            ).map((chip) => (
+              <button
+                key={chip.id}
+                type="button"
+                className={cn(
+                  'cb-saft-health-chip',
+                  `cb-saft-health-chip--${chip.id}`,
+                  health === chip.id && 'cb-saft-health-chip--active',
+                )}
+                onClick={() => setHealth(chip.id)}
+              >
+                {chip.label}
+                <span className="cb-saft-health-chip-count">{chip.count}</span>
+              </button>
+            ))}
+          </div>
+          <div className="cb-saft-legend" aria-hidden>
+            <Legend swatch="cb-saft-badge--ok" label="OK" />
+            <Legend swatch="cb-saft-badge--warning" label="Avisos" />
+            <Legend swatch="cb-saft-badge--invalid" label="Inválido" />
+          </div>
+        </div>
+
+        <div className="cb-saft-list">
+          {listQuery.isLoading ? (
+            <div className="flex items-center gap-2 py-12 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />A carregar…
+            </div>
+          ) : listQuery.isError ? (
+            <p className="py-8 text-sm text-destructive">Não foi possível listar importações.</p>
+          ) : !allItems.length ? (
+            <EmptyState
+              icon={FileArchive}
+              title="Ainda sem SAF-T lidos"
+              description="Exporte o SAF-T PT do software do cliente (.xml ou .zip) e carregue aqui para ver totais de vendas e estrutura."
+              action={
+                <Button type="button" onClick={() => setUploadOpen(true)}>
+                  Carregar ficheiro
+                </Button>
+              }
+            />
+          ) : !filtered.length ? (
+            <EmptyState
+              icon={Search}
+              title="Nenhum resultado neste filtro"
+              description={
+                yearItems.length
+                  ? 'Ajuste a pesquisa ou o filtro de validação.'
+                  : `Sem importações com ano fiscal ${year}. Mude o ano ou carregue um ficheiro.`
+              }
+              action={
+                <Button type="button" variant="outline" onClick={() => setUploadOpen(true)}>
+                  Carregar SAF-T
+                </Button>
+              }
+            />
+          ) : (
+            <div className="space-y-3 pb-2">
+              {filtered.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="cb-saft-card cb-saft-card-btn"
+                  onClick={() => setDetail(item)}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 text-left">
+                      <h2 className="text-base font-semibold tracking-tight">
+                        {item.companyName || item.originalFilename}
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        NIF {item.taxRegistrationNumber || '—'}
+                        {item.fiscalYear != null ? ` · ${item.fiscalYear}` : ''}
+                        {` · ${formatPeriod(item)}`}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {item.originalFilename} · {formatBytes(item.fileBytes)} ·{' '}
+                        {item.sourceKind.toUpperCase()}
+                        {item.productId ? ` · ${item.productId}` : ''}
+                      </p>
+                    </div>
+                    <span className={validationBadgeClass(item.validationStatus)}>
+                      {validationLabel(item.validationStatus)}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                    <MiniStat
+                      label="Vendas (crédito)"
+                      value={formatEuroFromCents(salesCreditCents(item))}
+                    />
+                    <MiniStat
+                      label="Facturas vendas"
+                      value={String(item.summary?.salesInvoices?.invoiceCount ?? '—')}
+                    />
+                    <MiniStat label="Clientes" value={String(item.summary?.customers ?? '—')} />
+                    <MiniStat label="Produtos" value={String(item.summary?.products ?? '—')} />
+                  </div>
+
+                  {item.validationNotes?.length ? (
+                    <p className="mt-2 line-clamp-2 text-left text-xs text-amber-900">
+                      {item.validationNotes[0]}
+                      {item.validationNotes.length > 1
+                        ? ` · +${item.validationNotes.length - 1}`
+                        : ''}
+                    </p>
+                  ) : null}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <p className="cb-saft-foot">{disclaimer}</p>
       </div>
 
-      {listQuery.isLoading ? (
-        <div className="flex items-center gap-2 py-12 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />A carregar…
-        </div>
-      ) : listQuery.isError ? (
-        <p className="py-8 text-sm text-destructive">Não foi possível listar importações.</p>
-      ) : !items.length ? (
-        <EmptyState
-          icon={FileArchive}
-          title="Ainda sem SAF-T lidos"
-          description="Exporte o SAF-T PT do software do cliente (.xml ou .zip) e carregue aqui para ver totais de vendas e estrutura."
-          action={
-            <Button type="button" onClick={() => inputRef.current?.click()} disabled={uploading}>
-              Carregar ficheiro
-            </Button>
-          }
-        />
-      ) : (
-        <ul className="space-y-3">
-          {items.map((item) => (
-            <li
-              key={item.id}
-              className="rounded-2xl border border-border/70 bg-background/60 p-4"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-base font-semibold">
-                    {item.companyName || item.originalFilename}
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    NIF {item.taxRegistrationNumber || '—'}
-                    {item.fiscalYear ? ` · ${item.fiscalYear}` : ''}
-                    {item.startDate && item.endDate
-                      ? ` · ${item.startDate} → ${item.endDate}`
-                      : ''}
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {item.originalFilename} · {formatBytes(item.fileBytes)} · {item.sourceKind.toUpperCase()}
-                    {item.auditFileVersion ? ` · v${item.auditFileVersion}` : ''}
-                    {item.productId ? ` · ${item.productId}` : ''}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      'rounded-full border px-2 py-0.5 text-xs font-medium',
-                      item.validationStatus === 'ok' &&
-                        'border-emerald-200 bg-emerald-50 text-emerald-900',
-                      item.validationStatus === 'warning' &&
-                        'border-amber-200 bg-amber-50 text-amber-950',
-                      item.validationStatus === 'invalid' &&
-                        'border-red-200 bg-red-50 text-red-900',
-                    )}
-                  >
-                    {item.validationStatus === 'ok'
-                      ? 'OK'
-                      : item.validationStatus === 'warning'
-                        ? 'Avisos'
-                        : 'Inválido'}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    aria-label="Remover"
-                    onClick={() => remove(item)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+      <SaftUploadDialog
+        open={uploadOpen}
+        onOpenChange={setUploadOpen}
+        disclaimer={disclaimer}
+        maxBytes={maxBytes}
+        onImported={() => void refresh()}
+      />
 
-              <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                <Stat
-                  label="Vendas (crédito)"
-                  value={formatEuro(item.summary?.salesInvoices?.totalCreditCents)}
-                />
-                <Stat
-                  label="Facturas vendas"
-                  value={String(item.summary?.salesInvoices?.invoiceCount ?? '—')}
-                />
-                <Stat label="Clientes" value={String(item.summary?.customers ?? '—')} />
-                <Stat label="Produtos" value={String(item.summary?.products ?? '—')} />
-              </div>
-
-              {item.validationNotes?.length ? (
-                <ul className="mt-3 list-disc space-y-0.5 pl-5 text-xs text-amber-900">
-                  {item.validationNotes.map((n) => (
-                    <li key={n}>{n}</li>
-                  ))}
-                </ul>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      )}
+      <SaftDetailDialog
+        open={Boolean(detail)}
+        onOpenChange={(o) => {
+          if (!o) setDetail(null)
+        }}
+        item={detail}
+        onDeleted={() => void refresh()}
+      />
     </FirmModuleShell>
   )
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function MiniStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-border/60 px-3 py-2">
-      <p className="text-xs text-muted-foreground">{label}</p>
+    <div className="rounded-lg border border-border/60 bg-background/50 px-3 py-2 text-left">
+      <p className="text-[11px] text-muted-foreground">{label}</p>
       <p className="font-medium tabular-nums">{value}</p>
     </div>
+  )
+}
+
+function Legend({ swatch, label }: { swatch: string; label: string }) {
+  return (
+    <span className="cb-saft-legend-item">
+      <span className={cn('cb-saft-legend-swatch', swatch)} aria-hidden />
+      {label}
+    </span>
   )
 }

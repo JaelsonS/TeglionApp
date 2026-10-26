@@ -3181,6 +3181,161 @@
   .cb-rent-health--open { @apply bg-sky-500 text-white; }
   .cb-rent-health--empty { @apply bg-slate-200 text-slate-700; }
 
+  /* SAF-T consulta — page-scroll (padrão Pagamentos / Imóveis) */
+  .cb-saft-page,
+  .cb-saft-layout-page,
+  .cb-saft-layout-panel {
+    @apply flex w-full min-w-0 flex-col;
+    flex: none;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .cb-firm-workspace-page.cb-saft-layout-page > .cb-saft-layout-panel {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
+  }
+
+  .cb-saft-shell {
+    @apply border-0 bg-transparent shadow-none;
+    flex: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .cb-saft-page-scroll > div,
+  .cb-saft-body {
+    flex: none !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0;
+    overflow: visible !important;
+  }
+
+  .cb-saft-kpi-strip {
+    @apply mb-0 grid shrink-0 grid-cols-2 gap-1.5 px-4 pt-3 sm:grid-cols-4 sm:px-5;
+  }
+
+  .cb-saft-kpi {
+    @apply flex items-center gap-2.5 rounded-xl border border-border/70 bg-card px-3 py-2 shadow-sm;
+  }
+
+  .cb-saft-kpi-icon {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-muted-foreground;
+  }
+
+  .cb-saft-kpi--brand .cb-saft-kpi-icon { @apply bg-brand/10 text-brand; }
+  .cb-saft-kpi--emerald .cb-saft-kpi-icon { @apply bg-emerald-100 text-emerald-800; }
+  .cb-saft-kpi--amber .cb-saft-kpi-icon { @apply bg-amber-100 text-amber-900; }
+  .cb-saft-kpi--rose .cb-saft-kpi-icon { @apply bg-rose-100 text-rose-800; }
+  .cb-saft-kpi--muted .cb-saft-kpi-icon { @apply bg-slate-100 text-slate-700; }
+  .cb-saft-kpi--emerald { @apply border-emerald-200/70 bg-emerald-50/40; }
+  .cb-saft-kpi--amber { @apply border-amber-200/70 bg-amber-50/40; }
+  .cb-saft-kpi--rose { @apply border-rose-200/80 bg-rose-50/50; }
+
+  .cb-saft-kpi-value {
+    @apply text-sm font-bold tabular-nums tracking-tight text-foreground sm:text-base;
+  }
+
+  .cb-saft-kpi-label { @apply text-xs text-muted-foreground; }
+
+  .cb-saft-section-lead {
+    @apply shrink-0 px-4 pb-2 pt-3 text-sm leading-snug text-muted-foreground sm:px-5;
+  }
+
+  .cb-saft-section-lead-title {
+    @apply mb-0.5 block text-xs font-semibold uppercase tracking-wide text-brand;
+  }
+
+  .cb-saft-section-host {
+    @apply flex w-full min-w-0 flex-col gap-3 px-3 pb-4 sm:px-4;
+    flex: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .cb-saft-toolbar {
+    @apply flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center;
+  }
+
+  .cb-saft-health-filters {
+    @apply flex flex-wrap gap-1.5;
+  }
+
+  .cb-saft-health-chip {
+    @apply inline-flex items-center gap-1.5 rounded-lg border border-border/70 bg-card px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:bg-muted/40;
+  }
+
+  .cb-saft-health-chip--active {
+    @apply border-brand/40 bg-brand/10 text-brand;
+  }
+
+  .cb-saft-health-chip--ok.cb-saft-health-chip--active {
+    @apply border-emerald-300 bg-emerald-50 text-emerald-900;
+  }
+
+  .cb-saft-health-chip--warning.cb-saft-health-chip--active {
+    @apply border-amber-300 bg-amber-50 text-amber-950;
+  }
+
+  .cb-saft-health-chip--invalid.cb-saft-health-chip--active {
+    @apply border-rose-300 bg-rose-50 text-rose-900;
+  }
+
+  .cb-saft-health-chip-count {
+    @apply rounded-md bg-muted/70 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground;
+  }
+
+  .cb-saft-health-chip--active .cb-saft-health-chip-count {
+    @apply bg-white/70 text-inherit;
+  }
+
+  .cb-saft-legend {
+    @apply flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground;
+  }
+
+  .cb-saft-legend-item { @apply inline-flex items-center gap-1.5; }
+  .cb-saft-legend-swatch { @apply h-2.5 w-2.5 rounded-sm border; }
+
+  .cb-saft-list {
+    flex: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .cb-saft-card {
+    @apply rounded-2xl border border-border/70 bg-card p-4 shadow-sm;
+  }
+
+  .cb-saft-card-btn {
+    @apply block w-full text-left transition hover:border-brand/35 hover:bg-brand/[0.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/40;
+  }
+
+  .cb-saft-badge {
+    @apply inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-xs font-medium;
+  }
+
+  .cb-saft-badge--ok {
+    @apply border-emerald-200 bg-emerald-50 text-emerald-900;
+  }
+
+  .cb-saft-badge--warning {
+    @apply border-amber-200 bg-amber-50 text-amber-950;
+  }
+
+  .cb-saft-badge--invalid {
+    @apply border-red-200 bg-red-50 text-red-900;
+  }
+
+  .cb-saft-foot {
+    @apply shrink-0 text-xs leading-relaxed text-muted-foreground;
+  }
+
   /* Agenda consultorias (IMG-17) */
   .cb-agenda-layout-page,
   .cb-agenda-layout-page .cb-firm-operational-panel {
