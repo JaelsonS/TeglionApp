@@ -226,6 +226,10 @@ app.use((req, res, next) => {
 app.use(logSanitizationMiddleware);
 app.use(responseSanitizeMiddleware);
 
+// Denylist IP (Control Center / onda 3) — antes do rate limit; fail-open; health isento.
+const { ipDenylistMiddleware } = require('./middlewares/ip-denylist.middleware');
+app.use(ipDenylistMiddleware);
+
 // ============================================
 // 3) RATE LIMITING (protege contra abuso)
 // ============================================

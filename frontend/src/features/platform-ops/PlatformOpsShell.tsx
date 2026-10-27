@@ -1,14 +1,26 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { Activity, Building2, Bug, KeyRound, LayoutDashboard, LogOut, Shield } from 'lucide-react'
+import {
+  Activity,
+  Building2,
+  Bug,
+  KeyRound,
+  LayoutDashboard,
+  LogOut,
+  Shield,
+  Ban,
+  ShieldAlert,
+} from 'lucide-react'
 
 import { cn } from '@/shared/lib/utils'
 import { useAuth } from '@/shared/hooks/useAuth'
 
 const NAV = [
   { to: '/app/ops', end: true, label: 'Overview', icon: LayoutDashboard },
+  { to: '/app/ops/security-lab', end: false, label: 'Lab defesa', icon: ShieldAlert },
   { to: '/app/ops/firms', end: false, label: 'Gabinetes', icon: Building2 },
   { to: '/app/ops/audit', end: false, label: 'Audit log', icon: Activity },
   { to: '/app/ops/logins', end: false, label: 'Logins / lockout', icon: KeyRound },
+  { to: '/app/ops/denylist', end: false, label: 'Denylist IP', icon: Ban },
   { to: '/app/ops/sentry', end: false, label: 'Sentry', icon: Bug },
 ] as const
 
