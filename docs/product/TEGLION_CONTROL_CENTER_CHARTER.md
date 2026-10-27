@@ -101,8 +101,23 @@ Migrations: `ip_geo_cache`, `ip_denylist` (aplicar em staging antes do UAT denyl
 
 Ver `docs/product/CONTROL_CENTER_REDTEAM_STAGING.md`.
 
+## Soft launch comercial (29/10) e escala
+
+Ver `docs/operations/GTM_READINESS_29OCT.md`.
+
+| Fase | Volume | Regra |
+|------|--------|--------|
+| Semana 1 | ≤50 firms | Soft launch; Sentry; Center gated em prod |
+| Semana 2–4 | 50–150 | 2.ª instância API **só** com Redis partilhado OK |
+| Mês 2+ | 150+ | pooling / edge denylist (3b) conforme carga |
+
+**Regra de ouro:** não fazer scale-out horizontal sem Redis — rate limits e lockouts partem-se entre instâncias.
+
+Load drill staging: `backend/scripts/load-drill-staging.js` (resultado 27 Out: `PASS_WITH_COLD_START`).
+
 ## Fora de âmbito (onda 3)
 
-- Gate `pending_review`, impersonation, NPS/campanhas
+- Gate `pending_review`, impersonation, NPS/campanhas massivas no dia D
 - Sync automático Cloudflare (3b)
 - Hard-delete fiscal
+- Merge experimental para `main` no dia da divulgação

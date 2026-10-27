@@ -642,10 +642,19 @@ async function dispatchClientNotify({
           : `${firm}: precisamos de mais info (${svc}). ${accessUrl}`;
     }
     if (smsText) {
-      delivery.sms = await contabilNotifications.notifyClientSms({
-        phone: contact.phone,
-        message: smsText,
-      });
+      try {
+        delivery.sms = await contabilNotifications.notifyClientSms({
+          phone: contact.phone,
+          message: smsText,
+        });
+      } catch (err) {
+        // Soft-fail: email/WhatsApp não devem cair se a Brevo SMS falhar (TEGLION-APP-V).
+        delivery.sms = {
+          skipped: true,
+          reason: 'sms_exception',
+          message: String(err?.message || err).slice(0, 160),
+        };
+      }
     }
   }
 
@@ -1253,10 +1262,18 @@ async function rescheduleConsultation({ firmId, inquiryId, actor, payload }) {
   if (channels.includes('sms') && contact.phone) {
     const firmLabel = firm?.name || 'o escritório';
     const smsText = `${firmLabel} reagendou: ${when || 'novo horário'}. Teglion`;
-    delivery.sms = await contabilNotifications.notifyClientSms({
-      phone: contact.phone,
-      message: smsText,
-    });
+    try {
+      delivery.sms = await contabilNotifications.notifyClientSms({
+        phone: contact.phone,
+        message: smsText,
+      });
+    } catch (err) {
+      delivery.sms = {
+        skipped: true,
+        reason: 'sms_exception',
+        message: String(err?.message || err).slice(0, 160),
+      };
+    }
   }
 
   await auditRepository.writeAuditLog({
