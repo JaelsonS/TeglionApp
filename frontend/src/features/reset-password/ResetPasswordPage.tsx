@@ -7,9 +7,12 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { api } from '@/infrastructure/api'
-import { authClientLoginUrl, authFirmLoginUrl } from '@/shared/constants/authPaths'
+import { authClientLoginUrl, authFirmLoginUrl, authOpsLoginUrl } from '@/shared/constants/authPaths'
 import { normalizeRecoveryProfile, readFirmSlugFromRecoveryContext } from '@/shared/utils/recoveryAuth'
 import { useApiToast } from '@/shared/hooks/useApiToast'
+import { clearClientCsrfCache } from '@/infrastructure/api'
+import { authApi } from '@/infrastructure/authApi'
+import { authStorage } from '@/shared/utils/authStorage'
 import { usePasswordStrength } from '@/shared/hooks/usePasswordStrength'
 import { PasswordStrengthIndicator } from '@/shared/components/PasswordStrengthIndicator'
 import { TurnstileField, type TurnstileFieldHandle } from '@/shared/components/security/TurnstileField'
@@ -59,17 +62,26 @@ export function ResetPasswordPage() {
   const token = searchParams.get('token') || ''
   const roleFromState = String((location.state as { role?: string } | null)?.role || '')
   const profile = normalizeRecoveryProfile(roleFromState || searchParams.get('role'))
+  const audienceFromState = String((location.state as { audience?: string } | null)?.audience || '')
+  const isOpsAudience = searchParams.get('audience') === 'ops' || audienceFromState === 'ops'
   const firmSlug = readFirmSlugFromRecoveryContext(
     searchParams,
     (location.state as { firmSlug?: string } | null) ?? null,
   )
-  const backToLogin = profile === 'client' ? authClientLoginUrl(firmSlug) : authFirmLoginUrl()
+  const backToLogin =
+    profile === 'client'
+      ? authClientLoginUrl(firmSlug)
+      : isOpsAudience
+        ? authOpsLoginUrl()
+        : authFirmLoginUrl()
   const recoverUrl =
     profile === 'client'
       ? firmSlug
         ? `/recover-password?role=client&firmSlug=${encodeURIComponent(firmSlug)}`
         : '/recover-password?role=client'
-      : '/recover-password?role=firm'
+      : isOpsAudience
+        ? '/recover-password?role=firm&audience=ops'
+        : '/recover-password?role=firm'
   const [step, setStep] = useState<ResetPasswordStep>({ type: 'initial' })
   const [isValidatingToken, setIsValidatingToken] = useState(true)
   const [turnstileToken, setTurnstileToken] = useState('')
@@ -164,11 +176,20 @@ export function ResetPasswordPage() {
       setStep({ type: 'success' })
       toast.success(t('resetPassword.successRedirect3s', { defaultValue: 'Palavra-passe redefinida. Vai ser redireccionado para o login em 3 segundos.' }))
 
-      // Redirecionar após 3 segundos
+      // Limpar cookie/sessão antiga (outro gabinete) sem navegar ainda.
+      try {
+        await authApi.logout()
+      } catch {
+        /* ignore */
+      } finally {
+        clearClientCsrfCache()
+        authStorage.clear()
+      }
+
       setTimeout(() => {
         navigate(backToLogin, {
           replace: true,
-          state: profile === 'client' ? { firmSlug } : undefined,
+          state: profile === 'client' ? { firmSlug } : isOpsAudience ? { audience: 'ops' } : undefined,
         })
       }, 3000)
     } catch (err: any) {

@@ -11,12 +11,17 @@ import { ProtectedRoute } from '@/shared/components/layout/ProtectedRoute'
 import { RequireFirmAccess } from '@/shared/components/layout/RequireFirmAccess'
 import { RequireRole } from '@/shared/components/layout/RequireRole'
 import { RequireClientFirmAccess } from '@/shared/components/layout/RequireClientFirmAccess'
+import { PlatformOpsFirmGuard } from '@/shared/components/layout/PlatformOpsFirmGuard'
+import { PlatformOpsAccessGate } from '@/shared/components/layout/PlatformOpsAccessGate'
 import { PageRouteFallback } from '@/shared/components/layout/PageRouteFallback'
 import { getPublicSubdomainSlug } from '@/shared/utils/publicHost'
 
 const FirmLoginPage = lazy(() => import('@/features/auth/firm/FirmLoginPage').then((m) => ({ default: m.FirmLoginPage })))
 const FirmMfaChallengePage = lazy(() =>
   import('@/features/auth/firm/FirmMfaChallengePage').then((m) => ({ default: m.FirmMfaChallengePage })),
+)
+const PlatformOpsLoginPage = lazy(() =>
+  import('@/features/auth/ops/PlatformOpsLoginPage').then((m) => ({ default: m.PlatformOpsLoginPage })),
 )
 const ClientLoginPage = lazy(() => import('@/features/auth/client/ClientLoginPage').then((m) => ({ default: m.ClientLoginPage })))
 const FirmRegisterPage = lazy(() =>
@@ -76,11 +81,19 @@ const PlatformOpsOverviewPage = lazy(() =>
 const PlatformOpsFirmsPage = lazy(() =>
   import('@/features/platform-ops/PlatformOpsFirmsPage').then((m) => ({ default: m.PlatformOpsFirmsPage })),
 )
+const PlatformOpsFirmDetailPage = lazy(() =>
+  import('@/features/platform-ops/PlatformOpsFirmDetailPage').then((m) => ({
+    default: m.PlatformOpsFirmDetailPage,
+  })),
+)
 const PlatformOpsAuditPage = lazy(() =>
   import('@/features/platform-ops/PlatformOpsAuditPage').then((m) => ({ default: m.PlatformOpsAuditPage })),
 )
 const PlatformOpsLoginsPage = lazy(() =>
   import('@/features/platform-ops/PlatformOpsLoginsPage').then((m) => ({ default: m.PlatformOpsLoginsPage })),
+)
+const PlatformOpsSentryPage = lazy(() =>
+  import('@/features/platform-ops/PlatformOpsSentryPage').then((m) => ({ default: m.PlatformOpsSentryPage })),
 )
 
 const PricingPage = lazy(() =>
@@ -254,6 +267,8 @@ export function ContabilAppRouter() {
         <Route path="/auth" element={<AuthProfileChoicePage />} />
         <Route path="/auth/firm/login" element={<FirmLoginPage />} />
         <Route path="/auth/firm/mfa" element={<FirmMfaChallengePage />} />
+        <Route path="/auth/ops/login" element={<PlatformOpsLoginPage />} />
+        <Route path="/auth/ops/mfa" element={<FirmMfaChallengePage />} />
         <Route path="/auth/firm/register" element={<FirmRegisterPage />} />
         <Route path="/auth/firm/register/google" element={<FirmRegisterGooglePage />} />
         <Route path="/auth/firm/convite/:token" element={<FirmInviteRegisterPage />} />
@@ -306,14 +321,18 @@ export function ContabilAppRouter() {
             path="ops"
             element={
               <RequireRole roles={[...FIRM_APP_ROLES]}>
-                <PlatformOpsShell />
+                <PlatformOpsAccessGate />
               </RequireRole>
             }
           >
-            <Route index element={<PlatformOpsOverviewPage />} />
-            <Route path="firms" element={<PlatformOpsFirmsPage />} />
-            <Route path="audit" element={<PlatformOpsAuditPage />} />
-            <Route path="logins" element={<PlatformOpsLoginsPage />} />
+            <Route element={<PlatformOpsShell />}>
+              <Route index element={<PlatformOpsOverviewPage />} />
+              <Route path="firms" element={<PlatformOpsFirmsPage />} />
+              <Route path="firms/:firmId" element={<PlatformOpsFirmDetailPage />} />
+              <Route path="audit" element={<PlatformOpsAuditPage />} />
+              <Route path="logins" element={<PlatformOpsLoginsPage />} />
+              <Route path="sentry" element={<PlatformOpsSentryPage />} />
+            </Route>
           </Route>
 
           <Route
@@ -324,6 +343,7 @@ export function ContabilAppRouter() {
               </RequireRole>
             }
           >
+            <Route element={<PlatformOpsFirmGuard />}>
             <Route element={<FirmLayout />}>
               <Route
                 element={
@@ -370,6 +390,7 @@ export function ContabilAppRouter() {
                 <Route path="sobre" element={<FirmAboutPage />} />
               </Route>
               <Route path="billing" element={<FirmBillingPage />} />
+            </Route>
             </Route>
           </Route>
 

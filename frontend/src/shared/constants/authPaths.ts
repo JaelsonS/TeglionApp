@@ -1,4 +1,4 @@
-/** Rotas de autenticação Teglion (firm vs client). */
+/** Rotas de autenticação Teglion (firm vs client vs Control Center). */
 
 export type AuthIntent = 'login' | 'register' | 'trial'
 export type AuthProfile = 'firm' | 'client'
@@ -11,6 +11,20 @@ export function authProfileChoiceUrl(intent: AuthIntent = 'login') {
 
 export function authFirmLoginUrl() {
   return '/auth/firm/login'
+}
+
+/** Login dedicado do Teglion Control Center (não misturar com gabinetes). */
+export function authOpsLoginUrl() {
+  return '/auth/ops/login'
+}
+
+export function authOpsMfaUrl(reason: 'challenge' | 'enroll' = 'challenge') {
+  return `/auth/ops/mfa?reason=${encodeURIComponent(reason)}`
+}
+
+/** Pedido de redefinição — após o e-mail, volta ao login do Control Center. */
+export function authOpsRecoverPasswordUrl() {
+  return '/recover-password?role=firm&audience=ops'
 }
 
 export function authFirmRegisterUrl() {

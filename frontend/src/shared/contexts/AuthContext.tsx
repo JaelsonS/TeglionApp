@@ -18,7 +18,7 @@ import { logger } from '@/shared/utils/logger'
 import { clearVaultStepUpToken } from '@/features/firm/client-hub/vaultStepUpSession'
 import { writeClientLoginBranding } from '@/shared/utils/clientLoginBrandingStorage'
 import { tryNormalizeAuthUser } from '@/shared/utils/authNormalize'
-import { authClientLoginUrl, authFirmLoginUrl } from '@/shared/constants/authPaths'
+import { authClientLoginUrl, authFirmLoginUrl, authOpsLoginUrl } from '@/shared/constants/authPaths'
 import { getRateLimitBackoffMs } from '@/shared/utils/rate-limit-backoff'
 import {
   clearBillingStatusCache,
@@ -297,7 +297,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const redirectPath =
-      user?.role === 'CLIENT' ? authClientLoginUrl() : authFirmLoginUrl()
+      user?.role === 'CLIENT'
+        ? authClientLoginUrl()
+        : user?.platformOps
+          ? authOpsLoginUrl()
+          : authFirmLoginUrl()
 
     try {
       await authApi.logout()

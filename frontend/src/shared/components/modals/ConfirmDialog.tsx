@@ -56,9 +56,12 @@ export function ConfirmDialog({
     >
       <AlertDialogContent
         data-testid={testId}
-        className="w-[calc(100vw-2rem)] max-w-md max-h-[85vh] gap-0 overflow-hidden rounded-2xl border-border/70 p-0 shadow-xl"
+        className={cn(
+          'flex w-[calc(100vw-2rem)] max-h-[min(90dvh,calc(100dvh-2rem))] max-w-md flex-col gap-0 overflow-hidden rounded-2xl border-border/70 p-0 shadow-xl',
+          'grid-cols-none', // anula `grid` do AlertDialogContent base
+        )}
       >
-        <AlertDialogHeader className="space-y-3 px-6 pb-2 pt-6 text-left sm:text-left">
+        <AlertDialogHeader className="shrink-0 space-y-3 px-6 pb-2 pt-6 text-left sm:text-left">
           <div className="flex items-start gap-3">
             {destructive ? (
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
@@ -79,9 +82,13 @@ export function ConfirmDialog({
           </div>
         </AlertDialogHeader>
 
-        {children ? <div className="px-6 pb-2">{children}</div> : null}
+        {children ? (
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-y-contain px-6 py-2 [-webkit-overflow-scrolling:touch]">
+            {children}
+          </div>
+        ) : null}
 
-        <AlertDialogFooter className="border-t border-border/50 bg-muted/30 px-6 py-4 sm:space-x-2">
+        <AlertDialogFooter className="shrink-0 border-t border-border/50 bg-muted/30 px-6 py-4 sm:space-x-2">
           <AlertDialogCancel
             data-testid={`${testId}-cancel-button`}
             disabled={busy}

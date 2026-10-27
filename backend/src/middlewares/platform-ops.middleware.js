@@ -42,13 +42,16 @@ async function requirePlatformOps(req, res, next) {
     if (!userId) {
       throw new AppError('Não autenticado', 401, { code: 'UNAUTHORIZED' });
     }
-    if (role === 'CLIENT' || req.user?.clientId) {
+    // Só bloquear papel CLIENT. NÃO usar req.user.clientId — readActorClientId
+    // fazia fallback para actor.id e marcava firm users como "clientes".
+    if (role === 'CLIENT') {
       throw new AppError('Acesso negado', 403, { code: 'PLATFORM_OPS_FORBIDDEN' });
     }
 
-    // findFirmUserById devolve a linha crua (snake_case).
+    // findFirmUserById devolve linha crua (snake_case); tolerar camelCase por segurança.
     const firmUser = await firmUsersRepository.findFirmUserById(userId);
-    if (!firmUser || firmUser.is_active === false) {
+    const isActive = firmUser?.is_active !== false && firmUser?.isActive !== false;
+    if (!firmUser || !isActive) {
       throw new AppError('Acesso negado', 403, { code: 'PLATFORM_OPS_FORBIDDEN' });
     }
 
@@ -57,7 +60,8 @@ async function requirePlatformOps(req, res, next) {
       throw new AppError('Acesso negado', 403, { code: 'PLATFORM_OPS_FORBIDDEN' });
     }
 
-    if (firmUser.mfa_enabled !== true) {
+    const mfaOn = firmUser.mfa_enabled === true || firmUser.mfaEnabled === true;
+    if (!mfaOn) {
       throw new AppError('Active MFA (TOTP) antes de aceder ao Control Center', 403, {
         code: 'PLATFORM_OPS_MFA_REQUIRED',
       });
@@ -66,7 +70,7 @@ async function requirePlatformOps(req, res, next) {
     req.platformOps = {
       email,
       userId: firmUser.id,
-      firmId: firmUser.firm_id || null,
+      firmId: firmUser.firm_id || firmUser.firmId || null,
       ip: clientIp(req),
     };
 

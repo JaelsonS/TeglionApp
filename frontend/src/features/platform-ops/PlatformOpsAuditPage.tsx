@@ -1,24 +1,78 @@
+import { useState, type ChangeEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Loader2 } from 'lucide-react'
+import { Download, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { platformOpsApi } from '@/infrastructure/api'
+import { Button } from '@/shared/components/ui/button'
+import { Input } from '@/shared/components/ui/input'
 import { getErrorMessage } from '@/shared/utils/errors'
 
 export function PlatformOpsAuditPage() {
+  const [action, setAction] = useState('')
+  const [firmId, setFirmId] = useState('')
+  const [since, setSince] = useState('')
+
   const query = useQuery({
-    queryKey: ['platform-ops', 'audit'],
-    queryFn: () => platformOpsApi.auditLogs({ limit: 80 }),
+    queryKey: ['platform-ops', 'audit', action, firmId, since],
+    queryFn: () =>
+      platformOpsApi.auditLogs({
+        limit: 80,
+        action: action.trim() || undefined,
+        firmId: firmId.trim() || undefined,
+        since: since ? new Date(since).toISOString() : undefined,
+      }),
     refetchInterval: 45_000,
   })
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight">Audit log</h1>
-        <p className="text-sm text-muted-foreground">
-          Eventos recentes em todos os gabinetes — IP quando registado. Actualiza a cada ~45s.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">Audit log</h1>
+          <p className="text-sm text-muted-foreground">
+            Eventos recentes em todos os gabinetes — IP quando registado. Actualiza a cada ~45s.
+          </p>
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            void platformOpsApi
+              .exportCsv('audit', {
+                action: action.trim() || undefined,
+                firmId: firmId.trim() || undefined,
+                since: since ? new Date(since).toISOString() : undefined,
+              })
+              .catch((err) => toast.error(getErrorMessage(err)))
+          }}
+        >
+          <Download className="mr-1.5 h-3.5 w-3.5" /> CSV
+        </Button>
       </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Input
+          className="max-w-[14rem]"
+          placeholder="Filtrar action…"
+          value={action}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setAction(e.target.value)}
+        />
+        <Input
+          className="max-w-[16rem]"
+          placeholder="firmId (UUID)"
+          value={firmId}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setFirmId(e.target.value)}
+        />
+        <Input
+          className="max-w-[12rem]"
+          type="date"
+          value={since}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setSince(e.target.value)}
+        />
+      </div>
+
       {query.isLoading ? (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" /> A carregar…
