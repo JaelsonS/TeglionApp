@@ -8,7 +8,9 @@
 - [ ] Conta ops allowlist com MFA
 - [ ] `PLATFORM_OPS_ENABLED=true`
 - [ ] Migration `ip_geo_cache` aplicada
+- [ ] Migration `ip_denylist` aplicada
 - [ ] Gabinete de teste (não `afdigital-ops`) disponível para suspend/cancel/trial
+- [ ] IP de teste **público** (não o vosso IP de gestão) disponível para denylist
 
 ## O que testar → o que deve acender
 
@@ -24,6 +26,9 @@
 | 8 | Abrir `/app/ops/sentry` | Links e/ou lista de issues; sem PII de clientes |
 | 9 | Chamar APIs ops sem MFA / sem allowlist | 403 com código `PLATFORM_OPS_*` |
 | 10 | Burst de registos (≥5/24h) em teste controlado | Alerta `FIRM_REGISTER_BURST` |
+| 11 | Adicionar IP de teste em `/app/ops/denylist` | Audit `ip_denylist.add`; pedidos desse IP → `403 IP_DENIED` (health isento) |
+| 12 | Remover IP da denylist | Audit `ip_denylist.revoke`; acesso restaura (~30s cache) |
+| 13 | Tentar denylist `10.x` / `127.0.0.1` | 400 `IP_DENYLIST_PRIVATE` |
 
 ## Dados que **não** devem aparecer
 

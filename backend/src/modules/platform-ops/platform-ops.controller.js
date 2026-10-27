@@ -117,6 +117,53 @@ exports.sentryIssues = async (req, res, next) => {
   }
 };
 
+exports.listIpDenylist = async (req, res, next) => {
+  try {
+    const ipDenylist = require('./ip-denylist.service');
+    const includeRevoked =
+      req.query.includeRevoked === '1' ||
+      req.query.includeRevoked === 'true' ||
+      req.query.includeRevoked === true;
+    const data = await ipDenylist.listDenylist({
+      limit: req.query.limit,
+      offset: req.query.offset,
+      includeRevoked,
+    });
+    await auditPlatformOpsView(req, 'platform_ops.ip_denylist_list', { includeRevoked });
+    return res.json(data);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.addIpDenylist = async (req, res, next) => {
+  try {
+    const ipDenylist = require('./ip-denylist.service');
+    const data = await ipDenylist.addIp(req.body?.ip, {
+      reason: req.body?.reason,
+      actorId: req.platformOps?.userId,
+      actorIp: req.platformOps?.ip,
+    });
+    return res.json({ ok: true, ...data });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.revokeIpDenylist = async (req, res, next) => {
+  try {
+    const ipDenylist = require('./ip-denylist.service');
+    const key = req.body?.id || req.body?.ip || req.params?.id;
+    const data = await ipDenylist.revokeIp(key, {
+      actorId: req.platformOps?.userId,
+      actorIp: req.platformOps?.ip,
+    });
+    return res.json({ ok: true, ...data });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.auditLogs = async (req, res, next) => {
   try {
     const data = await platformOpsService.listAuditLogs({

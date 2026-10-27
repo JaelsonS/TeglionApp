@@ -61,6 +61,31 @@ router.get(
   platformOpsController.sentryIssues,
 );
 router.get(
+  '/ip-denylist',
+  [
+    query('limit').optional().isInt({ min: 1, max: 200 }),
+    query('offset').optional().isInt({ min: 0 }),
+    query('includeRevoked').optional().isIn(['0', '1', 'true', 'false']),
+  ],
+  platformOpsController.listIpDenylist,
+);
+router.post(
+  '/ip-denylist',
+  [
+    body('ip').isString().trim().isLength({ min: 3, max: 64 }),
+    body('reason').optional().isString().trim().isLength({ max: 280 }),
+  ],
+  platformOpsController.addIpDenylist,
+);
+router.post(
+  '/ip-denylist/revoke',
+  [
+    body('id').optional().isUUID(),
+    body('ip').optional().isString().trim().isLength({ min: 3, max: 64 }),
+  ],
+  platformOpsController.revokeIpDenylist,
+);
+router.get(
   '/audit-logs',
   [
     query('limit').optional().isInt({ min: 1, max: 200 }),

@@ -10,6 +10,7 @@ export type PlatformOpsOverview = {
   firmsNew24h?: number | null
   firmsNew7d?: number | null
   authzFailures24h?: number | null
+  ipDenylistActive?: number | null
   recentFirms?: Array<{
     id: string
     name: string
@@ -124,6 +125,38 @@ export function createPlatformOpsApi(api: AxiosInstance) {
         .then((r) => r.data as { ok: boolean; status: string; already?: boolean }),
     sentryIssues: (params?: { limit?: number }) =>
       api.get('/platform-ops/sentry/issues', { params }).then((r) => r.data as PlatformOpsSentrySummary),
+    listIpDenylist: (params?: { limit?: number; offset?: number; includeRevoked?: boolean }) =>
+      api
+        .get('/platform-ops/ip-denylist', {
+          params: {
+            ...params,
+            includeRevoked: params?.includeRevoked ? '1' : undefined,
+          },
+        })
+        .then(
+          (r) =>
+            r.data as {
+              items: Array<{
+                id: string
+                ip: string
+                reason: string | null
+                createdAt: string
+                createdBy: string | null
+                revokedAt: string | null
+                revokedBy: string | null
+                active: boolean
+              }>
+              total: number | null
+            },
+        ),
+    addIpDenylist: (body: { ip: string; reason?: string }) =>
+      api
+        .post('/platform-ops/ip-denylist', body)
+        .then((r) => r.data as { ok: boolean; id: string; ip: string; already?: boolean }),
+    revokeIpDenylist: (body: { id?: string; ip?: string }) =>
+      api
+        .post('/platform-ops/ip-denylist/revoke', body)
+        .then((r) => r.data as { ok: boolean; id: string; ip: string; revoked: boolean }),
     auditLogs: (params?: {
       limit?: number
       offset?: number
