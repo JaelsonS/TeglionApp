@@ -85,6 +85,15 @@ router.post(
   ],
   platformOpsController.revokeIpDenylist,
 );
+router.get('/security-lab/signals', platformOpsController.securityLabSignals);
+router.post(
+  '/security-lab/signal',
+  [
+    body('code').isString().trim().isLength({ min: 3, max: 64 }),
+    body('note').optional().isString().trim().isLength({ max: 280 }),
+  ],
+  platformOpsController.securityLabEmit,
+);
 router.get(
   '/audit-logs',
   [

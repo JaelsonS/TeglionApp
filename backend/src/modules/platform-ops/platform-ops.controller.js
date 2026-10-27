@@ -164,6 +164,32 @@ exports.revokeIpDenylist = async (req, res, next) => {
   }
 };
 
+exports.securityLabSignals = async (req, res, next) => {
+  try {
+    const securityLab = require('./security-lab.service');
+    const items = await securityLab.listRecentSignals({ hours: 24 });
+    await auditPlatformOpsView(req, 'platform_ops.security_lab_view');
+    return res.json({ items, stagingOnly: true });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.securityLabEmit = async (req, res, next) => {
+  try {
+    const securityLab = require('./security-lab.service');
+    const data = await securityLab.emitSignal({
+      code: req.body?.code,
+      note: req.body?.note,
+      actorId: req.platformOps?.userId,
+      ip: req.platformOps?.ip,
+    });
+    return res.json(data);
+  } catch (err) {
+    return next(err);
+  }
+};
+
 exports.auditLogs = async (req, res, next) => {
   try {
     const data = await platformOpsService.listAuditLogs({

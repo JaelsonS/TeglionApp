@@ -224,6 +224,14 @@ async function getOverview() {
     ipDenylistActive = null;
   }
 
+  try {
+    const securityLab = require('./security-lab.service');
+    const lab = await securityLab.labAnomalies();
+    for (const a of lab) anomalies.push(a);
+  } catch {
+    /* lab só em staging; ignore */
+  }
+
   return {
     firmsTotal: firmsRes.count ?? 0,
     activeFirmUsers: usersRes.count ?? 0,

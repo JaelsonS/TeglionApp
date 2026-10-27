@@ -25,8 +25,8 @@ export function PlatformOpsSentryPage() {
 
   const data = query.data!
   const links = [
-    data.projectUrl ? { href: data.projectUrl, label: 'Abrir projecto Sentry' } : null,
-    data.issuesUrl ? { href: data.issuesUrl, label: 'Abrir issues' } : null,
+    data.projectUrl ? { href: data.projectUrl, label: 'Abrir projecto no Sentry' } : null,
+    data.issuesUrl ? { href: data.issuesUrl, label: 'Abrir todas as issues' } : null,
   ].filter(Boolean) as Array<{ href: string; label: string }>
 
   return (
@@ -34,45 +34,77 @@ export function PlatformOpsSentryPage() {
       <div>
         <h1 className="text-xl font-semibold tracking-tight">Sentry</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Link-out e resumo de issues (sem PII). Não substitui a consola Sentry.
+          O Sentry já monitoriza a app. Este ecrã é um atalho — não substitui a consola Sentry.
         </p>
       </div>
 
-      <div className="rounded-xl border border-border/70 bg-card px-4 py-3 text-sm">
-        <p>
-          <span className="text-muted-foreground">DSN configurado:</span>{' '}
-          {data.dsnConfigured ? 'sim' : 'não'}
-        </p>
-        <p className="mt-1">
-          <span className="text-muted-foreground">API token / org / project:</span>{' '}
-          {data.configured ? 'ok' : 'em falta'}
-          {data.org && data.project ? ` · ${data.org}/${data.project}` : ''}
-        </p>
-        {data.hint ? <p className="mt-2 text-amber-700 dark:text-amber-400">{data.hint}</p> : null}
-        {links.length > 0 ? (
-          <div className="mt-3 flex flex-wrap gap-3">
-            {links.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-brand hover:underline"
-              >
-                {l.label} <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-              </a>
-            ))}
-          </div>
-        ) : (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Defina SENTRY_ORG_SLUG e SENTRY_PROJECT_SLUG no Render para links directos.
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-border/70 bg-card px-4 py-3 text-sm">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Captura de erros (DSN)
           </p>
-        )}
+          <p className="mt-2 text-lg font-semibold">
+            {data.dsnConfigured || data.capturingOk ? 'Activa' : 'Em falta'}
+          </p>
+          <p className="mt-1 text-muted-foreground">
+            {data.statusMessage ||
+              'Com DSN no Render, os erros da API já chegam ao Sentry. Isto é o que importa para defesa.'}
+          </p>
+        </div>
+        <div className="rounded-xl border border-border/70 bg-card px-4 py-3 text-sm">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Lista neste painel (API token)
+          </p>
+          <p className="mt-2 text-lg font-semibold">
+            {data.listingOk || data.configured ? 'Activa' : 'Opcional — em falta'}
+          </p>
+          <p className="mt-1 text-muted-foreground">
+            Coisa diferente do DSN: um token Auth do Sentry para puxar a tabela de issues para aqui.
+            Sem token, usa os botões abaixo e abre o Sentry directamente.
+          </p>
+        </div>
       </div>
+
+      {data.hint ? (
+        <div className="rounded-xl border border-amber-500/40 bg-amber-500/5 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+          <p className="font-medium">Porque não há tabela de issues aqui?</p>
+          <p className="mt-1">{data.hint}</p>
+          <p className="mt-2 text-xs opacity-90">
+            Render staging (opcional):{' '}
+            <code className="rounded bg-muted px-1">SENTRY_ORG_SLUG=jaelson-santos</code>{' '}
+            <code className="rounded bg-muted px-1">SENTRY_PROJECT_SLUG=teglion-staging</code>{' '}
+            <code className="rounded bg-muted px-1">SENTRY_AUTH_TOKEN=…</code>{' '}
+            <code className="rounded bg-muted px-1">SENTRY_REGION_URL=https://de.sentry.io</code>
+          </p>
+        </div>
+      ) : null}
+
+      {links.length > 0 ? (
+        <div className="flex flex-wrap gap-3">
+          {links.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 rounded-full bg-brand px-3 py-1.5 text-xs font-medium text-primary-foreground"
+            >
+              {l.label} <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+            </a>
+          ))}
+        </div>
+      ) : null}
+
+      <p className="text-xs text-muted-foreground">
+        Projecto: {data.org || '—'}/{data.project || '—'}
+        {data.regionBase ? ` · API ${data.regionBase}` : ''}
+      </p>
 
       {data.items.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          {data.configured ? 'Sem issues unresolved recentes.' : 'Sem lista — configure o token.'}
+          {data.configured || data.listingOk
+            ? 'Sem issues unresolved recentes neste projecto.'
+            : 'Sem lista embutida — abre o Sentry pelos botões. A captura por DSN continua a funcionar.'}
         </p>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border/70">

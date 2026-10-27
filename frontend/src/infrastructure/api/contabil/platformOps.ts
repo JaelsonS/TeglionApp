@@ -80,11 +80,15 @@ export type PlatformOpsLoginAttempt = {
 export type PlatformOpsSentrySummary = {
   configured: boolean
   dsnConfigured: boolean
+  capturingOk?: boolean
+  listingOk?: boolean
   org: string | null
   project: string | null
+  regionBase?: string | null
   projectUrl: string | null
   issuesUrl: string | null
   hint: string | null
+  statusMessage?: string | null
   items: Array<{
     id: string
     shortId: string | null
@@ -125,6 +129,24 @@ export function createPlatformOpsApi(api: AxiosInstance) {
         .then((r) => r.data as { ok: boolean; status: string; already?: boolean }),
     sentryIssues: (params?: { limit?: number }) =>
       api.get('/platform-ops/sentry/issues', { params }).then((r) => r.data as PlatformOpsSentrySummary),
+    securityLabSignals: () =>
+      api.get('/platform-ops/security-lab/signals').then(
+        (r) =>
+          r.data as {
+            items: Array<{
+              id: string
+              signal: string | null
+              note: string | null
+              createdAt: string
+              ipAddress: string | null
+            }>
+            stagingOnly: boolean
+          },
+      ),
+    securityLabEmit: (body: { code: string; note?: string }) =>
+      api
+        .post('/platform-ops/security-lab/signal', body)
+        .then((r) => r.data as { ok: boolean; signal: string; environment: string }),
     listIpDenylist: (params?: { limit?: number; offset?: number; includeRevoked?: boolean }) =>
       api
         .get('/platform-ops/ip-denylist', {
