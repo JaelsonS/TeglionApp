@@ -12,12 +12,13 @@
 | 2 | SPA registo/login | `/auth/firm/register` + `/auth/firm/login` → 200 | **OK** |
 | 3 | Staging health burst | 20× paralelo `/api/health` | **OK** 20/20 |
 | 4 | Redis prod | Render `REDIS_URL` → Upstash `teglion-prod` (`rediss://`); logs com store partilhado | **OK** 27 Out 11:39Z — `[rate-limit] Redis verificado — store partilhado activo.` |
-| 5 | Plano Render API | ≥ 1 CPU / 2 GB; sem free spin-down | **CONFIRMAR no dashboard** |
-| 6 | Brevo email | 1 e-mail transacional de teste (registo ou notify) | **CONFIRMAR** dry-run |
-| 7 | SMS Brevo | Soft-fail no notify (código em staging) | Código OK em staging; **promover a main** antes do dia D |
-| 8 | Turnstile | 1 registo + 1 login reais em teglion.com | Páginas 200; **dry-run humano** |
-| 9 | Storage DOCX | Bucket + normalização MIME `.docx` | Bucket OK; normalização em staging → **promover a main** |
+| 5 | Plano Render API | ≥ 1 CPU / 2 GB; sem free spin-down | **OK** — plano pago **Standard** (27 Out) |
+| 6 | Brevo email | 1 e-mail transacional de teste (registo ou notify) | Cadastros já existem; **re-testar quando der** |
+| 7 | SMS Brevo | Soft-fail no notify (código em staging) | Código OK em staging; **promover a main** (#291) |
+| 8 | Turnstile | 1 registo + 1 login reais em teglion.com | Cadastros OK historicamente; **smoke rápido quando der** |
+| 9 | Storage DOCX | Bucket + normalização MIME `.docx` | Bucket OK; normalização em staging → **promover a main** (#291) |
 | 10 | Plantão 29/10 | Pessoa + Sentry + Render + `/app/ops` | **Definir nome** |
+| 11 | Migration denylist prod | `20261027120000_ip_denylist` | **OK** — aplicada (27 Out) |
 
 ### Redis — fechado (27 Out)
 
@@ -38,9 +39,10 @@ Em **staging** (não ainda em `main` a 27 Out ~11:40Z):
 1. Soft-fail SMS no notify (TEGLION-APP-V)  
 2. Normalização MIME DOCX no upload de pedidos (TEGLION-APP-Y)  
 3. Docs GTM + load drill  
-4. Control Center onda 3 denylist (migration `ip_denylist`) — só após migration aplicada em **prod**
+4. Control Center onda 3 denylist — migration **já aplicada em prod** (27 Out)
 
-**Acção:** PR `staging` → `main` **antes** de 29/10 (idealmente 27–28 Out). **No dia D:** zero merges de risco.
+**Acção:** merge PR [#291](https://github.com/JaelsonS/TeglionApp/pull/291) `staging` → `main` **antes** de 29/10.  
+**Bloqueio CI (27 Out):** GitHub Actions — *account locked due to a billing issue* (não é falha de código). Desbloquear billing → re-run `validate` → merge. **No dia D:** zero merges de risco.
 
 ## Resultado load drill staging (27 Out 2026)
 
@@ -59,11 +61,12 @@ Comando: `cd backend && node scripts/load-drill-staging.js`
 
 - [x] Redis verde (logs 27 Out)
 - [x] Drill staging documentado OK (`PASS_WITH_COLD_START`)
-- [ ] **Release staging→main** (SMS soft-fail + DOCX MIME ± denylist)
-- [ ] Dry-run registo+Turnstile+email em prod
+- [x] Migration `ip_denylist` em prod
+- [x] Plano Render Standard (pago)
+- [ ] **Release staging→main** (#291) — desbloquear billing GitHub Actions + CI verde
+- [ ] Smoke Turnstile/email quando der (cadastros já existem)
 - [ ] Plantão nomeado
 - [ ] Contabilista alinhada ([brief](./GTM_SOFT_LAUNCH_BRIEF_CONTABILISTA.md))
-- [ ] Plano Render ≥1c/2g confirmado
 
 **NO-GO** → adiar divulgação geral 3–7 dias **ou** lista fechada de escritórios.
 
