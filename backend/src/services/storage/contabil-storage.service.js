@@ -234,11 +234,32 @@ async function uploadServiceInquiryDocument({ firmId, serviceInquiryId, file }) 
   const sb = ensureStorage();
   const path = buildServiceInquiryDocumentPath(firmId, serviceInquiryId, file.originalname);
 
+  // Normalizar MIME (alguns browsers enviam variantes / vazio em .docx).
+  let contentType = String(file.mimetype || '').trim().toLowerCase() || 'application/octet-stream';
+  const name = String(file.originalname || '').toLowerCase();
+  if (
+    name.endsWith('.docx') &&
+    (!contentType || contentType === 'application/octet-stream' || contentType === 'application/zip')
+  ) {
+    contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  }
+  if (name.endsWith('.xlsx') && (!contentType || contentType === 'application/octet-stream')) {
+    contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  }
+
   const { error } = await sb.storage.from(BUCKET).upload(path, file.buffer, {
-    contentType: file.mimetype || 'application/octet-stream',
+    contentType,
     upsert: false,
   });
   if (error) {
+    const msg = String(error.message || '');
+    if (/not supported|mime type/i.test(msg)) {
+      throw new AppError(
+        'Tipo de ficheiro não aceite no armazenamento. Use PDF, imagem, Word (.docx) ou Excel (.xlsx).',
+        400,
+        { code: 'STORAGE_MIME_REJECTED' },
+      );
+    }
     throw new AppError(error.message || 'Falha ao guardar ficheiro', 500, { code: 'STORAGE_UPLOAD_FAILED' });
   }
 

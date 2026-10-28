@@ -179,10 +179,19 @@ export function PlatformOpsOverviewPage() {
         </div>
       ) : null}
 
-      <p className="text-xs text-muted-foreground">
-        Onda 2 Defesa: novos gabinetes, trial/cancelar, geo-IP, abuso, Sentry. Ver{' '}
-        <code>docs/product/TEGLION_CONTROL_CENTER_CHARTER.md</code>.
-      </p>
+      <div className="rounded-xl border border-border/70 bg-muted/20 px-4 py-3 text-sm">
+        <p className="font-medium">Quer testar / «invadir» em staging?</p>
+        <p className="mt-1 text-muted-foreground">
+          Usa o Laboratório de defesa: botões que acendem alertas neste Overview, depois testes reais
+          (lockout, gabinete novo, denylist). Nunca em produção.
+        </p>
+        <Link
+          to="/app/ops/security-lab"
+          className="mt-2 inline-flex text-sm font-medium text-brand hover:underline"
+        >
+          Abrir Laboratório de defesa →
+        </Link>
+      </div>
     </div>
   )
 }

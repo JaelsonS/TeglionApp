@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Mail, Phone } from 'lucide-react'
 
 import { AgencyNameLink } from '@/shared/components/agency/AgencyNameLink'
@@ -17,9 +17,8 @@ import {
   whatsappSupportUrl,
 } from '@/shared/config/supportLinks'
 
+/** Só documentos legais — Manual fica em Produto (evita duplicar no footer). */
 const LEGAL_FOOTER_LINKS: { to: string; label: string }[] = [
-  { to: '/manual', label: 'Manual' },
-  { to: '/suporte', label: 'Ajuda' },
   { to: '/termos', label: 'Termos' },
   { to: '/privacidade', label: 'Privacidade' },
   { to: '/cookies', label: 'Cookies' },
@@ -33,6 +32,23 @@ function FooterCol({ title, children }: { title: string; children: ReactNode }) 
       <p className="landing-footer-title">{title}</p>
       <ul className="mt-3 space-y-2.5 text-sm">{children}</ul>
     </div>
+  )
+}
+
+/** Link interno: se já estiver na mesma rota, sobe ao topo (senão o clique «não faz nada»). */
+function FooterNavLink({ to, children }: { to: string; children: ReactNode }) {
+  const { pathname } = useLocation()
+  return (
+    <Link
+      to={to}
+      onClick={() => {
+        if (pathname === to || (to !== '/' && pathname.startsWith(`${to}/`))) {
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+      }}
+    >
+      {children}
+    </Link>
   )
 }
 
@@ -73,7 +89,10 @@ export function LandingFooter() {
               <a href={LANDING_ANCHORS.comoFunciona}>Como funciona</a>
             </li>
             <li>
-              <Link to="/manual">Manual do utilizador</Link>
+              <FooterNavLink to="/manual">Manual do utilizador</FooterNavLink>
+            </li>
+            <li>
+              <FooterNavLink to="/suporte">Ajuda e suporte</FooterNavLink>
             </li>
             <li>
               <Link to={authProfileChoiceUrl('login')}>Entrar</Link>
@@ -83,7 +102,7 @@ export function LandingFooter() {
           <FooterCol title="Legal">
             {LEGAL_FOOTER_LINKS.map((item) => (
               <li key={item.to}>
-                <Link to={item.to}>{item.label}</Link>
+                <FooterNavLink to={item.to}>{item.label}</FooterNavLink>
               </li>
             ))}
           </FooterCol>

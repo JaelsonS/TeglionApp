@@ -208,6 +208,30 @@ async function getOverview() {
     isNew7d: isNewFirm(row.created_at, 24 * 7),
   }));
 
+  let ipDenylistActive = null;
+  try {
+    const ipDenylist = require('./ip-denylist.service');
+    ipDenylistActive = await ipDenylist.activeCount();
+    if (ipDenylistActive > 0) {
+      anomalies.push({
+        code: 'IP_DENYLIST',
+        severity: 'medium',
+        message: `${ipDenylistActive} IP(s) na denylist activa`,
+        href: '/app/ops/denylist',
+      });
+    }
+  } catch {
+    ipDenylistActive = null;
+  }
+
+  try {
+    const securityLab = require('./security-lab.service');
+    const lab = await securityLab.labAnomalies();
+    for (const a of lab) anomalies.push(a);
+  } catch {
+    /* lab só em staging; ignore */
+  }
+
   return {
     firmsTotal: firmsRes.count ?? 0,
     activeFirmUsers: usersRes.count ?? 0,
@@ -218,6 +242,7 @@ async function getOverview() {
     firmsNew24h,
     firmsNew7d,
     authzFailures24h,
+    ipDenylistActive,
     recentFirms,
     anomalies,
     generatedAt: new Date().toISOString(),

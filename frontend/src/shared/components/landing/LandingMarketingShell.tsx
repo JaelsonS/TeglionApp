@@ -21,7 +21,7 @@ export function LandingMarketingShell({ title, description, path, children }: La
 
   return (
     <div className="landing-page min-h-screen">
-      <LandingHeader />
+      <LandingHeader tone="light" />
       <main className="pt-16">{children}</main>
       <LandingFooter />
     </div>

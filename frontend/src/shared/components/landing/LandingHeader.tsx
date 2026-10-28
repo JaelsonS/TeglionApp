@@ -13,19 +13,32 @@ const NAV = [
   { href: LANDING_ANCHORS.comoFunciona, label: 'Como funciona' },
   { href: LANDING_ANCHORS.precos, label: 'Preços' },
   { href: LANDING_ANCHORS.faq, label: 'FAQ' },
+  { href: '/manual', label: 'Manual', route: true },
   { href: '/blog', label: 'Blog', route: true },
 ] as const
 
-export function LandingHeader() {
-  const [scrolled, setScrolled] = useState(false)
+type LandingHeaderProps = {
+  /**
+   * `hero` — landing com fundo escuro (logo/menu claros até scroll).
+   * `light` — páginas claras (manual, preços, legal): header navy desde o topo.
+   */
+  tone?: 'hero' | 'light'
+}
+
+export function LandingHeader({ tone = 'hero' }: LandingHeaderProps) {
+  const [scrolled, setScrolled] = useState(tone === 'light')
   const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
+    if (tone === 'light') {
+      setScrolled(true)
+      return
+    }
     const onScroll = () => setScrolled(window.scrollY > 24)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+  }, [tone])
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : ''
@@ -34,14 +47,15 @@ export function LandingHeader() {
     }
   }, [menuOpen])
 
-  /* Hero escuro = logo clara; ao scroll o header fica branco = logo navy */
-  const onDark = !scrolled
+  /* Hero escuro = logo clara; páginas light ou scroll = logo navy */
+  const onDark = tone === 'hero' && !scrolled
+  const solid = tone === 'light' || scrolled
 
   return (
     <header
       className={cn(
         'landing-header fixed inset-x-0 top-0 z-50 transition-[background,box-shadow,border] duration-300',
-        scrolled ? 'landing-header-scrolled' : 'bg-transparent',
+        solid ? 'landing-header-scrolled' : 'bg-transparent',
       )}
     >
       <div className="landing-container flex h-16 items-center justify-between gap-4 px-5 sm:px-8">
@@ -103,7 +117,7 @@ export function LandingHeader() {
             exit={{ opacity: 0, height: 0 }}
             className={cn(
               'border-t lg:hidden',
-              scrolled
+              solid
                 ? 'border-[var(--landing-navy)]/10 bg-white'
                 : 'border-white/10 bg-[#061428]',
             )}
@@ -116,7 +130,7 @@ export function LandingHeader() {
                     to={item.href}
                     className={cn(
                       'rounded-lg px-3 py-2.5 text-sm font-medium',
-                      scrolled ? 'text-[var(--landing-navy)]' : 'text-white',
+                      solid ? 'text-[var(--landing-navy)]' : 'text-white',
                     )}
                     onClick={() => setMenuOpen(false)}
                   >
@@ -128,7 +142,7 @@ export function LandingHeader() {
                     href={item.href}
                     className={cn(
                       'rounded-lg px-3 py-2.5 text-sm font-medium',
-                      scrolled ? 'text-[var(--landing-navy)]' : 'text-white',
+                      solid ? 'text-[var(--landing-navy)]' : 'text-white',
                     )}
                     onClick={() => setMenuOpen(false)}
                   >
@@ -140,7 +154,7 @@ export function LandingHeader() {
                 to={authProfileChoiceUrl('login')}
                 className={cn(
                   'rounded-lg px-3 py-2.5 text-sm',
-                  scrolled ? 'text-[var(--landing-muted)]' : 'text-white/70',
+                  solid ? 'text-[var(--landing-muted)]' : 'text-white/70',
                 )}
                 onClick={() => setMenuOpen(false)}
               >
