@@ -41,7 +41,7 @@ Regra que sigo:
 Depois do deploy do backend, confiro nos logs:
 
 - Mensagem de Redis ativo, sem fallback para memory store.
-- Ausência de warning de fail-open em rate limit.
+- Ausência de warning de fallback in-memory de rate limit.
 
 ## Teste funcional mínimo
 

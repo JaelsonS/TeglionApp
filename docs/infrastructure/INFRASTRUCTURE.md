@@ -72,7 +72,7 @@ Configuração: variável `REDIS_URL` no ambiente do backend (Render), sempre co
 
 ## Cloudflare R2 — backup externo do Postgres
 
-Uso isso como segunda camada de recuperação, independente do backup nativo do Supabase (plano Pro, com PITR conforme configuração do projeto). Um Cron Job no Render (`Dockerfile.backup`) roda `pg_dump -Fc` diariamente, calcula SHA-256, sobe o dump pra um bucket privado no Cloudflare R2 (`teglion-backups-prod`) com manifesto JSON, e aplica a retenção que defini (14 dias diários, 8 domingos, 12 meses). Falhas reportam pro Sentry quando `SENTRY_DSN` está configurado.
+Uso isso como segunda camada de recuperação, independente do backup nativo do Supabase (plano Pro, com PITR conforme configuração do projeto). Um Cron Job no Render (`Dockerfile.backup`) roda `pg_dump -Fc` diariamente, calcula SHA-256, sobe o dump pra um bucket privado no Cloudflare R2 (`bucket privado de backups`) com manifesto JSON, e aplica a retenção que defini (14 dias diários, 8 domingos, 12 meses). Falhas reportam pro Sentry quando `SENTRY_DSN` está configurado.
 
 Já testei esse backup externo com sucesso: rodei dois drills de restauração completos em 13/08/2026, com RTO observado de ~1,3 a ~2 minutos, restaurando um dump real num Postgres temporário isolado (nunca em produção ou staging). O detalhe completo, incluindo os registros de cada drill, está em `docs/database/` (migrado de `docs/operations/BACKUP_RESTORE.md`) — trato essa parte de backup/restore como tema de segurança/dados, não como responsabilidade desta pasta de infraestrutura.
 

@@ -1,7 +1,6 @@
 # Inventário de funcionalidades
 
-> **Actualizado:** 28/09/2026 · **5 escritórios** em produção · Snapshot: [`../production/CURRENT_STATE.md`](../production/CURRENT_STATE.md).  
-> Base consolidada Ago/2026; secção «Entregas recentes» reflecte releases #99–#102.
+**Actualizado:** 28/10/2026 · Snapshot: [`../production/CURRENT_STATE.md`](../production/CURRENT_STATE.md).
 
 Estados: **IMPLEMENTADO**, **PARCIAL**, **EM DESENVOLVIMENTO**, **PLANEJADO**, **NÃO EXISTE**.
 
@@ -9,25 +8,32 @@ Estados: **IMPLEMENTADO**, **PARCIAL**, **EM DESENVOLVIMENTO**, **PLANEJADO**, *
 |---|---|
 | Clientes | IMPLEMENTADO |
 | Serviços | IMPLEMENTADO |
-| Booking / Agendamento | IMPLEMENTADO (constraint anti-overlap no banco) |
-| Captação pública ("IRS") | IMPLEMENTADO |
-| Calendário Fiscal | PARCIAL |
-| Documentos | IMPLEMENTADO (+ validade e lembretes, Set/2026) |
-| Mensagens | IMPLEMENTADO (polling ~2 min, não push) |
-| Alertas / Notícias | IMPLEMENTADO (+ detalhe portal cliente, Set/2026) |
-| Portal cliente (alertas, hub) | IMPLEMENTADO |
-| Billing SaaS / trial | IMPLEMENTADO (+ banner owner, Set/2026) |
-| Cofre / acessos oficiais | IMPLEMENTADO (+ UX password step-up, Set/2026) |
-| Página pública | IMPLEMENTADO (SEO/legal: A VALIDAR pontual) |
+| Booking / Agendamento | IMPLEMENTADO |
+| Captação pública ("IRS" e outros) | IMPLEMENTADO |
+| Calendário Fiscal / Obrigações | PARCIAL / IMPLEMENTADO |
+| Documentos | IMPLEMENTADO |
+| Mensagens | IMPLEMENTADO |
+| Alertas / Notícias | IMPLEMENTADO |
+| Portal cliente | IMPLEMENTADO |
+| Billing SaaS / trial | IMPLEMENTADO |
+| Cofre / acessos oficiais | IMPLEMENTADO |
+| Página pública | IMPLEMENTADO |
+| MFA | IMPLEMENTADO |
+| Maya (activação) | IMPLEMENTADO (parcial conteúdo) |
+| Manual `/manual` | IMPLEMENTADO |
+| Pagamentos / avenças (V10) | IMPLEMENTADO |
+| Calculadoras fiscais (V10) | IMPLEMENTADO (apoio, não certificação) |
+| Rendas (V10) | IMPLEMENTADO |
+| SAF-T leitura (V10) | IMPLEMENTADO |
+| Control Center AfDigital | IMPLEMENTADO (gated) |
 
-## Entregas recentes (Set/2026, main)
+## Entregas recentes (Out/2026, main)
 
-| Entrega | O que faz | Onde |
-|---------|-----------|------|
-| Alertas no portal | Detalhe de alerta, anexos, deep links | `ClientAlertsFeed`, API client-portal |
-| Validade documentos | `valid_from` / `valid_until`, lembrete automático ~5 dias antes | scheduler + UI firm |
-| Cofre | Guia step-up para password de acesso oficial | `ClientHubOfficialAccessesPanel` |
-| Trial comercial | Banner dias restantes só `FIRM_OWNER`; CTAs billing + WhatsApp | `FirmTrialReminderBanner` |
+| Entrega | O que faz |
+|---------|-----------|
+| Soft launch #291 | V10 + harden notify/DOCX + denylist API + Manual UX |
+| Control Center ondas 1–3 | Ops AfDigital (suspender, trial, abuso, denylist) |
+| Validade documentos / alertas portal / trial banner | Já em main desde Set |
 
 Módulos de infraestrutura de negócio — billing, Stripe Connect, entitlements — deixei em [BUSINESS_MODEL.md](./BUSINESS_MODEL.md) e em [`docs/architecture/INTEGRATIONS.md`](../architecture/INTEGRATIONS.md), não aqui, porque não são funcionalidade fim para o usuário, são camada de suporte.
 
@@ -87,7 +93,7 @@ O fluxo público: a página pública do escritório leva ao serviço, o backend 
 
 Desenhei o banco de dados com restrições de exclusão para impedir duas reservas ativas no mesmo recurso e horário — tanto para consultas confirmadas/pendentes de pagamento quanto para reservas temporárias — convertendo uma violação em erro HTTP 409 nos pontos de criação de agendamento (booking direto, checkout Stripe Connect, reunião manual pela agenda do escritório). Cancelamento hoje só acontece pelo lado do escritório; não implementei autocancelamento nem reagendamento pelo cliente na página pública.
 
-**Contradição do item 1.6 — verifiquei e já corrigi:** eu tinha dois documentos se contradizendo sobre isso (um dizia que a proteção contra agendamento duplo ainda não existia, o `SPRINT-0.md` dizia que já estava resolvida). Fui direto no código em 20/08/2026 pra tirar a dúvida: a constraint de exclusão `consultations_no_overlap` existe de verdade na migration `supabase/migrations/20260927010000_consultations_no_overlap.sql` (`EXCLUDE USING gist`, com `btree_gist`, bloqueando duas `consultations` ativas do mesmo escritório+staff com horário sobreposto), e tanto `booking.service.js` quanto `connect-payments.service.js` capturam o erro de violação (`23P01`) e devolvem 409 pro cliente. O `SPRINT-0.md` estava certo — quem estava desatualizado era o documento antigo `docs/03-PRODUTO/BOOKING.md` (já removido nesta reorganização). Não é mais um risco em aberto.
+**Contradição do item 1.6 — verifiquei e já corrigi:** eu tinha dois documentos se contradizendo sobre isso (um dizia que a proteção contra agendamento duplo ainda não existia, o registo interno dizia que já estava resolvida). Fui direto no código em 20/08/2026 pra tirar a dúvida: a constraint de exclusão `consultations_no_overlap` existe de verdade na migration `supabase/migrations/20260927010000_consultations_no_overlap.sql` (`EXCLUDE USING gist`, com `btree_gist`, bloqueando duas `consultations` ativas do mesmo escritório+staff com horário sobreposto), e tanto `booking.service.js` quanto `connect-payments.service.js` capturam o erro de violação (`23P01`) e devolvem 409 pro cliente. O registo interno estava certo — quem estava desatualizado era documentação antiga de booking (já removida). Não é mais um risco em aberto.
 
 ## Captação pública ("IRS") — IMPLEMENTADO como ferramenta de captação
 

@@ -37,7 +37,7 @@ Runner: eu uso Vitest, com `happy-dom` como ambiente DOM e Testing Library (`@te
 - Eu tenho **48** ficheiros `*.test.ts`/`*.test.tsx`, também colocados ao lado do código (mesmo padrão que uso no backend), concentrados em `src/features/firm/`, `src/features/client/` e `src/features/public-intake/` (incl. `trialReminderUtils.test.ts`, Set/2026).
 - A maioria testa funções auxiliares puras — parsing, formatação, cálculo de datas, regras de navegação, regras de publicação de serviço — não renderização de componente. Só 3 dos 33 arquivos efetivamente montam um componente React: `AgendaServiceHoursPanel.test.tsx`, `ServiceBookingAvailabilitySection.test.tsx` e `TeglionPublicCredit.test.tsx`. O resto é lógica isolada de UI, que testo sem DOM.
 - Script real: `test` roda `vitest run`, e é o que roda no CI (`npm test`, que na raiz do monorepo aponta pro workspace `frontend`).
-- Preciso lembrar de não confundir isso com o número "28/28 PASS" que cito no registro histórico da Fase 1B (`docs/historico/PHASE-1B.md`) — aquilo era a contagem de testes (não de arquivos) num momento específico de meados de agosto de 2026; o conjunto de arquivos cresceu desde então e eu não tento reconciliar os dois números aqui.
+- Contagens de testes mudam com o tempo — a verdade é o resultado da suíte no momento do PR.
 
 ## Teste de isolamento entre tenants (`backend/scripts/tenant-isolation-test.js`)
 
@@ -47,7 +47,7 @@ Esse é o teste mais importante do produto pra mim, porque o Teglion é multi-te
 
 **Como roda**: precisa de credenciais reais de Supabase (`SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`). No CI, essas credenciais apontam pro projeto Supabase de **staging** (`STAGING_SUPABASE_URL` / `STAGING_SUPABASE_SERVICE_ROLE_KEY`), nunca produção — deixei um comentário explícito nesse sentido no próprio `ci.yml`, e ele falha cedo se as secrets não estiverem configuradas.
 
-**Falha comum (Set/2026):** `getaddrinfo ENOTFOUND …supabase.co` ao correr localmente — o projecto Supabase (tipicamente staging `xscriwhchdblmwmpglby`) está **pausado/inactivo** ou o URL no `.env` está errado. Reactivar no painel Supabase; ver [`../security/TENANT_ISOLATION.md`](../security/TENANT_ISOLATION.md) e [`../production/CURRENT_STATE.md`](../production/CURRENT_STATE.md). **Não** interpretar como bug de isolamento no código.
+**Falha comum:** `getaddrinfo ENOTFOUND …supabase.co` ao correr localmente — o projecto Supabase de **staging** está pausado ou o URL no `.env` está errado. Reactivar no painel; ver [`../security/TENANT_ISOLATION.md`](../security/TENANT_ISOLATION.md). **Não** interpretar como bug de isolamento no código.
 
 **O que ele faz de verdade**:
 1. Cria dois escritórios reais (`firmX`, `firmY`), cada um com dono, clientes, documentos (upload real no storage), tarefas e obrigações — dados de verdade gravados no banco de staging, com um prefixo de execução (`iso-<timestamp>`) pra eu conseguir limpar depois.
@@ -91,7 +91,7 @@ Isso eu tenho de verdade, mas é pequeno. `frontend/playwright.config.cjs` está
 
 Isso é smoke test da superfície pública/institucional — não cobre nenhum fluxo autenticado (dashboard, agenda, documentos, cobrança, portal do cliente). `npm run test:e2e` (frontend) dispara `playwright test`.
 
-**Importante pra eu não esquecer**: esse script `test:e2e` **não aparece no `.github/workflows/ci.yml`**. Ou seja, hoje é um teste manual/local — eu preciso rodar `npm run test:e2e` explicitamente, não é parte do gate automático de PR. Vale eu diferenciar isso do script pontual `frontend/scripts/bloco1-staging-shell-qa.mjs`, que cito em `docs/historico/PHASE-1E.md` como QA de shell responsivo em staging — é um script Playwright avulso pra uma verificação específica, não faz parte da suíte `e2e/`.
+**Nota:** o smoke E2E local (`test:e2e:local`) faz parte do workflow CI quando o Actions está activo; se o CI estiver bloqueado, corro a bateria localmente antes de mergear.
 
 ## O que roda no CI vs. o que é manual
 

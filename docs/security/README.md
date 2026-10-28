@@ -4,15 +4,15 @@
 
 | Documento | Para quê |
 |-----------|----------|
-| [`AUTHENTICATION.md`](./AUTHENTICATION.md) | Login, sessão, cookies, lockout |
-| [`MFA_FASE4.md`](./MFA_FASE4.md) | TOTP, recovery, rotate app |
-| [`AUTHORIZATION.md`](./AUTHORIZATION.md) | Papéis, permissões, SEC-H1 |
-| [`TENANT_ISOLATION.md`](./TENANT_ISOLATION.md) | Multi-tenant, teste CI/local |
-| [`VAULT_SECURITY.md`](./VAULT_SECURITY.md) | Cofre, step-up, credenciais oficiais |
-| [`DATA_PROTECTION.md`](./DATA_PROTECTION.md) | Criptografia, segredos, GDPR (lacunas) |
-| [`SECURITY_TESTING.md`](./SECURITY_TESTING.md) | CI, tenant script, auditoria estática |
-| [`INCIDENT_RESPONSE.md`](./INCIDENT_RESPONSE.md) | Resposta a incidentes de segurança |
+| [`AUTHENTICATION.md`](./AUTHENTICATION.md) | Login, sessão, cookies |
+| [`MFA_FASE4.md`](./MFA_FASE4.md) | TOTP, recovery |
+| [`AUTHORIZATION.md`](./AUTHORIZATION.md) | Papéis e permissões |
+| [`TENANT_ISOLATION.md`](./TENANT_ISOLATION.md) | Multi-tenant |
+| [`VAULT_SECURITY.md`](./VAULT_SECURITY.md) | Cofre |
+| [`DATA_PROTECTION.md`](./DATA_PROTECTION.md) | Dados, segredos, GDPR |
+| [`SECURITY_TESTING.md`](./SECURITY_TESTING.md) | O que o CI testa |
+| [`INCIDENT_RESPONSE.md`](./INCIDENT_RESPONSE.md) | Incidentes de segurança |
 
-Relatórios datados e gates antigos → [`../historico/security-gates/`](../historico/security-gates/) e [`../historico/auditorias/`](../historico/auditorias/).
+Auditorias antigas **não** estão neste repo público — [`../historico/README.md`](../historico/README.md).
 
-Operação (outage, login 500) → [`../operations/INCIDENTS.md`](../operations/INCIDENTS.md).
+Operação → [`../operations/INCIDENTS.md`](../operations/INCIDENTS.md).

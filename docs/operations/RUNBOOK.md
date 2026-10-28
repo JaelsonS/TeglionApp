@@ -4,7 +4,18 @@
 
 Esse é o índice operacional do Teglion pra mim mesmo: o que faço pra preparar, lançar, monitorar e recuperar produção, e onde está cada guia de configuração de integração.
 
-**Estado actual (Set/2026):** [`../production/CURRENT_STATE.md`](../production/CURRENT_STATE.md) — **5 escritórios** em produção; checklist [`../production/PRODUCTION_READINESS_CHECKLIST.md`](../production/PRODUCTION_READINESS_CHECKLIST.md).
+**Estado actual (28 Out 2026):** [`../production/CURRENT_STATE.md`](../production/CURRENT_STATE.md) — soft launch 29/10; checklist [`../production/PRODUCTION_READINESS_CHECKLIST.md`](../production/PRODUCTION_READINESS_CHECKLIST.md).  
+**Git:** [`GIT_WORKFLOW.md`](./GIT_WORKFLOW.md).
+
+## Soft launch / plantão
+
+1. Warm-up: `GET https://www.teglion.com/api/health`.
+2. Confirmar registo/login e Google SSO (`/api/auth/sso/status`).
+3. Sentry + Render abertos; Control Center só com MFA.
+4. **Zero merges de risco** para `main` no dia da divulgação.
+5. Google OAuth: preferir app em **Production** no Google Cloud (ver roadmap D.2).
+
+Detalhes de limiares anti-abuso **não** estão neste repo público.
 
 ## Infraestrutura (onde tudo roda)
 
@@ -38,7 +49,7 @@ Esse é o índice operacional do Teglion pra mim mesmo: o que faço pra preparar
 
 ## Regras de operação que sigo
 
-1. Nada é promovido para produção sem o gate de CI verde (`validate`) — ver [`../infrastructure/CI_CD.md`](../infrastructure/CI_CD.md).
+1. Nada é promovido para produção sem CI verde **ou** bateria local equivalente documentada — ver [`../infrastructure/CI_CD.md`](../infrastructure/CI_CD.md).
 2. Segredo nunca edito ou leio do Git — só no provedor (Render, Vercel, GitHub Environment).
 3. Backend e frontend de uma mesma release eu deployo sempre juntos — a autenticação é cookie-only e depende dos dois estarem em sincronia.
 4. Deixo o rollback pronto antes de abrir tráfego para uma release nova — ver [`../infrastructure/DEPLOYMENT.md`](../infrastructure/DEPLOYMENT.md#rollback).

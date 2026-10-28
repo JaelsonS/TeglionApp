@@ -40,7 +40,7 @@ Todo tráfego de produção e staging passa por HTTPS — sirvo frontend e API a
 
 ### Rotação de segredos de produção — `CONCLUÍDO (segundo meu registro interno), não reverifiquei de forma independente`
 
-Segundo `docs/historico/SPRINT-0.md` e `docs/ROADMAP.md` (item 0.5), rotacionei as chaves de produção (Stripe, Supabase, JWT, Brevo, Google, Redis) em 13/08/2026, depois de terem ficado em texto plano em arquivos locais não versionados, lidos por várias sessões de auditoria. Já recomendo no `ROADMAP.md` uma verificação independente periódica — repito essa recomendação aqui, sem reverificar por conta própria agora.
+Segundo `docs/historico/README.md` e `docs/ROADMAP.md` (item 0.5), rotacionei as chaves de produção (Stripe, Supabase, JWT, Brevo, Google, Redis) em 13/08/2026, depois de terem ficado em texto plano em arquivos locais não versionados, lidos por várias sessões de auditoria. Já recomendo no `ROADMAP.md` uma verificação independente periódica — repito essa recomendação aqui, sem reverificar por conta própria agora.
 
 ### Trilha de auditoria para operações sensíveis — `IMPLEMENTADO`, com redação parcial de log
 

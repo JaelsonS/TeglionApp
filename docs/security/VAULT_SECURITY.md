@@ -1,21 +1,22 @@
-# Vault security — estado actual (Gate 3)
+# Cofre / acessos oficiais
 
-**Actualizado:** 21/08/2026  
-**Estado actual:** [`../production/CURRENT_STATE.md`](../production/CURRENT_STATE.md) · Gate histórico: [`../historico/FINAL_MAIN_RELEASE_GATE_2026-08-21.md`](../historico/FINAL_MAIN_RELEASE_GATE_2026-08-21.md)
+**Actualizado:** 28 de outubro de 2026
 
-## Garantias no código (`5916b2b` / staging)
+O cofre guarda credenciais oficiais do cliente (portais, finanças) de forma encriptada.
+
+## Garantias que eu exijo no código
 
 | Requisito | Estado |
 |-----------|--------|
 | Credenciais encriptadas (AES-GCM) | Sim |
-| GET/list sem plaintext | Sim (`hasPassword`) |
-| Reveal com step-up | Sim |
-| Mutate/import com step-up | Sim |
-| TTL step-up | **10 minutos** |
-| Purpose-bound | `vault_reveal` ≠ `vault_mutate` ≠ `vault_import` |
-| MFA on → TOTP (ou step-up do mesmo purpose) | Sim |
-| sessionStorage só JWT step-up (por purpose) | Sim |
-| Audit sem password/TOTP/token | Sim (redaction) |
-| Cross-tenant | Bloqueado por `firmId` + checks |
+| Listagens sem plaintext | Sim |
+| Reveal / mutate / import com confirmação sensível (step-up) | Sim |
+| Purposes separados (reveal ≠ mutate ≠ import) | Sim |
+| MFA ligado → confirmação TOTP | Sim |
+| Audit sem password / TOTP / token | Sim |
+| Isolamento por `firm_id` | Sim |
 
-Detalhe da matriz de acções (registo histórico): [`../historico/security-gates/GATE2_SENSITIVE_ACTIONS.md`](../historico/security-gates/GATE2_SENSITIVE_ACTIONS.md). Comportamento actual → [`AUTHORIZATION.md`](./AUTHORIZATION.md).
+TTLs e detalhes de armazenamento de tokens de step-up **não** documento no repo público — vivem no código e no runbook interno.
+
+RBAC geral: [`AUTHORIZATION.md`](./AUTHORIZATION.md).  
+Postura: [`SECURITY.md`](./SECURITY.md).
