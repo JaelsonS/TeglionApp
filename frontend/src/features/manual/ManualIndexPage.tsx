@@ -45,11 +45,19 @@ export function ManualIndexPage() {
             <p className="mt-4 text-base leading-relaxed text-muted-foreground">
               Sou a Maya. Este manual é o guia oficial do Teglion — primeiros passos, dia a dia do
               gabinete e portal do cliente. Sem jargão inútil e sem promessas que o produto ainda
-              não cumpre.
+              não cumpre. Escolha um capítulo abaixo para ler.
             </p>
-            <p className="mt-3">
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              Se veio do painel com sessão iniciada: está numa página pública (como o site). A
+              sessão mantém-se — ao voltar ao gabinete continua autenticado. Isso é o comportamento
+              correcto, não um «logout».
+            </p>
+            <p className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
               <Link to="/" className="text-sm font-medium text-brand hover:underline">
                 ← Voltar ao site
+              </Link>
+              <Link to="/app/firm" className="text-sm font-medium text-brand hover:underline">
+                Ir para o painel do gabinete
               </Link>
             </p>
           </div>

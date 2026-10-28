@@ -275,19 +275,35 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     subtitle: 'O que existe hoje e o que vem depois',
     audience: 'firm',
     status: 'planned',
-    seoDescription: 'Estado honesto do controlo de caixa no Teglion.',
+    seoDescription: 'Estado honesto do controlo de caixa no Teglion: avenças, estados e limites actuais.',
     blocks: [
       {
         type: 'maya',
-        text: 'Ainda não há um módulo completo de caixa estilo ERP. O que já ajuda: mapa de avenças, estados de pagamento e Connect opcional.',
+        text: 'Vou ser directa: ainda não há um módulo de caixa estilo ERP (entradas/saídas diárias, reconciliação bancária completa). O que já existe cobre a parte que mais dói ao gabinete — saber quem pagou a avença.',
+      },
+      { type: 'h2', text: 'O que já pode fazer hoje' },
+      {
+        type: 'ul',
+        items: [
+          'Mapa anual de avenças por cliente, com estados (pago, pendente, em atraso).',
+          'Registo manual de transferências e MB Way sem precisar de Stripe.',
+          'Stripe Connect (opcional) para cobranças online — o principal vai para a conta do gabinete.',
+          'Vista de Pagamentos no hub do cliente, alinhada com a carteira.',
+        ],
+      },
+      { type: 'h2', text: 'O que ainda não é' },
+      {
+        type: 'p',
+        text: 'Não é software de tesouraria completa, nem substitui o extrato do banco. Quando existirem mais ferramentas de caixa, este capítulo actualiza-se — sem prometer o que ainda não está no produto.',
       },
       {
         type: 'callout',
         variant: 'info',
         title: 'Transparência',
-        text: 'Quando existirem mais ferramentas de caixa, aparecem neste manual — sem prometer o que ainda não está no produto.',
+        text: 'Se um fornecedor ou site promete «caixa completa no Teglion» e eu ainda não o digo aqui, desconfie. A fonte de verdade é este manual e o que vê na app.',
       },
       { type: 'appLink', label: 'Pagamentos (avenças)', href: '/app/firm/payments' },
+      { type: 'appLink', label: 'Planos e faturação SaaS', href: '/manual/planos-e-faturacao' },
     ],
   },
   {
@@ -297,15 +313,36 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     subtitle: 'Central de avisos ao cliente',
     audience: 'firm',
     status: 'available',
-    seoDescription: 'Central de alertas e broadcasts no Teglion.',
+    seoDescription: 'Como usar a Central de Alertas no Teglion com clareza e cuidado com dados.',
     blocks: [
       {
         type: 'maya',
-        text: 'Use a Central de Alertas para comunicar com a carteira de forma controlada — melhor do que mensagens soltas.',
+        text: 'A Central de Alertas serve para falar com a carteira de forma controlada — melhor do que mensagens soltas no WhatsApp pessoal da equipa, onde se perde o histórico e o contexto.',
+      },
+      { type: 'h2', text: 'Quando usar' },
+      {
+        type: 'ul',
+        items: [
+          'Lembretes de documentos em falta ou prazos próximos.',
+          'Avisos gerais a um grupo de clientes (com texto claro e sem dados a mais).',
+          'Comunicações que a equipa precisa de poder rever depois.',
+        ],
+      },
+      { type: 'h2', text: 'Boas práticas' },
+      {
+        type: 'ol',
+        items: [
+          'Confirme o destinatário certo antes de enviar.',
+          'Escreva em português claro; evite jargão interno do gabinete.',
+          'Não cole passwords, NIFs desnecessários nem documentos sensíveis no corpo do alerta.',
+          'Se for urgente e individual, prefira o canal que o cliente já usa consigo — e registe o essencial na ficha.',
+        ],
       },
       {
-        type: 'p',
-        text: 'Escreva com clareza, evite dados sensíveis desnecessários e confirme sempre o destinatário certo.',
+        type: 'callout',
+        variant: 'security',
+        title: 'Dados pessoais',
+        text: 'Trate cada envio como tratamento de dados: só o necessário, só a quem precisa. O gabinete controla o conteúdo; o Teglion transporta o que a equipa escrever.',
       },
       { type: 'appLink', label: 'Central de Alertas', href: '/app/firm/alerts' },
     ],
@@ -317,18 +354,29 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     subtitle: 'Orçamentos e o que ainda é futuro',
     audience: 'firm',
     status: 'partial',
-    seoDescription: 'Modelos no Teglion e limites actuais de assinatura digital.',
+    seoDescription: 'Modelos e orçamentos no Teglion — limites honestos sobre assinatura e certificação AT.',
     blocks: [
       {
         type: 'maya',
-        text: 'Há apoio a documentos e orçamentos no fluxo do gabinete. Assinatura electrónica avançada como produto completo ainda não é a promessa desta versão.',
+        text: 'Há apoio a documentos e orçamentos no fluxo do gabinete. Assinatura electrónica avançada (tipo qualificada / fluxos certificados) ainda não é a promessa desta versão — e eu não finjo que seja.',
+      },
+      { type: 'h2', text: 'O que já ajuda' },
+      {
+        type: 'ul',
+        items: [
+          'Organizar pedidos e ficheiros no hub e no portal.',
+          'Usar o fluxo de serviços e orçamentos quando o gabinete já o tiver activo.',
+          'Guardar o que o cliente enviou, com histórico no sítio certo.',
+        ],
       },
       {
         type: 'callout',
         variant: 'warning',
         title: 'Não inventamos certificação',
-        text: 'Não use o Teglion como se fosse software de faturação certificado AT. Quando houver caminho oficial, estará documentado com honestidade.',
+        text: 'Não use o Teglion como se fosse software de faturação certificado AT, nem como plataforma oficial de assinatura qualificada. Quando houver caminho oficial, estará documentado aqui com honestidade.',
       },
+      { type: 'appLink', label: 'Documentos', href: '/manual/documentos' },
+      { type: 'appLink', label: 'Serviços e agenda', href: '/manual/definicoes-e-integracoes' },
     ],
   },
   {
@@ -338,18 +386,29 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     subtitle: 'Acessos oficiais com cuidado',
     audience: 'firm',
     status: 'available',
-    seoDescription: 'Cofre de acessos oficiais no Teglion e boas práticas de segurança.',
+    seoDescription: 'Cofre de acessos oficiais no Teglion: para que serve e como usar com segurança.',
     blocks: [
       {
         type: 'maya',
-        text: 'O cofre existe para credenciais oficiais (AT, SS, etc.) com controlo do gabinete. Trate-o como zona sensível.',
+        text: 'O cofre existe para credenciais oficiais (por exemplo AT ou Segurança Social) com controlo do gabinete. Trate-o como zona sensível — não como bloco de notas partilhado.',
+      },
+      { type: 'h2', text: 'Como pensar o cofre' },
+      {
+        type: 'ol',
+        items: [
+          'Guarde só acessos que a equipa precisa para trabalhar pelo cliente.',
+          'Use o hub do cliente / acessos oficiais no fluxo previsto na app.',
+          'Revogue ou actualize quando a password mudar ou a pessoa sair da equipa.',
+        ],
       },
       {
         type: 'callout',
         variant: 'security',
         title: 'Boas práticas',
-        text: 'Menos pessoas com acesso, MFA activo, sem partilhar ecrãs com passwords visíveis, e revisão periódica de quem ainda precisa de ver cada acesso.',
+        text: 'Menos pessoas com acesso, MFA activo na conta Teglion, sem partilhar ecrãs com passwords visíveis, e revisão periódica de quem ainda precisa de ver cada acesso. Nunca envie estas credenciais por e-mail ou WhatsApp «só desta vez».',
       },
+      { type: 'appLink', label: 'Lista de clientes (hub)', href: '/app/firm/clients' },
+      { type: 'appLink', label: 'Segurança e MFA', href: '/manual/primeiros-passos' },
     ],
   },
   {
@@ -359,12 +418,24 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     subtitle: 'Fora do âmbito actual',
     audience: 'firm',
     status: 'planned',
-    seoDescription: 'Open Banking não está disponível no Teglion nesta versão.',
+    seoDescription: 'Open Banking (PSD2) não está disponível no Teglion nesta versão.',
     blocks: [
       {
         type: 'maya',
-        text: 'Open Banking (PSD2) não está no Teglion nesta fase. Se aparecer no futuro, será com decisão jurídica e segurança próprias — não como atalho de marketing.',
+        text: 'Open Banking (PSD2) — ligar contas bancárias via APIs reguladas — não está no Teglion nesta fase. Não há botão escondido nem «beta secreta».',
       },
+      {
+        type: 'p',
+        text: 'Se no futuro existir, será com decisão jurídica, segurança e comunicação próprias — não como atalho de marketing. Até lá, use os extratos e processos que o gabinete já tem fora do Teglion.',
+      },
+      {
+        type: 'callout',
+        variant: 'info',
+        title: 'Enquanto isso',
+        text: 'Para avenças e estados de pagamento, use Pagamentos. Para leitura de ficheiros SAF-T (sem envio à AT), use o módulo SAF-T.',
+      },
+      { type: 'appLink', label: 'Pagamentos', href: '/app/firm/payments' },
+      { type: 'appLink', label: 'SAF-T (leitura)', href: '/app/firm/saft' },
     ],
   },
   {
@@ -431,12 +502,29 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     subtitle: 'Ainda não no produto',
     audience: 'firm',
     status: 'planned',
-    seoDescription: 'Módulo de atas ainda não disponível no Teglion.',
+    seoDescription: 'Módulo de atas de reunião ainda não disponível no Teglion — alternativas honestas.',
     blocks: [
       {
         type: 'maya',
-        text: 'Ainda não há módulo de atas de reunião no Teglion. Enquanto isso, use documentos e tarefas para o que precisa de ficar registado.',
+        text: 'Ainda não há módulo de atas de reunião no Teglion. Não vou desenhar um ecrã fictício: simplesmente ainda não existe.',
       },
+      { type: 'h2', text: 'Enquanto não há atas' },
+      {
+        type: 'ul',
+        items: [
+          'Guarde o essencial em Documentos (PDF/Word) ligado ao cliente certo.',
+          'Crie uma tarefa interna com prazo e responsável, se a decisão exigir follow-up.',
+          'Use Agendamentos para a reunião em si — a ata fica no sítio onde a equipa já procura ficheiros.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'info',
+        title: 'Quando existir',
+        text: 'Este capítulo passa a «Disponível» e explica o fluxo passo a passo. Até lá, desconfie de quem diga que «já há atas no Teglion».',
+      },
+      { type: 'appLink', label: 'Documentos', href: '/manual/documentos' },
+      { type: 'appLink', label: 'Tarefas', href: '/app/firm/tasks' },
     ],
   },
   {
@@ -446,17 +534,30 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     subtitle: 'Convites, papéis e permissões',
     audience: 'firm',
     status: 'available',
-    seoDescription: 'Gestão de equipa e RBAC no Teglion.',
+    seoDescription: 'Como convidar a equipa, papéis FIRM_OWNER / FIRM_STAFF e boas práticas de acesso.',
     blocks: [
       {
         type: 'maya',
-        text: 'Há o responsável do gabinete (FIRM_OWNER) e a equipa (FIRM_STAFF) com permissões. Não inventamos papéis que não existem.',
+        text: 'Há o responsável do gabinete (FIRM_OWNER) e a equipa (FIRM_STAFF) com permissões. Não inventamos papéis que não existem na app.',
+      },
+      { type: 'h2', text: 'Dia a dia' },
+      {
+        type: 'ol',
+        items: [
+          'Convide colegas pelo fluxo oficial em Definições — não partilhe a sua password.',
+          'Cada pessoa entra com a própria conta e MFA.',
+          'Quando alguém sair do gabinete, revogue o acesso no mesmo dia.',
+          'Dê só as permissões necessárias para o trabalho (menos privilégios = menos risco).',
+        ],
       },
       {
-        type: 'p',
-        text: 'Convide colegas pelo fluxo oficial. Revogue acessos quando alguém sair. Menos privilégios = menos risco.',
+        type: 'callout',
+        variant: 'security',
+        title: 'Contas partilhadas',
+        text: 'Uma conta para «toda a equipa» é um mau hábito: perde-se auditoria e MFA deixa de proteger. Uma pessoa, uma conta.',
       },
       { type: 'appLink', label: 'Definições', href: '/app/firm/settings' },
+      { type: 'appLink', label: 'Primeiros passos (MFA)', href: '/manual/primeiros-passos' },
     ],
   },
   {
@@ -466,14 +567,31 @@ export const MANUAL_CHAPTERS: ManualChapter[] = [
     subtitle: 'O que já mede e o que vem a seguir',
     audience: 'firm',
     status: 'partial',
-    seoDescription: 'Estado dos relatórios no Teglion.',
+    seoDescription: 'O que o Teglion já mostra em mapas e leituras — e o que ainda não é BI avançado.',
     blocks: [
       {
         type: 'maya',
-        text: 'Já tem saldos e mapas (avenças, mês fiscal, SAF-T leitura). Relatórios avançados de BI ainda evoluem — prefiro mostrar o que já é útil do que inventar dashboards vazios.',
+        text: 'Já tem saldos e mapas úteis no dia a dia. Relatórios avançados de BI (exportações densas, cruzamentos livres) ainda evoluem — prefiro mostrar o que já é útil do que inventar dashboards vazios.',
+      },
+      { type: 'h2', text: 'Onde olhar hoje' },
+      {
+        type: 'ul',
+        items: [
+          'Pagamentos / avenças — quem pagou, quem falta.',
+          'Mês fiscal e obrigações — vista operacional N/M.',
+          'SAF-T (leitura) — totais e cabeçalho para o gabinete, sem envio à AT.',
+          'KPIs na lista de clientes — atalhos para quem está sem portal ou em atenção.',
+        ],
+      },
+      {
+        type: 'callout',
+        variant: 'tip',
+        title: 'Expectativa correcta',
+        text: 'O Teglion organiza a operação do gabinete; não substitui o reporting do software de contabilidade clássico.',
       },
       { type: 'appLink', label: 'Pagamentos', href: '/app/firm/payments' },
       { type: 'appLink', label: 'SAF-T (leitura)', href: '/app/firm/saft' },
+      { type: 'appLink', label: 'Obrigações fiscais', href: '/manual/obrigacoes-fiscais' },
     ],
   },
   {
