@@ -110,13 +110,11 @@ Variáveis principais do serviço `teglion-api-staging`:
 | `STRIPE_SECRET_KEY` | `sk_test_…` |
 | `STRIPE_WEBHOOK_SECRET` | secret do endpoint de webhook staging |
 
-Turnstile em staging é obrigatório e fail-closed pra mim: sem token válido, a API responde `403 TURNSTILE_MISSING`/`TURNSTILE_FAILED` — não deixo skip em staging (dev/CI local sem secret continua fazendo skip, só em ambiente não-produção).
+Turnstile em staging é obrigatório e fail-closed: sem token válido, a API rejeita a mutação pública.
 
-### Por que staging já escreveu em produção uma vez (incidente que corrigi)
+### Staging vs produção (API)
 
-`frontend/vercel.json` reescrevia `/api/*` sempre pra `teglionapp.onrender.com` (produção), sem distinguir o host de origem. Em `staging.teglion.com`, se o build usasse variável de ambiente de Production ou caísse no fallback `/api`, o browser acabava falando com a API de produção — inclusive gravando cookies no domínio de produção.
-
-Correção que apliquei: `frontend/vercel.json` agora tem rewrite condicional por host — `staging.teglion.com`/`www.staging.teglion.com` vai pra `teglion-api-staging.onrender.com`, o resto vai pra produção. Em staging, o SPA usa `/api` same-origin (precisava disso pra cookies de auth/CSRF funcionarem no Chrome e no iOS). A navegação de OAuth do Google continua indo pra URL absoluta do Render, porque o callback precisa gravar cookie no host da própria API.
+O rewrite do frontend distingue o host de staging do de produção, para o browser **nunca** misturar cookies/sessão entre ambientes. Em staging o SPA usa `/api` same-origin (cookies/CSRF). OAuth Google usa o redirect configurado no backend.
 
 ### Frontend (Vercel — configuração staging)
 
@@ -157,9 +155,8 @@ Variáveis obrigatórias — nomes de referência em [`backend/.env.example`](..
 | `CORS_ORIGINS` | Mesmo domínio do frontend |
 | `COOKIE_SECURE=true` | Se HTTPS (sempre em produção) |
 | `COOKIE_SAMESITE=none` | Quando frontend e API estão em domínios diferentes |
-| `JWT_ACCESS_EXPIRES_IN` | `15m` recomendado — removo qualquer `24h` legado |
-| `RATE_LIMIT_AUTH_MAX` | Opcional, default `600` (req/15min por usuário autenticado) |
-| `LOGIN_MAX_FAILURES` / `LOGIN_LOCKOUT_MINUTES` | Opcionais, default `5` / `15` |
+| `JWT_ACCESS_EXPIRES_IN` | Curto (ex.: minutos) — nunca sessão “eterna” |
+| Variáveis de rate limit / lockout | Opcionais; valores exactos ficam só no Render / runbook interno |
 
 Autenticação é cookie-only (sem token no JSON) — por isso deployo sempre frontend e backend de uma mesma release juntos.
 

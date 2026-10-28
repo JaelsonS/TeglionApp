@@ -31,15 +31,15 @@ Esse é o procedimento que segui pra validar um dump do R2 **sem tocar em produ�
 
 ### 1. Listar e escolher objeto
 
-No Cloudflare R2 → bucket `teglion-backups-prod` → `postgresql/daily/...`. Anoto a chave do dump (ex. `postgresql/daily/2026/08/2026-08-13-030000.dump`) e o manifesto correspondente em `postgresql/manifests/...`.
+No Cloudflare R2 → bucket `bucket privado de backups` → `postgresql/daily/...`. Anoto a chave do dump (ex. `postgresql/daily/2026/08/2026-08-13-030000.dump`) e o manifesto correspondente em `postgresql/manifests/...`.
 
 ### 2. Download
 
 ```bash
-aws s3 cp "s3://teglion-backups-prod/postgresql/daily/YYYY/MM/FILE.dump" ./restore.dump \
+aws s3 cp "s3://$R2_BUCKET_NAME/postgresql/daily/YYYY/MM/FILE.dump" ./restore.dump \
   --endpoint-url "https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
 
-aws s3 cp "s3://teglion-backups-prod/postgresql/manifests/YYYY/MM/FILE.json" ./restore.json \
+aws s3 cp "s3://$R2_BUCKET_NAME/postgresql/manifests/YYYY/MM/FILE.json" ./restore.json \
   --endpoint-url "https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com"
 ```
 

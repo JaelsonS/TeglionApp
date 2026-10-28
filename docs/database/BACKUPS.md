@@ -29,7 +29,7 @@ Pros arquivos (documentos de cliente, imagens), o armazenamento vive no Supabase
 Render Cron Job (Dockerfile.backup)
   → pg_dump -Fc
   → SHA-256
-  → Cloudflare R2 (teglion-backups-prod)
+  → Cloudflare R2 (bucket privado de backups de produção)
   → manifesto JSON
   → retenção
   → Sentry se falhar
@@ -52,7 +52,7 @@ postgresql/manifests/YYYY/MM/YYYY-MM-DD-HHmmss.json
 | `R2_ACCOUNT_ID` | Sim | |
 | `R2_ACCESS_KEY_ID` | Sim | Token Object Read & Write, só neste bucket |
 | `R2_SECRET_ACCESS_KEY` | Sim | Só no Render |
-| `R2_BUCKET_NAME` | Sim | `teglion-backups-prod` |
+| `R2_BUCKET_NAME` | Sim | nome do bucket privado (só no Render) |
 | `R2_ENDPOINT` | Sim | `https://<ACCOUNT_ID>.r2.cloudflarestorage.com` |
 | `BACKUP_RETENTION_DAILY_DAYS` | Não | default `14` |
 | `BACKUP_RETENTION_WEEKLY_COUNT` | Não | default `8` (domingos UTC) |
@@ -91,14 +91,14 @@ A imagem inclui `postgresql-client-17` via PGDG (`pg_dump` / `pg_restore`), alin
 3. **Branch:** a mesma do backend de produção (`main`).
 4. **Schedule:** `0 3 * * *` (03:00 UTC).
 5. **Docker Command:** deixar o `CMD` da imagem (`node scripts/backup-postgres-to-r2.js`) ou definir explicitamente.
-6. **Environment** (só neste Cron Job): `BACKUP_DATABASE_URL` (Supabase Dashboard → Project Settings → Database → URI Direct ou Session, porta 5432, role com leitura completa do schema), `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME=teglion-backups-prod`, `R2_ENDPOINT`, retenção (opcional), `SENTRY_DSN`, e `BACKUP_DRY_RUN=true` no primeiro deploy.
+6. **Environment** (só neste Cron Job): `BACKUP_DATABASE_URL`, credenciais R2, `R2_BUCKET_NAME`, `R2_ENDPOINT`, retenção (opcional), `SENTRY_DSN`, e `BACKUP_DRY_RUN=true` no primeiro deploy. Valores exactos só no painel Render.
 7. Rodei o dry-run uma vez e verifiquei os logs: `backup_started` … `backup_verified` com `dryRun: true`.
 8. Troquei pra `BACKUP_DRY_RUN=false` e confirmei o primeiro dump + manifesto no R2.
 9. Agendei um restore temporário pra validar — ver [`DISASTER_RECOVERY.md`](./DISASTER_RECOVERY.md).
 
 ### Segurança
 
-- Token R2: só Object Read & Write no bucket `teglion-backups-prod`.
+- Token R2: só Object Read & Write no bucket de backups (mínimo privilégio).
 - Bucket privado; sem `r2.dev` público.
 - Logs/Sentry/manifesto: sem passwords, URIs, service role, JWT.
 - Lock em arquivo local (não Redis).

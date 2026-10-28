@@ -19,7 +19,7 @@ O job `validate` é obrigatório pra merge na `main` — é um status check exig
 
 **Actualização Set/2026:** se o job falhar em ~2s com *“account is locked due to a billing issue”*, é **billing GitHub Actions**, não regressão de testes. Merges recentes (#101–#102) foram feitos com CI cloud indisponível; validação local: 652 + 224 testes + `tsc`. Manter **Supabase staging activo** para o step `Tenant isolation test` voltar a correr no cloud.
 
-Isso corrige uma limitação real que existia antes: a suíte de teste do backend rodava só um arquivo no CI, e o teste de isolamento entre escritórios não rodava sozinho — fechei os dois gaps durante o Sprint 0 (itens 4 e 7, registro preservado em `docs/historico/SPRINT-0.md`). Se eu encontrar algum documento mais antigo que ainda descreva "só um arquivo de teste roda no CI" ou "isolamento não roda automaticamente", está desatualizado.
+Isso corrige uma limitação real que existia antes: a suíte de teste do backend rodava só um arquivo no CI, e o teste de isolamento entre escritórios não rodava sozinho — fechei os dois gaps durante o Sprint 0 (itens 4 e 7, registro preservado em `docs/historico/README.md`). Se eu encontrar algum documento mais antigo que ainda descreva "só um arquivo de teste roda no CI" ou "isolamento não roda automaticamente", está desatualizado.
 
 ## O que ainda é manual
 

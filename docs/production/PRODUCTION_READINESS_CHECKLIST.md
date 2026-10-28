@@ -30,7 +30,7 @@ Legenda: `PASS` | `FAIL` | `BLOCKED` | `NOT TESTED` | `NOT APPLICABLE`
 |------|--------|------|
 | Unit tests | PASS | **652/652** (97 ficheiros `*.test.js`) |
 | Security static | PASS | `npm run test:security-static -w backend` |
-| Tenant isolation (script) | NOT TESTED | Local 28/09: `ENOTFOUND xscriwhchdblmwmpglby` — staging pausado/inactivo |
+| Tenant isolation (script) | A VALIDAR no momento do release | Requer staging Supabase **activo**; nunca apontar a prod |
 
 ## D. Frontend
 
@@ -104,4 +104,4 @@ Legenda: `PASS` | `FAIL` | `BLOCKED` | `NOT TESTED` | `NOT APPLICABLE`
 - [ ] UAT browser (owner + contabilista + cliente) por release major
 - [ ] Alertas de faturação Supabase + GitHub + Render
 
-Registo histórico: [`../historico/FINAL_MAIN_RELEASE_GATE_2026-08-21.md`](../historico/FINAL_MAIN_RELEASE_GATE_2026-08-21.md) (Agosto 2026).
+Estado actual: [`CURRENT_STATE.md`](./CURRENT_STATE.md) · Roadmap: [`../ROADMAP.md`](../ROADMAP.md).

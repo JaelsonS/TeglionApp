@@ -1,78 +1,50 @@
 # Estado actual do Teglion (produção)
 
-**Actualizado:** 28/09/2026  
-**Branch de produção:** `main` (`401d7e8` — merge PR #102)  
-**Uso comercial:** **5 escritórios** cadastrados e a utilizar o sistema em produção (`www.teglion.com` / API Render).
+**Actualizado:** 28 de outubro de 2026  
+**Branch de produção:** `main` (merge soft launch [#291](https://github.com/JaelsonS/TeglionApp/pull/291) — staging → main)  
+**Uso comercial:** escritórios em produção em `www.teglion.com` · soft launch comercial **29/10/2026**
 
-Este ficheiro é o **snapshot operacional** mais recente. Checklists históricos (ex. [`../historico/FINAL_MAIN_RELEASE_GATE_2026-08-21.md`](../historico/FINAL_MAIN_RELEASE_GATE_2026-08-21.md)) ficam como registo; não reflectem o presente.
-
----
-
-## Capacidade e escala (ordem de grandeza)
-
-| Dimensão | Estado actual | Notas |
-|----------|---------------|--------|
-| Escritórios (tenants) | **5** | Piloto comercial activo; meta imediata ~10 |
-| Arquitectura | Monólito modular (Node + React + Supabase) | Adequado para dezenas de escritórios numa instância API |
-| Schedulers | `setInterval` horário por processo API | OK com 1 instância Render; duplicar instâncias exige locks (futuro) |
-| Multi-tenant | `firm_id` na app + teste de isolamento | Ver [`../security/TENANT_ISOLATION.md`](../security/TENANT_ISOLATION.md) |
+Este ficheiro é o **snapshot operacional**. Não inclui IDs de projectos cloud nem limiares de abuso.
 
 ---
 
-## Releases recentes (main)
+## O que está em produção hoje
 
-| PR | Conteúdo |
-|----|----------|
-| #97–#98 | Dependências backend (npm audit) |
-| #99–#100 | Alertas cliente (detalhe, anexos), UX cofre/password, validade documentos + lembretes 5 dias |
-| #101–#102 | Banner trial `FIRM_OWNER`, utils + testes; fix typecheck metadata documentos |
+- Núcleo: clientes, documentos, tarefas, agenda, MFA, cofre, Stripe billing/Connect, Maya, página pública por slug, portal cliente
+- **V10 Ops+Fiscal** (após #291): avenças/pagamentos internos, calculadoras fiscais, rendas, SAF-T (leitura), Manual `/manual`
+- **Control Center** AfDigital: gated por env + MFA (ver carta de produto, sem detalhes operacionais no repo público)
 
----
+## Capacidade e escala
 
-## Testes automatizados (evidência local 28/09/2026)
+| Dimensão | Estado |
+|----------|--------|
+| Arquitectura | Monólito modular (Node + React + Supabase) |
+| Schedulers | No processo API — OK com 1 instância; 2.ª instância só com Redis partilhado |
+| Multi-tenant | `firm_id` na app + teste de isolamento em staging |
 
-| Suite | Resultado |
-|-------|-----------|
-| Backend `node --test` | **652** testes, 97 ficheiros |
-| Frontend Vitest | **224** testes, 48 ficheiros |
-| `npm audit` (prod deps) | **0** vulnerabilidades (backend + frontend) |
-| `tsc --noEmit` | OK |
+## Infraestrutura (sem fingerprints)
 
----
+| Componente | Nota |
+|------------|------|
+| Supabase prod | Tem de estar **activo**; pausa por faturação = login a falhar |
+| Supabase staging | Tem de estar activo para CI / teste de isolamento local |
+| GitHub Actions | Pode falhar por billing; nesse caso corro a bateria local antes de merge |
+| Redis | Necessário para rate limit / lockout partilhados entre instâncias |
+| Vercel + Render | Frontend + API; deploy em merge `main` |
 
-## Infraestrutura crítica
+## Soft launch (29/10)
 
-| Componente | Produção | Staging / CI |
-|------------|----------|----------------|
-| Supabase prod (`teglion-production`) | Deve estar **ACTIVE_HEALTHY**; pausa = `ENOTFOUND` e login **500** | Projeto `teglion-staging` (`xscriwhchdblmwmpglby`) — **reactivar** para CI e teste local de isolamento |
-| GitHub Actions | Job `validate` pode falhar se **billing da conta GitHub** estiver bloqueado (não é falha de código) | Secrets `STAGING_SUPABASE_*` obrigatórios para tenant isolation no CI |
-| Redis | Rate limit partilhado quando saudável; fallback in-memory por instância | Ver logs `NOSCRIPT` / Sentry `[rate-limit]` |
-| Vercel + Render | Frontend + API | Deploy automático em merge `main` |
+- Divulgação **gradual** (não ads virais no dia D)
+- Plantão humano + Sentry + Render
+- **Zero merges de risco** para `main` no dia da divulgação
+- Google OAuth: publicar a app no Google Cloud (sair do modo Testing) ou gerir test users com cuidado
 
----
+Prioridades a seguir: [`../ROADMAP.md`](../ROADMAP.md).
 
-## Teste de isolamento multi-tenant (local)
+## Teste de isolamento
 
-Comando: `npm run test:tenant-isolation -w backend`
+`npm run test:tenant-isolation -w backend` — só contra staging. Ver [`../security/TENANT_ISOLATION.md`](../security/TENANT_ISOLATION.md).
 
-- Usa `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` do **`.env` local** (muitas vezes apontam para staging).
-- Se o host Supabase estiver **pausado ou inexistente**, falha com `getaddrinfo ENOTFOUND …supabase.co` — **não é regressão de código**; é ambiente.
-- **Nunca** apontar este teste para produção (grava dados sintéticos).
+## Onde actualizar
 
-Passos: reactivar projeto staging no painel Supabase **ou** usar credenciais de um projecto de dev dedicado; confirmar DNS (`ping` / resolver) antes de re-correr.
-
-Aviso estático conhecido (não bloqueia por defeito): `service-inquiries.repository.js:172` — rever se `id` já vem validado no call site.
-
----
-
-## Prontidão comercial (5 → 10 escritórios)
-
-**Pronto hoje:** isolamento testado (quando staging activo), MFA/cofre, CSRF, billing/trial, portal cliente, documentos com validade.
-
-**A fechar sem bloquear piloto:** backup restore trimestral registado; UAT formal MFA/vault em browser; staging sempre activo para CI; alertas Supabase/Render/GitHub pagos; runbook Supabase pausado (ver [`../operations/INCIDENTS.md`](../operations/INCIDENTS.md)).
-
----
-
-## Onde actualizar a seguir
-
-Alterou produto, segurança ou ops → actualizar este ficheiro + [`PRODUCTION_READINESS_CHECKLIST.md`](./PRODUCTION_READINESS_CHECKLIST.md) + [`../ROADMAP.md`](../ROADMAP.md) (secção «Onde estou»).
+Mudou produto, segurança ou ops → este ficheiro + [`../ROADMAP.md`](../ROADMAP.md) + doc da pasta afectada, no mesmo PR.

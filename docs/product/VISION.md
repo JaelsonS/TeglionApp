@@ -50,8 +50,12 @@ Sem previsão de faturamento, sem número de clientes inventado. Isto é sobre o
 
 **Ecossistema e integrações.** Google Calendar e Google Drive já mostram o padrão que quero seguir: integrar com as ferramentas que o escritório já usa em vez de forçar migração completa para dentro do Teglion. O próximo passo natural nessa linha é Stripe Connect — permitir que o próprio escritório receba pagamento dos seus clientes através da plataforma — cuja base já construí, ainda desligada por padrão em produção (ver [`docs/architecture/INTEGRATIONS.md`](../architecture/INTEGRATIONS.md)) — e integrações com sistemas contábeis/fiscais locais conforme cada mercado exigir.
 
-**Escala.** O teste real não é "quantos escritórios cabem tecnicamente" — é "quantos escritórios consigo atender bem, com onboarding que não depende de alguém da equipe explicar por telefone, suporte que responde rápido, e cobrança que funciona sozinha". Chegar a centenas de escritórios de forma saudável é mais sobre operação madura do que sobre servidor maior. Hoje tenho **cinco escritórios** em uso real em produção (Set/2026) — não tenho evidência de que já testei o sistema além disso (ver `docs/ROADMAP.md`), e qualquer afirmação sobre capacidade de escala além desse número é visão minha, não fato comprovado.
+**Escala.** O teste real não é "quantos escritórios cabem tecnicamente" — é "quantos consigo atender bem". Soft launch 29/10/2026 é a prova comercial seguinte; capacidade além disso é visão, não facto — ver [`../ROADMAP.md`](../ROADMAP.md).
+
+## Outros segmentos (futuro)
+
+Hoje o Teglion é **contabilidade**. A longo prazo quero que o **núcleo** (clientes, documentos, tarefas, mensagens, billing, multi-tenant) sirva outros serviços profissionais, com pacotes fiscais ou de domínio como camadas — sem clonar o repositório. Só depois de Portugal (e eventualmente multi-país) estáveis. Itens: secção Multi-segmento no roadmap.
 
 ---
 
-Se der certo, o Teglion não é mais "um sistema que uma contadora usa". É a camada onde escritórios de contabilidade e serviços profissionais administram a relação inteira com os próprios clientes — começando em Portugal, sem pressa de provar isso em nenhum outro lugar antes da hora.
+Se der certo, o Teglion não é só “um sistema que uma contabilista usa”. É a camada onde escritórios — e mais tarde outros profissionais — administram a relação com os próprios clientes.

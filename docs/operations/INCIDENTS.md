@@ -90,26 +90,25 @@ O detalhe do procedimento passo a passo e o registro completo de cada drill est�
 | Campo | Valor |
 |-------|-------|
 | Severidade | **P0** (indisponibilidade total de login/API dependentes de DB) |
-| Sintoma | Contabilista/equipa não conseguem entrar; `POST /api/auth/login-firm` **500** |
-| Erro | `getaddrinfo ENOTFOUND zanjbscfumxtdkglmpfb.supabase.co` (projecto `teglion-production` **INACTIVE** — faturação org Supabase) |
-| Impacto | Todos os **5 escritórios** em produção afectados até reactivação |
-| Resolução | Pagamento/reativação no painel Supabase → projecto **ACTIVE_HEALTHY**; `/api/health` 200 |
-| Collateral | Logs secundários: scheduler Connect payments, Redis `NOSCRIPT` (rate limit fallback) |
-| Prevenção | Plano pago + alertas billing Supabase; runbook abaixo |
+| Sintoma | Contabilista/equipa não conseguem entrar; login firm **500** |
+| Erro | DNS do host Supabase falha (`ENOTFOUND`) — projecto **INACTIVE** por faturação |
+| Impacto | Todos os escritórios em produção afectados até reactivação |
+| Resolução | Pagamento/reativação no painel Supabase → projecto activo; `/api/health` 200 |
+| Collateral | Schedulers e rate limit podem degradar enquanto a DB está fora |
+| Prevenção | Plano pago + alertas de billing Supabase |
 
-**Runbook rápido:** confirmar estado do projecto no dashboard Supabase → se INACTIVE, billing org → após ACTIVE, testar DNS e `curl https://teglionapp.onrender.com/api/health`. Não confundir com password ou CSRF.
+**Runbook rápido:** confirmar estado do projecto no dashboard Supabase → se INACTIVE, billing → após ACTIVE, testar `https://www.teglion.com/api/health`. Não confundir com password ou CSRF.
 
-**Relacionado (dev/CI):** teste local `npm run test:tenant-isolation` com `ENOTFOUND xscriwhchdblmwmpglby` = **staging** pausado — mesma classe de problema, ambiente diferente.
+**Relacionado (dev/CI):** `ENOTFOUND` no teste de isolamento local = **staging** pausado — mesma classe de problema, outro ambiente.
 
 ### 2026-07-20 — Postal lookup PT (produção)
 
 | Campo | Valor |
 |-------|-------|
 | Severidade | P2 (fallback de UX: preenchimento manual do endereço) |
-| Sintoma | Contadora em produção: falha ao autocompletar código postal |
-| Endpoint | `GET /api/public/postal-lookup?country=PT&postalCode=…` |
-| Sentry | `f0a37556` / request `27221227-c61c-456f-911e-05fcf68fa9b3` |
-| Erro | `ConnectTimeoutError` + `ENETUNREACH` IPv6 ao contactar `json.geoapi.pt` |
+| Sintoma | Falha ao autocompletar código postal |
+| Superfície | API pública de lookup postal PT |
+| Erro | Timeout / rede ao contactar o fornecedor externo de CP |
 
 **Causa raiz:** o backend dependia só de `https://json.geoapi.pt/cp/{CP}`, sem timeout nem fallback. A partir do host Render (AWS), a conexão ao geoapi (Contabo) falhava — IPv6 inacessível e timeout em IPv4. O `fetch` estourava em `TypeError: fetch failed`, gerando 500 no Sentry.
 
