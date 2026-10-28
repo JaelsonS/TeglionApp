@@ -2,7 +2,7 @@
 
 > Aqui eu consolidei o conteúdo que antes estava espalhado em `docs/03-PRODUTO/MODULOS.md`, `docs/03-PRODUTO/ALERTAS.md`, `docs/03-PRODUTO/BOOKING.md`, `docs/03-PRODUTO/CALENDARIO-FISCAL.md`, `docs/03-PRODUTO/CLIENTES.md`, `docs/03-PRODUTO/DOCUMENTOS.md`, `docs/03-PRODUTO/IRS.md`, `docs/03-PRODUTO/MENSAGENS.md`, `docs/03-PRODUTO/PAGINA-PUBLICA.md`, `docs/03-PRODUTO/SERVICOS.md` e `docs/00-PRODUTO/MISSION.md` (arquivos que removi nesta reorganização de 19/08/2026). Pra maturidade detalhada de cada funcionalidade, deixei tudo em [FEATURES.md](./FEATURES.md).
 
-O Teglion é o SaaS multi-tenant que estou construindo para escritórios de contabilidade. É um produto da AfDigital — Soluções Tecnológicas (ver [PRODUCT_PRINCIPLES.md](./PRODUCT_PRINCIPLES.md) para a distinção entre marca e entidade). Comecei em Portugal, sou brasileiro, e hoje tenho **cinco escritórios** a utilizar o sistema em **produção**, no dia a dia real da operação — não em ambiente de demo (ver [`docs/ROADMAP.md`](../ROADMAP.md) e [`docs/production/CURRENT_STATE.md`](../production/CURRENT_STATE.md)).
+O Teglion é o SaaS multi-tenant que estou a construir para escritórios de contabilidade. É um produto da **AfDigital — Soluções Tecnológicas** (ver [PRODUCT_PRINCIPLES.md](./PRODUCT_PRINCIPLES.md)). Comecei em Portugal, sou brasileiro, e em **28 Out 2026** o produto está em produção com soft launch comercial a **29/10** (ver [`docs/ROADMAP.md`](../ROADMAP.md) e [`docs/production/CURRENT_STATE.md`](../production/CURRENT_STATE.md)).
 
 ## Que problema resolve
 
@@ -32,6 +32,18 @@ O registro central do produto é o **cliente** — praticamente todo outro módu
 
 **Alertas / Notícias.** O escritório publica um aviso para todos os clientes ou para uma lista específica selecionada, com agendamento de publicação e acompanhamento de quem já leu. Existe também um sistema anterior mais simples que fiz antes ("Notícias", sempre para todos os clientes, sem segmentação) que continua em uso, ainda que eu já sinalize no produto a preferência pelo sistema de Alertas para publicação nova.
 
+## V10 — operação e apoio fiscal (em produção desde soft launch)
+
+Além do núcleo (clientes, documentos, mensagens, agenda, captação), eu acrescentei:
+
+- **Pagamentos / avenças** internas do escritório
+- **Calculadoras** de apoio (IVA, IRS, IRC, SS, IMT, retenções) — estimativas de trabalho, **não** declaração certificada
+- **Rendas** (contratos / recibos internos)
+- **SAF-T** em modo leitura / importação assistida
+- **Manual** público em `/manual`
+
+Carta: [V10_OPS_FISCAL_CHARTER.md](./V10_OPS_FISCAL_CHARTER.md).
+
 ## O que o Teglion não faz
 
-Não substitui o software fiscal certificado que o escritório é obrigado a usar por lei (o que gera IES, SAF-T, obrigações declarativas) — desenhei o Teglion para cobrir exatamente o que esse tipo de sistema não cobre: relação com cliente, comunicação, captação e organização de documento antes de virar lançamento contábil. Não calcula imposto, não faz retenção, não simula declaração — mesmo no fluxo chamado "IRS". Detalhe completo de posicionamento deixei em [PRODUCT_PRINCIPLES.md](./PRODUCT_PRINCIPLES.md).
+Não substitui o software fiscal **certificado** que o escritório é obrigado a usar por lei para declarações oficiais. O Teglion cobre relação com cliente, comunicação, captação, organização de documentos e **ferramentas de apoio** — a responsabilidade da declaração continua no profissional. Posicionamento: [PRODUCT_PRINCIPLES.md](./PRODUCT_PRINCIPLES.md).

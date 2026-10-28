@@ -44,7 +44,7 @@ Escrevo esta seção porque a documentação anterior (12/08/2026) descrevia doi
 
 **A correção, que verifiquei em código:** `deactivateMember` em `backend/src/modules/firm/team.service.js` (linha ~300) agora chama `authRefreshSessionsRepository.deleteAllForActor('firm_user', memberId)` na mesma operação que marca o usuário como inativo — o mesmo padrão que já uso para clientes em `revokeClientAccess`. Deixei um comentário explícito no código referenciando essa correção. Tenho teste automatizado cobrindo o cenário (`team.service.test.js`, caso `deactivateMember: revoga todas as sessões de refresh do membro desativado`), que rodei e confirmei passando durante esta revisão.
 
-**Origem da correção:** commit `c9d02e6` ("fix(sprint-0): fecha 4 dos 7 blockers da auditoria de 12/08/2026"), 13/08/2026 — o próprio Sprint 0 já registrava este item como `✅ Feito` em `docs/historico/SPRINT-0.md`, mas eu nunca tinha atualizado os documentos de arquitetura/segurança (`AUTH.md`, `MULTI-TENANT-SECURITY.md`) pra refletir isso. É exatamente a falha de manutenção de documentação que esta reestruturação tenta resolver.
+**Origem da correção:** commit `c9d02e6` ("fix(sprint-0): fecha 4 dos 7 blockers da auditoria de 12/08/2026"), 13/08/2026 — o próprio Sprint 0 já registrava este item como `✅ Feito` em `docs/historico/README.md`, mas eu nunca tinha atualizado os documentos de arquitetura/segurança (`AUTH.md`, `MULTI-TENANT-SECURITY.md`) pra refletir isso. É exatamente a falha de manutenção de documentação que esta reestruturação tenta resolver.
 
 ### Escalação de STAFF a FIRM_OWNER (SEC-H1) — corrigido, `IMPLEMENTADO`
 

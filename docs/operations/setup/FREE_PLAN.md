@@ -2,7 +2,7 @@
 
 > Fonte: `docs/operations/FREE_PLAN_SETUP.md` (pasta antiga, removida após esta consolidação).
 
-Revendo isso agora: o documento original descrevia um caminho de transição que usei — como fechar proteção de branch e isolamento parcial de staging/produção **sem** contratar Supabase e Render separados para staging, enquanto o projeto ainda estava nos planos gratuitos dessas plataformas. Ele rastreava três itens de uma numeração antiga (`F0-01`, `F0-02`, `F0-03`) que não corresponde à numeração atual do [Sprint 0](../../historico/SPRINT-0.md).
+Revendo isso agora: o documento original descrevia um caminho de transição que usei — como fechar proteção de branch e isolamento parcial de staging/produção **sem** contratar Supabase e Render separados para staging, enquanto o projeto ainda estava nos planos gratuitos dessas plataformas. Ele rastreava três itens de uma numeração antiga (`F0-01`, `F0-02`, `F0-03`) que não corresponde à numeração atual do [Sprint 0](../../historico/README.md).
 
 Esse cenário não se aplica mais. Hoje já existe:
 

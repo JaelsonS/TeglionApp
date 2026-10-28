@@ -1,16 +1,19 @@
 # Produto
 
-**Actualizado:** 25/10/2026 · **5 escritórios** em produção · V10 Ops+Fiscal em **staging**.
+**Actualizado:** 28/10/2026 · Produção com soft launch 29/10 · V10 em `main`.
 
 | Documento | Para quê |
 |-----------|----------|
-| [`PRODUCT.md`](./PRODUCT.md) | O que é o Teglion e como os módulos se ligam |
-| [`FEATURES.md`](./FEATURES.md) | Inventário por módulo (IMPLEMENTADO / PARCIAL) — pré-V10; ver diagnóstico |
-| [`FASE0_DIAGNOSTICO_MASTER_V10_2026-10-25.md`](./FASE0_DIAGNOSTICO_MASTER_V10_2026-10-25.md) | Diagnóstico Fase 0 Master Prompt V10 (estado real, riscos, roadmap) |
-| [`V10_OPS_FISCAL_CHARTER.md`](./V10_OPS_FISCAL_CHARTER.md) | Carta da frente Ops+Fiscal (ondas 1–7) |
-| [`USERS.md`](./USERS.md) | Público-alvo e papéis (owner, staff, cliente) |
-| [`VISION.md`](./VISION.md) | Visão longo prazo (não confundir com capacidade actual) |
-| [`BUSINESS_MODEL.md`](./BUSINESS_MODEL.md) | Billing SaaS, trial, Stripe |
-| [`PRODUCT_PRINCIPLES.md`](./PRODUCT_PRINCIPLES.md) | Princípios de decisão de produto |
+| [`PRODUCT.md`](./PRODUCT.md) | O que é o Teglion |
+| [`FEATURES.md`](./FEATURES.md) | Inventário por módulo |
+| [`USERS.md`](./USERS.md) | Público e papéis |
+| [`VISION.md`](./VISION.md) | Longo prazo (país, segmentos) |
+| [`BUSINESS_MODEL.md`](./BUSINESS_MODEL.md) | Billing |
+| [`PRODUCT_PRINCIPLES.md`](./PRODUCT_PRINCIPLES.md) | Princípios + identidade AfDigital |
+| [`V10_OPS_FISCAL_CHARTER.md`](./V10_OPS_FISCAL_CHARTER.md) | Carta Ops+Fiscal |
+| [`TEGLION_CONTROL_CENTER_CHARTER.md`](./TEGLION_CONTROL_CENTER_CHARTER.md) | Control Center (sem ops sensível) |
+| [`MAYA_OFFICE_ACTIVATION.md`](./MAYA_OFFICE_ACTIVATION.md) | Maya activação |
+| [`MAYA_PUBLIC_SITE_STUDIO.md`](./MAYA_PUBLIC_SITE_STUDIO.md) | Estúdio página pública |
+| [`MAYA_COACH_REDESIGN.md`](./MAYA_COACH_REDESIGN.md) | Maya Coach |
 
-Prioridades de evolução → [`../ROADMAP.md`](../ROADMAP.md).
+Diagnóstico Fase 0 (histórico de produto, scrubbed): [`FASE0_DIAGNOSTICO_MASTER_V10_2026-10-25.md`](./FASE0_DIAGNOSTICO_MASTER_V10_2026-10-25.md) — prioridades vivas só no [`../ROADMAP.md`](../ROADMAP.md).

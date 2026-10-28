@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADRs)
 
-Relatório de auditoria Fase 0 (Ago/2026, read-only) → [`../historico/auditorias/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md`](../historico/auditorias/AUDITORIA_FASE0_EVOLUCAO_2026-08-20.md) (arquivo; decisões adoptadas estão nos ADRs abaixo).
+Origem das decisões de evolução (Ago/2026): arquivo interno AfDigital — ver [`../historico/README.md`](../historico/README.md). As decisões adoptadas estão nos ADRs abaixo.
 
 ## O que é um ADR
 
