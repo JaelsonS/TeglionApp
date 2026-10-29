@@ -128,6 +128,7 @@ function runSsSimulate(body) {
       regimeCode: body.regimeCode,
       baseCents: body.baseCents,
       servicesCents: body.servicesCents,
+      salesCents: body.salesCents,
       ruleVersion: body.ruleVersion || SS_DEFAULT_VERSION,
     });
   } catch (err) {

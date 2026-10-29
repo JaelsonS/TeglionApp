@@ -11,21 +11,27 @@ function contributionFromBase(baseCents, rateBps) {
 }
 
 /**
- * Rendimento relevante TI (prestação de serviços): pct% do valor bruto.
- * Default 70 % (art. regime TI — prestação de serviços).
+ * Rendimento relevante TI a partir de um valor bruto e coeficiente %.
+ * Prestação de serviços: tipicamente 70 %. Vendas: tipicamente 20 %.
  */
-function relevantIncomeFromServices(servicesCents, relevantPct = 70) {
-  const services = assertNonNegInt(servicesCents, 'Prestação de serviços');
+function relevantIncomeFromGross(grossCents, relevantPct, label = 'Valor bruto') {
+  const gross = assertNonNegInt(grossCents, label);
   const pct = Math.round(Number(relevantPct));
   if (!Number.isFinite(pct) || pct < 0 || pct > 100) {
     const err = new Error('Percentagem de rendimento relevante inválida');
     err.code = 'INVALID_RATE';
     throw err;
   }
-  return halfUpDiv(services * pct, 100);
+  return halfUpDiv(gross * pct, 100);
+}
+
+/** @deprecated alias — preferir relevantIncomeFromGross */
+function relevantIncomeFromServices(servicesCents, relevantPct = 70) {
+  return relevantIncomeFromGross(servicesCents, relevantPct, 'Prestação de serviços');
 }
 
 module.exports = {
   contributionFromBase,
+  relevantIncomeFromGross,
   relevantIncomeFromServices,
 };

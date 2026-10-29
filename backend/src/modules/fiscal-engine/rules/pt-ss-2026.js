@@ -48,7 +48,10 @@ module.exports = {
       employerBps: 0,
       totalBps: 2140,
       kind: 'self_employed',
+      /** Coeficiente rendimento relevante — prestação de serviços. */
       relevantIncomePct: 70,
+      /** Coeficiente rendimento relevante — vendas de mercadorias. */
+      relevantIncomeSalesPct: 20,
     },
     {
       code: 'ti_eni',
@@ -58,11 +61,13 @@ module.exports = {
       totalBps: 2520,
       kind: 'self_employed',
       relevantIncomePct: 70,
+      relevantIncomeSalesPct: 20,
     },
   ],
   limitations: [
     'Não aplica isenções, reduções temporárias nem regimes especiais (deficientes, pré-reforma, 1.º emprego, etc.).',
     'Para TI: estimativa simplificada — não aplica declaração trimestral, opção ±25 %, nem limites mín./máx. da BIC.',
+    'Coeficientes de rendimento relevante usados na estimativa: 70 % prestação de serviços, 20 % vendas.',
     'Não calcula contribuição da entidade contratante (7 % / 10 %).',
     'Não é declaração oficial nem substitui a Segurança Social Direta.',
   ],
