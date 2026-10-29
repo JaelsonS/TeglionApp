@@ -68,6 +68,8 @@ export function SsCalculatorWorkspace({
 
   const [regimeCode, setRegimeCode] = useState('tco_lucrativo')
   const [euros, setEuros] = useState(0)
+  const [servicesEuros, setServicesEuros] = useState(0)
+  const [salesEuros, setSalesEuros] = useState(0)
   const [tiMode, setTiMode] = useState<'base' | 'services'>('base')
   const [simulation, setSimulation] = useState<SsSimulation | null>(null)
   const [busy, setBusy] = useState(false)
@@ -89,16 +91,24 @@ export function SsCalculatorWorkspace({
   )
   const isTi = selected?.kind === 'self_employed'
   const amountCents = useMemo(() => Math.round(euros * 100), [euros])
+  const servicesCents = useMemo(() => Math.round(servicesEuros * 100), [servicesEuros])
+  const salesCents = useMemo(() => Math.round(salesEuros * 100), [salesEuros])
 
   function reopen(row: FiscalCalculationRow) {
     const input = row.input || {}
     setRegimeCode(String(input.regimeCode || regimeCode))
-    if (input.servicesCents != null && Number(input.servicesCents) > 0) {
+    const hasServices = input.servicesCents != null && Number(input.servicesCents) > 0
+    const hasSales = input.salesCents != null && Number(input.salesCents) > 0
+    if (hasServices || hasSales) {
       setTiMode('services')
-      setEuros(centsToEuros(input.servicesCents))
+      setServicesEuros(hasServices ? centsToEuros(input.servicesCents) : 0)
+      setSalesEuros(hasSales ? centsToEuros(input.salesCents) : 0)
+      setEuros(0)
     } else {
       setTiMode('base')
       setEuros(centsToEuros(input.baseCents))
+      setServicesEuros(0)
+      setSalesEuros(0)
     }
     setClientId(row.clientId ? String(row.clientId) : '')
     setSimulation(simulationFromRow(row))
@@ -106,7 +116,16 @@ export function SsCalculatorWorkspace({
   }
 
   async function runSimulate(save: boolean) {
-    if (amountCents < 0) {
+    if (isTi && tiMode === 'services') {
+      if (servicesCents < 0 || salesCents < 0) {
+        toast.error('Indique valores válidos')
+        return
+      }
+      if (servicesCents === 0 && salesCents === 0) {
+        toast.error('Indique prestação de serviços e/ou vendas')
+        return
+      }
+    } else if (amountCents < 0) {
       toast.error('Indique um valor')
       return
     }
@@ -118,7 +137,8 @@ export function SsCalculatorWorkspace({
         clientId: clientId || undefined,
       }
       if (isTi && tiMode === 'services') {
-        payload.servicesCents = amountCents
+        if (servicesCents > 0) payload.servicesCents = servicesCents
+        if (salesCents > 0) payload.salesCents = salesCents
       } else {
         payload.baseCents = amountCents
       }
@@ -216,21 +236,32 @@ export function SsCalculatorWorkspace({
                 )}
                 onClick={() => setTiMode('services')}
               >
-                Prestação de serviços (70 %)
+                A partir da facturação
               </button>
             </div>
           ) : null}
 
-          <label className="block space-y-1.5 text-sm">
-            <span className="font-medium">
-              {isTi && tiMode === 'services'
-                ? 'Valor da prestação de serviços'
-                : isTi
-                  ? 'Base de incidência'
-                  : 'Remuneração ilíquida'}
-            </span>
-            <EuroInput value={euros} onChange={setEuros} />
-          </label>
+          {isTi && tiMode === 'services' ? (
+            <div className="space-y-3">
+              <label className="block space-y-1.5 text-sm">
+                <span className="font-medium">Prestação de serviços (rendimento relevante 70 %)</span>
+                <EuroInput value={servicesEuros} onChange={setServicesEuros} />
+              </label>
+              <label className="block space-y-1.5 text-sm">
+                <span className="font-medium">Vendas (rendimento relevante 20 %)</span>
+                <EuroInput value={salesEuros} onChange={setSalesEuros} />
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Pode preencher um, o outro, ou ambos. A base de incidência é a soma dos rendimentos
+                relevantes.
+              </p>
+            </div>
+          ) : (
+            <label className="block space-y-1.5 text-sm">
+              <span className="font-medium">{isTi ? 'Base de incidência' : 'Remuneração ilíquida'}</span>
+              <EuroInput value={euros} onChange={setEuros} />
+            </label>
+          )}
 
           <div className="flex flex-wrap gap-2 pt-1">
             <Button type="button" onClick={() => void runSimulate(false)} disabled={busy}>
@@ -251,9 +282,25 @@ export function SsCalculatorWorkspace({
           ) : (
             <div className="mt-3 space-y-3">
               <ResultRow label="Base usada" value={formatEuroFromCents(simulation.result.baseCents)} />
-              {simulation.result.relevantIncomeCents != null ? (
+              {simulation.result.relevantFromServicesCents != null &&
+              Number(simulation.result.relevantFromServicesCents) > 0 ? (
                 <ResultRow
-                  label="Rendimento relevante (70 %)"
+                  label={`Relevante prestações (${simulation.input.relevantIncomePct ?? 70} %)`}
+                  value={formatEuroFromCents(simulation.result.relevantFromServicesCents)}
+                />
+              ) : null}
+              {simulation.result.relevantFromSalesCents != null &&
+              Number(simulation.result.relevantFromSalesCents) > 0 ? (
+                <ResultRow
+                  label={`Relevante vendas (${simulation.input.relevantIncomeSalesPct ?? 20} %)`}
+                  value={formatEuroFromCents(simulation.result.relevantFromSalesCents)}
+                />
+              ) : null}
+              {simulation.result.relevantIncomeCents != null &&
+              simulation.result.relevantFromServicesCents == null &&
+              simulation.result.relevantFromSalesCents == null ? (
+                <ResultRow
+                  label="Rendimento relevante"
                   value={formatEuroFromCents(simulation.result.relevantIncomeCents)}
                 />
               ) : null}

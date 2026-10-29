@@ -17,12 +17,16 @@ export type SsSimulation = {
     regimeCode: string
     baseCents: number
     servicesCents: number | null
+    salesCents?: number | null
     derivedFrom: string
     relevantIncomePct: number | null
+    relevantIncomeSalesPct?: number | null
   }
   result: {
     baseCents: number
     relevantIncomeCents: number | null
+    relevantFromServicesCents?: number | null
+    relevantFromSalesCents?: number | null
     workerCents: number
     employerCents: number
     totalCents: number
