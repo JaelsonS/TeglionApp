@@ -39,7 +39,7 @@ export const FIRM_CALCULATORS: readonly {
     id: 'ss',
     title: 'Segurança Social',
     description: 'Contribuições estimadas de trabalhadores independentes.',
-    purpose: 'Simule contribuições TCO/TI a partir da base ou da prestação de serviços.',
+    purpose: 'Simule contribuições TCO/TI a partir da base ou da facturação (prestações 70 %, vendas 20 %).',
     badge: 'TI',
     icon: Shield,
   },
