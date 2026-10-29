@@ -2246,21 +2246,19 @@
     @apply cb-operational-page-sub text-sm;
   }
 
+  /* Mesmo destaque segmentado de Documentos (cb-docs-seg-tabs),
+     mas largura total — Tarefas tem 6 secções e os rótulos não podem truncar. */
   .cb-tasks-tabs {
-    @apply mt-1 flex flex-wrap gap-0 border-b border-border/60 -mb-px;
+    @apply mt-3 flex w-full gap-1 overflow-x-auto rounded-xl border border-border/70 bg-muted/40 p-1;
+    -webkit-overflow-scrolling: touch;
   }
 
   .cb-tasks-tab {
-    @apply relative px-3 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground;
+    @apply shrink-0 whitespace-nowrap rounded-lg border-0 px-3 py-2 text-center text-sm font-semibold text-muted-foreground transition-colors hover:bg-background/70 hover:text-foreground;
   }
 
   .cb-tasks-tab-active {
-    @apply font-semibold text-foreground;
-  }
-
-  .cb-tasks-tab-active::after {
-    content: '';
-    @apply absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-brand;
+    @apply bg-brand text-white shadow-sm hover:bg-brand hover:text-white;
   }
 
   .cb-tasks-section-lead {
